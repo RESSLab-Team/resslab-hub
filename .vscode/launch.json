@@ -5,6 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "backend: run",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "resslab_tools.main:app",
+                "--reload",
+            ],
+            "jinja": true,
+            "cwd": "${workspaceFolder}/backend",
+            "envFile": "${workspaceFolder}/secrets/backend.env"
+        },
+        {
             "name": "frontend: run",
             "type": "node-terminal",
             "request": "launch",

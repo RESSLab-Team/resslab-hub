@@ -6,9 +6,14 @@ authors = ["David Tang <david.tang@epfl.ch>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+fastapi = "^0.70.0"
+dynaconf = "^3.1.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+flake8 = "^4.0.1"
+autopep8 = "^1.6.0"
+uvicorn = "^0.15.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
