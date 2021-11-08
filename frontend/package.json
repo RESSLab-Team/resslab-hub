@@ -10,6 +10,7 @@
     "generate:backend": "rm -rf src/backend && openapi-generator-cli generate -i ../openapi.json -g typescript-axios -o src/backend"
   },
   "dependencies": {
+    "axios": "^0.24.0",
     "core-js": "^3.6.5",
     "register-service-worker": "^1.7.1",
     "vue": "^2.6.11",
