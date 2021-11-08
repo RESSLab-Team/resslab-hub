@@ -15,7 +15,7 @@
             ],
             "jinja": true,
             "cwd": "${workspaceFolder}/backend",
-            "envFile": "${workspaceFolder}/secrets/backend.env"
+            "envFile": "${workspaceFolder}/secrets/database.env"
         },
         {
             "name": "frontend: run",

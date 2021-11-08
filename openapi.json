@@ -1,13 +1,14 @@
 {
   "openapi": "3.0.2",
   "info": {
-    "title": "RESSLab Tools",
+    "title": "resslab_tools",
     "version": "0.1.0"
   },
   "paths": {
     "/": {
       "get": {
         "summary": "Root",
+        "description": "Get Info",
         "operationId": "root__get",
         "responses": {
           "200": {
@@ -22,10 +23,134 @@
           }
         }
       }
+    },
+    "/connections": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Connections",
+        "description": "Get paginated Connections",
+        "operationId": "get_connections_connections_get",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Page",
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 1
+            },
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "maximum": 100.0,
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 50
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Connection_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "Connection": {
+        "title": "Connection",
+        "required": [
+          "experimental_program",
+          "specimen_designation",
+          "beam_to_column_type",
+          "beam_section",
+          "column_section",
+          "slab",
+          "pre_north_ridge",
+          "specimen_type",
+          "double_plate"
+        ],
+        "type": "object",
+        "properties": {
+          "experimental_program": {
+            "title": "Experimental Program",
+            "type": "string"
+          },
+          "specimen_designation": {
+            "title": "Specimen Designation",
+            "type": "string"
+          },
+          "beam_to_column_type": {
+            "title": "Beam To Column Type",
+            "type": "string"
+          },
+          "beam_section": {
+            "title": "Beam Section",
+            "type": "string"
+          },
+          "column_section": {
+            "title": "Column Section",
+            "type": "string"
+          },
+          "slab": {
+            "title": "Slab",
+            "type": "boolean"
+          },
+          "pre_north_ridge": {
+            "title": "Pre North Ridge",
+            "type": "boolean"
+          },
+          "specimen_type": {
+            "title": "Specimen Type",
+            "type": "string"
+          },
+          "double_plate": {
+            "title": "Double Plate",
+            "type": "integer"
+          }
+        },
+        "description": "Connection"
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
       "Info": {
         "title": "Info",
         "required": [
@@ -40,6 +165,67 @@
           },
           "version": {
             "title": "Version",
+            "type": "string"
+          }
+        },
+        "description": "App Info"
+      },
+      "Page_Connection_": {
+        "title": "Page[Connection]",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Connection"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "page": {
+            "title": "Page",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "minimum": 1.0,
+            "type": "integer"
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
             "type": "string"
           }
         }

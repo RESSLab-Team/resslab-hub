@@ -4,18 +4,23 @@ https://fastapi.tiangolo.com/tutorial/bigger-applications/
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_pagination import add_pagination
 
-from resslab_tools import __name__, __version__
+# pylint: disable=unused-import
+import resslab_tools.models.database  # type: ignore
+from resslab_tools import __name__ as title
+from resslab_tools import __version__
 from resslab_tools.config import settings
-from resslab_tools.routers import root
+from resslab_tools.routers import connections, root
+from resslab_tools.services.database import Base, database, engine
 
 app = FastAPI(
-    title=__name__,
+    title=title,
     version=__version__,
-    root_path=settings.get('root_path'),
+    root_path=settings.root_path,  # type: ignore
 )
 
-if settings.get('cors_enabled'):
+if settings.cors_enabled:  # type: ignore
     print('cors enabled')
 else:
     print('cors disabled')
@@ -28,3 +33,18 @@ else:
     )
 
 app.include_router(root.router)
+app.include_router(connections.router)
+add_pagination(app)
+
+
+Base.metadata.create_all(engine)
+
+
+@app.on_event("startup")
+async def startup():
+    await database.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await database.disconnect()

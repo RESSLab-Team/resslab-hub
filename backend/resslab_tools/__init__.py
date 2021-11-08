@@ -1,2 +1,4 @@
-__name__ = 'RESSLab Tools'
+"""
+RESSLab Tools
+"""
 __version__ = '0.1.0'

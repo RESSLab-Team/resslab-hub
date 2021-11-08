@@ -1,4 +1,6 @@
-
+"""
+Dynaconf Settings
+"""
 from dynaconf import Dynaconf, Validator
 
 settings = Dynaconf(
@@ -7,6 +9,11 @@ settings = Dynaconf(
     validators=[
         Validator('cors_enabled', default=False),
         Validator('root_path', default=''),
+        Validator('database_host', default='localhost'),
+        Validator('database_port', default=5432),
+        Validator('postgres_user', default='postgres'),
+        Validator('postgres_password', must_exist=True),
+        Validator('postgres_db', default='postgres'),
     ],
 )
 
