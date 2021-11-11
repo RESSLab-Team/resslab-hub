@@ -9,5 +9,5 @@ run-frontend:
 	$(MAKE) -C frontend run
 
 generate-api:
-	cd backend; poetry run dotenv -f ../secrets/database.env run python cli.py ../openapi.json
+	cd backend; poetry run dotenv -f ../secrets/.env run python cli.py ../openapi.json
 	cd frontend; npm run generate:backend

@@ -19,10 +19,10 @@
       :search="search"
       :server-items-length="totalCount"
     >
-      <template v-slot:item.slab="{ item }">
+      <template v-slot:[`item.slab`]="{ item }">
         <v-simple-checkbox v-model="item.slab" disabled></v-simple-checkbox>
       </template>
-      <template v-slot:item.pre_north_ridge="{ item }">
+      <template v-slot:[`item.pre_north_ridge`]="{ item }">
         <v-simple-checkbox
           v-model="item.preNorthridge"
           disabled
