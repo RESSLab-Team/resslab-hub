@@ -36,6 +36,15 @@
           {
             "required": false,
             "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
               "title": "Page",
               "minimum": 1.0,
               "type": "integer",
@@ -87,18 +96,23 @@
       "Connection": {
         "title": "Connection",
         "required": [
+          "id",
           "experimental_program",
           "specimen_designation",
           "beam_to_column_type",
           "beam_section",
           "column_section",
           "slab",
-          "pre_north_ridge",
+          "north_ridge",
           "specimen_type",
           "double_plate"
         ],
         "type": "object",
         "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
           "experimental_program": {
             "title": "Experimental Program",
             "type": "string"
@@ -123,9 +137,9 @@
             "title": "Slab",
             "type": "boolean"
           },
-          "pre_north_ridge": {
-            "title": "Pre North Ridge",
-            "type": "boolean"
+          "north_ridge": {
+            "title": "North Ridge",
+            "type": "string"
           },
           "specimen_type": {
             "title": "Specimen Type",

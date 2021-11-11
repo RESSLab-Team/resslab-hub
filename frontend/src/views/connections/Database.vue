@@ -1,6 +1,6 @@
 <template>
   <v-row>
-    <v-col cols="6">
+    <v-col cols="8">
       <connection-browser></connection-browser>
     </v-col>
   </v-row>
