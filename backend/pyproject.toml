@@ -8,9 +8,9 @@ authors = ["David Tang <david.tang@epfl.ch>"]
 python = "^3.9"
 fastapi = "^0.70.0"
 dynaconf = "^3.1.7"
-SQLAlchemy = "^1.4.26"
-fastapi-pagination = {extras = ["databases"], version = "^0.9.0"}
-psycopg2 = "^2.9.1"
+SQLAlchemy = {extras = ["asyncio"], version = "^1.4.27"}
+fastapi-pagination = {extras = ["async_sqlalchemy"], version = "^0.9.1"}
+asyncpg = "^0.24.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

@@ -4,7 +4,15 @@ API Models
 from pydantic import BaseModel
 
 
-class Connection(BaseModel):
+class ApiModel(BaseModel):
+    """
+    Parent class for all API models
+    """
+    class Config:
+        orm_mode = True
+
+
+class Connection(ApiModel):
     """
     Connection
     """

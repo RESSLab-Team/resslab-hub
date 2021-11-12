@@ -12,7 +12,7 @@ from resslab_tools import __name__ as title
 from resslab_tools import __version__
 from resslab_tools.config import settings
 from resslab_tools.routers import connections, root
-from resslab_tools.services.database import Base, database, engine
+from resslab_tools.services.database import engine, metadata
 
 app = FastAPI(
     title=title,
@@ -37,14 +37,18 @@ app.include_router(connections.router)
 add_pagination(app)
 
 
-Base.metadata.create_all(engine)
+async def async_main():
+    """
+    async main from https://docs.sqlalchemy.org/en/14/orm/extensions/asyncio.html
+    """
+    async with engine.begin() as conn:
+        await conn.run_sync(metadata.create_all)  # type: ignore
+    await engine.dispose()
 
 
 @app.on_event("startup")
 async def startup():
-    await database.connect()
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    await database.disconnect()
+    """
+    on FastAPI startup
+    """
+    await async_main()
