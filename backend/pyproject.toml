@@ -11,6 +11,7 @@ dynaconf = "^3.1.7"
 SQLAlchemy = {extras = ["asyncio"], version = "^1.4.27"}
 fastapi-pagination = {extras = ["async_sqlalchemy"], version = "^0.9.1"}
 asyncpg = "^0.24.0"
+uvicorn = "^0.15.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
