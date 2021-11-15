@@ -175,6 +175,8 @@ export default class ConnectionBrowser extends Vue {
       this.$connectionsApi
         .getConnectionsConnectionsGet(
           this.query,
+          this.options.sortBy,
+          this.options.sortDesc,
           this.options.page,
           this.options.itemsPerPage
         )

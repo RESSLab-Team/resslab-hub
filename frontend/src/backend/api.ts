@@ -193,12 +193,14 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * Get paginated Connections
          * @summary Get Connections
          * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
          * @param {number} [page] 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsConnectionsGet: async (query?: string, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsConnectionsGet: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/connections`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -213,6 +215,14 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
 
             if (query !== undefined) {
                 localVarQueryParameter['query'] = query;
+            }
+
+            if (sortBy) {
+                localVarQueryParameter['sortBy'] = sortBy;
+            }
+
+            if (sortDesc) {
+                localVarQueryParameter['sortDesc'] = sortDesc;
             }
 
             if (page !== undefined) {
@@ -248,13 +258,15 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * Get paginated Connections
          * @summary Get Connections
          * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
          * @param {number} [page] 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsConnectionsGet(query?: string, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PageConnection>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsConnectionsGet(query, page, size, options);
+        async getConnectionsConnectionsGet(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PageConnection>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsConnectionsGet(query, sortBy, sortDesc, page, size, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -271,13 +283,15 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * Get paginated Connections
          * @summary Get Connections
          * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
          * @param {number} [page] 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsConnectionsGet(query?: string, page?: number, size?: number, options?: any): AxiosPromise<PageConnection> {
-            return localVarFp.getConnectionsConnectionsGet(query, page, size, options).then((request) => request(axios, basePath));
+        getConnectionsConnectionsGet(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<PageConnection> {
+            return localVarFp.getConnectionsConnectionsGet(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -293,14 +307,16 @@ export class ConnectionsApi extends BaseAPI {
      * Get paginated Connections
      * @summary Get Connections
      * @param {string} [query] 
+     * @param {Array<string>} [sortBy] 
+     * @param {Array<boolean>} [sortDesc] 
      * @param {number} [page] 
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ConnectionsApi
      */
-    public getConnectionsConnectionsGet(query?: string, page?: number, size?: number, options?: AxiosRequestConfig) {
-        return ConnectionsApiFp(this.configuration).getConnectionsConnectionsGet(query, page, size, options).then((request) => request(this.axios, this.basePath));
+    public getConnectionsConnectionsGet(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getConnectionsConnectionsGet(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

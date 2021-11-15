@@ -45,6 +45,32 @@
           {
             "required": false,
             "schema": {
+              "title": "Sortby",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "sortBy",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sortdesc",
+              "type": "array",
+              "items": {
+                "type": "boolean"
+              },
+              "default": []
+            },
+            "name": "sortDesc",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
               "title": "Page",
               "minimum": 1.0,
               "type": "integer",
