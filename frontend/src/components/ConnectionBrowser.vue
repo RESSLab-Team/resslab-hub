@@ -19,24 +19,50 @@
       :search="search"
       :server-items-length="totalCount"
     >
-      <template v-slot:[`item.slab`]="{ item }">
-        <v-simple-checkbox v-model="item.slab" disabled></v-simple-checkbox>
-      </template>
       <template v-slot:[`body.prepend`]>
         <tr>
           <td v-for="header in headers" :key="header.value">
             <div v-switch="header.type">
-              <v-text-field
-                v-model="header.search"
-                v-case="'text'"
-              ></v-text-field>
+              <div v-case="'text'">
+                <v-select
+                  v-if="header.options"
+                  v-model="header.search"
+                  clearable
+                  :items="header.options"
+                ></v-select>
+                <v-text-field
+                  v-else
+                  v-model="header.search"
+                  clearable
+                ></v-text-field>
+              </div>
               <v-select
                 v-model="header.search"
                 v-case="'option'"
                 clearable
-                multiple
+                :multiple="isMultiple(header)"
                 :items="header.options"
               ></v-select>
+              <v-select
+                v-model="header.search"
+                v-case="'boolean'"
+                clearable
+                :items="booleanOptions"
+              ></v-select>
+              <div v-case="'number'">
+                <v-select
+                  v-if="header.options"
+                  v-model="header.search"
+                  clearable
+                  :items="header.options"
+                ></v-select>
+                <v-text-field
+                  v-else
+                  v-model="header.search"
+                  clearable
+                  type="number"
+                ></v-text-field>
+              </div>
             </div>
           </td>
         </tr>
@@ -55,9 +81,12 @@
 import { Connection } from "@/backend";
 import { Component, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
+import { booleanOptions } from "@/utils/vuetify";
 
 @Component
 export default class ConnectionBrowser extends Vue {
+  booleanOptions = booleanOptions;
+
   headers: Header[] = [
     {
       text: "Experimental Program",
@@ -100,11 +129,13 @@ export default class ConnectionBrowser extends Vue {
       text: "Specimen Type",
       value: "specimen_type",
       type: "text",
+      options: ["exterior", "interior"],
     },
     {
       text: "Double Plate",
       value: "double_plate",
       type: "number",
+      options: ["0", "> 0"],
     },
   ];
   connections: Connection[] = [];
@@ -115,8 +146,19 @@ export default class ConnectionBrowser extends Vue {
 
   get query(): string {
     return this.headers
-      .filter((header) => header.search && header.search.length > 0)
-      .map((header) => `${header.value}:${header.search}`)
+      .filter(
+        (header) =>
+          header.search != undefined &&
+          (typeof header.search == "boolean" || header.search.length > 0)
+      )
+      .map((header) => {
+        switch (header.type) {
+          case "text":
+            return `${header.value}:~%${header.search}%`;
+          default:
+            return `${header.value}:${header.search}`;
+        }
+      })
       .join(";");
   }
 
@@ -139,6 +181,14 @@ export default class ConnectionBrowser extends Vue {
         .finally(() => {
           this.loading = false;
         });
+    }
+  }
+
+  isMultiple(header: Header): boolean {
+    if (header.options) {
+      return header.options.length > 2;
+    } else {
+      return false;
     }
   }
 }
