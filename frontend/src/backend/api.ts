@@ -41,6 +41,12 @@ export interface Connection {
     'experimental_program': string;
     /**
      * 
+     * @type {number}
+     * @memberof Connection
+     */
+    'date': number;
+    /**
+     * 
      * @type {string}
      * @memberof Connection
      */
@@ -50,19 +56,13 @@ export interface Connection {
      * @type {string}
      * @memberof Connection
      */
-    'beam_to_column_type': string;
+    'northridge': string;
     /**
      * 
      * @type {string}
      * @memberof Connection
      */
-    'beam_section': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof Connection
-     */
-    'column_section': string;
+    'specimen_type': string;
     /**
      * 
      * @type {boolean}
@@ -74,19 +74,25 @@ export interface Connection {
      * @type {string}
      * @memberof Connection
      */
-    'north_ridge': string;
+    'connection_type': string;
     /**
      * 
      * @type {string}
      * @memberof Connection
      */
-    'specimen_type': string;
+    'section_b': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Connection
+     */
+    'section_c': string;
     /**
      * 
      * @type {number}
      * @memberof Connection
      */
-    'double_plate': number;
+    'n_dp': number;
 }
 /**
  * 

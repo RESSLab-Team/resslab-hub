@@ -98,14 +98,15 @@
         "required": [
           "id",
           "experimental_program",
+          "date",
           "specimen_designation",
-          "beam_to_column_type",
-          "beam_section",
-          "column_section",
-          "slab",
-          "north_ridge",
+          "northridge",
           "specimen_type",
-          "double_plate"
+          "slab",
+          "connection_type",
+          "section_b",
+          "section_c",
+          "n_dp"
         ],
         "type": "object",
         "properties": {
@@ -117,36 +118,40 @@
             "title": "Experimental Program",
             "type": "string"
           },
+          "date": {
+            "title": "Date",
+            "type": "integer"
+          },
           "specimen_designation": {
             "title": "Specimen Designation",
             "type": "string"
           },
-          "beam_to_column_type": {
-            "title": "Beam To Column Type",
-            "type": "string"
-          },
-          "beam_section": {
-            "title": "Beam Section",
-            "type": "string"
-          },
-          "column_section": {
-            "title": "Column Section",
-            "type": "string"
-          },
-          "slab": {
-            "title": "Slab",
-            "type": "boolean"
-          },
-          "north_ridge": {
-            "title": "North Ridge",
+          "northridge": {
+            "title": "Northridge",
             "type": "string"
           },
           "specimen_type": {
             "title": "Specimen Type",
             "type": "string"
           },
-          "double_plate": {
-            "title": "Double Plate",
+          "slab": {
+            "title": "Slab",
+            "type": "boolean"
+          },
+          "connection_type": {
+            "title": "Connection Type",
+            "type": "string"
+          },
+          "section_b": {
+            "title": "Section B",
+            "type": "string"
+          },
+          "section_c": {
+            "title": "Section C",
+            "type": "string"
+          },
+          "n_dp": {
+            "title": "N Dp",
             "type": "integer"
           }
         },

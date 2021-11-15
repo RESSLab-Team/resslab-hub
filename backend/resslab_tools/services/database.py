@@ -26,7 +26,8 @@ Base = declarative_base(bind=engine)
 
 async def async_main():
     """
-    async main from https://docs.sqlalchemy.org/en/14/orm/extensions/asyncio.html
+    async main from
+    https://docs.sqlalchemy.org/en/14/orm/extensions/asyncio.html
     """
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)  # type: ignore

@@ -94,34 +94,18 @@ export default class ConnectionBrowser extends Vue {
       type: "text",
     },
     {
+      text: "Date",
+      value: "date",
+      type: "number",
+    },
+    {
       text: "Specimen Designation",
       value: "specimen_designation",
       type: "text",
     },
     {
-      text: "Beam-to-Column Connection Type",
-      value: "beam_to_column_type",
-      type: "option",
-      options: ["WUF-W", "RBS", "WUF-B", "BFP", "WFP", "KBB", "BEEP"],
-    },
-    {
-      text: "Beam Section",
-      value: "beam_section",
-      type: "text",
-    },
-    {
-      text: "Column Section",
-      value: "column_section",
-      type: "text",
-    },
-    {
-      text: "SLAB",
-      value: "slab",
-      type: "boolean",
-    },
-    {
       text: "North Ridge",
-      value: "north_ridge",
+      value: "northridge",
       type: "option",
       options: ["pre", "post"],
     },
@@ -132,8 +116,29 @@ export default class ConnectionBrowser extends Vue {
       options: ["exterior", "interior"],
     },
     {
+      text: "SLAB",
+      value: "slab",
+      type: "boolean",
+    },
+    {
+      text: "Connection Type",
+      value: "connection_type",
+      type: "option",
+      options: ["WUF-W", "RBS", "WUF-B", "BFP", "WFP", "KBB", "BEEP"],
+    },
+    {
+      text: "Beam Section",
+      value: "section_b",
+      type: "text",
+    },
+    {
+      text: "Column Section",
+      value: "section_c",
+      type: "text",
+    },
+    {
       text: "Double Plate",
-      value: "double_plate",
+      value: "n_dp",
       type: "number",
       options: ["0", "> 0"],
     },

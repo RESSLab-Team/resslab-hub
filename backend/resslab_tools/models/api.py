@@ -18,11 +18,12 @@ class Connection(ApiModel):
     """
     id: str
     experimental_program: str
+    date: int
     specimen_designation: str
-    beam_to_column_type: str
-    beam_section: str
-    column_section: str
-    slab: bool
-    north_ridge: str
+    northridge: str
     specimen_type: str
-    double_plate: int
+    slab: bool
+    connection_type: str
+    section_b: str
+    section_c: str
+    n_dp: int
