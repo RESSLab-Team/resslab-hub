@@ -5,6 +5,7 @@
       <v-spacer></v-spacer>
       <v-text-field
         v-model="search"
+        clearable
         hide-details
         single-line
         append-icon="mdi-magnify"
@@ -150,7 +151,7 @@ export default class ConnectionBrowser extends Vue {
   options: DataOptions | null = null;
 
   get query(): string {
-    return this.headers
+    const queries = this.headers
       .filter(
         (header) =>
           header.search != undefined &&
@@ -163,8 +164,11 @@ export default class ConnectionBrowser extends Vue {
           default:
             return `${header.value}:${header.search}`;
         }
-      })
-      .join(";");
+      });
+    if (this.search && this.search.length > 0) {
+      queries.push(`%${this.search}%`);
+    }
+    return queries.join(";");
   }
 
   @Watch("options", { deep: true })
