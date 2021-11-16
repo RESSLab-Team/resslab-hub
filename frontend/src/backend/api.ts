@@ -22,77 +22,116 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } from './base';
 
 /**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export enum ConnectionColumn {
+    Id = 'id',
+    ExperimentalProgram = 'experimental_program',
+    Date = 'date',
+    SpecimenDesignation = 'specimen_designation',
+    Northridge = 'northridge',
+    SpecimenType = 'specimen_type',
+    Slab = 'slab',
+    ConnectionType = 'connection_type',
+    SectionB = 'section_b',
+    SectionC = 'section_c',
+    NDp = 'n_dp'
+}
+
+/**
  * Connection
  * @export
- * @interface Connection
+ * @interface ConnectionModel
  */
-export interface Connection {
+export interface ConnectionModel {
     /**
      * 
      * @type {string}
-     * @memberof Connection
+     * @memberof ConnectionModel
      */
     'id': string;
     /**
      * 
      * @type {string}
-     * @memberof Connection
+     * @memberof ConnectionModel
      */
     'experimental_program': string;
     /**
      * 
      * @type {number}
-     * @memberof Connection
+     * @memberof ConnectionModel
      */
     'date': number;
     /**
      * 
      * @type {string}
-     * @memberof Connection
+     * @memberof ConnectionModel
      */
     'specimen_designation': string;
     /**
      * 
      * @type {string}
-     * @memberof Connection
+     * @memberof ConnectionModel
      */
     'northridge': string;
     /**
      * 
      * @type {string}
-     * @memberof Connection
+     * @memberof ConnectionModel
      */
     'specimen_type': string;
     /**
      * 
      * @type {boolean}
-     * @memberof Connection
+     * @memberof ConnectionModel
      */
     'slab': boolean;
     /**
      * 
      * @type {string}
-     * @memberof Connection
+     * @memberof ConnectionModel
      */
     'connection_type': string;
     /**
      * 
      * @type {string}
-     * @memberof Connection
+     * @memberof ConnectionModel
      */
     'section_b': string;
     /**
      * 
      * @type {string}
-     * @memberof Connection
+     * @memberof ConnectionModel
      */
     'section_c': string;
     /**
      * 
      * @type {number}
-     * @memberof Connection
+     * @memberof ConnectionModel
      */
     'n_dp': number;
+}
+/**
+ * 
+ * @export
+ * @interface CountModel
+ */
+export interface CountModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof CountModel
+     */
+    'name': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof CountModel
+     */
+    'value': number;
 }
 /**
  * 
@@ -129,31 +168,31 @@ export interface Info {
 /**
  * 
  * @export
- * @interface PageConnection
+ * @interface PageConnectionModel
  */
-export interface PageConnection {
+export interface PageConnectionModel {
     /**
      * 
-     * @type {Array<Connection>}
-     * @memberof PageConnection
+     * @type {Array<ConnectionModel>}
+     * @memberof PageConnectionModel
      */
-    'items': Array<Connection>;
+    'items': Array<ConnectionModel>;
     /**
      * 
      * @type {number}
-     * @memberof PageConnection
+     * @memberof PageConnectionModel
      */
     'total': number;
     /**
      * 
      * @type {number}
-     * @memberof PageConnection
+     * @memberof PageConnectionModel
      */
     'page': number;
     /**
      * 
      * @type {number}
-     * @memberof PageConnection
+     * @memberof PageConnectionModel
      */
     'size': number;
 }
@@ -190,6 +229,43 @@ export interface ValidationError {
 export const ConnectionsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * Get occurences count of field values
+         * @summary Count
+         * @param {ConnectionColumn} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        countConnectionsCountGet: async (field: ConnectionColumn, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('countConnectionsCountGet', 'field', field)
+            const localVarPath = `/connections/count`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get paginated Connections
          * @summary Get Connections
          * @param {string} [query] 
@@ -218,11 +294,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             }
 
             if (sortBy) {
-                localVarQueryParameter['sortBy'] = sortBy;
+                localVarQueryParameter['sort_by'] = sortBy;
             }
 
             if (sortDesc) {
-                localVarQueryParameter['sortDesc'] = sortDesc;
+                localVarQueryParameter['sort_desc'] = sortDesc;
             }
 
             if (page !== undefined) {
@@ -255,6 +331,17 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ConnectionsApiAxiosParamCreator(configuration)
     return {
         /**
+         * Get occurences count of field values
+         * @summary Count
+         * @param {ConnectionColumn} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async countConnectionsCountGet(field: ConnectionColumn, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.countConnectionsCountGet(field, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get paginated Connections
          * @summary Get Connections
          * @param {string} [query] 
@@ -265,7 +352,7 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsConnectionsGet(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PageConnection>> {
+        async getConnectionsConnectionsGet(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PageConnectionModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsConnectionsGet(query, sortBy, sortDesc, page, size, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -280,6 +367,16 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
     const localVarFp = ConnectionsApiFp(configuration)
     return {
         /**
+         * Get occurences count of field values
+         * @summary Count
+         * @param {ConnectionColumn} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        countConnectionsCountGet(field: ConnectionColumn, options?: any): AxiosPromise<Array<CountModel>> {
+            return localVarFp.countConnectionsCountGet(field, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get paginated Connections
          * @summary Get Connections
          * @param {string} [query] 
@@ -290,7 +387,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsConnectionsGet(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<PageConnection> {
+        getConnectionsConnectionsGet(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<PageConnectionModel> {
             return localVarFp.getConnectionsConnectionsGet(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
     };
@@ -303,6 +400,18 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
  * @extends {BaseAPI}
  */
 export class ConnectionsApi extends BaseAPI {
+    /**
+     * Get occurences count of field values
+     * @summary Count
+     * @param {ConnectionColumn} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public countConnectionsCountGet(field: ConnectionColumn, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).countConnectionsCountGet(field, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Get paginated Connections
      * @summary Get Connections

@@ -8,10 +8,11 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, Query
 from fastapi_pagination import Page
 from fastapi_pagination.ext.async_sqlalchemy import paginate
-from resslab_tools.models.api import Connection as ConnectionModel
+from resslab_tools.models.api import (ConnectionColumn, ConnectionModel,
+                                      CountModel)
 from resslab_tools.models.database import Connection
 from resslab_tools.services.database import get_session
-from sqlalchemy import desc, or_, select
+from sqlalchemy import desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.selectable import Select
@@ -27,13 +28,13 @@ router = APIRouter(
 async def get_connections(
         session: AsyncSession = Depends(get_session),
         query: Optional[str] = Query(None),
-        sortBy: List[str] = Query([]),
-        sortDesc: List[bool] = Query([]),
+        sort_by: List[str] = Query([]),
+        sort_desc: List[bool] = Query([]),
 ):
     """
     Get paginated Connections
     """
-    where_clauses: List[Any] = [query_to_where_clause(q)
+    where_clauses: List[Any] = [__query_to_where_clause(q)
                                 for q
                                 in query.split(';')] \
         if query \
@@ -42,14 +43,28 @@ async def get_connections(
                                 if not is_desc
                                 else desc(Connection.__dict__[key])
                                 for key, is_desc
-                                in zip(sortBy, sortDesc)]
+                                in zip(sort_by, sort_desc)]
     select_query: Select = reduce(lambda acc, item: acc.where(item),
                                   where_clauses,
                                   select(Connection))
     return await paginate(session, select_query.order_by(*order_clauses))
 
 
-def query_to_where_clause(query: str):
+@router.get('/count', response_model=List[CountModel])
+async def count(
+    session: AsyncSession = Depends(get_session),
+    field: ConnectionColumn = Query(...),
+) -> List[CountModel]:
+    """
+    Get occurences count of field values
+    """
+    column = Connection.__dict__[field.value]
+    tuples = await session.execute(select([column, func.count()])
+                                   .group_by(column))
+    return [CountModel(name=tuple[0], value=tuple[1]) for tuple in tuples]
+
+
+def __query_to_where_clause(query: str):
     """
     Get where clause
     """

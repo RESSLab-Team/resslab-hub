@@ -79,7 +79,7 @@
 </style>
 
 <script lang="ts">
-import { Connection } from "@/backend";
+import { ConnectionModel } from "@/backend";
 import { Component, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
 import { booleanOptions } from "@/utils/vuetify";
@@ -144,7 +144,7 @@ export default class ConnectionBrowser extends Vue {
       options: ["0", "> 0"],
     },
   ];
-  connections: Connection[] = [];
+  connections: ConnectionModel[] = [];
   search = "";
   totalCount = -1;
   loading = true;

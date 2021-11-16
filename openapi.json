@@ -45,27 +45,27 @@
           {
             "required": false,
             "schema": {
-              "title": "Sortby",
+              "title": "Sort By",
               "type": "array",
               "items": {
                 "type": "string"
               },
               "default": []
             },
-            "name": "sortBy",
+            "name": "sort_by",
             "in": "query"
           },
           {
             "required": false,
             "schema": {
-              "title": "Sortdesc",
+              "title": "Sort Desc",
               "type": "array",
               "items": {
                 "type": "boolean"
               },
               "default": []
             },
-            "name": "sortDesc",
+            "name": "sort_desc",
             "in": "query"
           },
           {
@@ -98,7 +98,53 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_Connection_"
+                  "$ref": "#/components/schemas/Page_ConnectionModel_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/count": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Count",
+        "description": "Get occurences count of field values",
+        "operationId": "count_connections_count_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ConnectionColumn"
+            },
+            "name": "field",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Count Connections Count Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountModel"
+                  }
                 }
               }
             }
@@ -119,8 +165,25 @@
   },
   "components": {
     "schemas": {
-      "Connection": {
-        "title": "Connection",
+      "ConnectionColumn": {
+        "title": "ConnectionColumn",
+        "enum": [
+          "id",
+          "experimental_program",
+          "date",
+          "specimen_designation",
+          "northridge",
+          "specimen_type",
+          "slab",
+          "connection_type",
+          "section_b",
+          "section_c",
+          "n_dp"
+        ],
+        "description": "An enumeration."
+      },
+      "ConnectionModel": {
+        "title": "ConnectionModel",
         "required": [
           "id",
           "experimental_program",
@@ -183,6 +246,24 @@
         },
         "description": "Connection"
       },
+      "CountModel": {
+        "title": "CountModel",
+        "required": [
+          "name",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "integer"
+          }
+        }
+      },
       "HTTPValidationError": {
         "title": "HTTPValidationError",
         "type": "object",
@@ -215,8 +296,8 @@
         },
         "description": "App Info"
       },
-      "Page_Connection_": {
-        "title": "Page[Connection]",
+      "Page_ConnectionModel_": {
+        "title": "Page[ConnectionModel]",
         "required": [
           "items",
           "total",
@@ -229,7 +310,7 @@
             "title": "Items",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Connection"
+              "$ref": "#/components/schemas/ConnectionModel"
             }
           },
           "total": {

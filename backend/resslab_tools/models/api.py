@@ -1,7 +1,11 @@
 """
 API Models
 """
+import enum
+
 from pydantic import BaseModel
+
+from .database import Connection
 
 
 class ApiModel(BaseModel):
@@ -12,7 +16,7 @@ class ApiModel(BaseModel):
         orm_mode = True
 
 
-class Connection(ApiModel):
+class ConnectionModel(ApiModel):
     """
     Connection
     """
@@ -27,3 +31,14 @@ class Connection(ApiModel):
     section_b: str
     section_c: str
     n_dp: int
+
+
+class CountModel(BaseModel):
+    name: str
+    value: int
+
+
+ConnectionColumn = enum.Enum(
+    'ConnectionColumn',
+    {column.name: column.name for column in Connection.__table__.columns}
+)
