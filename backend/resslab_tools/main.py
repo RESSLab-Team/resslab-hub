@@ -6,13 +6,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
 
-# pylint: disable=unused-import
-import resslab_tools.models.database  # type: ignore
 from resslab_tools import __name__ as title
 from resslab_tools import __version__
 from resslab_tools.config import settings
 from resslab_tools.routers import connections, root
-from resslab_tools.services.database import async_main
+from resslab_tools.services.database import upgrade_database
 
 app = FastAPI(
     title=title,
@@ -36,10 +34,4 @@ app.include_router(root.router)
 app.include_router(connections.router)
 add_pagination(app)
 
-
-@app.on_event("startup")
-async def startup():
-    """
-    on FastAPI startup
-    """
-    await async_main()
+upgrade_database()

@@ -13,6 +13,7 @@ fastapi-pagination = {extras = ["async_sqlalchemy"], version = "^0.9.1"}
 asyncpg = "^0.24.0"
 uvicorn = "^0.15.0"
 alembic = "^1.7.5"
+psycopg2 = "^2.9.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
