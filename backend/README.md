@@ -16,5 +16,5 @@ poetry run dotenv -f ..\secrets\.env run alembic downgrade
 ## Upload data
 
 ```bash
-poetry run dotenv -f ..\secrets\.env run python data.py ..\..\resslab-tools-data\Global\Chi_and_Uang_2002_DC2.csv
+poetry run dotenv -f ..\secrets\.env run python data.py ..\..\resslab-tools-data\Global\*.csv
 ```
