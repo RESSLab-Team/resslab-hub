@@ -19,9 +19,13 @@
       :options.sync="options"
       :search="search"
       :server-items-length="totalCount"
+      show-expand
     >
       <template v-slot:[`body.prepend`]>
         <tr>
+          <td>
+            <!-- expand -->
+          </td>
           <td v-for="header in headers" :key="header.value">
             <div v-switch="header.type">
               <div v-case="'text'">
@@ -68,10 +72,22 @@
           </td>
         </tr>
       </template>
+      <template v-slot:expanded-item="{ headers, item }">
+        <td :colspan="headers.length">
+          <connection-detail :connection-id="item.id"></connection-detail>
+        </td>
+      </template>
     </v-data-table>
   </v-card>
 </template>
 
+<style lang="scss" scoped>
+.v-data-table__expanded {
+  td {
+    padding: 16px !important;
+  }
+}
+</style>
 <style>
 .v-menu__content {
   min-width: 160px !important;
@@ -83,8 +99,13 @@ import { ConnectionModel } from "@/backend";
 import { Component, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
 import { booleanOptions } from "@/utils/vuetify";
+import ConnectionDetail from "@/components/ConnectionDetail.vue";
 
-@Component
+@Component({
+  components: {
+    ConnectionDetail,
+  },
+})
 export default class ConnectionBrowser extends Vue {
   booleanOptions = booleanOptions;
 

@@ -5,12 +5,12 @@ from distutils.util import strtobool
 from functools import reduce
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Path, Query
 from fastapi_pagination import Page
 from fastapi_pagination.ext.async_sqlalchemy import paginate
 from resslab_tools.models.api import (ConnectionColumn, ConnectionModel,
-                                      CountModel)
-from resslab_tools.models.database import Connection
+                                      CountModel, SerieModel)
+from resslab_tools.models.database import Connection, ConnectionGlobal
 from resslab_tools.services.database import get_session
 from sqlalchemy import desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -50,8 +50,8 @@ async def get_connections(
     return await paginate(session, select_query.order_by(*order_clauses))
 
 
-@router.get('/count', response_model=List[CountModel])
-async def count(
+@router.get('/counts', response_model=List[CountModel])
+async def get_counts(
     session: AsyncSession = Depends(get_session),
     field: ConnectionColumn = Query(...),
 ) -> List[CountModel]:
@@ -62,6 +62,23 @@ async def count(
     tuples = await session.execute(select([column, func.count()])
                                    .group_by(column))
     return [CountModel(name=tuple[0], value=tuple[1]) for tuple in tuples]
+
+
+@router.get('/{connection_id}/globals', response_model=List[SerieModel])
+async def get_series(
+    session: AsyncSession = Depends(get_session),
+    connection_id: str = Path(...),
+) -> List[SerieModel]:
+    """
+    Get global series from connection
+    """
+    tuples = await session.execute(
+        select([
+            ConnectionGlobal.story_drift_angle,
+            ConnectionGlobal.actuator_force,
+        ])
+        .where(ConnectionGlobal.connection_id == connection_id))
+    return [SerieModel(x=tuple[0], y=tuple[1]) for tuple in tuples]
 
 
 def __query_to_where_clause(query: str):

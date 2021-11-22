@@ -116,14 +116,14 @@
         }
       }
     },
-    "/connections/count": {
+    "/connections/counts": {
       "get": {
         "tags": [
           "connections"
         ],
-        "summary": "Count",
+        "summary": "Get Counts",
         "description": "Get occurences count of field values",
-        "operationId": "count_connections_count_get",
+        "operationId": "get_counts_connections_counts_get",
         "parameters": [
           {
             "required": true,
@@ -140,10 +140,57 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Count Connections Count Get",
+                  "title": "Response Get Counts Connections Counts Get",
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/{connection_id}/globals": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Series",
+        "description": "Get global series from connection",
+        "operationId": "get_series_connections__connection_id__globals_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "string"
+            },
+            "name": "connection_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Series Connections  Connection Id  Globals Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SerieModel"
                   }
                 }
               }
@@ -178,6 +225,7 @@
           "connection_type",
           "section_b",
           "section_c",
+          "t_dp",
           "n_dp"
         ],
         "description": "An enumeration."
@@ -195,6 +243,7 @@
           "connection_type",
           "section_b",
           "section_c",
+          "t_dp",
           "n_dp"
         ],
         "type": "object",
@@ -239,6 +288,10 @@
             "title": "Section C",
             "type": "string"
           },
+          "t_dp": {
+            "title": "T Dp",
+            "type": "number"
+          },
           "n_dp": {
             "title": "N Dp",
             "type": "integer"
@@ -262,7 +315,8 @@
             "title": "Value",
             "type": "integer"
           }
-        }
+        },
+        "description": "Count"
       },
       "HTTPValidationError": {
         "title": "HTTPValidationError",
@@ -329,6 +383,25 @@
             "type": "integer"
           }
         }
+      },
+      "SerieModel": {
+        "title": "SerieModel",
+        "required": [
+          "x",
+          "y"
+        ],
+        "type": "object",
+        "properties": {
+          "x": {
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "title": "Y",
+            "type": "number"
+          }
+        },
+        "description": "Series"
       },
       "ValidationError": {
         "title": "ValidationError",

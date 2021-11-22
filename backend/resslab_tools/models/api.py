@@ -30,12 +30,24 @@ class ConnectionModel(OrmModel):
     connection_type: str
     section_b: str
     section_c: str
+    t_dp: float
     n_dp: int
 
 
 class CountModel(BaseModel):
+    """
+    Count
+    """
     name: str
     value: int
+
+
+class SerieModel(BaseModel):
+    """
+    Series
+    """
+    x: float
+    y: float
 
 
 ConnectionColumn = enum.Enum(
