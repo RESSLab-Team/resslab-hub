@@ -2,10 +2,19 @@
 
 ## Database Migration
 
-```shell
+```bash
 # Generate new revision
 poetry run dotenv -f ..\secrets\.env run alembic revision --autogenerate -m ""
 
 # Manually upgrade database (automatically run at startup)
 poetry run dotenv -f ..\secrets\.env run alembic upgrade head
+
+# Downgrade https://alembic.sqlalchemy.org/en/latest/tutorial.html#downgrading
+poetry run dotenv -f ..\secrets\.env run alembic downgrade
+```
+
+## Upload data
+
+```bash
+poetry run dotenv -f ..\secrets\.env run python data.py ..\..\resslab-tools-data\Global\Chi_and_Uang_2002_DC2.csv
 ```

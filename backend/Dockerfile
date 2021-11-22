@@ -10,9 +10,14 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
     ln -s /opt/poetry/bin/poetry && \
     poetry config virtualenvs.create false
 
+RUN apk --no-cache add \
+    postgresql-dev
+
 # Copy using poetry.lock* in case it doesn't exist yet
 COPY ./pyproject.toml ./poetry.lock* /app/
 
 RUN poetry install --no-root --no-dev
 
+COPY ./alembic.ini /app/
+COPY ./alembic /app/alembic
 COPY ./resslab_tools /app/resslab_tools

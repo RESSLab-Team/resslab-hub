@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from .database import Connection
 
 
-class ApiModel(BaseModel):
+class OrmModel(BaseModel):
     """
     Parent class for all API models
     """
@@ -16,7 +16,7 @@ class ApiModel(BaseModel):
         orm_mode = True
 
 
-class ConnectionModel(ApiModel):
+class ConnectionModel(OrmModel):
     """
     Connection
     """
