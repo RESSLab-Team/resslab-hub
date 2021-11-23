@@ -42,14 +42,6 @@ class CountModel(BaseModel):
     value: int
 
 
-class SerieModel(BaseModel):
-    """
-    Series
-    """
-    x: float
-    y: float
-
-
 ConnectionColumn = enum.Enum(
     'ConnectionColumn',
     {column.name: column.name for column in Connection.__table__.columns}

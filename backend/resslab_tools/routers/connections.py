@@ -1,6 +1,7 @@
 """
 Handle /connections requests
 """
+from decimal import Decimal
 from distutils.util import strtobool
 from functools import reduce
 from typing import Any, List, Optional
@@ -9,8 +10,9 @@ from fastapi import APIRouter, Depends, Path, Query
 from fastapi_pagination import Page
 from fastapi_pagination.ext.async_sqlalchemy import paginate
 from resslab_tools.models.api import (ConnectionColumn, ConnectionModel,
-                                      CountModel, SerieModel)
-from resslab_tools.models.database import Connection, ConnectionGlobal
+                                      CountModel)
+from resslab_tools.models.database import (Connection, ConnectionGlobal,
+                                           ConnectionPanelZone)
 from resslab_tools.services.database import get_session
 from sqlalchemy import desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -64,11 +66,11 @@ async def get_counts(
     return [CountModel(name=tuple[0], value=tuple[1]) for tuple in tuples]
 
 
-@router.get('/{connection_id}/globals', response_model=List[SerieModel])
-async def get_series(
+@router.get('/{connection_id}/globals', response_model=List[List[Decimal]])
+async def get_globals(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
-) -> List[SerieModel]:
+) -> List[List[Decimal]]:
     """
     Get global series from connection
     """
@@ -78,7 +80,24 @@ async def get_series(
             ConnectionGlobal.actuator_force,
         ])
         .where(ConnectionGlobal.connection_id == connection_id))
-    return [SerieModel(x=tuple[0], y=tuple[1]) for tuple in tuples]
+    return [[tuple[0], tuple[1]] for tuple in tuples]
+
+
+@router.get('/{connection_id}/panel-zones', response_model=List[List[Decimal]])
+async def get_panel_zones(
+    session: AsyncSession = Depends(get_session),
+    connection_id: str = Path(...),
+) -> List[List[Decimal]]:
+    """
+    Get panel zone series from connection
+    """
+    tuples = await session.execute(
+        select([
+            ConnectionPanelZone.shear_distortion,
+            ConnectionPanelZone.shear_force,
+        ])
+        .where(ConnectionPanelZone.connection_id == connection_id))
+    return [[tuple[0], tuple[1]] for tuple in tuples]
 
 
 def __query_to_where_clause(query: str):

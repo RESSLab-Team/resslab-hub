@@ -40,3 +40,19 @@ class ConnectionGlobal(Base):
 
     story_drift_angle = Column(Numeric(20, 10), nullable=False)
     actuator_force = Column(Numeric(20, 10), nullable=False)
+
+
+class ConnectionPanelZone(Base):
+    """
+    Panel Zone
+    """
+    __tablename__ = 'connection_panel_zone'
+
+    connection_id = Column(String,
+                           ForeignKey('connection.id'),
+                           primary_key=True,
+                           index=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    shear_distortion = Column(Numeric(20, 10), nullable=False)
+    shear_force = Column(Numeric(20, 10), nullable=False)

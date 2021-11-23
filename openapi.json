@@ -167,9 +167,9 @@
         "tags": [
           "connections"
         ],
-        "summary": "Get Series",
+        "summary": "Get Globals",
         "description": "Get global series from connection",
-        "operationId": "get_series_connections__connection_id__globals_get",
+        "operationId": "get_globals_connections__connection_id__globals_get",
         "parameters": [
           {
             "required": true,
@@ -187,10 +187,63 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Series Connections  Connection Id  Globals Get",
+                  "title": "Response Get Globals Connections  Connection Id  Globals Get",
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/SerieModel"
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/{connection_id}/panel-zones": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Panel Zones",
+        "description": "Get panel zone series from connection",
+        "operationId": "get_panel_zones_connections__connection_id__panel_zones_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "string"
+            },
+            "name": "connection_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Panel Zones Connections  Connection Id  Panel Zones Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
                   }
                 }
               }
@@ -383,25 +436,6 @@
             "type": "integer"
           }
         }
-      },
-      "SerieModel": {
-        "title": "SerieModel",
-        "required": [
-          "x",
-          "y"
-        ],
-        "type": "object",
-        "properties": {
-          "x": {
-            "title": "X",
-            "type": "number"
-          },
-          "y": {
-            "title": "Y",
-            "type": "number"
-          }
-        },
-        "description": "Series"
       },
       "ValidationError": {
         "title": "ValidationError",
