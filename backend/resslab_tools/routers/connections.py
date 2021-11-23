@@ -1,6 +1,7 @@
 """
 Handle /connections requests
 """
+import math
 from decimal import Decimal
 from distutils.util import strtobool
 from functools import reduce
@@ -70,33 +71,53 @@ async def get_counts(
 async def get_globals(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
+    size: int = Query(1024, ge=0),
 ) -> List[List[Decimal]]:
     """
     Get global series from connection
     """
-    tuples = await session.execute(
-        select([
-            ConnectionGlobal.story_drift_angle,
-            ConnectionGlobal.actuator_force,
-        ])
-        .where(ConnectionGlobal.connection_id == connection_id))
-    return [[tuple[0], tuple[1]] for tuple in tuples]
+    query = select([
+        ConnectionGlobal.story_drift_angle,
+        ConnectionGlobal.actuator_force,
+    ]).where(ConnectionGlobal.connection_id == connection_id)
+    return await __get_series(session, size, query, ConnectionGlobal.id)
 
 
 @router.get('/{connection_id}/panel-zones', response_model=List[List[Decimal]])
 async def get_panel_zones(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
+    size: int = Query(1024, ge=0),
 ) -> List[List[Decimal]]:
     """
     Get panel zone series from connection
     """
-    tuples = await session.execute(
-        select([
-            ConnectionPanelZone.shear_distortion,
-            ConnectionPanelZone.shear_force,
-        ])
-        .where(ConnectionPanelZone.connection_id == connection_id))
+    query = select([
+        ConnectionPanelZone.shear_distortion,
+        ConnectionPanelZone.shear_force,
+    ]).where(ConnectionPanelZone.connection_id == connection_id)
+    return await __get_series(session, size, query, ConnectionPanelZone.id)
+
+
+async def __get_series(
+        session: AsyncSession,
+        size: int,
+        query: select,
+        id_column: Column[int]
+) -> List[List[Decimal]]:
+    if size > 0:
+        count: int = await session.scalar(
+            select(func.count()).select_from(query))
+        if count == 0:
+            return []
+        if count <= size:
+            tuples = await session.execute(query)
+        else:
+            n = math.ceil(float(count) / float(size))
+            tuples = await session.execute(
+                query.where(func.mod(id_column, n) == 0))
+    else:
+        tuples = await session.execute(query)
     return [[tuple[0], tuple[1]] for tuple in tuples]
 
 

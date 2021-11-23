@@ -331,10 +331,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * Get global series from connection
          * @summary Get Globals
          * @param {string} connectionId 
+         * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getGlobalsConnectionsConnectionIdGlobalsGet: async (connectionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getGlobalsConnectionsConnectionIdGlobalsGet: async (connectionId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getGlobalsConnectionsConnectionIdGlobalsGet', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/globals`
@@ -349,6 +350,10 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
 
 
     
@@ -365,10 +370,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * Get panel zone series from connection
          * @summary Get Panel Zones
          * @param {string} connectionId 
+         * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPanelZonesConnectionsConnectionIdPanelZonesGet: async (connectionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getPanelZonesConnectionsConnectionIdPanelZonesGet: async (connectionId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getPanelZonesConnectionsConnectionIdPanelZonesGet', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/panel-zones`
@@ -383,6 +389,10 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
 
 
     
@@ -435,22 +445,24 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * Get global series from connection
          * @summary Get Globals
          * @param {string} connectionId 
+         * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getGlobalsConnectionsConnectionIdGlobalsGet(connectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getGlobalsConnectionsConnectionIdGlobalsGet(connectionId, options);
+        async getGlobalsConnectionsConnectionIdGlobalsGet(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getGlobalsConnectionsConnectionIdGlobalsGet(connectionId, size, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
          * Get panel zone series from connection
          * @summary Get Panel Zones
          * @param {string} connectionId 
+         * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId, options);
+        async getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId, size, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -491,21 +503,23 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * Get global series from connection
          * @summary Get Globals
          * @param {string} connectionId 
+         * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getGlobalsConnectionsConnectionIdGlobalsGet(connectionId: string, options?: any): AxiosPromise<Array<Array<number>>> {
-            return localVarFp.getGlobalsConnectionsConnectionIdGlobalsGet(connectionId, options).then((request) => request(axios, basePath));
+        getGlobalsConnectionsConnectionIdGlobalsGet(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getGlobalsConnectionsConnectionIdGlobalsGet(connectionId, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Get panel zone series from connection
          * @summary Get Panel Zones
          * @param {string} connectionId 
+         * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId: string, options?: any): AxiosPromise<Array<Array<number>>> {
-            return localVarFp.getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId, options).then((request) => request(axios, basePath));
+        getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId, size, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -549,24 +563,26 @@ export class ConnectionsApi extends BaseAPI {
      * Get global series from connection
      * @summary Get Globals
      * @param {string} connectionId 
+     * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ConnectionsApi
      */
-    public getGlobalsConnectionsConnectionIdGlobalsGet(connectionId: string, options?: AxiosRequestConfig) {
-        return ConnectionsApiFp(this.configuration).getGlobalsConnectionsConnectionIdGlobalsGet(connectionId, options).then((request) => request(this.axios, this.basePath));
+    public getGlobalsConnectionsConnectionIdGlobalsGet(connectionId: string, size?: number, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getGlobalsConnectionsConnectionIdGlobalsGet(connectionId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * Get panel zone series from connection
      * @summary Get Panel Zones
      * @param {string} connectionId 
+     * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ConnectionsApi
      */
-    public getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId: string, options?: AxiosRequestConfig) {
-        return ConnectionsApiFp(this.configuration).getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId, options).then((request) => request(this.axios, this.basePath));
+    public getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId: string, size?: number, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId, size, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

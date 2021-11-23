@@ -179,6 +179,17 @@
             },
             "name": "connection_id",
             "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
           }
         ],
         "responses": {
@@ -229,6 +240,17 @@
             },
             "name": "connection_id",
             "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
           }
         ],
         "responses": {
