@@ -1,3 +1,12 @@
 {
-  "message": "hello i18n !!"
+  "connection_type": "Connection Type",
+  "date": "Date",
+  "experimental_program": "Experimental Program",
+  "n_dp": "Double Plate",
+  "northridge": "North Ridge",
+  "section_b": "Beam Section",
+  "section_c": "Column Section",
+  "slab": "SLAB",
+  "specimen_designation": "Specimen Designation",
+  "specimen_type": "Specimen Type"
 }

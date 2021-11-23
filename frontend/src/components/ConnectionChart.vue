@@ -1,7 +1,14 @@
 <template>
   <v-card>
     <v-card-title>
-      <v-select v-model="field" :items="fields"></v-select>
+      <v-select v-model="field" :items="fields">
+        <template v-slot:selection="data">
+          {{ $t(data.item) }}
+        </template>
+        <template v-slot:item="data">
+          {{ $t(data.item) }}
+        </template>
+      </v-select>
     </v-card-title>
     <v-chart :option="option"></v-chart>
   </v-card>

@@ -13,7 +13,7 @@
       ></v-text-field>
     </v-card-title>
     <v-data-table
-      :headers="headers"
+      :headers="tableHeaders"
       :items="connections"
       :loading="loading"
       :options.sync="options"
@@ -26,30 +26,30 @@
           <td>
             <!-- expand -->
           </td>
-          <td v-for="header in headers" :key="header.value">
+          <td v-for="(header, index) in tableHeaders" :key="header.value">
             <div v-switch="header.type">
               <div v-case="'text'">
                 <v-select
                   v-if="header.options"
-                  v-model="header.search"
+                  v-model="searches[index]"
                   clearable
                   :items="header.options"
                 ></v-select>
                 <v-text-field
                   v-else
-                  v-model="header.search"
+                  v-model="searches[index]"
                   clearable
                 ></v-text-field>
               </div>
               <v-select
-                v-model="header.search"
+                v-model="searches[index]"
                 v-case="'option'"
                 clearable
-                :multiple="isMultiple(header)"
+                :multiple="header.multiple"
                 :items="header.options"
               ></v-select>
               <v-select
-                v-model="header.search"
+                v-model="searches[index]"
                 v-case="'boolean'"
                 clearable
                 :items="booleanOptions"
@@ -57,13 +57,13 @@
               <div v-case="'number'">
                 <v-select
                   v-if="header.options"
-                  v-model="header.search"
+                  v-model="searches[index]"
                   clearable
                   :items="header.options"
                 ></v-select>
                 <v-text-field
                   v-else
-                  v-model="header.search"
+                  v-model="searches[index]"
                   clearable
                   type="number"
                 ></v-text-field>
@@ -111,55 +111,45 @@ export default class ConnectionBrowser extends Vue {
 
   headers: Header[] = [
     {
-      text: "Experimental Program",
       value: "experimental_program",
       type: "text",
     },
     {
-      text: "Date",
       value: "date",
       type: "number",
     },
     {
-      text: "Specimen Designation",
       value: "specimen_designation",
       type: "text",
     },
     {
-      text: "North Ridge",
       value: "northridge",
       type: "option",
       options: ["pre", "post"],
     },
     {
-      text: "Specimen Type",
       value: "specimen_type",
       type: "text",
       options: ["exterior", "interior"],
     },
     {
-      text: "SLAB",
       value: "slab",
       type: "boolean",
     },
     {
-      text: "Connection Type",
       value: "connection_type",
       type: "option",
       options: ["WUF-W", "RBS", "WUF-B", "BFP", "WFP", "KBB", "BEEP"],
     },
     {
-      text: "Beam Section",
       value: "section_b",
       type: "text",
     },
     {
-      text: "Column Section",
       value: "section_c",
       type: "text",
     },
     {
-      text: "Double Plate",
       value: "n_dp",
       type: "number",
       options: ["0", "> 0"],
@@ -167,25 +157,42 @@ export default class ConnectionBrowser extends Vue {
   ];
   connections: ConnectionModel[] = [];
   search = "";
+  searches: string[] = [];
   totalCount = -1;
   loading = true;
   options: DataOptions | null = null;
 
+  get tableHeaders(): TableHeader[] {
+    return this.headers.map((header) => {
+      return {
+        value: header.value,
+        text: this.$t(header.value).toString(),
+        type: header.type,
+        options: header.options,
+        multiple: header.options ? header.options.length > 2 : false,
+      };
+    });
+  }
+
   get query(): string {
-    const queries = this.headers
-      .filter(
-        (header) =>
-          header.search != undefined &&
-          (typeof header.search == "boolean" || header.search.length > 0)
-      )
-      .map((header) => {
-        switch (header.type) {
-          case "text":
-            return `${header.value}:~%${header.search}%`;
-          default:
-            return `${header.value}:${header.search}`;
+    const queries = this.tableHeaders
+      .map((header, index) => {
+        const search = this.searches[index];
+        if (
+          search != undefined &&
+          (typeof search == "boolean" || search.length > 0)
+        ) {
+          switch (header.type) {
+            case "text":
+              return `${header.value}:~%${search}%`;
+            default:
+              return `${header.value}:${search}`;
+          }
+        } else {
+          return undefined;
         }
-      });
+      })
+      .filter((query) => query);
     if (this.search && this.search.length > 0) {
       queries.push(`%${this.search}%`);
     }
@@ -215,19 +222,19 @@ export default class ConnectionBrowser extends Vue {
         });
     }
   }
-
-  isMultiple(header: Header): boolean {
-    if (header.options) {
-      return header.options.length > 2;
-    } else {
-      return false;
-    }
-  }
 }
 
-interface Header extends DataTableHeader {
-  type: "text" | "option" | "number" | "boolean";
+type HeaderType = "text" | "option" | "number" | "boolean";
+
+interface Header {
+  value: string;
+  type: HeaderType;
   options?: string[];
-  search?: string;
+}
+
+interface TableHeader extends DataTableHeader {
+  type: HeaderType;
+  options?: string[];
+  multiple?: boolean;
 }
 </script>
