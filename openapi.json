@@ -128,9 +128,12 @@
           {
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/ConnectionColumn"
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ConnectionColumn"
+              }
             },
-            "name": "field",
+            "name": "fields",
             "in": "query"
           }
         ],
@@ -299,7 +302,10 @@
           "slab",
           "connection_type",
           "section_b",
+          "d_b",
+          "steel_b",
           "section_c",
+          "d_c",
           "t_dp",
           "n_dp"
         ],
@@ -377,14 +383,17 @@
       "CountModel": {
         "title": "CountModel",
         "required": [
-          "name",
+          "names",
           "value"
         ],
         "type": "object",
         "properties": {
-          "name": {
-            "title": "Name",
-            "type": "string"
+          "names": {
+            "title": "Names",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "value": {
             "title": "Value",

@@ -15,7 +15,7 @@ from resslab_tools.models.api import (ConnectionColumn, ConnectionModel,
 from resslab_tools.models.database import (Connection, ConnectionGlobal,
                                            ConnectionPanelZone)
 from resslab_tools.services.database import get_session
-from sqlalchemy import desc, func, or_, select
+from sqlalchemy import desc, func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.selectable import Select
@@ -56,15 +56,18 @@ async def get_connections(
 @router.get('/counts', response_model=List[CountModel])
 async def get_counts(
     session: AsyncSession = Depends(get_session),
-    field: ConnectionColumn = Query(...),
+    fields: List[ConnectionColumn] = Query(...),
 ) -> List[CountModel]:
     """
     Get occurences count of field values
     """
-    column = Connection.__dict__[field.value]
-    tuples = await session.execute(select([column, func.count()])
-                                   .group_by(column))
-    return [CountModel(name=tuple[0], value=tuple[1]) for tuple in tuples]
+    columns = [Connection.__dict__[field.value] for field in fields]
+    tuples = await session.execute(
+        select([*columns, func.count()])
+        .group_by(func.grouping_sets(tuple_(*columns)))
+    )
+    return [CountModel(names=list(tuple)[:-1], value=tuple[len(columns)])
+            for tuple in tuples]
 
 
 @router.get('/{connection_id}/globals', response_model=List[List[Decimal]])

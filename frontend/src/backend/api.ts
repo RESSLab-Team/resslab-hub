@@ -37,7 +37,10 @@ export enum ConnectionColumn {
     Slab = 'slab',
     ConnectionType = 'connection_type',
     SectionB = 'section_b',
+    DB = 'd_b',
+    SteelB = 'steel_b',
     SectionC = 'section_c',
+    DC = 'd_c',
     TDp = 't_dp',
     NDp = 'n_dp'
 }
@@ -129,10 +132,10 @@ export interface ConnectionModel {
 export interface CountModel {
     /**
      * 
-     * @type {string}
+     * @type {Array<string>}
      * @memberof CountModel
      */
-    'name': string;
+    'names': Array<string>;
     /**
      * 
      * @type {number}
@@ -293,13 +296,13 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
         /**
          * Get occurences count of field values
          * @summary Get Counts
-         * @param {ConnectionColumn} field 
+         * @param {Array<ConnectionColumn>} fields 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getCountsConnectionsCountsGet: async (field: ConnectionColumn, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'field' is not null or undefined
-            assertParamExists('getCountsConnectionsCountsGet', 'field', field)
+        getCountsConnectionsCountsGet: async (fields: Array<ConnectionColumn>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getCountsConnectionsCountsGet', 'fields', fields)
             const localVarPath = `/connections/counts`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -312,8 +315,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            if (field !== undefined) {
-                localVarQueryParameter['field'] = field;
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
             }
 
 
@@ -433,12 +436,12 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
         /**
          * Get occurences count of field values
          * @summary Get Counts
-         * @param {ConnectionColumn} field 
+         * @param {Array<ConnectionColumn>} fields 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getCountsConnectionsCountsGet(field: ConnectionColumn, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getCountsConnectionsCountsGet(field, options);
+        async getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getCountsConnectionsCountsGet(fields, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -492,12 +495,12 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
         /**
          * Get occurences count of field values
          * @summary Get Counts
-         * @param {ConnectionColumn} field 
+         * @param {Array<ConnectionColumn>} fields 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getCountsConnectionsCountsGet(field: ConnectionColumn, options?: any): AxiosPromise<Array<CountModel>> {
-            return localVarFp.getCountsConnectionsCountsGet(field, options).then((request) => request(axios, basePath));
+        getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, options?: any): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getCountsConnectionsCountsGet(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * Get global series from connection
@@ -550,13 +553,13 @@ export class ConnectionsApi extends BaseAPI {
     /**
      * Get occurences count of field values
      * @summary Get Counts
-     * @param {ConnectionColumn} field 
+     * @param {Array<ConnectionColumn>} fields 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ConnectionsApi
      */
-    public getCountsConnectionsCountsGet(field: ConnectionColumn, options?: AxiosRequestConfig) {
-        return ConnectionsApiFp(this.configuration).getCountsConnectionsCountsGet(field, options).then((request) => request(this.axios, this.basePath));
+    public getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getCountsConnectionsCountsGet(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -21,7 +21,10 @@ class Connection(Base):
     slab = Column(Boolean, nullable=False)
     connection_type = Column(String, nullable=False)
     section_b = Column(String, nullable=False)
+    d_b = Column(Numeric(8, 4))
+    steel_b = Column(String)
     section_c = Column(String, nullable=False)
+    d_c = Column(Numeric(8, 4))
     t_dp = Column(Numeric(6, 3), nullable=False)
     n_dp = Column(SmallInteger, nullable=False)
 

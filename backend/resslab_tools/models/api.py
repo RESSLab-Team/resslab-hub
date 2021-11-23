@@ -2,6 +2,7 @@
 API Models
 """
 import enum
+from typing import List
 
 from pydantic import BaseModel
 
@@ -38,7 +39,7 @@ class CountModel(BaseModel):
     """
     Count
     """
-    name: str
+    names: List[str]
     value: int
 
 

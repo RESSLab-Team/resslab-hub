@@ -83,7 +83,12 @@ export default class ConnectionChart extends Vue {
         {
           type: "pie",
           name: this.field,
-          data: this.counts,
+          data: this.counts.map((count) => {
+            return {
+              name: count.names[0],
+              value: count.value,
+            };
+          }),
           radius: ["40%", "80%"],
         },
       ],
@@ -93,7 +98,7 @@ export default class ConnectionChart extends Vue {
   @Watch("field")
   onChanged(): void {
     this.$connectionsApi
-      .getCountsConnectionsCountsGet(this.field)
+      .getCountsConnectionsCountsGet([this.field])
       .then((response) => response.data)
       .then((counts) => {
         this.counts = counts;
