@@ -10,7 +10,7 @@
         </template>
       </v-select>
     </v-card-title>
-    <v-chart :option="option"></v-chart>
+    <v-chart :option="option" @click="onClick"></v-chart>
   </v-card>
 </template>
 
@@ -27,14 +27,15 @@ img.tooltip {
 </style>
 
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import VChart from "vue-echarts";
 import { ConnectionColumn, CountModel } from "@/backend";
 import { use } from "echarts/core";
 import { PieChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
 import { TooltipComponent } from "echarts/components";
-import { EChartsOption } from "echarts/types/dist/shared";
+import { EChartsOption, CallbackDataParams } from "echarts/types/dist/shared";
+import { Searches } from "@/utils/common";
 
 use([CanvasRenderer, PieChart, TooltipComponent]);
 
@@ -56,6 +57,8 @@ export default class ConnectionChart extends Vue {
     "wuf-w",
   ]);
 
+  @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
+  fieldSearches!: Searches;
   @Prop({ default: "" })
   readonly query!: string;
 
@@ -114,6 +117,12 @@ export default class ConnectionChart extends Vue {
       .then((counts) => {
         this.counts = counts;
       });
+  }
+
+  onClick(params: CallbackDataParams): void {
+    if (params.seriesName) {
+      this.$set(this.fieldSearches, params.seriesName, params.name);
+    }
   }
 }
 </script>

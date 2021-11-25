@@ -8,7 +8,10 @@
       ></connection-browser>
     </v-col>
     <v-col>
-      <connection-chart :query="query"></connection-chart>
+      <connection-chart
+        :searches.sync="searches"
+        :query="query"
+      ></connection-chart>
     </v-col>
   </v-row>
 </template>
