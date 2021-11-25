@@ -4,6 +4,7 @@ Databse Models
 from resslab_tools.services.database import Base
 from sqlalchemy import (BigInteger, Boolean, Column, ForeignKey, Numeric,
                         SmallInteger, String)
+from sqlalchemy.orm import column_property
 
 
 class Connection(Base):
@@ -25,8 +26,10 @@ class Connection(Base):
     steel_b = Column(String)
     section_c = Column(String, nullable=False)
     d_c = Column(Numeric(8, 4))
+    t_cf = Column(Numeric(20, 10))
     t_dp = Column(Numeric(6, 3), nullable=False)
     n_dp = Column(SmallInteger, nullable=False)
+    t_dp_tot = column_property(t_dp * n_dp)
 
 
 class ConnectionGlobal(Base):

@@ -41,8 +41,10 @@ export enum ConnectionColumn {
     SteelB = 'steel_b',
     SectionC = 'section_c',
     DC = 'd_c',
+    TCf = 't_cf',
     TDp = 't_dp',
-    NDp = 'n_dp'
+    NDp = 'n_dp',
+    TDpTot = 't_dp_tot'
 }
 
 /**
@@ -107,10 +109,34 @@ export interface ConnectionModel {
     'section_b': string;
     /**
      * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'd_b': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectionModel
+     */
+    'steel_b': string;
+    /**
+     * 
      * @type {string}
      * @memberof ConnectionModel
      */
     'section_c': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'd_c': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_cf': number;
     /**
      * 
      * @type {number}
@@ -123,6 +149,12 @@ export interface ConnectionModel {
      * @memberof ConnectionModel
      */
     'n_dp': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_dp_tot': number;
 }
 /**
  * Count

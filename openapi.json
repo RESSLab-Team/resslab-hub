@@ -315,8 +315,10 @@
           "steel_b",
           "section_c",
           "d_c",
+          "t_cf",
           "t_dp",
-          "n_dp"
+          "n_dp",
+          "t_dp_tot"
         ],
         "description": "An enumeration."
       },
@@ -332,9 +334,14 @@
           "slab",
           "connection_type",
           "section_b",
+          "d_b",
+          "steel_b",
           "section_c",
+          "d_c",
+          "t_cf",
           "t_dp",
-          "n_dp"
+          "n_dp",
+          "t_dp_tot"
         ],
         "type": "object",
         "properties": {
@@ -374,9 +381,25 @@
             "title": "Section B",
             "type": "string"
           },
+          "d_b": {
+            "title": "D B",
+            "type": "number"
+          },
+          "steel_b": {
+            "title": "Steel B",
+            "type": "string"
+          },
           "section_c": {
             "title": "Section C",
             "type": "string"
+          },
+          "d_c": {
+            "title": "D C",
+            "type": "number"
+          },
+          "t_cf": {
+            "title": "T Cf",
+            "type": "number"
           },
           "t_dp": {
             "title": "T Dp",
@@ -385,6 +408,10 @@
           "n_dp": {
             "title": "N Dp",
             "type": "integer"
+          },
+          "t_dp_tot": {
+            "title": "T Dp Tot",
+            "type": "number"
           }
         },
         "description": "Connection"

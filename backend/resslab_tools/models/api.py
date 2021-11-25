@@ -2,11 +2,10 @@
 API Models
 """
 import enum
+from decimal import Decimal
 from typing import List
 
 from pydantic import BaseModel
-
-from .database import Connection
 
 
 class OrmModel(BaseModel):
@@ -30,9 +29,14 @@ class ConnectionModel(OrmModel):
     slab: bool
     connection_type: str
     section_b: str
+    d_b: Decimal
+    steel_b: str
     section_c: str
-    t_dp: float
+    d_c: Decimal
+    t_cf: Decimal
+    t_dp: Decimal
     n_dp: int
+    t_dp_tot: Decimal
 
 
 class CountModel(BaseModel):
@@ -45,5 +49,7 @@ class CountModel(BaseModel):
 
 ConnectionColumn = enum.Enum(
     'ConnectionColumn',
-    {column.name: column.name for column in Connection.__table__.columns}
+    {column: column
+     for column
+     in ConnectionModel.__fields__}
 )
