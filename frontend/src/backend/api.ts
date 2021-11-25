@@ -297,10 +297,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * Get occurences count of field values
          * @summary Get Counts
          * @param {Array<ConnectionColumn>} fields 
+         * @param {string} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getCountsConnectionsCountsGet: async (fields: Array<ConnectionColumn>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getCountsConnectionsCountsGet: async (fields: Array<ConnectionColumn>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'fields' is not null or undefined
             assertParamExists('getCountsConnectionsCountsGet', 'fields', fields)
             const localVarPath = `/connections/counts`;
@@ -317,6 +318,10 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
 
             if (fields) {
                 localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
             }
 
 
@@ -437,11 +442,12 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * Get occurences count of field values
          * @summary Get Counts
          * @param {Array<ConnectionColumn>} fields 
+         * @param {string} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getCountsConnectionsCountsGet(fields, options);
+        async getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getCountsConnectionsCountsGet(fields, query, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -496,11 +502,12 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * Get occurences count of field values
          * @summary Get Counts
          * @param {Array<ConnectionColumn>} fields 
+         * @param {string} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, options?: any): AxiosPromise<Array<CountModel>> {
-            return localVarFp.getCountsConnectionsCountsGet(fields, options).then((request) => request(axios, basePath));
+        getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getCountsConnectionsCountsGet(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
          * Get global series from connection
@@ -554,12 +561,13 @@ export class ConnectionsApi extends BaseAPI {
      * Get occurences count of field values
      * @summary Get Counts
      * @param {Array<ConnectionColumn>} fields 
+     * @param {string} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ConnectionsApi
      */
-    public getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, options?: AxiosRequestConfig) {
-        return ConnectionsApiFp(this.configuration).getCountsConnectionsCountsGet(fields, options).then((request) => request(this.axios, this.basePath));
+    public getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, query?: string, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getCountsConnectionsCountsGet(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

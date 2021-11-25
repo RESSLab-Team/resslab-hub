@@ -38,7 +38,7 @@ use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
   },
 })
 export default class ConnectionDetail extends Vue {
-  @Prop(String) readonly connectionId: string | undefined;
+  @Prop(String) readonly connectionId!: string;
   globalSeries: number[][] = [];
   panelZoneSeries: number[][] = [];
 
@@ -96,20 +96,18 @@ export default class ConnectionDetail extends Vue {
 
   @Watch("field")
   onChanged(): void {
-    if (this.connectionId) {
-      this.$connectionsApi
-        .getGlobalsConnectionsConnectionIdGlobalsGet(this.connectionId)
-        .then((response) => response.data)
-        .then((series) => {
-          this.globalSeries = series;
-        });
-      this.$connectionsApi
-        .getPanelZonesConnectionsConnectionIdPanelZonesGet(this.connectionId)
-        .then((response) => response.data)
-        .then((series) => {
-          this.panelZoneSeries = series;
-        });
-    }
+    this.$connectionsApi
+      .getGlobalsConnectionsConnectionIdGlobalsGet(this.connectionId)
+      .then((response) => response.data)
+      .then((series) => {
+        this.globalSeries = series;
+      });
+    this.$connectionsApi
+      .getPanelZonesConnectionsConnectionIdPanelZonesGet(this.connectionId)
+      .then((response) => response.data)
+      .then((series) => {
+        this.panelZoneSeries = series;
+      });
   }
 }
 </script>

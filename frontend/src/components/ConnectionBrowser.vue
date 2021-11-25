@@ -4,7 +4,7 @@
       Connections
       <v-spacer></v-spacer>
       <v-text-field
-        v-model="search"
+        v-model="globalSearch"
         clearable
         hide-details
         single-line
@@ -26,30 +26,30 @@
           <td>
             <!-- expand -->
           </td>
-          <td v-for="(header, index) in tableHeaders" :key="header.value">
+          <td v-for="header in tableHeaders" :key="header.value">
             <div v-switch="header.type">
               <div v-case="'text'">
                 <v-select
                   v-if="header.options"
-                  v-model="searches[index]"
+                  v-model="columnSearches[header.value]"
                   clearable
                   :items="header.options"
                 ></v-select>
                 <v-text-field
                   v-else
-                  v-model="searches[index]"
+                  v-model="columnSearches[header.value]"
                   clearable
                 ></v-text-field>
               </div>
               <v-select
-                v-model="searches[index]"
+                v-model="columnSearches[header.value]"
                 v-case="'option'"
                 clearable
                 :multiple="header.multiple"
                 :items="header.options"
               ></v-select>
               <v-select
-                v-model="searches[index]"
+                v-model="columnSearches[header.value]"
                 v-case="'boolean'"
                 clearable
                 :items="booleanOptions"
@@ -57,13 +57,13 @@
               <div v-case="'number'">
                 <v-select
                   v-if="header.options"
-                  v-model="searches[index]"
+                  v-model="columnSearches[header.value]"
                   clearable
                   :items="header.options"
                 ></v-select>
                 <v-text-field
                   v-else
-                  v-model="searches[index]"
+                  v-model="columnSearches[header.value]"
                   clearable
                   type="number"
                 ></v-text-field>
@@ -96,10 +96,11 @@
 
 <script lang="ts">
 import { ConnectionModel } from "@/backend";
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
 import { booleanOptions } from "@/utils/vuetify";
 import ConnectionDetail from "@/components/ConnectionDetail.vue";
+import { Searches } from "@/utils/common";
 
 @Component({
   components: {
@@ -107,7 +108,14 @@ import ConnectionDetail from "@/components/ConnectionDetail.vue";
   },
 })
 export default class ConnectionBrowser extends Vue {
-  booleanOptions = booleanOptions;
+  readonly booleanOptions = booleanOptions;
+
+  @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
+  columnSearches!: Searches;
+  @PropSync("search", { type: String, default: () => "" })
+  globalSearch!: string;
+  @Prop({ default: "" })
+  readonly query!: string;
 
   headers: Header[] = [
     {
@@ -130,7 +138,7 @@ export default class ConnectionBrowser extends Vue {
     {
       value: "specimen_type",
       type: "text",
-      options: ["exterior", "interior"],
+      options: ["exterior%", "interior%"],
     },
     {
       value: "slab",
@@ -156,8 +164,6 @@ export default class ConnectionBrowser extends Vue {
     },
   ];
   connections: ConnectionModel[] = [];
-  search = "";
-  searches: string[] = [];
   totalCount = -1;
   loading = true;
   options: DataOptions | null = null;
@@ -172,31 +178,6 @@ export default class ConnectionBrowser extends Vue {
         multiple: header.options ? header.options.length > 2 : false,
       };
     });
-  }
-
-  get query(): string {
-    const queries = this.tableHeaders
-      .map((header, index) => {
-        const search = this.searches[index];
-        if (
-          search != undefined &&
-          (typeof search == "boolean" || search.length > 0)
-        ) {
-          switch (header.type) {
-            case "text":
-              return `${header.value}:~%${search}%`;
-            default:
-              return `${header.value}:${search}`;
-          }
-        } else {
-          return undefined;
-        }
-      })
-      .filter((query) => query);
-    if (this.search && this.search.length > 0) {
-      queries.push(`%${this.search}%`);
-    }
-    return queries.join(";");
   }
 
   @Watch("options", { deep: true })

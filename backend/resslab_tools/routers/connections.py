@@ -4,7 +4,6 @@ Handle /connections requests
 import math
 from decimal import Decimal
 from distutils.util import strtobool
-from functools import reduce
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -15,7 +14,7 @@ from resslab_tools.models.api import (ConnectionColumn, ConnectionModel,
 from resslab_tools.models.database import (Connection, ConnectionGlobal,
                                            ConnectionPanelZone)
 from resslab_tools.services.database import get_session
-from sqlalchemy import desc, func, or_, select, tuple_
+from sqlalchemy import and_, desc, func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.selectable import Select
@@ -37,33 +36,34 @@ async def get_connections(
     """
     Get paginated Connections
     """
-    where_clauses: List[Any] = [__query_to_where_clause(q)
-                                for q
-                                in query.split(';')] \
-        if query \
-        else []
+    where_clauses: List[Any] = __get_where_clauses(query)
     order_clauses: List[Any] = [Connection.__dict__[key]
                                 if not is_desc
                                 else desc(Connection.__dict__[key])
                                 for key, is_desc
                                 in zip(sort_by, sort_desc)]
-    select_query: Select = reduce(lambda acc, item: acc.where(item),
-                                  where_clauses,
-                                  select(Connection))
-    return await paginate(session, select_query.order_by(*order_clauses))
+    return await paginate(
+        session,
+        select(Connection)
+        .where(and_(*where_clauses))
+        .order_by(*order_clauses)
+    )
 
 
 @router.get('/counts', response_model=List[CountModel])
 async def get_counts(
     session: AsyncSession = Depends(get_session),
     fields: List[ConnectionColumn] = Query(...),
+    query: Optional[str] = Query(None),
 ) -> List[CountModel]:
     """
     Get occurences count of field values
     """
+    where_clauses: List[Any] = __get_where_clauses(query)
     columns = [Connection.__dict__[field.value] for field in fields]
     tuples = await session.execute(
         select([*columns, func.count()])
+        .where(and_(*where_clauses))
         .group_by(func.grouping_sets(tuple_(*columns)))
     )
     return [CountModel(names=list(tuple)[:-1], value=tuple[len(columns)])
@@ -79,11 +79,16 @@ async def get_globals(
     """
     Get global series from connection
     """
-    query = select([
-        ConnectionGlobal.story_drift_angle,
-        ConnectionGlobal.actuator_force,
-    ]).where(ConnectionGlobal.connection_id == connection_id)
-    return await __get_series(session, size, query, ConnectionGlobal.id)
+    return await __get_series(
+        session,
+        size,
+        select([
+            ConnectionGlobal.story_drift_angle,
+            ConnectionGlobal.actuator_force,
+        ])
+        .where(ConnectionGlobal.connection_id == connection_id),
+        ConnectionGlobal.id
+    )
 
 
 @router.get('/{connection_id}/panel-zones', response_model=List[List[Decimal]])
@@ -95,36 +100,41 @@ async def get_panel_zones(
     """
     Get panel zone series from connection
     """
-    query = select([
-        ConnectionPanelZone.shear_distortion,
-        ConnectionPanelZone.shear_force,
-    ]).where(ConnectionPanelZone.connection_id == connection_id)
-    return await __get_series(session, size, query, ConnectionPanelZone.id)
+    return await __get_series(
+        session,
+        size,
+        select([
+            ConnectionPanelZone.shear_distortion,
+            ConnectionPanelZone.shear_force,
+        ])
+        .where(ConnectionPanelZone.connection_id == connection_id),
+        ConnectionPanelZone.id
+    )
 
 
 async def __get_series(
         session: AsyncSession,
         size: int,
-        query: select,
+        statement: Select,
         id_column: Column[int]
 ) -> List[List[Decimal]]:
     if size > 0:
         count: int = await session.scalar(
-            select(func.count()).select_from(query))
+            select(func.count()).select_from(statement))
         if count == 0:
             return []
         if count <= size:
-            tuples = await session.execute(query)
+            tuples = await session.execute(statement)
         else:
             n = math.ceil(float(count) / float(size))
             tuples = await session.execute(
-                query.where(func.mod(id_column, n) == 0))
+                statement.where(func.mod(id_column, n) == 0))
     else:
-        tuples = await session.execute(query)
+        tuples = await session.execute(statement)
     return [[tuple[0], tuple[1]] for tuple in tuples]
 
 
-def __query_to_where_clause(query: str):
+def __get_where_clause(query: str) -> Any:
     """
     Get where clause
     """
@@ -134,15 +144,26 @@ def __query_to_where_clause(query: str):
                      in Connection.__table__.columns])
     key, expression = query.split(':', 2)
     column: Column[Any] = Connection.__dict__[key]
-    if expression.startswith('~'):
-        return column.ilike(expression[1:])
-    elif expression.startswith('<'):
+    if expression.startswith('<'):
         return column < int(expression[1:])
-    elif expression.startswith('>'):
+    if expression.startswith('>'):
         return column > int(expression[1:])
-    elif isinstance(column.type, Integer):
+    if isinstance(column.type, String):
+        return column.ilike(expression)
+    if isinstance(column.type, Integer):
         return column == int(expression)
-    elif isinstance(column.type, Boolean):
+    if isinstance(column.type, Boolean):
         return column == bool(strtobool(expression))
-    else:
+    if ',' in expression:
         return column.in_(expression.split(','))
+    return column == expression
+
+
+def __get_where_clauses(query: Optional[str]) -> List[Any]:
+    """
+    Get where clauses
+    """
+    return [__get_where_clause(q)
+            for q
+            in query.split(';')
+            ] if query else []

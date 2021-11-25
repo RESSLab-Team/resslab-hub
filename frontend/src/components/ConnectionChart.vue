@@ -27,7 +27,7 @@ img.tooltip {
 </style>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import VChart from "vue-echarts";
 import { ConnectionColumn, CountModel } from "@/backend";
 import { use } from "echarts/core";
@@ -55,6 +55,9 @@ export default class ConnectionChart extends Vue {
     "wuf-b",
     "wuf-w",
   ]);
+
+  @Prop({ default: "" })
+  readonly query!: string;
 
   field = ConnectionColumn.ConnectionType;
   counts: CountModel[] = [];
@@ -103,9 +106,10 @@ export default class ConnectionChart extends Vue {
   }
 
   @Watch("field")
+  @Watch("query")
   onChanged(): void {
     this.$connectionsApi
-      .getCountsConnectionsCountsGet([this.field])
+      .getCountsConnectionsCountsGet([this.field], this.query)
       .then((response) => response.data)
       .then((counts) => {
         this.counts = counts;

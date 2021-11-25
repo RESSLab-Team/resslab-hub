@@ -135,6 +135,15 @@
             },
             "name": "fields",
             "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
           }
         ],
         "responses": {
