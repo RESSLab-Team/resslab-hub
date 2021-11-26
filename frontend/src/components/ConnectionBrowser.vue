@@ -11,6 +11,14 @@
         append-icon="mdi-magnify"
         label="Search"
       ></v-text-field>
+      <v-btn
+        color="primary"
+        :disabled="!hasFilters"
+        text
+        @click="onResetFilters"
+      >
+        Reset filters
+      </v-btn>
     </v-card-title>
     <v-data-table
       :headers="tableHeaders"
@@ -180,6 +188,13 @@ export default class ConnectionBrowser extends Vue {
     });
   }
 
+  get hasFilters(): boolean {
+    return (
+      this.globalSearch.length > 0 ||
+      Object.keys(this.columnSearches).length > 0
+    );
+  }
+
   @Watch("options", { deep: true })
   @Watch("query")
   onTableChanged(): void {
@@ -202,6 +217,11 @@ export default class ConnectionBrowser extends Vue {
           this.loading = false;
         });
     }
+  }
+
+  onResetFilters(): void {
+    this.globalSearch = "";
+    this.columnSearches = {};
   }
 }
 

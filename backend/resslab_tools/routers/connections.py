@@ -18,7 +18,7 @@ from sqlalchemy import and_, desc, func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.selectable import Select
-from sqlalchemy.sql.sqltypes import Boolean, Integer, String
+from sqlalchemy.sql.sqltypes import Boolean, Integer, Numeric, String
 
 router = APIRouter(
     prefix='/connections',
@@ -152,6 +152,8 @@ def __get_where_clause(query: str) -> Any:
         return column.ilike(expression)
     if isinstance(column.type, Integer):
         return column == int(expression)
+    if isinstance(column.type, Numeric):
+        return column == Decimal(expression)
     if isinstance(column.type, Boolean):
         return column == bool(strtobool(expression))
     if ',' in expression:
