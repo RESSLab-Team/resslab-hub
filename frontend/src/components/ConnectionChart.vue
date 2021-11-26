@@ -1,34 +1,25 @@
 <template>
   <v-card>
     <v-card-text>
-      <v-select v-model="singleField" :items="fields">
-        <template v-slot:selection="data">
-          {{ $t("connection." + data.item) }}
-        </template>
-        <template v-slot:item="data">
-          {{ $t("connection." + data.item) }}
-        </template>
-      </v-select>
+      <locale-select
+        v-model="singleField"
+        :items="fields"
+        prefix="connection."
+      ></locale-select>
       <v-chart :option="singleOption" @click="onClick"></v-chart>
     </v-card-text>
     <v-divider></v-divider>
     <v-card-text>
-      <v-select v-model="doubleField[0]" :items="fields">
-        <template v-slot:selection="data">
-          {{ $t("connection." + data.item) }}
-        </template>
-        <template v-slot:item="data">
-          {{ $t("connection." + data.item) }}
-        </template>
-      </v-select>
-      <v-select v-model="doubleField[1]" :items="fields">
-        <template v-slot:selection="data">
-          {{ $t("connection." + data.item) }}
-        </template>
-        <template v-slot:item="data">
-          {{ $t("connection." + data.item) }}
-        </template>
-      </v-select>
+      <locale-select
+        v-model="doubleField[0]"
+        :items="fields"
+        prefix="connection."
+      ></locale-select>
+      <locale-select
+        v-model="doubleField[1]"
+        :items="fields"
+        prefix="connection."
+      ></locale-select>
       <v-chart
         :option="doubleOption"
         :update-options="updateOptions"
@@ -65,11 +56,13 @@ import {
 } from "echarts/types/dist/shared";
 import { Searches, unique } from "@/utils/common";
 import { isEqual } from "lodash";
+import LocaleSelect from "@/components/commons/LocaleSelect.vue";
 
 use([CanvasRenderer, BarChart, PieChart, LegendComponent, TooltipComponent]);
 
 @Component({
   components: {
+    LocaleSelect,
     VChart,
   },
 })
