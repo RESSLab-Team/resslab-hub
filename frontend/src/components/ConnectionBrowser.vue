@@ -172,7 +172,7 @@ export default class ConnectionBrowser extends Vue {
     return this.headers.map((header) => {
       return {
         value: header.value,
-        text: this.$t(header.value).toString(),
+        text: this.$t("connection." + header.value).toString(),
         type: header.type,
         options: header.options,
         multiple: header.options ? header.options.length > 2 : false,

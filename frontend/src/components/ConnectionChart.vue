@@ -1,16 +1,40 @@
 <template>
   <v-card>
-    <v-card-title>
-      <v-select v-model="field" :items="fields">
+    <v-card-text>
+      <v-select v-model="singleField" :items="fields">
         <template v-slot:selection="data">
-          {{ $t(data.item) }}
+          {{ $t("connection." + data.item) }}
         </template>
         <template v-slot:item="data">
-          {{ $t(data.item) }}
+          {{ $t("connection." + data.item) }}
         </template>
       </v-select>
-    </v-card-title>
-    <v-chart :option="option" @click="onClick"></v-chart>
+      <v-chart :option="singleOption" @click="onClick"></v-chart>
+    </v-card-text>
+    <v-divider></v-divider>
+    <v-card-text>
+      <v-select v-model="doubleField[0]" :items="fields">
+        <template v-slot:selection="data">
+          {{ $t("connection." + data.item) }}
+        </template>
+        <template v-slot:item="data">
+          {{ $t("connection." + data.item) }}
+        </template>
+      </v-select>
+      <v-select v-model="doubleField[1]" :items="fields">
+        <template v-slot:selection="data">
+          {{ $t("connection." + data.item) }}
+        </template>
+        <template v-slot:item="data">
+          {{ $t("connection." + data.item) }}
+        </template>
+      </v-select>
+      <v-chart
+        :option="doubleOption"
+        :update-options="updateOptions"
+        @click="onClick"
+      ></v-chart>
+    </v-card-text>
   </v-card>
 </template>
 
@@ -31,13 +55,18 @@ import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import VChart from "vue-echarts";
 import { ConnectionColumn, CountModel } from "@/backend";
 import { use } from "echarts/core";
-import { PieChart } from "echarts/charts";
+import { BarChart, PieChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
-import { TooltipComponent } from "echarts/components";
-import { EChartsOption, CallbackDataParams } from "echarts/types/dist/shared";
-import { Searches } from "@/utils/common";
+import { LegendComponent, TooltipComponent } from "echarts/components";
+import {
+  EChartsOption,
+  CallbackDataParams,
+  SetOptionOpts,
+} from "echarts/types/dist/shared";
+import { Searches, unique } from "@/utils/common";
+import { isEqual } from "lodash";
 
-use([CanvasRenderer, PieChart, TooltipComponent]);
+use([CanvasRenderer, BarChart, PieChart, LegendComponent, TooltipComponent]);
 
 @Component({
   components: {
@@ -56,20 +85,29 @@ export default class ConnectionChart extends Vue {
     "wuf-b",
     "wuf-w",
   ]);
+  readonly updateOptions: SetOptionOpts = {
+    notMerge: true,
+  };
 
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
   @Prop({ default: "" })
   readonly query!: string;
 
-  field = ConnectionColumn.ConnectionType;
-  counts: CountModel[] = [];
+  singleField = ConnectionColumn.ConnectionType;
+  singleCounts: CountModel[] = [];
+  doubleField: [ConnectionColumn, ConnectionColumn] = [
+    ConnectionColumn.DC,
+    ConnectionColumn.NDp,
+  ];
+  doubleCounts: CountModel[] = [];
 
   created(): void {
-    this.onChanged();
+    this.onChangedSingle();
+    this.onChangedDouble();
   }
 
-  get option(): EChartsOption {
+  get singleOption(): EChartsOption {
     return {
       tooltip: {
         trigger: "item",
@@ -95,8 +133,8 @@ export default class ConnectionChart extends Vue {
       series: [
         {
           type: "pie",
-          name: this.field,
-          data: this.counts.map((count) => {
+          name: this.singleField,
+          data: this.singleCounts.map((count) => {
             return {
               name: count.names[0],
               value: count.value,
@@ -108,14 +146,68 @@ export default class ConnectionChart extends Vue {
     };
   }
 
-  @Watch("field")
+  get doubleOption(): EChartsOption {
+    const firstKeys = this.doubleCounts
+      .map((count) => count.names[0])
+      .filter(unique)
+      .sort();
+    const secondKeys = this.doubleCounts
+      .map((count) => count.names[1])
+      .filter(unique)
+      .sort();
+    return {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: {
+          type: "shadow",
+        },
+      },
+      legend: {},
+      xAxis: {
+        type: "category",
+        data: firstKeys,
+      },
+      yAxis: {
+        type: "value",
+      },
+      series: secondKeys.map((secondKey) => {
+        return {
+          name: secondKey,
+          type: "bar",
+          stack: this.doubleField[1],
+          emphasis: {
+            focus: "series",
+          },
+          data: firstKeys.map(
+            (firstKey) =>
+              this.doubleCounts.find((count) =>
+                isEqual(count.names, [firstKey, secondKey])
+              )?.value ?? 0
+          ),
+        };
+      }),
+    };
+  }
+
+  @Watch("singleField")
   @Watch("query")
-  onChanged(): void {
+  onChangedSingle(): void {
     this.$connectionsApi
-      .getCountsConnectionsCountsGet([this.field], this.query)
+      .getCountsConnectionsCountsGet([this.singleField], this.query)
       .then((response) => response.data)
       .then((counts) => {
-        this.counts = counts;
+        this.singleCounts = counts;
+      });
+  }
+
+  @Watch("doubleField")
+  @Watch("query")
+  onChangedDouble(): void {
+    this.$connectionsApi
+      .getCountsConnectionsCountsGet(this.doubleField, this.query)
+      .then((response) => response.data)
+      .then((counts) => {
+        this.doubleCounts = counts;
       });
   }
 
