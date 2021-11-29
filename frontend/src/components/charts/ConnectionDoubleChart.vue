@@ -31,7 +31,11 @@ import {
 import { use } from "echarts/core";
 import { BarChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
-import { LegendComponent, TooltipComponent } from "echarts/components";
+import {
+  LegendComponent,
+  TitleComponent,
+  TooltipComponent,
+} from "echarts/components";
 import {
   EChartsOption,
   CallbackDataParams,
@@ -42,7 +46,13 @@ import { isEqual } from "lodash";
 import RangeSlider from "@/components/commons/RangeSlider.vue";
 import { AxiosResponse } from "axios";
 
-use([CanvasRenderer, BarChart, TooltipComponent, LegendComponent]);
+use([
+  CanvasRenderer,
+  BarChart,
+  LegendComponent,
+  TitleComponent,
+  TooltipComponent,
+]);
 
 @Component({
   components: {
@@ -78,6 +88,13 @@ export default class ConnectionDoubleChart extends Vue {
       .filter(unique)
       .sort();
     return {
+      title: {
+        text: this.$t("connection." + this.fields[1]).toString(),
+        textStyle: {
+          fontSize: 12,
+          fontWeight: "normal",
+        },
+      },
       tooltip: {
         trigger: "axis",
         axisPointer: {

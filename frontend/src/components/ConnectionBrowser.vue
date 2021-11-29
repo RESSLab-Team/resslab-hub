@@ -170,6 +170,10 @@ export default class ConnectionBrowser extends Vue {
       type: "number",
       options: ["0", "> 0"],
     },
+    {
+      value: "t_dp_tot",
+      type: "number",
+    },
   ];
   connections: ConnectionModel[] = [];
   totalCount = -1;

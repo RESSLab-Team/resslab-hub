@@ -53,20 +53,17 @@ export default class RangeSlider extends Vue {
   range: [number, number] = [this.min, this.max];
 
   created(): void {
-    this.onRangeChanged();
+    this.onGetRangeChanged();
   }
 
   @Watch("getRange")
-  onRangeChanged(): void {
-    if (this.getRange) {
+  onGetRangeChanged(): void {
+    if (this.getRange && this.min === 0 && this.max === 0) {
       this.getRange
         .then((res) => res.data)
         .then((range) => {
           this.min = range.min - (range.min % this.step);
-          this.max =
-            this.step > 1
-              ? Math.ceil(range.max / this.step) * this.step
-              : range.max;
+          this.max = Math.ceil(range.max / this.step) * this.step;
           this.range = [this.min, this.max];
         });
     }

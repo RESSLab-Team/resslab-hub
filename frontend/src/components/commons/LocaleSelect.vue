@@ -1,5 +1,5 @@
 <template>
-  <v-select v-model="item" :items="items">
+  <v-select v-model="item" :items="items" hide-details>
     <template v-slot:selection="data">
       {{ $t(prefix + data.item) }}
     </template>
