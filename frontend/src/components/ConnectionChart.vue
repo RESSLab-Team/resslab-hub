@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import { Component, Prop, PropSync, Vue } from "vue-property-decorator";
-import { ConnectionColumn } from "@/backend";
+import { ConnectionField } from "@/backend";
 import { Searches } from "@/utils/common";
 import LocaleSelect from "@/components/commons/LocaleSelect.vue";
 import ConnectionSingleChart from "@/components/charts/ConnectionSingleChart.vue";
@@ -49,17 +49,17 @@ import ConnectionDoubleChart from "@/components/charts/ConnectionDoubleChart.vue
   },
 })
 export default class ConnectionChart extends Vue {
-  readonly fields: string[] = Object.values(ConnectionColumn);
+  readonly fields: string[] = Object.values(ConnectionField);
 
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
   @Prop({ type: String, default: "" })
   readonly query!: string;
 
-  singleField = ConnectionColumn.ConnectionType;
-  doubleFields: [ConnectionColumn, ConnectionColumn] = [
-    ConnectionColumn.DC,
-    ConnectionColumn.NDp,
+  singleField = ConnectionField.ConnectionType;
+  doubleFields: [ConnectionField, ConnectionField] = [
+    ConnectionField.DC,
+    ConnectionField.NDp,
   ];
 }
 </script>

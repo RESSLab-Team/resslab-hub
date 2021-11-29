@@ -130,7 +130,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/components/schemas/ConnectionColumn"
+                "$ref": "#/components/schemas/ConnectionField"
               }
             },
             "name": "fields",
@@ -157,6 +157,47 @@
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
                   }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/range": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Range",
+        "operationId": "get_range_connections_range_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ConnectionNumberField"
+            },
+            "name": "field",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeModel"
                 }
               }
             }
@@ -299,8 +340,8 @@
   },
   "components": {
     "schemas": {
-      "ConnectionColumn": {
-        "title": "ConnectionColumn",
+      "ConnectionField": {
+        "title": "ConnectionField",
         "enum": [
           "id",
           "experimental_program",
@@ -416,6 +457,19 @@
         },
         "description": "Connection"
       },
+      "ConnectionNumberField": {
+        "title": "ConnectionNumberField",
+        "enum": [
+          "date",
+          "d_b",
+          "d_c",
+          "t_cf",
+          "t_dp",
+          "n_dp",
+          "t_dp_tot"
+        ],
+        "description": "An enumeration."
+      },
       "CountModel": {
         "title": "CountModel",
         "required": [
@@ -503,6 +557,25 @@
             "type": "integer"
           }
         }
+      },
+      "RangeModel": {
+        "title": "RangeModel",
+        "required": [
+          "min",
+          "max"
+        ],
+        "type": "object",
+        "properties": {
+          "min": {
+            "title": "Min",
+            "type": "number"
+          },
+          "max": {
+            "title": "Max",
+            "type": "number"
+          }
+        },
+        "description": "Range"
       },
       "ValidationError": {
         "title": "ValidationError",

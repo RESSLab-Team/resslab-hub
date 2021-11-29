@@ -47,9 +47,25 @@ class CountModel(BaseModel):
     value: int
 
 
-ConnectionColumn = enum.Enum(
-    'ConnectionColumn',
-    {column: column
-     for column
+class RangeModel(BaseModel):
+    """
+    Range
+    """
+    min: Decimal
+    max: Decimal
+
+
+ConnectionField = enum.Enum(
+    'ConnectionField',
+    {key: key
+     for key
      in ConnectionModel.__fields__}
+)
+
+ConnectionNumberField = enum.Enum(
+    'ConnectionNumberField',
+    {key: key
+     for key, field
+     in ConnectionModel.__fields__.items()
+     if field.type_ in [int, Decimal]}
 )

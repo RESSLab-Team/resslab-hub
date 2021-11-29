@@ -17,7 +17,7 @@ img.tooltip {
 <script lang="ts">
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import VChart from "vue-echarts";
-import { ConnectionColumn, CountModel } from "@/backend";
+import { ConnectionField, CountModel } from "@/backend";
 import { use } from "echarts/core";
 import { PieChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
@@ -46,8 +46,8 @@ export default class ConnectionSingleChart extends Vue {
 
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
-  @Prop({ type: String as () => ConnectionColumn })
-  readonly field!: ConnectionColumn;
+  @Prop({ type: String as () => ConnectionField })
+  readonly field!: ConnectionField;
   @Prop({ type: String, default: "" })
   readonly query!: string;
 

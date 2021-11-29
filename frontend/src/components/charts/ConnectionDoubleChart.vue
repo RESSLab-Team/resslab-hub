@@ -1,9 +1,16 @@
 <template>
-  <v-chart
-    :option="option"
-    :update-options="updateOptions"
-    @click="onClick"
-  ></v-chart>
+  <div>
+    <v-chart
+      :option="option"
+      :update-options="updateOptions"
+      @click="onClick"
+    ></v-chart>
+    <range-slider
+      v-if="hasSlider"
+      :get-range="getRange"
+      @change="onSliderChange"
+    ></range-slider>
+  </div>
 </template>
 
 <style scoped>
@@ -15,7 +22,12 @@
 <script lang="ts">
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import VChart from "vue-echarts";
-import { ConnectionColumn, CountModel } from "@/backend";
+import {
+  ConnectionField,
+  ConnectionNumberField,
+  CountModel,
+  RangeModel,
+} from "@/backend";
 import { use } from "echarts/core";
 import { BarChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
@@ -27,12 +39,15 @@ import {
 } from "echarts/types/dist/shared";
 import { Searches, unique } from "@/utils/common";
 import { isEqual } from "lodash";
+import RangeSlider from "@/components/commons/RangeSlider.vue";
+import { AxiosResponse } from "axios";
 
 use([CanvasRenderer, BarChart, TooltipComponent, LegendComponent]);
 
 @Component({
   components: {
     VChart,
+    RangeSlider,
   },
 })
 export default class ConnectionDoubleChart extends Vue {
@@ -42,8 +57,8 @@ export default class ConnectionDoubleChart extends Vue {
 
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
-  @Prop({ type: Array as () => ConnectionColumn[] })
-  readonly fields!: [ConnectionColumn, ConnectionColumn];
+  @Prop({ type: Array as () => ConnectionField[] })
+  readonly fields!: [ConnectionField, ConnectionField];
   @Prop({ type: String, default: "" })
   readonly query!: string;
 
@@ -73,9 +88,13 @@ export default class ConnectionDoubleChart extends Vue {
       xAxis: {
         type: "category",
         data: firstKeys,
+        name: this.$t("connection." + this.fields[0]).toString(),
+        nameLocation: "middle",
+        nameGap: 28,
       },
       yAxis: {
         type: "value",
+        name: "#",
       },
       series: secondKeys.map((secondKey) => {
         return {
@@ -89,11 +108,34 @@ export default class ConnectionDoubleChart extends Vue {
             (firstKey) =>
               this.counts.find((count) =>
                 isEqual(count.names, [firstKey, secondKey])
-              )?.value ?? 0
+              )?.value ?? ""
           ),
         };
       }),
     };
+  }
+
+  get numberField(): ConnectionNumberField | undefined {
+    const fieldString = this.fields[0].toString();
+    return Object.values(ConnectionNumberField).find(
+      (numberField) => fieldString === numberField.toString()
+    );
+  }
+
+  get hasSlider(): boolean {
+    return this.numberField !== undefined;
+  }
+
+  get getRange(): Promise<AxiosResponse<RangeModel>> | undefined {
+    if (this.numberField) {
+      return this.$connectionsApi.getRangeConnectionsRangeGet(this.numberField);
+    } else {
+      return undefined;
+    }
+  }
+
+  onSliderChange(value: [number, number]): void {
+    this.$set(this.fieldSearches, this.fields[0], `${value[0]}<<${value[1]}`);
   }
 
   @Watch("fields")

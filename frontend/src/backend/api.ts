@@ -27,7 +27,7 @@ import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } fr
  * @enum {string}
  */
 
-export enum ConnectionColumn {
+export enum ConnectionField {
     Id = 'id',
     ExperimentalProgram = 'experimental_program',
     Date = 'date',
@@ -157,6 +157,22 @@ export interface ConnectionModel {
     't_dp_tot': number;
 }
 /**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export enum ConnectionNumberField {
+    Date = 'date',
+    DB = 'd_b',
+    DC = 'd_c',
+    TCf = 't_cf',
+    TDp = 't_dp',
+    NDp = 'n_dp',
+    TDpTot = 't_dp_tot'
+}
+
+/**
  * Count
  * @export
  * @interface CountModel
@@ -237,6 +253,25 @@ export interface PageConnectionModel {
      * @memberof PageConnectionModel
      */
     'size': number;
+}
+/**
+ * Range
+ * @export
+ * @interface RangeModel
+ */
+export interface RangeModel {
+    /**
+     * 
+     * @type {number}
+     * @memberof RangeModel
+     */
+    'min': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof RangeModel
+     */
+    'max': number;
 }
 /**
  * 
@@ -328,12 +363,12 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
         /**
          * Get occurences count of field values
          * @summary Get Counts
-         * @param {Array<ConnectionColumn>} fields 
+         * @param {Array<ConnectionField>} fields 
          * @param {string} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getCountsConnectionsCountsGet: async (fields: Array<ConnectionColumn>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getCountsConnectionsCountsGet: async (fields: Array<ConnectionField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'fields' is not null or undefined
             assertParamExists('getCountsConnectionsCountsGet', 'fields', fields)
             const localVarPath = `/connections/counts`;
@@ -445,6 +480,43 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @summary Get Range
+         * @param {ConnectionNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getRangeConnectionsRangeGet: async (field: ConnectionNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getRangeConnectionsRangeGet', 'field', field)
+            const localVarPath = `/connections/range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -473,12 +545,12 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
         /**
          * Get occurences count of field values
          * @summary Get Counts
-         * @param {Array<ConnectionColumn>} fields 
+         * @param {Array<ConnectionField>} fields 
          * @param {string} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+        async getCountsConnectionsCountsGet(fields: Array<ConnectionField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getCountsConnectionsCountsGet(fields, query, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -504,6 +576,17 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          */
         async getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Range
+         * @param {ConnectionNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getRangeConnectionsRangeGet(field: ConnectionNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getRangeConnectionsRangeGet(field, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -533,12 +616,12 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
         /**
          * Get occurences count of field values
          * @summary Get Counts
-         * @param {Array<ConnectionColumn>} fields 
+         * @param {Array<ConnectionField>} fields 
          * @param {string} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+        getCountsConnectionsCountsGet(fields: Array<ConnectionField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
             return localVarFp.getCountsConnectionsCountsGet(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -562,6 +645,16 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          */
         getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Range
+         * @param {ConnectionNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getRangeConnectionsRangeGet(field: ConnectionNumberField, options?: any): AxiosPromise<RangeModel> {
+            return localVarFp.getRangeConnectionsRangeGet(field, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -592,13 +685,13 @@ export class ConnectionsApi extends BaseAPI {
     /**
      * Get occurences count of field values
      * @summary Get Counts
-     * @param {Array<ConnectionColumn>} fields 
+     * @param {Array<ConnectionField>} fields 
      * @param {string} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ConnectionsApi
      */
-    public getCountsConnectionsCountsGet(fields: Array<ConnectionColumn>, query?: string, options?: AxiosRequestConfig) {
+    public getCountsConnectionsCountsGet(fields: Array<ConnectionField>, query?: string, options?: AxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getCountsConnectionsCountsGet(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -626,6 +719,18 @@ export class ConnectionsApi extends BaseAPI {
      */
     public getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId: string, size?: number, options?: AxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getPanelZonesConnectionsConnectionIdPanelZonesGet(connectionId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Range
+     * @param {ConnectionNumberField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public getRangeConnectionsRangeGet(field: ConnectionNumberField, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getRangeConnectionsRangeGet(field, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

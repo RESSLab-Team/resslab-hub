@@ -4,13 +4,14 @@ Handle /connections requests
 import math
 from decimal import Decimal
 from distutils.util import strtobool
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi_pagination import Page
 from fastapi_pagination.ext.async_sqlalchemy import paginate
-from resslab_tools.models.api import (ConnectionColumn, ConnectionModel,
-                                      CountModel)
+from resslab_tools.models.api import (ConnectionField, ConnectionModel,
+                                      ConnectionNumberField, CountModel,
+                                      RangeModel)
 from resslab_tools.models.database import (Connection, ConnectionGlobal,
                                            ConnectionPanelZone)
 from resslab_tools.services.database import get_session
@@ -53,7 +54,7 @@ async def get_connections(
 @router.get('/counts', response_model=List[CountModel])
 async def get_counts(
     session: AsyncSession = Depends(get_session),
-    fields: List[ConnectionColumn] = Query(...),
+    fields: List[ConnectionField] = Query(...),
     query: Optional[str] = Query(None),
 ) -> List[CountModel]:
     """
@@ -68,6 +69,22 @@ async def get_counts(
     )
     return [CountModel(names=list(tuple)[:-1], value=tuple[len(columns)])
             for tuple in tuples]
+
+
+@router.get('/range', response_model=RangeModel)
+async def get_range(
+    session: AsyncSession = Depends(get_session),
+    field: ConnectionNumberField = Query(...),
+) -> RangeModel:
+    """
+    Get range of field
+    """
+    column: Column[Union[Integer, Decimal]] = Connection.__dict__[field.value]
+    tuples = await session.execute(
+        select([func.min(column), func.max(column)])
+    )
+    row = next(tuples)
+    return RangeModel(min=row[0], max=row[1])
 
 
 @router.get('/{connection_id}/globals', response_model=List[List[Decimal]])
@@ -134,6 +151,16 @@ async def __get_series(
     return [[tuple[0], tuple[1]] for tuple in tuples]
 
 
+def __get_where_clauses(query: Optional[str]) -> List[Any]:
+    """
+    Get where clauses
+    """
+    return [__get_where_clause(q)
+            for q
+            in query.split(';')
+            ] if query else []
+
+
 def __get_where_clause(query: str) -> Any:
     """
     Get where clause
@@ -144,6 +171,19 @@ def __get_where_clause(query: str) -> Any:
                      in Connection.__table__.columns])
     key, expression = query.split(':', 2)
     column: Column[Any] = Connection.__dict__[key]
+    return __get_predicate(column, expression)
+
+
+def __get_predicate(column: Column[Any], expression: str) -> Any:
+    if '&' in expression:
+        return and_(*[__get_predicate(column, e)
+                      for e
+                      in expression.split('&')])
+    if ',' in expression:
+        return column.in_(expression.split(','))
+    if '<<' in expression:
+        [min, max] = expression.split('<<', 2)
+        return column.between(Decimal(min), Decimal(max))
     if expression.startswith('<'):
         return column < int(expression[1:])
     if expression.startswith('>'):
@@ -156,16 +196,4 @@ def __get_where_clause(query: str) -> Any:
         return column == Decimal(expression)
     if isinstance(column.type, Boolean):
         return column == bool(strtobool(expression))
-    if ',' in expression:
-        return column.in_(expression.split(','))
     return column == expression
-
-
-def __get_where_clauses(query: Optional[str]) -> List[Any]:
-    """
-    Get where clauses
-    """
-    return [__get_where_clause(q)
-            for q
-            in query.split(';')
-            ] if query else []
