@@ -1,5 +1,13 @@
 <template>
-  <v-chart :option="option" @click="onClick"></v-chart>
+  <div>
+    <v-chart
+      :option="option"
+      @click="onClick"
+      @mouseover="onMouseover"
+      @mouseout="onMouseout"
+    ></v-chart>
+    <v-img v-if="imageUrl" :src="imageUrl"></v-img>
+  </div>
 </template>
 
 <style scoped>
@@ -34,15 +42,6 @@ use([CanvasRenderer, PieChart, TooltipComponent]);
 })
 export default class ConnectionSingleChart extends Vue {
   readonly publicPath: string = process.env.BASE_URL;
-  readonly connectionTypes = new Set([
-    "beep",
-    "bfp",
-    "kbb",
-    "rbs",
-    "wfp",
-    "wuf-b",
-    "wuf-w",
-  ]);
 
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
@@ -52,6 +51,7 @@ export default class ConnectionSingleChart extends Vue {
   readonly query!: string;
 
   private counts: CountModel[] = [];
+  imageUrl = "";
 
   created(): void {
     this.onChanged();
@@ -61,29 +61,11 @@ export default class ConnectionSingleChart extends Vue {
     return {
       tooltip: {
         trigger: "item",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        formatter: (params: any) => {
-          const name: string = params.name;
-          const value: string = params.value;
-          const percent: number = params.percent;
-          const defaultFormat = `${name}: <strong>${value}</strong> (${percent}%)`;
-          if (this.connectionTypes.has(name.toLowerCase())) {
-            const src =
-              this.publicPath +
-              "img/connection-type/" +
-              name.toLowerCase() +
-              ".png";
-            return `<img class="tooltip" src="${src}"></img>
-            <div>${defaultFormat}</div>`;
-          } else {
-            return defaultFormat;
-          }
-        },
       },
       series: [
         {
           type: "pie",
-          name: this.field,
+          name: this.$t("connection." + this.field).toString(),
           data: this.counts.map((count) => {
             return {
               name: count.names[0],
@@ -111,6 +93,17 @@ export default class ConnectionSingleChart extends Vue {
     if (params.seriesName) {
       this.$set(this.fieldSearches, params.seriesName, params.name);
     }
+  }
+
+  onMouseover(params: CallbackDataParams): void {
+    if (this.field === ConnectionField.ConnectionType) {
+      const name: string = params.name.toLowerCase();
+      this.imageUrl = this.publicPath + "img/connection-type/" + name + ".png";
+    }
+  }
+
+  onMouseout(): void {
+    this.imageUrl = "";
   }
 }
 </script>
