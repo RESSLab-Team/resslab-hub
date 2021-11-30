@@ -55,6 +55,14 @@ class RangeModel(BaseModel):
     max: Decimal
 
 
+class DownloadModel(BaseModel):
+    """
+    DownloadModel
+    """
+    global_csv: str
+    panel_zone_csv: str
+
+
 ConnectionField = enum.Enum(
     'ConnectionField',
     {key: key

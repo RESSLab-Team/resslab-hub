@@ -21,6 +21,7 @@
       </v-btn>
     </v-card-title>
     <v-data-table
+      v-model="selectedItems"
       :headers="tableHeaders"
       :items="connections"
       :loading="loading"
@@ -28,11 +29,15 @@
       :search="search"
       :server-items-length="totalCount"
       show-expand
+      show-select
     >
       <template v-slot:[`body.prepend`]>
         <tr>
           <td>
             <!-- expand -->
+          </td>
+          <td>
+            <!-- select -->
           </td>
           <td v-for="header in tableHeaders" :key="header.value">
             <div v-switch="header.type">
@@ -86,6 +91,17 @@
         </td>
       </template>
     </v-data-table>
+    <v-card-actions>
+      <v-btn
+        color="primary"
+        :disabled="selectedItems.length === 0"
+        text
+        @click="onDownload"
+      >
+        <v-icon left>mdi-download</v-icon>
+        Download ({{ selectedItems.length * 2 }})
+      </v-btn>
+    </v-card-actions>
   </v-card>
 </template>
 
@@ -118,14 +134,7 @@ import { Searches } from "@/utils/common";
 export default class ConnectionBrowser extends Vue {
   readonly booleanOptions = booleanOptions;
 
-  @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
-  columnSearches!: Searches;
-  @PropSync("search", { type: String, default: () => "" })
-  globalSearch!: string;
-  @Prop({ default: "" })
-  readonly query!: string;
-
-  headers: Header[] = [
+  readonly headers: Header[] = [
     {
       value: "experimental_program",
       type: "text",
@@ -175,10 +184,19 @@ export default class ConnectionBrowser extends Vue {
       type: "number",
     },
   ];
+
+  @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
+  columnSearches!: Searches;
+  @PropSync("search", { type: String, default: () => "" })
+  globalSearch!: string;
+  @Prop({ default: "" })
+  readonly query!: string;
+
   connections: ConnectionModel[] = [];
   totalCount = -1;
   loading = true;
   options: DataOptions | null = null;
+  selectedItems: ConnectionModel[] = [];
 
   get tableHeaders(): TableHeader[] {
     return this.headers.map((header) => {
@@ -226,6 +244,20 @@ export default class ConnectionBrowser extends Vue {
   onResetFilters(): void {
     this.globalSearch = "";
     this.columnSearches = {};
+  }
+
+  onDownload(): void {
+    this.selectedItems
+      .map((item) => item.id)
+      .map((id) => {
+        this.$connectionsApi
+          .getDownloadConnectionsConnectionIdDownloadGet(id)
+          .then((response) => response.data)
+          .then((data) => {
+            window.open(data.global_csv);
+            window.open(data.panel_zone_csv);
+          });
+      });
   }
 }
 

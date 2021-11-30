@@ -6,15 +6,17 @@ from decimal import Decimal
 from distutils.util import strtobool
 from typing import Any, List, Optional, Union
 
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Depends, Path, Query, Request
+from fastapi.responses import StreamingResponse
 from fastapi_pagination import Page
 from fastapi_pagination.ext.async_sqlalchemy import paginate
 from resslab_tools.models.api import (ConnectionField, ConnectionModel,
                                       ConnectionNumberField, CountModel,
-                                      RangeModel)
+                                      DownloadModel, RangeModel)
 from resslab_tools.models.database import (Connection, ConnectionGlobal,
                                            ConnectionPanelZone)
 from resslab_tools.services.database import get_session
+from resslab_tools.utils.fastapi import HttpHeader, MediaType, attachment
 from sqlalchemy import and_, desc, func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.schema import Column
@@ -87,6 +89,23 @@ async def get_range(
     return RangeModel(min=row[0], max=row[1])
 
 
+@router.get('/{connection_id}/download', response_model=DownloadModel)
+async def get_download(
+    request: Request,
+    connection_id: str = Path(...),
+) -> DownloadModel:
+    return DownloadModel(
+        global_csv=request.url_for(
+            "get_global_csv",
+            connection_id=connection_id
+        ),
+        panel_zone_csv=request.url_for(
+            "get_panel_zones_csv",
+            connection_id=connection_id
+        )
+    )
+
+
 @router.get('/{connection_id}/globals', response_model=List[List[Decimal]])
 async def get_globals(
     session: AsyncSession = Depends(get_session),
@@ -103,8 +122,32 @@ async def get_globals(
             ConnectionGlobal.story_drift_angle,
             ConnectionGlobal.actuator_force,
         ])
-        .where(ConnectionGlobal.connection_id == connection_id),
+        .where(ConnectionGlobal.connection_id == connection_id)
+        .order_by(ConnectionGlobal.id),
         ConnectionGlobal.id
+    )
+
+
+@router.get('/{connection_id}/globals/csv',
+            response_class=StreamingResponse)
+async def get_global_csv(
+    session: AsyncSession = Depends(get_session),
+    connection_id: str = Path(...),
+) -> StreamingResponse:
+    """
+    Get global csv from connection
+    """
+    filename = f'connection-global_{connection_id}.csv'
+    return __get_csv_response(
+        session,
+        select([
+            ConnectionGlobal.story_drift_angle,
+            ConnectionGlobal.actuator_force,
+        ])
+        .where(ConnectionGlobal.connection_id == connection_id)
+        .order_by(ConnectionGlobal.id),
+        ['Total story drift angle (rad)', 'Force in the actuator (kN)'],
+        filename,
     )
 
 
@@ -124,8 +167,32 @@ async def get_panel_zones(
             ConnectionPanelZone.shear_distortion,
             ConnectionPanelZone.shear_force,
         ])
-        .where(ConnectionPanelZone.connection_id == connection_id),
+        .where(ConnectionPanelZone.connection_id == connection_id)
+        .order_by(ConnectionPanelZone.id),
         ConnectionPanelZone.id
+    )
+
+
+@router.get('/{connection_id}/panel-zones/csv',
+            response_class=StreamingResponse)
+async def get_panel_zones_csv(
+    session: AsyncSession = Depends(get_session),
+    connection_id: str = Path(...),
+) -> StreamingResponse:
+    """
+    Get panel zone csv from connection
+    """
+    filename = f'connection-panel-zone_{connection_id}.csv'
+    return __get_csv_response(
+        session,
+        select([
+            ConnectionPanelZone.shear_distortion,
+            ConnectionPanelZone.shear_force,
+        ])
+        .where(ConnectionPanelZone.connection_id == connection_id)
+        .order_by(ConnectionPanelZone.id),
+        ['Panel zone shear distortion (rad)', 'Panel zone shear force (kN)'],
+        filename,
     )
 
 
@@ -137,17 +204,14 @@ async def __get_series(
 ) -> List[List[Decimal]]:
     if size > 0:
         count: int = await session.scalar(
-            select(func.count()).select_from(statement))
+            select(func.count()).select_from(statement)
+        )
         if count == 0:
             return []
-        if count <= size:
-            tuples = await session.execute(statement)
-        else:
+        if count > size:
             n = math.ceil(float(count) / float(size))
-            tuples = await session.execute(
-                statement.where(func.mod(id_column, n) == 0))
-    else:
-        tuples = await session.execute(statement)
+            statement = statement.where(func.mod(id_column, n) == 0)
+    tuples = await session.execute(statement)
     return [[tuple[0], tuple[1]] for tuple in tuples]
 
 
@@ -197,3 +261,38 @@ def __get_predicate(column: Column[Any], expression: str) -> Any:
     if isinstance(column.type, Boolean):
         return column == bool(strtobool(expression))
     return column == expression
+
+
+def __get_csv_response(
+    session: AsyncSession,
+    statement: Select,
+    headers: List[str],
+    filename: str,
+) -> StreamingResponse:
+    return StreamingResponse(
+        __get_csv_stream(
+            session,
+            statement,
+            headers,
+        ),
+        headers={
+            HttpHeader.CONTENT_DISPOSITION.value: attachment(filename)
+        },
+        media_type=MediaType.CSV.value)
+
+
+async def __get_csv_stream(
+        session: AsyncSession,
+        statement: Select,
+        headers: List[str],
+        partition_size=128,
+        separator=','):
+    yield separator.join(headers) + '\n'
+    result = await session.stream(statement)
+    async for partition in result.partitions(partition_size):
+        for row in partition:
+            yield separator.join(
+                [str(Decimal(item).normalize())
+                 for item
+                 in row]
+            ) + '\n'
