@@ -11,6 +11,7 @@ from resslab_tools import __version__
 from resslab_tools.config import settings
 from resslab_tools.routers import connections, root
 from resslab_tools.services.database import upgrade_database
+from resslab_tools.utils.fastapi import use_route_names_as_operation_ids
 
 app = FastAPI(
     title=title,
@@ -33,5 +34,6 @@ else:
 app.include_router(root.router)
 app.include_router(connections.router)
 add_pagination(app)
+use_route_names_as_operation_ids(app)
 
 upgrade_database()

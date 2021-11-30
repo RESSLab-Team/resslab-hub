@@ -145,7 +145,7 @@ export default class ConnectionDoubleChart extends Vue {
 
   get getRange(): Promise<AxiosResponse<RangeModel>> | undefined {
     if (this.numberField) {
-      return this.$connectionsApi.getRangeConnectionsRangeGet(this.numberField);
+      return this.$connectionsApi.getRange(this.numberField);
     } else {
       return undefined;
     }
@@ -159,7 +159,7 @@ export default class ConnectionDoubleChart extends Vue {
   @Watch("query")
   onChanged(): void {
     this.$connectionsApi
-      .getCountsConnectionsCountsGet(this.fields, this.query)
+      .getCounts(this.fields, this.query)
       .then((response) => response.data)
       .then((counts) => {
         this.counts = counts;

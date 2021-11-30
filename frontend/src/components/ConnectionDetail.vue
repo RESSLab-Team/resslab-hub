@@ -97,13 +97,13 @@ export default class ConnectionDetail extends Vue {
   @Watch("field")
   onChanged(): void {
     this.$connectionsApi
-      .getGlobalsConnectionsConnectionIdGlobalsGet(this.connectionId)
+      .getGlobals(this.connectionId)
       .then((response) => response.data)
       .then((series) => {
         this.globalSeries = series;
       });
     this.$connectionsApi
-      .getPanelZonesConnectionsConnectionIdPanelZonesGet(this.connectionId)
+      .getPanelZones(this.connectionId)
       .then((response) => response.data)
       .then((series) => {
         this.panelZoneSeries = series;

@@ -9,7 +9,7 @@
       "get": {
         "summary": "Root",
         "description": "Get Info",
-        "operationId": "root__get",
+        "operationId": "root",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -31,7 +31,7 @@
         ],
         "summary": "Get Connections",
         "description": "Get paginated Connections",
-        "operationId": "get_connections_connections_get",
+        "operationId": "get_connections",
         "parameters": [
           {
             "required": false,
@@ -123,7 +123,7 @@
         ],
         "summary": "Get Counts",
         "description": "Get occurences count of field values",
-        "operationId": "get_counts_connections_counts_get",
+        "operationId": "get_counts",
         "parameters": [
           {
             "required": true,
@@ -181,7 +181,7 @@
         ],
         "summary": "Get Range",
         "description": "Get range of field",
-        "operationId": "get_range_connections_range_get",
+        "operationId": "get_range",
         "parameters": [
           {
             "required": true,
@@ -222,7 +222,7 @@
           "connections"
         ],
         "summary": "Get Download",
-        "operationId": "get_download_connections__connection_id__download_get",
+        "operationId": "get_download",
         "parameters": [
           {
             "required": true,
@@ -265,7 +265,7 @@
         ],
         "summary": "Get Globals",
         "description": "Get global series from connection",
-        "operationId": "get_globals_connections__connection_id__globals_get",
+        "operationId": "get_globals",
         "parameters": [
           {
             "required": true,
@@ -326,7 +326,7 @@
         ],
         "summary": "Get Global Csv",
         "description": "Get global csv from connection",
-        "operationId": "get_global_csv_connections__connection_id__globals_csv_get",
+        "operationId": "get_global_csv",
         "parameters": [
           {
             "required": true,
@@ -362,7 +362,7 @@
         ],
         "summary": "Get Panel Zones",
         "description": "Get panel zone series from connection",
-        "operationId": "get_panel_zones_connections__connection_id__panel_zones_get",
+        "operationId": "get_panel_zones",
         "parameters": [
           {
             "required": true,
@@ -423,7 +423,7 @@
         ],
         "summary": "Get Panel Zones Csv",
         "description": "Get panel zone csv from connection",
-        "operationId": "get_panel_zones_csv_connections__connection_id__panel_zones_csv_get",
+        "operationId": "get_panel_zones_csv",
         "parameters": [
           {
             "required": true,

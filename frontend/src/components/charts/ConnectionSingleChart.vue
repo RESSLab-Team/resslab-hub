@@ -82,10 +82,10 @@ export default class ConnectionSingleChart extends Vue {
   @Watch("query")
   onChanged(): void {
     this.$connectionsApi
-      .getCountsConnectionsCountsGet([this.field], this.query)
+      .getCounts([this.field], this.query)
       .then((response) => response.data)
       .then((counts) => {
-        this.counts = counts.sort((c1, c2) => c1.value - c2.value);
+        this.counts = counts.sort((c1, c2) => c2.value - c1.value);
       });
   }
 

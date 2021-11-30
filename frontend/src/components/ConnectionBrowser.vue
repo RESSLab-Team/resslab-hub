@@ -223,7 +223,7 @@ export default class ConnectionBrowser extends Vue {
     if (this.options) {
       this.loading = true;
       this.$connectionsApi
-        .getConnectionsConnectionsGet(
+        .getConnections(
           this.query,
           this.options.sortBy,
           this.options.sortDesc,
@@ -251,7 +251,7 @@ export default class ConnectionBrowser extends Vue {
       .map((item) => item.id)
       .map((id) => {
         this.$connectionsApi
-          .getDownloadConnectionsConnectionIdDownloadGet(id)
+          .getDownload(id)
           .then((response) => response.data)
           .then((data) => {
             window.open(data.global_csv);
