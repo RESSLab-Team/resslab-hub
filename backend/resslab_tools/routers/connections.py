@@ -69,8 +69,17 @@ async def get_counts(
         .where(and_(*where_clauses))
         .group_by(func.grouping_sets(tuple_(*columns)))
     )
-    return [CountModel(names=list(tuple)[:-1], value=tuple[len(columns)])
-            for tuple in tuples]
+    return [
+        CountModel(
+            names=[
+                __format_value(value)
+                for value
+                in list(tuple)[:-1]
+            ],
+            value=tuple[len(columns)])
+        for tuple
+        in tuples
+    ]
 
 
 @router.get('/range', response_model=RangeModel)
@@ -263,6 +272,12 @@ def __get_predicate(column: Column[Any], expression: str) -> Any:
     return column == expression
 
 
+def __format_value(value: Any):
+    if isinstance(value, Decimal):
+        return Decimal(f'{value.normalize():f}')
+    return value
+
+
 def __get_csv_response(
     session: AsyncSession,
     statement: Select,
@@ -292,7 +307,7 @@ async def __get_csv_stream(
     async for partition in result.partitions(partition_size):
         for row in partition:
             yield separator.join(
-                [str(Decimal(item).normalize())
+                [str(__format_value(item))
                  for item
                  in row]
             ) + '\n'

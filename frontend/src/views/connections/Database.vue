@@ -86,7 +86,7 @@ export default class Home extends Vue {
 
   singleField = ConnectionField.Date;
   doubleFields: [ConnectionField, ConnectionField] = [
-    ConnectionField.NDp,
+    ConnectionField.TCf,
     ConnectionField.TDpTot,
   ];
 
