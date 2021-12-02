@@ -8,6 +8,16 @@ run-backend:
 run-frontend:
 	$(MAKE) -C frontend run
 
+run-database:
+	docker-compose up database -d
+
+test:
+	$(MAKE) -C backend test
+	$(MAKE) -C frontend test
+
+deploy-local:
+	docker-compose up --build --remove-orphans
+
 install-server:
 	ansible-galaxy install -r ansible/requirements.yml
 	ansible-playbook ansible/install.yml -i ansible/inventory.ini
