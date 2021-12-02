@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "..\\resslab-tools-data"
+		}
+	],
+	"settings": {
+		"sort-imports.ignore-type-defs": false,
+		"sort-imports.languages": [
+			"javascript",
+			"typescript",
+			"vue"
+		],
+		"sort-imports.on-save": true
+	}
+}
