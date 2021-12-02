@@ -65,6 +65,7 @@ export default class ConnectionSingleChart extends Vue {
       series: [
         {
           type: "pie",
+          id: this.field,
           name: this.$t("connection." + this.field).toString(),
           data: this.counts.map((count) => {
             return {
@@ -90,8 +91,8 @@ export default class ConnectionSingleChart extends Vue {
   }
 
   onClick(params: CallbackDataParams): void {
-    if (params.seriesName) {
-      this.$set(this.fieldSearches, params.seriesName, params.name);
+    if (params.seriesId) {
+      this.$set(this.fieldSearches, params.seriesId, params.name);
     }
   }
 
