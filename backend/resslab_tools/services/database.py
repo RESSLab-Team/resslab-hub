@@ -16,10 +16,10 @@ __password = settings.postgres_password  # type: ignore
 __database = settings.postgres_db  # type: ignore
 __host = settings.database_host  # type: ignore
 __port = settings.database_port  # type: ignore
-__credential = f'{__username}:{quote_plus(__password)}'
-__url_without_driver = f'://{__credential}@{__host}:{__port}/{__database}'
-url = 'postgresql' + __url_without_driver
-async_url = 'postgresql+asyncpg' + __url_without_driver
+__credential = f"{__username}:{quote_plus(__password)}"
+__url_without_driver = f"://{__credential}@{__host}:{__port}/{__database}"
+url = "postgresql" + __url_without_driver
+async_url = "postgresql+asyncpg" + __url_without_driver
 
 engine = create_async_engine(async_url, echo=True)
 
@@ -33,8 +33,8 @@ def upgrade_database():
     Run database migration with alembic
     https://alembic.sqlalchemy.org/en/latest/api/commands.html
     """
-    alembic_cfg = Config('alembic.ini')
-    upgrade(alembic_cfg, 'head')
+    alembic_cfg = Config("alembic.ini")
+    upgrade(alembic_cfg, "head")
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:

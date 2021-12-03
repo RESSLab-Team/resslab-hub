@@ -9,12 +9,9 @@ from resslab_tools.models import Info
 router = APIRouter()
 
 
-@router.get('/', response_model=Info)
+@router.get("/", response_model=Info)
 async def root() -> Info:
     """
     Get Info
     """
-    return Info(
-        name=name,
-        version=__version__
-    )
+    return Info(name=name, version=__version__)

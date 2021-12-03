@@ -12,6 +12,7 @@ class OrmModel(BaseModel):
     """
     Parent class for all API models
     """
+
     class Config:
         orm_mode = True
 
@@ -20,6 +21,7 @@ class ConnectionModel(OrmModel):
     """
     Connection
     """
+
     id: str
     experimental_program: str
     date: int
@@ -43,6 +45,7 @@ class CountModel(BaseModel):
     """
     Count
     """
+
     names: List[str]
     value: int
 
@@ -51,6 +54,7 @@ class RangeModel(BaseModel):
     """
     Range
     """
+
     min: Decimal
     max: Decimal
 
@@ -59,21 +63,20 @@ class DownloadModel(BaseModel):
     """
     DownloadModel
     """
+
     global_csv: str
     panel_zone_csv: str
 
 
 ConnectionField = enum.Enum(
-    'ConnectionField',
-    {key: key
-     for key
-     in ConnectionModel.__fields__}
+    "ConnectionField", {key: key for key in ConnectionModel.__fields__}
 )
 
 ConnectionNumberField = enum.Enum(
-    'ConnectionNumberField',
-    {key: key
-     for key, field
-     in ConnectionModel.__fields__.items()
-     if field.type_ in [int, Decimal]}
+    "ConnectionNumberField",
+    {
+        key: key
+        for key, field in ConnectionModel.__fields__.items()
+        if field.type_ in [int, Decimal]
+    },
 )

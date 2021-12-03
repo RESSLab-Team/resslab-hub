@@ -2,8 +2,15 @@
 Databse Models
 """
 from resslab_tools.services.database import Base
-from sqlalchemy import (BigInteger, Boolean, Column, ForeignKey, Numeric,
-                        SmallInteger, String)
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Column,
+    ForeignKey,
+    Numeric,
+    SmallInteger,
+    String,
+)
 from sqlalchemy.orm import column_property
 
 
@@ -11,7 +18,8 @@ class Connection(Base):
     """
     Connection
     """
-    __tablename__ = 'connection'
+
+    __tablename__ = "connection"
 
     id = Column(String, primary_key=True)
     experimental_program = Column(String, nullable=False)
@@ -36,12 +44,12 @@ class ConnectionGlobal(Base):
     """
     Global
     """
-    __tablename__ = 'connection_global'
 
-    connection_id = Column(String,
-                           ForeignKey('connection.id'),
-                           primary_key=True,
-                           index=True)
+    __tablename__ = "connection_global"
+
+    connection_id = Column(
+        String, ForeignKey("connection.id"), primary_key=True, index=True
+    )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     story_drift_angle = Column(Numeric(20, 10), nullable=False)
@@ -52,12 +60,12 @@ class ConnectionPanelZone(Base):
     """
     Panel Zone
     """
-    __tablename__ = 'connection_panel_zone'
 
-    connection_id = Column(String,
-                           ForeignKey('connection.id'),
-                           primary_key=True,
-                           index=True)
+    __tablename__ = "connection_panel_zone"
+
+    connection_id = Column(
+        String, ForeignKey("connection.id"), primary_key=True, index=True
+    )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     shear_distortion = Column(Numeric(20, 10), nullable=False)

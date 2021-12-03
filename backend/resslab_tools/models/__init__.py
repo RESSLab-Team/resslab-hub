@@ -8,5 +8,6 @@ class Info(BaseModel):
     """
     App Info
     """
+
     name: str
     version: str
