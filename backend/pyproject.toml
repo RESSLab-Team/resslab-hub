@@ -17,12 +17,11 @@ psycopg2 = "^2.9.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
-flake8 = "^4.0.1"
-autopep8 = "^1.6.0"
 uvicorn = "^0.15.0"
-pylint = "^2.11.1"
-pylint-quotes = "^0.2.3"
 python-dotenv = "^0.19.1"
+pre-commit = "^2.16.0"
+flake8 = "^4.0.1"
+black = "^21.11b1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
