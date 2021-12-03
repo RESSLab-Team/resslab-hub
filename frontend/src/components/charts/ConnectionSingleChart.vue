@@ -25,15 +25,15 @@ img.tooltip {
 <script lang="ts">
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import VChart from "vue-echarts";
-import { ConnectionField, CountModel } from "@/backend";
+import { ConnectionField } from "@/backend";
 import { use } from "echarts/core";
-import { PieChart } from "echarts/charts";
+import { TreemapChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
 import { TooltipComponent } from "echarts/components";
 import { EChartsOption, CallbackDataParams } from "echarts/types/dist/shared";
 import { Searches } from "@/utils/common";
 
-use([CanvasRenderer, PieChart, TooltipComponent]);
+use([CanvasRenderer, TreemapChart, TooltipComponent]);
 
 @Component({
   components: {
@@ -50,7 +50,7 @@ export default class ConnectionSingleChart extends Vue {
   @Prop({ type: String, default: "" })
   readonly query!: string;
 
-  private counts: CountModel[] = [];
+  private counts: Count[] = [];
   imageUrl = "";
 
   created(): void {
@@ -64,16 +64,19 @@ export default class ConnectionSingleChart extends Vue {
       },
       series: [
         {
-          type: "pie",
+          type: "treemap",
           id: this.field,
           name: this.$t("connection." + this.field).toString(),
           data: this.counts.map((count) => {
             return {
-              name: count.names[0],
+              name: count.name,
               value: count.value,
             };
           }),
-          radius: ["40%", "80%"],
+          breadcrumb: {
+            show: false,
+          },
+          roam: "move",
         },
       ],
     };
@@ -86,7 +89,14 @@ export default class ConnectionSingleChart extends Vue {
       .getCounts([this.field], this.query)
       .then((response) => response.data)
       .then((counts) => {
-        this.counts = counts.sort((c1, c2) => c2.value - c1.value);
+        this.counts = counts
+          .map((count) => {
+            return {
+              name: count.names[0],
+              value: count.value,
+            };
+          })
+          .sort((c1, c2) => (c1.name < c2.name ? -1 : 1));
       });
   }
 
@@ -106,5 +116,10 @@ export default class ConnectionSingleChart extends Vue {
   onMouseout(): void {
     this.imageUrl = "";
   }
+}
+
+interface Count {
+  name: string;
+  value: number;
 }
 </script>

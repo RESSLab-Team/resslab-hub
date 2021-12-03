@@ -71,11 +71,21 @@ export default class ConnectionDoubleChart extends Vue {
   readonly fields!: [ConnectionField, ConnectionField];
   @Prop({ type: String, default: "" })
   readonly query!: string;
+  @Prop({ type: String, default: "bar" })
+  readonly type!: "bar" | "line";
 
   private counts: CountModel[] = [];
 
   created(): void {
     this.onChanged();
+  }
+
+  get defaultValue(): string | number {
+    if (this.type === "line") {
+      return 0;
+    } else {
+      return "";
+    }
   }
 
   get option(): EChartsOption {
@@ -98,12 +108,13 @@ export default class ConnectionDoubleChart extends Vue {
       tooltip: {
         trigger: "axis",
         axisPointer: {
-          type: "shadow",
+          type: this.type === "bar" ? "shadow" : undefined,
         },
       },
       legend: {},
       xAxis: {
         type: "category",
+        boundaryGap: this.type === "bar",
         data: firstKeys,
         name: this.$t("connection." + this.fields[0]).toString(),
         nameLocation: "middle",
@@ -116,8 +127,9 @@ export default class ConnectionDoubleChart extends Vue {
       series: secondKeys.map((secondKey) => {
         return {
           name: secondKey,
-          type: "bar",
+          type: this.type,
           stack: this.fields[1],
+          areaStyle: {},
           emphasis: {
             focus: "series",
           },
@@ -125,7 +137,7 @@ export default class ConnectionDoubleChart extends Vue {
             (firstKey) =>
               this.counts.find((count) =>
                 isEqual(count.names, [firstKey, secondKey])
-              )?.value ?? ""
+              )?.value ?? this.defaultValue
           ),
         };
       }),

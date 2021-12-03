@@ -22,6 +22,7 @@
     </v-card-title>
     <v-data-table
       v-model="selectedItems"
+      dense
       :headers="tableHeaders"
       :items="connections"
       :loading="loading"
@@ -45,39 +46,57 @@
                 <v-select
                   v-if="header.options"
                   v-model="columnSearches[header.value]"
+                  class="mt-0 pt-0"
                   clearable
+                  hide-details
                   :items="header.options"
+                  single-line
                 ></v-select>
                 <v-text-field
                   v-else
                   v-model="columnSearches[header.value]"
+                  class="mt-0 pt-0"
                   clearable
+                  hide-details
+                  single-line
                 ></v-text-field>
               </div>
               <v-select
                 v-model="columnSearches[header.value]"
                 v-case="'option'"
+                class="mt-0 pt-0"
                 clearable
+                hide-details
                 :multiple="header.multiple"
                 :items="header.options"
+                single-line
               ></v-select>
               <v-select
                 v-model="columnSearches[header.value]"
                 v-case="'boolean'"
+                class="mt-0 pt-0"
                 clearable
+                hide-details
                 :items="booleanOptions"
+                single-line
               ></v-select>
               <div v-case="'number'">
                 <v-select
                   v-if="header.options"
                   v-model="columnSearches[header.value]"
+                  class="mt-0 pt-0"
                   clearable
+                  hide-details
                   :items="header.options"
+                  single-line
                 ></v-select>
                 <v-text-field
                   v-else
                   v-model="columnSearches[header.value]"
+                  class="mt-0 pt-0"
                   clearable
+                  hide-details
+                  single-line
                   type="number"
                 ></v-text-field>
               </div>

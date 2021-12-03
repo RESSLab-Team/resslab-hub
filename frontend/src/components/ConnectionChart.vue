@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-row>
-      <v-col>
+      <v-col cols="6">
         <v-card>
           <v-card-title>Connection Type</v-card-title>
           <v-card-text>
@@ -13,9 +13,20 @@
           </v-card-text>
         </v-card>
       </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
+      <v-col cols="6">
+        <v-card>
+          <v-card-title>Connection Type per Date</v-card-title>
+          <v-card-text>
+            <connection-double-chart
+              :fields="[ConnectionField.Date, ConnectionField.ConnectionType]"
+              :query="query"
+              :searches.sync="fieldSearches"
+              type="line"
+            ></connection-double-chart>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col cols="6">
         <v-card>
           <v-card-title>Beam Depth</v-card-title>
           <v-card-text>
@@ -27,9 +38,7 @@
           </v-card-text>
         </v-card>
       </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
+      <v-col cols="6">
         <v-card>
           <v-card-title>Column Depth</v-card-title>
           <v-card-text>
@@ -41,9 +50,7 @@
           </v-card-text>
         </v-card>
       </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
+      <v-col cols="12">
         <v-card>
           <v-card-title>Steel Material</v-card-title>
           <v-card-text>
