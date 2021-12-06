@@ -25,18 +25,18 @@
       dense
       :headers="tableHeaders"
       :items="connections"
+      :footer-props="{
+        itemsPerPageOptions: [5, 10, 15, 20],
+      }"
       :loading="loading"
       :options.sync="options"
       :search="search"
-      :server-items-length="totalCount"
-      show-expand
+      :server-items-length="totalFilteredCount"
       show-select
+      @click:row="onClick"
     >
       <template v-slot:[`body.prepend`]>
         <tr>
-          <td>
-            <!-- expand -->
-          </td>
           <td>
             <!-- select -->
           </td>
@@ -118,7 +118,7 @@
         @click="onDownload"
       >
         <v-icon left>mdi-download</v-icon>
-        Download ({{ selectedItems.length * 2 }})
+        Download ({{ selectedItems.length }}/{{ totalCount }})
       </v-btn>
     </v-card-actions>
   </v-card>
@@ -142,14 +142,9 @@ import { ConnectionModel } from "@/backend";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
 import { booleanOptions } from "@/utils/vuetify";
-import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
 import { Searches } from "@/utils/common";
 
-@Component({
-  components: {
-    ConnectionDetail,
-  },
-})
+@Component
 export default class ConnectionTable extends Vue {
   readonly booleanOptions = booleanOptions;
 
@@ -212,10 +207,11 @@ export default class ConnectionTable extends Vue {
   readonly query!: string;
 
   connections: ConnectionModel[] = [];
-  totalCount = -1;
+  totalFilteredCount = -1;
   loading = true;
   options: DataOptions | null = null;
   selectedItems: ConnectionModel[] = [];
+  totalCount = -1;
 
   get tableHeaders(): TableHeader[] {
     return this.headers.map((header) => {
@@ -236,6 +232,15 @@ export default class ConnectionTable extends Vue {
     );
   }
 
+  created(): void {
+    this.$connectionsApi
+      .getCounts()
+      .then((response) => response.data)
+      .then((counts) => {
+        this.totalCount = counts[0].value;
+      });
+  }
+
   @Watch("options", { deep: true })
   @Watch("query")
   onTableChanged(): void {
@@ -252,7 +257,7 @@ export default class ConnectionTable extends Vue {
         .then((response) => response.data)
         .then((connections) => {
           this.connections = connections.items;
-          this.totalCount = connections.total;
+          this.totalFilteredCount = connections.total;
         })
         .finally(() => {
           this.loading = false;
@@ -277,6 +282,10 @@ export default class ConnectionTable extends Vue {
             window.open(data.panel_zone_csv);
           });
       });
+  }
+
+  onClick(connection: ConnectionModel): void {
+    this.$emit("click", connection);
   }
 }
 

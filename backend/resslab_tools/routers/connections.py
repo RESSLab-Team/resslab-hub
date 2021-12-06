@@ -61,7 +61,7 @@ async def get_connections(
 @router.get("/counts", response_model=List[CountModel])
 async def get_counts(
     session: AsyncSession = Depends(get_session),
-    fields: List[ConnectionField] = Query(...),
+    fields: List[ConnectionField] = Query([]),
     query: Optional[str] = Query(None),
 ) -> List[CountModel]:
     """
@@ -71,13 +71,14 @@ async def get_counts(
     columns = [Connection.__dict__[field.value] for field in fields]
     rows = await session.execute(
         select([*columns, func.count()])
+        .select_from(Connection)
         .where(and_(*where_clauses))
         .group_by(func.grouping_sets(tuple_(*columns)))
     )
     return [
         CountModel(
             names=[__format_value(value) for value in list(row)[:-1]],
-            value=row[len(columns)],
+            value=row[-1],
         )
         for row in rows
     ]

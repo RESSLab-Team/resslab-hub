@@ -8,6 +8,7 @@
               :search.sync="search"
               :searches.sync="searches"
               :query="query"
+              @click="onClick"
             ></connection-table>
           </v-col>
         </v-row>
@@ -27,7 +28,26 @@
         </v-row>
       </v-col>
       <v-col cols="6">
-        <v-row>
+        <v-row v-if="connectionId">
+          <v-col>
+            <v-card>
+              <v-card-title>
+                {{ connectionId }}
+                <v-spacer></v-spacer>
+                <v-btn color="primary" text @click="onClose">
+                  <v-icon>mdi-close</v-icon>
+                  Close
+                </v-btn>
+              </v-card-title>
+              <v-card-text>
+                <connection-detail
+                  :connection-id="connectionId"
+                ></connection-detail>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <v-row v-else>
           <v-col cols="12">
             <v-card>
               <v-card-title>Connection Type</v-card-title>
@@ -153,8 +173,9 @@ import LocaleSelect from "@/components/commons/LocaleSelect.vue";
 import ConnectionSingleChart from "@/components/charts/ConnectionSingleChart.vue";
 import ConnectionDoubleChart from "@/components/charts/ConnectionDoubleChart.vue";
 import ConnectionParallelChart from "@/components/charts/ConnectionParallelChart.vue";
+import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
 import { Searches } from "@/utils/common";
-import { ConnectionField } from "@/backend";
+import { ConnectionField, ConnectionModel } from "@/backend";
 
 @Component({
   components: {
@@ -163,6 +184,7 @@ import { ConnectionField } from "@/backend";
     ConnectionSingleChart,
     ConnectionDoubleChart,
     ConnectionParallelChart,
+    ConnectionDetail,
   },
 })
 export default class ConnectionDashboard extends Vue {
@@ -177,6 +199,7 @@ export default class ConnectionDashboard extends Vue {
 
   search = "";
   searches: Searches = {};
+  connectionId: string | null = null;
 
   singleField = ConnectionField.Date;
   doubleFields: [ConnectionField, ConnectionField] = [
@@ -195,6 +218,14 @@ export default class ConnectionDashboard extends Vue {
       queries.push(`%${this.search}%`);
     }
     return queries.join(";");
+  }
+
+  onClick(connection: ConnectionModel): void {
+    this.connectionId = connection.id;
+  }
+
+  onClose(): void {
+    this.connectionId = null;
   }
 }
 </script>

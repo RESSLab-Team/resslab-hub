@@ -94,7 +94,7 @@ export default class ConnectionDetail extends Vue {
     };
   }
 
-  @Watch("field")
+  @Watch("connectionId")
   onChanged(): void {
     this.$connectionsApi
       .getGlobals(this.connectionId)

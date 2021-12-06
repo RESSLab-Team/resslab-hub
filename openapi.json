@@ -126,12 +126,13 @@
         "operationId": "get_counts",
         "parameters": [
           {
-            "required": true,
+            "required": false,
             "schema": {
               "type": "array",
               "items": {
                 "$ref": "#/components/schemas/ConnectionField"
-              }
+              },
+              "default": []
             },
             "name": "fields",
             "in": "query"
