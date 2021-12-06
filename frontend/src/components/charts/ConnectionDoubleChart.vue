@@ -111,7 +111,9 @@ export default class ConnectionDoubleChart extends Vue {
           type: this.type === "bar" ? "shadow" : undefined,
         },
       },
-      legend: {},
+      legend: {
+        right: 0,
+      },
       xAxis: {
         type: "category",
         boundaryGap: this.type === "bar",

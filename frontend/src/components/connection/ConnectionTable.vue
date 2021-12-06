@@ -142,7 +142,7 @@ import { ConnectionModel } from "@/backend";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
 import { booleanOptions } from "@/utils/vuetify";
-import ConnectionDetail from "@/components/ConnectionDetail.vue";
+import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
 import { Searches } from "@/utils/common";
 
 @Component({
@@ -150,7 +150,7 @@ import { Searches } from "@/utils/common";
     ConnectionDetail,
   },
 })
-export default class ConnectionBrowser extends Vue {
+export default class ConnectionTable extends Vue {
   readonly booleanOptions = booleanOptions;
 
   readonly headers: Header[] = [

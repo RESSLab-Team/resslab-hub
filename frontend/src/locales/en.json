@@ -9,13 +9,13 @@
     "slab": "SLAB",
     "connection_type": "Connection Type",
     "section_b": "Beam Section",
-    "d_b": "Beam Depth",
+    "d_b": "Beam Depth [mm]",
     "steel_b": " Steel Material",
     "section_c": "Column Section",
-    "d_c": "Column Depth",
+    "d_c": "Column Depth [mm]",
     "t_cf": "Flange Thickness",
-    "t_dp": "Doubler Plates Thickness",
+    "t_dp": "Doubler Plates Thickness [mm]",
     "n_dp": "Doubler Plates Number",
-    "t_dp_tot": "Doubler Plates Total"
+    "t_dp_tot": "Doubler Plates Total [mm]"
   }
 }

@@ -6,19 +6,13 @@
       @mouseover="onMouseover"
       @mouseout="onMouseout"
     ></v-chart>
-    <v-img v-if="imageUrl" :src="imageUrl"></v-img>
+    <v-img v-if="imageUrl" contain :src="imageUrl" max-height="160"></v-img>
   </div>
 </template>
 
 <style scoped>
 .echarts {
-  min-height: 256px;
-}
-</style>
-<style>
-img.tooltip {
-  max-height: 256px;
-  max-width: 256px;
+  min-height: 128px;
 }
 </style>
 
