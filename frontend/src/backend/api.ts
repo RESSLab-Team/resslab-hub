@@ -245,6 +245,25 @@ export interface Info {
 /**
  * 
  * @export
+ * @interface MatrixModel
+ */
+export interface MatrixModel {
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof MatrixModel
+     */
+    'ids': Array<string>;
+    /**
+     * 
+     * @type {Array<Array<number | string>>}
+     * @memberof MatrixModel
+     */
+    'data': Array<Array<number | string>>;
+}
+/**
+ * 
+ * @export
  * @interface PageConnectionModel
  */
 export interface PageConnectionModel {
@@ -529,6 +548,48 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
+         * 
+         * @summary Get Matrix
+         * @param {Array<ConnectionField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMatrix: async (fields: Array<ConnectionField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getMatrix', 'fields', fields)
+            const localVarPath = `/connections/matrix`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get panel zone series from connection
          * @summary Get Panel Zones
          * @param {string} connectionId 
@@ -710,6 +771,18 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * 
+         * @summary Get Matrix
+         * @param {Array<ConnectionField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMatrix(fields: Array<ConnectionField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMatrix(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get panel zone series from connection
          * @summary Get Panel Zones
          * @param {string} connectionId 
@@ -808,6 +881,17 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          */
         getGlobals(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getGlobals(connectionId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Matrix
+         * @param {Array<ConnectionField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMatrix(fields: Array<ConnectionField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+            return localVarFp.getMatrix(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
          * Get panel zone series from connection
@@ -914,6 +998,19 @@ export class ConnectionsApi extends BaseAPI {
      */
     public getGlobals(connectionId: string, size?: number, options?: AxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getGlobals(connectionId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Matrix
+     * @param {Array<ConnectionField>} fields 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public getMatrix(fields: Array<ConnectionField>, query?: string, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

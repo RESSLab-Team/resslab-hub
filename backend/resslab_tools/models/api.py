@@ -3,7 +3,7 @@ API Models
 """
 import enum
 from decimal import Decimal
-from typing import List
+from typing import List, Union
 
 from pydantic import BaseModel
 
@@ -66,6 +66,11 @@ class DownloadModel(BaseModel):
 
     global_csv: str
     panel_zone_csv: str
+
+
+class MatrixModel(BaseModel):
+    ids: List[str]
+    data: List[List[Union[int, Decimal, str]]]
 
 
 ConnectionField = enum.Enum(

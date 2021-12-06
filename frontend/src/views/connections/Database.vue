@@ -11,6 +11,20 @@
             ></connection-browser>
           </v-col>
         </v-row>
+        <v-row>
+          <v-col>
+            <v-card>
+              <v-card-title> Parallel Axis </v-card-title>
+              <v-card-text>
+                <connection-parallel-chart
+                  :fields="parallelFields"
+                  :searches.sync="searches"
+                  :query="query"
+                ></connection-parallel-chart>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
       </v-col>
       <v-col cols="6">
         <connection-chart
@@ -78,6 +92,7 @@ import ConnectionChart from "@/components/ConnectionChart.vue";
 import LocaleSelect from "@/components/commons/LocaleSelect.vue";
 import ConnectionSingleChart from "@/components/charts/ConnectionSingleChart.vue";
 import ConnectionDoubleChart from "@/components/charts/ConnectionDoubleChart.vue";
+import ConnectionParallelChart from "@/components/charts/ConnectionParallelChart.vue";
 import { Searches } from "@/utils/common";
 import { ConnectionField } from "@/backend";
 
@@ -88,10 +103,17 @@ import { ConnectionField } from "@/backend";
     LocaleSelect,
     ConnectionSingleChart,
     ConnectionDoubleChart,
+    ConnectionParallelChart,
   },
 })
 export default class Home extends Vue {
   readonly fields: string[] = Object.values(ConnectionField);
+  readonly parallelFields: ConnectionField[] = [
+    ConnectionField.DB,
+    ConnectionField.DC,
+    ConnectionField.NDp,
+    ConnectionField.ConnectionType,
+  ];
 
   search = "";
   searches: Searches = {};

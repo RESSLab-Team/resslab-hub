@@ -16,6 +16,7 @@ from resslab_tools.models.api import (
     ConnectionNumberField,
     CountModel,
     DownloadModel,
+    MatrixModel,
     RangeModel,
 )
 from resslab_tools.models.database import (
@@ -68,17 +69,17 @@ async def get_counts(
     """
     where_clauses: List[Any] = __get_where_clauses(query)
     columns = [Connection.__dict__[field.value] for field in fields]
-    tuples = await session.execute(
+    rows = await session.execute(
         select([*columns, func.count()])
         .where(and_(*where_clauses))
         .group_by(func.grouping_sets(tuple_(*columns)))
     )
     return [
         CountModel(
-            names=[__format_value(value) for value in list(tuple)[:-1]],
-            value=tuple[len(columns)],
+            names=[__format_value(value) for value in list(row)[:-1]],
+            value=row[len(columns)],
         )
-        for tuple in tuples
+        for row in rows
     ]
 
 
@@ -91,9 +92,26 @@ async def get_range(
     Get range of field
     """
     column: Column[Union[Integer, Decimal]] = Connection.__dict__[field.value]
-    tuples = await session.execute(select([func.min(column), func.max(column)]))
-    row = next(tuples)
+    rows = await session.execute(select([func.min(column), func.max(column)]))
+    row = next(rows)
     return RangeModel(min=row[0], max=row[1])
+
+
+@router.get("/matrix", response_model=MatrixModel)
+async def get_matrix(
+    session: AsyncSession = Depends(get_session),
+    fields: List[ConnectionField] = Query(...),
+    query: Optional[str] = Query(None),
+) -> MatrixModel:
+    where_clauses: List[Any] = __get_where_clauses(query)
+    columns = [Connection.__dict__[field.value] for field in fields]
+    rows = await session.execute(
+        select([Connection.id, *columns]).where(and_(*where_clauses))
+    )
+    rows = rows.all()
+    return MatrixModel(
+        ids=[row[0] for row in rows], data=[list(row)[1:] for row in rows]
+    )
 
 
 @router.get("/{connection_id}/download", response_model=DownloadModel)
@@ -215,8 +233,8 @@ async def __get_series(
         if count > size:
             n = math.ceil(float(count) / float(size))
             statement = statement.where(func.mod(id_column, n) == 0)
-    tuples = await session.execute(statement)
-    return [[tuple[0], tuple[1]] for tuple in tuples]
+    rows = await session.execute(statement)
+    return [[row[0], row[1]] for row in rows]
 
 
 def __get_where_clauses(query: Optional[str]) -> List[Any]:

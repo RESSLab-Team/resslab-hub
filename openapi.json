@@ -216,6 +216,59 @@
         }
       }
     },
+    "/connections/matrix": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Matrix",
+        "operationId": "get_matrix",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ConnectionField"
+              }
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/connections/{connection_id}/download": {
       "get": {
         "tags": [
@@ -657,6 +710,43 @@
           }
         },
         "description": "App Info"
+      },
+      "MatrixModel": {
+        "title": "MatrixModel",
+        "required": [
+          "ids",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "ids": {
+            "title": "Ids",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            }
+          }
+        }
       },
       "Page_ConnectionModel_": {
         "title": "Page[ConnectionModel]",
