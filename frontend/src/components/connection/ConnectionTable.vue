@@ -35,42 +35,71 @@
       show-select
       @click:row="onClick"
     >
+      <template v-slot:top>
+        <v-row class="px-4">
+          <v-col v-for="header in filterHeaders" :key="header.value">
+            <v-select
+              v-if="header.options"
+              v-model="columnSearches[header.value]"
+              clearable
+              hide-details
+              :label="header.text"
+              :multiple="header.multiple"
+              :items="header.options"
+            ></v-select>
+            <div v-else v-switch="header.type">
+              <v-text-field
+                v-model="columnSearches[header.value]"
+                v-case="'text'"
+                clearable
+                hide-details
+                :label="header.text"
+              ></v-text-field>
+              <v-select
+                v-model="columnSearches[header.value]"
+                v-case="'boolean'"
+                clearable
+                hide-details
+                :label="header.text"
+                :items="booleanOptions"
+              ></v-select>
+              <v-text-field
+                v-model="columnSearches[header.value]"
+                v-case="'number'"
+                clearable
+                hide-details
+                :label="header.text"
+                type="number"
+              ></v-text-field>
+            </div>
+          </v-col>
+        </v-row>
+      </template>
       <template v-slot:[`body.prepend`]>
         <tr>
           <td>
             <!-- select -->
           </td>
           <td v-for="header in tableHeaders" :key="header.value">
-            <div v-switch="header.type">
-              <div v-case="'text'">
-                <v-select
-                  v-if="header.options"
-                  v-model="columnSearches[header.value]"
-                  class="mt-0 pt-0"
-                  clearable
-                  hide-details
-                  :items="header.options"
-                  single-line
-                ></v-select>
-                <v-text-field
-                  v-else
-                  v-model="columnSearches[header.value]"
-                  class="mt-0 pt-0"
-                  clearable
-                  hide-details
-                  single-line
-                ></v-text-field>
-              </div>
-              <v-select
+            <v-select
+              v-if="header.options"
+              v-model="columnSearches[header.value]"
+              class="mt-0 pt-0"
+              clearable
+              hide-details
+              :multiple="header.multiple"
+              :items="header.options"
+              single-line
+            ></v-select>
+            <div v-else v-switch="header.type">
+              <v-text-field
                 v-model="columnSearches[header.value]"
-                v-case="'option'"
+                v-case="'text'"
                 class="mt-0 pt-0"
                 clearable
                 hide-details
-                :multiple="header.multiple"
-                :items="header.options"
                 single-line
-              ></v-select>
+              ></v-text-field>
               <v-select
                 v-model="columnSearches[header.value]"
                 v-case="'boolean'"
@@ -80,26 +109,15 @@
                 :items="booleanOptions"
                 single-line
               ></v-select>
-              <div v-case="'number'">
-                <v-select
-                  v-if="header.options"
-                  v-model="columnSearches[header.value]"
-                  class="mt-0 pt-0"
-                  clearable
-                  hide-details
-                  :items="header.options"
-                  single-line
-                ></v-select>
-                <v-text-field
-                  v-else
-                  v-model="columnSearches[header.value]"
-                  class="mt-0 pt-0"
-                  clearable
-                  hide-details
-                  single-line
-                  type="number"
-                ></v-text-field>
-              </div>
+              <v-text-field
+                v-model="columnSearches[header.value]"
+                v-case="'number'"
+                class="mt-0 pt-0"
+                clearable
+                hide-details
+                single-line
+                type="number"
+              ></v-text-field>
             </div>
           </td>
         </tr>
@@ -124,19 +142,6 @@
   </v-card>
 </template>
 
-<style lang="scss" scoped>
-.v-data-table__expanded {
-  td {
-    padding: 16px !important;
-  }
-}
-</style>
-<style>
-.v-menu__content {
-  min-width: 160px !important;
-}
-</style>
-
 <script lang="ts">
 import { ConnectionModel } from "@/backend";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
@@ -156,6 +161,7 @@ export default class ConnectionTable extends Vue {
     {
       value: "date",
       type: "number",
+      filterOnly: true,
     },
     {
       value: "specimen_designation",
@@ -165,15 +171,18 @@ export default class ConnectionTable extends Vue {
       value: "northridge",
       type: "option",
       options: ["pre", "post"],
+      filterOnly: true,
     },
     {
       value: "specimen_type",
       type: "text",
       options: ["exterior%", "interior%"],
+      filterOnly: true,
     },
     {
       value: "slab",
       type: "boolean",
+      filterOnly: true,
     },
     {
       value: "connection_type",
@@ -192,6 +201,7 @@ export default class ConnectionTable extends Vue {
       value: "n_dp",
       type: "number",
       options: ["0", "> 0"],
+      filterOnly: true,
     },
     {
       value: "t_dp_tot",
@@ -214,15 +224,15 @@ export default class ConnectionTable extends Vue {
   totalCount = -1;
 
   get tableHeaders(): TableHeader[] {
-    return this.headers.map((header) => {
-      return {
-        value: header.value,
-        text: this.$t("connection." + header.value).toString(),
-        type: header.type,
-        options: header.options,
-        multiple: header.options ? header.options.length > 2 : false,
-      };
-    });
+    return this.headers
+      .filter((header) => !header.filterOnly)
+      .map(this.mapHeader);
+  }
+
+  get filterHeaders(): TableHeader[] {
+    return this.headers
+      .filter((header) => header.filterOnly)
+      .map(this.mapHeader);
   }
 
   get hasFilters(): boolean {
@@ -265,6 +275,16 @@ export default class ConnectionTable extends Vue {
     }
   }
 
+  mapHeader(header: Header): TableHeader {
+    return {
+      value: header.value,
+      text: this.$t("connection." + header.value).toString(),
+      type: header.type,
+      options: header.options,
+      multiple: header.options ? header.options.length > 2 : false,
+    };
+  }
+
   onResetFilters(): void {
     this.globalSearch = "";
     this.columnSearches = {};
@@ -295,6 +315,7 @@ interface Header {
   value: string;
   type: HeaderType;
   options?: string[];
+  filterOnly?: boolean;
 }
 
 interface TableHeader extends DataTableHeader {
