@@ -50,7 +50,10 @@
         <v-row v-else>
           <v-col cols="12">
             <v-card>
-              <v-card-title>Connection Type</v-card-title>
+              <v-card-title>
+                Connection Type
+                <info-tooltip>Connection Type</info-tooltip>
+              </v-card-title>
               <v-card-text>
                 <v-row>
                   <v-col cols="6">
@@ -77,7 +80,10 @@
           </v-col>
           <v-col cols="6">
             <v-card>
-              <v-card-title>Beam Depth [mm]</v-card-title>
+              <v-card-title>
+                Beam Depth [mm]
+                <info-tooltip>Beam Depth [mm]</info-tooltip>
+              </v-card-title>
               <v-card-text>
                 <connection-double-chart
                   :fields="[ConnectionField.DB, ConnectionField.Slab]"
@@ -89,7 +95,10 @@
           </v-col>
           <v-col cols="6">
             <v-card>
-              <v-card-title>Column Depth [mm]</v-card-title>
+              <v-card-title>
+                Column Depth [mm]
+                <info-tooltip>Column Depth [mm]</info-tooltip>
+              </v-card-title>
               <v-card-text>
                 <connection-double-chart
                   :fields="[ConnectionField.DC, ConnectionField.NDp]"
@@ -101,7 +110,10 @@
           </v-col>
           <v-col cols="12">
             <v-card>
-              <v-card-title>Steel Material</v-card-title>
+              <v-card-title>
+                Steel Material
+                <info-tooltip>Steel Material</info-tooltip>
+              </v-card-title>
               <v-card-text>
                 <connection-single-chart
                   :field="ConnectionField.SteelB"
@@ -174,6 +186,7 @@ import ConnectionSingleChart from "@/components/charts/ConnectionSingleChart.vue
 import ConnectionDoubleChart from "@/components/charts/ConnectionDoubleChart.vue";
 import ConnectionParallelChart from "@/components/charts/ConnectionParallelChart.vue";
 import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import { Searches } from "@/utils/common";
 import { ConnectionField, ConnectionModel } from "@/backend";
 
@@ -185,6 +198,7 @@ import { ConnectionField, ConnectionModel } from "@/backend";
     ConnectionDoubleChart,
     ConnectionParallelChart,
     ConnectionDetail,
+    InfoTooltip,
   },
 })
 export default class ConnectionDashboard extends Vue {
