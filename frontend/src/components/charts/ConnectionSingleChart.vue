@@ -26,6 +26,8 @@ import { CanvasRenderer } from "echarts/renderers";
 import { TooltipComponent } from "echarts/components";
 import { EChartsOption, CallbackDataParams } from "echarts/types/dist/shared";
 import { Searches } from "@/utils/common";
+import colors, { Color } from "vuetify/lib/util/colors";
+import { getColorPalette } from "@/utils/vuetify";
 
 use([CanvasRenderer, TreemapChart, TooltipComponent]);
 
@@ -43,6 +45,8 @@ export default class ConnectionSingleChart extends Vue {
   readonly field!: ConnectionField;
   @Prop({ type: String, default: "" })
   readonly query!: string;
+  @Prop({ type: Object as () => Color, default: () => colors.blue })
+  readonly color!: Color;
 
   private counts: Count[] = [];
   imageUrl = "";
@@ -73,6 +77,7 @@ export default class ConnectionSingleChart extends Vue {
           roam: "move",
         },
       ],
+      color: getColorPalette(this.color),
     };
   }
 

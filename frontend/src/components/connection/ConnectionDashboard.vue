@@ -86,6 +86,7 @@
               </v-card-title>
               <v-card-text>
                 <connection-double-chart
+                  :color="colors.red"
                   :fields="[ConnectionField.DB, ConnectionField.Slab]"
                   :query="query"
                   :searches.sync="searches"
@@ -101,6 +102,7 @@
               </v-card-title>
               <v-card-text>
                 <connection-double-chart
+                  :color="colors.green"
                   :fields="[ConnectionField.DC, ConnectionField.NDp]"
                   :query="query"
                   :searches.sync="searches"
@@ -116,6 +118,7 @@
               </v-card-title>
               <v-card-text>
                 <connection-single-chart
+                  :color="colors.deepPurple"
                   :field="ConnectionField.SteelB"
                   :query="query"
                   :searches.sync="searches"
@@ -146,6 +149,7 @@
               prefix="connection."
             ></locale-select>
             <connection-single-chart
+              :color="colors.teal"
               :field="singleField"
               :query="query"
               :searches.sync="searches"
@@ -167,6 +171,7 @@
               prefix="connection."
             ></locale-select>
             <connection-double-chart
+              :color="colors.pink"
               :fields="doubleFields"
               :query="query"
               :searches.sync="searches"
@@ -189,6 +194,7 @@ import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import { Searches } from "@/utils/common";
 import { ConnectionField, ConnectionModel } from "@/backend";
+import colors from "vuetify/lib/util/colors";
 
 @Component({
   components: {
@@ -203,6 +209,7 @@ import { ConnectionField, ConnectionModel } from "@/backend";
 })
 export default class ConnectionDashboard extends Vue {
   readonly ConnectionField = ConnectionField;
+  readonly colors = colors;
   readonly fields: string[] = Object.values(ConnectionField);
   readonly parallelFields: ConnectionField[] = [
     ConnectionField.DB,

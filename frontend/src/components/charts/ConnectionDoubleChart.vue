@@ -45,6 +45,8 @@ import { Searches, unique } from "@/utils/common";
 import { isEqual } from "lodash";
 import RangeSlider from "@/components/commons/RangeSlider.vue";
 import { AxiosResponse } from "axios";
+import colors, { Color } from "vuetify/lib/util/colors";
+import { getColorPalette } from "@/utils/vuetify";
 
 use([
   CanvasRenderer,
@@ -73,6 +75,8 @@ export default class ConnectionDoubleChart extends Vue {
   readonly query!: string;
   @Prop({ type: String, default: "bar" })
   readonly type!: "bar" | "line";
+  @Prop({ type: Object as () => Color, default: () => colors.blue })
+  readonly color!: Color;
 
   private counts: CountModel[] = [];
 
@@ -143,6 +147,7 @@ export default class ConnectionDoubleChart extends Vue {
           ),
         };
       }),
+      color: getColorPalette(this.color),
     };
   }
 

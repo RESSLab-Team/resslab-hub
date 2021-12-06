@@ -18,6 +18,8 @@ import { CanvasRenderer } from "echarts/renderers";
 import { EChartsOption, CallbackDataParams } from "echarts/types/dist/shared";
 import { Searches, unique } from "@/utils/common";
 import _ from "lodash";
+import colors, { Color } from "vuetify/lib/util/colors";
+import { getColorPalette } from "@/utils/vuetify";
 
 use([CanvasRenderer, ParallelChart]);
 
@@ -33,6 +35,8 @@ export default class ConnectionParallelChart extends Vue {
   readonly fields!: ConnectionField[];
   @Prop({ type: String, default: "" })
   readonly query!: string;
+  @Prop({ type: Object as () => Color, default: () => colors.blue })
+  readonly color!: Color;
 
   private ids: string[] = [];
   private data: (number | string)[][] = [];
@@ -88,6 +92,7 @@ export default class ConnectionParallelChart extends Vue {
           },
         },
       },
+      color: getColorPalette(this.color),
     };
   }
 
