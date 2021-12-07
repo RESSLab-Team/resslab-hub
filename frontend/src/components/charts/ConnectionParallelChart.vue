@@ -16,7 +16,7 @@ import { use } from "echarts/core";
 import { ParallelChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
 import { EChartsOption, CallbackDataParams } from "echarts/types/dist/shared";
-import { Searches, unique } from "@/utils/common";
+import { Searches } from "@/utils/common";
 import _ from "lodash";
 import colors, { Color } from "vuetify/lib/util/colors";
 import { getColorPalette } from "@/utils/vuetify";
@@ -53,7 +53,7 @@ export default class ConnectionParallelChart extends Vue {
         const values = transposedData[index] as (string | number)[] | undefined;
         if (values) {
           const type = typeof values[0];
-          const sortedValues = values.filter(unique).sort();
+          const sortedValues = _(values).uniq().sort().value();
           if (type === "number") {
             return {
               id: field,

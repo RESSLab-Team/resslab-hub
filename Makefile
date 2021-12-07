@@ -15,6 +15,10 @@ test:
 	$(MAKE) -C backend test
 	$(MAKE) -C frontend test
 
+lint:
+	$(MAKE) -C backend lint
+	$(MAKE) -C frontend lint
+
 deploy-local:
 	docker-compose up --build --remove-orphans
 

@@ -18,6 +18,7 @@
               <v-card-title>Parallel Axis</v-card-title>
               <v-card-text>
                 <connection-parallel-chart
+                  :color="colors.orange"
                   :fields="parallelFields"
                   :searches.sync="searches"
                   :query="query"

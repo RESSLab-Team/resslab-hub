@@ -42,8 +42,8 @@ import {
   CallbackDataParams,
   SetOptionOpts,
 } from "echarts/types/dist/shared";
-import { Searches, unique } from "@/utils/common";
-import { isEqual } from "lodash";
+import { Searches, sum } from "@/utils/common";
+import _ from "lodash";
 import RangeSlider from "@/components/commons/RangeSlider.vue";
 import { AxiosResponse } from "axios";
 import colors, { Color } from "vuetify/lib/util/colors";
@@ -94,14 +94,23 @@ export default class ConnectionDoubleChart extends Vue {
   }
 
   get option(): EChartsOption {
-    const firstKeys = this.counts
+    const firstKeys: string[] = _(this.counts)
       .map((count) => count.names[0])
-      .filter(unique)
-      .sort();
-    const secondKeys = this.counts
-      .map((count) => count.names[1])
-      .filter(unique)
-      .sort();
+      .uniq()
+      .sort()
+      .value();
+    const secondKeys: string[] = _(this.counts)
+      .groupBy((count) => count.names[1])
+      .map((values, key) => ({
+        key: key,
+        value: values.map((count) => count.value).reduce(sum),
+      }))
+      .sortBy(
+        (item) => -item.value,
+        (item) => item.key
+      )
+      .map((item) => item.key)
+      .value();
     return {
       title: {
         text: this.$t("connection." + this.fields[1]).toString(),
@@ -143,7 +152,7 @@ export default class ConnectionDoubleChart extends Vue {
           data: firstKeys.map(
             (firstKey) =>
               this.counts.find((count) =>
-                isEqual(count.names, [firstKey, secondKey])
+                _.isEqual(count.names, [firstKey, secondKey])
               )?.value ?? this.defaultValue
           ),
         };
