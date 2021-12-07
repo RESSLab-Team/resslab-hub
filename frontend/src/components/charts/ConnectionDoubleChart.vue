@@ -7,6 +7,7 @@
     ></v-chart>
     <range-slider
       v-if="hasSlider"
+      :color="color"
       :get-range="getRange"
       @change="onSliderChange"
     ></range-slider>
