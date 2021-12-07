@@ -25,7 +25,7 @@ import { TreemapChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
 import { TooltipComponent } from "echarts/components";
 import { EChartsOption, CallbackDataParams } from "echarts/types/dist/shared";
-import { Searches } from "@/utils/common";
+import { publicPath, Searches } from "@/utils/common";
 import colors, { Color } from "vuetify/lib/util/colors";
 import { getColorPalette } from "@/utils/vuetify";
 
@@ -37,8 +37,6 @@ use([CanvasRenderer, TreemapChart, TooltipComponent]);
   },
 })
 export default class ConnectionSingleChart extends Vue {
-  readonly publicPath: string = process.env.BASE_URL;
-
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
   @Prop({ type: String as () => ConnectionField })
@@ -108,7 +106,7 @@ export default class ConnectionSingleChart extends Vue {
   onMouseover(params: CallbackDataParams): void {
     if (this.field === ConnectionField.ConnectionType) {
       const name: string = params.name.toLowerCase();
-      this.imageUrl = this.publicPath + "img/connection-type/" + name + ".png";
+      this.imageUrl = publicPath + "img/connection-type/" + name + ".png";
     }
   }
 

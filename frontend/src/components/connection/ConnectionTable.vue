@@ -46,7 +46,8 @@
               :label="header.text"
               :multiple="header.multiple"
               :items="header.options"
-            ></v-select>
+            >
+            </v-select>
             <div v-else v-switch="header.type">
               <v-text-field
                 v-model="columnSearches[header.value]"
@@ -90,7 +91,25 @@
               :multiple="header.multiple"
               :items="header.options"
               single-line
-            ></v-select>
+            >
+              <template
+                v-if="header.value === 'connection_type'"
+                v-slot:item="{ item, on, attrs }"
+              >
+                <v-list-item #default="{ active }" v-bind="attrs" v-on="on">
+                  <v-list-item-action>
+                    <v-checkbox :input-value="active"></v-checkbox>
+                  </v-list-item-action>
+                  <v-img
+                    contain
+                    max-height="128"
+                    max-width="128"
+                    :src="getImageSource(item)"
+                  ></v-img>
+                  {{ item }}
+                </v-list-item>
+              </template>
+            </v-select>
             <div v-else v-switch="header.type">
               <v-text-field
                 v-model="columnSearches[header.value]"
@@ -142,12 +161,19 @@
   </v-card>
 </template>
 
+<style>
+/* for select dropdown column search */
+.v-menu__content {
+  min-width: 300px !important;
+}
+</style>
+
 <script lang="ts">
 import { ConnectionModel } from "@/backend";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
 import { booleanOptions } from "@/utils/vuetify";
-import { Searches } from "@/utils/common";
+import { publicPath, Searches } from "@/utils/common";
 
 @Component
 export default class ConnectionTable extends Vue {
@@ -275,12 +301,16 @@ export default class ConnectionTable extends Vue {
     }
   }
 
+  getImageSource(item: string): string {
+    return publicPath + "img/connection-type/" + item.toLowerCase() + ".png";
+  }
+
   mapHeader(header: Header): TableHeader {
     return {
       value: header.value,
       text: this.$t("connection." + header.value).toString(),
       type: header.type,
-      options: header.options,
+      options: header.options?.sort(),
       multiple: header.options ? header.options.length > 2 : false,
     };
   }
