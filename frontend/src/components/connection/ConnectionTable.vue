@@ -26,7 +26,7 @@
       :headers="tableHeaders"
       :items="connections"
       :footer-props="{
-        itemsPerPageOptions: [5, 10, 15, 20],
+        itemsPerPageOptions: [5, 10, 20, 100, 1000],
       }"
       :loading="loading"
       :options.sync="options"

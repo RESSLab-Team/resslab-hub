@@ -4,12 +4,13 @@ Database Service
 from typing import AsyncIterator
 from urllib.parse import quote_plus
 
-from alembic.command import upgrade
-from alembic.config import Config
-from resslab_tools.config import settings
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
+from alembic.command import upgrade
+from alembic.config import Config
+from resslab_tools.config import settings
 
 __username = settings.postgres_user  # type: ignore
 __password = settings.postgres_password  # type: ignore

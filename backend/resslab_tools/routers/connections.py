@@ -8,8 +8,13 @@ from typing import Any, List, Optional, Union
 
 from fastapi import APIRouter, Depends, Path, Query, Request
 from fastapi.responses import StreamingResponse
-from fastapi_pagination import Page
 from fastapi_pagination.ext.async_sqlalchemy import paginate
+from sqlalchemy import and_, desc, func, or_, select, tuple_
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.schema import Column
+from sqlalchemy.sql.selectable import Select
+from sqlalchemy.sql.sqltypes import Boolean, Integer, Numeric, String
+
 from resslab_tools.models.api import (
     ConnectionField,
     ConnectionModel,
@@ -26,11 +31,7 @@ from resslab_tools.models.database import (
 )
 from resslab_tools.services.database import get_session
 from resslab_tools.utils.fastapi import HttpHeader, MediaType, attachment
-from sqlalchemy import and_, desc, func, or_, select, tuple_
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.schema import Column
-from sqlalchemy.sql.selectable import Select
-from sqlalchemy.sql.sqltypes import Boolean, Integer, Numeric, String
+from resslab_tools.utils.pagination import ExtendedPage
 
 router = APIRouter(
     prefix="/connections",
@@ -38,7 +39,7 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=Page[ConnectionModel])
+@router.get("", response_model=ExtendedPage[ConnectionModel])
 async def get_connections(
     session: AsyncSession = Depends(get_session),
     query: Optional[str] = Query(None),
@@ -54,7 +55,8 @@ async def get_connections(
         for key, is_desc in zip(sort_by, sort_desc)
     ]
     return await paginate(
-        session, select(Connection).where(and_(*where_clauses)).order_by(*order_clauses)
+        session,
+        select(Connection).where(and_(*where_clauses)).order_by(*order_clauses),
     )
 
 
@@ -262,8 +264,6 @@ def __get_where_clause(query: str) -> Any:
 
 
 def __get_predicate(column: Column[Any], expression: str) -> Any:
-    if "&" in expression:
-        return and_(*[__get_predicate(column, e) for e in expression.split("&")])
     if "," in expression:
         return column.in_(expression.split(","))
     if "<<" in expression:

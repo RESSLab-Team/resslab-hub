@@ -1,7 +1,6 @@
 """
 Databse Models
 """
-from resslab_tools.services.database import Base
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -12,6 +11,8 @@ from sqlalchemy import (
     String,
 )
 from sqlalchemy.orm import column_property
+
+from resslab_tools.services.database import Base
 
 
 class Connection(Base):
