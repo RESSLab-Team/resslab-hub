@@ -1,6 +1,7 @@
 <template>
   <div>
     <v-chart
+      autoresize
       :option="option"
       @click="onClick"
       @mouseover="onMouseover"

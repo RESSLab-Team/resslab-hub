@@ -1,5 +1,5 @@
 <template>
-  <v-chart :option="option"></v-chart>
+  <v-chart v-if="hasData" autoresize :option="option"></v-chart>
 </template>
 
 <style scoped>
@@ -68,6 +68,10 @@ export default class SimpleLineChart extends Vue {
       ],
       color: this.color.base,
     };
+  }
+
+  get hasData(): boolean {
+    return this.series.length > 0;
   }
 
   @Watch("promise")

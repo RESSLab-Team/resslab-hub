@@ -1,6 +1,7 @@
 <template>
   <div>
     <v-chart
+      autoresize
       :option="option"
       :update-options="updateOptions"
       @click="onClick"
@@ -130,15 +131,26 @@ export default class ConnectionDoubleChart extends Vue {
       },
       xAxis: {
         type: "category",
-        boundaryGap: this.type === "bar",
-        data: firstKeys,
         name: this.$t("connection." + this.fields[0]).toString(),
         nameLocation: "middle",
         nameGap: 28,
+        boundaryGap: this.type === "bar",
+        axisLabel: {
+          formatter: (value: string) => {
+            const n = Number(value);
+            if (isNaN(n)) {
+              return value;
+            } else {
+              return Math.round(n).toString();
+            }
+          },
+        },
+        data: firstKeys,
       },
       yAxis: {
         type: "value",
         name: "#",
+        minInterval: 1,
       },
       series: secondKeys.map((secondKey) => {
         return {

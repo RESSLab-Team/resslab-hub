@@ -15,7 +15,10 @@
         <v-row>
           <v-col>
             <v-card>
-              <v-card-title>Parallel Axis</v-card-title>
+              <v-card-title>
+                Parallel Axis
+                <info-tooltip>Parallel Axis</info-tooltip>
+              </v-card-title>
               <v-card-text>
                 <connection-parallel-chart
                   :color="colors.orange"

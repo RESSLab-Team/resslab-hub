@@ -1,5 +1,22 @@
 <template>
-  <v-chart :option="option" @click="onClick"></v-chart>
+  <div>
+    <v-chart
+      ref="chart"
+      autoresize
+      :option="option"
+      @click="onClick"
+      @brushselected="onBrush"
+    ></v-chart>
+    <v-btn
+      color="primary"
+      :disabled="selectedIds.length === 0"
+      text
+      @click="onApply"
+    >
+      <v-icon left>mdi-filter-variant</v-icon>
+      Apply selection ({{ selectedIds.length }})
+    </v-btn>
+  </div>
 </template>
 
 <style scoped>
@@ -12,16 +29,21 @@
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import VChart from "vue-echarts";
 import { ConnectionField } from "@/backend";
-import { use } from "echarts/core";
+import { ECharts, use } from "echarts/core";
 import { ParallelChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
-import { EChartsOption, CallbackDataParams } from "echarts/types/dist/shared";
+import {
+  EChartsOption,
+  CallbackDataParams,
+  Payload,
+} from "echarts/types/dist/shared";
 import { Searches } from "@/utils/common";
 import _ from "lodash";
 import colors, { Color } from "vuetify/lib/util/colors";
 import { getColorPalette } from "@/utils/vuetify";
+import { BrushComponent, ToolboxComponent } from "echarts/components";
 
-use([CanvasRenderer, ParallelChart]);
+use([CanvasRenderer, ParallelChart, BrushComponent, ToolboxComponent]);
 
 @Component({
   components: {
@@ -40,30 +62,38 @@ export default class ConnectionParallelChart extends Vue {
 
   private ids: string[] = [];
   private data: (number | string)[][] = [];
+  private selectedIds: string[] = [];
 
   created(): void {
     this.onChanged();
   }
 
+  get chart(): ECharts | undefined {
+    return this.$refs.chart as ECharts | undefined;
+  }
+
   get option(): EChartsOption {
     return {
+      brush: {
+        brushLink: "all",
+        toolbox: ["clear"],
+      },
       parallelAxis: this.fields.map((field, index) => {
         const name = this.$t("connection." + field).toString();
         const transposedData = _.zip(...this.data) as (string | number)[][];
         const values = transposedData[index] as (string | number)[] | undefined;
         if (values) {
           const type = typeof values[0];
-          const sortedValues = _(values).uniq().sort().value();
           if (type === "number") {
             return {
               id: field,
               dim: index,
               name: name,
               type: "value",
-              min: sortedValues[0],
-              max: sortedValues[sortedValues.length - 1],
+              scale: true,
             };
           } else {
+            const sortedValues = _(values).uniq().sort().value();
             return {
               id: field,
               dim: index,
@@ -108,12 +138,41 @@ export default class ConnectionParallelChart extends Vue {
       });
   }
 
+  @Watch(`fieldSearches.${ConnectionField.Id}`)
+  onSearchChanged(value: string | undefined): void {
+    if (value === undefined) {
+      this.clear();
+    }
+  }
+
   onClick(params: CallbackDataParams): void {
     this.$set(
       this.fieldSearches,
       ConnectionField.Id,
       this.ids[params.dataIndex]
     );
+  }
+
+  onBrush(payload: Payload): void {
+    const selectedIndexes: number[] =
+      payload.batch?.pop()?.selected?.pop()?.dataIndex ?? [];
+    if (selectedIndexes.length > 0) {
+      this.selectedIds = selectedIndexes.map((index) => this.ids[index]);
+    }
+  }
+
+  onApply(): void {
+    this.$set(
+      this.fieldSearches,
+      ConnectionField.Id,
+      this.selectedIds.join(",")
+    );
+    this.clear();
+  }
+
+  clear(): void {
+    this.chart?.clear();
+    this.selectedIds = [];
   }
 }
 </script>

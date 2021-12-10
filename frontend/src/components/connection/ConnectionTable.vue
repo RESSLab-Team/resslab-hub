@@ -2,6 +2,7 @@
   <v-card>
     <v-card-title>
       Connections
+      <info-tooltip>Connections</info-tooltip>
       <v-spacer></v-spacer>
       <v-text-field
         v-model="globalSearch"
@@ -146,6 +147,9 @@
           <connection-detail :connection-id="item.id"></connection-detail>
         </td>
       </template>
+      <template v-slot:[`item.t_dp_tot`]="{ item }">
+        <template v-if="item.t_dp_tot">{{ item.t_dp_tot }}</template>
+      </template>
     </v-data-table>
     <v-card-actions>
       <v-btn
@@ -174,8 +178,13 @@ import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
 import { booleanOptions } from "@/utils/vuetify";
 import { publicPath, Searches } from "@/utils/common";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 
-@Component
+@Component({
+  components: {
+    InfoTooltip,
+  },
+})
 export default class ConnectionTable extends Vue {
   readonly booleanOptions = booleanOptions;
 
