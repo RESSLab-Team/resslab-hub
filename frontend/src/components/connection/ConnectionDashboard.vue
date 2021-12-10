@@ -188,16 +188,16 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import ConnectionTable from "@/components/connection/ConnectionTable.vue";
-import LocaleSelect from "@/components/commons/LocaleSelect.vue";
-import ConnectionSingleChart from "@/components/charts/ConnectionSingleChart.vue";
+import { ConnectionField, ConnectionModel } from "@/backend";
 import ConnectionDoubleChart from "@/components/charts/ConnectionDoubleChart.vue";
 import ConnectionParallelChart from "@/components/charts/ConnectionParallelChart.vue";
-import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
+import ConnectionSingleChart from "@/components/charts/ConnectionSingleChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import LocaleSelect from "@/components/commons/LocaleSelect.vue";
+import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
+import ConnectionTable from "@/components/connection/ConnectionTable.vue";
 import { Searches } from "@/utils/common";
-import { ConnectionField, ConnectionModel } from "@/backend";
+import { Component, Vue } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
 
 @Component({

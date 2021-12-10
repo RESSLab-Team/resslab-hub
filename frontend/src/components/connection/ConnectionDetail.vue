@@ -25,10 +25,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from "vue-property-decorator";
-import colors from "vuetify/lib/util/colors";
 import SimpleLineChart from "@/components/charts/SimpleLineChart.vue";
 import { AxiosResponse } from "axios";
+import { Component, Prop, Vue } from "vue-property-decorator";
+import colors from "vuetify/lib/util/colors";
 
 @Component({
   components: {

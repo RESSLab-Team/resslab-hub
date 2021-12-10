@@ -174,11 +174,11 @@
 
 <script lang="ts">
 import { ConnectionModel } from "@/backend";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import { publicPath, Searches } from "@/utils/common";
+import { booleanOptions } from "@/utils/vuetify";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
-import { booleanOptions } from "@/utils/vuetify";
-import { publicPath, Searches } from "@/utils/common";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 
 @Component({
   components: {

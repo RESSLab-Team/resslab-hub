@@ -18,17 +18,17 @@
 </style>
 
 <script lang="ts">
-import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
-import VChart from "vue-echarts";
 import { ConnectionField } from "@/backend";
-import { use } from "echarts/core";
-import { TreemapChart } from "echarts/charts";
-import { CanvasRenderer } from "echarts/renderers";
-import { TooltipComponent } from "echarts/components";
-import { EChartsOption, CallbackDataParams } from "echarts/types/dist/shared";
 import { publicPath, Searches } from "@/utils/common";
-import colors, { Color } from "vuetify/lib/util/colors";
 import { getColorPalette } from "@/utils/vuetify";
+import { TreemapChart } from "echarts/charts";
+import { TooltipComponent } from "echarts/components";
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import { CallbackDataParams, EChartsOption } from "echarts/types/dist/shared";
+import VChart from "vue-echarts";
+import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
+import colors, { Color } from "vuetify/lib/util/colors";
 
 use([CanvasRenderer, TreemapChart, TooltipComponent]);
 

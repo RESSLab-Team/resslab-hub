@@ -26,22 +26,22 @@
 </style>
 
 <script lang="ts">
-import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
-import VChart from "vue-echarts";
 import { ConnectionField } from "@/backend";
-import { ECharts, use } from "echarts/core";
+import { Searches } from "@/utils/common";
+import { getColorPalette } from "@/utils/vuetify";
 import { ParallelChart } from "echarts/charts";
+import { BrushComponent, ToolboxComponent } from "echarts/components";
+import { ECharts, use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import {
-  EChartsOption,
   CallbackDataParams,
+  EChartsOption,
   Payload,
 } from "echarts/types/dist/shared";
-import { Searches } from "@/utils/common";
 import _ from "lodash";
+import VChart from "vue-echarts";
+import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import colors, { Color } from "vuetify/lib/util/colors";
-import { getColorPalette } from "@/utils/vuetify";
-import { BrushComponent, ToolboxComponent } from "echarts/components";
 
 use([CanvasRenderer, ParallelChart, BrushComponent, ToolboxComponent]);
 

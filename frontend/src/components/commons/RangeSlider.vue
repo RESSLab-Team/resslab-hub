@@ -39,9 +39,9 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { RangeModel } from "@/backend";
 import { AxiosResponse } from "axios";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
 
 @Component

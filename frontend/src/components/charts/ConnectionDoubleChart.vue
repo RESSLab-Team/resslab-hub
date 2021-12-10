@@ -22,33 +22,33 @@
 </style>
 
 <script lang="ts">
-import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
-import VChart from "vue-echarts";
 import {
   ConnectionField,
   ConnectionNumberField,
   CountModel,
   RangeModel,
 } from "@/backend";
-import { use } from "echarts/core";
+import RangeSlider from "@/components/commons/RangeSlider.vue";
+import { Searches, sum } from "@/utils/common";
+import { getColorPalette } from "@/utils/vuetify";
+import { AxiosResponse } from "axios";
 import { BarChart } from "echarts/charts";
-import { CanvasRenderer } from "echarts/renderers";
 import {
   LegendComponent,
   TitleComponent,
   TooltipComponent,
 } from "echarts/components";
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
 import {
-  EChartsOption,
   CallbackDataParams,
+  EChartsOption,
   SetOptionOpts,
 } from "echarts/types/dist/shared";
-import { Searches, sum } from "@/utils/common";
 import _ from "lodash";
-import RangeSlider from "@/components/commons/RangeSlider.vue";
-import { AxiosResponse } from "axios";
+import VChart from "vue-echarts";
+import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import colors, { Color } from "vuetify/lib/util/colors";
-import { getColorPalette } from "@/utils/vuetify";
 
 use([
   CanvasRenderer,

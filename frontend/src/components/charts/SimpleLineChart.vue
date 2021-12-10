@@ -9,15 +9,15 @@
 </style>
 
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import VChart from "vue-echarts";
-import { use } from "echarts/core";
+import { AxiosResponse } from "axios";
 import { LineChart } from "echarts/charts";
+import { GridComponent, TooltipComponent } from "echarts/components";
+import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { EChartsOption } from "echarts/types/dist/shared";
+import VChart from "vue-echarts";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import colors, { Color } from "vuetify/lib/util/colors";
-import { AxiosResponse } from "axios";
-import { GridComponent, TooltipComponent } from "echarts/components";
 
 use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
 

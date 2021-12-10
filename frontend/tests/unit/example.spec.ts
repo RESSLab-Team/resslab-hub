@@ -1,6 +1,6 @@
 import ConnectionBrowser from "@/components/ConnectionBrowser.vue";
-import { expect } from "chai";
 import { shallowMount } from "@vue/test-utils";
+import { expect } from "chai";
 
 describe("ConnectionBrowser.vue", () => {
   it("renders title", () => {

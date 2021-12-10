@@ -10,8 +10,8 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, VModel, Vue } from "vue-property-decorator";
 import { SelectItem } from "@/utils/vuetify";
+import { Component, Prop, VModel, Vue } from "vue-property-decorator";
 
 @Component
 export default class LocaleSelect extends Vue {
