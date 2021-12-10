@@ -5,3 +5,5 @@ export function sum(a: number, b: number): number {
 }
 
 export const publicPath: string = process.env.BASE_URL;
+
+export const globalSearchKey = "search";

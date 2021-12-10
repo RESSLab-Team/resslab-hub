@@ -161,7 +161,12 @@
         <v-icon left>mdi-download</v-icon>
         Download ({{ selectedItems.length }}/{{ totalCount }})
       </v-btn>
+      <v-btn color="primary" :disabled="!hasFilters" text @click="onShare">
+        <v-icon left>mdi-share</v-icon>
+        Share
+      </v-btn>
     </v-card-actions>
+    <snackbar ref="snackbar"></snackbar>
   </v-card>
 </template>
 
@@ -175,7 +180,8 @@
 <script lang="ts">
 import { ConnectionModel } from "@/backend";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import { publicPath, Searches } from "@/utils/common";
+import Snackbar from "@/components/commons/Snackbar.vue";
+import { globalSearchKey, publicPath, Searches } from "@/utils/common";
 import { booleanOptions } from "@/utils/vuetify";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
@@ -183,6 +189,7 @@ import { DataOptions, DataTableHeader } from "vuetify";
 @Component({
   components: {
     InfoTooltip,
+    Snackbar,
   },
 })
 export default class ConnectionTable extends Vue {
@@ -277,6 +284,10 @@ export default class ConnectionTable extends Vue {
     );
   }
 
+  get snackbar(): Snackbar {
+    return this.$refs.snackbar as Snackbar;
+  }
+
   created(): void {
     this.$connectionsApi
       .getCounts()
@@ -345,6 +356,25 @@ export default class ConnectionTable extends Vue {
 
   onClick(connection: ConnectionModel): void {
     this.$emit("click", connection);
+  }
+
+  onShare(): void {
+    const url = new URL(window.location.origin + this.$route.path);
+    Object.entries(this.columnSearches).forEach(([key, value]) => {
+      url.searchParams.append(key, value.toString());
+    });
+    if (this.globalSearch.length > 0) {
+      url.searchParams.append(globalSearchKey, this.globalSearch);
+    }
+    const shareUrl = url.href;
+    if (navigator.share) {
+      navigator.share({
+        url: shareUrl,
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      this.snackbar.open(`Copied to clipboard: ${shareUrl}`);
+    }
   }
 }
 

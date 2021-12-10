@@ -196,7 +196,7 @@ import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import LocaleSelect from "@/components/commons/LocaleSelect.vue";
 import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
 import ConnectionTable from "@/components/connection/ConnectionTable.vue";
-import { Searches } from "@/utils/common";
+import { globalSearchKey, Searches } from "@/utils/common";
 import { Component, Vue } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
 
@@ -243,6 +243,18 @@ export default class ConnectionDashboard extends Vue {
       queries.push(`%${this.search}%`);
     }
     return queries.join(";");
+  }
+
+  created(): void {
+    Object.entries(this.$route.query)
+      .filter(([key, value]) => this.fields.includes(key) && value.length > 0)
+      .forEach(([key, value]) => {
+        this.$set(this.searches, key, value);
+      });
+    const globalSearchValue = this.$route.query[globalSearchKey];
+    if (typeof globalSearchValue === "string") {
+      this.search = globalSearchValue;
+    }
   }
 
   onClick(connection: ConnectionModel): void {
