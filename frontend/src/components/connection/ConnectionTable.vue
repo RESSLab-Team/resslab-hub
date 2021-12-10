@@ -181,7 +181,12 @@
 import { ConnectionModel } from "@/backend";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import Snackbar from "@/components/commons/Snackbar.vue";
-import { globalSearchKey, publicPath, Searches } from "@/utils/common";
+import {
+  filterColumnValue,
+  globalSearchKey,
+  publicPath,
+  Searches,
+} from "@/utils/common";
 import { booleanOptions } from "@/utils/vuetify";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
@@ -280,7 +285,7 @@ export default class ConnectionTable extends Vue {
   get hasFilters(): boolean {
     return (
       this.globalSearch.length > 0 ||
-      Object.keys(this.columnSearches).length > 0
+      Object.values(this.columnSearches).filter(filterColumnValue).length > 0
     );
   }
 
@@ -360,9 +365,11 @@ export default class ConnectionTable extends Vue {
 
   onShare(): void {
     const url = new URL(window.location.origin + this.$route.path);
-    Object.entries(this.columnSearches).forEach(([key, value]) => {
-      url.searchParams.append(key, value.toString());
-    });
+    Object.entries(this.columnSearches)
+      .filter(([, value]) => filterColumnValue(value))
+      .forEach(([key, value]) => {
+        url.searchParams.append(key, value.toString());
+      });
     if (this.globalSearch.length > 0) {
       url.searchParams.append(globalSearchKey, this.globalSearch);
     }

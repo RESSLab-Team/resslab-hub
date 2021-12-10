@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-row>
-      <v-col cols="6">
+      <v-col md="6">
         <v-row>
           <v-col>
             <connection-table
@@ -31,7 +31,7 @@
           </v-col>
         </v-row>
       </v-col>
-      <v-col cols="6">
+      <v-col md="6">
         <v-row v-if="connectionId">
           <v-col>
             <v-card>
@@ -60,14 +60,14 @@
               </v-card-title>
               <v-card-text>
                 <v-row>
-                  <v-col cols="6">
+                  <v-col cols="12" sm="6">
                     <connection-single-chart
                       :field="ConnectionField.ConnectionType"
                       :query="query"
                       :searches.sync="searches"
                     ></connection-single-chart>
                   </v-col>
-                  <v-col cols="6">
+                  <v-col cols="12" sm="6">
                     <connection-double-chart
                       :fields="[
                         ConnectionField.Date,
@@ -82,7 +82,7 @@
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="6">
+          <v-col sm="6">
             <v-card>
               <v-card-title>
                 Beam Depth [mm]
@@ -98,7 +98,7 @@
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="6">
+          <v-col sm="6">
             <v-card>
               <v-card-title>
                 Column Depth [mm]
@@ -196,7 +196,7 @@ import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import LocaleSelect from "@/components/commons/LocaleSelect.vue";
 import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
 import ConnectionTable from "@/components/connection/ConnectionTable.vue";
-import { globalSearchKey, Searches } from "@/utils/common";
+import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
 import { Component, Vue } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
 
@@ -234,10 +234,7 @@ export default class ConnectionDashboard extends Vue {
 
   get query(): string {
     const queries = Object.entries(this.searches)
-      .filter(
-        ([, value]) =>
-          value != undefined && (typeof value == "boolean" || value.length > 0)
-      )
+      .filter(([, value]) => filterColumnValue(value))
       .map(([key, value]) => `${key}:${value}`);
     if (this.search && this.search.length > 0) {
       queries.push(`%${this.search}%`);
