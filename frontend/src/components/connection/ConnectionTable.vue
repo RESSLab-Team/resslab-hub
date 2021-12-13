@@ -175,6 +175,10 @@
 .v-menu__content {
   min-width: 300px !important;
 }
+
+.v-data-table__wrapper > table > tbody > tr:hover {
+  cursor: pointer;
+}
 </style>
 
 <script lang="ts">

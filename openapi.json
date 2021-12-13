@@ -83,7 +83,7 @@
             "required": false,
             "schema": {
               "title": "Size",
-              "maximum": 100.0,
+              "maximum": 1000.0,
               "minimum": 1.0,
               "type": "integer",
               "default": 50
@@ -98,7 +98,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_ConnectionModel_"
+                  "$ref": "#/components/schemas/ExtendedPage_ConnectionModel_"
                 }
               }
             }
@@ -528,7 +528,9 @@
           "t_cf",
           "t_dp",
           "n_dp",
-          "t_dp_tot"
+          "t_dp_tot",
+          "global_count",
+          "panel_zone_count"
         ],
         "description": "An enumeration."
       },
@@ -551,7 +553,9 @@
           "t_cf",
           "t_dp",
           "n_dp",
-          "t_dp_tot"
+          "t_dp_tot",
+          "global_count",
+          "panel_zone_count"
         ],
         "type": "object",
         "properties": {
@@ -622,6 +626,14 @@
           "t_dp_tot": {
             "title": "T Dp Tot",
             "type": "number"
+          },
+          "global_count": {
+            "title": "Global Count",
+            "type": "integer"
+          },
+          "panel_zone_count": {
+            "title": "Panel Zone Count",
+            "type": "integer"
           }
         },
         "description": "Connection"
@@ -635,7 +647,9 @@
           "t_cf",
           "t_dp",
           "n_dp",
-          "t_dp_tot"
+          "t_dp_tot",
+          "global_count",
+          "panel_zone_count"
         ],
         "description": "An enumeration."
       },
@@ -679,6 +693,40 @@
           }
         },
         "description": "DownloadModel"
+      },
+      "ExtendedPage_ConnectionModel_": {
+        "title": "ExtendedPage[ConnectionModel]",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConnectionModel"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "page": {
+            "title": "Page",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "minimum": 1.0,
+            "type": "integer"
+          }
+        }
       },
       "HTTPValidationError": {
         "title": "HTTPValidationError",
@@ -746,40 +794,6 @@
                 ]
               }
             }
-          }
-        }
-      },
-      "Page_ConnectionModel_": {
-        "title": "Page[ConnectionModel]",
-        "required": [
-          "items",
-          "total",
-          "page",
-          "size"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "title": "Items",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ConnectionModel"
-            }
-          },
-          "total": {
-            "title": "Total",
-            "minimum": 0.0,
-            "type": "integer"
-          },
-          "page": {
-            "title": "Page",
-            "minimum": 1.0,
-            "type": "integer"
-          },
-          "size": {
-            "title": "Size",
-            "minimum": 1.0,
-            "type": "integer"
           }
         }
       },

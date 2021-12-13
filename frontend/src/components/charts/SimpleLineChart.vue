@@ -63,6 +63,15 @@ export default class SimpleLineChart extends Vue {
       series: [
         {
           type: "line",
+          showSymbol: false,
+          lineStyle: {
+            width: 1,
+          },
+          emphasis: {
+            lineStyle: {
+              width: 1,
+            },
+          },
           data: this.series,
         },
       ],

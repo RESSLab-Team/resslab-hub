@@ -44,7 +44,9 @@ export enum ConnectionField {
     TCf = 't_cf',
     TDp = 't_dp',
     NDp = 'n_dp',
-    TDpTot = 't_dp_tot'
+    TDpTot = 't_dp_tot',
+    GlobalCount = 'global_count',
+    PanelZoneCount = 'panel_zone_count'
 }
 
 /**
@@ -155,6 +157,18 @@ export interface ConnectionModel {
      * @memberof ConnectionModel
      */
     't_dp_tot': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'global_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'panel_zone_count': number;
 }
 /**
  * An enumeration.
@@ -169,7 +183,9 @@ export enum ConnectionNumberField {
     TCf = 't_cf',
     TDp = 't_dp',
     NDp = 'n_dp',
-    TDpTot = 't_dp_tot'
+    TDpTot = 't_dp_tot',
+    GlobalCount = 'global_count',
+    PanelZoneCount = 'panel_zone_count'
 }
 
 /**
@@ -209,6 +225,37 @@ export interface DownloadModel {
      * @memberof DownloadModel
      */
     'panel_zone_csv': string;
+}
+/**
+ * 
+ * @export
+ * @interface ExtendedPageConnectionModel
+ */
+export interface ExtendedPageConnectionModel {
+    /**
+     * 
+     * @type {Array<ConnectionModel>}
+     * @memberof ExtendedPageConnectionModel
+     */
+    'items': Array<ConnectionModel>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageConnectionModel
+     */
+    'total': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageConnectionModel
+     */
+    'page': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageConnectionModel
+     */
+    'size': number;
 }
 /**
  * 
@@ -260,37 +307,6 @@ export interface MatrixModel {
      * @memberof MatrixModel
      */
     'data': Array<Array<number | string>>;
-}
-/**
- * 
- * @export
- * @interface PageConnectionModel
- */
-export interface PageConnectionModel {
-    /**
-     * 
-     * @type {Array<ConnectionModel>}
-     * @memberof PageConnectionModel
-     */
-    'items': Array<ConnectionModel>;
-    /**
-     * 
-     * @type {number}
-     * @memberof PageConnectionModel
-     */
-    'total': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof PageConnectionModel
-     */
-    'page': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof PageConnectionModel
-     */
-    'size': number;
 }
 /**
  * Range
@@ -718,7 +734,7 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnections(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PageConnectionModel>> {
+        async getConnections(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageConnectionModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnections(query, sortBy, sortDesc, page, size, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -835,7 +851,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnections(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<PageConnectionModel> {
+        getConnections(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageConnectionModel> {
             return localVarFp.getConnections(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
         /**

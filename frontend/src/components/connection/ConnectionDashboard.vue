@@ -32,23 +32,12 @@
         </v-row>
       </v-col>
       <v-col md="6">
-        <v-row v-if="connectionId">
+        <v-row v-if="connection">
           <v-col>
-            <v-card>
-              <v-card-title>
-                {{ connectionId }}
-                <v-spacer></v-spacer>
-                <v-btn color="primary" text @click="onClose">
-                  <v-icon>mdi-close</v-icon>
-                  Close
-                </v-btn>
-              </v-card-title>
-              <v-card-text>
-                <connection-detail
-                  :connection-id="connectionId"
-                ></connection-detail>
-              </v-card-text>
-            </v-card>
+            <connection-detail
+              :connection="connection"
+              @close="onClose"
+            ></connection-detail>
           </v-col>
         </v-row>
         <v-row v-else>
@@ -224,7 +213,7 @@ export default class ConnectionDashboard extends Vue {
 
   search = "";
   searches: Searches = {};
-  connectionId: string | null = null;
+  connection: ConnectionModel | null = null;
 
   singleField = ConnectionField.Date;
   doubleFields: [ConnectionField, ConnectionField] = [
@@ -255,11 +244,11 @@ export default class ConnectionDashboard extends Vue {
   }
 
   onClick(connection: ConnectionModel): void {
-    this.connectionId = connection.id;
+    this.connection = connection;
   }
 
   onClose(): void {
-    this.connectionId = null;
+    this.connection = null;
   }
 }
 </script>

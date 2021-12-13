@@ -39,6 +39,8 @@ class ConnectionModel(OrmModel):
     t_dp: Decimal
     n_dp: int
     t_dp_tot: Decimal
+    global_count: int
+    panel_zone_count: int
 
 
 class CountModel(BaseModel):

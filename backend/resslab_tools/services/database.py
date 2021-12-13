@@ -12,11 +12,11 @@ from alembic.command import upgrade
 from alembic.config import Config
 from resslab_tools.config import settings
 
-__username = settings.postgres_user  # type: ignore
-__password = settings.postgres_password  # type: ignore
-__database = settings.postgres_db  # type: ignore
-__host = settings.database_host  # type: ignore
-__port = settings.database_port  # type: ignore
+__username: str = settings.postgres_user  # type: ignore
+__password: str = settings.postgres_password  # type: ignore
+__database: str = settings.postgres_db  # type: ignore
+__host: str = settings.database_host  # type: ignore
+__port: str = settings.database_port  # type: ignore
 __credential = f"{__username}:{quote_plus(__password)}"
 __url_without_driver = f"://{__credential}@{__host}:{__port}/{__database}"
 url = "postgresql" + __url_without_driver
