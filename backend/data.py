@@ -69,7 +69,7 @@ class TableUploader(Uploader):
 
     def upload_one(self, file_path: str) -> None:
         file_path = self.get_abs_path(file_path)
-        with open(file_path, "rt", encoding="utf-8") as file:
+        with open(file_path, "rt", encoding="unicode_escape") as file:
             reader = csv.reader(file, strict=True)
             header = next(reader)  # skip header
             for row in reader:
@@ -84,11 +84,17 @@ class TableUploader(Uploader):
     def __get_value(column: Column, header: List[str], row: List[str]) -> Any:
         index = header.index(column.key)
         value = row[index]
+        if value == "NA":
+            return None
         if isinstance(column.type, Integer):
             return int(value)
         if isinstance(column.type, Numeric):
             return Decimal(value)
         if isinstance(column.type, Boolean):
+            if value == "YES":
+                return True
+            if value == "NO":
+                return False
             return bool(value)
         return str(value)
 

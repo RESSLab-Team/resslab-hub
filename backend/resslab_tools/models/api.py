@@ -3,7 +3,7 @@ API Models
 """
 import enum
 from decimal import Decimal
-from typing import List, Union
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -28,6 +28,7 @@ class ConnectionModel(OrmModel):
     specimen_designation: str
     northridge: str
     specimen_type: str
+    loading_protocol: str
     slab: bool
     connection_type: str
     section_b: str
@@ -36,6 +37,8 @@ class ConnectionModel(OrmModel):
     section_c: str
     d_c: Decimal
     t_cf: Decimal
+    steel_c: str
+    backing_bar: Optional[bool]
     t_dp: Decimal
     n_dp: int
     t_dp_tot: Decimal

@@ -10,7 +10,7 @@ T = TypeVar("T")
 
 
 class ExtendedParams(Params):
-    size: int = Query(50, ge=1, le=1000, description="Page size")
+    size: int = Query(10, ge=1, le=1000, description="Page size")
 
 
 class ExtendedPage(Page[T], Generic[T]):

@@ -86,7 +86,7 @@
               "maximum": 1000.0,
               "minimum": 1.0,
               "type": "integer",
-              "default": 50
+              "default": 10
             },
             "name": "size",
             "in": "query"
@@ -518,6 +518,7 @@
           "specimen_designation",
           "northridge",
           "specimen_type",
+          "loading_protocol",
           "slab",
           "connection_type",
           "section_b",
@@ -526,6 +527,8 @@
           "section_c",
           "d_c",
           "t_cf",
+          "steel_c",
+          "backing_bar",
           "t_dp",
           "n_dp",
           "t_dp_tot",
@@ -543,6 +546,7 @@
           "specimen_designation",
           "northridge",
           "specimen_type",
+          "loading_protocol",
           "slab",
           "connection_type",
           "section_b",
@@ -551,6 +555,7 @@
           "section_c",
           "d_c",
           "t_cf",
+          "steel_c",
           "t_dp",
           "n_dp",
           "t_dp_tot",
@@ -581,6 +586,10 @@
           },
           "specimen_type": {
             "title": "Specimen Type",
+            "type": "string"
+          },
+          "loading_protocol": {
+            "title": "Loading Protocol",
             "type": "string"
           },
           "slab": {
@@ -614,6 +623,14 @@
           "t_cf": {
             "title": "T Cf",
             "type": "number"
+          },
+          "steel_c": {
+            "title": "Steel C",
+            "type": "string"
+          },
+          "backing_bar": {
+            "title": "Backing Bar",
+            "type": "boolean"
           },
           "t_dp": {
             "title": "T Dp",

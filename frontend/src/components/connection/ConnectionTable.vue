@@ -382,10 +382,14 @@ export default class ConnectionTable extends Vue {
       navigator.share({
         url: shareUrl,
       });
-    } else {
-      navigator.clipboard.writeText(shareUrl);
-      this.snackbar.open(`Copied to clipboard: ${shareUrl}`);
+      return;
     }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      this.snackbar.open("Copied to clipboard");
+      return;
+    }
+    this.snackbar.open(shareUrl, shareUrl);
   }
 }
 

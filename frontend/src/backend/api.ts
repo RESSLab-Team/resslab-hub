@@ -34,6 +34,7 @@ export enum ConnectionField {
     SpecimenDesignation = 'specimen_designation',
     Northridge = 'northridge',
     SpecimenType = 'specimen_type',
+    LoadingProtocol = 'loading_protocol',
     Slab = 'slab',
     ConnectionType = 'connection_type',
     SectionB = 'section_b',
@@ -42,6 +43,8 @@ export enum ConnectionField {
     SectionC = 'section_c',
     DC = 'd_c',
     TCf = 't_cf',
+    SteelC = 'steel_c',
+    BackingBar = 'backing_bar',
     TDp = 't_dp',
     NDp = 'n_dp',
     TDpTot = 't_dp_tot',
@@ -93,6 +96,12 @@ export interface ConnectionModel {
     'specimen_type': string;
     /**
      * 
+     * @type {string}
+     * @memberof ConnectionModel
+     */
+    'loading_protocol': string;
+    /**
+     * 
      * @type {boolean}
      * @memberof ConnectionModel
      */
@@ -139,6 +148,18 @@ export interface ConnectionModel {
      * @memberof ConnectionModel
      */
     't_cf': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectionModel
+     */
+    'steel_c': string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectionModel
+     */
+    'backing_bar'?: boolean;
     /**
      * 
      * @type {number}
