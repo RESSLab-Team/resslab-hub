@@ -476,6 +476,41 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
+         * Get master csv
+         * @summary Get Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/connections/csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (ids) {
+                localVarQueryParameter['ids'] = ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Get Download
          * @param {string} connectionId 
@@ -772,6 +807,17 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get master csv
+         * @summary Get Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getCsv(ids, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * 
          * @summary Get Download
          * @param {string} connectionId 
@@ -887,6 +933,16 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
             return localVarFp.getCounts(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get master csv
+         * @summary Get Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+            return localVarFp.getCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Get Download
          * @param {string} connectionId 
@@ -996,6 +1052,18 @@ export class ConnectionsApi extends BaseAPI {
      */
     public getCounts(fields?: Array<ConnectionField>, query?: string, options?: AxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get master csv
+     * @summary Get Csv
+     * @param {Array<string>} [ids] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public getCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getCsv(ids, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

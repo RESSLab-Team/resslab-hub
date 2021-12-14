@@ -270,6 +270,46 @@
         }
       }
     },
+    "/connections/csv": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Csv",
+        "description": "Get master csv",
+        "operationId": "get_csv",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Ids",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "ids",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/connections/{connection_id}/download": {
       "get": {
         "tags": [

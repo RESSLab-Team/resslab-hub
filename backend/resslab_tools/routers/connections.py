@@ -2,6 +2,7 @@
 Handle /connections requests
 """
 import math
+from datetime import datetime
 from decimal import Decimal
 from distutils.util import strtobool
 from typing import Any, List, Optional, Union
@@ -37,6 +38,13 @@ router = APIRouter(
     prefix="/connections",
     tags=["connections"],
 )
+
+ignored_columns = ["global_count", "panel_zone_count"]
+connection_column_keys = [
+    key
+    for key in Connection.__dict__.keys()
+    if not key.startswith("_") and key not in ignored_columns
+]
 
 
 @router.get("", response_model=ExtendedPage[ConnectionModel])
@@ -114,6 +122,26 @@ async def get_matrix(
     rows = rows.all()
     return MatrixModel(
         ids=[row[0] for row in rows], data=[list(row)[1:] for row in rows]
+    )
+
+
+@router.get("/csv", response_class=StreamingResponse)
+async def get_csv(
+    session: AsyncSession = Depends(get_session),
+    ids: List[str] = Query([]),
+) -> StreamingResponse:
+    """
+    Get master csv
+    """
+    time = datetime.now().strftime("%Y%m%d-%H%M%S")
+    filename = f"connections-{time}.csv"
+    return __get_csv_response(
+        session,
+        select([Connection.__dict__[key] for key in connection_column_keys]).where(
+            Connection.id.in_(ids)
+        ),
+        connection_column_keys,
+        filename,
     )
 
 
@@ -227,7 +255,10 @@ async def get_panel_zones_csv(
 
 
 async def __get_series(
-    session: AsyncSession, size: int, statement: Select, id_column: Column[int]
+    session: AsyncSession,
+    size: int,
+    statement: Select,
+    id_column: Column[int],
 ) -> List[List[Decimal]]:
     if size > 0:
         count: int = await session.scalar(select(func.count()).select_from(statement))

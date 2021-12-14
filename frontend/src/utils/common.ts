@@ -13,6 +13,6 @@ export function filterColumnValue(value: Value): boolean {
   }
 }
 
-export const publicPath: string = process.env.BASE_URL;
+export const publicPath: string = process.env.BASE_URL ?? "";
 
 export const globalSearchKey = "search";

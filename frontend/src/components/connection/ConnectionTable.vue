@@ -167,6 +167,12 @@
       </v-btn>
     </v-card-actions>
     <snackbar ref="snackbar"></snackbar>
+    <checkbox-dialog
+      ref="downloadDialog"
+      title="Download"
+      :items="checkboxDialogItems"
+      loading-on-confirm
+    ></checkbox-dialog>
   </v-card>
 </template>
 
@@ -183,6 +189,9 @@
 
 <script lang="ts">
 import { ConnectionModel } from "@/backend";
+import CheckboxDialog, {
+  CheckBoxDialogItem,
+} from "@/components/commons/CheckboxDialog.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import Snackbar from "@/components/commons/Snackbar.vue";
 import {
@@ -192,6 +201,8 @@ import {
   Searches,
 } from "@/utils/common";
 import { booleanOptions } from "@/utils/vuetify";
+import download from "downloadjs";
+import JSZip from "jszip";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { DataOptions, DataTableHeader } from "vuetify";
 
@@ -199,6 +210,7 @@ import { DataOptions, DataTableHeader } from "vuetify";
   components: {
     InfoTooltip,
     Snackbar,
+    CheckboxDialog,
   },
 })
 export default class ConnectionTable extends Vue {
@@ -259,6 +271,16 @@ export default class ConnectionTable extends Vue {
       type: "number",
     },
   ];
+  readonly checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
+    {
+      key: DownloadType.Master,
+      text: "Master data",
+    },
+    {
+      key: DownloadType.Test,
+      text: "Test data",
+    },
+  ];
 
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   columnSearches!: Searches;
@@ -295,6 +317,10 @@ export default class ConnectionTable extends Vue {
 
   get snackbar(): Snackbar {
     return this.$refs.snackbar as Snackbar;
+  }
+
+  get downloadDialog(): CheckboxDialog<DownloadType> {
+    return this.$refs.downloadDialog as CheckboxDialog<DownloadType>;
   }
 
   created(): void {
@@ -350,16 +376,71 @@ export default class ConnectionTable extends Vue {
   }
 
   onDownload(): void {
-    this.selectedItems
-      .map((item) => item.id)
-      .map((id) => {
-        this.$connectionsApi
-          .getDownload(id)
-          .then((response) => response.data)
-          .then((data) => {
-            window.open(data.global_csv);
-            window.open(data.panel_zone_csv);
-          });
+    this.downloadDialog
+      .open(`${this.selectedItems.length} selected`)
+      .then((types) => {
+        const filePromises: Promise<{
+          filename: string;
+          content: string;
+        }>[] = [];
+        if (types.includes(DownloadType.Master)) {
+          filePromises.push(
+            this.$connectionsApi
+              .getCsv(this.selectedItems.map((item) => item.id))
+              .then((response) => ({
+                filename: "connections.csv",
+                content: response.data as unknown as string,
+              }))
+          );
+        }
+        if (types.includes(DownloadType.Test)) {
+          filePromises.push(
+            ...this.selectedItems
+              .filter((item) => item.global_count > 0)
+              .map((item) => item.id)
+              .map((id) =>
+                this.$connectionsApi.getGlobalCsv(id).then((response) => ({
+                  filename: `connection-global-${id}.csv`,
+                  content: response.data as unknown as string,
+                }))
+              )
+          );
+          filePromises.push(
+            ...this.selectedItems
+              .filter((item) => item.panel_zone_count > 0)
+              .map((item) => item.id)
+              .map((id) =>
+                this.$connectionsApi.getPanelZonesCsv(id).then((response) => ({
+                  filename: `connection-panel-zone-${id}.csv`,
+                  content: response.data as unknown as string,
+                }))
+              )
+          );
+        }
+        return Promise.all(filePromises);
+      })
+      .then((files) => {
+        if (files.length === 0) {
+          this.snackbar.open("Nothing to download");
+          return null;
+        }
+        const zip = new JSZip();
+        files.forEach((file) => {
+          zip.file(file.filename, file.content);
+        });
+        return zip.generateAsync({ type: "blob" });
+      })
+      .then((content) => {
+        if (content) {
+          download(
+            content,
+            `connections-${new Date().getTime()}.zip`,
+            "application/zip"
+          );
+        }
+      })
+      .finally(() => {
+        this.downloadDialog.close();
       });
   }
 
@@ -406,5 +487,10 @@ interface TableHeader extends DataTableHeader {
   type: HeaderType;
   options?: string[];
   multiple?: boolean;
+}
+
+enum DownloadType {
+  Master = "master",
+  Test = "test",
 }
 </script>
