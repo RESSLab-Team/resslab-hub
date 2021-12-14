@@ -169,7 +169,7 @@ export default class ConnectionDoubleChart extends Vue {
           ),
         };
       }),
-      color: getColorPalette(this.color),
+      color: getColorPalette(this.color, secondKeys.length),
     };
   }
 

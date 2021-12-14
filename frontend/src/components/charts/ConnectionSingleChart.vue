@@ -76,7 +76,7 @@ export default class ConnectionSingleChart extends Vue {
           roam: "move",
         },
       ],
-      color: getColorPalette(this.color),
+      color: getColorPalette(this.color, this.counts.length),
     };
   }
 

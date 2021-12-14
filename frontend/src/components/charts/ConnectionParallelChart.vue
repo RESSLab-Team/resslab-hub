@@ -28,7 +28,6 @@
 <script lang="ts">
 import { ConnectionField } from "@/backend";
 import { Searches } from "@/utils/common";
-import { getColorPalette } from "@/utils/vuetify";
 import { ParallelChart } from "echarts/charts";
 import { BrushComponent, ToolboxComponent } from "echarts/components";
 import { ECharts, use } from "echarts/core";
@@ -122,7 +121,7 @@ export default class ConnectionParallelChart extends Vue {
           },
         },
       },
-      color: getColorPalette(this.color),
+      color: this.color.base,
     };
   }
 
