@@ -4,18 +4,18 @@
     "experimental_program": "Experimental Program",
     "date": "Date",
     "specimen_designation": "Specimen Designation",
-    "northridge": "North Ridge",
+    "northridge": "Northridge",
     "specimen_type": "Specimen Type",
     "slab": "SLAB",
     "connection_type": "Connection Type",
     "section_b": "Beam Section",
     "d_b": "Beam Depth [mm]",
-    "steel_b": " Steel Material",
+    "steel_b": " Beam Steel Material",
     "section_c": "Column Section",
     "d_c": "Column Depth [mm]",
-    "t_cf": "Flange Thickness",
+    "t_cf": "Column Flange Thickness",
     "t_dp": "Doubler Plates Thickness [mm]",
-    "n_dp": "Doubler Plates Number",
-    "t_dp_tot": "Doubler Plates Total [mm]"
+    "n_dp": "Number of Doubler Plates",
+    "t_dp_tot": "Total Doubler Plate Thickness [mm]"
   }
 }
