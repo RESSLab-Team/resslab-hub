@@ -7,10 +7,10 @@
       @click="onClick"
     ></v-chart>
     <range-slider
-      v-if="hasSlider"
+      v-if="isHistogram"
+      v-model="range"
       :color="color"
       :get-range="getRange"
-      @change="onSliderChange"
     ></range-slider>
   </div>
 </template>
@@ -30,6 +30,7 @@ import {
 } from "@/backend";
 import RangeSlider from "@/components/commons/RangeSlider.vue";
 import { Searches, sum } from "@/utils/common";
+import { Bin, toBins } from "@/utils/statistics";
 import { getColorPalette } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
 import { BarChart } from "echarts/charts";
@@ -79,11 +80,27 @@ export default class ConnectionDoubleChart extends Vue {
   readonly type!: "bar" | "line";
   @Prop({ type: Object as () => Color, default: () => colors.blue })
   readonly color!: Color;
+  @Prop({ type: Number, default: 10 })
+  readonly stepCount!: number;
 
   private counts: CountModel[] = [];
+  private range: [number, number] | null = null;
 
   created(): void {
     this.onChanged();
+    this.$watch(`fieldSearches.${this.fields[0]}`, this.onFirstFieldChanged);
+  }
+
+  get stepSize(): number | undefined {
+    if (this.isHistogram && this.firstKeys.length > 0) {
+      return Math.ceil(
+        (Number(this.firstKeys[this.firstKeys.length - 1]) -
+          Number(this.firstKeys[0])) /
+          this.stepCount
+      );
+    } else {
+      return undefined;
+    }
   }
 
   get defaultValue(): string | number {
@@ -94,12 +111,15 @@ export default class ConnectionDoubleChart extends Vue {
     }
   }
 
-  get option(): EChartsOption {
-    const firstKeys: string[] = _(this.counts)
+  get firstKeys(): string[] {
+    return _(this.counts)
       .map((count) => count.names[0])
       .uniq()
       .sort()
       .value();
+  }
+
+  get option(): EChartsOption {
     const secondKeys: string[] = _(this.counts)
       .groupBy((count) => count.names[1])
       .map((values, key) => ({
@@ -135,17 +155,11 @@ export default class ConnectionDoubleChart extends Vue {
         nameLocation: "middle",
         nameGap: 28,
         boundaryGap: this.type === "bar",
-        axisLabel: {
-          formatter: (value: string) => {
-            const n = Number(value);
-            if (isNaN(n)) {
-              return value;
-            } else {
-              return Math.round(n).toString();
-            }
-          },
+        data: this.isHistogram ? undefined : this.firstKeys,
+        scale: true,
+        axisTick: {
+          alignWithLabel: true,
         },
-        data: firstKeys,
       },
       yAxis: {
         type: "value",
@@ -161,12 +175,7 @@ export default class ConnectionDoubleChart extends Vue {
           emphasis: {
             focus: "series",
           },
-          data: firstKeys.map(
-            (firstKey) =>
-              this.counts.find((count) =>
-                _.isEqual(count.names, [firstKey, secondKey])
-              )?.value ?? this.defaultValue
-          ),
+          data: this.getData(secondKey),
         };
       }),
       color: getColorPalette(this.color, secondKeys.length),
@@ -180,7 +189,7 @@ export default class ConnectionDoubleChart extends Vue {
     );
   }
 
-  get hasSlider(): boolean {
+  get isHistogram(): boolean {
     return this.numberField !== undefined;
   }
 
@@ -190,10 +199,6 @@ export default class ConnectionDoubleChart extends Vue {
     } else {
       return undefined;
     }
-  }
-
-  onSliderChange(value: [number, number]): void {
-    this.$set(this.fieldSearches, this.fields[0], `${value[0]}<<${value[1]}`);
   }
 
   @Watch("fields")
@@ -207,8 +212,50 @@ export default class ConnectionDoubleChart extends Vue {
       });
   }
 
+  @Watch("range")
+  onSliderChanged(value: [number, number] | null): void {
+    if (value) {
+    this.$set(this.fieldSearches, this.fields[0], `${value[0]}<<${value[1]}`);
+  }
+  }
+
+  onFirstFieldChanged(value: string): void {
+    if (value === undefined) {
+      this.range = null;
+    } else if (value.includes("<<")) {
+      const [min, max] = value.split("<<", 2).map((v) => Number(v));
+      if (min !== undefined && max !== undefined) {
+        this.range = [min, max];
+      }
+    }
+  }
+
+  private getData(secondKey: string) {
+    if (this.isHistogram) {
+      const binData = this.firstKeys.map((firstKey) => ({
+        value: Number(firstKey),
+        count: this.getCount(firstKey, secondKey) ?? 0,
+      }));
+      return toBins(binData, this.stepSize);
+    } else {
+      return this.firstKeys.map(
+        (firstKey) => this.getCount(firstKey, secondKey) ?? this.defaultValue
+      );
+    }
+  }
+
+  private getCount(firstKey: string, secondKey: string): number | undefined {
+    return this.counts.find((c) => _.isEqual(c.names, [firstKey, secondKey]))
+      ?.value;
+  }
+
   onClick(params: CallbackDataParams): void {
-    this.$set(this.fieldSearches, this.fields[0], params.name);
+    if (this.isHistogram) {
+      const data = params.data as Bin;
+      this.$set(this.fieldSearches, this.fields[0], `${data[2]}<<${data[3]}`);
+    } else {
+      this.$set(this.fieldSearches, this.fields[0], params.name);
+    }
     this.$set(this.fieldSearches, this.fields[1], params.seriesName);
   }
 }

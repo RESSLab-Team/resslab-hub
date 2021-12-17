@@ -299,7 +299,7 @@ def __get_predicate(column: Column[Any], expression: str) -> Any:
         return column.in_(expression.split(","))
     if "<<" in expression:
         [min, max] = expression.split("<<", 2)
-        return column.between(Decimal(min), Decimal(max))
+        return func.round(column, 0).between(int(min), int(max))
     if expression.startswith("<"):
         return column < int(expression[1:])
     if expression.startswith(">"):

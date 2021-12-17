@@ -46,6 +46,8 @@ import { Color } from "vuetify/lib/util/colors";
 
 @Component
 export default class RangeSlider extends Vue {
+  @Prop({ type: Array })
+  readonly value: [number, number] | undefined;
   @Prop({ type: Promise })
   readonly getRange: Promise<AxiosResponse<RangeModel>> | undefined;
   @Prop({ type: Number, default: 1 })
@@ -89,8 +91,20 @@ export default class RangeSlider extends Vue {
     }
   }
 
+  @Watch("value")
+  onValueChanged(): void {
+    if (this.value == undefined) {
+      this.range = [this.min, this.max];
+    } else {
+      this.range = [
+        Math.max(this.min, this.value[0]),
+        Math.min(this.max, this.value[1]),
+      ];
+    }
+  }
+
   onRangeChange(): void {
-    this.$emit("change", this.range);
+    this.$emit("input", this.range);
   }
 
   onChangeMin(min: number): void {
