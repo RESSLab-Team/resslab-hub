@@ -133,13 +133,6 @@ export default class ConnectionDoubleChart extends Vue {
       .map((item) => item.key)
       .value();
     return {
-      title: {
-        text: this.$t("connection." + this.fields[1]).toString(),
-        textStyle: {
-          fontSize: 12,
-          fontWeight: "normal",
-        },
-      },
       tooltip: {
         trigger: "axis",
         axisPointer: {
@@ -147,7 +140,11 @@ export default class ConnectionDoubleChart extends Vue {
         },
       },
       legend: {
-        right: 0,
+        tooltip: {
+          show: true,
+          formatter:
+            this.$t("connection." + this.fields[1]).toString() + ": {a}",
+        },
       },
       xAxis: {
         type: "category",
@@ -163,7 +160,6 @@ export default class ConnectionDoubleChart extends Vue {
       },
       yAxis: {
         type: "value",
-        name: "#",
         minInterval: 1,
       },
       series: secondKeys.map((secondKey) => {
@@ -215,8 +211,8 @@ export default class ConnectionDoubleChart extends Vue {
   @Watch("range")
   onSliderChanged(value: [number, number] | null): void {
     if (value) {
-    this.$set(this.fieldSearches, this.fields[0], `${value[0]}<<${value[1]}`);
-  }
+      this.$set(this.fieldSearches, this.fields[0], `${value[0]}<<${value[1]}`);
+    }
   }
 
   onFirstFieldChanged(value: string): void {
