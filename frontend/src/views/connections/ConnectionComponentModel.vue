@@ -1,5 +1,15 @@
 <template>
-  <div>
-    <h1>Component Model</h1>
-  </div>
+  <connection-component></connection-component>
 </template>
+
+<script lang="ts">
+import ConnectionComponent from "@/components/connection/ConnectionComponent.vue";
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
+  components: {
+    ConnectionComponent,
+  },
+})
+export default class ConnectionComponentModel extends Vue {}
+</script>
