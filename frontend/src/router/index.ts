@@ -19,15 +19,17 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: "database",
-        component: () => import("../views/connections/Database.vue"),
+        component: () => import("../views/connections/ConnectionDatabase.vue"),
       },
       {
         path: "fragility-curve",
-        component: () => import("../views/connections/FragilityCurve.vue"),
+        component: () =>
+          import("../views/connections/ConnectionFragilityCurve.vue"),
       },
       {
         path: "component-model",
-        component: () => import("../views/connections/ComponentModel.vue"),
+        component: () =>
+          import("../views/connections/ConnectionComponentModel.vue"),
       },
     ],
   },
