@@ -3,6 +3,7 @@
     <v-chart
       autoresize
       :option="option"
+      :update-options="updateOptions"
       @click="onClick"
       @mouseover="onMouseover"
       @mouseout="onMouseout"
@@ -25,7 +26,11 @@ import { TreemapChart } from "echarts/charts";
 import { TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { CallbackDataParams, EChartsOption } from "echarts/types/dist/shared";
+import {
+  CallbackDataParams,
+  EChartsOption,
+  SetOptionOpts,
+} from "echarts/types/dist/shared";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import colors, { Color } from "vuetify/lib/util/colors";
@@ -38,6 +43,10 @@ use([CanvasRenderer, TreemapChart, TooltipComponent]);
   },
 })
 export default class ConnectionSingleChart extends Vue {
+  readonly updateOptions: SetOptionOpts = {
+    notMerge: true,
+  };
+
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
   @Prop({ type: String as () => ConnectionField })

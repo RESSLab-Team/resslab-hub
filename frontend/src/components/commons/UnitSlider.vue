@@ -10,8 +10,11 @@
         v-model="model"
         class="mt-0 pt-0"
         hide-details
+        :max="max"
+        :min="min"
         single-line
         type="number"
+        :step="step"
         style="width: 60px"
       ></v-text-field>
     </template>

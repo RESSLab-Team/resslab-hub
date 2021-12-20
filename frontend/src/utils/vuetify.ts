@@ -18,7 +18,6 @@ export function getColorPalette(color: Color, count: number): string[] {
     case 1:
       return [color.base];
     case 2:
-      return [color.darken4, color.lighten4];
     case 3:
       return [color.darken4, color.base, color.lighten4];
     case 4:
