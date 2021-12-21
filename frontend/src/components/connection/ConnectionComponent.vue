@@ -13,7 +13,7 @@
         </a>
       </p>
     </v-col>
-    <v-col cols="6">
+    <v-col cols="12" md="6">
       <v-card>
         <v-card-title>
           Select Steel W-Shape
@@ -42,7 +42,7 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col cols="6">
+    <v-col cols="12" md="6">
       <v-card>
         <v-card-title>
           Specify Member Properties
@@ -72,7 +72,26 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col cols="12">
+    <v-col cols="12" sm="6" lg="4">
+      <v-card>
+        <v-card-title>Beams without RBS</v-card-title>
+        <v-card-text>
+          <v-chart
+            autoresize
+            :option="option(backboneCurveWithoutRbs)"
+          ></v-chart>
+        </v-card-text>
+      </v-card>
+    </v-col>
+    <v-col cols="12" sm="6" lg="4">
+      <v-card>
+        <v-card-title>Beams with RBS</v-card-title>
+        <v-card-text>
+          <v-chart autoresize :option="option(backboneCurveWithRbs)"></v-chart>
+        </v-card-text>
+      </v-card>
+    </v-col>
+    <v-col cols="12" lg="4">
       <v-card>
         <v-card-title>
           Computed Backbone Curve Values (provided that the steel member is in
@@ -103,25 +122,6 @@
               </tbody>
             </template>
           </v-simple-table>
-        </v-card-text>
-      </v-card>
-    </v-col>
-    <v-col cols="6">
-      <v-card>
-        <v-card-title>Beams without RBS</v-card-title>
-        <v-card-text>
-          <v-chart
-            autoresize
-            :option="option(backboneCurveWithoutRbs)"
-          ></v-chart>
-        </v-card-text>
-      </v-card>
-    </v-col>
-    <v-col cols="6">
-      <v-card>
-        <v-card-title>Beams with RBS</v-card-title>
-        <v-card-text>
-          <v-chart autoresize :option="option(backboneCurveWithRbs)"></v-chart>
         </v-card-text>
       </v-card>
     </v-col>

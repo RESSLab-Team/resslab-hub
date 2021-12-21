@@ -17,7 +17,7 @@
 
 <style scoped>
 .echarts {
-  min-height: 256px;
+  min-height: 220px;
 }
 </style>
 

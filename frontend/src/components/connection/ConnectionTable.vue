@@ -26,6 +26,7 @@
       dense
       :headers="tableHeaders"
       :items="connections"
+      :items-per-page="5"
       :footer-props="{
         itemsPerPageOptions: [5, 10, 20, 100, 1000],
       }"
@@ -37,7 +38,7 @@
       @click:row="onClick"
     >
       <template v-slot:top>
-        <v-row class="px-4">
+        <v-row class="px-4 pb-4">
           <v-col v-for="header in filterHeaders" :key="header.value">
             <v-select
               v-if="header.options"
@@ -81,6 +82,7 @@
         <tr>
           <td>
             <!-- select -->
+            <v-icon>mdi-magnify</v-icon>
           </td>
           <td v-for="header in tableHeaders" :key="header.value">
             <v-select
@@ -89,6 +91,7 @@
               class="mt-0 pt-0"
               clearable
               hide-details
+              :label="header.text"
               :multiple="header.multiple"
               :items="header.options"
               single-line
@@ -118,6 +121,7 @@
                 class="mt-0 pt-0"
                 clearable
                 hide-details
+                :label="header.text"
                 single-line
               ></v-text-field>
               <v-select
@@ -126,6 +130,7 @@
                 class="mt-0 pt-0"
                 clearable
                 hide-details
+                :label="header.text"
                 :items="booleanOptions"
                 single-line
               ></v-select>
@@ -135,6 +140,7 @@
                 class="mt-0 pt-0"
                 clearable
                 hide-details
+                :label="header.text"
                 single-line
                 type="number"
               ></v-text-field>
