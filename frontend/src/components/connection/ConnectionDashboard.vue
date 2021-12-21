@@ -122,57 +122,6 @@
         </v-row>
       </v-col>
     </v-row>
-    <v-row>
-      <v-col>
-        <v-divider></v-divider>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
-        <h1>Playground</h1>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
-        <v-card>
-          <v-card-text>
-            <locale-select
-              v-model="singleField"
-              :items="fields"
-              prefix="connection."
-            ></locale-select>
-            <connection-single-chart
-              :color="colors.teal"
-              :field="singleField"
-              :query="query"
-              :searches.sync="searches"
-            ></connection-single-chart>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col>
-        <v-card>
-          <v-card-text>
-            <locale-select
-              v-model="doubleFields[0]"
-              :items="fields"
-              prefix="connection."
-            ></locale-select>
-            <locale-select
-              v-model="doubleFields[1]"
-              :items="fields"
-              prefix="connection."
-            ></locale-select>
-            <connection-double-chart
-              :color="colors.pink"
-              :fields="doubleFields"
-              :query="query"
-              :searches.sync="searches"
-            ></connection-double-chart>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
   </div>
 </template>
 
@@ -214,12 +163,6 @@ export default class ConnectionDashboard extends Vue {
   search = "";
   searches: Searches = {};
   connection: ConnectionModel | null = null;
-
-  singleField = ConnectionField.Date;
-  doubleFields: [ConnectionField, ConnectionField] = [
-    ConnectionField.TCf,
-    ConnectionField.TDpTot,
-  ];
 
   get query(): string {
     const queries = Object.entries(this.searches)
