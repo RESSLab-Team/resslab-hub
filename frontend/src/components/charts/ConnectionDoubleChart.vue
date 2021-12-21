@@ -30,7 +30,7 @@ import {
 } from "@/backend";
 import RangeSlider from "@/components/commons/RangeSlider.vue";
 import { Searches, sum } from "@/utils/common";
-import { Bin, toBins } from "@/utils/statistics";
+import { BinData, toBins } from "@/utils/statistics";
 import { getColorPalette } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
 import { BarChart } from "echarts/charts";
@@ -80,27 +80,21 @@ export default class ConnectionDoubleChart extends Vue {
   readonly type!: "bar" | "line";
   @Prop({ type: Object as () => Color, default: () => colors.blue })
   readonly color!: Color;
-  @Prop({ type: Number, default: 10 })
-  readonly stepCount!: number;
 
   private counts: CountModel[] = [];
   private range: [number, number] | null = null;
+  private unwatch: () => void = () => null;
 
   created(): void {
     this.onChanged();
-    this.$watch(`fieldSearches.${this.fields[0]}`, this.onFirstFieldChanged);
+    this.unwatch = this.$watch(
+      `fieldSearches.${this.fields[0]}`,
+      this.onFirstFieldChanged
+    );
   }
 
-  get stepSize(): number | undefined {
-    if (this.isHistogram && this.firstKeys.length > 0) {
-      return Math.ceil(
-        (Number(this.firstKeys[this.firstKeys.length - 1]) -
-          Number(this.firstKeys[0])) /
-          this.stepCount
-      );
-    } else {
-      return undefined;
-    }
+  beforeDestroy(): void {
+    this.unwatch();
   }
 
   get defaultValue(): string | number {
@@ -164,19 +158,17 @@ export default class ConnectionDoubleChart extends Vue {
         type: "value",
         minInterval: 1,
       },
-      series: secondKeys.map((secondKey) => {
-        return {
-          name: secondKey,
-          type: this.type,
-          showSymbol: false,
-          stack: this.fields[1],
-          areaStyle: {},
-          emphasis: {
-            focus: "series",
-          },
-          data: this.getData(secondKey),
-        };
-      }),
+      series: this.getSerie(secondKeys).map((serie) => ({
+        name: serie.name,
+        type: this.type,
+        showSymbol: false,
+        stack: this.fields[1],
+        areaStyle: {},
+        emphasis: {
+          focus: "series",
+        },
+        data: serie.data,
+      })),
       color: getColorPalette(this.color, secondKeys.length),
     };
   }
@@ -229,33 +221,45 @@ export default class ConnectionDoubleChart extends Vue {
     }
   }
 
-  private getData(secondKey: string): (string | number)[][] {
+  private getSerie(secondKeys: string[]): Serie[] {
     if (this.isHistogram) {
       if (this.type === "line") {
-        const firstKeyNumbers = this.firstKeys.map((firstKey) =>
-          Number(firstKey)
-        );
-        let acc = 0;
-        return _.range(
-          Math.min(...firstKeyNumbers),
-          Math.max(...firstKeyNumbers) + 1
-        ).map((firstKeyNumber) => {
-          const count =
-            this.getCount(firstKeyNumber.toString(), secondKey) ?? 0;
-          return [firstKeyNumber, (acc += count)];
+        return secondKeys.map((secondKey) => {
+          const firstKeyNumbers = this.firstKeys.map((firstKey) =>
+            Number(firstKey)
+          );
+          let acc = 0;
+          const values = _.range(
+            Math.min(...firstKeyNumbers),
+            Math.max(...firstKeyNumbers) + 1
+          ).map((firstKeyNumber) => {
+            const count = (acc +=
+              this.getCount(firstKeyNumber.toString(), secondKey) ?? 0);
+            return [firstKeyNumber, count > 0 ? count : ""];
+          });
+          return {
+            name: secondKey,
+            data: values,
+          };
         });
       } else {
-        const binData = this.firstKeys.map((firstKey) => ({
-          value: Number(firstKey),
-          count: this.getCount(firstKey, secondKey) ?? 0,
-        }));
-        return toBins(binData, this.stepSize);
+        const binData = this.firstKeys.flatMap((firstKey) =>
+          secondKeys.map((secondKey) => ({
+            name: secondKey,
+            value: Number(firstKey),
+            count: this.getCount(firstKey, secondKey) ?? 0,
+          }))
+        );
+        return toBins(secondKeys, binData);
       }
     } else {
-      return this.firstKeys.map((firstKey) => [
-        firstKey,
-        this.getCount(firstKey, secondKey) ?? this.defaultValue,
-      ]);
+      return secondKeys.map((secondKey) => ({
+        name: secondKey,
+        data: this.firstKeys.map((firstKey) => [
+          firstKey,
+          this.getCount(firstKey, secondKey) ?? this.defaultValue,
+        ]),
+      }));
     }
   }
 
@@ -266,12 +270,17 @@ export default class ConnectionDoubleChart extends Vue {
 
   onClick(params: CallbackDataParams): void {
     if (this.isHistogram) {
-      const data = params.data as Bin;
+      const data = params.data as BinData;
       this.$set(this.fieldSearches, this.fields[0], `${data[2]}<<${data[3]}`);
     } else {
       this.$set(this.fieldSearches, this.fields[0], params.name);
     }
     this.$set(this.fieldSearches, this.fields[1], params.seriesName);
   }
+}
+
+interface Serie {
+  name: string;
+  data: (string | number)[][];
 }
 </script>
