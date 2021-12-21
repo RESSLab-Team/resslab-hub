@@ -17,7 +17,7 @@
 
 <style scoped>
 .echarts {
-  min-height: 220px;
+  min-height: 210px;
 }
 </style>
 
@@ -133,6 +133,9 @@ export default class ConnectionDoubleChart extends Vue {
       .map((item) => item.key)
       .value();
     return {
+      grid: {
+        bottom: 50,
+      },
       tooltip: {
         trigger: "axis",
         axisPointer: {
@@ -152,7 +155,6 @@ export default class ConnectionDoubleChart extends Vue {
         nameLocation: "middle",
         nameGap: 28,
         boundaryGap: this.type === "bar",
-        data: this.isHistogram ? undefined : this.firstKeys,
         scale: true,
         axisTick: {
           alignWithLabel: true,
@@ -166,6 +168,7 @@ export default class ConnectionDoubleChart extends Vue {
         return {
           name: secondKey,
           type: this.type,
+          showSymbol: false,
           stack: this.fields[1],
           areaStyle: {},
           emphasis: {
@@ -226,17 +229,33 @@ export default class ConnectionDoubleChart extends Vue {
     }
   }
 
-  private getData(secondKey: string) {
+  private getData(secondKey: string): (string | number)[][] {
     if (this.isHistogram) {
-      const binData = this.firstKeys.map((firstKey) => ({
-        value: Number(firstKey),
-        count: this.getCount(firstKey, secondKey) ?? 0,
-      }));
-      return toBins(binData, this.stepSize);
+      if (this.type === "line") {
+        const firstKeyNumbers = this.firstKeys.map((firstKey) =>
+          Number(firstKey)
+        );
+        let acc = 0;
+        return _.range(
+          Math.min(...firstKeyNumbers),
+          Math.max(...firstKeyNumbers) + 1
+        ).map((firstKeyNumber) => {
+          const count =
+            this.getCount(firstKeyNumber.toString(), secondKey) ?? 0;
+          return [firstKeyNumber, (acc += count)];
+        });
+      } else {
+        const binData = this.firstKeys.map((firstKey) => ({
+          value: Number(firstKey),
+          count: this.getCount(firstKey, secondKey) ?? 0,
+        }));
+        return toBins(binData, this.stepSize);
+      }
     } else {
-      return this.firstKeys.map(
-        (firstKey) => this.getCount(firstKey, secondKey) ?? this.defaultValue
-      );
+      return this.firstKeys.map((firstKey) => [
+        firstKey,
+        this.getCount(firstKey, secondKey) ?? this.defaultValue,
+      ]);
     }
   }
 

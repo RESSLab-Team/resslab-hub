@@ -8,7 +8,7 @@
       @mouseover="onMouseover"
       @mouseout="onMouseout"
     ></v-chart>
-    <v-img v-if="imageUrl" contain :src="imageUrl" max-height="160"></v-img>
+    <v-img v-if="imageUrl" contain :src="imageUrl" max-height="150"></v-img>
   </div>
 </template>
 
