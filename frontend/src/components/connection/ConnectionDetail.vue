@@ -18,22 +18,21 @@
       <v-row>
         <v-col v-if="connection.global_count > 0" cols="6">
           <v-card>
-            <v-card-title>Global</v-card-title>
             <simple-line-chart
+              :color="color"
               :promise="globalPromise"
-              x-axis-name="Total story drift angle (rad)"
-              y-axis-name="Force in the actuator (kN)"
+              x-axis-name="Total story drift angle [rad]"
+              y-axis-name="Lateral load [kN]"
             ></simple-line-chart>
           </v-card>
         </v-col>
         <v-col v-if="connection.panel_zone_count > 0" cols="6">
           <v-card>
-            <v-card-title>Panel Zone</v-card-title>
             <simple-line-chart
-              :color="colors.red"
+              :color="color"
               :promise="panelZonePromise"
-              x-axis-name="Panel zone shear distortion (rad)"
-              y-axis-name="Panel zone shear force (kN)"
+              x-axis-name="Panel zone shear distortion [rad]"
+              y-axis-name="Panel zone shear force [kN]"
             ></simple-line-chart>
           </v-card>
         </v-col>
@@ -92,13 +91,13 @@
             {{ connection.steel_b }}
           </property-item>
           <property-item name="Nominal yield stress" unit="MPa">
-            TODO
+            {{ connection.f_yb | formatNumber(0) }}
           </property-item>
-          <property-item name="Measured yield stress_flange" unit="MPa">
-            TODO
+          <property-item name="Measured yield stress (flange)" unit="MPa">
+            {{ connection.f_ybf | formatNumber(1) }}
           </property-item>
-          <property-item name="Measured yield stress_web" unit="MPa">
-            TODO
+          <property-item name="Measured yield stress (web)" unit="MPa">
+            {{ connection.f_ybw | formatNumber(1) }}
           </property-item>
         </v-col>
         <v-col>
@@ -107,13 +106,13 @@
             {{ connection.steel_c }}
           </property-item>
           <property-item name="Nominal yield stress" unit="MPa">
-            TODO
+            {{ connection.f_yc | formatNumber(0) }}
           </property-item>
-          <property-item name="Measured yield stress_flange" unit="MPa">
-            TODO
+          <property-item name="Measured yield stress (flange)" unit="MPa">
+            {{ connection.f_ycf | formatNumber(1) }}
           </property-item>
-          <property-item name="Measured yield stress_web" unit="MPa">
-            TODO
+          <property-item name="Measured yield stress (web)" unit="MPa">
+            {{ connection.f_ycw | formatNumber(1) }}
           </property-item>
         </v-col>
       </v-row>
@@ -140,9 +139,21 @@ import colors from "vuetify/lib/util/colors";
     SimpleLineChart,
     PropertyItem,
   },
+  filters: {
+    formatNumber: function (
+      value: number | undefined,
+      fractionDigits: number | undefined
+    ): string {
+      if (value === undefined) {
+        return "Not Reported";
+      } else {
+        return value.toFixed(fractionDigits);
+      }
+    },
+  },
 })
 export default class ConnectionDetail extends Vue {
-  readonly colors = colors;
+  readonly color = colors.red;
 
   @Prop(Object)
   readonly connection!: ConnectionModel;
