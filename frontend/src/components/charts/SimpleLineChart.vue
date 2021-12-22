@@ -1,12 +1,8 @@
 <template>
-  <v-chart v-if="hasData" autoresize :option="option"></v-chart>
+  <v-responsive aspect-ratio="1">
+    <v-chart v-if="hasData" autoresize :option="option"></v-chart>
+  </v-responsive>
 </template>
-
-<style scoped>
-.echarts {
-  min-height: 256px;
-}
-</style>
 
 <script lang="ts">
 import { AxiosResponse } from "axios";
@@ -45,6 +41,10 @@ export default class SimpleLineChart extends Vue {
   get option(): EChartsOption {
     return {
       grid: {
+        left: 36,
+        top: 20,
+        right: 20,
+        bottom: 36,
         containLabel: true,
       },
       xAxis: {

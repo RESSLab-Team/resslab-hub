@@ -2,18 +2,16 @@
   <v-row>
     <v-col cols="12">
       <h1>Backbone Curve Plotter for Steel Components</h1>
-      <p>
-        Construct the backbone curve of beams with RBS and beams other-than-RBS.
-        For further information refer to
-        <a
-          href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376"
-          target="_blank"
-        >
-          Lignos and Krawinkler (2011)
-        </a>
-      </p>
+      Construct the backbone curve of beams with RBS and beams other-than-RBS.
+      For further information refer to
+      <a
+        href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376"
+        target="_blank"
+      >
+        Lignos and Krawinkler (2011)
+      </a>
     </v-col>
-    <v-col cols="12" md="6">
+    <v-col cols="12">
       <v-card>
         <v-card-title>
           Select Steel W-Shape
@@ -24,10 +22,17 @@
         </v-card-title>
         <v-card-text>
           <v-row>
+            <v-col v-bind="variableBind">
+              <v-select
+                hide-details
+                label="Section from AISC database"
+                single-line
+              ></v-select>
+            </v-col>
             <v-col
               v-for="item in steelShapeDimensions"
               :key="item.key"
-              cols="6"
+              v-bind="variableBind"
             >
               <unit-slider
                 v-model="$data[item.key]"
@@ -42,7 +47,7 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col cols="12" md="6">
+    <v-col cols="12">
       <v-card>
         <v-card-title>
           Specify Member Properties
@@ -58,7 +63,11 @@
         </v-card-title>
         <v-card-text>
           <v-row>
-            <v-col v-for="item in memberProperties" :key="item.key" cols="6">
+            <v-col
+              v-for="item in memberProperties"
+              :key="item.key"
+              v-bind="variableBind"
+            >
               <unit-slider
                 v-model="$data[item.key]"
                 :label="item.text"
@@ -72,33 +81,42 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col cols="12" sm="6" lg="4">
+    <v-col cols="12" sm="6" lg="3">
       <v-card>
         <v-card-title>Beams without RBS</v-card-title>
         <v-card-text>
-          <v-chart
-            autoresize
-            :option="option(backboneCurveWithoutRbs)"
-          ></v-chart>
+          <v-responsive aspect-ratio="1">
+            <v-chart
+              autoresize
+              :option="option(backboneCurveWithoutRbs)"
+            ></v-chart>
+          </v-responsive>
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col cols="12" sm="6" lg="4">
+    <v-col cols="12" sm="6" lg="3">
       <v-card>
         <v-card-title>Beams with RBS</v-card-title>
         <v-card-text>
-          <v-chart autoresize :option="option(backboneCurveWithRbs)"></v-chart>
+          <v-responsive aspect-ratio="1">
+            <v-chart
+              autoresize
+              :option="option(backboneCurveWithRbs)"
+            ></v-chart>
+          </v-responsive>
         </v-card-text>
       </v-card>
     </v-col>
     <v-col cols="12" lg="4">
       <v-card>
         <v-card-title>
-          Computed Backbone Curve Values (provided that the steel member is in
-          double curvature)
+          Computed Backbone Curve Values
+          <info-tooltip>
+            Provided that the steel member is in double curvature
+          </info-tooltip>
         </v-card-title>
         <v-card-text>
-          <v-simple-table dense>
+          <v-simple-table dense fixed-header>
             <template v-slot:default>
               <thead>
                 <tr>
@@ -113,7 +131,7 @@
                   <!-- eslint-disable-next-line vue/no-v-html -->
                   <td v-html="item.text"></td>
                   <!-- eslint-disable-next-line vue/no-v-html -->
-                  <td v-html="item.unit"></td>
+                  <td class="unit" v-html="item.unit"></td>
                   <td>
                     {{ backboneCurveWithoutRbs[item.key].toLocaleString() }}
                   </td>
@@ -128,9 +146,9 @@
   </v-row>
 </template>
 
-<style scoped>
-.echarts {
-  min-height: 256px;
+<style lang="scss" scoped>
+td.unit {
+  white-space: nowrap;
 }
 </style>
 
@@ -151,6 +169,13 @@ use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
   components: { VChart, UnitSlider, InfoTooltip },
 })
 export default class ConnectionComponent extends Vue {
+  readonly variableBind = {
+    cols: "12",
+    sm: "6",
+    md: "4",
+    lg: "3",
+    xl: "2",
+  };
   readonly steelShapeDimensions: Variable[] = [
     new Variable({
       key: "bf",
@@ -546,8 +571,23 @@ export default class ConnectionComponent extends Vue {
 
   option(backboneCurve: BackboneCurve): EChartsOption {
     return {
-      xAxis: {},
-      yAxis: {},
+      grid: {
+        left: 20,
+        top: 10,
+        right: 20,
+        bottom: 20,
+        containLabel: true,
+      },
+      xAxis: {
+        name: "Chord Rotation, θ [rad]",
+        nameLocation: "middle",
+        nameGap: 26,
+      },
+      yAxis: {
+        name: "Moment, M [kN-mm]",
+        nameLocation: "middle",
+        nameGap: 50,
+      },
       tooltip: {
         trigger: "axis",
       },

@@ -1,22 +1,18 @@
 <template>
   <div>
-    <v-chart
-      autoresize
-      :option="option"
-      :update-options="updateOptions"
-      @click="onClick"
-      @mouseover="onMouseover"
-      @mouseout="onMouseout"
-    ></v-chart>
-    <v-img v-if="imageUrl" contain :src="imageUrl" max-height="150"></v-img>
+    <v-responsive aspect-ratio="4" height="100">
+      <v-chart
+        autoresize
+        :option="option"
+        :update-options="updateOptions"
+        @click="onClick"
+        @mouseover="onMouseover"
+        @mouseout="onMouseout"
+      ></v-chart>
+    </v-responsive>
+    <v-img v-if="imageUrl" contain :src="imageUrl" max-height="120"></v-img>
   </div>
 </template>
-
-<style scoped>
-.echarts {
-  min-height: 100px;
-}
-</style>
 
 <script lang="ts">
 import { ConnectionField } from "@/backend";
@@ -73,6 +69,10 @@ export default class ConnectionSingleChart extends Vue {
           type: "treemap",
           id: this.field,
           name: this.$t("connection." + this.field).toString(),
+          left: 0,
+          top: 0,
+          right: 0,
+          bottom: 0,
           data: this.counts.map((count) => {
             return {
               name: count.name,

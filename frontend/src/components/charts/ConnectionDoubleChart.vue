@@ -1,11 +1,13 @@
 <template>
   <div>
-    <v-chart
-      autoresize
-      :option="option"
-      :update-options="updateOptions"
-      @click="onClick"
-    ></v-chart>
+    <v-responsive aspect-ratio="2" height="210">
+      <v-chart
+        autoresize
+        :option="option"
+        :update-options="updateOptions"
+        @click="onClick"
+      ></v-chart>
+    </v-responsive>
     <range-slider
       v-if="isHistogram"
       v-model="range"
@@ -14,12 +16,6 @@
     ></range-slider>
   </div>
 </template>
-
-<style scoped>
-.echarts {
-  min-height: 210px;
-}
-</style>
 
 <script lang="ts">
 import {

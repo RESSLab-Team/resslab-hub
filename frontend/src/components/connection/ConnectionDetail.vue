@@ -16,25 +16,25 @@
       v-if="connection.global_count > 0 || connection.panel_zone_count > 0"
     >
       <v-row>
-        <v-col v-if="connection.global_count > 0" cols="6">
-          <v-card>
+        <v-col v-if="connection.global_count > 0" cols="12" lg="6">
+          <v-sheet elevation="1">
             <simple-line-chart
               :color="color"
               :promise="globalPromise"
               x-axis-name="Total story drift angle [rad]"
               y-axis-name="Lateral load [kN]"
             ></simple-line-chart>
-          </v-card>
+          </v-sheet>
         </v-col>
-        <v-col v-if="connection.panel_zone_count > 0" cols="6">
-          <v-card>
+        <v-col v-if="connection.panel_zone_count > 0" cols="12" lg="6">
+          <v-sheet elevation="1">
             <simple-line-chart
               :color="color"
               :promise="panelZonePromise"
               x-axis-name="Panel zone shear distortion [rad]"
               y-axis-name="Panel zone shear force [kN]"
             ></simple-line-chart>
-          </v-card>
+          </v-sheet>
         </v-col>
       </v-row>
     </v-card-text>

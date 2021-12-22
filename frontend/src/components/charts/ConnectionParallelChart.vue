@@ -1,12 +1,14 @@
 <template>
   <div>
-    <v-chart
-      ref="chart"
-      autoresize
-      :option="option"
-      @click="onClick"
-      @brushselected="onBrush"
-    ></v-chart>
+    <v-responsive aspect-ratio="5" min-height="256">
+      <v-chart
+        ref="chart"
+        autoresize
+        :option="option"
+        @click="onClick"
+        @brushselected="onBrush"
+      ></v-chart>
+    </v-responsive>
     <v-btn
       color="primary"
       :disabled="selectedIds.length === 0"
@@ -18,12 +20,6 @@
     </v-btn>
   </div>
 </template>
-
-<style scoped>
-.echarts {
-  min-height: 256px;
-}
-</style>
 
 <script lang="ts">
 import { ConnectionField } from "@/backend";
