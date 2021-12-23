@@ -12,18 +12,13 @@
       v-if="isHistogram"
       v-model="range"
       :color="color"
-      :get-range="getRange"
+      :get-range="rangePromise"
     ></range-slider>
   </div>
 </template>
 
 <script lang="ts">
-import {
-  ConnectionField,
-  ConnectionNumberField,
-  CountModel,
-  RangeModel,
-} from "@/backend";
+import { CountModel, RangeModel } from "@/backend";
 import RangeSlider from "@/components/commons/RangeSlider.vue";
 import { Searches, sum } from "@/utils/common";
 import { BinData, toBins } from "@/utils/statistics";
@@ -61,24 +56,32 @@ use([
     RangeSlider,
   },
 })
-export default class ConnectionDoubleChart extends Vue {
+export default class DoubleChart extends Vue {
   readonly updateOptions: SetOptionOpts = {
     notMerge: true,
   };
 
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
-  @Prop({ type: Array as () => ConnectionField[] })
-  readonly fields!: [ConnectionField, ConnectionField];
+  @Prop({ type: Array as () => string[] })
+  readonly fields!: [string, string];
   @Prop({ type: String, default: "" })
   readonly query!: string;
   @Prop({ type: String, default: "bar" })
   readonly type!: "bar" | "line";
   @Prop({ type: Object as () => Color, default: () => primaryColor })
   readonly color!: Color;
+  @Prop({ type: String, default: "" })
+  readonly labelPrefix!: string;
+  @Prop({ type: String })
+  readonly numberField: string | undefined;
+  @Prop({ type: Promise })
+  readonly promise!: Promise<AxiosResponse<CountModel[]>>;
+  @Prop({ type: Promise })
+  readonly rangePromise: Promise<AxiosResponse<RangeModel>> | undefined;
 
-  private counts: CountModel[] = [];
-  private range: [number, number] | null = null;
+  counts: CountModel[] = [];
+  range: [number, number] | null = null;
   private unwatch: () => void = () => null;
 
   created(): void {
@@ -137,12 +140,12 @@ export default class ConnectionDoubleChart extends Vue {
         tooltip: {
           show: true,
           formatter:
-            this.$t("connection." + this.fields[1]).toString() + ": {a}",
+            this.$t(this.labelPrefix + this.fields[1]).toString() + ": {a}",
         },
       },
       xAxis: {
         type: "category",
-        name: this.$t("connection." + this.fields[0]).toString(),
+        name: this.$t(this.labelPrefix + this.fields[0]).toString(),
         nameLocation: "middle",
         nameGap: 28,
         boundaryGap: this.type === "bar",
@@ -170,30 +173,14 @@ export default class ConnectionDoubleChart extends Vue {
     };
   }
 
-  get numberField(): ConnectionNumberField | undefined {
-    const fieldString = this.fields[0].toString();
-    return Object.values(ConnectionNumberField).find(
-      (numberField) => fieldString === numberField.toString()
-    );
-  }
-
   get isHistogram(): boolean {
     return this.numberField !== undefined;
-  }
-
-  get getRange(): Promise<AxiosResponse<RangeModel>> | undefined {
-    if (this.numberField) {
-      return this.$connectionsApi.getRange(this.numberField);
-    } else {
-      return undefined;
-    }
   }
 
   @Watch("fields")
   @Watch("query")
   onChanged(): void {
-    this.$connectionsApi
-      .getCounts(this.fields, this.query)
+    this.promise
       .then((response) => response.data)
       .then((counts) => {
         this.counts = counts;

@@ -27,9 +27,10 @@
 </template>
 
 <script lang="ts">
-import { ConnectionField } from "@/backend";
+import { MatrixModel } from "@/backend";
 import { Searches } from "@/utils/common";
 import { primaryColor } from "@/utils/vuetify";
+import { AxiosResponse } from "axios";
 import { ParallelChart } from "echarts/charts";
 import { BrushComponent, ToolboxComponent } from "echarts/components";
 import { ECharts, use } from "echarts/core";
@@ -51,22 +52,38 @@ use([CanvasRenderer, ParallelChart, BrushComponent, ToolboxComponent]);
     VChart,
   },
 })
-export default class ConnectionParallelChart extends Vue {
+export default class SimpleParallelChart extends Vue {
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
-  @Prop({ type: Array as () => ConnectionField[] })
-  readonly fields!: ConnectionField[];
+  @Prop({ type: String, default: "" })
+  readonly labelPrefix!: string;
+  @Prop({ type: Array as () => string[] })
+  readonly fields!: string[];
   @Prop({ type: String, default: "" })
   readonly query!: string;
   @Prop({ type: Object as () => Color, default: () => primaryColor })
   readonly color!: Color;
+  @Prop({ type: Promise })
+  readonly promise!: Promise<AxiosResponse<MatrixModel>>;
+  @Prop({ type: String })
+  readonly idField!: string;
 
   private ids: string[] = [];
   private data: (number | string)[][] = [];
   private selectedIds: string[] = [];
 
+  private unwatch: () => void = () => null;
+
   created(): void {
     this.onChanged();
+    this.unwatch = this.$watch(
+      `fieldSearches.${this.idField}`,
+      this.onSearchChanged
+    );
+  }
+
+  beforeDestroy(): void {
+    this.unwatch();
   }
 
   get chart(): ECharts | undefined {
@@ -86,7 +103,7 @@ export default class ConnectionParallelChart extends Vue {
         bottom: 8,
       },
       parallelAxis: this.fields.map((field, index) => {
-        const name = this.$t("connection." + field).toString();
+        const name = this.$t(this.labelPrefix + field).toString();
         const transposedData = _.zip(...this.data) as (string | number)[][];
         const values = transposedData[index] as (string | number)[] | undefined;
         if (values) {
@@ -136,8 +153,7 @@ export default class ConnectionParallelChart extends Vue {
   @Watch("fields")
   @Watch("query")
   onChanged(): void {
-    this.$connectionsApi
-      .getMatrix(this.fields, this.query)
+    this.promise
       .then((response) => response.data)
       .then((matrixModel) => {
         this.ids = matrixModel.ids;
@@ -145,7 +161,6 @@ export default class ConnectionParallelChart extends Vue {
       });
   }
 
-  @Watch(`fieldSearches.${ConnectionField.Id}`)
   onSearchChanged(value: string | undefined): void {
     if (value === undefined) {
       this.clear();
@@ -153,11 +168,7 @@ export default class ConnectionParallelChart extends Vue {
   }
 
   onClick(params: CallbackDataParams): void {
-    this.$set(
-      this.fieldSearches,
-      ConnectionField.Id,
-      this.ids[params.dataIndex]
-    );
+    this.$set(this.fieldSearches, this.idField, this.ids[params.dataIndex]);
   }
 
   onBrush(payload: Payload): void {
@@ -169,11 +180,7 @@ export default class ConnectionParallelChart extends Vue {
   }
 
   onApply(): void {
-    this.$set(
-      this.fieldSearches,
-      ConnectionField.Id,
-      this.selectedIds.join(",")
-    );
+    this.$set(this.fieldSearches, this.idField, this.selectedIds.join(","));
     this.clear();
   }
 
