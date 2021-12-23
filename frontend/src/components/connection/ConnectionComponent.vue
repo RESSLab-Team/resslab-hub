@@ -81,7 +81,7 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col cols="12" sm="6" lg="3">
+    <v-col v-bind="chartBind">
       <v-card>
         <v-card-title>Beams without RBS</v-card-title>
         <v-card-text>
@@ -94,7 +94,7 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col cols="12" sm="6" lg="3">
+    <v-col v-bind="chartBind">
       <v-card>
         <v-card-title>Beams with RBS</v-card-title>
         <v-card-text>
@@ -107,7 +107,7 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col cols="12" lg="4">
+    <v-col cols="12" lg="4" xl="3">
       <v-card>
         <v-card-title>
           Computed Backbone Curve Values
@@ -155,6 +155,7 @@ td.unit {
 <script lang="ts">
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import UnitSlider from "@/components/commons/UnitSlider.vue";
+import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { LineChart } from "echarts/charts";
 import { GridComponent, TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
@@ -173,6 +174,12 @@ export default class ConnectionComponent extends Vue {
     cols: "12",
     sm: "6",
     md: "4",
+    lg: "3",
+    xl: "2",
+  };
+  readonly chartBind = {
+    cols: "12",
+    sm: "6",
     lg: "3",
     xl: "2",
   };
@@ -596,11 +603,13 @@ export default class ConnectionComponent extends Vue {
           type: "line",
           name: "Backbone Curve",
           data: backboneCurve.data,
+          color: primaryColor.base,
         },
         {
           type: "line",
           name: "Residual Strength",
           data: backboneCurve.residualStrengthData,
+          color: secondaryColor.base,
         },
       ],
     };

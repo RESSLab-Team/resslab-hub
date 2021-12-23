@@ -16,7 +16,7 @@
       v-if="connection.global_count > 0 || connection.panel_zone_count > 0"
     >
       <v-row>
-        <v-col v-if="connection.global_count > 0" cols="12" lg="6">
+        <v-col v-if="connection.global_count > 0" v-bind="chartBind">
           <v-sheet elevation="1">
             <simple-line-chart
               :color="color"
@@ -26,7 +26,7 @@
             ></simple-line-chart>
           </v-sheet>
         </v-col>
-        <v-col v-if="connection.panel_zone_count > 0" cols="12" lg="6">
+        <v-col v-if="connection.panel_zone_count > 0" v-bind="chartBind">
           <v-sheet elevation="1">
             <simple-line-chart
               :color="color"
@@ -154,6 +154,13 @@ import colors from "vuetify/lib/util/colors";
 })
 export default class ConnectionDetail extends Vue {
   readonly color = colors.red;
+  readonly chartBind = {
+    cols: "12",
+    sm: "6",
+    md: "12",
+    lg: "6",
+    xl: "4",
+  };
 
   @Prop(Object)
   readonly connection!: ConnectionModel;

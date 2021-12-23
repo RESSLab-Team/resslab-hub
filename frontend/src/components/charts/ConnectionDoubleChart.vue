@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-responsive aspect-ratio="2" height="210">
+    <v-responsive aspect-ratio="2.5" min-height="200">
       <v-chart
         autoresize
         :option="option"
@@ -27,7 +27,7 @@ import {
 import RangeSlider from "@/components/commons/RangeSlider.vue";
 import { Searches, sum } from "@/utils/common";
 import { BinData, toBins } from "@/utils/statistics";
-import { getColorPalette } from "@/utils/vuetify";
+import { getColorPalette, primaryColor } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
 import { BarChart } from "echarts/charts";
 import {
@@ -45,7 +45,7 @@ import {
 import _ from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
-import colors, { Color } from "vuetify/lib/util/colors";
+import { Color } from "vuetify/lib/util/colors";
 
 use([
   CanvasRenderer,
@@ -74,7 +74,7 @@ export default class ConnectionDoubleChart extends Vue {
   readonly query!: string;
   @Prop({ type: String, default: "bar" })
   readonly type!: "bar" | "line";
-  @Prop({ type: Object as () => Color, default: () => colors.blue })
+  @Prop({ type: Object as () => Color, default: () => primaryColor })
   readonly color!: Color;
 
   private counts: CountModel[] = [];
@@ -124,13 +124,14 @@ export default class ConnectionDoubleChart extends Vue {
       .value();
     return {
       grid: {
-        bottom: 50,
+        bottom: 42,
       },
       tooltip: {
         trigger: "axis",
         axisPointer: {
           type: this.type === "bar" ? "shadow" : undefined,
         },
+        confine: true,
       },
       legend: {
         tooltip: {

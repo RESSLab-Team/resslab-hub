@@ -381,6 +381,9 @@ export default class ConnectionTable extends Vue {
     this.columnSearches = {};
   }
 
+  /**
+   * Open download dialog for option selection, get files from backend, zip them and download the zip
+   */
   onDownload(): void {
     this.downloadDialog
       .open(`${this.selectedItems.length} selected`)
@@ -388,41 +391,42 @@ export default class ConnectionTable extends Vue {
         const filePromises: Promise<{
           filename: string;
           content: string;
-        }>[] = [];
-        if (types.includes(DownloadType.Master)) {
-          filePromises.push(
-            this.$connectionsApi
-              .getCsv(this.selectedItems.map((item) => item.id))
-              .then((response) => ({
-                filename: "connections.csv",
-                content: response.data as unknown as string,
-              }))
-          );
-        }
-        if (types.includes(DownloadType.Test)) {
-          filePromises.push(
-            ...this.selectedItems
-              .filter((item) => item.global_count > 0)
-              .map((item) => item.id)
-              .map((id) =>
-                this.$connectionsApi.getGlobalCsv(id).then((response) => ({
-                  filename: `connection-global-${id}.csv`,
-                  content: response.data as unknown as string,
-                }))
-              )
-          );
-          filePromises.push(
-            ...this.selectedItems
-              .filter((item) => item.panel_zone_count > 0)
-              .map((item) => item.id)
-              .map((id) =>
-                this.$connectionsApi.getPanelZonesCsv(id).then((response) => ({
-                  filename: `connection-panel-zone-${id}.csv`,
-                  content: response.data as unknown as string,
-                }))
-              )
-          );
-        }
+        }>[] = [
+          types.includes(DownloadType.Master)
+            ? [
+                this.$connectionsApi
+                  .getCsv(this.selectedItems.map((item) => item.id))
+                  .then((response) => ({
+                    filename: "connections.csv",
+                    content: response.data as unknown as string,
+                  })),
+              ]
+            : [],
+          types.includes(DownloadType.Test)
+            ? [
+                ...this.selectedItems
+                  .filter((item) => item.global_count > 0)
+                  .map((item) => item.id)
+                  .map((id) =>
+                    this.$connectionsApi.getGlobalCsv(id).then((response) => ({
+                      filename: `connection-global-${id}.csv`,
+                      content: response.data as unknown as string,
+                    }))
+                  ),
+                ...this.selectedItems
+                  .filter((item) => item.panel_zone_count > 0)
+                  .map((item) => item.id)
+                  .map((id) =>
+                    this.$connectionsApi
+                      .getPanelZonesCsv(id)
+                      .then((response) => ({
+                        filename: `connection-panel-zone-${id}.csv`,
+                        content: response.data as unknown as string,
+                      }))
+                  ),
+              ]
+            : [],
+        ].flat();
         return Promise.all(filePromises);
       })
       .then((files) => {

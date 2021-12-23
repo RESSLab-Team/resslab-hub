@@ -1,6 +1,9 @@
 <template>
-  <div>
-    <v-responsive aspect-ratio="5" min-height="256">
+  <v-card>
+    <v-card-title>
+      <slot name="title"></slot>
+    </v-card-title>
+    <v-responsive :aspect-ratio="fields.length + 1" min-height="150">
       <v-chart
         ref="chart"
         autoresize
@@ -9,21 +12,24 @@
         @brushselected="onBrush"
       ></v-chart>
     </v-responsive>
-    <v-btn
-      color="primary"
-      :disabled="selectedIds.length === 0"
-      text
-      @click="onApply"
-    >
-      <v-icon left>mdi-filter-variant</v-icon>
-      Apply selection ({{ selectedIds.length }})
-    </v-btn>
-  </div>
+    <v-card-actions>
+      <v-btn
+        color="primary"
+        :disabled="selectedIds.length === 0"
+        text
+        @click="onApply"
+      >
+        <v-icon left>mdi-filter-variant</v-icon>
+        Apply selection ({{ selectedIds.length }})
+      </v-btn>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script lang="ts">
 import { ConnectionField } from "@/backend";
 import { Searches } from "@/utils/common";
+import { primaryColor } from "@/utils/vuetify";
 import { ParallelChart } from "echarts/charts";
 import { BrushComponent, ToolboxComponent } from "echarts/components";
 import { ECharts, use } from "echarts/core";
@@ -36,7 +42,7 @@ import {
 import _ from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
-import colors, { Color } from "vuetify/lib/util/colors";
+import { Color } from "vuetify/lib/util/colors";
 
 use([CanvasRenderer, ParallelChart, BrushComponent, ToolboxComponent]);
 
@@ -52,7 +58,7 @@ export default class ConnectionParallelChart extends Vue {
   readonly fields!: ConnectionField[];
   @Prop({ type: String, default: "" })
   readonly query!: string;
-  @Prop({ type: Object as () => Color, default: () => colors.blue })
+  @Prop({ type: Object as () => Color, default: () => primaryColor })
   readonly color!: Color;
 
   private ids: string[] = [];
@@ -72,6 +78,12 @@ export default class ConnectionParallelChart extends Vue {
       brush: {
         brushLink: "all",
         toolbox: ["clear"],
+      },
+      parallel: {
+        left: 80,
+        top: 34,
+        right: 80,
+        bottom: 8,
       },
       parallelAxis: this.fields.map((field, index) => {
         const name = this.$t("connection." + field).toString();

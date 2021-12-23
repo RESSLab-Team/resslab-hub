@@ -7,6 +7,7 @@
     :min="min"
     :max="max"
     :step="step"
+    :thumb-color="darkenColor"
     thumb-label
     :track-color="lightenColor"
     @end="onRangeChange"
@@ -65,6 +66,10 @@ export default class RangeSlider extends Vue {
 
   get lightenColor(): string | undefined {
     return this.color?.lighten4;
+  }
+
+  get darkenColor(): string | undefined {
+    return this.color?.darken4;
   }
 
   created(): void {

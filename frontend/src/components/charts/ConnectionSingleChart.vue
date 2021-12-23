@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-responsive aspect-ratio="4" height="100">
+    <v-responsive min-height="100">
       <v-chart
         autoresize
         :option="option"
@@ -10,14 +10,20 @@
         @mouseout="onMouseout"
       ></v-chart>
     </v-responsive>
-    <v-img v-if="imageUrl" contain :src="imageUrl" max-height="120"></v-img>
+    <v-img
+      v-if="imageUrl"
+      aspect-ratio="3"
+      contain
+      :src="imageUrl"
+      min-height="120"
+    ></v-img>
   </div>
 </template>
 
 <script lang="ts">
 import { ConnectionField } from "@/backend";
 import { publicPath, Searches } from "@/utils/common";
-import { getColorPalette } from "@/utils/vuetify";
+import { getColorPalette, primaryColor } from "@/utils/vuetify";
 import { TreemapChart } from "echarts/charts";
 import { TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
@@ -29,7 +35,7 @@ import {
 } from "echarts/types/dist/shared";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
-import colors, { Color } from "vuetify/lib/util/colors";
+import { Color } from "vuetify/lib/util/colors";
 
 use([CanvasRenderer, TreemapChart, TooltipComponent]);
 
@@ -49,7 +55,7 @@ export default class ConnectionSingleChart extends Vue {
   readonly field!: ConnectionField;
   @Prop({ type: String, default: "" })
   readonly query!: string;
-  @Prop({ type: Object as () => Color, default: () => colors.blue })
+  @Prop({ type: Object as () => Color, default: () => primaryColor })
   readonly color!: Color;
 
   private counts: Count[] = [];
@@ -63,6 +69,7 @@ export default class ConnectionSingleChart extends Vue {
     return {
       tooltip: {
         trigger: "item",
+        confine: true,
       },
       series: [
         {

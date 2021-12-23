@@ -2,12 +2,15 @@
   <v-sheet class="pa-1" elevation="1" rounded>
     <v-slider
       v-model="model"
+      :color="baseColor"
       dense
       hide-details=""
       :max="max"
       :min="min"
       :step="step"
+      :thumb-color="darkenColor"
       thumb-label
+      :track-color="lightenColor"
     >
       <template v-slot:prepend>
         <v-tooltip bottom>
@@ -59,7 +62,9 @@ div.label {
 </style>
 
 <script lang="ts">
+import { primaryColor } from "@/utils/vuetify";
 import { Component, Prop, VModel, Vue } from "vue-property-decorator";
+import { Color } from "vuetify/lib/util/colors";
 
 @Component
 export default class UnitSlider extends Vue {
@@ -75,5 +80,19 @@ export default class UnitSlider extends Vue {
   readonly max!: number;
   @Prop({ type: Number, default: 0 })
   readonly step!: number;
+  @Prop({ type: Object as () => Color, default: () => primaryColor })
+  readonly color: Color | undefined;
+
+  get baseColor(): string | undefined {
+    return this.color?.base;
+  }
+
+  get lightenColor(): string | undefined {
+    return this.color?.lighten4;
+  }
+
+  get darkenColor(): string | undefined {
+    return this.color?.darken4;
+  }
 }
 </script>

@@ -1,4 +1,4 @@
-import { Color } from "vuetify/lib/util/colors";
+import colors, { Color } from "vuetify/lib/util/colors";
 
 export const booleanOptions = [true, false];
 
@@ -43,3 +43,6 @@ export function getColorPalette(color: Color, count: number): string[] {
       ];
   }
 }
+
+export const primaryColor = colors.blue;
+export const secondaryColor = colors.red;

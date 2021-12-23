@@ -1,128 +1,122 @@
 <template>
-  <div>
-    <v-row>
-      <v-col md="6">
-        <v-row>
-          <v-col>
-            <connection-table
-              :search.sync="search"
-              :searches.sync="searches"
-              :query="query"
-              @click="onClick"
-            ></connection-table>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <v-card>
-              <v-card-title>
-                Parallel Axis
-                <info-tooltip>Parallel Axis</info-tooltip>
-              </v-card-title>
-              <v-card-text>
-                <connection-parallel-chart
-                  :color="colors.orange"
-                  :fields="parallelFields"
-                  :searches.sync="searches"
-                  :query="query"
-                ></connection-parallel-chart>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-col>
-      <v-col md="6">
-        <v-row v-if="connection">
-          <v-col>
-            <connection-detail
-              :connection="connection"
-              @close="onClose"
-            ></connection-detail>
-          </v-col>
-        </v-row>
-        <v-row v-else>
-          <v-col cols="12">
-            <v-card>
-              <v-card-title>
-                Connection Type
-                <info-tooltip>Connection Type</info-tooltip>
-              </v-card-title>
-              <v-card-text>
-                <v-row>
-                  <v-col cols="12" sm="6">
-                    <connection-single-chart
-                      :field="ConnectionField.ConnectionType"
-                      :query="query"
-                      :searches.sync="searches"
-                    ></connection-single-chart>
-                  </v-col>
-                  <v-col cols="12" sm="6">
-                    <connection-double-chart
-                      :fields="[
-                        ConnectionField.Date,
-                        ConnectionField.ConnectionType,
-                      ]"
-                      :query="query"
-                      :searches.sync="searches"
-                      type="line"
-                    ></connection-double-chart>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-          </v-col>
-          <v-col sm="6">
-            <v-card>
-              <v-card-title>
-                Beam Depth [mm]
-                <info-tooltip>Beam Depth [mm]</info-tooltip>
-              </v-card-title>
-              <v-card-text>
-                <connection-double-chart
-                  :color="colors.red"
-                  :fields="[ConnectionField.DB, ConnectionField.Slab]"
-                  :query="query"
-                  :searches.sync="searches"
-                ></connection-double-chart>
-              </v-card-text>
-            </v-card>
-          </v-col>
-          <v-col sm="6">
-            <v-card>
-              <v-card-title>
-                Column Depth [mm]
-                <info-tooltip>Column Depth [mm]</info-tooltip>
-              </v-card-title>
-              <v-card-text>
-                <connection-double-chart
-                  :color="colors.green"
-                  :fields="[ConnectionField.DC, ConnectionField.NDp]"
-                  :query="query"
-                  :searches.sync="searches"
-                ></connection-double-chart>
-              </v-card-text>
-            </v-card>
-          </v-col>
-          <v-col cols="12">
-            <v-card>
-              <v-card-title>
-                Steel Material
-                <info-tooltip>Steel Material</info-tooltip>
-              </v-card-title>
-              <v-card-text>
-                <connection-single-chart
-                  :color="colors.deepPurple"
-                  :field="ConnectionField.SteelB"
-                  :query="query"
-                  :searches.sync="searches"
-                ></connection-single-chart>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
-  </div>
+  <v-row>
+    <v-col md="6">
+      <v-row>
+        <v-col cols="12">
+          <connection-table
+            :search.sync="search"
+            :searches.sync="searches"
+            :query="query"
+            @click="onClick"
+          ></connection-table>
+        </v-col>
+      </v-row>
+      <v-row v-if="!connection">
+        <v-col cols="12">
+          <connection-parallel-chart
+            :color="colors.orange"
+            :fields="parallelFields"
+            :searches.sync="searches"
+            :query="query"
+          >
+            <template v-slot:title>
+              <info-tooltip>Parallel Axis</info-tooltip>
+            </template>
+          </connection-parallel-chart>
+        </v-col>
+      </v-row>
+    </v-col>
+    <v-col md="6">
+      <v-row v-if="connection">
+        <v-col cols="12">
+          <connection-detail
+            :connection="connection"
+            @close="onClose"
+          ></connection-detail>
+        </v-col>
+      </v-row>
+      <v-row v-else>
+        <v-col cols="12">
+          <v-card>
+            <v-card-title>
+              Connection Type
+              <info-tooltip>Connection Type</info-tooltip>
+            </v-card-title>
+            <v-card-text>
+              <v-row>
+                <v-col cols="12" sm="6">
+                  <connection-single-chart
+                    :field="ConnectionField.ConnectionType"
+                    :query="query"
+                    :searches.sync="searches"
+                  ></connection-single-chart>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <connection-double-chart
+                    :fields="[
+                      ConnectionField.Date,
+                      ConnectionField.ConnectionType,
+                    ]"
+                    :query="query"
+                    :searches.sync="searches"
+                    type="line"
+                  ></connection-double-chart>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col sm="6">
+          <v-card>
+            <v-card-title>
+              Beam Depth [mm]
+              <info-tooltip>Beam Depth [mm]</info-tooltip>
+            </v-card-title>
+            <v-card-text>
+              <connection-double-chart
+                :color="colors.red"
+                :fields="[ConnectionField.DB, ConnectionField.Slab]"
+                :query="query"
+                :searches.sync="searches"
+              ></connection-double-chart>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col sm="6">
+          <v-card>
+            <v-card-title>
+              Column Depth [mm]
+              <info-tooltip>Column Depth [mm]</info-tooltip>
+            </v-card-title>
+            <v-card-text>
+              <connection-double-chart
+                :color="colors.green"
+                :fields="[ConnectionField.DC, ConnectionField.NDp]"
+                :query="query"
+                :searches.sync="searches"
+              ></connection-double-chart>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12">
+          <v-card>
+            <v-card-title>
+              Steel Material
+              <info-tooltip>Steel Material</info-tooltip>
+            </v-card-title>
+            <v-card-text>
+              <connection-single-chart
+                :color="colors.deepPurple"
+                :field="ConnectionField.SteelB"
+                :query="query"
+                :searches.sync="searches"
+              ></connection-single-chart>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-col>
+  </v-row>
 </template>
 
 <script lang="ts">

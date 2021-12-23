@@ -5,6 +5,7 @@
 </template>
 
 <script lang="ts">
+import { primaryColor } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
 import { LineChart } from "echarts/charts";
 import { GridComponent, TooltipComponent } from "echarts/components";
@@ -13,7 +14,7 @@ import { CanvasRenderer } from "echarts/renderers";
 import { EChartsOption } from "echarts/types/dist/shared";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import colors, { Color } from "vuetify/lib/util/colors";
+import { Color } from "vuetify/lib/util/colors";
 
 use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
 
@@ -23,7 +24,7 @@ use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
   },
 })
 export default class SimpleLineChart extends Vue {
-  @Prop({ type: Object as () => Color, default: () => colors.blue })
+  @Prop({ type: Object as () => Color, default: () => primaryColor })
   readonly color!: Color;
   @Prop({ type: Promise })
   readonly promise: Promise<AxiosResponse<number[][]>> | undefined;
