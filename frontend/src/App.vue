@@ -5,22 +5,21 @@
         <div>RESSLab Tools</div>
       </v-app-bar-title>
       <v-tabs hide-slider>
-        <v-tab to="/">Home</v-tab>
-        <v-menu offset-y open-on-hover>
-          <template v-slot:activator="{ on, attrs }">
-            <v-tab to="/connections" v-bind="attrs" v-on="on">
-              Connections
-            </v-tab>
-          </template>
-          <v-list>
-            <v-list-item v-for="item in subMenus" :key="item.to">
-              <v-tab :to="'/connections' + item.to">{{ item.text }}</v-tab>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-        <v-tab to="/columns">Columns</v-tab>
-        <v-tab to="/bracings">Bracings</v-tab>
-        <v-tab to="/about">About</v-tab>
+        <template v-for="item in menuItems">
+          <v-menu v-if="item.children" :key="item.to" offset-y open-on-hover>
+            <template v-slot:activator="{ on, attrs }">
+              <v-tab :to="item.to" v-bind="attrs" v-on="on">
+                {{ item.text }}
+              </v-tab>
+            </template>
+            <v-list>
+              <v-list-item v-for="subItem in item.children" :key="subItem.to">
+                <v-tab :to="item.to + subItem.to">{{ subItem.text }}</v-tab>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+          <v-tab v-else :key="item.to" :to="item.to">{{ item.text }}</v-tab>
+        </template>
       </v-tabs>
     </v-app-bar>
     <v-main>
@@ -40,7 +39,7 @@ import { Component, Vue } from "vue-property-decorator";
 
 @Component
 export default class App extends Vue {
-  readonly subMenus: SubMenu[] = [
+  readonly subMenuItems: MenuItem[] = [
     {
       text: "Database",
       to: "/database",
@@ -54,10 +53,36 @@ export default class App extends Vue {
       to: "/fragility-curve",
     },
   ];
+  readonly menuItems: MenuItem[] = [
+    {
+      text: "Home",
+      to: "/",
+    },
+    {
+      text: "Connections",
+      to: "/connections",
+      children: this.subMenuItems,
+    },
+    {
+      text: "Columns",
+      to: "/columns",
+      children: this.subMenuItems,
+    },
+    {
+      text: "Bracings",
+      to: "/bracings",
+      children: this.subMenuItems,
+    },
+    {
+      text: "About",
+      to: "/about",
+    },
+  ];
 }
 
-interface SubMenu {
+interface MenuItem {
   text: string;
   to: string;
+  children?: MenuItem[];
 }
 </script>
