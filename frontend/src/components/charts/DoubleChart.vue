@@ -253,11 +253,13 @@ export default class DoubleChart extends Vue {
   }
 
   onClick(params: CallbackDataParams): void {
-    if (this.isHistogram) {
-      const data = params.data as BinData;
-      this.$set(this.fieldSearches, this.fields[0], `${data[2]}<<${data[3]}`);
-    } else {
-      this.$set(this.fieldSearches, this.fields[0], params.name);
+    if (this.type === "bar") {
+      if (this.isHistogram) {
+        const data = params.data as BinData;
+        this.$set(this.fieldSearches, this.fields[0], `${data[2]}<<${data[3]}`);
+      } else {
+        this.$set(this.fieldSearches, this.fields[0], params.name);
+      }
     }
     this.$set(this.fieldSearches, this.fields[1], params.seriesName);
   }

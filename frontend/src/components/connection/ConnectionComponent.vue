@@ -604,6 +604,7 @@ export default class ConnectionComponent extends Vue {
       },
       tooltip: {
         trigger: "axis",
+        confine: true,
       },
       series: [
         {
