@@ -9,6 +9,7 @@ from typing import Any, List, Optional, Union
 
 from fastapi import APIRouter, Depends, Path, Query, Request
 from fastapi.responses import StreamingResponse
+from fastapi_pagination.bases import AbstractPage
 from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import and_, desc, func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -62,10 +63,11 @@ async def get_connections(
         Connection.__dict__[key] if not is_desc else desc(Connection.__dict__[key])
         for key, is_desc in zip(sort_by, sort_desc)
     ]
-    return await paginate(
+    page: AbstractPage[Connection] = await paginate(
         session,
         select(Connection).where(and_(*where_clauses)).order_by(*order_clauses),
     )
+    return page
 
 
 @router.get("/counts", response_model=List[CountModel])

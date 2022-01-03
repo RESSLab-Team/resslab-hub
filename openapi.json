@@ -564,10 +564,16 @@
           "section_b",
           "d_b",
           "steel_b",
+          "f_yb",
+          "f_ybw",
+          "f_ybf",
           "section_c",
           "d_c",
           "t_cf",
           "steel_c",
+          "f_yc",
+          "f_ycw",
+          "f_ycf",
           "backing_bar",
           "t_dp",
           "n_dp",
@@ -592,10 +598,12 @@
           "section_b",
           "d_b",
           "steel_b",
+          "f_yb",
           "section_c",
           "d_c",
           "t_cf",
           "steel_c",
+          "f_yc",
           "t_dp",
           "n_dp",
           "t_dp_tot",
@@ -652,6 +660,18 @@
             "title": "Steel B",
             "type": "string"
           },
+          "f_yb": {
+            "title": "F Yb",
+            "type": "number"
+          },
+          "f_ybw": {
+            "title": "F Ybw",
+            "type": "number"
+          },
+          "f_ybf": {
+            "title": "F Ybf",
+            "type": "number"
+          },
           "section_c": {
             "title": "Section C",
             "type": "string"
@@ -667,6 +687,18 @@
           "steel_c": {
             "title": "Steel C",
             "type": "string"
+          },
+          "f_yc": {
+            "title": "F Yc",
+            "type": "number"
+          },
+          "f_ycw": {
+            "title": "F Ycw",
+            "type": "number"
+          },
+          "f_ycf": {
+            "title": "F Ycf",
+            "type": "number"
           },
           "backing_bar": {
             "title": "Backing Bar",
@@ -700,8 +732,14 @@
         "enum": [
           "date",
           "d_b",
+          "f_yb",
+          "f_ybw",
+          "f_ybf",
           "d_c",
           "t_cf",
+          "f_yc",
+          "f_ycw",
+          "f_ycf",
           "t_dp",
           "n_dp",
           "t_dp_tot",

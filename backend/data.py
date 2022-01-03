@@ -12,7 +12,7 @@ from typing import Any, Callable, List
 from sqlalchemy import create_engine, delete
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.schema import Column
-from sqlalchemy.sql.sqltypes import Boolean, Integer, Numeric
+from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
 from resslab_tools.models.database import (
     Connection,
@@ -86,16 +86,18 @@ class TableUploader(Uploader):
         value = row[index]
         if value == "NA":
             return None
+        if value == "NR":
+            return None  # NaN
+        if isinstance(column.type, Boolean):
+            if value.lower() == "yes":
+                return True
+            if value.lower() == "no":
+                return False
+            raise ValueError(f"unexpected {column.key}={value}")
         if isinstance(column.type, Integer):
             return int(value)
-        if isinstance(column.type, Numeric):
+        if isinstance(column.type, (Float, Numeric)):
             return Decimal(value)
-        if isinstance(column.type, Boolean):
-            if value == "YES":
-                return True
-            if value == "NO":
-                return False
-            return bool(value)
         return str(value)
 
 

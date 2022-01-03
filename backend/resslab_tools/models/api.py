@@ -34,10 +34,16 @@ class ConnectionModel(OrmModel):
     section_b: str
     d_b: Decimal
     steel_b: str
+    f_yb: Decimal
+    f_ybw: Optional[Decimal]
+    f_ybf: Optional[Decimal]
     section_c: str
     d_c: Decimal
     t_cf: Decimal
     steel_c: str
+    f_yc: Decimal
+    f_ycw: Optional[Decimal]
+    f_ycf: Optional[Decimal]
     backing_bar: Optional[bool]
     t_dp: Decimal
     n_dp: int

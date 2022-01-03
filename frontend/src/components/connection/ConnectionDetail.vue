@@ -141,10 +141,10 @@ import colors from "vuetify/lib/util/colors";
   },
   filters: {
     formatNumber: function (
-      value: number | undefined,
+      value: number | null,
       fractionDigits: number | undefined
     ): string {
-      if (value === undefined) {
+      if (value === null) {
         return "Not Reported";
       } else {
         return value.toFixed(fractionDigits);

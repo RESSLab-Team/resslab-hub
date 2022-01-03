@@ -40,10 +40,16 @@ export enum ConnectionField {
     SectionB = 'section_b',
     DB = 'd_b',
     SteelB = 'steel_b',
+    FYb = 'f_yb',
+    FYbw = 'f_ybw',
+    FYbf = 'f_ybf',
     SectionC = 'section_c',
     DC = 'd_c',
     TCf = 't_cf',
     SteelC = 'steel_c',
+    FYc = 'f_yc',
+    FYcw = 'f_ycw',
+    FYcf = 'f_ycf',
     BackingBar = 'backing_bar',
     TDp = 't_dp',
     NDp = 'n_dp',
@@ -132,6 +138,24 @@ export interface ConnectionModel {
     'steel_b': string;
     /**
      * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_yb': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_ybw'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_ybf'?: number;
+    /**
+     * 
      * @type {string}
      * @memberof ConnectionModel
      */
@@ -154,6 +178,24 @@ export interface ConnectionModel {
      * @memberof ConnectionModel
      */
     'steel_c': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_yc': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_ycw'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_ycf'?: number;
     /**
      * 
      * @type {boolean}
@@ -200,8 +242,14 @@ export interface ConnectionModel {
 export enum ConnectionNumberField {
     Date = 'date',
     DB = 'd_b',
+    FYb = 'f_yb',
+    FYbw = 'f_ybw',
+    FYbf = 'f_ybf',
     DC = 'd_c',
     TCf = 't_cf',
+    FYc = 'f_yc',
+    FYcw = 'f_ycw',
+    FYcf = 'f_ycf',
     TDp = 't_dp',
     NDp = 'n_dp',
     TDpTot = 't_dp_tot',
