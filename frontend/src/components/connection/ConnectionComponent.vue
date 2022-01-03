@@ -12,6 +12,9 @@
       </a>
     </v-col>
     <v-col cols="12">
+      <toggle v-model="unit" :items="units"></toggle>
+    </v-col>
+    <v-col cols="12">
       <v-card>
         <v-card-title>
           Select Steel W-Shape
@@ -154,6 +157,7 @@ td.unit {
 
 <script lang="ts">
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import Toggle from "@/components/commons/Toggle.vue";
 import UnitSlider from "@/components/commons/UnitSlider.vue";
 import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { LineChart } from "echarts/charts";
@@ -167,7 +171,7 @@ import { Component, Vue } from "vue-property-decorator";
 use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
 
 @Component({
-  components: { VChart, UnitSlider, InfoTooltip },
+  components: { VChart, UnitSlider, InfoTooltip, Toggle },
 })
 export default class ConnectionComponent extends Vue {
   readonly variableBind = {
@@ -183,6 +187,7 @@ export default class ConnectionComponent extends Vue {
     lg: "3",
     xl: "2",
   };
+  readonly units = ["metric", "imperial"];
   readonly steelShapeDimensions: Variable[] = [
     new Variable({
       key: "bf",
@@ -315,6 +320,8 @@ export default class ConnectionComponent extends Vue {
   readonly c2 = 1;
   readonly e = 2e5;
   readonly isMetric = true;
+
+  unit: "metric" | "imperial" = "metric";
 
   bf = 100;
   h = 100;
