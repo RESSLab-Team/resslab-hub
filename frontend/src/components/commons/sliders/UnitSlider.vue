@@ -1,15 +1,14 @@
 <template>
   <v-sheet class="pa-1" elevation="1" rounded>
     <v-slider
-      v-model="model"
+      v-model="sliderModel"
       :color="baseColor"
       dense
-      hide-details=""
-      :max="max"
-      :min="min"
-      :step="step"
+      hide-details
+      :max="displayedMax"
+      :min="displayedMin"
+      step="0"
       :thumb-color="darkenColor"
-      thumb-label
       :track-color="lightenColor"
     >
       <template v-slot:prepend>
@@ -28,15 +27,15 @@
       </template>
       <template v-slot:append>
         <v-text-field
-          v-model="model"
+          v-model="textModel"
           class="mt-0 pt-0"
           dense
           hide-details
-          :max="max"
-          :min="min"
+          hide-spin-buttons
+          :max="displayedMax"
+          :min="displayedMin"
           single-line
           type="number"
-          :step="step"
         ></v-text-field>
       </template>
     </v-slider>
@@ -62,37 +61,72 @@ div.label {
 </style>
 
 <script lang="ts">
-import { primaryColor } from "@/utils/vuetify";
-import { Component, Prop, VModel, Vue } from "vue-property-decorator";
-import { Color } from "vuetify/lib/util/colors";
+import { Component, Prop, VModel } from "vue-property-decorator";
+import SliderParent from "./SliderParent.vue";
 
 @Component
-export default class UnitSlider extends Vue {
+export default class UnitSlider extends SliderParent {
+  readonly precision = 100;
+
   @VModel({ type: Number })
-  readonly model!: number;
+  model!: number;
   @Prop({ type: String })
   readonly label!: string;
   @Prop({ type: String })
-  readonly unit: string | undefined;
+  readonly defaultUnit: string | undefined;
   @Prop({ type: Number })
   readonly min!: number;
   @Prop({ type: Number })
   readonly max!: number;
-  @Prop({ type: Number, default: 0 })
-  readonly step!: number;
-  @Prop({ type: Object as () => Color, default: () => primaryColor })
-  readonly color: Color | undefined;
+  @Prop({ type: String })
+  readonly selected: string | undefined;
+  @Prop({ type: Array as () => Unit[], default: () => [] })
+  readonly units!: Unit[];
 
-  get baseColor(): string | undefined {
-    return this.color?.base;
+  get selectedUnit(): Unit | undefined {
+    return this.units.find((u) => u.id === this.selected);
   }
 
-  get lightenColor(): string | undefined {
-    return this.color?.lighten4;
+  get ratio(): number {
+    return this.selectedUnit?.ratio ?? 1;
   }
 
-  get darkenColor(): string | undefined {
-    return this.color?.darken4;
+  get unit(): string | undefined {
+    return this.selectedUnit?.unit ?? this.defaultUnit;
   }
+
+  get sliderModel(): number {
+    return this.model / this.ratio;
+  }
+
+  set sliderModel(value: number) {
+    this.model = value * this.ratio;
+  }
+
+  get textModel(): number {
+    return Math.round(this.sliderModel * this.precision) / this.precision;
+  }
+
+  set textModel(value: number) {
+    this.sliderModel = value;
+  }
+
+  get displayedMin(): number {
+    return this.min / this.ratio;
+  }
+
+  get displayedMax(): number {
+    return this.max / this.ratio;
+  }
+
+  get displayedStep(): number {
+    return 0;
+  }
+}
+
+export interface Unit {
+  id: string;
+  unit: string;
+  ratio: number;
 }
 </script>

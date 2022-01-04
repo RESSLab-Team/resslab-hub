@@ -19,7 +19,7 @@
 
 <script lang="ts">
 import { CountModel, RangeModel } from "@/backend";
-import RangeSlider from "@/components/commons/RangeSlider.vue";
+import RangeSlider from "@/components/commons/sliders/RangeSlider.vue";
 import { Searches, sum } from "@/utils/common";
 import { BinData, toBins } from "@/utils/statistics";
 import { getColorPalette, primaryColor } from "@/utils/vuetify";

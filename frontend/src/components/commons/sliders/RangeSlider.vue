@@ -42,35 +42,21 @@
 <script lang="ts">
 import { RangeModel } from "@/backend";
 import { AxiosResponse } from "axios";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import { Color } from "vuetify/lib/util/colors";
+import { Component, Prop, Watch } from "vue-property-decorator";
+import SliderParent from "./SliderParent.vue";
 
 @Component
-export default class RangeSlider extends Vue {
+export default class RangeSlider extends SliderParent {
+  @Prop({ type: Number, default: 1 })
+  readonly step!: number;
   @Prop({ type: Array })
   readonly value: [number, number] | undefined;
   @Prop({ type: Promise })
   readonly getRange: Promise<AxiosResponse<RangeModel>> | undefined;
-  @Prop({ type: Number, default: 1 })
-  readonly step!: number;
-  @Prop({ type: Object as () => Color })
-  readonly color: Color | undefined;
 
   min = 0;
   max = 0;
   range: [number, number] = [this.min, this.max];
-
-  get baseColor(): string | undefined {
-    return this.color?.base;
-  }
-
-  get lightenColor(): string | undefined {
-    return this.color?.lighten4;
-  }
-
-  get darkenColor(): string | undefined {
-    return this.color?.darken4;
-  }
 
   created(): void {
     this.onGetRangeChanged();

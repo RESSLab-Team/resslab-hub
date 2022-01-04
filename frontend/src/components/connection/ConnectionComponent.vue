@@ -12,7 +12,7 @@
       </a>
     </v-col>
     <v-col cols="12">
-      <toggle v-model="unit" :items="units"></toggle>
+      <toggle v-model="unitSystem" :items="unitSystems"></toggle>
     </v-col>
     <v-col cols="12">
       <v-card>
@@ -43,7 +43,9 @@
                 :max="item.max"
                 :min="item.min"
                 :step="item.step"
-                :unit="item.unit"
+                :default-unit="item.unit"
+                :units="item.units"
+                :selected="unitSystem"
               ></unit-slider>
             </v-col>
           </v-row>
@@ -77,7 +79,9 @@
                 :max="item.max"
                 :min="item.min"
                 :step="item.step"
-                :unit="item.unit"
+                :default-unit="item.unit"
+                :units="item.units"
+                :selected="unitSystem"
               ></unit-slider>
             </v-col>
           </v-row>
@@ -157,8 +161,8 @@ td.unit {
 
 <script lang="ts">
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import UnitSlider, { Unit } from "@/components/commons/sliders/UnitSlider.vue";
 import Toggle from "@/components/commons/Toggle.vue";
-import UnitSlider from "@/components/commons/UnitSlider.vue";
 import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { LineChart } from "echarts/charts";
 import { GridComponent, TooltipComponent } from "echarts/components";
@@ -187,7 +191,6 @@ export default class ConnectionComponent extends Vue {
     lg: "3",
     xl: "2",
   };
-  readonly units = ["metric", "imperial"];
   readonly steelShapeDimensions: Variable[] = [
     new Variable({
       key: "bf",
@@ -216,7 +219,6 @@ export default class ConnectionComponent extends Vue {
       text: "Flange Reduction for RBS",
       min: 0,
       max: 0.5,
-      step: 0.1,
     }),
   ];
 
@@ -227,7 +229,6 @@ export default class ConnectionComponent extends Vue {
       unit: "mm",
       min: 1000,
       max: 12000,
-      step: 10,
     }),
     new Variable({
       key: "l",
@@ -235,7 +236,6 @@ export default class ConnectionComponent extends Vue {
       unit: "mm",
       min: 1000,
       max: 12000,
-      step: 10,
     }),
     new Variable({
       key: "fy",
@@ -249,14 +249,12 @@ export default class ConnectionComponent extends Vue {
       text: "<sup>Mc</sup>/<sub>My</sub>",
       min: 1,
       max: 1.5,
-      step: 0.01,
     }),
     new Variable({
       key: "k",
       text: "K",
       min: 0,
       max: 0.5,
-      step: 0.01,
     }),
     new Variable({
       key: "thetau",
@@ -264,7 +262,6 @@ export default class ConnectionComponent extends Vue {
       unit: "rad",
       min: 0.05,
       max: 0.5,
-      step: 0.01,
     }),
   ];
 
@@ -315,13 +312,13 @@ export default class ConnectionComponent extends Vue {
       unit: "",
     },
   ];
+  readonly unitSystems: UnitSystem[] = ["metric", "imperial"];
 
   readonly c1 = 1;
   readonly c2 = 1;
   readonly e = 2e5;
-  readonly isMetric = true;
 
-  unit: "metric" | "imperial" = "metric";
+  unitSystem: UnitSystem = "metric";
 
   bf = 100;
   h = 100;
@@ -364,9 +361,7 @@ export default class ConnectionComponent extends Vue {
   }
 
   private get ke(): number {
-    return (
-      ((6 * this.e * this.ix) / this.l) * (this.isMetric ? Math.pow(10, -3) : 1)
-    );
+    return ((6 * this.e * this.ix) / this.l) * 1e-3;
   }
 
   private get h_tw(): number {
@@ -408,9 +403,7 @@ export default class ConnectionComponent extends Vue {
   }
 
   private my(isRbs: boolean): number {
-    return (
-      1.1 * this.zx(isRbs) * this.fy * (this.isMetric ? Math.pow(10, -3) : 1)
-    );
+    return 1.1 * this.zx(isRbs) * this.fy * 1e-3;
   }
 
   private mr(isRbs: boolean): number {
@@ -624,13 +617,40 @@ export default class ConnectionComponent extends Vue {
   }
 }
 
+type UnitSystem = "metric" | "imperial";
+
+const lengthUnits: Unit[] = [
+  {
+    id: "metric",
+    unit: "mm",
+    ratio: 1,
+  },
+  {
+    id: "imperial",
+    unit: "in",
+    ratio: 25.4,
+  },
+];
+const pressureUnits: Unit[] = [
+  {
+    id: "metric",
+    unit: "MPa",
+    ratio: 1,
+  },
+  {
+    id: "imperial",
+    unit: "ksi",
+    ratio: 6.894757,
+  },
+];
+
 class Variable {
   public key: string;
   public text: string;
   public unit: string;
   public min: number;
   public max: number;
-  public step: number;
+  public units: Unit[];
   constructor(options: {
     key: string;
     text: string;
@@ -644,7 +664,16 @@ class Variable {
     this.unit = options.unit ?? "";
     this.min = options.min;
     this.max = options.max;
-    this.step = options.step ?? 1;
+    switch (options.unit) {
+      case "mm":
+        this.units = lengthUnits;
+        break;
+      case "MPa":
+        this.units = pressureUnits;
+        break;
+      default:
+        this.units = [];
+    }
   }
 }
 
