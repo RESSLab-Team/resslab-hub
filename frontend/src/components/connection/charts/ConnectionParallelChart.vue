@@ -12,7 +12,7 @@
 
 <script lang="ts">
 import { ConnectionField, MatrixModel } from "@/backend";
-import SimpleParallelChart from "@/components/charts/SimpleParallelChart.vue";
+import SimpleParallelChart from "@/components/commons/charts/SimpleParallelChart.vue";
 import { Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { Component, Prop, PropSync, Vue } from "vue-property-decorator";

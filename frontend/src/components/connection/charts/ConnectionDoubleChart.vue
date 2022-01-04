@@ -19,7 +19,7 @@ import {
   CountModel,
   RangeModel,
 } from "@/backend";
-import DoubleChart from "@/components/charts/DoubleChart.vue";
+import DoubleChart from "@/components/commons/charts/DoubleChart.vue";
 import { Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { Component, Prop, PropSync, Vue } from "vue-property-decorator";

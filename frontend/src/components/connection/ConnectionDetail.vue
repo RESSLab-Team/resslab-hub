@@ -128,7 +128,7 @@
 
 <script lang="ts">
 import { ConnectionModel } from "@/backend";
-import SimpleLineChart from "@/components/charts/SimpleLineChart.vue";
+import SimpleLineChart from "@/components/commons/charts/SimpleLineChart.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
 import { AxiosResponse } from "axios";
 import { Component, Prop, Vue } from "vue-property-decorator";

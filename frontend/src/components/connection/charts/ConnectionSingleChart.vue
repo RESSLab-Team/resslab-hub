@@ -23,7 +23,7 @@
 
 <script lang="ts">
 import { ConnectionField, CountModel } from "@/backend";
-import SingleChart from "@/components/charts/SingleChart.vue";
+import SingleChart from "@/components/commons/charts/SingleChart.vue";
 import { publicPath, Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { CallbackDataParams } from "echarts/types/dist/shared";

@@ -1,0 +1,37 @@
+export type UnitSystem = "metric" | "imperial";
+
+export const unitSystems: UnitSystem[] = ["metric", "imperial"];
+
+export interface Unit {
+  system: string;
+  referenceUnit: string;
+  unit: string;
+  ratio: number;
+}
+
+export const units: Unit[] = [
+  {
+    system: "imperial",
+    referenceUnit: "mm",
+    unit: "in",
+    ratio: 25.4, // https://en.wikipedia.org/wiki/Inch
+  },
+  {
+    system: "imperial",
+    referenceUnit: "MPa",
+    unit: "ksi",
+    ratio: 6.894757, // https://en.wikipedia.org/wiki/Pound_per_square_inch
+  },
+  {
+    system: "imperial",
+    referenceUnit: "kN⋅mm",
+    unit: "kips⋅in",
+    ratio: 1 / 8.8507, // https://en.wikipedia.org/wiki/Newton-metre
+  },
+  {
+    system: "imperial",
+    referenceUnit: "<sup>kN⋅mm</sup>/<sub>rad</sub>",
+    unit: "<sup>kips⋅in</sup>/<sub>rad</sub>",
+    ratio: 1 / 8.8507, // https://en.wikipedia.org/wiki/Newton-metre
+  },
+];

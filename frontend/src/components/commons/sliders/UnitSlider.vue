@@ -17,12 +17,12 @@
             <div class="mt-0 pt-0 label" v-bind="attrs" v-on="on">
               <!-- eslint-disable-next-line vue/no-v-html -->
               <span v-html="label"></span>
-              <template v-if="unit"> [{{ unit }}]</template>
+              <template v-if="unitLabel"> [{{ unitLabel }}]</template>
             </div>
           </template>
           <!-- eslint-disable-next-line vue/no-v-html -->
           <span v-html="label"></span>
-          <template v-if="unit"> [{{ unit }}]</template>
+          <template v-if="unitLabel"> [{{ unitLabel }}]</template>
         </v-tooltip>
       </template>
       <template v-slot:append>
@@ -61,39 +61,22 @@ div.label {
 </style>
 
 <script lang="ts">
-import { Component, Prop, VModel } from "vue-property-decorator";
+import { Component, Mixins, Prop, VModel } from "vue-property-decorator";
+import UnitParent from "../UnitParent.vue";
 import SliderParent from "./SliderParent.vue";
 
 @Component
-export default class UnitSlider extends SliderParent {
+export default class UnitSlider extends Mixins(SliderParent, UnitParent) {
   readonly precision = 100;
 
   @VModel({ type: Number })
   model!: number;
   @Prop({ type: String })
   readonly label!: string;
-  @Prop({ type: String })
-  readonly defaultUnit: string | undefined;
   @Prop({ type: Number })
   readonly min!: number;
   @Prop({ type: Number })
   readonly max!: number;
-  @Prop({ type: String })
-  readonly selected: string | undefined;
-  @Prop({ type: Array as () => Unit[], default: () => [] })
-  readonly units!: Unit[];
-
-  get selectedUnit(): Unit | undefined {
-    return this.units.find((u) => u.id === this.selected);
-  }
-
-  get ratio(): number {
-    return this.selectedUnit?.ratio ?? 1;
-  }
-
-  get unit(): string | undefined {
-    return this.selectedUnit?.unit ?? this.defaultUnit;
-  }
 
   get sliderModel(): number {
     return this.model / this.ratio;
@@ -118,15 +101,5 @@ export default class UnitSlider extends SliderParent {
   get displayedMax(): number {
     return this.max / this.ratio;
   }
-
-  get displayedStep(): number {
-    return 0;
-  }
-}
-
-export interface Unit {
-  id: string;
-  unit: string;
-  ratio: number;
 }
 </script>

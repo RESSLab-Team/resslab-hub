@@ -43,9 +43,8 @@
                 :max="item.max"
                 :min="item.min"
                 :step="item.step"
-                :default-unit="item.unit"
-                :units="item.units"
-                :selected="unitSystem"
+                :unit="item.unit"
+                :unit-system="unitSystem"
               ></unit-slider>
             </v-col>
           </v-row>
@@ -81,7 +80,7 @@
                 :step="item.step"
                 :default-unit="item.unit"
                 :units="item.units"
-                :selected="unitSystem"
+                :unit-system="unitSystem"
               ></unit-slider>
             </v-col>
           </v-row>
@@ -114,7 +113,7 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col cols="12" lg="4" xl="3">
+    <v-col cols="12" lg="6">
       <v-card>
         <v-card-title>
           Computed Backbone Curve Values
@@ -134,16 +133,15 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="item in rows" :key="item.key">
-                  <!-- eslint-disable-next-line vue/no-v-html -->
-                  <td v-html="item.text"></td>
-                  <!-- eslint-disable-next-line vue/no-v-html -->
-                  <td class="unit" v-html="item.unit"></td>
-                  <td>
-                    {{ backboneCurveWithoutRbs[item.key].toLocaleString() }}
-                  </td>
-                  <td>{{ backboneCurveWithRbs[item.key].toLocaleString() }}</td>
-                </tr>
+                <unit-table-row
+                  v-for="item in rows"
+                  :key="item.key"
+                  :field="item.key"
+                  :text="item.text"
+                  :unit="item.unit"
+                  :columns="[backboneCurveWithoutRbs, backboneCurveWithRbs]"
+                  :unit-system="unitSystem"
+                ></unit-table-row>
               </tbody>
             </template>
           </v-simple-table>
@@ -153,16 +151,14 @@
   </v-row>
 </template>
 
-<style lang="scss" scoped>
-td.unit {
-  white-space: nowrap;
-}
-</style>
-
 <script lang="ts">
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import UnitSlider, { Unit } from "@/components/commons/sliders/UnitSlider.vue";
+import UnitSlider from "@/components/commons/sliders/UnitSlider.vue";
 import Toggle from "@/components/commons/Toggle.vue";
+import UnitTableRow, {
+  UnitTableRowData,
+} from "@/components/commons/UnitTableRow.vue";
+import { UnitSystem, unitSystems } from "@/utils/unit";
 import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { LineChart } from "echarts/charts";
 import { GridComponent, TooltipComponent } from "echarts/components";
@@ -175,9 +171,11 @@ import { Component, Vue } from "vue-property-decorator";
 use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
 
 @Component({
-  components: { VChart, UnitSlider, InfoTooltip, Toggle },
+  components: { VChart, UnitSlider, InfoTooltip, Toggle, UnitTableRow },
 })
 export default class ConnectionComponent extends Vue {
+  readonly unitSystems = unitSystems;
+
   readonly variableBind = {
     cols: "12",
     sm: "6",
@@ -265,26 +263,26 @@ export default class ConnectionComponent extends Vue {
     }),
   ];
 
-  readonly rows: BackboneCurveRow[] = [
+  readonly rows: UnitTableRowData[] = [
     {
       key: "ke",
       text: "K<sub>e</sub>",
-      unit: "<sup>kN-mm</sup>/<sub>rad</sub>",
+      unit: "<sup>kN⋅mm</sup>/<sub>rad</sub>",
     },
     {
       key: "my",
       text: "M<sub>y</sub>",
-      unit: "kN-mm",
+      unit: "kN⋅mm",
     },
     {
       key: "mc",
       text: "M<sub>c</sub>",
-      unit: "kN-mm",
+      unit: "kN⋅mm",
     },
     {
       key: "mr",
       text: "M<sub>r</sub>",
-      unit: "kN-mm",
+      unit: "kN⋅mm",
     },
     {
       key: "thetap",
@@ -312,7 +310,6 @@ export default class ConnectionComponent extends Vue {
       unit: "",
     },
   ];
-  readonly unitSystems: UnitSystem[] = ["metric", "imperial"];
 
   readonly c1 = 1;
   readonly c2 = 1;
@@ -591,7 +588,7 @@ export default class ConnectionComponent extends Vue {
         nameGap: 26,
       },
       yAxis: {
-        name: "Moment, M [kN-mm]",
+        name: "Moment, M [kN⋅mm]",
         nameLocation: "middle",
         nameGap: 50,
       },
@@ -617,40 +614,12 @@ export default class ConnectionComponent extends Vue {
   }
 }
 
-type UnitSystem = "metric" | "imperial";
-
-const lengthUnits: Unit[] = [
-  {
-    id: "metric",
-    unit: "mm",
-    ratio: 1,
-  },
-  {
-    id: "imperial",
-    unit: "in",
-    ratio: 25.4,
-  },
-];
-const pressureUnits: Unit[] = [
-  {
-    id: "metric",
-    unit: "MPa",
-    ratio: 1,
-  },
-  {
-    id: "imperial",
-    unit: "ksi",
-    ratio: 6.894757,
-  },
-];
-
 class Variable {
   public key: string;
   public text: string;
   public unit: string;
   public min: number;
   public max: number;
-  public units: Unit[];
   constructor(options: {
     key: string;
     text: string;
@@ -664,16 +633,6 @@ class Variable {
     this.unit = options.unit ?? "";
     this.min = options.min;
     this.max = options.max;
-    switch (options.unit) {
-      case "mm":
-        this.units = lengthUnits;
-        break;
-      case "MPa":
-        this.units = pressureUnits;
-        break;
-      default:
-        this.units = [];
-    }
   }
 }
 
@@ -689,11 +648,5 @@ interface BackboneCurve {
   k: number;
   data: [number, number][];
   residualStrengthData: [number, number][];
-}
-
-interface BackboneCurveRow {
-  key: string;
-  text: string;
-  unit: string;
 }
 </script>
