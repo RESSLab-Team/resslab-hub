@@ -87,7 +87,7 @@ export default class SingleChart extends Vue {
           breadcrumb: {
             show: false,
           },
-          roam: "move",
+          roam: false,
         },
       ],
       color: getColorPalette(this.color, this.counts.length),
