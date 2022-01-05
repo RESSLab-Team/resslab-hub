@@ -124,7 +124,9 @@ import { ConnectionField, ConnectionModel } from "@/backend";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import LocaleSelect from "@/components/commons/LocaleSelect.vue";
 import ConnectionDoubleChart from "@/components/connection/charts/ConnectionDoubleChart.vue";
-import ConnectionParallelChart from "@/components/connection/charts/ConnectionParallelChart.vue";
+import ConnectionParallelChart, {
+  Field,
+} from "@/components/connection/charts/ConnectionParallelChart.vue";
 import ConnectionSingleChart from "@/components/connection/charts/ConnectionSingleChart.vue";
 import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
 import ConnectionTable from "@/components/connection/ConnectionTable.vue";
@@ -147,10 +149,16 @@ export default class ConnectionDashboard extends Vue {
   readonly ConnectionField = ConnectionField;
   readonly colors = colors;
   readonly fields: string[] = Object.values(ConnectionField);
-  readonly parallelFields: ConnectionField[] = [
+  readonly parallelFields: Field[] = [
     ConnectionField.DB,
     ConnectionField.DC,
-    ConnectionField.NDp,
+    ConnectionField.TCf,
+    {
+      dividend: ConnectionField.DB,
+      divisor: ConnectionField.DC,
+    },
+    ConnectionField.GMaxGY,
+    ConnectionField.RuRnPlN,
     ConnectionField.ConnectionType,
   ];
 

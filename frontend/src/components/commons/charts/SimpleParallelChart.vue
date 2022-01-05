@@ -3,7 +3,7 @@
     <v-card-title>
       <slot name="title"></slot>
     </v-card-title>
-    <v-responsive :aspect-ratio="fields.length + 1" min-height="150">
+    <v-responsive :aspect-ratio="fields.length / 2" min-height="150">
       <v-chart
         ref="chart"
         autoresize
@@ -57,16 +57,18 @@ export default class SimpleParallelChart extends Vue {
   fieldSearches!: Searches;
   @Prop({ type: String, default: "" })
   readonly labelPrefix!: string;
-  @Prop({ type: Array as () => string[] })
-  readonly fields!: string[];
+  @Prop({ type: Array as () => Field[] })
+  readonly fields!: Field[];
   @Prop({ type: String, default: "" })
   readonly query!: string;
   @Prop({ type: Object as () => Color, default: () => primaryColor })
   readonly color!: Color;
-  @Prop({ type: Promise })
-  readonly promise!: Promise<AxiosResponse<MatrixModel>>;
   @Prop({ type: String })
   readonly idField!: string;
+  @Prop({ type: Function })
+  readonly getMatrix!: (
+    fields: string[]
+  ) => Promise<AxiosResponse<MatrixModel>>;
 
   private ids: string[] = [];
   private data: (number | string)[][] = [];
@@ -90,6 +92,23 @@ export default class SimpleParallelChart extends Vue {
     return this.$refs.chart as ECharts | undefined;
   }
 
+  get transposedData(): (string | number)[][] {
+    return _.zip(...this.data) as (string | number)[][];
+  }
+
+  get requestFields(): string[] {
+    return _(this.fields)
+      .flatMap((f) => {
+        if (typeof f === "string") {
+          return [f];
+        } else {
+          return [f.dividend, f.divisor];
+        }
+      })
+      .uniq()
+      .value();
+  }
+
   get option(): EChartsOption {
     return {
       brush: {
@@ -103,14 +122,17 @@ export default class SimpleParallelChart extends Vue {
         bottom: 8,
       },
       parallelAxis: this.fields.map((field, index) => {
-        const name = this.$t(this.labelPrefix + field).toString();
-        const transposedData = _.zip(...this.data) as (string | number)[][];
-        const values = transposedData[index] as (string | number)[] | undefined;
+        const id: string =
+          typeof field === "string"
+            ? field
+            : `${field.dividend}/${field.divisor}`;
+        const name = this.$t(this.labelPrefix + id).toString();
+        const values = this.getValues(field);
         if (values) {
           const type = typeof values[0];
           if (type === "number") {
             return {
-              id: field,
+              id: id,
               dim: index,
               name: name,
               type: "value",
@@ -119,18 +141,21 @@ export default class SimpleParallelChart extends Vue {
           } else {
             const sortedValues = _(values).uniq().sort().value();
             return {
-              id: field,
+              id: id,
               dim: index,
               name: name,
               nameLocation: "start",
               inverse: true,
               type: "category",
+              axisTick: {
+                alignWithLabel: true,
+              },
               data: sortedValues,
             };
           }
         } else {
           return {
-            id: field,
+            id: id,
             dim: index,
             name: name,
           };
@@ -138,7 +163,18 @@ export default class SimpleParallelChart extends Vue {
       }),
       series: {
         type: "parallel",
-        data: this.data,
+        data: this.data.map((d) =>
+          this.fields.map((f) => {
+            if (typeof f === "string") {
+              return d[this.requestFields.indexOf(f)];
+            } else {
+              return (
+                (d[this.requestFields.indexOf(f.dividend)] as number) /
+                (d[this.requestFields.indexOf(f.divisor)] as number)
+              );
+            }
+          })
+        ),
         emphasis: {
           focus: "series",
           lineStyle: {
@@ -153,12 +189,25 @@ export default class SimpleParallelChart extends Vue {
   @Watch("fields")
   @Watch("query")
   onChanged(): void {
-    this.promise
+    this.getMatrix(this.requestFields)
       .then((response) => response.data)
       .then((matrixModel) => {
         this.ids = matrixModel.ids;
         this.data = matrixModel.data;
       });
+  }
+
+  private getValues(field: Field): (string | number)[] {
+    if (typeof field === "string") {
+      return this.transposedData[this.requestFields.indexOf(field)];
+    } else {
+      return _.zip(
+        this.transposedData[this.requestFields.indexOf(field.dividend)],
+        this.transposedData[this.requestFields.indexOf(field.divisor)]
+      )
+        .map((v) => v as [number, number])
+        .map((v) => v[0] / v[1]);
+    }
   }
 
   onSearchChanged(value: string | undefined): void {
@@ -188,5 +237,12 @@ export default class SimpleParallelChart extends Vue {
     this.chart?.clear();
     this.selectedIds = [];
   }
+}
+
+type Field = string | Division<string>;
+
+export interface Division<T> {
+  dividend: T;
+  divisor: T;
 }
 </script>

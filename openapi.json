@@ -578,6 +578,8 @@
           "t_dp",
           "n_dp",
           "t_dp_tot",
+          "ru_rn_pl_n",
+          "g_max_g_y",
           "global_count",
           "panel_zone_count"
         ],
@@ -607,6 +609,8 @@
           "t_dp",
           "n_dp",
           "t_dp_tot",
+          "ru_rn_pl_n",
+          "g_max_g_y",
           "global_count",
           "panel_zone_count"
         ],
@@ -716,6 +720,14 @@
             "title": "T Dp Tot",
             "type": "number"
           },
+          "ru_rn_pl_n": {
+            "title": "Ru Rn Pl N",
+            "type": "number"
+          },
+          "g_max_g_y": {
+            "title": "G Max G Y",
+            "type": "number"
+          },
           "global_count": {
             "title": "Global Count",
             "type": "integer"
@@ -743,6 +755,8 @@
           "t_dp",
           "n_dp",
           "t_dp_tot",
+          "ru_rn_pl_n",
+          "g_max_g_y",
           "global_count",
           "panel_zone_count"
         ],

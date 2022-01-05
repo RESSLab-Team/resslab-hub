@@ -54,6 +54,8 @@ export enum ConnectionField {
     TDp = 't_dp',
     NDp = 'n_dp',
     TDpTot = 't_dp_tot',
+    RuRnPlN = 'ru_rn_pl_n',
+    GMaxGY = 'g_max_g_y',
     GlobalCount = 'global_count',
     PanelZoneCount = 'panel_zone_count'
 }
@@ -225,6 +227,18 @@ export interface ConnectionModel {
      * @type {number}
      * @memberof ConnectionModel
      */
+    'ru_rn_pl_n': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'g_max_g_y': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
     'global_count': number;
     /**
      * 
@@ -253,6 +267,8 @@ export enum ConnectionNumberField {
     TDp = 't_dp',
     NDp = 'n_dp',
     TDpTot = 't_dp_tot',
+    RuRnPlN = 'ru_rn_pl_n',
+    GMaxGY = 'g_max_g_y',
     GlobalCount = 'global_count',
     PanelZoneCount = 'panel_zone_count'
 }

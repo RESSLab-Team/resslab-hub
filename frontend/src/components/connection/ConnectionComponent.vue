@@ -583,7 +583,7 @@ export default class ConnectionComponent extends Vue {
         containLabel: true,
       },
       xAxis: {
-        name: "Chord Rotation, θ [rad]",
+        name: "Chord Rotation, \u03b8 [rad]",
         nameLocation: "middle",
         nameGap: 26,
       },

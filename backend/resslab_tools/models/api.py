@@ -48,6 +48,9 @@ class ConnectionModel(OrmModel):
     t_dp: Decimal
     n_dp: int
     t_dp_tot: Decimal
+    ru_rn_pl_n: Decimal
+    g_max_g_y: Decimal
+
     global_count: int
     panel_zone_count: int
 
@@ -81,7 +84,7 @@ class DownloadModel(BaseModel):
 
 class MatrixModel(BaseModel):
     ids: List[str]
-    data: List[List[Union[int, Decimal, str]]]
+    data: List[List[Union[Decimal, str]]]
 
 
 ConnectionField = enum.Enum(
