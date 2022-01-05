@@ -1,6 +1,8 @@
 ---
 - name: Deploy
-  hosts: resslab_tools
+  hosts:
+    - resslab_tools
+    - resslab_hub
   remote_user: root
   vars:
     ansible_python_interpreter: /usr/bin/python3
