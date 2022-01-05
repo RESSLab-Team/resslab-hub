@@ -16,3 +16,11 @@ export function filterColumnValue(value: Value): boolean {
 export const publicPath: string = process.env.BASE_URL ?? "";
 
 export const globalSearchKey = "search";
+
+export interface Section {
+  id: string;
+  bf: number;
+  h: number;
+  tf: number;
+  tw: number;
+}

@@ -4,6 +4,7 @@
       v-model="sliderModel"
       :color="baseColor"
       dense
+      :disabled="disabled"
       hide-details
       :max="displayedMax"
       :min="displayedMin"
@@ -71,6 +72,8 @@ export default class UnitSlider extends Mixins(SliderParent, UnitParent) {
 
   @VModel({ type: Number })
   model!: number;
+  @Prop({ type: Boolean })
+  readonly disabled: boolean | undefined;
   @Prop({ type: String })
   readonly label!: string;
   @Prop({ type: Number })

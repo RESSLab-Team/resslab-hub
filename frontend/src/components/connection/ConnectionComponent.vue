@@ -26,11 +26,27 @@
         <v-card-text>
           <v-row>
             <v-col v-bind="variableBind">
-              <v-select
-                hide-details
-                label="Section from AISC database"
-                single-line
-              ></v-select>
+              <v-row>
+                <v-col cols="6">
+                  <v-select
+                    v-model="database"
+                    hide-details
+                    :items="databases"
+                    label="Select Database"
+                    single-line
+                  ></v-select>
+                </v-col>
+                <v-col cols="6">
+                  <v-select
+                    v-model="section"
+                    clearable
+                    hide-details
+                    :items="sections"
+                    label="Select Section"
+                    single-line
+                  ></v-select>
+                </v-col>
+              </v-row>
             </v-col>
             <v-col
               v-for="item in steelShapeDimensions"
@@ -39,6 +55,7 @@
             >
               <unit-slider
                 v-model="$data[item.key]"
+                :disabled="!!section"
                 :label="item.text"
                 :max="item.max"
                 :min="item.min"
@@ -152,21 +169,25 @@
 </template>
 
 <script lang="ts">
+import aiscSections from "@/assets/connection/aisc-sections.csv";
+import europeanSections from "@/assets/connection/european-sections.csv";
+import japaneseSections from "@/assets/connection/japanese-sections.csv";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import UnitSlider from "@/components/commons/sliders/UnitSlider.vue";
 import Toggle from "@/components/commons/Toggle.vue";
 import UnitTableRow, {
   UnitTableRowData,
 } from "@/components/commons/UnitTableRow.vue";
+import { Section } from "@/utils/common";
 import { UnitSystem, unitSystems } from "@/utils/unit";
-import { primaryColor, secondaryColor } from "@/utils/vuetify";
+import { primaryColor, secondaryColor, SelectItem } from "@/utils/vuetify";
 import { LineChart } from "echarts/charts";
 import { GridComponent, TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { EChartsOption } from "echarts/types/dist/shared";
 import VChart from "vue-echarts";
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 
 use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
 
@@ -175,6 +196,7 @@ use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
 })
 export default class ConnectionComponent extends Vue {
   readonly unitSystems = unitSystems;
+  readonly databases: Database[] = ["aisc", "european", "japanese"];
 
   readonly variableBind = {
     cols: "12",
@@ -212,15 +234,15 @@ export default class ConnectionComponent extends Vue {
       min: 5,
       max: 100,
     }),
+  ];
+
+  readonly memberProperties: Variable[] = [
     new Variable({
       key: "ratio",
       text: "Flange Reduction for RBS",
       min: 0,
       max: 0.5,
     }),
-  ];
-
-  readonly memberProperties: Variable[] = [
     new Variable({
       key: "lb",
       text: "L<sub>b</sub>",
@@ -316,6 +338,44 @@ export default class ConnectionComponent extends Vue {
   readonly e = 2e5;
 
   unitSystem: UnitSystem = "metric";
+  database: Database = "aisc";
+  section: Section | null = null;
+
+  get sections(): SelectItem[] {
+    let sections: Section[];
+    switch (this.database) {
+      case "aisc":
+        sections = aiscSections;
+        break;
+      case "european":
+        sections = europeanSections;
+        break;
+      case "japanese":
+        sections = japaneseSections;
+        break;
+      default:
+        return [];
+    }
+    return sections.map((section) => ({
+      text: section.id,
+      value: section,
+    }));
+  }
+
+  @Watch("database")
+  onDatabaseChanged(): void {
+    this.section = null;
+  }
+
+  @Watch("section")
+  onSectionChanged(): void {
+    if (this.section) {
+      this.bf = this.section.bf;
+      this.h = this.section.h;
+      this.tf = this.section.tf;
+      this.tw = this.section.tw;
+    }
+  }
 
   bf = 100;
   h = 100;
@@ -649,4 +709,6 @@ interface BackboneCurve {
   data: [number, number][];
   residualStrengthData: [number, number][];
 }
+
+type Database = "aisc" | "european" | "japanese";
 </script>
