@@ -10,11 +10,4 @@
     "python.linting.flake8Enabled": true,
     "python.testing.pytestEnabled": true,
     "python.testing.pytestPath": "${workspaceFolder}/backend/tests",
-    "sort-imports.ignore-type-defs": false,
-    "sort-imports.languages": [
-        "javascript",
-        "typescript",
-        "vue",
-    ],
-    "sort-imports.on-save": true,
 }

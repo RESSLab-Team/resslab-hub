@@ -20,7 +20,8 @@ lint:
 	$(MAKE) -C frontend lint
 
 deploy-local:
-	docker-compose up --build --remove-orphans
+    docker-compose build --pull
+    docker-compose up --remove-orphans
 
 install-server:
 	ansible-galaxy install -r ansible/requirements.yml

@@ -26,12 +26,12 @@ export const units: Unit[] = [
     system: "imperial",
     referenceUnit: "kN⋅mm",
     unit: "kips⋅in",
-    ratio: 1 / 8.8507, // https://en.wikipedia.org/wiki/Newton-metre
+    ratio: 4.44822 * 25.4, // https://en.wikipedia.org/wiki/Kip_(unit)
   },
   {
     system: "imperial",
     referenceUnit: "<sup>kN⋅mm</sup>/<sub>rad</sub>",
     unit: "<sup>kips⋅in</sup>/<sub>rad</sub>",
-    ratio: 1 / 8.8507, // https://en.wikipedia.org/wiki/Newton-metre
+    ratio: 4.44822 * 25.4, // https://en.wikipedia.org/wiki/Kip_(unit)
   },
 ];
