@@ -1,5 +1,5 @@
 <template>
-  <v-responsive aspect-ratio="1">
+  <v-responsive aspect-ratio="1" max-width="300">
     <v-chart v-if="hasData" autoresize :option="option"></v-chart>
   </v-responsive>
 </template>

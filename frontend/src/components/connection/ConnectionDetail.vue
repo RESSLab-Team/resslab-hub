@@ -16,25 +16,31 @@
       v-if="connection.global_count > 0 || connection.panel_zone_count > 0"
     >
       <v-row>
-        <v-col v-if="connection.global_count > 0" v-bind="chartBind">
-          <v-sheet elevation="1">
-            <simple-line-chart
-              :color="color"
-              :promise="globalPromise"
-              x-axis-name="Total story drift angle [rad]"
-              y-axis-name="Lateral load [kN]"
-            ></simple-line-chart>
-          </v-sheet>
-        </v-col>
-        <v-col v-if="connection.panel_zone_count > 0" v-bind="chartBind">
-          <v-sheet elevation="1">
-            <simple-line-chart
-              :color="color"
-              :promise="panelZonePromise"
-              x-axis-name="Panel zone shear distortion [rad]"
-              y-axis-name="Panel zone shear force [kN]"
-            ></simple-line-chart>
-          </v-sheet>
+        <v-col cols="12">
+          <v-expansion-panels accordion hover multiple>
+            <v-expansion-panel v-if="connection.global_count > 0">
+              <v-expansion-panel-header>Global</v-expansion-panel-header>
+              <v-expansion-panel-content>
+                <simple-line-chart
+                  :color="color"
+                  :promise="globalPromise"
+                  x-axis-name="Total story drift angle [rad]"
+                  y-axis-name="Lateral load [kN]"
+                ></simple-line-chart>
+              </v-expansion-panel-content>
+            </v-expansion-panel>
+            <v-expansion-panel v-if="connection.panel_zone_count > 0">
+              <v-expansion-panel-header>Panel Zone</v-expansion-panel-header>
+              <v-expansion-panel-content>
+                <simple-line-chart
+                  :color="color"
+                  :promise="panelZonePromise"
+                  x-axis-name="Panel zone shear distortion [rad]"
+                  y-axis-name="Panel zone shear force [kN]"
+                ></simple-line-chart>
+              </v-expansion-panel-content>
+            </v-expansion-panel>
+          </v-expansion-panels>
         </v-col>
       </v-row>
     </v-card-text>
@@ -125,6 +131,13 @@
     </v-card-text>
   </v-card>
 </template>
+
+<style lang="scss">
+.v-expansion-panel-content__wrap {
+  display: flex;
+  justify-content: center;
+}
+</style>
 
 <script lang="ts">
 import { ConnectionModel } from "@/backend";
