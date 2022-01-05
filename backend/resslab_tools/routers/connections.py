@@ -5,7 +5,7 @@ import math
 from datetime import datetime
 from decimal import Decimal
 from distutils.util import strtobool
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Set, Union
 
 from fastapi import APIRouter, Depends, Path, Query, Request
 from fastapi.responses import StreamingResponse
@@ -40,11 +40,17 @@ router = APIRouter(
     tags=["connections"],
 )
 
-ignored_columns = ["global_count", "panel_zone_count"]
-connection_column_keys = [
+__ignored_columns: Set[str] = {"global_count", "panel_zone_count"}
+__connection_column_keys: List[str] = [
     key
     for key in Connection.__dict__.keys()
-    if not key.startswith("_") and key not in ignored_columns
+    if not key.startswith("_") and key not in __ignored_columns
+]
+__connection_model_keys: Set[str] = set(ConnectionModel.__fields__.keys())
+__connection_model_columns: List[Column] = [
+    column
+    for column in Connection.__table__.columns
+    if column.key in __connection_model_keys
 ]
 
 
@@ -139,10 +145,10 @@ async def get_csv(
     filename = f"connections-{time}.csv"
     return __get_csv_response(
         session,
-        select([Connection.__dict__[key] for key in connection_column_keys]).where(
+        select([Connection.__dict__[key] for key in __connection_column_keys]).where(
             Connection.id.in_(ids)
         ),
-        connection_column_keys,
+        __connection_column_keys,
         filename,
     )
 
@@ -286,10 +292,7 @@ def __get_where_clause(query: str) -> Any:
     """
     if ":" not in query:
         return or_(
-            *[
-                column.cast(String).ilike(query)
-                for column in Connection.__table__.columns
-            ]
+            *[column.cast(String).ilike(query) for column in __connection_model_columns]
         )
     key, expression = query.split(":", 2)
     column: Column[Any] = Connection.__dict__[key]
