@@ -7,6 +7,7 @@ import os
 from abc import ABC, abstractmethod
 from decimal import Decimal
 from enum import Enum
+from math import nan
 from typing import Any, Callable, List
 
 from sqlalchemy import create_engine, delete
@@ -19,7 +20,7 @@ from resslab_tools.models.database import (
     ConnectionGlobal,
     ConnectionPanelZone,
 )
-from resslab_tools.utils.database import Base, url
+from resslab_tools.utils.database import url
 
 engine = create_engine(url, echo=False)
 session = Session(engine)
@@ -64,7 +65,7 @@ class TableUploader(Uploader):
     Uploader from csv to table (csv header and table column name should match)
     """
 
-    def __init__(self, base_model: Base) -> None:
+    def __init__(self, base_model: Any) -> None:
         self.base_model = base_model
 
     def upload_one(self, file_path: str) -> None:
@@ -82,12 +83,12 @@ class TableUploader(Uploader):
 
     @staticmethod
     def __get_value(column: Column, header: List[str], row: List[str]) -> Any:
-        index = header.index(column.key)
+        index = header.index(column.key or "")
         value = row[index]
         if value == "NA":
             return None
         if value == "NR":
-            return None  # NaN
+            return nan
         if isinstance(column.type, Boolean):
             if value.lower() == "yes":
                 return True

@@ -1,10 +1,16 @@
 """
 https://uriyyo-fastapi-pagination.netlify.app/customization/
 """
-from typing import Generic, TypeVar
+from typing import Generic, Optional, Type, TypeVar
 
 from fastapi import Query
+from fastapi_pagination.api import resolve_params
+from fastapi_pagination.bases import AbstractParams
 from fastapi_pagination.default import Page, Params
+from fastapi_pagination.ext.sqlalchemy import paginate_query
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import Select
 
 T = TypeVar("T")
 
@@ -15,3 +21,21 @@ class ExtendedParams(Params):
 
 class ExtendedPage(Page[T], Generic[T]):
     __params_type__ = ExtendedParams
+
+
+async def paginate(
+    session: AsyncSession,
+    query: Select,
+    type: Type[T],
+    params: Optional[AbstractParams] = None,
+) -> Page[T]:
+    params = resolve_params(params)
+
+    total = await session.scalar(select(func.count()).select_from(query.subquery()))
+    items = await session.execute(paginate_query(query, params))
+
+    return ExtendedPage.create(
+        [type(**item._mapping) for item in items.unique().all()],
+        total,
+        params,
+    )

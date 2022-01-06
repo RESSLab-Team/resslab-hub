@@ -3,9 +3,10 @@ API Models
 """
 import enum
 from decimal import Decimal
+from math import isnan
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
 class OrmModel(BaseModel):
@@ -17,10 +18,16 @@ class OrmModel(BaseModel):
         orm_mode = True
 
 
-class ConnectionModel(OrmModel):
+class ConnectionModel(BaseModel):
     """
     Connection
     """
+
+    @validator("f_ybw", "f_ybf", "f_ycw", "f_ycf")
+    def change_nan_to_none(cls, v):
+        if v is None or isnan(v):
+            return None
+        return v
 
     id: str
     experimental_program: str

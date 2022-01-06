@@ -1,16 +1,14 @@
 """
 Handle /connections requests
 """
-import math
 from datetime import datetime
 from decimal import Decimal
 from distutils.util import strtobool
+from math import ceil, isnan
 from typing import Any, List, Optional, Set, Union
 
 from fastapi import APIRouter, Depends, Path, Query, Request
 from fastapi.responses import StreamingResponse
-from fastapi_pagination.bases import AbstractPage
-from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import and_, desc, func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.schema import Column
@@ -33,7 +31,7 @@ from resslab_tools.models.database import (
 )
 from resslab_tools.utils.database import get_session
 from resslab_tools.utils.fastapi import HttpHeader, MediaType, attachment
-from resslab_tools.utils.pagination import ExtendedPage
+from resslab_tools.utils.pagination import ExtendedPage, paginate
 
 router = APIRouter(
     prefix="/connections",
@@ -49,8 +47,8 @@ __connection_column_keys: List[str] = [
 __connection_model_keys: Set[str] = set(ConnectionModel.__fields__.keys())
 __connection_model_columns: List[Column] = [
     column
-    for column in Connection.__table__.columns
-    if column.key in __connection_model_keys
+    for key, column in Connection.__dict__.items()
+    if key in __connection_model_keys
 ]
 
 
@@ -69,11 +67,13 @@ async def get_connections(
         desc(Connection.__dict__[key]) if is_desc else Connection.__dict__[key]
         for key, is_desc in zip(sort_by, sort_desc)
     ]
-    page: AbstractPage[Connection] = await paginate(
+    return await paginate(
         session,
-        select(Connection).where(and_(*where_clauses)).order_by(*order_clauses),
+        select(*__connection_model_columns)
+        .where(and_(*where_clauses))
+        .order_by(*order_clauses),
+        ConnectionModel,
     )
-    return page
 
 
 @router.get("/counts", response_model=List[CountModel])
@@ -273,7 +273,7 @@ async def __get_series(
         if count == 0:
             return []
         if count > size:
-            n = math.ceil(float(count) / float(size))
+            n = ceil(float(count) / float(size))
             statement = statement.where(func.mod(id_column, n) == 0)
     rows = await session.execute(statement)
     return [[row[0], row[1]] for row in rows]
@@ -321,7 +321,11 @@ def __get_predicate(column: Column[Any], expression: str) -> Any:
 
 
 def __format_value(value: Any):
+    if value is None:
+        return "NA"
     if isinstance(value, Decimal):
+        if isnan(value):
+            return "NR"
         return Decimal(f"{value.normalize():f}")
     return value
 
