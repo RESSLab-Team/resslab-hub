@@ -108,12 +108,12 @@
       <v-card>
         <v-card-title>Beams without RBS</v-card-title>
         <v-card-text>
-          <v-responsive aspect-ratio="1">
-            <v-chart
-              autoresize
-              :option="option(backboneCurveWithoutRbs)"
-            ></v-chart>
-          </v-responsive>
+          <unit-chart
+            :option="option(backboneCurveWithoutRbs)"
+            :unit-system="unitSystem"
+            x-unit="rad"
+            y-unit="kN⋅mm"
+          ></unit-chart>
         </v-card-text>
       </v-card>
     </v-col>
@@ -121,12 +121,12 @@
       <v-card>
         <v-card-title>Beams with RBS</v-card-title>
         <v-card-text>
-          <v-responsive aspect-ratio="1">
-            <v-chart
-              autoresize
-              :option="option(backboneCurveWithRbs)"
-            ></v-chart>
-          </v-responsive>
+          <unit-chart
+            :option="option(backboneCurveWithRbs)"
+            :unit-system="unitSystem"
+            x-unit="rad"
+            y-unit="kN⋅mm"
+          ></unit-chart>
         </v-card-text>
       </v-card>
     </v-col>
@@ -172,6 +172,7 @@
 import aiscSections from "@/assets/connection/aisc-sections.csv";
 import europeanSections from "@/assets/connection/european-sections.csv";
 import japaneseSections from "@/assets/connection/japanese-sections.csv";
+import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import UnitSlider from "@/components/commons/sliders/UnitSlider.vue";
 import Toggle from "@/components/commons/Toggle.vue";
@@ -181,18 +182,17 @@ import UnitTableRow, {
 import { Section } from "@/utils/common";
 import { UnitSystem, unitSystems } from "@/utils/unit";
 import { primaryColor, secondaryColor, SelectItem } from "@/utils/vuetify";
-import { LineChart } from "echarts/charts";
-import { GridComponent, TooltipComponent } from "echarts/components";
-import { use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
 import { EChartsOption } from "echarts/types/dist/shared";
-import VChart from "vue-echarts";
 import { Component, Vue, Watch } from "vue-property-decorator";
 
-use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
-
 @Component({
-  components: { VChart, UnitSlider, InfoTooltip, Toggle, UnitTableRow },
+  components: {
+    InfoTooltip,
+    Toggle,
+    UnitChart,
+    UnitSlider,
+    UnitTableRow,
+  },
 })
 export default class ConnectionComponent extends Vue {
   readonly unitSystems = unitSystems;
@@ -405,10 +405,6 @@ export default class ConnectionComponent extends Vue {
     return this.bf * this.d - this.h * (this.bf - this.tw);
   }
 
-  private get rx(): number {
-    return Math.sqrt(this.ix / this.a);
-  }
-
   private get ry(): number {
     return Math.sqrt(this.iy / this.a);
   }
@@ -608,7 +604,7 @@ export default class ConnectionComponent extends Vue {
       thetau: this.thetau,
       lamdba: this.lamdba(isRbs),
       k: this.k,
-      data: [
+      backboneCurveData: [
         [0, 0],
         [v, my],
         [v + thetap, this.mc_my * my],
@@ -636,21 +632,21 @@ export default class ConnectionComponent extends Vue {
   option(backboneCurve: BackboneCurve): EChartsOption {
     return {
       grid: {
-        left: 20,
+        left: 30,
         top: 10,
         right: 20,
         bottom: 20,
         containLabel: true,
       },
       xAxis: {
-        name: "Chord Rotation, \u03b8 [rad]",
+        name: "Chord Rotation, \u03b8",
         nameLocation: "middle",
         nameGap: 26,
       },
       yAxis: {
-        name: "Moment, M [kN⋅mm]",
+        name: "Moment, M",
         nameLocation: "middle",
-        nameGap: 50,
+        nameGap: 65,
       },
       tooltip: {
         trigger: "axis",
@@ -660,7 +656,7 @@ export default class ConnectionComponent extends Vue {
         {
           type: "line",
           name: "Backbone Curve",
-          data: backboneCurve.data,
+          data: backboneCurve.backboneCurveData,
           color: primaryColor.base,
         },
         {
@@ -706,7 +702,7 @@ interface BackboneCurve {
   thetau: number;
   lamdba: number; // w
   k: number;
-  data: [number, number][];
+  backboneCurveData: [number, number][];
   residualStrengthData: [number, number][];
 }
 

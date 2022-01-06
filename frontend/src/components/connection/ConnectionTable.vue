@@ -31,10 +31,12 @@
         itemsPerPageOptions: [5, 10, 20, 100, 1000],
       }"
       :loading="loading"
+      must-sort
       :options.sync="options"
       :search="search"
       :server-items-length="totalFilteredCount"
       show-select
+      :sort-by="tableHeaders[0].value"
       @click:row="onClick"
     >
       <template v-slot:top>
