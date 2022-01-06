@@ -15,7 +15,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import column_property
 
-from resslab_tools.services.database import Base
+from resslab_tools.utils.database import Base
 
 DecimalFloat = Float(asdecimal=True)
 

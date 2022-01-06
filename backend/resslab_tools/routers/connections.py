@@ -15,7 +15,7 @@ from sqlalchemy import and_, desc, func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.selectable import Select
-from sqlalchemy.sql.sqltypes import Boolean, Integer, Numeric, String
+from sqlalchemy.sql.sqltypes import BigInteger, Boolean, Integer, Numeric, String
 
 from resslab_tools.models.api import (
     ConnectionField,
@@ -31,7 +31,7 @@ from resslab_tools.models.database import (
     ConnectionGlobal,
     ConnectionPanelZone,
 )
-from resslab_tools.services.database import get_session
+from resslab_tools.utils.database import get_session
 from resslab_tools.utils.fastapi import HttpHeader, MediaType, attachment
 from resslab_tools.utils.pagination import ExtendedPage
 
@@ -66,7 +66,7 @@ async def get_connections(
     """
     where_clauses: List[Any] = __get_where_clauses(query)
     order_clauses: List[Any] = [
-        Connection.__dict__[key] if not is_desc else desc(Connection.__dict__[key])
+        desc(Connection.__dict__[key]) if is_desc else Connection.__dict__[key]
         for key, is_desc in zip(sort_by, sort_desc)
     ]
     page: AbstractPage[Connection] = await paginate(
@@ -266,7 +266,7 @@ async def __get_series(
     session: AsyncSession,
     size: int,
     statement: Select,
-    id_column: Column[int],
+    id_column: Column[BigInteger],
 ) -> List[List[Decimal]]:
     if size > 0:
         count: int = await session.scalar(select(func.count()).select_from(statement))

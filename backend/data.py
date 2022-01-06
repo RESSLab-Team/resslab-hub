@@ -19,7 +19,7 @@ from resslab_tools.models.database import (
     ConnectionGlobal,
     ConnectionPanelZone,
 )
-from resslab_tools.services.database import Base, url
+from resslab_tools.utils.database import Base, url
 
 engine = create_engine(url, echo=False)
 session = Session(engine)

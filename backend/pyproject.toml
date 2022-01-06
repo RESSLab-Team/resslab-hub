@@ -8,7 +8,7 @@ authors = ["David Tang <david.tang@epfl.ch>"]
 python = "^3.9"
 fastapi = "^0.70.0"
 dynaconf = "^3.1.7"
-SQLAlchemy = {extras = ["asyncio"], version = "^1.4.27"}
+SQLAlchemy = {extras = ["asyncio"], version = "^1.4.29"}
 fastapi-pagination = {extras = ["async_sqlalchemy"], version = "^0.9.1"}
 asyncpg = "^0.24.0"
 uvicorn = "^0.15.0"
@@ -22,6 +22,7 @@ python-dotenv = "^0.19.1"
 pre-commit = "^2.16.0"
 flake8 = "^4.0.1"
 black = "^21.11b1"
+SQLAlchemy = {extras = ["mypy"], version = "^1.4.29"}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -29,3 +30,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.isort]
 profile = "black"
+
+[[tool.mypy.overrides]]
+module = "dynaconf"
+ignore_missing_imports = true
