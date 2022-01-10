@@ -11,6 +11,7 @@ from math import nan
 from typing import Any, Callable, List
 
 from sqlalchemy import create_engine, delete
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
@@ -18,6 +19,7 @@ from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 from resslab_tools.models.database import (
     Connection,
     ConnectionGlobal,
+    ConnectionGlobalWest,
     ConnectionPanelZone,
 )
 from resslab_tools.utils.database import url
@@ -29,6 +31,7 @@ session = Session(engine)
 class Type(Enum):
     CONNECTION = "connection"
     CONNECTION_GLOBAL = "connection-global"
+    CONNECTION_GLOBAL_WEST = "connection-global-west"
     CONNECTION_PANEL_ZONE = "connection-panel-zone"
 
 
@@ -124,7 +127,11 @@ class CsvFileUploader(Uploader):
             session.execute(self.get_delete(filename))
             for index, value in enumerate(reader):
                 session.add(self.get_instance(filename, index, value))
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError as e:
+            session.rollback()
+            print(f"error: {e.orig}")
 
     @staticmethod
     def __get_filename(file_path: str) -> str:
@@ -149,6 +156,18 @@ def main():
                 ConnectionGlobal.connection_id == id
             ),
             lambda id, index, value: ConnectionGlobal(
+                connection_id=id,
+                id=index,
+                story_drift_angle=value[0],
+                actuator_force=value[1],
+            ),
+        )
+    elif input_type == Type.CONNECTION_GLOBAL_WEST:
+        uploader = CsvFileUploader(
+            lambda id: delete(ConnectionGlobalWest).where(
+                ConnectionGlobalWest.connection_id == id
+            ),
+            lambda id, index, value: ConnectionGlobalWest(
                 connection_id=id,
                 id=index,
                 story_drift_angle=value[0],

@@ -407,6 +407,103 @@
         }
       }
     },
+    "/connections/{connection_id}/global-west": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Global West",
+        "description": "Get global west series from connection",
+        "operationId": "get_global_west",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "string"
+            },
+            "name": "connection_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Global West Connections  Connection Id  Global West Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/{connection_id}/global-west/csv": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Global West Csv",
+        "description": "Get global west csv from connection",
+        "operationId": "get_global_west_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "string"
+            },
+            "name": "connection_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/connections/{connection_id}/panel-zones": {
       "get": {
         "tags": [
@@ -539,6 +636,7 @@
           "ru_rn_pl_n",
           "g_max_g_y",
           "global_count",
+          "global_west_count",
           "panel_zone_count"
         ],
         "type": "string",
@@ -571,6 +669,7 @@
           "ru_rn_pl_n",
           "g_max_g_y",
           "global_count",
+          "global_west_count",
           "panel_zone_count"
         ],
         "type": "object",
@@ -691,6 +790,10 @@
             "title": "Global Count",
             "type": "integer"
           },
+          "global_west_count": {
+            "title": "Global West Count",
+            "type": "integer"
+          },
           "panel_zone_count": {
             "title": "Panel Zone Count",
             "type": "integer"
@@ -717,6 +820,7 @@
           "ru_rn_pl_n",
           "g_max_g_y",
           "global_count",
+          "global_west_count",
           "panel_zone_count"
         ],
         "type": "string",

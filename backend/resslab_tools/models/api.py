@@ -59,6 +59,7 @@ class ConnectionModel(BaseModel):
     g_max_g_y: Decimal
 
     global_count: int
+    global_west_count: int
     panel_zone_count: int
 
 

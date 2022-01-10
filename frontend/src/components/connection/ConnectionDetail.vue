@@ -29,6 +29,17 @@
                 ></simple-line-chart>
               </v-expansion-panel-content>
             </v-expansion-panel>
+            <v-expansion-panel v-if="connection.global_west_count > 0">
+              <v-expansion-panel-header>Global West</v-expansion-panel-header>
+              <v-expansion-panel-content>
+                <simple-line-chart
+                  :color="color"
+                  :promise="globalWestPromise"
+                  x-axis-name="Total story drift angle [rad]"
+                  y-axis-name="Lateral load [kN]"
+                ></simple-line-chart>
+              </v-expansion-panel-content>
+            </v-expansion-panel>
             <v-expansion-panel v-if="connection.panel_zone_count > 0">
               <v-expansion-panel-header>Panel Zone</v-expansion-panel-header>
               <v-expansion-panel-content>
@@ -180,6 +191,10 @@ export default class ConnectionDetail extends Vue {
 
   get globalPromise(): Promise<AxiosResponse<number[][]>> {
     return this.$connectionsApi.getGlobals(this.connection.id);
+  }
+
+  get globalWestPromise(): Promise<AxiosResponse<number[][]>> {
+    return this.$connectionsApi.getGlobalWest(this.connection.id);
   }
 
   get panelZonePromise(): Promise<AxiosResponse<number[][]>> {

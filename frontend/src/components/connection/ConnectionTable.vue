@@ -416,6 +416,17 @@ export default class ConnectionTable extends Vue {
                     }))
                   ),
                 ...this.selectedItems
+                  .filter((item) => item.global_west_count > 0)
+                  .map((item) => item.id)
+                  .map((id) =>
+                    this.$connectionsApi
+                      .getGlobalWestCsv(id)
+                      .then((response) => ({
+                        filename: `connection-global-west-${id}.csv`,
+                        content: response.data as unknown as string,
+                      }))
+                  ),
+                ...this.selectedItems
                   .filter((item) => item.panel_zone_count > 0)
                   .map((item) => item.id)
                   .map((id) =>

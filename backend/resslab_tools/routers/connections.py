@@ -21,6 +21,7 @@ from resslab_tools.models.api import (
 from resslab_tools.models.database import (
     Connection,
     ConnectionGlobal,
+    ConnectionGlobalWest,
     ConnectionPanelZone,
 )
 from resslab_tools.utils.common import Api
@@ -34,10 +35,14 @@ router = APIRouter(
 
 api = Api(
     "connections",
-    Connection,
-    ConnectionModel,
-    Connection.id,
-    {Connection.global_count, Connection.panel_zone_count},
+    database_type=Connection,
+    model_type=ConnectionModel,
+    id_column=Connection.id,
+    ignored_columns={
+        Connection.global_count,
+        Connection.global_west_count,
+        Connection.panel_zone_count,
+    },
 )
 
 
@@ -140,7 +145,55 @@ async def get_global_csv(
         )
         .where(ConnectionGlobal.connection_id == connection_id)
         .order_by(ConnectionGlobal.id),
-        ["Total story drift angle (rad)", "Force in the actuator (kN)"],
+        ["Total story drift angle [rad]", "Force in the actuator [kN]"],
+        filename,
+    )
+
+
+@router.get("/{connection_id}/global-west", response_model=List[List[Decimal]])
+async def get_global_west(
+    session: AsyncSession = Depends(get_session),
+    connection_id: str = Path(...),
+    size: int = Query(1024, ge=0),
+) -> List[List[Decimal]]:
+    """
+    Get global west series from connection
+    """
+    return await api.get_series(
+        session,
+        select(
+            [
+                ConnectionGlobalWest.story_drift_angle,
+                ConnectionGlobalWest.actuator_force,
+            ]
+        )
+        .where(ConnectionGlobalWest.connection_id == connection_id)
+        .order_by(ConnectionGlobalWest.id),
+        ConnectionGlobalWest.id,
+        size,
+    )
+
+
+@router.get("/{connection_id}/global-west/csv", response_class=StreamingResponse)
+async def get_global_west_csv(
+    session: AsyncSession = Depends(get_session),
+    connection_id: str = Path(...),
+) -> StreamingResponse:
+    """
+    Get global west csv from connection
+    """
+    filename = f"connection-global-west_{connection_id}.csv"
+    return api.get_csv_response(
+        session,
+        select(
+            [
+                ConnectionGlobalWest.story_drift_angle,
+                ConnectionGlobalWest.actuator_force,
+            ]
+        )
+        .where(ConnectionGlobalWest.connection_id == connection_id)
+        .order_by(ConnectionGlobalWest.id),
+        ["Total story drift angle [rad]", "Force in the actuator [kN]"],
         filename,
     )
 
@@ -188,6 +241,6 @@ async def get_panel_zones_csv(
         )
         .where(ConnectionPanelZone.connection_id == connection_id)
         .order_by(ConnectionPanelZone.id),
-        ["Panel zone shear distortion (rad)", "Panel zone shear force (kN)"],
+        ["Panel zone shear distortion [rad]", "Panel zone shear force [kN]"],
         filename,
     )
