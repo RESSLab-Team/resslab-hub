@@ -20,7 +20,7 @@ lint:
 	$(MAKE) -C frontend lint
 
 deploy-local:
-	docker-compose build --pull
+	docker-compose build --parallel --pull
 	docker-compose up --remove-orphans
 
 install-server:

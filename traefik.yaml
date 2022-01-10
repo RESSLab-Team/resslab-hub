@@ -1,0 +1,6 @@
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/resslab-hub.pem
+        keyFile: /certs/resslab-hub.key
