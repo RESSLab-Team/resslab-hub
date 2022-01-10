@@ -1,8 +1,8 @@
 """
 API Models
 """
-import enum
 from decimal import Decimal
+from enum import Enum
 from math import isnan
 from typing import List, Optional, Union
 
@@ -80,29 +80,25 @@ class RangeModel(BaseModel):
     max: Decimal
 
 
-class DownloadModel(BaseModel):
-    """
-    DownloadModel
-    """
-
-    global_csv: str
-    panel_zone_csv: str
-
-
 class MatrixModel(BaseModel):
     ids: List[str]
     data: List[List[Union[Decimal, str]]]
 
 
-ConnectionField = enum.Enum(
-    "ConnectionField", {key: key for key in ConnectionModel.__fields__}
+ConnectionField = Enum(
+    "ConnectionField",
+    {key: key for key in ConnectionModel.__fields__},
+    module=__name__,
+    type=str,
 )
 
-ConnectionNumberField = enum.Enum(
+ConnectionNumberField = Enum(
     "ConnectionNumberField",
     {
         key: key
         for key, field in ConnectionModel.__fields__.items()
         if field.type_ in [int, Decimal]
     },
+    module=__name__,
+    type=str,
 )

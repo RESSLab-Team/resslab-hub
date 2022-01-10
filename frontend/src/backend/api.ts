@@ -293,25 +293,6 @@ export interface CountModel {
     'value': number;
 }
 /**
- * DownloadModel
- * @export
- * @interface DownloadModel
- */
-export interface DownloadModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof DownloadModel
-     */
-    'global_csv': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof DownloadModel
-     */
-    'panel_zone_csv': string;
-}
-/**
  * 
  * @export
  * @interface ExtendedPageConnectionModel
@@ -562,40 +543,6 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             if (ids) {
                 localVarQueryParameter['ids'] = ids;
             }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Get Download
-         * @param {string} connectionId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getDownload: async (connectionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'connectionId' is not null or undefined
-            assertParamExists('getDownload', 'connectionId', connectionId)
-            const localVarPath = `/connections/{connection_id}/download`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
 
 
     
@@ -882,17 +829,6 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * 
-         * @summary Get Download
-         * @param {string} connectionId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getDownload(connectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DownloadModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getDownload(connectionId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * Get global csv from connection
          * @summary Get Global Csv
          * @param {string} connectionId 
@@ -1007,16 +943,6 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
             return localVarFp.getCsv(ids, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
-         * @summary Get Download
-         * @param {string} connectionId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getDownload(connectionId: string, options?: any): AxiosPromise<DownloadModel> {
-            return localVarFp.getDownload(connectionId, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Get global csv from connection
          * @summary Get Global Csv
          * @param {string} connectionId 
@@ -1128,18 +1054,6 @@ export class ConnectionsApi extends BaseAPI {
      */
     public getCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getCsv(ids, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @summary Get Download
-     * @param {string} connectionId 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ConnectionsApi
-     */
-    public getDownload(connectionId: string, options?: AxiosRequestConfig) {
-        return ConnectionsApiFp(this.configuration).getDownload(connectionId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

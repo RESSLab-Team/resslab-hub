@@ -310,48 +310,6 @@
         }
       }
     },
-    "/connections/{connection_id}/download": {
-      "get": {
-        "tags": [
-          "connections"
-        ],
-        "summary": "Get Download",
-        "operationId": "get_download",
-        "parameters": [
-          {
-            "required": true,
-            "schema": {
-              "title": "Connection Id",
-              "type": "string"
-            },
-            "name": "connection_id",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DownloadModel"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/connections/{connection_id}/globals": {
       "get": {
         "tags": [
@@ -583,6 +541,7 @@
           "global_count",
           "panel_zone_count"
         ],
+        "type": "string",
         "description": "An enumeration."
       },
       "ConnectionModel": {
@@ -760,6 +719,7 @@
           "global_count",
           "panel_zone_count"
         ],
+        "type": "string",
         "description": "An enumeration."
       },
       "CountModel": {
@@ -783,25 +743,6 @@
           }
         },
         "description": "Count"
-      },
-      "DownloadModel": {
-        "title": "DownloadModel",
-        "required": [
-          "global_csv",
-          "panel_zone_csv"
-        ],
-        "type": "object",
-        "properties": {
-          "global_csv": {
-            "title": "Global Csv",
-            "type": "string"
-          },
-          "panel_zone_csv": {
-            "title": "Panel Zone Csv",
-            "type": "string"
-          }
-        },
-        "description": "DownloadModel"
       },
       "ExtendedPage_ConnectionModel_": {
         "title": "ExtendedPage[ConnectionModel]",
@@ -891,9 +832,6 @@
               "type": "array",
               "items": {
                 "anyOf": [
-                  {
-                    "type": "integer"
-                  },
                   {
                     "type": "number"
                   },
