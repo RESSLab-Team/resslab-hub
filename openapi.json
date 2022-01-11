@@ -898,7 +898,8 @@
           "date",
           "section_c",
           "specimen_designation",
-          "d_c"
+          "d_c",
+          "steel_c"
         ],
         "type": "string",
         "description": "An enumeration."
@@ -911,7 +912,8 @@
           "date",
           "section_c",
           "specimen_designation",
-          "d_c"
+          "d_c",
+          "steel_c"
         ],
         "type": "object",
         "properties": {
@@ -938,6 +940,10 @@
           "d_c": {
             "title": "D C",
             "type": "number"
+          },
+          "steel_c": {
+            "title": "Steel C",
+            "type": "string"
           }
         }
       },

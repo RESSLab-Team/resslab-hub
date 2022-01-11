@@ -24,8 +24,9 @@ import { Searches, sum } from "@/utils/common";
 import { BinData, toBins } from "@/utils/statistics";
 import { getColorPalette, primaryColor } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
-import { BarChart } from "echarts/charts";
+import { BarChart, LineChart } from "echarts/charts";
 import {
+  GridComponent,
   LegendComponent,
   TitleComponent,
   TooltipComponent,
@@ -45,6 +46,8 @@ import { Color } from "vuetify/lib/util/colors";
 use([
   CanvasRenderer,
   BarChart,
+  LineChart,
+  GridComponent,
   LegendComponent,
   TitleComponent,
   TooltipComponent,

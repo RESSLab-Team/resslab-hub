@@ -112,6 +112,7 @@ class ColumnModel(BaseModel):
     section_c: str
     specimen_designation: str
     d_c: Decimal
+    steel_c: str
 
 
 ColumnField = Enum(
