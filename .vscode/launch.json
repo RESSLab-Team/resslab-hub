@@ -23,6 +23,18 @@
             "request": "launch",
             "command": "npm run serve",
             "cwd": "${workspaceFolder}/frontend"
-        }
+        },
+        {
+            "name": "backend: data",
+            "type": "python",
+            "request": "launch",
+            "module": "data",
+            "args": [
+                "column",
+                "../../resslab-tools-data/columns/steel_columns.csv",
+            ],
+            "cwd": "${workspaceFolder}/backend",
+            "envFile": "${workspaceFolder}/secrets/.env"
+        },
     ]
 }

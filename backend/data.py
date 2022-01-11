@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
+from resslab_tools.models.database import Column as ColumnBase
 from resslab_tools.models.database import (
     Connection,
     ConnectionGlobal,
@@ -29,6 +30,7 @@ session = Session(engine)
 
 
 class Type(Enum):
+    COLUMN = "column"
     CONNECTION = "connection"
     CONNECTION_GLOBAL = "connection-global"
     CONNECTION_GLOBAL_WEST = "connection-global-west"
@@ -148,7 +150,9 @@ def main():
     input_type: Type = args.type
     filenames: List[str] = args.filenames
 
-    if input_type == Type.CONNECTION:
+    if input_type == Type.COLUMN:
+        uploader = TableUploader(ColumnBase)
+    elif input_type == Type.CONNECTION:
         uploader = TableUploader(Connection)
     elif input_type == Type.CONNECTION_GLOBAL:
         uploader = CsvFileUploader(

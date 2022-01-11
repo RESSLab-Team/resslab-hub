@@ -12,6 +12,7 @@ lint:
 	poetry run pre-commit run --all-files
 
 upload-data:
+	poetry run dotenv -f ../secrets/.env run python data.py column ../../resslab-tools-data/columns/steel_columns.csv
 	poetry run dotenv -f ../secrets/.env run python data.py connection ../../resslab-tools-data/connections/connections.csv
 	poetry run dotenv -f ../secrets/.env run python data.py connection-global ../../resslab-tools-data/connections/Global/*.csv
 	poetry run dotenv -f ../secrets/.env run python data.py connection-global-west ../../resslab-tools-data/connections/Global_west/*.csv
