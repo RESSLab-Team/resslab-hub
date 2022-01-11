@@ -213,13 +213,13 @@ export default class DoubleChart extends Vue {
             Number(firstKey)
           );
           let acc = 0;
-          const values = _.range(
+          const values: [number, number][] = _.range(
             Math.min(...firstKeyNumbers),
             Math.max(...firstKeyNumbers) + 1
           ).map((firstKeyNumber) => {
             const count = (acc +=
               this.getCount(firstKeyNumber.toString(), secondKey) ?? 0);
-            return [firstKeyNumber, count > 0 ? count : ""];
+            return [firstKeyNumber, count];
           });
           return {
             name: secondKey,
