@@ -30,7 +30,7 @@ install-server:
 deploy-prod:
 	ansible-playbook ansible/deploy.yml -i ansible/inventory.ini
 
-generate-api:
+api:
 	cd backend; poetry run dotenv -f ../secrets/.env run python api.py ../openapi.json
 	cd frontend; npm run generate:backend
 

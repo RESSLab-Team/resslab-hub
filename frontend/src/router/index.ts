@@ -19,24 +19,39 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: "database",
-        component: () => import("../views/connections/ConnectionDatabase.vue"),
+        component: () => import("../views/ConnectionsDatabase.vue"),
       },
       {
         path: "fragility-curve",
-        component: () =>
-          import("../views/connections/ConnectionFragilityCurve.vue"),
+        component: () => import("../views/ConnectionsFragilityCurve.vue"),
       },
       {
         path: "component-model",
-        component: () =>
-          import("../views/connections/ConnectionComponentModel.vue"),
+        component: () => import("../views/ConnectionsComponentModel.vue"),
       },
     ],
   },
   {
     path: "/columns",
-    name: "Columns",
     component: () => import("../views/Columns.vue"),
+    children: [
+      {
+        path: "",
+        redirect: "database",
+      },
+      {
+        path: "database",
+        component: () => import("../views/ColumnsDatabase.vue"),
+      },
+      {
+        path: "fragility-curve",
+        component: () => import("../views/ColumnsFragilityCurve.vue"),
+      },
+      {
+        path: "component-model",
+        component: () => import("../views/ColumnsComponentModel.vue"),
+      },
+    ],
   },
   {
     path: "/bracings",

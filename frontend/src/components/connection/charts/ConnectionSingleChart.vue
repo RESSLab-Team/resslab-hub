@@ -48,7 +48,7 @@ export default class ConnectionSingleChart extends Vue {
   imageUrl = "";
 
   get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$connectionsApi.getCounts([this.field], this.query);
+    return this.$connectionsApi.getConnectionsCounts([this.field], this.query);
   }
 
   mouseover(params: CallbackDataParams): void {

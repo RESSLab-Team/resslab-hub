@@ -24,6 +24,292 @@
         }
       }
     },
+    "/columns": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns",
+        "description": "Get paginated Columns",
+        "operationId": "get_columns",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort By",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "sort_by",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort Desc",
+              "type": "array",
+              "items": {
+                "type": "boolean"
+              },
+              "default": []
+            },
+            "name": "sort_desc",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page",
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 1
+            },
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "maximum": 1000.0,
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 10
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedPage_ColumnModel_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/counts": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Counts",
+        "description": "Get occurences count of field values",
+        "operationId": "get_columns_counts",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ColumnField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Columns Counts Columns Counts Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountModel"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/range": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Range",
+        "description": "Get range of field",
+        "operationId": "get_columns_range",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ColumnNumberField"
+            },
+            "name": "field",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/matrix": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Matrix",
+        "operationId": "get_columns_matrix",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ColumnField"
+              }
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/csv": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Csv",
+        "description": "Get master csv",
+        "operationId": "get_columns_csv",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Ids",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "ids",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/connections": {
       "get": {
         "tags": [
@@ -121,9 +407,9 @@
         "tags": [
           "connections"
         ],
-        "summary": "Get Counts",
+        "summary": "Get Connections Counts",
         "description": "Get occurences count of field values",
-        "operationId": "get_counts",
+        "operationId": "get_connections_counts",
         "parameters": [
           {
             "required": false,
@@ -153,7 +439,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Counts Connections Counts Get",
+                  "title": "Response Get Connections Counts Connections Counts Get",
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
@@ -180,9 +466,9 @@
         "tags": [
           "connections"
         ],
-        "summary": "Get Range",
+        "summary": "Get Connections Range",
         "description": "Get range of field",
-        "operationId": "get_range",
+        "operationId": "get_connections_range",
         "parameters": [
           {
             "required": true,
@@ -222,8 +508,8 @@
         "tags": [
           "connections"
         ],
-        "summary": "Get Matrix",
-        "operationId": "get_matrix",
+        "summary": "Get Connections Matrix",
+        "operationId": "get_connections_matrix",
         "parameters": [
           {
             "required": true,
@@ -275,9 +561,9 @@
         "tags": [
           "connections"
         ],
-        "summary": "Get Csv",
+        "summary": "Get Connections Csv",
         "description": "Get master csv",
-        "operationId": "get_csv",
+        "operationId": "get_connections_csv",
         "parameters": [
           {
             "required": false,
@@ -315,9 +601,9 @@
         "tags": [
           "connections"
         ],
-        "summary": "Get Globals",
+        "summary": "Get Connections Globals",
         "description": "Get global series from connection",
-        "operationId": "get_globals",
+        "operationId": "get_connections_globals",
         "parameters": [
           {
             "required": true,
@@ -346,7 +632,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Globals Connections  Connection Id  Globals Get",
+                  "title": "Response Get Connections Globals Connections  Connection Id  Globals Get",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -376,9 +662,9 @@
         "tags": [
           "connections"
         ],
-        "summary": "Get Global Csv",
+        "summary": "Get Connections Global Csv",
         "description": "Get global csv from connection",
-        "operationId": "get_global_csv",
+        "operationId": "get_connections_global_csv",
         "parameters": [
           {
             "required": true,
@@ -412,9 +698,9 @@
         "tags": [
           "connections"
         ],
-        "summary": "Get Global West",
+        "summary": "Get Connections Global West",
         "description": "Get global west series from connection",
-        "operationId": "get_global_west",
+        "operationId": "get_connections_global_west",
         "parameters": [
           {
             "required": true,
@@ -443,7 +729,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Global West Connections  Connection Id  Global West Get",
+                  "title": "Response Get Connections Global West Connections  Connection Id  Global West Get",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -473,9 +759,9 @@
         "tags": [
           "connections"
         ],
-        "summary": "Get Global West Csv",
+        "summary": "Get Connections Global West Csv",
         "description": "Get global west csv from connection",
-        "operationId": "get_global_west_csv",
+        "operationId": "get_connections_global_west_csv",
         "parameters": [
           {
             "required": true,
@@ -509,9 +795,9 @@
         "tags": [
           "connections"
         ],
-        "summary": "Get Panel Zones",
+        "summary": "Get Connections Panel Zones",
         "description": "Get panel zone series from connection",
-        "operationId": "get_panel_zones",
+        "operationId": "get_connections_panel_zones",
         "parameters": [
           {
             "required": true,
@@ -540,7 +826,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Panel Zones Connections  Connection Id  Panel Zones Get",
+                  "title": "Response Get Connections Panel Zones Connections  Connection Id  Panel Zones Get",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -570,9 +856,9 @@
         "tags": [
           "connections"
         ],
-        "summary": "Get Panel Zones Csv",
+        "summary": "Get Connections Panel Zones Csv",
         "description": "Get panel zone csv from connection",
-        "operationId": "get_panel_zones_csv",
+        "operationId": "get_connections_panel_zones_csv",
         "parameters": [
           {
             "required": true,
@@ -604,6 +890,66 @@
   },
   "components": {
     "schemas": {
+      "ColumnField": {
+        "title": "ColumnField",
+        "enum": [
+          "id",
+          "experimental_program",
+          "date",
+          "section_c",
+          "specimen_designation",
+          "d_c"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "ColumnModel": {
+        "title": "ColumnModel",
+        "required": [
+          "id",
+          "experimental_program",
+          "date",
+          "section_c",
+          "specimen_designation",
+          "d_c"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "experimental_program": {
+            "title": "Experimental Program",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "integer"
+          },
+          "section_c": {
+            "title": "Section C",
+            "type": "string"
+          },
+          "specimen_designation": {
+            "title": "Specimen Designation",
+            "type": "string"
+          },
+          "d_c": {
+            "title": "D C",
+            "type": "number"
+          }
+        }
+      },
+      "ColumnNumberField": {
+        "title": "ColumnNumberField",
+        "enum": [
+          "date",
+          "d_c"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
       "ConnectionField": {
         "title": "ConnectionField",
         "enum": [
@@ -847,6 +1193,40 @@
           }
         },
         "description": "Count"
+      },
+      "ExtendedPage_ColumnModel_": {
+        "title": "ExtendedPage[ColumnModel]",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ColumnModel"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "page": {
+            "title": "Page",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "minimum": 1.0,
+            "type": "integer"
+          }
+        }
       },
       "ExtendedPage_ConnectionModel_": {
         "title": "ExtendedPage[ConnectionModel]",

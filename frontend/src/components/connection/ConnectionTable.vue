@@ -115,7 +115,7 @@ export default class ConnectionTable extends Vue {
   ];
 
   getCounts(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$connectionsApi.getCounts();
+    return this.$connectionsApi.getConnectionsCounts();
   }
 
   getPage(
@@ -146,7 +146,7 @@ export default class ConnectionTable extends Vue {
       types.includes(DownloadType.Master)
         ? [
             this.$connectionsApi
-              .getCsv(selectedItems.map((item) => item.id))
+              .getConnectionsCsv(selectedItems.map((item) => item.id))
               .then((response) => ({
                 filename: "connections.csv",
                 content: response.data as unknown as string,
@@ -159,28 +159,34 @@ export default class ConnectionTable extends Vue {
               .filter((item) => item.global_count > 0)
               .map((item) => item.id)
               .map((id) =>
-                this.$connectionsApi.getGlobalCsv(id).then((response) => ({
-                  filename: `connection-global-${id}.csv`,
-                  content: response.data as unknown as string,
-                }))
+                this.$connectionsApi
+                  .getConnectionsGlobalCsv(id)
+                  .then((response) => ({
+                    filename: `connection-global-${id}.csv`,
+                    content: response.data as unknown as string,
+                  }))
               ),
             ...selectedItems
               .filter((item) => item.global_west_count > 0)
               .map((item) => item.id)
               .map((id) =>
-                this.$connectionsApi.getGlobalWestCsv(id).then((response) => ({
-                  filename: `connection-global-west-${id}.csv`,
-                  content: response.data as unknown as string,
-                }))
+                this.$connectionsApi
+                  .getConnectionsGlobalWestCsv(id)
+                  .then((response) => ({
+                    filename: `connection-global-west-${id}.csv`,
+                    content: response.data as unknown as string,
+                  }))
               ),
             ...selectedItems
               .filter((item) => item.panel_zone_count > 0)
               .map((item) => item.id)
               .map((id) =>
-                this.$connectionsApi.getPanelZonesCsv(id).then((response) => ({
-                  filename: `connection-panel-zone-${id}.csv`,
-                  content: response.data as unknown as string,
-                }))
+                this.$connectionsApi
+                  .getConnectionsPanelZonesCsv(id)
+                  .then((response) => ({
+                    filename: `connection-panel-zone-${id}.csv`,
+                    content: response.data as unknown as string,
+                  }))
               ),
           ]
         : [],

@@ -60,7 +60,7 @@ async def get_connections(
 
 
 @router.get("/counts", response_model=List[CountModel])
-async def get_counts(
+async def get_connections_counts(
     session: AsyncSession = Depends(get_session),
     fields: List[ConnectionField] = Query([]),
     query: Optional[str] = Query(None),
@@ -72,7 +72,7 @@ async def get_counts(
 
 
 @router.get("/range", response_model=RangeModel)
-async def get_range(
+async def get_connections_range(
     session: AsyncSession = Depends(get_session),
     field: ConnectionNumberField = Query(...),
 ) -> RangeModel:
@@ -83,7 +83,7 @@ async def get_range(
 
 
 @router.get("/matrix", response_model=MatrixModel)
-async def get_matrix(
+async def get_connections_matrix(
     session: AsyncSession = Depends(get_session),
     fields: List[ConnectionField] = Query(...),
     query: Optional[str] = Query(None),
@@ -92,7 +92,7 @@ async def get_matrix(
 
 
 @router.get("/csv", response_class=StreamingResponse)
-async def get_csv(
+async def get_connections_csv(
     session: AsyncSession = Depends(get_session),
     ids: List[str] = Query([]),
 ) -> StreamingResponse:
@@ -103,7 +103,7 @@ async def get_csv(
 
 
 @router.get("/{connection_id}/globals", response_model=List[List[Decimal]])
-async def get_globals(
+async def get_connections_globals(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
     size: int = Query(1024, ge=0),
@@ -127,7 +127,7 @@ async def get_globals(
 
 
 @router.get("/{connection_id}/globals/csv", response_class=StreamingResponse)
-async def get_global_csv(
+async def get_connections_global_csv(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
 ) -> StreamingResponse:
@@ -151,7 +151,7 @@ async def get_global_csv(
 
 
 @router.get("/{connection_id}/global-west", response_model=List[List[Decimal]])
-async def get_global_west(
+async def get_connections_global_west(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
     size: int = Query(1024, ge=0),
@@ -175,7 +175,7 @@ async def get_global_west(
 
 
 @router.get("/{connection_id}/global-west/csv", response_class=StreamingResponse)
-async def get_global_west_csv(
+async def get_connections_global_west_csv(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
 ) -> StreamingResponse:
@@ -199,7 +199,7 @@ async def get_global_west_csv(
 
 
 @router.get("/{connection_id}/panel-zones", response_model=List[List[Decimal]])
-async def get_panel_zones(
+async def get_connections_panel_zones(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
     size: int = Query(1024, ge=0),
@@ -223,7 +223,7 @@ async def get_panel_zones(
 
 
 @router.get("/{connection_id}/panel-zones/csv", response_class=StreamingResponse)
-async def get_panel_zones_csv(
+async def get_connections_panel_zones_csv(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
 ) -> StreamingResponse:

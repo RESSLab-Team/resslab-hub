@@ -43,7 +43,7 @@ export default class ConnectionDoubleChart extends Vue {
   readonly color: Color | undefined;
 
   get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$connectionsApi.getCounts(this.fields, this.query);
+    return this.$connectionsApi.getConnectionsCounts(this.fields, this.query);
   }
 
   get numberField(): ConnectionNumberField | undefined {
@@ -55,7 +55,7 @@ export default class ConnectionDoubleChart extends Vue {
 
   get rangePromise(): Promise<AxiosResponse<RangeModel>> | undefined {
     if (this.numberField) {
-      return this.$connectionsApi.getRange(this.numberField);
+      return this.$connectionsApi.getConnectionsRange(this.numberField);
     } else {
       return undefined;
     }

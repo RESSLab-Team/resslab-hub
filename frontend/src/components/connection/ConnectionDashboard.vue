@@ -122,22 +122,19 @@
 <script lang="ts">
 import { ConnectionField, ConnectionModel } from "@/backend";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import LocaleSelect from "@/components/commons/LocaleSelect.vue";
 import ConnectionDoubleChart from "@/components/connection/charts/ConnectionDoubleChart.vue";
-import ConnectionParallelChart, {
-  Field,
-} from "@/components/connection/charts/ConnectionParallelChart.vue";
+import ConnectionParallelChart from "@/components/connection/charts/ConnectionParallelChart.vue";
 import ConnectionSingleChart from "@/components/connection/charts/ConnectionSingleChart.vue";
 import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
 import ConnectionTable from "@/components/connection/ConnectionTable.vue";
 import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
 import { Component, Vue } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
+import { ParallelField } from "../commons/charts/SimpleParallelChart.vue";
 
 @Component({
   components: {
     ConnectionTable,
-    LocaleSelect,
     ConnectionSingleChart,
     ConnectionDoubleChart,
     ConnectionParallelChart,
@@ -149,7 +146,7 @@ export default class ConnectionDashboard extends Vue {
   readonly ConnectionField = ConnectionField;
   readonly colors = colors;
   readonly fields: string[] = Object.values(ConnectionField);
-  readonly parallelFields: Field[] = [
+  readonly parallelFields: ParallelField<ConnectionField>[] = [
     ConnectionField.DB,
     ConnectionField.DC,
     ConnectionField.TCf,

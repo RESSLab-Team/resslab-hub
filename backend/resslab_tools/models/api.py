@@ -98,7 +98,35 @@ ConnectionNumberField = Enum(
     {
         key: key
         for key, field in ConnectionModel.__fields__.items()
-        if field.type_ in [int, Decimal]
+        if field.type_ in [Decimal, int]
+    },
+    module=__name__,
+    type=str,
+)
+
+
+class ColumnModel(BaseModel):
+    id: str
+    experimental_program: str
+    date: int
+    section_c: str
+    specimen_designation: str
+    d_c: Decimal
+
+
+ColumnField = Enum(
+    "ColumnField",
+    {key: key for key in ColumnModel.__fields__},
+    module=__name__,
+    type=str,
+)
+
+ColumnNumberField = Enum(
+    "ColumnNumberField",
+    {
+        key: key
+        for key, field in ColumnModel.__fields__.items()
+        if field.type_ in [Decimal, int]
     },
     module=__name__,
     type=str,

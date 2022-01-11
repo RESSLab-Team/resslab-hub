@@ -190,15 +190,15 @@ export default class ConnectionDetail extends Vue {
   readonly connection!: ConnectionModel;
 
   get globalPromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$connectionsApi.getGlobals(this.connection.id);
+    return this.$connectionsApi.getConnectionsGlobals(this.connection.id);
   }
 
   get globalWestPromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$connectionsApi.getGlobalWest(this.connection.id);
+    return this.$connectionsApi.getConnectionsGlobalWest(this.connection.id);
   }
 
   get panelZonePromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$connectionsApi.getPanelZones(this.connection.id);
+    return this.$connectionsApi.getConnectionsPanelZones(this.connection.id);
   }
 
   get backingBar(): string {

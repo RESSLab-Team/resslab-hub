@@ -57,8 +57,8 @@ export default class SimpleParallelChart extends Vue {
   fieldSearches!: Searches;
   @Prop({ type: String, default: "" })
   readonly labelPrefix!: string;
-  @Prop({ type: Array as () => Field[] })
-  readonly fields!: Field[];
+  @Prop({ type: Array as () => ParallelField[] })
+  readonly fields!: ParallelField[];
   @Prop({ type: String, default: "" })
   readonly query!: string;
   @Prop({ type: Object as () => Color, default: () => primaryColor })
@@ -197,7 +197,7 @@ export default class SimpleParallelChart extends Vue {
       });
   }
 
-  private getValues(field: Field): (string | number)[] {
+  private getValues(field: ParallelField): (string | number)[] {
     if (typeof field === "string") {
       return this.transposedData[this.requestFields.indexOf(field)];
     } else {
@@ -239,7 +239,7 @@ export default class SimpleParallelChart extends Vue {
   }
 }
 
-type Field = string | Division<string>;
+export type ParallelField<T = string> = T | Division<T>;
 
 export interface Division<T> {
   dividend: T;
