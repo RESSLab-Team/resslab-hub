@@ -103,9 +103,9 @@ export default class ColumnDashboard extends Vue {
   readonly colors = colors;
   readonly fields: string[] = Object.values(ColumnField);
   readonly parallelFields: ParallelField<ColumnField>[] = [
-    ColumnField.Date,
-    ColumnField.SectionC,
-    ColumnField.DC,
+    { id: ColumnField.Date },
+    { id: ColumnField.SectionC },
+    { id: ColumnField.DC },
   ];
 
   search = "";

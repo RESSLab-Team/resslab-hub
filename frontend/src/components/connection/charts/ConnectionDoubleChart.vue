@@ -19,29 +19,12 @@ import {
   CountModel,
   RangeModel,
 } from "@/backend";
-import DoubleChart from "@/components/commons/charts/DoubleChart.vue";
-import { Searches } from "@/utils/common";
+import DoubleChartMixin from "@/components/commons/charts/DoubleChartMixin.vue";
 import { AxiosResponse } from "axios";
-import { Component, Prop, PropSync, Vue } from "vue-property-decorator";
-import { Color } from "vuetify/lib/util/colors";
+import { Component } from "vue-property-decorator";
 
-@Component({
-  components: {
-    DoubleChart,
-  },
-})
-export default class ConnectionDoubleChart extends Vue {
-  @PropSync("searches", { type: Object as () => Searches })
-  fieldSearches: Searches | undefined;
-  @Prop({ type: Array as () => ConnectionField[] })
-  readonly fields!: [ConnectionField, ConnectionField];
-  @Prop({ type: String })
-  readonly query: string | undefined;
-  @Prop({ type: String })
-  readonly type: string | undefined;
-  @Prop({ type: Object as () => Color })
-  readonly color: Color | undefined;
-
+@Component
+export default class ConnectionDoubleChart extends DoubleChartMixin<ConnectionField> {
   get promise(): Promise<AxiosResponse<CountModel[]>> {
     return this.$connectionsApi.getConnectionsCounts(this.fields, this.query);
   }

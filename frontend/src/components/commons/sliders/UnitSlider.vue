@@ -63,11 +63,11 @@ div.label {
 
 <script lang="ts">
 import { Component, Mixins, Prop, VModel } from "vue-property-decorator";
-import UnitParent from "../UnitParent.vue";
-import SliderParent from "./SliderParent.vue";
+import UnitMixin from "../UnitMixin.vue";
+import SliderMixin from "./SliderMixin.vue";
 
 @Component
-export default class UnitSlider extends Mixins(SliderParent, UnitParent) {
+export default class UnitSlider extends Mixins(SliderMixin, UnitMixin) {
   readonly precision = 100;
 
   @VModel({ type: Number })

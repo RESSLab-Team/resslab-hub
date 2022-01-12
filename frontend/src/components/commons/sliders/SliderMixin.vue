@@ -4,7 +4,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
 
 @Component
-export default class SliderParent extends Vue {
+export default class SliderMixin extends Vue {
   @Prop({ type: Object as () => Color, default: () => primaryColor })
   readonly color: Color | undefined;
 

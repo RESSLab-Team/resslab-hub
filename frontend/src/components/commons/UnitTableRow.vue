@@ -17,11 +17,11 @@ td {
 </style>
 
 <script lang="ts">
-import UnitParent from "@/components/commons/UnitParent.vue";
+import UnitMixin from "@/components/commons/UnitMixin.vue";
 import { Component, Prop } from "vue-property-decorator";
 
 @Component
-export default class UnitTableRow extends UnitParent {
+export default class UnitTableRow extends UnitMixin {
   @Prop({ type: String })
   readonly field!: string;
   @Prop({ type: String })

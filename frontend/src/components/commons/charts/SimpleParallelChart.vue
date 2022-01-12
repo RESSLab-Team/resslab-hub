@@ -29,17 +29,15 @@
 <script lang="ts">
 import { MatrixModel } from "@/backend";
 import { Searches } from "@/utils/common";
+import { VerticalAlign, ZRFontWeight } from "@/utils/echarts";
 import { primaryColor } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
+import { EChartsOption, Payload } from "echarts";
 import { ParallelChart } from "echarts/charts";
 import { BrushComponent, ToolboxComponent } from "echarts/components";
 import { ECharts, use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import {
-  CallbackDataParams,
-  EChartsOption,
-  Payload,
-} from "echarts/types/dist/shared";
+import { CallbackDataParams } from "echarts/types/dist/shared";
 import _ from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
@@ -99,10 +97,10 @@ export default class SimpleParallelChart extends Vue {
   get requestFields(): string[] {
     return _(this.fields)
       .flatMap((f) => {
-        if (typeof f === "string") {
-          return [f];
+        if (typeof f.id === "string") {
+          return [f.id];
         } else {
-          return [f.dividend, f.divisor];
+          return [f.id.dividend, f.id.divisor];
         }
       })
       .uniq()
@@ -117,33 +115,37 @@ export default class SimpleParallelChart extends Vue {
       },
       parallel: {
         left: 80,
-        top: 34,
+        top: 40,
         right: 80,
         bottom: 8,
       },
       parallelAxis: this.fields.map((field, index) => {
         const id: string =
-          typeof field === "string"
-            ? field
-            : `${field.dividend}/${field.divisor}`;
-        const name = this.$t(this.labelPrefix + id).toString();
+          typeof field.id === "string"
+            ? field.id
+            : `${field.id.dividend}/${field.id.divisor}`;
+        const name = field.name ?? this.$t(this.labelPrefix + id).toString();
         const values = this.getValues(field);
+        const option = {
+          id: id,
+          dim: index,
+          name: name,
+          nameTextStyle: {
+            fontWeight: "bold" as ZRFontWeight,
+            verticalAlign: "middle" as VerticalAlign,
+          },
+          nameGap: 20,
+        };
         if (values) {
           const type = typeof values[0];
           if (type === "number") {
-            return {
-              id: id,
-              dim: index,
-              name: name,
+            return _.merge(option, {
               type: "value",
               scale: true,
-            };
+            });
           } else {
             const sortedValues = _(values).uniq().sort().value();
-            return {
-              id: id,
-              dim: index,
-              name: name,
+            return _.merge(option, {
               nameLocation: "start",
               inverse: true,
               type: "category",
@@ -151,26 +153,22 @@ export default class SimpleParallelChart extends Vue {
                 alignWithLabel: true,
               },
               data: sortedValues,
-            };
+            });
           }
         } else {
-          return {
-            id: id,
-            dim: index,
-            name: name,
-          };
+          return option;
         }
       }),
       series: {
         type: "parallel",
         data: this.data.map((d) =>
           this.fields.map((f) => {
-            if (typeof f === "string") {
-              return d[this.requestFields.indexOf(f)];
+            if (typeof f.id === "string") {
+              return d[this.requestFields.indexOf(f.id)];
             } else {
               return (
-                (d[this.requestFields.indexOf(f.dividend)] as number) /
-                (d[this.requestFields.indexOf(f.divisor)] as number)
+                (d[this.requestFields.indexOf(f.id.dividend)] as number) /
+                (d[this.requestFields.indexOf(f.id.divisor)] as number)
               );
             }
           })
@@ -198,12 +196,12 @@ export default class SimpleParallelChart extends Vue {
   }
 
   private getValues(field: ParallelField): (string | number)[] {
-    if (typeof field === "string") {
-      return this.transposedData[this.requestFields.indexOf(field)];
+    if (typeof field.id === "string") {
+      return this.transposedData[this.requestFields.indexOf(field.id)];
     } else {
       return _.zip(
-        this.transposedData[this.requestFields.indexOf(field.dividend)],
-        this.transposedData[this.requestFields.indexOf(field.divisor)]
+        this.transposedData[this.requestFields.indexOf(field.id.dividend)],
+        this.transposedData[this.requestFields.indexOf(field.id.divisor)]
       )
         .map((v) => v as [number, number])
         .map((v) => v[0] / v[1]);
@@ -239,7 +237,10 @@ export default class SimpleParallelChart extends Vue {
   }
 }
 
-export type ParallelField<T = string> = T | Division<T>;
+export interface ParallelField<T = string> {
+  id: T | Division<T>;
+  name?: string;
+}
 
 export interface Division<T> {
   dividend: T;

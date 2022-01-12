@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts">
-import UnitParent from "@/components/commons/UnitParent.vue";
+import UnitMixin from "@/components/commons/UnitMixin.vue";
 import { UnitSystem } from "@/utils/unit";
 import { LineChart } from "echarts/charts";
 import { GridComponent, TooltipComponent } from "echarts/components";
@@ -31,7 +31,7 @@ use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
 @Component({
   components: {
     VChart,
-    UnitParent,
+    UnitMixin,
   },
 })
 export default class UnitChart extends Vue {
@@ -48,8 +48,8 @@ export default class UnitChart extends Vue {
   @Prop({ type: String })
   readonly yUnit: string | undefined;
 
-  get xUnitParent(): UnitParent {
-    return new UnitParent({
+  get xUnitParent(): UnitMixin {
+    return new UnitMixin({
       propsData: {
         unit: this.xUnit,
         unitSystem: this.unitSystem,
@@ -57,8 +57,8 @@ export default class UnitChart extends Vue {
     });
   }
 
-  get yUnitParent(): UnitParent {
-    return new UnitParent({
+  get yUnitParent(): UnitMixin {
+    return new UnitMixin({
       propsData: {
         unit: this.yUnit,
         unitSystem: this.unitSystem,

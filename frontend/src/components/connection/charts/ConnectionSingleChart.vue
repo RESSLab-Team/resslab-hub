@@ -23,28 +23,14 @@
 
 <script lang="ts">
 import { ConnectionField, CountModel } from "@/backend";
-import SingleChart from "@/components/commons/charts/SingleChart.vue";
-import { publicPath, Searches } from "@/utils/common";
+import SingleChartMixin from "@/components/commons/charts/SingleChartMixin.vue";
+import { publicPath } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { CallbackDataParams } from "echarts/types/dist/shared";
-import { Component, Prop, PropSync, Vue } from "vue-property-decorator";
-import { Color } from "vuetify/lib/util/colors";
+import { Component } from "vue-property-decorator";
 
-@Component({
-  components: {
-    SingleChart,
-  },
-})
-export default class ConnectionSingleChart extends Vue {
-  @PropSync("searches", { type: Object as () => Searches })
-  fieldSearches: Searches | undefined;
-  @Prop({ type: String as () => ConnectionField })
-  readonly field!: ConnectionField;
-  @Prop({ type: String })
-  readonly query: string | undefined;
-  @Prop({ type: Object as () => Color })
-  readonly color: Color | undefined;
-
+@Component
+export default class ConnectionSingleChart extends SingleChartMixin<ConnectionField> {
   imageUrl = "";
 
   get promise(): Promise<AxiosResponse<CountModel[]>> {

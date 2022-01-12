@@ -3,7 +3,7 @@ import { Unit, units, UnitSystem } from "@/utils/unit";
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component
-export default class UnitParent extends Vue {
+export default class UnitMixin extends Vue {
   @Prop({ type: String, default: "" })
   readonly unit!: string;
   @Prop({ type: String as () => UnitSystem })

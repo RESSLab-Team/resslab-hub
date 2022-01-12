@@ -17,8 +17,7 @@
     "t_dp": "Doubler Plates Thickness [mm]",
     "n_dp": "Number of Doubler Plates",
     "t_dp_tot": "Total Doubler Plate Thickness [mm]",
-    "ru_rn_pl_n": "ru_rn_pl_n",
-    "g_max_g_y": "\u03b3_max / \u03b3_y",
-    "d_b/d_c": "d_b / d_c"
+    "ru_rn_pl_n": "Ru / Rn,pl",
+    "g_max_g_y": "\u03b3max / \u03b3y"
   }
 }

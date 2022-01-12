@@ -147,16 +147,35 @@ export default class ConnectionDashboard extends Vue {
   readonly colors = colors;
   readonly fields: string[] = Object.values(ConnectionField);
   readonly parallelFields: ParallelField<ConnectionField>[] = [
-    ConnectionField.DB,
-    ConnectionField.DC,
-    ConnectionField.TCf,
     {
-      dividend: ConnectionField.DB,
-      divisor: ConnectionField.DC,
+      id: ConnectionField.DB,
+      name: "Beam Depth\ndb [mm]",
     },
-    ConnectionField.GMaxGY,
-    ConnectionField.RuRnPlN,
-    ConnectionField.ConnectionType,
+    {
+      id: ConnectionField.DC,
+      name: "Column Depth\ndc [mm]",
+    },
+    {
+      id: ConnectionField.TCf,
+      name: "Column flange\nThickness [mm]",
+    },
+    {
+      id: {
+        dividend: ConnectionField.DB,
+        divisor: ConnectionField.DC,
+      },
+      name: "db / dc",
+    },
+    {
+      id: ConnectionField.GMaxGY,
+    },
+    {
+      id: ConnectionField.RuRnPlN,
+    },
+    {
+      id: ConnectionField.ConnectionType,
+      name: "Connection\nType",
+    },
   ];
 
   search = "";

@@ -9,7 +9,7 @@ run-frontend:
 	$(MAKE) -C frontend run
 
 run-database:
-	docker-compose up database -d
+	docker-compose up -d database
 
 test:
 	$(MAKE) -C backend test

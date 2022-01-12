@@ -43,10 +43,10 @@
 import { RangeModel } from "@/backend";
 import { AxiosResponse } from "axios";
 import { Component, Prop, Watch } from "vue-property-decorator";
-import SliderParent from "./SliderParent.vue";
+import SliderMixin from "./SliderMixin.vue";
 
 @Component
-export default class RangeSlider extends SliderParent {
+export default class RangeSlider extends SliderMixin {
   @Prop({ type: Number, default: 1 })
   readonly step!: number;
   @Prop({ type: Array })
