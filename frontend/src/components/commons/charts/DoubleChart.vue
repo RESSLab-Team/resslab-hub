@@ -5,7 +5,7 @@
         autoresize
         :option="option"
         :update-options="updateOptions"
-        @click="onClick"
+        @click="click"
       ></v-chart>
     </v-responsive>
     <range-slider
@@ -66,8 +66,8 @@ export default class DoubleChart extends Vue {
 
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
-  @Prop({ type: Array as () => string[] })
-  readonly fields!: [string, string];
+  @Prop({ type: Array as () => (string | DoubleField)[] })
+  readonly fields!: [string, DoubleField];
   @Prop({ type: String, default: "" })
   readonly query!: string;
   @Prop({ type: String, default: "bar" })
@@ -107,6 +107,24 @@ export default class DoubleChart extends Vue {
     }
   }
 
+  get secondField(): string {
+    const secondField: DoubleField = this.fields[1];
+    if (typeof secondField === "string") {
+      return secondField;
+    } else {
+      return secondField.id;
+    }
+  }
+
+  get mapSecondName(): (name: string) => string {
+    const secondField: DoubleField = this.fields[1];
+    if (typeof secondField === "string") {
+      return (name) => name;
+    } else {
+      return (name) => secondField.mapping.get(name) ?? name;
+    }
+  }
+
   get firstKeys(): string[] {
     return _(this.counts)
       .map((count) => count.names[0])
@@ -129,27 +147,27 @@ export default class DoubleChart extends Vue {
       .map((item) => item.key)
       .value();
     return {
-      grid: {
-        bottom: 42,
-      },
-      tooltip: {
-        trigger: "axis",
-        axisPointer: {
-          type: this.type === "bar" ? "shadow" : undefined,
+      title: {
+        text: this.$t(this.labelPrefix + this.secondField).toString(),
+        textStyle: {
+          fontSize: 12,
         },
-        confine: true,
+        left: "center",
       },
       legend: {
-        tooltip: {
-          show: true,
-          formatter:
-            this.$t(this.labelPrefix + this.fields[1]).toString() + ": {a}",
-        },
+        type: "scroll",
+        top: 20,
+      },
+      grid: {
+        bottom: 42,
       },
       xAxis: {
         type: "category",
         name: this.$t(this.labelPrefix + this.fields[0]).toString(),
         nameLocation: "middle",
+        nameTextStyle: {
+          fontWeight: "bold",
+        },
         nameGap: 28,
         boundaryGap: this.type === "bar",
         scale: true,
@@ -161,11 +179,19 @@ export default class DoubleChart extends Vue {
         type: "value",
         minInterval: 1,
       },
+      tooltip: {
+        trigger: "axis",
+        axisPointer: {
+          type: this.type === "bar" ? "shadow" : undefined,
+        },
+        confine: true,
+      },
       series: this.getSerie(secondKeys).map((serie) => ({
-        name: serie.name,
+        id: serie.name,
+        name: this.mapSecondName(serie.name),
         type: this.type,
         showSymbol: false,
-        stack: this.fields[1],
+        stack: this.secondField,
         areaStyle: {},
         emphasis: {
           focus: "series",
@@ -255,7 +281,7 @@ export default class DoubleChart extends Vue {
       ?.value;
   }
 
-  onClick(params: CallbackDataParams): void {
+  click(params: CallbackDataParams): void {
     if (this.type === "bar") {
       if (this.isHistogram) {
         const data = params.data as BinData;
@@ -264,8 +290,15 @@ export default class DoubleChart extends Vue {
         this.$set(this.fieldSearches, this.fields[0], params.name);
       }
     }
-    this.$set(this.fieldSearches, this.fields[1], params.seriesName);
+    this.$set(this.fieldSearches, this.secondField, params.seriesId);
   }
+}
+
+export type DoubleField<T = string> = T | MappingField<T>;
+
+export interface MappingField<T> {
+  id: T;
+  mapping: Map<string, string>;
 }
 
 interface Serie {

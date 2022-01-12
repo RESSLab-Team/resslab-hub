@@ -26,7 +26,10 @@ import { Component } from "vue-property-decorator";
 @Component
 export default class ConnectionDoubleChart extends DoubleChartMixin<ConnectionField> {
   get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$connectionsApi.getConnectionsCounts(this.fields, this.query);
+    return this.$connectionsApi.getConnectionsCounts(
+      this.requestFields,
+      this.query
+    );
   }
 
   get numberField(): ConnectionNumberField | undefined {

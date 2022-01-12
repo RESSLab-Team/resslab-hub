@@ -26,7 +26,7 @@ import { Component } from "vue-property-decorator";
 @Component
 export default class ColumnDoubleChart extends DoubleChartMixin<ColumnField> {
   get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$columnsApi.getColumnsCounts(this.fields, this.query);
+    return this.$columnsApi.getColumnsCounts(this.requestFields, this.query);
   }
 
   get numberField(): ColumnNumberField | undefined {

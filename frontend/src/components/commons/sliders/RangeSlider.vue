@@ -8,7 +8,6 @@
     :max="max"
     :step="step"
     :thumb-color="darkenColor"
-    thumb-label
     :track-color="lightenColor"
     @end="onRangeChange"
   >
@@ -17,7 +16,9 @@
         :value="range[0]"
         class="mt-0 pt-0"
         hide-details
+        hide-spin-buttons
         :min="min"
+        :max="max"
         type="number"
         single-line
         style="width: 60px"
@@ -29,6 +30,8 @@
         :value="range[1]"
         class="mt-0 pt-0"
         hide-details
+        hide-spin-buttons
+        :min="min"
         :max="max"
         type="number"
         single-line

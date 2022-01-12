@@ -67,6 +67,7 @@
                 v-case="'number'"
                 clearable
                 hide-details
+                hide-spin-buttons
                 :label="header.text"
                 type="number"
               ></v-text-field>
@@ -127,6 +128,7 @@
                 class="mt-0 pt-0"
                 clearable
                 hide-details
+                hide-spin-buttons
                 :label="header.text"
                 single-line
                 type="number"
