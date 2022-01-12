@@ -37,14 +37,11 @@
                   ></v-select>
                 </v-col>
                 <v-col cols="6">
-                  <v-select
+                  <search-select
                     v-model="section"
-                    clearable
-                    hide-details
                     :items="sections"
                     label="Select Section"
-                    single-line
-                  ></v-select>
+                  ></search-select>
                 </v-col>
               </v-row>
             </v-col>
@@ -174,6 +171,7 @@ import europeanSections from "@/assets/connection/european-sections.csv";
 import japaneseSections from "@/assets/connection/japanese-sections.csv";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import SearchSelect from "@/components/commons/SearchSelect.vue";
 import UnitSlider from "@/components/commons/sliders/UnitSlider.vue";
 import Toggle from "@/components/commons/Toggle.vue";
 import UnitTableRow, {
@@ -188,6 +186,7 @@ import { Component, Vue, Watch } from "vue-property-decorator";
 @Component({
   components: {
     InfoTooltip,
+    SearchSelect,
     Toggle,
     UnitChart,
     UnitSlider,
