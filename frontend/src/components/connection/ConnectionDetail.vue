@@ -12,48 +12,43 @@
     <v-card-text>
       <property-item name="Publication">TODO</property-item>
     </v-card-text>
-    <v-card-text
-      v-if="connection.global_count > 0 || connection.panel_zone_count > 0"
-    >
-      <v-row>
-        <v-col cols="12">
-          <v-expansion-panels accordion hover multiple>
-            <v-expansion-panel v-if="connection.global_count > 0">
-              <v-expansion-panel-header>Global</v-expansion-panel-header>
-              <v-expansion-panel-content>
-                <simple-line-chart
-                  :color="color"
-                  :promise="globalPromise"
-                  x-axis-name="Total story drift angle [rad]"
-                  y-axis-name="Lateral load [kN]"
-                ></simple-line-chart>
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-            <v-expansion-panel v-if="connection.global_west_count > 0">
-              <v-expansion-panel-header>Global West</v-expansion-panel-header>
-              <v-expansion-panel-content>
-                <simple-line-chart
-                  :color="color"
-                  :promise="globalWestPromise"
-                  x-axis-name="Total story drift angle [rad]"
-                  y-axis-name="Lateral load [kN]"
-                ></simple-line-chart>
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-            <v-expansion-panel v-if="connection.panel_zone_count > 0">
-              <v-expansion-panel-header>Panel Zone</v-expansion-panel-header>
-              <v-expansion-panel-content>
-                <simple-line-chart
-                  :color="color"
-                  :promise="panelZonePromise"
-                  x-axis-name="Panel zone shear distortion [rad]"
-                  y-axis-name="Panel zone shear force [kN]"
-                ></simple-line-chart>
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-          </v-expansion-panels>
-        </v-col>
-      </v-row>
+    <v-card-text v-if="carouselItemCount > 0">
+      <v-carousel
+        :height="chartHeight"
+        hide-delimiters
+        :show-arrows="carouselItemCount > 1"
+      >
+        <v-carousel-item v-if="hasGlobal">
+          <simple-line-chart
+            v-if="connection.global_count > 0"
+            :color="color"
+            :max-width="chartHeight"
+            :promise="globalPromise"
+            title="Global"
+            x-axis-name="Total story drift angle [rad]"
+            y-axis-name="Lateral load [kN]"
+          ></simple-line-chart>
+          <simple-line-chart
+            v-if="connection.global_west_count > 0"
+            :color="color"
+            :max-width="chartHeight"
+            :promise="globalWestPromise"
+            title="Global West"
+            x-axis-name="Total story drift angle [rad]"
+            y-axis-name="Lateral load [kN]"
+          ></simple-line-chart>
+        </v-carousel-item>
+        <v-carousel-item v-if="hasPanelZone">
+          <simple-line-chart
+            :color="color"
+            :max-width="chartHeight"
+            :promise="panelZonePromise"
+            title="Panel Zone"
+            x-axis-name="Panel zone shear distortion [rad]"
+            y-axis-name="Panel zone shear force [kN]"
+          ></simple-line-chart>
+        </v-carousel-item>
+      </v-carousel>
     </v-card-text>
     <v-card-text>
       <h2>Loading and geometric parameters</h2>
@@ -144,7 +139,7 @@
 </template>
 
 <style lang="scss">
-.v-expansion-panel-content__wrap {
+.v-carousel__item > .v-responsive__content {
   display: flex;
   justify-content: center;
 }
@@ -185,9 +180,22 @@ export default class ConnectionDetail extends Vue {
     lg: "6",
     xl: "4",
   };
+  readonly chartHeight = 300;
 
   @Prop(Object)
   readonly connection!: ConnectionModel;
+
+  get hasGlobal(): boolean {
+    return this.connection.global_count + this.connection.global_west_count > 0;
+  }
+
+  get hasPanelZone(): boolean {
+    return this.connection.panel_zone_count > 0;
+  }
+
+  get carouselItemCount(): number {
+    return [this.hasGlobal, this.hasPanelZone].filter((v) => v).length;
+  }
 
   get globalPromise(): Promise<AxiosResponse<number[][]>> {
     return this.$connectionsApi.getConnectionsGlobals(this.connection.id);

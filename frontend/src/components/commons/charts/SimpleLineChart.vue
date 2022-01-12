@@ -1,5 +1,5 @@
 <template>
-  <v-responsive aspect-ratio="1" max-width="300">
+  <v-responsive aspect-ratio="1" :max-width="maxWidth">
     <v-chart v-if="hasData" autoresize :option="option"></v-chart>
   </v-responsive>
 </template>
@@ -26,8 +26,12 @@ use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
 export default class SimpleLineChart extends Vue {
   @Prop({ type: Object as () => Color, default: () => primaryColor })
   readonly color!: Color;
+  @Prop({ type: Number, default: 300 })
+  readonly maxWidth!: number;
   @Prop({ type: Promise })
   readonly promise: Promise<AxiosResponse<number[][]>> | undefined;
+  @Prop({ type: String })
+  readonly title: string | undefined;
   @Prop({ type: String })
   readonly xAxisName: string | undefined;
   @Prop({ type: String })
@@ -41,12 +45,15 @@ export default class SimpleLineChart extends Vue {
 
   get option(): EChartsOption {
     return {
+      title: {
+        text: this.title,
+        left: "center",
+      },
       grid: {
-        left: 36,
-        top: 20,
-        right: 20,
-        bottom: 36,
-        containLabel: true,
+        left: 60,
+        top: 32,
+        right: 32,
+        bottom: 60,
       },
       xAxis: {
         name: this.xAxisName,
