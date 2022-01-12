@@ -9,6 +9,12 @@ from typing import List, Optional, Union
 from pydantic import BaseModel, validator
 
 
+def _change_nan_to_none(v):
+    if v is None or isnan(v):
+        return None
+    return v
+
+
 class OrmModel(BaseModel):
     """
     Parent class for all API models
@@ -25,9 +31,7 @@ class ConnectionModel(BaseModel):
 
     @validator("f_ybw", "f_ybf", "f_ycw", "f_ycf")
     def change_nan_to_none(cls, v):
-        if v is None or isnan(v):
-            return None
-        return v
+        _change_nan_to_none(v)
 
     id: str
     experimental_program: str
@@ -83,7 +87,7 @@ class RangeModel(BaseModel):
 
 class MatrixModel(BaseModel):
     ids: List[str]
-    data: List[List[Union[Decimal, str]]]
+    data: List[List[Optional[Union[Decimal, str]]]]
 
 
 ConnectionField = Enum(
@@ -106,13 +110,24 @@ ConnectionNumberField = Enum(
 
 
 class ColumnModel(BaseModel):
+    @validator("th_80")
+    def change_nan_to_none(cls, v):
+        _change_nan_to_none(v)
+
     id: str
     experimental_program: str
     date: int
     section_c: str
     specimen_designation: str
     d_c: Decimal
+    h_over_t_cw: Decimal
+    b_f_over_t_cf: Decimal
+    l_b_over_r_yc: Decimal
     steel_c: str
+    boundary_condition: str
+    direction_lp: str
+    p_g_over_p_ym: Decimal
+    th_80: Optional[Decimal]
 
 
 ColumnField = Enum(

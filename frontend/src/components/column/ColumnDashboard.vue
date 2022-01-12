@@ -31,10 +31,7 @@
       <v-row v-else>
         <v-col cols="12">
           <v-card>
-            <v-card-title>
-              Steel
-              <info-tooltip>TODO</info-tooltip>
-            </v-card-title>
+            <v-card-title>Steel Material</v-card-title>
             <v-card-text>
               <v-row>
                 <v-col cols="12" sm="6">
@@ -103,9 +100,11 @@ export default class ColumnDashboard extends Vue {
   readonly colors = colors;
   readonly fields: string[] = Object.values(ColumnField);
   readonly parallelFields: ParallelField<ColumnField>[] = [
-    { id: ColumnField.Date },
-    { id: ColumnField.SectionC },
-    { id: ColumnField.DC },
+    { id: ColumnField.Th80 },
+    { id: ColumnField.HOverTCw },
+    { id: ColumnField.BFOverTCf },
+    { id: ColumnField.LBOverRYc },
+    { id: ColumnField.PGOverPYm },
   ];
 
   search = "";

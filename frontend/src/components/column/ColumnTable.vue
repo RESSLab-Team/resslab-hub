@@ -15,7 +15,12 @@
 </template>
 
 <script lang="ts">
-import { ColumnModel, CountModel, ExtendedPageColumnModel } from "@/backend";
+import {
+  ColumnField,
+  ColumnModel,
+  CountModel,
+  ExtendedPageColumnModel,
+} from "@/backend";
 import SimpleTable, {
   Column,
   DownloadFile,
@@ -40,20 +45,27 @@ export default class ColumnTable extends Vue {
 
   readonly columns: Column[] = [
     {
-      value: "experimental_program",
+      value: ColumnField.ExperimentalProgram,
       type: "text",
     },
     {
-      value: "date",
+      value: ColumnField.SpecimenDesignation,
+      type: "text",
+    },
+    {
+      value: ColumnField.SectionC,
+      type: "text",
+    },
+    {
+      value: ColumnField.PGOverPYm,
       type: "number",
-      filterOnly: true,
     },
     {
-      value: "section_c",
-      type: "text",
+      value: ColumnField.LBOverRYc,
+      type: "number",
     },
     {
-      value: "specimen_designation",
+      value: ColumnField.DirectionLp,
       type: "text",
     },
   ];

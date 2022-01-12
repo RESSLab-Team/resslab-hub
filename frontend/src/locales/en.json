@@ -1,4 +1,19 @@
 {
+  "column": {
+    "experimental_program": "Experimental Program",
+    "date": "Date",
+    "section_c": "Column Section",
+    "specimen_designation": "Specimen Designation",
+    "d_c": "Column Depth [mm]",
+    "h_over_t_cw": "h / tw",
+    "b_f_over_t_cf": "b / t",
+    "l_b_over_r_yc": "Lb / ry",
+    "steel_c": "Steel Material",
+    "boundary_condition": "Boundary Condition",
+    "direction_lp": "Load Direction",
+    "p_g_over_p_ym": "Pg / Py",
+    "th_80": "\u03B8p [rad]"
+  },
   "connection": {
     "id": "ID",
     "experimental_program": "Experimental Program",
@@ -10,7 +25,7 @@
     "connection_type": "Connection Type",
     "section_b": "Beam Section",
     "d_b": "Beam Depth [mm]",
-    "steel_b": " Beam Steel Material",
+    "steel_b": "Beam Steel Material",
     "section_c": "Column Section",
     "d_c": "Column Depth [mm]",
     "t_cf": "Column Flange Thickness",

@@ -32,6 +32,7 @@
 
 <script lang="ts">
 import {
+  ConnectionField,
   ConnectionModel,
   CountModel,
   ExtendedPageConnectionModel,
@@ -60,56 +61,56 @@ export default class ConnectionTable extends Vue {
 
   readonly columns: Column[] = [
     {
-      value: "experimental_program",
+      value: ConnectionField.ExperimentalProgram,
       type: "text",
     },
     {
-      value: "date",
+      value: ConnectionField.Date,
       type: "number",
       filterOnly: true,
     },
     {
-      value: "specimen_designation",
+      value: ConnectionField.SpecimenDesignation,
       type: "text",
     },
     {
-      value: "northridge",
+      value: ConnectionField.Northridge,
       type: "option",
       options: ["pre", "post"],
       filterOnly: true,
     },
     {
-      value: "specimen_type",
+      value: ConnectionField.SpecimenType,
       type: "text",
       options: ["exterior%", "interior%"],
       filterOnly: true,
     },
     {
-      value: "slab",
+      value: ConnectionField.Slab,
       type: "boolean",
       filterOnly: true,
     },
     {
-      value: "connection_type",
+      value: ConnectionField.ConnectionType,
       type: "option",
       options: ["WUF-W", "RBS", "WUF-B", "BFP", "WFP", "KBB", "BEEP"],
     },
     {
-      value: "section_b",
+      value: ConnectionField.SectionB,
       type: "text",
     },
     {
-      value: "section_c",
+      value: ConnectionField.SectionC,
       type: "text",
     },
     {
-      value: "n_dp",
+      value: ConnectionField.NDp,
       type: "number",
       options: ["0", "> 0"],
       filterOnly: true,
     },
     {
-      value: "t_dp_tot",
+      value: ConnectionField.TDpTot,
       type: "number",
     },
   ];

@@ -899,7 +899,14 @@
           "section_c",
           "specimen_designation",
           "d_c",
-          "steel_c"
+          "h_over_t_cw",
+          "b_f_over_t_cf",
+          "l_b_over_r_yc",
+          "steel_c",
+          "boundary_condition",
+          "direction_lp",
+          "p_g_over_p_ym",
+          "th_80"
         ],
         "type": "string",
         "description": "An enumeration."
@@ -913,7 +920,13 @@
           "section_c",
           "specimen_designation",
           "d_c",
-          "steel_c"
+          "h_over_t_cw",
+          "b_f_over_t_cf",
+          "l_b_over_r_yc",
+          "steel_c",
+          "boundary_condition",
+          "direction_lp",
+          "p_g_over_p_ym"
         ],
         "type": "object",
         "properties": {
@@ -941,9 +954,37 @@
             "title": "D C",
             "type": "number"
           },
+          "h_over_t_cw": {
+            "title": "H Over T Cw",
+            "type": "number"
+          },
+          "b_f_over_t_cf": {
+            "title": "B F Over T Cf",
+            "type": "number"
+          },
+          "l_b_over_r_yc": {
+            "title": "L B Over R Yc",
+            "type": "number"
+          },
           "steel_c": {
             "title": "Steel C",
             "type": "string"
+          },
+          "boundary_condition": {
+            "title": "Boundary Condition",
+            "type": "string"
+          },
+          "direction_lp": {
+            "title": "Direction Lp",
+            "type": "string"
+          },
+          "p_g_over_p_ym": {
+            "title": "P G Over P Ym",
+            "type": "number"
+          },
+          "th_80": {
+            "title": "Th 80",
+            "type": "number"
           }
         }
       },
@@ -951,7 +992,12 @@
         "title": "ColumnNumberField",
         "enum": [
           "date",
-          "d_c"
+          "d_c",
+          "h_over_t_cw",
+          "b_f_over_t_cf",
+          "l_b_over_r_yc",
+          "p_g_over_p_ym",
+          "th_80"
         ],
         "type": "string",
         "description": "An enumeration."

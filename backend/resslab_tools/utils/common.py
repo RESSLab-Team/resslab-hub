@@ -117,9 +117,9 @@ class Api(ABC, Generic[D, M]):
             select([self.id_column, *columns]).where(and_(*where_clauses))
         )
         rows = rows.all()
-        return MatrixModel(
-            ids=[row[0] for row in rows], data=[list(row)[1:] for row in rows]
-        )
+        ids = [row[0] for row in rows]
+        data = [[self.__clean_value(value) for value in list(row)[1:]] for row in rows]
+        return MatrixModel(ids=ids, data=data)
 
     async def get_csv(
         self,
@@ -170,6 +170,12 @@ class Api(ABC, Generic[D, M]):
             headers={HttpHeader.CONTENT_DISPOSITION.value: attachment(filename)},
             media_type=MediaType.CSV.value,
         )
+
+    @staticmethod
+    def __clean_value(value: Any) -> Optional[Decimal]:
+        if type(value) == Decimal and isnan(value):
+            return None
+        return value
 
     def __get_column(self, key: str) -> Column[Any]:
         return self.database_type.__dict__[key]

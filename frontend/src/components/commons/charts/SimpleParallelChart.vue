@@ -137,7 +137,7 @@ export default class SimpleParallelChart extends Vue {
           nameGap: 20,
         };
         if (values) {
-          const type = typeof values[0];
+          const type = typeof values.find((v) => v != null);
           if (type === "number") {
             return _.merge(option, {
               type: "value",
