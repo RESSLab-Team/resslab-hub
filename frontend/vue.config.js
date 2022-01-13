@@ -13,6 +13,13 @@ module.exports = {
       .end();
   },
 
+  pages: {
+    index: {
+      entry: "src/main.ts",
+      title: "RESSLab Hub",
+    },
+  },
+
   transpileDependencies: ["vuetify"],
 
   pluginOptions: {

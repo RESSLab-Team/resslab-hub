@@ -2,7 +2,7 @@
   <v-app>
     <v-app-bar app dense>
       <v-app-bar-title>
-        <div>RESSLab Tools</div>
+        <div>RESSLab Hub</div>
       </v-app-bar-title>
       <v-tabs hide-slider>
         <template v-for="item in menuItems">
