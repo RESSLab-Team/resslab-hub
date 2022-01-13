@@ -294,6 +294,8 @@ export default class DoubleChart extends Vue {
   }
 }
 
+export type DoubleFields<T = string> = [T, DoubleField<T>];
+
 export type DoubleField<T = string> = T | MappingField<T>;
 
 export interface MappingField<T> {

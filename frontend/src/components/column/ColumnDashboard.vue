@@ -29,31 +29,20 @@
     <v-col md="6">
       <v-row v-if="item"></v-row>
       <v-row v-else>
-        <v-col cols="12">
+        <v-col cols="12" md="6">
           <v-card>
-            <v-card-title>Steel Material</v-card-title>
+            <v-card-title>Boundary Condition</v-card-title>
             <v-card-text>
-              <v-row>
-                <v-col cols="12" sm="6">
-                  <column-single-chart
-                    :field="ColumnField.SteelC"
-                    :query="query"
-                    :searches.sync="searches"
-                  ></column-single-chart>
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <column-double-chart
-                    :fields="[ColumnField.Date, ColumnField.SteelC]"
-                    :query="query"
-                    :searches.sync="searches"
-                    type="line"
-                  ></column-double-chart>
-                </v-col>
-              </v-row>
+              <column-double-chart
+                :fields="boundaryConditionFields"
+                :query="query"
+                :searches.sync="searches"
+                type="line"
+              ></column-double-chart>
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col sm="6">
+        <v-col cols="12" md="6">
           <v-card>
             <v-card-title>
               Column Depth [mm]
@@ -62,10 +51,23 @@
             <v-card-text>
               <column-double-chart
                 :color="colors.red"
-                :fields="[ColumnField.DC, ColumnField.Date]"
+                :fields="columnDepthFields"
                 :query="query"
                 :searches.sync="searches"
               ></column-double-chart>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12">
+          <v-card>
+            <v-card-title>Steel Material</v-card-title>
+            <v-card-text>
+              <column-single-chart
+                :color="colors.green"
+                :field="ColumnField.SteelC"
+                :query="query"
+                :searches.sync="searches"
+              ></column-single-chart>
             </v-card-text>
           </v-card>
         </v-col>
@@ -85,6 +87,7 @@ import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
 import { Component, Vue } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
+import { DoubleFields } from "../commons/charts/DoubleChart.vue";
 
 @Component({
   components: {
@@ -105,6 +108,20 @@ export default class ColumnDashboard extends Vue {
     { id: ColumnField.BFOverTCf },
     { id: ColumnField.LBOverRYc },
     { id: ColumnField.PGOverPYm },
+  ];
+  readonly boundaryConditionFields: DoubleFields<ColumnField> = [
+    ColumnField.Date,
+    ColumnField.BoundaryCondition,
+  ];
+  readonly columnDepthFields: DoubleFields<ColumnField> = [
+    ColumnField.DC,
+    {
+      id: ColumnField.BuiltUp,
+      mapping: new Map([
+        ["False", "Hot Rolled"],
+        ["True", "Built Up"],
+      ]),
+    },
   ];
 
   search = "";

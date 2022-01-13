@@ -8,7 +8,7 @@ from typing import Any, Dict, Generic, List, Optional, Set, TypeVar, Union
 from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
 from pydantic.main import BaseModel
-from sqlalchemy import and_, desc, func, or_, select, tuple_
+from sqlalchemy import and_, desc, func, not_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import column_property
 from sqlalchemy.sql.schema import Column
@@ -82,7 +82,7 @@ class Api(ABC, Generic[D, M]):
             select([*columns, func.count()])
             .select_from(self.database_type)
             .where(and_(*where_clauses))
-            .group_by(func.grouping_sets(tuple_(*columns)))
+            .group_by(*columns)
         )
         return [
             CountModel(
@@ -191,15 +191,31 @@ class Api(ABC, Generic[D, M]):
         Get where clause
         """
         if ":" not in query:
-            return or_(
-                *[column.cast(String).ilike(query) for column in self.model_columns]
-            )
+            self.__get_global_predicate(query)
         key, expression = query.split(":", 2)
         column: Column[Any] = self.__get_column(key)
         return self.__get_predicate(column, expression)
 
+    def __get_global_predicate(self, expression: str) -> Any:
+        if expression.startswith("!"):
+            return or_(
+                *[
+                    column.cast(String).not_ilike(expression[1:])
+                    for column in self.model_columns
+                ]
+            )
+        else:
+            return or_(
+                *[
+                    column.cast(String).ilike(expression)
+                    for column in self.model_columns
+                ]
+            )
+
     @staticmethod
     def __get_predicate(column: Column[Any], expression: str) -> Any:
+        if expression.startswith("!"):
+            return not_(Api.__get_predicate(column, expression[1:]))
         if "," in expression:
             return column.in_(expression.split(","))
         if "<<" in expression:

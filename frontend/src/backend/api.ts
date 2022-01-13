@@ -41,7 +41,8 @@ export enum ColumnField {
     BoundaryCondition = 'boundary_condition',
     DirectionLp = 'direction_lp',
     PGOverPYm = 'p_g_over_p_ym',
-    Th80 = 'th_80'
+    Th80 = 'th_80',
+    BuiltUp = 'built_up'
 }
 
 /**
@@ -134,6 +135,12 @@ export interface ColumnModel {
      * @memberof ColumnModel
      */
     'th_80'?: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ColumnModel
+     */
+    'built_up': boolean;
 }
 /**
  * An enumeration.

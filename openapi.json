@@ -906,7 +906,8 @@
           "boundary_condition",
           "direction_lp",
           "p_g_over_p_ym",
-          "th_80"
+          "th_80",
+          "built_up"
         ],
         "type": "string",
         "description": "An enumeration."
@@ -926,7 +927,8 @@
           "steel_c",
           "boundary_condition",
           "direction_lp",
-          "p_g_over_p_ym"
+          "p_g_over_p_ym",
+          "built_up"
         ],
         "type": "object",
         "properties": {
@@ -985,6 +987,10 @@
           "th_80": {
             "title": "Th 80",
             "type": "number"
+          },
+          "built_up": {
+            "title": "Built Up",
+            "type": "boolean"
           }
         }
       },

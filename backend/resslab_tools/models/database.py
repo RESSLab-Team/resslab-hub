@@ -12,6 +12,7 @@ from sqlalchemy import (
     String,
     func,
     select,
+    text,
 )
 from sqlalchemy.orm import column_property
 
@@ -326,3 +327,5 @@ class Column(Base):
     cs_class_eu = Column(String, nullable=False)
     reference = Column(String, nullable=False)
     link = Column(String, nullable=False)
+
+    built_up = column_property(section_c.ilike(text("'%built_up%'")))

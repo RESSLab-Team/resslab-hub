@@ -130,7 +130,7 @@ import ConnectionTable from "@/components/connection/ConnectionTable.vue";
 import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
 import { Component, Vue } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
-import { DoubleField } from "../commons/charts/DoubleChart.vue";
+import { DoubleFields } from "../commons/charts/DoubleChart.vue";
 import { ParallelField } from "../commons/charts/SimpleParallelChart.vue";
 
 @Component({
@@ -178,7 +178,7 @@ export default class ConnectionDashboard extends Vue {
       name: "Connection\nType",
     },
   ];
-  readonly beamFields: [ConnectionField, DoubleField<ConnectionField>] = [
+  readonly beamFields: DoubleFields<ConnectionField> = [
     ConnectionField.DB,
     {
       id: ConnectionField.Slab,

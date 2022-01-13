@@ -12,7 +12,8 @@
     "boundary_condition": "Boundary Condition",
     "direction_lp": "Load Direction",
     "p_g_over_p_ym": "Pg / Py",
-    "th_80": "\u03B8p [rad]"
+    "th_80": "\u03B8p [rad]",
+    "built_up": "Column Section"
   },
   "connection": {
     "id": "ID",

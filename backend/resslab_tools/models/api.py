@@ -129,6 +129,8 @@ class ColumnModel(BaseModel):
     p_g_over_p_ym: Decimal
     th_80: Optional[Decimal]
 
+    built_up: bool
+
 
 ColumnField = Enum(
     "ColumnField",

@@ -3,7 +3,7 @@
     <v-card-title>
       <slot name="title"></slot>
     </v-card-title>
-    <v-responsive aspect-ratio="3.5" min-height="150">
+    <v-responsive aspect-ratio="4" min-height="100">
       <v-chart
         ref="chart"
         autoresize
