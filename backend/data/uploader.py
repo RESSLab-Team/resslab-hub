@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
+from data.common import CSV_ENCODING, CSV_MODE, get_abs_path
 from resslab_tools.models.database import Column as ColumnBase
 from resslab_tools.models.database import (
     Connection,
@@ -55,15 +56,6 @@ class Uploader(ABC):
         for filename in file_paths:
             self.upload_one(filename)
 
-    @staticmethod
-    def get_abs_path(file_path: str) -> str:
-        """
-        Get absolute path
-        """
-        abs_path = os.path.abspath(file_path)
-        print(f"uploading from {abs_path}")
-        return abs_path
-
 
 class TableUploader(Uploader):
     """
@@ -74,8 +66,8 @@ class TableUploader(Uploader):
         self.base_model = base_model
 
     def upload_one(self, file_path: str) -> None:
-        file_path = self.get_abs_path(file_path)
-        with open(file_path, "rt", encoding="unicode_escape") as file:
+        file_path = get_abs_path(file_path)
+        with open(file_path, CSV_MODE, encoding=CSV_ENCODING) as file:
             reader = csv.reader(file, strict=True)
             header = next(reader)  # skip header
             for row in reader:
@@ -101,7 +93,7 @@ class TableUploader(Uploader):
                 return False
             raise ValueError(f"unexpected {column.key}={value}")
         if isinstance(column.type, Integer):
-            return int(value)
+            return int(Decimal(value))
         if isinstance(column.type, (Float, Numeric)):
             return Decimal(value)
         return str(value)
@@ -121,7 +113,7 @@ class CsvFileUploader(Uploader):
         self.get_instance = get_instance
 
     def upload_one(self, file_path: str) -> None:
-        file_path = self.get_abs_path(file_path)
+        file_path = get_abs_path(file_path)
         filename = self.__get_filename(file_path)
         with open(file_path, "rt", encoding="utf-8") as file:
             reader = csv.reader(file, strict=True)

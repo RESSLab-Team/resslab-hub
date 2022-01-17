@@ -25,12 +25,24 @@
             "cwd": "${workspaceFolder}/frontend"
         },
         {
-            "name": "backend: data",
+            "name": "backend: data-uploader",
             "type": "python",
             "request": "launch",
-            "module": "data",
+            "module": "data.uploader",
             "args": [
                 "column",
+                "../../resslab-tools-data/columns/steel_columns.csv",
+            ],
+            "cwd": "${workspaceFolder}/backend",
+            "envFile": "${workspaceFolder}/secrets/.env"
+        },
+        {
+            "name": "backend: data-analyzer",
+            "type": "python",
+            "request": "launch",
+            "module": "data.analyzer",
+            "args": [
+                "../../resslab-tools-data/connections/connections.csv",
                 "../../resslab-tools-data/columns/steel_columns.csv",
             ],
             "cwd": "${workspaceFolder}/backend",
