@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import ColumnDashboard from "@/components/column/ColumnDashboard.vue";
+import ColumnDashboard from "@/components/columns/ColumnDashboard.vue";
 import { Component, Vue } from "vue-property-decorator";
 
 @Component({

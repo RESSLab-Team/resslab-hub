@@ -1034,11 +1034,19 @@
           "f_ycw",
           "f_ycf",
           "backing_bar",
-          "t_dp",
+          "electrode",
+          "w",
+          "h_t",
+          "f_cm",
+          "deck_ribs_orientation",
           "n_dp",
+          "t_dp",
           "t_dp_tot",
           "ru_rn_pl_n",
+          "ru_rn_el_m",
+          "ru_rn_pl_m",
           "g_max_g_y",
+          "reference",
           "global_count",
           "global_west_count",
           "panel_zone_count"
@@ -1067,11 +1075,13 @@
           "t_cf",
           "steel_c",
           "f_yc",
-          "t_dp",
+          "electrode",
           "n_dp",
+          "t_dp",
           "t_dp_tot",
           "ru_rn_pl_n",
           "g_max_g_y",
+          "reference",
           "global_count",
           "global_west_count",
           "panel_zone_count"
@@ -1170,13 +1180,33 @@
             "title": "Backing Bar",
             "type": "boolean"
           },
-          "t_dp": {
-            "title": "T Dp",
+          "electrode": {
+            "title": "Electrode",
+            "type": "string"
+          },
+          "w": {
+            "title": "W",
             "type": "number"
+          },
+          "h_t": {
+            "title": "H T",
+            "type": "number"
+          },
+          "f_cm": {
+            "title": "F Cm",
+            "type": "number"
+          },
+          "deck_ribs_orientation": {
+            "title": "Deck Ribs Orientation",
+            "type": "string"
           },
           "n_dp": {
             "title": "N Dp",
             "type": "integer"
+          },
+          "t_dp": {
+            "title": "T Dp",
+            "type": "number"
           },
           "t_dp_tot": {
             "title": "T Dp Tot",
@@ -1186,9 +1216,21 @@
             "title": "Ru Rn Pl N",
             "type": "number"
           },
+          "ru_rn_el_m": {
+            "title": "Ru Rn El M",
+            "type": "number"
+          },
+          "ru_rn_pl_m": {
+            "title": "Ru Rn Pl M",
+            "type": "number"
+          },
           "g_max_g_y": {
             "title": "G Max G Y",
             "type": "number"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
           },
           "global_count": {
             "title": "Global Count",
@@ -1218,10 +1260,15 @@
           "f_yc",
           "f_ycw",
           "f_ycf",
-          "t_dp",
+          "w",
+          "h_t",
+          "f_cm",
           "n_dp",
+          "t_dp",
           "t_dp_tot",
           "ru_rn_pl_n",
+          "ru_rn_el_m",
+          "ru_rn_pl_m",
           "g_max_g_y",
           "global_count",
           "global_west_count",

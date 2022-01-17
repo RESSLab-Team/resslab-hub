@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import ConnectionComponent from "@/components/connection/ConnectionComponent.vue";
+import ConnectionComponent from "@/components/connections/ConnectionComponent.vue";
 import { Component, Vue } from "vue-property-decorator";
 
 @Component({

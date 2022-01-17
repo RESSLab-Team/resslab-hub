@@ -188,11 +188,19 @@ export enum ConnectionField {
     FYcw = 'f_ycw',
     FYcf = 'f_ycf',
     BackingBar = 'backing_bar',
-    TDp = 't_dp',
+    Electrode = 'electrode',
+    W = 'w',
+    HT = 'h_t',
+    FCm = 'f_cm',
+    DeckRibsOrientation = 'deck_ribs_orientation',
     NDp = 'n_dp',
+    TDp = 't_dp',
     TDpTot = 't_dp_tot',
     RuRnPlN = 'ru_rn_pl_n',
+    RuRnElM = 'ru_rn_el_m',
+    RuRnPlM = 'ru_rn_pl_m',
     GMaxGY = 'g_max_g_y',
+    Reference = 'reference',
     GlobalCount = 'global_count',
     GlobalWestCount = 'global_west_count',
     PanelZoneCount = 'panel_zone_count'
@@ -344,16 +352,46 @@ export interface ConnectionModel {
     'backing_bar'?: boolean;
     /**
      * 
+     * @type {string}
+     * @memberof ConnectionModel
+     */
+    'electrode': string;
+    /**
+     * 
      * @type {number}
      * @memberof ConnectionModel
      */
-    't_dp': number;
+    'w'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'h_t'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_cm'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectionModel
+     */
+    'deck_ribs_orientation'?: string;
     /**
      * 
      * @type {number}
      * @memberof ConnectionModel
      */
     'n_dp': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_dp': number;
     /**
      * 
      * @type {number}
@@ -371,7 +409,25 @@ export interface ConnectionModel {
      * @type {number}
      * @memberof ConnectionModel
      */
+    'ru_rn_el_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'ru_rn_pl_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
     'g_max_g_y': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectionModel
+     */
+    'reference': string;
     /**
      * 
      * @type {number}
@@ -408,10 +464,15 @@ export enum ConnectionNumberField {
     FYc = 'f_yc',
     FYcw = 'f_ycw',
     FYcf = 'f_ycf',
-    TDp = 't_dp',
+    W = 'w',
+    HT = 'h_t',
+    FCm = 'f_cm',
     NDp = 'n_dp',
+    TDp = 't_dp',
     TDpTot = 't_dp_tot',
     RuRnPlN = 'ru_rn_pl_n',
+    RuRnElM = 'ru_rn_el_m',
+    RuRnPlM = 'ru_rn_pl_m',
     GMaxGY = 'g_max_g_y',
     GlobalCount = 'global_count',
     GlobalWestCount = 'global_west_count',

@@ -10,10 +10,13 @@
       </v-btn>
     </v-card-title>
     <v-card-text>
-      <property-item name="Publication">TODO</property-item>
-    </v-card-text>
-    <v-card-text v-if="carouselItemCount > 0">
+      <p v-if="link">
+        <property-item name="Publication">
+          <a :href="link" target="_blank">{{ link }}</a>
+        </property-item>
+      </p>
       <v-carousel
+        v-if="carouselItemCount > 0"
         :height="chartHeight"
         hide-delimiters
         :show-arrows="carouselItemCount > 1"
@@ -49,91 +52,100 @@
           ></simple-line-chart>
         </v-carousel-item>
       </v-carousel>
-    </v-card-text>
-    <v-card-text>
       <h2>Loading and geometric parameters</h2>
-      <property-item name="Loading protocol">
-        {{ connection.loading_protocol }}
-      </property-item>
-      <property-item name="Structural configuration">
-        {{ connection.specimen_type }}
-      </property-item>
-      <property-item name="Connection type">
-        {{ connection.connection_type }}
-      </property-item>
-      <property-item name="Beam cross section">
-        {{ connection.section_b }}
-      </property-item>
-      <property-item name="Column cross section">
-        {{ connection.section_c }}
-      </property-item>
-      <property-item
-        v-if="connection.t_dp_tot"
-        name="Doubler plate thickness"
-        unit="mm"
-      >
-        {{ connection.t_dp_tot }}
-      </property-item>
-      <property-item name="Beam flange-to-column flange weld electrode">
-        {{ connection.weld_electrode_type }}
-      </property-item>
-      <property-item name="Backing bar">
-        {{ backingBar }}
-      </property-item>
-    </v-card-text>
-    <v-card-text v-if="connection.slab">
-      <h2>Slab properties</h2>
-      <property-item name="Orientation of deck ribs">TODO</property-item>
-      <property-item name="Thickness" unit="mm">
-        {{ connection.ht }}
-      </property-item>
-      <property-item name="Width" unit="mm">
-        {{ connection.w }}
-      </property-item>
-      <property-item name="Concrete compressive strength" unit="MPa">
-        {{ connection.fc }}
-      </property-item>
-    </v-card-text>
-    <v-card-text>
+      <p>
+        <property-item name="Loading protocol">
+          {{ connection.loading_protocol }}
+        </property-item>
+        <property-item name="Structural configuration">
+          {{ connection.specimen_type }}
+        </property-item>
+        <property-item name="Connection type">
+          {{ connection.connection_type }}
+        </property-item>
+        <property-item name="Beam cross section">
+          {{ connection.section_b }}
+        </property-item>
+        <property-item name="Column cross section">
+          {{ connection.section_c }}
+        </property-item>
+        <property-item
+          v-if="connection.t_dp_tot"
+          name="Doubler plate thickness"
+          unit="mm"
+        >
+          {{ connection.t_dp_tot }}
+        </property-item>
+        <property-item name="Beam flange-to-column flange weld electrode">
+          {{ connection.electrode | formatNumber() }}
+        </property-item>
+        <property-item name="Backing bar">
+          {{ backingBar }}
+        </property-item>
+      </p>
+      <template v-if="connection.slab">
+        <h2>Slab properties</h2>
+        <p>
+          <property-item name="Orientation of deck ribs">
+            {{ connection.deck_ribs_orientation }}
+          </property-item>
+          <property-item name="Thickness" unit="mm">
+            {{ connection.h_t | formatNumber() }}
+          </property-item>
+          <property-item name="Width" unit="mm">
+            {{ connection.w | formatNumber() }}
+          </property-item>
+          <property-item name="Concrete compressive strength" unit="MPa">
+            {{ connection.f_cm | formatNumber(1) }}
+          </property-item>
+        </p>
+      </template>
       <h2>Steel material designation</h2>
       <v-row>
         <v-col>
           <h3>Beam</h3>
-          <property-item name="Steel type">
-            {{ connection.steel_b }}
-          </property-item>
-          <property-item name="Nominal yield stress" unit="MPa">
-            {{ connection.f_yb | formatNumber(0) }}
-          </property-item>
-          <property-item name="Measured yield stress (flange)" unit="MPa">
-            {{ connection.f_ybf | formatNumber(1) }}
-          </property-item>
-          <property-item name="Measured yield stress (web)" unit="MPa">
-            {{ connection.f_ybw | formatNumber(1) }}
-          </property-item>
+          <p>
+            <property-item name="Steel type">
+              {{ connection.steel_b }}
+            </property-item>
+            <property-item name="Nominal yield stress" unit="MPa">
+              {{ connection.f_yb | formatNumber(0) }}
+            </property-item>
+            <property-item name="Measured yield stress (flange)" unit="MPa">
+              {{ connection.f_ybf | formatNumber(1) }}
+            </property-item>
+            <property-item name="Measured yield stress (web)" unit="MPa">
+              {{ connection.f_ybw | formatNumber(1) }}
+            </property-item>
+          </p>
         </v-col>
         <v-col>
           <h3>Column</h3>
-          <property-item name="Steel type">
-            {{ connection.steel_c }}
-          </property-item>
-          <property-item name="Nominal yield stress" unit="MPa">
-            {{ connection.f_yc | formatNumber(0) }}
-          </property-item>
-          <property-item name="Measured yield stress (flange)" unit="MPa">
-            {{ connection.f_ycf | formatNumber(1) }}
-          </property-item>
-          <property-item name="Measured yield stress (web)" unit="MPa">
-            {{ connection.f_ycw | formatNumber(1) }}
-          </property-item>
+          <p>
+            <property-item name="Steel type">
+              {{ connection.steel_c }}
+            </property-item>
+            <property-item name="Nominal yield stress" unit="MPa">
+              {{ connection.f_yc | formatNumber(0) }}
+            </property-item>
+            <property-item name="Measured yield stress (flange)" unit="MPa">
+              {{ connection.f_ycf | formatNumber(1) }}
+            </property-item>
+            <property-item name="Measured yield stress (web)" unit="MPa">
+              {{ connection.f_ycw | formatNumber(1) }}
+            </property-item>
+          </p>
         </v-col>
       </v-row>
-    </v-card-text>
-    <v-card-text>
-      <h2>Design parameters</h2>
-      <property-item name="Panel zone strength ratio">TODO</property-item>
-      <property-item name="Vpz,m/Rpz,el">TODO</property-item>
-      <property-item name="Vpz,m/Rpz,pl">TODO</property-item>
+      <h2>Panel zone strength ratio</h2>
+      <p>
+        <property-item name="Vpz,m/Rpz,el">
+          {{ connection.ru_rn_el_m | formatNumber() }}
+        </property-item>
+        <property-item name="Vpz,m/Rpz,pl">
+          {{ connection.ru_rn_pl_m | formatNumber() }}
+        </property-item>
+      </p>
     </v-card-text>
   </v-card>
 </template>
@@ -164,6 +176,8 @@ import colors from "vuetify/lib/util/colors";
       fractionDigits: number | undefined
     ): string {
       if (value === null) {
+        return "Not Applicable";
+      } else if (isNaN(value)) {
         return "Not Reported";
       } else {
         return value.toFixed(fractionDigits);
@@ -214,6 +228,13 @@ export default class ConnectionDetail extends Vue {
       return "";
     }
     return this.connection.backing_bar ? "kept in place" : "removed";
+  }
+
+  get link(): string | undefined {
+    const matches: string[] | null =
+      this.connection.reference.match(/\bhttps?:\/\/\S+/gi);
+    const link: string | undefined = matches ? matches[0] : undefined;
+    return link?.replace(/\.$/, "");
   }
 
   onClose(): void {

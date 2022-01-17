@@ -122,11 +122,11 @@
 <script lang="ts">
 import { ConnectionField, ConnectionModel } from "@/backend";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import ConnectionDoubleChart from "@/components/connection/charts/ConnectionDoubleChart.vue";
-import ConnectionParallelChart from "@/components/connection/charts/ConnectionParallelChart.vue";
-import ConnectionSingleChart from "@/components/connection/charts/ConnectionSingleChart.vue";
-import ConnectionDetail from "@/components/connection/ConnectionDetail.vue";
-import ConnectionTable from "@/components/connection/ConnectionTable.vue";
+import ConnectionDoubleChart from "@/components/connections/charts/ConnectionDoubleChart.vue";
+import ConnectionParallelChart from "@/components/connections/charts/ConnectionParallelChart.vue";
+import ConnectionSingleChart from "@/components/connections/charts/ConnectionSingleChart.vue";
+import ConnectionDetail from "@/components/connections/ConnectionDetail.vue";
+import ConnectionTable from "@/components/connections/ConnectionTable.vue";
 import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
 import { Component, Vue } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";

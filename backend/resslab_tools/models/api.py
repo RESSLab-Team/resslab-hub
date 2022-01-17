@@ -56,11 +56,19 @@ class ConnectionModel(BaseModel):
     f_ycw: Optional[Decimal]
     f_ycf: Optional[Decimal]
     backing_bar: Optional[bool]
-    t_dp: Decimal
+    electrode: str
+    w: Optional[Decimal]
+    h_t: Optional[Decimal]
+    f_cm: Optional[Decimal]
+    deck_ribs_orientation: Optional[str]
     n_dp: int
+    t_dp: Decimal
     t_dp_tot: Decimal
     ru_rn_pl_n: Decimal
+    ru_rn_el_m: Optional[Decimal]
+    ru_rn_pl_m: Optional[Decimal]
     g_max_g_y: Decimal
+    reference: str
 
     global_count: int
     global_west_count: int

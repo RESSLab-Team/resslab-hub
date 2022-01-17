@@ -78,10 +78,10 @@
 
 <script lang="ts">
 import { ColumnField, ColumnModel } from "@/backend";
-import ColumnDoubleChart from "@/components/column/charts/ColumnDoubleChart.vue";
-import ColumnParallelChart from "@/components/column/charts/ColumnParallelChart.vue";
-import ColumnSingleChart from "@/components/column/charts/ColumnSingleChart.vue";
-import ColumnTable from "@/components/column/ColumnTable.vue";
+import ColumnDoubleChart from "@/components/columns/charts/ColumnDoubleChart.vue";
+import ColumnParallelChart from "@/components/columns/charts/ColumnParallelChart.vue";
+import ColumnSingleChart from "@/components/columns/charts/ColumnSingleChart.vue";
+import ColumnTable from "@/components/columns/ColumnTable.vue";
 import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
