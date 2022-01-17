@@ -126,5 +126,41 @@
       currently under development. Stay tuned for future updates of both
       datasets and developed tools.
     </p>
+    <v-carousel cycle v-model="imageIndex">
+      <v-carousel-item v-for="(image, index) in images" :key="index">
+        <v-img :src="image.src" contain height="100%" width="100%"></v-img>
+      </v-carousel-item>
+    </v-carousel>
+    <p class="text-right">Credit: {{ images[imageIndex].credit }}</p>
   </v-container>
 </template>
+
+<script lang="ts">
+import { publicPath } from "@/utils/common";
+import { Component, Vue } from "vue-property-decorator";
+
+@Component
+export default class Home extends Vue {
+  readonly images: Image[] = [
+    "El Jisr and Lignos (2022)",
+    "Elkady and Lignos (2018)",
+    "Prof. Dimitrios Lignos, EPFL",
+    "Andronikos Skiadopoulos, EPFL",
+    "Suzuki and Lignos (2021)",
+    "Skiadopoulos and Lignos (2022)",
+    "Elkady and Lignos (2018)",
+    "Andronikos Skiadopoulos, EPFL",
+    "Prof. Dimitrios Lignos, EPFL",
+    "Left, Prof. Michael Engelhardt, UT Austin, Right, Hartloper et al. (2021)",
+  ].map((credit, index) => ({
+    src: publicPath + `img/home/Photo${index + 1}.jpg`,
+    credit: credit,
+  }));
+  imageIndex = 0;
+}
+
+interface Image {
+  src: string;
+  credit: string;
+}
+</script>
