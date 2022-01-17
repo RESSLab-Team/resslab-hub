@@ -62,25 +62,39 @@ class TableUploader(Uploader):
     Uploader from csv to table (csv header and table column name should match)
     """
 
-    def __init__(self, base_model: Any) -> None:
+    def __init__(self, base_model: Any, id_column_key: str = "id") -> None:
         self.base_model = base_model
+        self.id_column_key = id_column_key
+        self.id_column = base_model.__dict__[id_column_key]
 
     def upload_one(self, file_path: str) -> None:
         file_path = get_abs_path(file_path)
         with open(file_path, CSV_MODE, encoding=CSV_ENCODING) as file:
             reader = csv.reader(file, strict=True)
-            header = next(reader)  # skip header
+            headers = next(reader)
+            id_index = headers.index(self.id_column_key)
+            ids = []
+            # add new rows
             for row in reader:
+                ids.append(row[id_index])
                 data = {
-                    column.key: self.__get_value(column, header, row)
+                    column.key: self.__get_value(column, headers, row)
                     for column in self.base_model.__table__.c
                 }
                 session.merge(self.base_model(**data))
+            # remove outdated rows
+            database_ids = [row[0] for row in session.query(self.id_column).all()]
+            removed_ids = set(database_ids) - set(ids)
+            if removed_ids:
+                session.execute(
+                    delete(self.base_model).where(self.id_column.in_(removed_ids)),
+                )
+                print(f"deleted {removed_ids}")
         session.commit()
 
     @staticmethod
-    def __get_value(column: Column, header: List[str], row: List[str]) -> Any:
-        index = header.index(column.key or "")
+    def __get_value(column: Column, headers: List[str], row: List[str]) -> Any:
+        index = headers.index(column.key or "")
         value = row[index]
         if value == "NA":
             return None
