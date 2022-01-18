@@ -11,6 +11,7 @@ from pydantic.main import BaseModel
 from sqlalchemy import and_, desc, func, not_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import column_property
+from sqlalchemy.sql.elements import BooleanClauseList, ColumnElement
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.selectable import Select
 from sqlalchemy.sql.sqltypes import BigInteger, Boolean, Float, Integer, Numeric, String
@@ -57,8 +58,8 @@ class Api(ABC, Generic[D, M]):
         sort_by: List[str],
         sort_desc: List[bool],
     ) -> Page[M]:
-        where_clauses: List[Any] = self.__get_where_clauses(query)
-        order_clauses: List[Any] = [
+        where_clauses = self.__get_where_clauses(query)
+        order_clauses = [
             desc(self.__get_column(key)) if is_desc else self.__get_column(key)
             for key, is_desc in zip(sort_by, sort_desc)
         ]
@@ -76,7 +77,7 @@ class Api(ABC, Generic[D, M]):
         fields: List[str],
         query: Optional[str],
     ) -> List[CountModel]:
-        where_clauses: List[Any] = self.__get_where_clauses(query)
+        where_clauses = self.__get_where_clauses(query)
         columns = [self.database_type.__dict__[field] for field in fields]
         rows = await session.execute(
             select([*columns, func.count()])
@@ -111,7 +112,7 @@ class Api(ABC, Generic[D, M]):
         fields: List[str],
         query: Optional[str],
     ) -> MatrixModel:
-        where_clauses: List[Any] = self.__get_where_clauses(query)
+        where_clauses = self.__get_where_clauses(query)
         columns = [self.__get_column(field) for field in fields]
         rows = await session.execute(
             select([self.id_column, *columns]).where(and_(*where_clauses))
@@ -180,23 +181,25 @@ class Api(ABC, Generic[D, M]):
     def __get_column(self, key: str) -> Column[Any]:
         return self.database_type.__dict__[key]
 
-    def __get_where_clauses(self, query: Optional[str]) -> List[Any]:
+    def __get_where_clauses(
+        self, query: Optional[str]
+    ) -> List[Union[BooleanClauseList, ColumnElement]]:
         """
         Get where clauses
         """
         return [self.__get_where_clause(q) for q in query.split(";")] if query else []
 
-    def __get_where_clause(self, query: str) -> Any:
+    def __get_where_clause(self, query: str) -> Union[BooleanClauseList, ColumnElement]:
         """
         Get where clause
         """
         if ":" not in query:
-            self.__get_global_predicate(query)
+            return self.__get_global_predicate(query)
         key, expression = query.split(":", 2)
         column: Column[Any] = self.__get_column(key)
         return self.__get_predicate(column, expression)
 
-    def __get_global_predicate(self, expression: str) -> Any:
+    def __get_global_predicate(self, expression: str) -> BooleanClauseList:
         if expression.startswith("!"):
             return or_(
                 *[
@@ -213,7 +216,9 @@ class Api(ABC, Generic[D, M]):
             )
 
     @staticmethod
-    def __get_predicate(column: Column[Any], expression: str) -> Any:
+    def __get_predicate(
+        column: Column[Any], expression: str
+    ) -> Union[BooleanClauseList, ColumnElement]:
         if expression.startswith("!"):
             return not_(Api.__get_predicate(column, expression[1:]))
         if "," in expression:
