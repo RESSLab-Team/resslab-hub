@@ -10,9 +10,12 @@
       </v-btn>
     </v-card-title>
     <v-card-text>
-      <p v-if="link">
+      <p>
         <property-item name="Publication">
-          <a :href="link" target="_blank">{{ link }}</a>
+          <a v-if="link" :href="link" target="_blank">
+            {{ connection.reference }}
+          </a>
+          <span v-else>{{ connection.reference }}</span>
         </property-item>
       </p>
       <v-carousel
@@ -77,7 +80,7 @@
           {{ connection.t_dp_tot }}
         </property-item>
         <property-item name="Beam flange-to-column flange weld electrode">
-          {{ connection.electrode | formatNumber() }}
+          {{ connection.electrode | formatString }}
         </property-item>
         <property-item name="Backing bar">
           {{ backingBar }}
@@ -140,10 +143,10 @@
       <h2>Panel zone strength ratio</h2>
       <p>
         <property-item name="Vpz,m/Rpz,el">
-          {{ connection.ru_rn_el_m | formatNumber() }}
+          {{ connection.ru_rn_el_m | formatNumber(2) }}
         </property-item>
         <property-item name="Vpz,m/Rpz,pl">
-          {{ connection.ru_rn_pl_m | formatNumber() }}
+          {{ connection.ru_rn_pl_m | formatNumber(2) }}
         </property-item>
       </p>
     </v-card-text>
@@ -181,6 +184,15 @@ import colors from "vuetify/lib/util/colors";
         return "Not Reported";
       } else {
         return value.toFixed(fractionDigits);
+      }
+    },
+    formatString: function (value: string | null): string {
+      if (value === null) {
+        return "Not Applicable";
+      } else if (value === "NR") {
+        return "Not Reported";
+      } else {
+        return value;
       }
     },
   },
