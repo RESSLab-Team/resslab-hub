@@ -20,7 +20,24 @@
             :query="query"
           >
             <template v-slot:title>
-              <info-tooltip>Parallel Axis</info-tooltip>
+              Parallel View of all Tests
+              <info-tooltip>
+                <p>
+                  In this parallel coordinate plots, you can view all available
+                  tests in the database, ordered according to key variables.
+                  Each line represents a single test.
+                </p>
+                How to use?
+                <ul>
+                  <li>
+                    Filter a subset of the data by selecting values on the
+                    vertical axis directly
+                  </li>
+                  <li>
+                    Select a specific test by clicking on the respective line.
+                  </li>
+                </ul>
+              </info-tooltip>
             </template>
           </connection-parallel-chart>
         </v-col>
@@ -40,7 +57,26 @@
           <v-card>
             <v-card-title>
               Connection Type
-              <info-tooltip>Connection Type</info-tooltip>
+              <info-tooltip>
+                <p>
+                  This rectangle below displays the proportion of each
+                  connection type in the database. Connection types are
+                  categorised according to AISC-358-16 Prequalified connections.
+                  See also the evolution of connection types studied over the
+                  years on the right.
+                </p>
+                How to use?
+                <ul>
+                  <li>
+                    See the connection type drawing by hovering over the
+                    corresponding type in the rectangle
+                  </li>
+                  <li>
+                    Filter the Database for a specific connection type or dates
+                    by clicking on the rectangle of using the dates sliders
+                  </li>
+                </ul>
+              </info-tooltip>
             </v-card-title>
             <v-card-text>
               <v-row>
@@ -70,7 +106,22 @@
           <v-card>
             <v-card-title>
               Beam Depth [mm]
-              <info-tooltip>Beam Depth [mm]</info-tooltip>
+              <info-tooltip>
+                <p>
+                  This histogram displays the distribution of all available beam
+                  depths in the Database. Beam depth is the full depth of the
+                  bare cross section even in case of composite-steel cross
+                  sections.
+                </p>
+                How to use?
+                <ul>
+                  <li>
+                    Filter database for specific beam sizes, by clicking on a
+                    bar or using the slider below
+                  </li>
+                  <li>Filter for Bare/Composite by clicking on the legend.</li>
+                </ul>
+              </info-tooltip>
             </v-card-title>
             <v-card-text>
               <connection-double-chart
@@ -86,7 +137,23 @@
           <v-card>
             <v-card-title>
               Column Depth [mm]
-              <info-tooltip>Column Depth [mm]</info-tooltip>
+              <info-tooltip>
+                <p>
+                  This histogram displays the distribution of column depths in
+                  the Database.
+                </p>
+                How to use?
+                <ul>
+                  <li>
+                    Filter database for specific column depths, by clicking on a
+                    bar or using the slider below
+                  </li>
+                  <li>
+                    Filter database depending on the presence of doubler plates
+                    welded in the panel zone (0/1/2) by clicking on the legend.
+                  </li>
+                </ul>
+              </info-tooltip>
             </v-card-title>
             <v-card-text>
               <connection-double-chart
@@ -101,8 +168,26 @@
         <v-col cols="12">
           <v-card>
             <v-card-title>
-              Steel Material
-              <info-tooltip>Steel Material</info-tooltip>
+              Steel Material Type
+              <info-tooltip>
+                <p>
+                  This rectangle below displays the proportion of each steel
+                  material in the database. Steel materials are defined
+                  according to the respective region of origin.
+                </p>
+                How to use?
+                <ul>
+                  <li>
+                    See the available steel materials and by hovering over the
+                    corresponding material in the rectangle you can see how many
+                    tests are available per steel material type
+                  </li>
+                  <li>
+                    Filter the Database for a specific steel material type by
+                    clicking on the rectangle of using the dates sliders
+                  </li>
+                </ul>
+              </info-tooltip>
             </v-card-title>
             <v-card-text>
               <connection-single-chart

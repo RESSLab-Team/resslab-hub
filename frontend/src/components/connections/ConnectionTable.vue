@@ -4,13 +4,42 @@
     :get-counts="getCounts"
     :get-files="getFiles"
     :get-page="getPage"
-    title="Connections"
     prefix="connection."
     :query="query"
     :search.sync="globalSearch"
     :searches.sync="columnSearches"
     @click="click"
   >
+    <template v-slot:title>
+      Connections
+      <info-tooltip>
+        <p>
+          The Connections Database presents data from early 1970s on
+          beam-to-column connections under reversed cyclic and monotonic
+          loading. The primary data involve the global behavior of the
+          connection and the decomposed panel zone shear versus shear
+          distortion, deduced beam end moment versus chord rotation, whenever
+          available.
+        </p>
+        How to use?
+        <ul>
+          <li>
+            Filter the table by making selections in the various plots around
+            the table, or by using the filters and dropdowns above the table
+            headers.
+          </li>
+          <li>Click on a row to see the data of a single test.</li>
+          <li>
+            Download specific tests results by selecting the test (left-most
+            column) and click "Download" below.
+          </li>
+          <li>
+            Share specific tests results by selecting the test (left-most
+            column) and click "Share" below.
+          </li>
+        </ul>
+      </info-tooltip>
+    </template>
     <template
       v-slot:[`column.header.item.connection_type`]="{ item, on, attrs }"
     >
@@ -37,6 +66,7 @@ import {
   CountModel,
   ExtendedPageConnectionModel,
 } from "@/backend";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SimpleTable, {
   Column,
   DownloadFile,
@@ -48,6 +78,7 @@ import { Component, Prop, PropSync, Vue } from "vue-property-decorator";
 
 @Component({
   components: {
+    InfoTooltip,
     SimpleTable,
   },
 })

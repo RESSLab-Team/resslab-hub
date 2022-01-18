@@ -7,7 +7,11 @@
     :query="query"
     :color="color"
     :get-matrix="getMatrix"
-  ></simple-parallel-chart>
+  >
+    <template v-slot:title>
+      <slot name="title"></slot>
+    </template>
+  </simple-parallel-chart>
 </template>
 
 <script lang="ts">
