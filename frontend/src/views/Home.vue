@@ -1,6 +1,11 @@
 <template>
   <v-container class="text-justify">
-    <v-img src="resslab_logo_v1.svg" contain max-height="128"></v-img>
+    <v-carousel v-model="imageIndex" cycle height="400">
+      <v-carousel-item v-for="(image, index) in images" :key="index">
+        <v-img :src="image.src" contain height="100%" width="100%"></v-img>
+      </v-carousel-item>
+    </v-carousel>
+    <p class="text-right">Credit: {{ images[imageIndex].credit }}</p>
     <h1>Introduction</h1>
     <p>
       Advancements in the design, assessment and retrofitting of structures
@@ -126,12 +131,7 @@
       currently under development. Stay tuned for future updates of both
       datasets and developed tools.
     </p>
-    <v-carousel cycle v-model="imageIndex">
-      <v-carousel-item v-for="(image, index) in images" :key="index">
-        <v-img :src="image.src" contain height="100%" width="100%"></v-img>
-      </v-carousel-item>
-    </v-carousel>
-    <p class="text-right">Credit: {{ images[imageIndex].credit }}</p>
+    <v-img src="resslab_logo_v1.svg" contain max-height="100"></v-img>
   </v-container>
 </template>
 
