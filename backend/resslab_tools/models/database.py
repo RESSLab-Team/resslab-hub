@@ -22,11 +22,31 @@ from resslab_tools.utils.database import Base
 DecimalFloat = Float(asdecimal=True)
 
 
-class ConnectionGlobal(Base):
-    """
-    Global
-    """
+class ConnectionBeam(Base):
+    __tablename__ = "connection_beam"
 
+    connection_id = Column(
+        String, ForeignKey("connection.id"), primary_key=True, index=True
+    )
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    chord_rotation = Column(Numeric, nullable=False)
+    moment = Column(Numeric, nullable=False)
+
+
+class ConnectionBeamWest(Base):
+    __tablename__ = "connection_beam_west"
+
+    connection_id = Column(
+        String, ForeignKey("connection.id"), primary_key=True, index=True
+    )
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    chord_rotation = Column(Numeric, nullable=False)
+    moment = Column(Numeric, nullable=False)
+
+
+class ConnectionGlobal(Base):
     __tablename__ = "connection_global"
 
     connection_id = Column(
@@ -39,10 +59,6 @@ class ConnectionGlobal(Base):
 
 
 class ConnectionGlobalWest(Base):
-    """
-    Global
-    """
-
     __tablename__ = "connection_global_west"
 
     connection_id = Column(
@@ -55,10 +71,6 @@ class ConnectionGlobalWest(Base):
 
 
 class ConnectionPanelZone(Base):
-    """
-    Panel Zone
-    """
-
     __tablename__ = "connection_panel_zone"
 
     connection_id = Column(
@@ -71,10 +83,6 @@ class ConnectionPanelZone(Base):
 
 
 class Connection(Base):
-    """
-    Connection
-    """
-
     __tablename__ = "connection"
 
     id = Column(String, primary_key=True)
@@ -187,7 +195,7 @@ class Connection(Base):
     wd = Column(Numeric, nullable=False)
     n_dp = Column(SmallInteger, nullable=False)
     t_dp = Column(Numeric, nullable=False)
-    t_dp_tot = Column(Numeric)  # nullable=False
+    t_dp_tot = Column(Numeric, nullable=False)
     t_p = Column(Numeric, nullable=False)
     t_cp = Column(Numeric, nullable=False)
     d_cp = Column(Numeric, nullable=False)
@@ -248,11 +256,27 @@ class Connection(Base):
     )
 
 
-class Column(Base):
-    """
-    Column
-    """
+class ColumnAxialShortening(Base):
+    __tablename__ = "column_axial_shortening"
 
+    column_id = Column(String, ForeignKey("column.id"), primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    chord_rotation = Column(Numeric, nullable=False)
+    axial_shortening = Column(Numeric, nullable=False)
+
+
+class ColumnMoment(Base):
+    __tablename__ = "column_moment"
+
+    column_id = Column(String, ForeignKey("column.id"), primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    chord_rotation = Column(Numeric, nullable=False)
+    moment = Column(Numeric, nullable=False)
+
+
+class ColumnEntity(Base):
     __tablename__ = "column"
 
     id = Column(String, primary_key=True)
@@ -287,9 +311,9 @@ class Column(Base):
     l_b_over_r_yc = Column(Numeric, nullable=False)
     k_xc = Column(Numeric, nullable=False)
     k_yc = Column(Numeric, nullable=False)
-    lamda_xc = Column(SmallInteger, nullable=False)
-    lamda_yc = Column(SmallInteger, nullable=False)
-    lamda_ltb = Column(Numeric, nullable=False)
+    lambda_xc = Column(SmallInteger, nullable=False)
+    lambda_yc = Column(SmallInteger, nullable=False)
+    lambda_ltb = Column(Numeric, nullable=False)
     steel_c = Column(String, nullable=False)
     r_y = Column(Numeric, nullable=False)
     r_t = Column(Numeric, nullable=False)
@@ -318,7 +342,7 @@ class Column(Base):
     p_g_over_p_yn = Column(Numeric, nullable=False)
     p_t_over_p_ym = Column(Numeric)
     p_c_over_p_ym = Column(Numeric, nullable=False)
-    p_c_over_p_yn = Column(Numeric)  # nullable=False
+    p_c_over_p_yn = Column(Numeric, nullable=False)
     p = Column(Integer, nullable=False)
     t_top_plate = Column(DecimalFloat, nullable=False)
     t_bottom_plate = Column(DecimalFloat, nullable=False)
@@ -347,8 +371,21 @@ class Column(Base):
     f_class_eu = Column(String, nullable=False)
     w_class_eu = Column(String, nullable=False)
     cs_class_eu = Column(String, nullable=False)
-    cfe = Column(Boolean)  # nullable=False
+    cfe = Column(Boolean, nullable=False)
     reference = Column(String, nullable=False)
     link = Column(String, nullable=False)
 
     built_up = column_property(section_c.ilike(text("'%built_up%'")))
+
+    axial_shortening_count = column_property(
+        select(func.count(ColumnAxialShortening.id))
+        .where(ColumnAxialShortening.column_id == id)
+        .correlate_except(ColumnAxialShortening)
+        .scalar_subquery()  # type: ignore
+    )
+    moment_count = column_property(
+        select(func.count(ColumnMoment.id))
+        .where(ColumnMoment.column_id == id)
+        .correlate_except(ColumnMoment)
+        .scalar_subquery()  # type: ignore
+    )

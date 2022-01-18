@@ -17,9 +17,13 @@ from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
 from data.common import CSV_ENCODING, CSV_MODE, get_abs_path
-from resslab_tools.models.database import Column as ColumnBase
 from resslab_tools.models.database import (
+    ColumnAxialShortening,
+    ColumnEntity,
+    ColumnMoment,
     Connection,
+    ConnectionBeam,
+    ConnectionBeamWest,
     ConnectionGlobal,
     ConnectionGlobalWest,
     ConnectionPanelZone,
@@ -32,7 +36,11 @@ session = Session(engine)
 
 class Type(Enum):
     COLUMN = "column"
+    COLUMN_AXIAL_SHORTENING = "column-axial-shortening"
+    COLUMN_MOMENT = "column-moment"
     CONNECTION = "connection"
+    CONNECTION_BEAM = "connection-beam"
+    CONNECTION_BEAM_WEST = "connection-beam-west"
     CONNECTION_GLOBAL = "connection-global"
     CONNECTION_GLOBAL_WEST = "connection-global-west"
     CONNECTION_PANEL_ZONE = "connection-panel-zone"
@@ -157,9 +165,53 @@ def main():
     filenames: List[str] = args.filenames
 
     if input_type == Type.COLUMN:
-        uploader = TableUploader(ColumnBase)
+        uploader = TableUploader(ColumnEntity)
     elif input_type == Type.CONNECTION:
         uploader = TableUploader(Connection)
+    elif input_type == Type.COLUMN_AXIAL_SHORTENING:
+        uploader = CsvFileUploader(
+            lambda id: delete(ColumnAxialShortening).where(
+                ColumnAxialShortening.column_id == id
+            ),
+            lambda id, index, value: ColumnAxialShortening(
+                column_id=id,
+                id=index,
+                chord_rotation=value[0],
+                axial_shortening=value[1],
+            ),
+        )
+    elif input_type == Type.COLUMN_MOMENT:
+        uploader = CsvFileUploader(
+            lambda id: delete(ColumnMoment).where(ColumnMoment.column_id == id),
+            lambda id, index, value: ColumnMoment(
+                column_id=id,
+                id=index,
+                chord_rotation=value[0],
+                moment=value[1],
+            ),
+        )
+    elif input_type == Type.CONNECTION_BEAM:
+        uploader = CsvFileUploader(
+            lambda id: delete(ConnectionBeam).where(ConnectionBeam.connection_id == id),
+            lambda id, index, value: ConnectionBeam(
+                connection_id=id,
+                id=index,
+                chord_rotation=value[0],
+                moment=value[1],
+            ),
+        )
+    elif input_type == Type.CONNECTION_BEAM_WEST:
+        uploader = CsvFileUploader(
+            lambda id: delete(ConnectionBeamWest).where(
+                ConnectionBeamWest.connection_id == id
+            ),
+            lambda id, index, value: ConnectionBeamWest(
+                connection_id=id,
+                id=index,
+                chord_rotation=value[0],
+                moment=value[1],
+            ),
+        )
     elif input_type == Type.CONNECTION_GLOBAL:
         uploader = CsvFileUploader(
             lambda id: delete(ConnectionGlobal).where(

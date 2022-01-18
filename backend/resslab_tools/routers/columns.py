@@ -16,7 +16,7 @@ from resslab_tools.models.api import (
     MatrixModel,
     RangeModel,
 )
-from resslab_tools.models.database import Column
+from resslab_tools.models.database import ColumnEntity
 from resslab_tools.utils.common import Api
 from resslab_tools.utils.database import get_session
 from resslab_tools.utils.pagination import ExtendedPage
@@ -28,10 +28,13 @@ router = APIRouter(
 
 api = Api(
     "columns",
-    database_type=Column,
+    database_type=ColumnEntity,
     model_type=ColumnModel,
-    id_column=Column.id,
-    ignored_columns=set(),
+    id_column=ColumnEntity.id,
+    ignored_columns={
+        ColumnEntity.moment_count,
+        ColumnEntity.axial_shortening_count,
+    },
 )
 
 
