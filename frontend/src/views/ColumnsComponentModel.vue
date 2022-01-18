@@ -1,9 +1,10 @@
 <template>
   <div>
     <h1>Component Model</h1>
-    <p>
+    <p class="text-center">
       <v-icon>mdi-alert</v-icon>
-      Work in progress
+      Section under construction
+      <v-icon>mdi-alert</v-icon>
     </p>
   </div>
 </template>
