@@ -76,36 +76,43 @@
         </v-carousel-item>
       </v-carousel>
       <h2>Loading and geometric parameters</h2>
-      <p>
-        <property-item name="Loading protocol">
-          {{ connection.loading_protocol }}
-        </property-item>
-        <property-item name="Structural configuration">
-          {{ connection.specimen_type }}
-        </property-item>
-        <property-item name="Connection type">
-          {{ connection.connection_type }}
-        </property-item>
-        <property-item name="Beam cross section">
-          {{ connection.section_b }}
-        </property-item>
-        <property-item name="Column cross section">
-          {{ connection.section_c }}
-        </property-item>
-        <property-item
-          v-if="connection.t_dp_tot"
-          name="Doubler plate thickness"
-          unit="mm"
-        >
-          {{ connection.t_dp_tot }}
-        </property-item>
-        <property-item name="Beam flange-to-column flange weld electrode">
-          {{ connection.electrode | formatString }}
-        </property-item>
-        <property-item name="Backing bar">
-          {{ backingBar }}
-        </property-item>
-      </p>
+      <v-row>
+        <v-col cols="6">
+          <p>
+            <property-item name="Loading protocol">
+              {{ connection.loading_protocol }}
+            </property-item>
+            <property-item name="Structural configuration">
+              {{ connection.specimen_type }}
+            </property-item>
+            <property-item name="Connection type">
+              {{ connection.connection_type }}
+            </property-item>
+            <property-item name="Beam cross section">
+              {{ connection.section_b }}
+            </property-item>
+            <property-item name="Column cross section">
+              {{ connection.section_c }}
+            </property-item>
+            <property-item
+              v-if="connection.t_dp_tot"
+              name="Doubler plate thickness"
+              unit="mm"
+            >
+              {{ connection.t_dp_tot }}
+            </property-item>
+            <property-item name="Beam flange-to-column flange weld electrode">
+              {{ connection.electrode | formatString }}
+            </property-item>
+            <property-item name="Backing bar">
+              {{ backingBar }}
+            </property-item>
+          </p>
+        </v-col>
+        <v-col v-if="specimenTypeImageSrc" cols="6">
+          <v-img contain :src="specimenTypeImageSrc" max-height="160"></v-img>
+        </v-col>
+      </v-row>
       <template v-if="connection.slab">
         <h2>Slab properties</h2>
         <p>
@@ -184,6 +191,7 @@
 import { ConnectionModel } from "@/backend";
 import SimpleLineChart from "@/components/commons/charts/SimpleLineChart.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
+import { publicPath } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { Component, Prop, Vue } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
@@ -279,6 +287,21 @@ export default class ConnectionDetail extends Vue {
       this.connection.reference.match(/\bhttps?:\/\/\S+/gi);
     const link: string | undefined = matches ? matches[0] : undefined;
     return link?.replace(/\.$/, "");
+  }
+
+  get specimenTypeImageSrc(): string {
+    switch (this.connection.specimen_type) {
+      case "Exterior - Beam Loaded - Subassembly":
+        return publicPath + "img/specimen-type/exterior-beam.svg";
+      case "Exterior - Column Loaded - Subassembly":
+        return publicPath + "img/specimen-type/exterior-column.svg";
+      case "Interior - Column Loaded - Subassembly":
+        return publicPath + "img/specimen-type/interior-column.svg";
+      case "Interior - Beam Loaded - Subassembly":
+        return publicPath + "img/specimen-type/interior-beam.svg";
+      default:
+        return "";
+    }
   }
 
   onClose(): void {
