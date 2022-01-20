@@ -54,6 +54,26 @@
             y-axis-name="Panel zone shear force [kN]"
           ></simple-line-chart>
         </v-carousel-item>
+        <v-carousel-item v-if="hasBeam">
+          <simple-line-chart
+            v-if="connection.beam_count > 0"
+            :color="color"
+            :max-width="chartHeight"
+            :promise="beamPromise"
+            title="Beam"
+            x-axis-name="Chord Rotation [rads]"
+            y-axis-name="Moment [kN-mm]"
+          ></simple-line-chart>
+          <simple-line-chart
+            v-if="connection.beam_west_count > 0"
+            :color="color"
+            :max-width="chartHeight"
+            :promise="beamWestPromise"
+            title="Beam West"
+            x-axis-name="Chord Rotation [rads]"
+            y-axis-name="Moment [kN-mm]"
+          ></simple-line-chart>
+        </v-carousel-item>
       </v-carousel>
       <h2>Loading and geometric parameters</h2>
       <p>
@@ -211,6 +231,10 @@ export default class ConnectionDetail extends Vue {
   @Prop(Object)
   readonly connection!: ConnectionModel;
 
+  get hasBeam(): boolean {
+    return this.connection.beam_count + this.connection.beam_west_count > 0;
+  }
+
   get hasGlobal(): boolean {
     return this.connection.global_count + this.connection.global_west_count > 0;
   }
@@ -223,8 +247,16 @@ export default class ConnectionDetail extends Vue {
     return [this.hasGlobal, this.hasPanelZone].filter((v) => v).length;
   }
 
+  get beamPromise(): Promise<AxiosResponse<number[][]>> {
+    return this.$connectionsApi.getConnectionsBeam(this.connection.id);
+  }
+
+  get beamWestPromise(): Promise<AxiosResponse<number[][]>> {
+    return this.$connectionsApi.getConnectionsBeamWest(this.connection.id);
+  }
+
   get globalPromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$connectionsApi.getConnectionsGlobals(this.connection.id);
+    return this.$connectionsApi.getConnectionsGlobal(this.connection.id);
   }
 
   get globalWestPromise(): Promise<AxiosResponse<number[][]>> {

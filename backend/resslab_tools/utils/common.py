@@ -25,7 +25,52 @@ D = TypeVar("D", bound=Base)
 M = TypeVar("M", bound=BaseModel)
 
 
-class Api(ABC, Generic[D, M]):
+class SubComponent:
+    def __init__(
+        self,
+        name: str,
+        parent_id_column: Column[String],
+        id_column: Column[BigInteger],
+        columns: Dict[Column[Numeric], str],
+    ) -> None:
+        self.name = name
+        self.parent_id_column = parent_id_column
+        self.id_column = id_column
+        self.columns = list(columns.keys())
+        self.column_names = list(columns.values())
+
+    async def get_series(
+        self,
+        session: AsyncSession,
+        parent_id: str,
+        size: int,
+    ) -> List[List[Decimal]]:
+        return await Component.get_series(
+            session,
+            select(self.columns)
+            .where(self.parent_id_column == parent_id)
+            .order_by(self.id_column),
+            self.id_column,
+            size,
+        )
+
+    async def get_csv(
+        self,
+        session: AsyncSession,
+        parent_id: str,
+    ) -> StreamingResponse:
+        filename = f"{self.name}-{parent_id}.csv"
+        return Component.get_csv_response(
+            session,
+            select(self.columns)
+            .where(self.parent_id_column == parent_id)
+            .order_by(self.id_column),
+            self.column_names,
+            filename,
+        )
+
+
+class Component(ABC, Generic[D, M]):
     def __init__(
         self,
         name: str,
@@ -136,6 +181,20 @@ class Api(ABC, Generic[D, M]):
             filename,
         )
 
+    def get_sub(
+        self,
+        name: str,
+        parent_id_column: Column[String],
+        id_column: Column[BigInteger],
+        columns: Dict[Column[Numeric], str],
+    ) -> SubComponent:
+        return SubComponent(
+            f"{self.name}-{name}",
+            parent_id_column,
+            id_column,
+            columns,
+        )
+
     @staticmethod
     async def get_series(
         session: AsyncSession,
@@ -163,7 +222,7 @@ class Api(ABC, Generic[D, M]):
         filename: str,
     ) -> StreamingResponse:
         return StreamingResponse(
-            Api.__get_csv_stream(
+            Component.__get_csv_stream(
                 session,
                 statement,
                 headers,
@@ -220,7 +279,7 @@ class Api(ABC, Generic[D, M]):
         column: Column[Any], expression: str
     ) -> Union[BooleanClauseList, ColumnElement]:
         if expression.startswith("!"):
-            return not_(Api.__get_predicate(column, expression[1:]))
+            return not_(Component.__get_predicate(column, expression[1:]))
         if "," in expression:
             return column.in_(expression.split(","))
         if "<<" in expression:
@@ -263,5 +322,5 @@ class Api(ABC, Generic[D, M]):
         async for partition in result.partitions(partition_size):
             for row in partition:
                 yield separator.join(
-                    [str(Api.__format_value(item)) for item in row]
+                    [str(Component.__format_value(item)) for item in row]
                 ) + "\n"

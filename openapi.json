@@ -596,14 +596,14 @@
         }
       }
     },
-    "/connections/{connection_id}/globals": {
+    "/connections/{connection_id}/beam": {
       "get": {
         "tags": [
           "connections"
         ],
-        "summary": "Get Connections Globals",
-        "description": "Get global series from connection",
-        "operationId": "get_connections_globals",
+        "summary": "Get Connections Beam",
+        "description": "Get beam series from connection",
+        "operationId": "get_connections_beam",
         "parameters": [
           {
             "required": true,
@@ -632,7 +632,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Connections Globals Connections  Connection Id  Globals Get",
+                  "title": "Response Get Connections Beam Connections  Connection Id  Beam Get",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -657,7 +657,201 @@
         }
       }
     },
-    "/connections/{connection_id}/globals/csv": {
+    "/connections/{connection_id}/beam/csv": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Connections Beam Csv",
+        "description": "Get beam csv from connection",
+        "operationId": "get_connections_beam_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "string"
+            },
+            "name": "connection_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/{connection_id}/beam-west": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Connections Beam West",
+        "description": "Get beam west series from connection",
+        "operationId": "get_connections_beam_west",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "string"
+            },
+            "name": "connection_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Connections Beam West Connections  Connection Id  Beam West Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/{connection_id}/beam-west/csv": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Connections Beam West Csv",
+        "description": "Get beam west csv from connection",
+        "operationId": "get_connections_beam_west_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "string"
+            },
+            "name": "connection_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/{connection_id}/global": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Connections Global",
+        "description": "Get global series from connection",
+        "operationId": "get_connections_global",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "string"
+            },
+            "name": "connection_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Connections Global Connections  Connection Id  Global Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/{connection_id}/global/csv": {
       "get": {
         "tags": [
           "connections"
@@ -1047,6 +1241,8 @@
           "ru_rn_pl_m",
           "g_max_g_y",
           "reference",
+          "beam_count",
+          "beam_west_count",
           "global_count",
           "global_west_count",
           "panel_zone_count"
@@ -1082,6 +1278,8 @@
           "ru_rn_pl_n",
           "g_max_g_y",
           "reference",
+          "beam_count",
+          "beam_west_count",
           "global_count",
           "global_west_count",
           "panel_zone_count"
@@ -1232,6 +1430,14 @@
             "title": "Reference",
             "type": "string"
           },
+          "beam_count": {
+            "title": "Beam Count",
+            "type": "integer"
+          },
+          "beam_west_count": {
+            "title": "Beam West Count",
+            "type": "integer"
+          },
           "global_count": {
             "title": "Global Count",
             "type": "integer"
@@ -1270,6 +1476,8 @@
           "ru_rn_el_m",
           "ru_rn_pl_m",
           "g_max_g_y",
+          "beam_count",
+          "beam_west_count",
           "global_count",
           "global_west_count",
           "panel_zone_count"

@@ -70,6 +70,8 @@ class ConnectionModel(BaseModel):
     g_max_g_y: Decimal
     reference: str
 
+    beam_count: int
+    beam_west_count: int
     global_count: int
     global_west_count: int
     panel_zone_count: int

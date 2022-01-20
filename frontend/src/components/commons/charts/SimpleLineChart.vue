@@ -50,10 +50,10 @@ export default class SimpleLineChart extends Vue {
         left: "center",
       },
       grid: {
-        left: 60,
+        left: 64,
         top: 32,
         right: 32,
-        bottom: 60,
+        bottom: 64,
       },
       xAxis: {
         name: this.xAxisName,
@@ -69,7 +69,7 @@ export default class SimpleLineChart extends Vue {
         nameTextStyle: {
           fontWeight: "bold",
         },
-        nameGap: 46,
+        nameGap: 50,
       },
       tooltip: {
         trigger: "axis",

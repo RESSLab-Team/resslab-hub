@@ -201,6 +201,8 @@ export enum ConnectionField {
     RuRnPlM = 'ru_rn_pl_m',
     GMaxGY = 'g_max_g_y',
     Reference = 'reference',
+    BeamCount = 'beam_count',
+    BeamWestCount = 'beam_west_count',
     GlobalCount = 'global_count',
     GlobalWestCount = 'global_west_count',
     PanelZoneCount = 'panel_zone_count'
@@ -433,6 +435,18 @@ export interface ConnectionModel {
      * @type {number}
      * @memberof ConnectionModel
      */
+    'beam_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'beam_west_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
     'global_count': number;
     /**
      * 
@@ -474,6 +488,8 @@ export enum ConnectionNumberField {
     RuRnElM = 'ru_rn_el_m',
     RuRnPlM = 'ru_rn_pl_m',
     GMaxGY = 'g_max_g_y',
+    BeamCount = 'beam_count',
+    BeamWestCount = 'beam_west_count',
     GlobalCount = 'global_count',
     GlobalWestCount = 'global_west_count',
     PanelZoneCount = 'panel_zone_count'
@@ -1148,6 +1164,152 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
+         * Get beam series from connection
+         * @summary Get Connections Beam
+         * @param {string} connectionId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsBeam: async (connectionId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'connectionId' is not null or undefined
+            assertParamExists('getConnectionsBeam', 'connectionId', connectionId)
+            const localVarPath = `/connections/{connection_id}/beam`
+                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get beam csv from connection
+         * @summary Get Connections Beam Csv
+         * @param {string} connectionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsBeamCsv: async (connectionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'connectionId' is not null or undefined
+            assertParamExists('getConnectionsBeamCsv', 'connectionId', connectionId)
+            const localVarPath = `/connections/{connection_id}/beam/csv`
+                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get beam west series from connection
+         * @summary Get Connections Beam West
+         * @param {string} connectionId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsBeamWest: async (connectionId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'connectionId' is not null or undefined
+            assertParamExists('getConnectionsBeamWest', 'connectionId', connectionId)
+            const localVarPath = `/connections/{connection_id}/beam-west`
+                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get beam west csv from connection
+         * @summary Get Connections Beam West Csv
+         * @param {string} connectionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsBeamWestCsv: async (connectionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'connectionId' is not null or undefined
+            assertParamExists('getConnectionsBeamWestCsv', 'connectionId', connectionId)
+            const localVarPath = `/connections/{connection_id}/beam-west/csv`
+                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get occurences count of field values
          * @summary Get Connections Counts
          * @param {Array<ConnectionField>} [fields] 
@@ -1223,6 +1385,45 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
+         * Get global series from connection
+         * @summary Get Connections Global
+         * @param {string} connectionId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsGlobal: async (connectionId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'connectionId' is not null or undefined
+            assertParamExists('getConnectionsGlobal', 'connectionId', connectionId)
+            const localVarPath = `/connections/{connection_id}/global`
+                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get global csv from connection
          * @summary Get Connections Global Csv
          * @param {string} connectionId 
@@ -1232,7 +1433,7 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
         getConnectionsGlobalCsv: async (connectionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getConnectionsGlobalCsv', 'connectionId', connectionId)
-            const localVarPath = `/connections/{connection_id}/globals/csv`
+            const localVarPath = `/connections/{connection_id}/global/csv`
                 .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1317,45 +1518,6 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Get global series from connection
-         * @summary Get Connections Globals
-         * @param {string} connectionId 
-         * @param {number} [size] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getConnectionsGlobals: async (connectionId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'connectionId' is not null or undefined
-            assertParamExists('getConnectionsGlobals', 'connectionId', connectionId)
-            const localVarPath = `/connections/{connection_id}/globals`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            if (size !== undefined) {
-                localVarQueryParameter['size'] = size;
-            }
 
 
     
@@ -1546,6 +1708,52 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get beam series from connection
+         * @summary Get Connections Beam
+         * @param {string} connectionId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getConnectionsBeam(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsBeam(connectionId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get beam csv from connection
+         * @summary Get Connections Beam Csv
+         * @param {string} connectionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getConnectionsBeamCsv(connectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsBeamCsv(connectionId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get beam west series from connection
+         * @summary Get Connections Beam West
+         * @param {string} connectionId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getConnectionsBeamWest(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsBeamWest(connectionId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get beam west csv from connection
+         * @summary Get Connections Beam West Csv
+         * @param {string} connectionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getConnectionsBeamWestCsv(connectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsBeamWestCsv(connectionId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get occurences count of field values
          * @summary Get Connections Counts
          * @param {Array<ConnectionField>} [fields] 
@@ -1566,6 +1774,18 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          */
         async getConnectionsCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsCsv(ids, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get global series from connection
+         * @summary Get Connections Global
+         * @param {string} connectionId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getConnectionsGlobal(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsGlobal(connectionId, size, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -1600,18 +1820,6 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          */
         async getConnectionsGlobalWestCsv(connectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsGlobalWestCsv(connectionId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * Get global series from connection
-         * @summary Get Connections Globals
-         * @param {string} connectionId 
-         * @param {number} [size] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getConnectionsGlobals(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsGlobals(connectionId, size, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -1685,6 +1893,48 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
             return localVarFp.getConnections(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get beam series from connection
+         * @summary Get Connections Beam
+         * @param {string} connectionId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsBeam(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getConnectionsBeam(connectionId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get beam csv from connection
+         * @summary Get Connections Beam Csv
+         * @param {string} connectionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsBeamCsv(connectionId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getConnectionsBeamCsv(connectionId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get beam west series from connection
+         * @summary Get Connections Beam West
+         * @param {string} connectionId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsBeamWest(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getConnectionsBeamWest(connectionId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get beam west csv from connection
+         * @summary Get Connections Beam West Csv
+         * @param {string} connectionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsBeamWestCsv(connectionId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getConnectionsBeamWestCsv(connectionId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get occurences count of field values
          * @summary Get Connections Counts
          * @param {Array<ConnectionField>} [fields] 
@@ -1704,6 +1954,17 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          */
         getConnectionsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
             return localVarFp.getConnectionsCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get global series from connection
+         * @summary Get Connections Global
+         * @param {string} connectionId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsGlobal(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getConnectionsGlobal(connectionId, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Get global csv from connection
@@ -1735,17 +1996,6 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          */
         getConnectionsGlobalWestCsv(connectionId: string, options?: any): AxiosPromise<void> {
             return localVarFp.getConnectionsGlobalWestCsv(connectionId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Get global series from connection
-         * @summary Get Connections Globals
-         * @param {string} connectionId 
-         * @param {number} [size] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getConnectionsGlobals(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
-            return localVarFp.getConnectionsGlobals(connectionId, size, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1816,6 +2066,56 @@ export class ConnectionsApi extends BaseAPI {
     }
 
     /**
+     * Get beam series from connection
+     * @summary Get Connections Beam
+     * @param {string} connectionId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public getConnectionsBeam(connectionId: string, size?: number, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getConnectionsBeam(connectionId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get beam csv from connection
+     * @summary Get Connections Beam Csv
+     * @param {string} connectionId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public getConnectionsBeamCsv(connectionId: string, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getConnectionsBeamCsv(connectionId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get beam west series from connection
+     * @summary Get Connections Beam West
+     * @param {string} connectionId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public getConnectionsBeamWest(connectionId: string, size?: number, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getConnectionsBeamWest(connectionId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get beam west csv from connection
+     * @summary Get Connections Beam West Csv
+     * @param {string} connectionId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public getConnectionsBeamWestCsv(connectionId: string, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getConnectionsBeamWestCsv(connectionId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Get occurences count of field values
      * @summary Get Connections Counts
      * @param {Array<ConnectionField>} [fields] 
@@ -1838,6 +2138,19 @@ export class ConnectionsApi extends BaseAPI {
      */
     public getConnectionsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get global series from connection
+     * @summary Get Connections Global
+     * @param {string} connectionId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public getConnectionsGlobal(connectionId: string, size?: number, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getConnectionsGlobal(connectionId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1875,19 +2188,6 @@ export class ConnectionsApi extends BaseAPI {
      */
     public getConnectionsGlobalWestCsv(connectionId: string, options?: AxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsGlobalWestCsv(connectionId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Get global series from connection
-     * @summary Get Connections Globals
-     * @param {string} connectionId 
-     * @param {number} [size] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ConnectionsApi
-     */
-    public getConnectionsGlobals(connectionId: string, size?: number, options?: AxiosRequestConfig) {
-        return ConnectionsApiFp(this.configuration).getConnectionsGlobals(connectionId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

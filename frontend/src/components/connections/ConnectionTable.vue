@@ -187,6 +187,28 @@ export default class ConnectionTable extends Vue {
         : [],
       types.includes(DownloadType.Test)
         ? [
+          ...selectedItems
+              .filter((item) => item.beam_count > 0)
+              .map((item) => item.id)
+              .map((id) =>
+                this.$connectionsApi
+                  .getConnectionsBeamCsv(id)
+                  .then((response) => ({
+                    filename: `connection-beam-${id}.csv`,
+                    content: response.data as unknown as string,
+                  }))
+              ),
+            ...selectedItems
+              .filter((item) => item.beam_west_count > 0)
+              .map((item) => item.id)
+              .map((id) =>
+                this.$connectionsApi
+                  .getConnectionsBeamWestCsv(id)
+                  .then((response) => ({
+                    filename: `connection-beam-west-${id}.csv`,
+                    content: response.data as unknown as string,
+                  }))
+              ),
             ...selectedItems
               .filter((item) => item.global_count > 0)
               .map((item) => item.id)

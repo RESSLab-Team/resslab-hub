@@ -236,6 +236,18 @@ class Connection(Base):
     g_max_g_y = Column(Numeric, nullable=False)
     reference = Column(String, nullable=False)
 
+    beam_count = column_property(
+        select(func.count(ConnectionBeam.id))
+        .where(ConnectionBeam.connection_id == id)
+        .correlate_except(ConnectionBeam)
+        .scalar_subquery()  # type: ignore
+    )
+    beam_west_count = column_property(
+        select(func.count(ConnectionBeamWest.id))
+        .where(ConnectionBeamWest.connection_id == id)
+        .correlate_except(ConnectionBeamWest)
+        .scalar_subquery()  # type: ignore
+    )
     global_count = column_property(
         select(func.count(ConnectionGlobal.id))
         .where(ConnectionGlobal.connection_id == id)

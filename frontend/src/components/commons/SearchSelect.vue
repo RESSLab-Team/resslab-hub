@@ -24,7 +24,7 @@
 
 <script lang="ts">
 import { SelectItem } from "@/utils/vuetify";
-import { Component, Prop, VModel, Vue } from "vue-property-decorator";
+import { Component, Prop, VModel, Vue, Watch } from "vue-property-decorator";
 
 @Component
 export default class SearchSelect extends Vue {
@@ -46,6 +46,11 @@ export default class SearchSelect extends Vue {
       const value = typeof item === "string" ? item : item.text.toString();
       return value.toLowerCase().includes(substring);
     });
+  }
+
+  @Watch("items")
+  onItemsChanged(): void {
+    this.search = null;
   }
 }
 </script>

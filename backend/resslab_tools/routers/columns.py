@@ -17,7 +17,7 @@ from resslab_tools.models.api import (
     RangeModel,
 )
 from resslab_tools.models.database import ColumnEntity
-from resslab_tools.utils.common import Api
+from resslab_tools.utils.common import Component
 from resslab_tools.utils.database import get_session
 from resslab_tools.utils.pagination import ExtendedPage
 
@@ -26,7 +26,7 @@ router = APIRouter(
     tags=["columns"],
 )
 
-api = Api(
+api = Component(
     "columns",
     database_type=ColumnEntity,
     model_type=ColumnModel,

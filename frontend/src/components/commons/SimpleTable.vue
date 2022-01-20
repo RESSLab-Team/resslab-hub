@@ -203,6 +203,10 @@ import { DataOptions, DataTableHeader } from "vuetify";
   },
 })
 export default class SimpleTable<T, P extends Page<T>> extends Vue {
+  $refs!: {
+    downloadDialog: CheckboxDialog<DownloadType>;
+    snackbar: Snackbar;
+  };
   readonly booleanOptions = booleanOptions;
 
   @Prop({ type: String, default: "" })
@@ -271,11 +275,11 @@ export default class SimpleTable<T, P extends Page<T>> extends Vue {
   }
 
   get snackbar(): Snackbar {
-    return this.$refs.snackbar as Snackbar;
+    return this.$refs.snackbar;
   }
 
   get downloadDialog(): CheckboxDialog<DownloadType> {
-    return this.$refs.downloadDialog as CheckboxDialog<DownloadType>;
+    return this.$refs.downloadDialog;
   }
 
   created(): void {
