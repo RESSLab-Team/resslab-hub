@@ -32,10 +32,11 @@ async def paginate(
     params = resolve_params(params)
 
     total = await session.scalar(select(func.count()).select_from(query.subquery()))
-    items = await session.execute(paginate_query(query, params))
+    result = await session.execute(paginate_query(query, params))
+    items = result.unique().all()
 
     return ExtendedPage.create(
-        [type(**item._mapping) for item in items.unique().all()],
+        [type(**item._mapping) for item in items],
         total,
         params,
     )

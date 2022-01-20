@@ -29,9 +29,9 @@ import { Component, Prop, VModel, Vue, Watch } from "vue-property-decorator";
 
 @Component
 export default class SearchSelect extends Vue {
-  @VModel({ type: String })
+  @VModel({ type: Object as () => SelectItem })
   model!: string;
-  @Prop({ type: Array as () => string[], default: () => [] })
+  @Prop({ type: Array as () => SelectItem[], default: () => [] })
   readonly items!: SelectItem[];
   @Prop({ type: String })
   readonly label: string | undefined;

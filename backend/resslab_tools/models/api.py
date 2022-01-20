@@ -9,8 +9,8 @@ from typing import List, Optional, Union
 from pydantic import BaseModel, validator
 
 
-def _change_nan_to_none(v):
-    if v is None or isnan(v):
+def _change_nan_to_none(v: Optional[Decimal]) -> Optional[Decimal]:
+    if v is not None and isnan(v):
         return None
     return v
 
@@ -30,8 +30,8 @@ class ConnectionModel(BaseModel):
     """
 
     @validator("f_ybw", "f_ybf", "f_ycw", "f_ycf")
-    def change_nan_to_none(cls, v):
-        _change_nan_to_none(v)
+    def change_nan_to_none(cls, v) -> Optional[Decimal]:
+        return _change_nan_to_none(v)
 
     id: str
     experimental_program: str
@@ -121,8 +121,8 @@ ConnectionNumberField = Enum(
 
 class ColumnModel(BaseModel):
     @validator("th_80")
-    def change_nan_to_none(cls, v):
-        _change_nan_to_none(v)
+    def change_nan_to_none(cls, v) -> Optional[Decimal]:
+        return _change_nan_to_none(v)
 
     id: str
     experimental_program: str
