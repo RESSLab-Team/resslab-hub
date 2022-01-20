@@ -187,7 +187,7 @@ export default class ConnectionTable extends Vue {
         : [],
       types.includes(DownloadType.Test)
         ? [
-          ...selectedItems
+            ...selectedItems
               .filter((item) => item.beam_count > 0)
               .map((item) => item.id)
               .map((id) =>

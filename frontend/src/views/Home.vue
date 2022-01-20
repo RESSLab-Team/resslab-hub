@@ -98,8 +98,11 @@
       built-up cross sections, it links with currently available cross-sectional
       databases from North America, Europe and Japan to extract geometric
       features from standardized hot-rolled profiles, which are currently used
-      in steel construction worldwide. The backbone and first-cycle envelope
-      curves are based on the following published work:
+      in steel construction worldwide.
+    </p>
+    <p>
+      The backbone and first-cycle envelope curves are based on the following
+      published work:
     </p>
     <ul>
       <li>
@@ -107,6 +110,41 @@
           href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29ST.1943-541X.0000376"
           target="_blank"
           >Lignos and Krawinkler 2011</a
+        >).
+      </li>
+      <li>
+        Composite steel beams (<a
+          href="https://link.springer.com/article/10.1007/s10518-019-00564-w"
+          target="_blank"
+          >El Jisr et al. 2019</a
+        >).
+      </li>
+      <li>
+        Steel wide-flange (H-shaped) columns (<a
+          href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29ST.1943-541X.0002353"
+          target="_blank"
+          >Lignos et al. 2019</a
+        >).
+      </li>
+    </ul>
+    <br />
+    <h1>Fragility Curves</h1>
+    <p>
+      The third web-based tool enables the exploitation of fragility curves for
+      structural components that enable financial loss estimation within the
+      PBEE framework. The fragility curves are either univariate or multivariate
+      depending on the component modeling resolution of interest. Visualization
+      features include bar plots to enable exploitation of fragility curves and
+      surfaces based on pertinent geometric and material parameters of interest.
+    </p>
+    <p>Fragility curves are based on the following published work:</p>
+    <ul>
+      <li>
+        Fully restrained beam-to-column connections with reduced beam section
+        (<a
+          href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29ST.1943-541X.0000214"
+          target="_blank"
+          >Lignos et al. 2010</a
         >).
       </li>
       <li>
@@ -131,7 +169,6 @@
       currently under development. Stay tuned for future updates of both
       datasets and developed tools.
     </p>
-    <v-img src="resslab_logo_v1.svg" contain max-height="100"></v-img>
   </v-container>
 </template>
 

@@ -44,10 +44,7 @@
         </v-col>
         <v-col cols="12" md="6">
           <v-card>
-            <v-card-title>
-              Column Depth [mm]
-              <info-tooltip>Column Depth [mm]</info-tooltip>
-            </v-card-title>
+            <v-card-title>Column Depth [mm]</v-card-title>
             <v-card-text>
               <column-double-chart
                 :color="colors.red"

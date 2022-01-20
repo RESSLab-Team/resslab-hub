@@ -105,5 +105,41 @@
         >Prof. Dimitrios Lignos</a
       >.
     </p>
+    <br />
+    <v-row>
+      <v-col v-for="(logo, index) in logos" :key="index">
+        <a :href="logo.url" target="_blank">
+          <v-img contain :src="logo.src" max-height="128"></v-img>
+        </a>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
+
+<script lang="ts">
+import { publicPath } from "@/utils/common";
+import { Component, Vue } from "vue-property-decorator";
+
+@Component
+export default class About extends Vue {
+  readonly logos: Logo[] = [
+    {
+      src: publicPath + "logo/resslab_logo_v1.svg",
+      url: "https://www.epfl.ch/labs/resslab",
+    },
+    {
+      src: publicPath + "logo/EPFL_Logo_184X53.svg",
+      url: "https://www.epfl.ch",
+    },
+    {
+      src: publicPath + "logo/SNF_logo_standard_web_color_pos_e.svg",
+      url: "https://www.snf.ch",
+    },
+  ];
+}
+
+interface Logo {
+  src: string;
+  url: string;
+}
+</script>
