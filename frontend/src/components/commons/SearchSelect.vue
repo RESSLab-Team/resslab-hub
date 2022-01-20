@@ -13,7 +13,8 @@
           v-model="search"
           prepend-inner-icon="mdi-magnify"
           clearable
-          hide-details
+          :hint="hint"
+          persistent-hint
           single-line
           solo
         ></v-text-field>
@@ -46,6 +47,10 @@ export default class SearchSelect extends Vue {
       const value = typeof item === "string" ? item : item.text.toString();
       return value.toLowerCase().includes(substring);
     });
+  }
+
+  get hint(): string {
+    return `${this.actualItems.length} items`;
   }
 
   @Watch("items")

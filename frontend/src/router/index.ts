@@ -57,6 +57,12 @@ const routes: Array<RouteConfig> = [
     path: "/bracings",
     name: "Bracings",
     component: () => import("../views/Bracings.vue"),
+    children: [
+      {
+        path: "*",
+        redirect: "",
+      },
+    ],
   },
   {
     path: "/about",
