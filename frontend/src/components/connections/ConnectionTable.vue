@@ -249,7 +249,7 @@ export default class ConnectionTable extends Vue {
   }
 
   getImageSource(item: string): string {
-    return publicPath + "img/connection-type/" + item.toLowerCase() + ".png";
+    return publicPath + "img/connection-type/" + item.toLowerCase() + ".svg";
   }
 }
 </script>

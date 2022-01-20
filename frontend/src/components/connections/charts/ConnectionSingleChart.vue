@@ -40,7 +40,7 @@ export default class ConnectionSingleChart extends SingleChartMixin<ConnectionFi
   mouseover(params: CallbackDataParams): void {
     if (this.field === ConnectionField.ConnectionType) {
       const name: string = params.name.toLowerCase();
-      this.imageUrl = publicPath + "img/connection-type/" + name + ".png";
+      this.imageUrl = publicPath + "img/connection-type/" + name + ".svg";
     }
   }
 
