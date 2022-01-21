@@ -6,6 +6,9 @@ export function sum(a: number, b: number): number {
 }
 
 export function filterColumnValue(value: Value): boolean {
+  if (value === null) {
+    return false;
+  }
   if (typeof value === "string" || Array.isArray(value)) {
     return value.length > 0;
   } else {

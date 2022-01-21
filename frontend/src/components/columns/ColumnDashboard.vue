@@ -7,7 +7,6 @@
             :search.sync="search"
             :searches.sync="searches"
             :query="query"
-            @click="click"
           ></column-table>
         </v-col>
       </v-row>
@@ -80,9 +79,9 @@ import ColumnParallelChart from "@/components/columns/charts/ColumnParallelChart
 import ColumnSingleChart from "@/components/columns/charts/ColumnSingleChart.vue";
 import ColumnTable from "@/components/columns/ColumnTable.vue";
 import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
+import DashboardMixin from "@/components/commons/DashboardMixin.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
-import { Component, Vue } from "vue-property-decorator";
+import { Component } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
 import { DoubleFields } from "../commons/charts/DoubleChart.vue";
 
@@ -95,10 +94,9 @@ import { DoubleFields } from "../commons/charts/DoubleChart.vue";
     InfoTooltip,
   },
 })
-export default class ColumnDashboard extends Vue {
+export default class ColumnDashboard extends DashboardMixin<ColumnModel> {
   readonly ColumnField = ColumnField;
   readonly colors = colors;
-  readonly fields: string[] = Object.values(ColumnField);
   readonly parallelFields: ParallelField<ColumnField>[] = [
     { id: ColumnField.Th80 },
     { id: ColumnField.HOverTCw },
@@ -121,40 +119,8 @@ export default class ColumnDashboard extends Vue {
     },
   ];
 
-  search = "";
-  searches: Searches = {};
-  item: ColumnModel | null = null;
-
-  // TODO: refactor
-  get query(): string {
-    const queries = Object.entries(this.searches)
-      .filter(([, value]) => filterColumnValue(value))
-      .map(([key, value]) => `${key}:${value}`);
-    if (this.search && this.search.length > 0) {
-      queries.push(`%${this.search}%`);
-    }
-    return queries.join(";");
-  }
-
-  created(): void {
-    // TODO: refactor
-    Object.entries(this.$route.query)
-      .filter(([key, value]) => this.fields.includes(key) && value.length > 0)
-      .forEach(([key, value]) => {
-        this.$set(this.searches, key, value);
-      });
-    const globalSearchValue = this.$route.query[globalSearchKey];
-    if (typeof globalSearchValue === "string") {
-      this.search = globalSearchValue;
-    }
-  }
-
-  click(item: ColumnModel): void {
-    this.item = item;
-  }
-
-  close(): void {
-    this.item = null;
+  get fields(): string[] {
+    return Object.values(ColumnField);
   }
 }
 </script>

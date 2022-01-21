@@ -7,11 +7,11 @@
             :search.sync="search"
             :searches.sync="searches"
             :query="query"
-            @click="onClick"
+            @click="click"
           ></connection-table>
         </v-col>
       </v-row>
-      <v-row v-if="!connection">
+      <v-row v-if="!item">
         <v-col cols="12">
           <connection-parallel-chart
             :color="colors.orange"
@@ -44,11 +44,11 @@
       </v-row>
     </v-col>
     <v-col md="6">
-      <v-row v-if="connection">
+      <v-row v-if="item">
         <v-col cols="12">
           <connection-detail
-            :connection="connection"
-            @close="onClose"
+            :connection="item"
+            @close="close"
           ></connection-detail>
         </v-col>
       </v-row>
@@ -206,14 +206,14 @@
 
 <script lang="ts">
 import { ConnectionField, ConnectionModel } from "@/backend";
+import DashboardMixin from "@/components/commons/DashboardMixin.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import ConnectionDoubleChart from "@/components/connections/charts/ConnectionDoubleChart.vue";
 import ConnectionParallelChart from "@/components/connections/charts/ConnectionParallelChart.vue";
 import ConnectionSingleChart from "@/components/connections/charts/ConnectionSingleChart.vue";
 import ConnectionDetail from "@/components/connections/ConnectionDetail.vue";
 import ConnectionTable from "@/components/connections/ConnectionTable.vue";
-import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
-import { Component, Vue } from "vue-property-decorator";
+import { Component } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
 import { DoubleFields } from "../commons/charts/DoubleChart.vue";
 import { ParallelField } from "../commons/charts/SimpleParallelChart.vue";
@@ -228,10 +228,9 @@ import { ParallelField } from "../commons/charts/SimpleParallelChart.vue";
     InfoTooltip,
   },
 })
-export default class ConnectionDashboard extends Vue {
+export default class ConnectionDashboard extends DashboardMixin<ConnectionModel> {
   readonly ConnectionField = ConnectionField;
   readonly colors = colors;
-  readonly fields: string[] = Object.values(ConnectionField);
   readonly parallelFields: ParallelField<ConnectionField>[] = [
     {
       id: ConnectionField.DB,
@@ -274,38 +273,8 @@ export default class ConnectionDashboard extends Vue {
     },
   ];
 
-  search = "";
-  searches: Searches = {};
-  connection: ConnectionModel | null = null;
-
-  get query(): string {
-    const queries = Object.entries(this.searches)
-      .filter(([, value]) => filterColumnValue(value))
-      .map(([key, value]) => `${key}:${value}`);
-    if (this.search && this.search.length > 0) {
-      queries.push(`%${this.search}%`);
-    }
-    return queries.join(";");
-  }
-
-  created(): void {
-    Object.entries(this.$route.query)
-      .filter(([key, value]) => this.fields.includes(key) && value.length > 0)
-      .forEach(([key, value]) => {
-        this.$set(this.searches, key, value);
-      });
-    const globalSearchValue = this.$route.query[globalSearchKey];
-    if (typeof globalSearchValue === "string") {
-      this.search = globalSearchValue;
-    }
-  }
-
-  onClick(connection: ConnectionModel): void {
-    this.connection = connection;
-  }
-
-  onClose(): void {
-    this.connection = null;
+  get fields(): string[] {
+    return Object.values(ConnectionField);
   }
 }
 </script>
