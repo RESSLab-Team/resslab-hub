@@ -2,16 +2,20 @@
   <v-row>
     <v-col cols="12">
       <h1>Backbone Curve Plotter for Steel Components</h1>
-      Construct the backbone curve of beams with RBS and beams other-than-RBS.
-      For further information refer to
-      <a
-        href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376"
-        target="_blank"
-      >
-        Lignos and Krawinkler (2011)
-      </a>
     </v-col>
-    <v-col cols="12">
+    <v-col cols="6" md="9">
+      <p>
+        Construct the backbone curve of beams with RBS and beams other-than-RBS.
+        For further information refer to
+        <a
+          href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376"
+          target="_blank"
+        >
+          Lignos and Krawinkler (2011)
+        </a>
+      </p>
+    </v-col>
+    <v-col cols="6" md="3">
       <toggle v-model="unitSystem" :items="unitSystems"></toggle>
     </v-col>
     <v-col cols="12">
