@@ -1,9 +1,6 @@
 <template>
   <v-app>
     <v-app-bar app dense>
-      <v-app-bar-title>
-        <div>RESSLab Hub</div>
-      </v-app-bar-title>
       <v-tabs hide-slider>
         <template v-for="item in menuItems">
           <v-menu v-if="item.children" :key="item.to" offset-y open-on-hover>
@@ -18,7 +15,14 @@
               </v-list-item>
             </v-list>
           </v-menu>
-          <v-tab v-else :key="item.to" :to="item.to">{{ item.text }}</v-tab>
+          <v-tab v-else :key="item.to" :to="item.to">
+            <v-app-bar-title v-if="item.to === '/'">
+              {{ item.text }}
+            </v-app-bar-title>
+            <template v-else>
+              {{ item.text }}
+            </template>
+          </v-tab>
         </template>
       </v-tabs>
     </v-app-bar>
@@ -31,6 +35,7 @@
 <style lang="scss" scoped>
 .v-toolbar__title {
   overflow: unset;
+  text-transform: none;
 }
 </style>
 
@@ -55,7 +60,7 @@ export default class App extends Vue {
   ];
   readonly menuItems: MenuItem[] = [
     {
-      text: "Home",
+      text: "RESSLab Hub",
       to: "/",
     },
     {
