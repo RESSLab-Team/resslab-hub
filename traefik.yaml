@@ -2,5 +2,5 @@ tls:
   stores:
     default:
       defaultCertificate:
-        certFile: /certs/resslab-hub.pem
-        keyFile: /certs/resslab-hub.key
+        certFile: {{ env "SSL_CERT_CRT" }}
+        keyFile: {{ env "SSL_CERT_KEY" }}
