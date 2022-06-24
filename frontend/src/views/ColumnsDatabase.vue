@@ -1,5 +1,12 @@
 <template>
-  <column-dashboard></column-dashboard>
+  <div>
+    <p class="text-center">
+      <v-icon>mdi-alert</v-icon>
+      Section under construction
+      <v-icon>mdi-alert</v-icon>
+    </p>
+    <column-dashboard></column-dashboard>
+  </div>
 </template>
 
 <script lang="ts">
