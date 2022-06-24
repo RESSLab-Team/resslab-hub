@@ -1,52 +1,55 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "backend: run",
-            "type": "python",
-            "request": "launch",
-            "module": "uvicorn",
-            "args": [
-                "resslab_tools.main:app",
-                "--reload",
-            ],
-            "jinja": true,
-            "cwd": "${workspaceFolder}/backend",
-            "envFile": "${workspaceFolder}/secrets/.env"
-        },
-        {
-            "name": "frontend: run",
-            "type": "node-terminal",
-            "request": "launch",
-            "command": "npm run serve",
-            "cwd": "${workspaceFolder}/frontend"
-        },
-        {
-            "name": "backend: data-uploader",
-            "type": "python",
-            "request": "launch",
-            "module": "data.uploader",
-            "args": [
-                "column",
-                "../../resslab-tools-data/columns/steel_columns.csv",
-            ],
-            "cwd": "${workspaceFolder}/backend",
-            "envFile": "${workspaceFolder}/secrets/.env"
-        },
-        {
-            "name": "backend: data-analyzer",
-            "type": "python",
-            "request": "launch",
-            "module": "data.analyzer",
-            "args": [
-                "../../resslab-tools-data/connections/connections.csv",
-                "../../resslab-tools-data/columns/steel_columns.csv",
-            ],
-            "cwd": "${workspaceFolder}/backend",
-            "envFile": "${workspaceFolder}/secrets/.env"
-        },
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "backend: run",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["resslab_tools.main:app", "--reload"],
+      "jinja": true,
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/secrets/.env"
+    },
+    {
+      "name": "frontend: run",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:8080",
+      "webRoot": "${workspaceFolder}/frontend",
+      "breakOnLoad": true,
+      "preLaunchTask": "serve",
+      "sourceMapPathOverrides": {
+        "webpack:/*": "${webRoot}/*",
+        "/./*": "${webRoot}/*",
+        "/src/*": "${webRoot}/*",
+        "/*": "*",
+        "/./~/*": "${webRoot}/node_modules/*"
+      }
+    },
+    {
+      "name": "backend: data-uploader",
+      "type": "python",
+      "request": "launch",
+      "module": "data.uploader",
+      "args": ["column", "../../resslab-tools-data/columns/steel_columns.csv"],
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/secrets/.env"
+    },
+    {
+      "name": "backend: data-analyzer",
+      "type": "python",
+      "request": "launch",
+      "module": "data.analyzer",
+      "args": [
+        "../../resslab-tools-data/connections/connections.csv",
+        "../../resslab-tools-data/columns/steel_columns.csv"
+      ],
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/secrets/.env"
+    }
+  ]
 }
