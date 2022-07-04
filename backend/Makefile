@@ -11,6 +11,9 @@ test:
 lint:
 	poetry run pre-commit run --all-files
 
+update:
+	pre-commit autoupdate
+
 upload-data:
 	poetry run dotenv -f ../secrets/.env run python data/uploader.py column ../../resslab-tools-data/columns/steel_columns.csv
 	poetry run dotenv -f ../secrets/.env run python data/uploader.py column-axial-shortening ../../resslab-tools-data/columns/axial_shortening_rotation/*.csv

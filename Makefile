@@ -19,6 +19,9 @@ lint:
 	$(MAKE) -C backend lint
 	$(MAKE) -C frontend lint
 
+update:
+	$(MAKE) -C backend update
+
 deploy-local:
 	docker-compose build --parallel --pull
 	docker-compose up --remove-orphans
