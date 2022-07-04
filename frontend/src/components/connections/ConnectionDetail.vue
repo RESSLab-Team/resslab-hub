@@ -30,7 +30,7 @@
             :color="color"
             :max-width="chartHeight"
             :promise="globalPromise"
-            title="Global"
+            title="Subassembly Response"
             x-axis-name="Total story drift angle [rad]"
             y-axis-name="Lateral load [kN]"
           ></simple-line-chart>
@@ -49,7 +49,7 @@
             :color="color"
             :max-width="chartHeight"
             :promise="panelZonePromise"
-            title="Panel Zone"
+            title="Panel Zone Response"
             x-axis-name="Panel zone shear distortion [rad]"
             y-axis-name="Panel zone shear force [kN]"
           ></simple-line-chart>
@@ -60,7 +60,7 @@
             :color="color"
             :max-width="chartHeight"
             :promise="beamPromise"
-            title="Beam"
+            :title="connection.beam_west_count > 0 ? 'East Beam' : 'Beam'"
             x-axis-name="Chord Rotation [rads]"
             y-axis-name="Moment [kN-mm]"
           ></simple-line-chart>
@@ -69,7 +69,7 @@
             :color="color"
             :max-width="chartHeight"
             :promise="beamWestPromise"
-            title="Beam West"
+            title="West Beam"
             x-axis-name="Chord Rotation [rads]"
             y-axis-name="Moment [kN-mm]"
           ></simple-line-chart>
@@ -252,7 +252,8 @@ export default class ConnectionDetail extends Vue {
   }
 
   get carouselItemCount(): number {
-    return [this.hasGlobal, this.hasPanelZone].filter((v) => v).length;
+    return [this.hasGlobal, this.hasPanelZone, this.hasBeam].filter((v) => v)
+      .length;
   }
 
   get beamPromise(): Promise<AxiosResponse<number[][]>> {

@@ -1,5 +1,5 @@
 <template>
-  <v-responsive aspect-ratio="1" :max-width="maxWidth">
+  <v-responsive aspect-ratio="1.2" :max-width="maxWidth">
     <v-chart v-if="hasData" autoresize :option="option"></v-chart>
   </v-responsive>
 </template>
@@ -50,8 +50,8 @@ export default class SimpleLineChart extends Vue {
         left: "center",
       },
       grid: {
-        left: 64,
-        top: 32,
+        left: 96,
+        top: 64,
         right: 32,
         bottom: 64,
       },
@@ -69,7 +69,7 @@ export default class SimpleLineChart extends Vue {
         nameTextStyle: {
           fontWeight: "bold",
         },
-        nameGap: 50,
+        nameGap: 70,
       },
       tooltip: {
         trigger: "axis",
