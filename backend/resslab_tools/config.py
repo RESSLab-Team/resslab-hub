@@ -15,6 +15,7 @@ settings = Dynaconf(
         Validator("postgres_user", default="postgres"),
         Validator("postgres_password", must_exist=True),
         Validator("postgres_db", default="postgres"),
+        Validator("database_upgrade", default=True),
     ],
 )
 

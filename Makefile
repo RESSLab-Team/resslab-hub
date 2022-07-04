@@ -22,19 +22,12 @@ lint:
 update:
 	$(MAKE) -C backend update
 
-deploy-local:
+deploy:
 	docker-compose build --parallel --pull
 	docker-compose up --remove-orphans
 
-install-server:
-	ansible-galaxy install -r ansible/requirements.yml
-	ansible-playbook ansible/install.yml -i ansible/inventory.ini
-
-deploy-prod:
-	ansible-playbook ansible/deploy.yml -i ansible/inventory.ini
-
 api:
-	cd backend; poetry run dotenv -f ../secrets/.env run python api.py ../openapi.json
+	cd backend; DATABASE_UPGRADE=false poetry run python api.py ../openapi.json
 	cd frontend; npm run generate:backend
 
 upload-data:

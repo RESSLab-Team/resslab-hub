@@ -1,5 +1,6 @@
 [default]
 database_host = "localhost"
+postgres_password = ""
 
 [production]
 database_host = "resslab-hub.epfl.ch"

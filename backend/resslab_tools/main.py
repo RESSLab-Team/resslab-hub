@@ -37,4 +37,5 @@ app.include_router(connections.router)
 add_pagination(app)
 use_route_names_as_operation_ids(app)
 
-upgrade_database()
+if settings.database_upgrade:  # type: ignore
+    upgrade_database()
