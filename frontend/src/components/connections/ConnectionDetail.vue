@@ -1,81 +1,15 @@
 <template>
-  <v-card>
-    <v-card-title>
+  <common-detail
+    :reference="connection.reference"
+    :link="link"
+    :carousel-items="carouselItems"
+    @close="close"
+  >
+    <template v-slot:title>
       {{ connection.experimental_program }} ({{ connection.date }}) -
       {{ connection.specimen_designation }}
-      <v-spacer></v-spacer>
-      <v-btn color="primary" text @click="onClose">
-        <v-icon>mdi-close</v-icon>
-        Close
-      </v-btn>
-    </v-card-title>
-    <v-card-text>
-      <p>
-        <property-item name="Publication">
-          <a v-if="link" :href="link" target="_blank">
-            {{ connection.reference }}
-          </a>
-          <span v-else>{{ connection.reference }}</span>
-        </property-item>
-      </p>
-      <v-carousel
-        v-if="carouselItemCount > 0"
-        :height="chartHeight"
-        hide-delimiters
-        :show-arrows="carouselItemCount > 1"
-      >
-        <v-carousel-item v-if="hasGlobal">
-          <simple-line-chart
-            v-if="connection.global_count > 0"
-            :color="color"
-            :max-width="chartHeight"
-            :promise="globalPromise"
-            title="Subassembly Response"
-            x-axis-name="Total story drift angle [rad]"
-            y-axis-name="Lateral load [kN]"
-          ></simple-line-chart>
-          <simple-line-chart
-            v-if="connection.global_west_count > 0"
-            :color="color"
-            :max-width="chartHeight"
-            :promise="globalWestPromise"
-            title="Global West"
-            x-axis-name="Total story drift angle [rad]"
-            y-axis-name="Lateral load [kN]"
-          ></simple-line-chart>
-        </v-carousel-item>
-        <v-carousel-item v-if="hasPanelZone">
-          <simple-line-chart
-            :color="color"
-            :max-width="chartHeight"
-            :promise="panelZonePromise"
-            title="Panel Zone Response"
-            x-axis-name="Panel zone shear distortion [rad]"
-            y-axis-name="Panel zone shear force [kN]"
-          ></simple-line-chart>
-        </v-carousel-item>
-        <v-carousel-item v-if="hasBeam">
-          <simple-line-chart
-            v-if="connection.beam_count > 0"
-            :color="color"
-            :max-width="chartHeight"
-            :promise="beamPromise"
-            :title="connection.beam_west_count > 0 ? 'East Beam' : 'Beam'"
-            x-axis-name="Chord Rotation [rads]"
-            y-axis-name="Moment [kN-mm]"
-          ></simple-line-chart>
-          <simple-line-chart
-            v-if="connection.beam_west_count > 0"
-            :color="color"
-            :max-width="chartHeight"
-            :promise="beamWestPromise"
-            title="West Beam"
-            x-axis-name="Chord Rotation [rads]"
-            y-axis-name="Moment [kN-mm]"
-          ></simple-line-chart>
-        </v-carousel-item>
-      </v-carousel>
-      <h2>Loading and geometric parameters</h2>
+    </template>
+    <template v-slot:parameters>
       <v-row>
         <v-col cols="6">
           <p>
@@ -130,7 +64,8 @@
           </property-item>
         </p>
       </template>
-      <h2>Steel material designation</h2>
+    </template>
+    <template v-slot:designation>
       <v-row>
         <v-col>
           <h3>Beam</h3>
@@ -176,8 +111,8 @@
           {{ connection.ru_rn_pl_m | formatNumber(2) }}
         </property-item>
       </p>
-    </v-card-text>
-  </v-card>
+    </template>
+  </common-detail>
 </template>
 
 <style lang="scss">
@@ -190,70 +125,75 @@
 <script lang="ts">
 import { ConnectionModel } from "@/backend";
 import SimpleLineChart from "@/components/commons/charts/SimpleLineChart.vue";
+import CommonDetail, {
+  CarouselItem,
+} from "@/components/commons/CommonDetail.vue";
+import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
 import { publicPath } from "@/utils/common";
 import { AxiosResponse } from "axios";
-import { Component, Prop, Vue } from "vue-property-decorator";
-import colors from "vuetify/lib/util/colors";
+import { Component, VModel } from "vue-property-decorator";
 
 @Component({
   components: {
+    CommonDetail,
     SimpleLineChart,
     PropertyItem,
   },
-  filters: {
-    formatNumber: function (
-      value: number | null,
-      fractionDigits: number | undefined
-    ): string {
-      if (value === null) {
-        return "Not Applicable";
-      } else if (isNaN(value)) {
-        return "Not Reported";
-      } else {
-        return value.toFixed(fractionDigits);
-      }
-    },
-    formatString: function (value: string | null): string {
-      if (value === null) {
-        return "Not Applicable";
-      } else if (value === "NR") {
-        return "Not Reported";
-      } else {
-        return value;
-      }
-    },
-  },
 })
-export default class ConnectionDetail extends Vue {
-  readonly color = colors.red;
-  readonly chartBind = {
-    cols: "12",
-    sm: "6",
-    md: "12",
-    lg: "6",
-    xl: "4",
-  };
-  readonly chartHeight = 300;
-
-  @Prop(Object)
+export default class ConnectionDetail extends CommonDetailMixin {
+  @VModel({ type: Object as () => ConnectionModel })
   readonly connection!: ConnectionModel;
 
-  get hasBeam(): boolean {
-    return this.connection.beam_count + this.connection.beam_west_count > 0;
-  }
-
-  get hasGlobal(): boolean {
-    return this.connection.global_count + this.connection.global_west_count > 0;
-  }
-
-  get hasPanelZone(): boolean {
-    return this.connection.panel_zone_count > 0;
-  }
-
-  get carouselItemCount(): number {
-    return [this.hasGlobal, this.hasPanelZone, this.hasBeam].filter((v) => v)
-      .length;
+  get carouselItems(): CarouselItem[][] {
+    return [
+      this.connection.global_count + this.connection.global_west_count > 0
+        ? [
+            {
+              hidden: this.connection.global_count === 0,
+              promise: this.globalPromise,
+              title: "Subassembly Response",
+              xAxisName: "Total story drift angle [rad]",
+              yAxisName: "Lateral load [kN]",
+            },
+            {
+              hidden: this.connection.global_west_count === 0,
+              promise: this.globalWestPromise,
+              title: "Global West",
+              xAxisName: "Total story drift angle [rad]",
+              yAxisName: "Lateral load [kN]",
+            },
+          ]
+        : [],
+      this.connection.panel_zone_count > 0
+        ? [
+            {
+              promise: this.panelZonePromise,
+              title: "Panel Zone Response",
+              xAxisName: "Panel zone shear distortion [rad]",
+              yAxisName: "Panel zone shear force [kN]",
+            },
+          ]
+        : [],
+      this.connection.beam_count + this.connection.beam_west_count > 0
+        ? [
+            {
+              hidden: this.connection.beam_count === 0,
+              promise: this.beamPromise,
+              title: this.connection.beam_west_count > 0 ? "East Beam" : "Beam",
+              xAxisName: "Chord Rotation [rads]",
+              yAxisName: "Moment [kN-mm]",
+            },
+            {
+              hidden: this.connection.beam_west_count === 0,
+              promise: this.beamWestPromise,
+              title: "West Beam",
+              xAxisName: "Chord Rotation [rads]",
+              yAxisName: "Moment [kN-mm]",
+            },
+          ]
+        : [],
+    ].filter((item) => item.length > 0);
   }
 
   get beamPromise(): Promise<AxiosResponse<number[][]>> {
@@ -303,10 +243,6 @@ export default class ConnectionDetail extends Vue {
       default:
         return "";
     }
-  }
-
-  onClose(): void {
-    this.$emit("close");
   }
 }
 </script>

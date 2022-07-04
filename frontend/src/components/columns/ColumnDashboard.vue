@@ -7,6 +7,7 @@
             :search.sync="search"
             :searches.sync="searches"
             :query="query"
+            @click="click"
           ></column-table>
         </v-col>
       </v-row>
@@ -26,7 +27,11 @@
       </v-row>
     </v-col>
     <v-col md="6">
-      <v-row v-if="item"></v-row>
+      <v-row v-if="item">
+        <v-col cols="12">
+          <column-detail :value="item" @close="close"></column-detail>
+        </v-col>
+      </v-row>
       <v-row v-else>
         <v-col cols="12" md="6">
           <v-card>
@@ -77,16 +82,18 @@ import { ColumnField, ColumnModel } from "@/backend";
 import ColumnDoubleChart from "@/components/columns/charts/ColumnDoubleChart.vue";
 import ColumnParallelChart from "@/components/columns/charts/ColumnParallelChart.vue";
 import ColumnSingleChart from "@/components/columns/charts/ColumnSingleChart.vue";
+import ColumnDetail from "@/components/columns/ColumnDetail.vue";
 import ColumnTable from "@/components/columns/ColumnTable.vue";
+import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
 import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
 import DashboardMixin from "@/components/commons/DashboardMixin.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import { Component } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
-import { DoubleFields } from "../commons/charts/DoubleChart.vue";
 
 @Component({
   components: {
+    ColumnDetail,
     ColumnDoubleChart,
     ColumnParallelChart,
     ColumnSingleChart,

@@ -46,10 +46,7 @@
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <connection-detail
-            :connection="item"
-            @close="close"
-          ></connection-detail>
+          <connection-detail v-model="item" @close="close"></connection-detail>
         </v-col>
       </v-row>
       <v-row v-else>
