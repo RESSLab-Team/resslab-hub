@@ -24,7 +24,7 @@ uvicorn = "^0.15.0"
 python-dotenv = "^0.19.1"
 pre-commit = "^2.16.0"
 flake8 = "^4.0.1"
-black = "^21.11b1"
+black = "^22.6.0"
 SQLAlchemy = {extras = ["mypy"], version = "^1.4.29"}
 
 [build-system]

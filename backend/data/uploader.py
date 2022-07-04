@@ -164,6 +164,8 @@ def main():
     input_type: Type = args.type
     filenames: List[str] = args.filenames
 
+    print(f"Connecting to {engine.url}")
+
     if input_type == Type.COLUMN:
         uploader = TableUploader(ColumnEntity)
     elif input_type == Type.CONNECTION:

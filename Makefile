@@ -36,3 +36,6 @@ api:
 
 upload-data:
 	$(MAKE) -C backend upload-data
+
+upload-data-prod:
+	ENV_FOR_DYNACONF=production $(MAKE) upload-data

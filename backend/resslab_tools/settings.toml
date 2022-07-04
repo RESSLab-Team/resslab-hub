@@ -1,0 +1,5 @@
+[default]
+database_host = "localhost"
+
+[production]
+database_host = "resslab-hub.epfl.ch"

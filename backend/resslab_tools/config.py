@@ -4,6 +4,7 @@ Dynaconf Settings
 from dynaconf import Dynaconf, Validator
 
 settings = Dynaconf(
+    environments=True,
     envvar_prefix=False,
     settings_files=["resslab_tools/settings.toml"],
     validators=[
