@@ -310,6 +310,128 @@
         }
       }
     },
+    "/columns/{column_id}/moment": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Moment",
+        "description": "Get moment series from column",
+        "operationId": "get_columns_moment",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Column Id",
+              "type": "string"
+            },
+            "name": "column_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Columns Moment Columns  Column Id  Moment Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/{column_id}/axial-shortening": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Axial Shortening",
+        "description": "Get axial shortening series from column",
+        "operationId": "get_columns_axial_shortening",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Column Id",
+              "type": "string"
+            },
+            "name": "column_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Columns Axial Shortening Columns  Column Id  Axial Shortening Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/connections": {
       "get": {
         "tags": [
@@ -1097,11 +1219,21 @@
           "b_f_over_t_cf",
           "l_b_over_r_yc",
           "steel_c",
+          "f_ymf",
+          "f_ymw",
+          "f_yn",
           "boundary_condition",
+          "lateral_lp",
           "direction_lp",
+          "axis_of_bending",
+          "axial_lp",
           "p_g_over_p_ym",
           "th_80",
-          "built_up"
+          "reference",
+          "link",
+          "built_up",
+          "axial_shortening_count",
+          "moment_count"
         ],
         "type": "string",
         "description": "An enumeration."
@@ -1119,10 +1251,20 @@
           "b_f_over_t_cf",
           "l_b_over_r_yc",
           "steel_c",
+          "f_ymf",
+          "f_ymw",
+          "f_yn",
           "boundary_condition",
+          "lateral_lp",
           "direction_lp",
+          "axis_of_bending",
+          "axial_lp",
           "p_g_over_p_ym",
-          "built_up"
+          "reference",
+          "link",
+          "built_up",
+          "axial_shortening_count",
+          "moment_count"
         ],
         "type": "object",
         "properties": {
@@ -1166,12 +1308,36 @@
             "title": "Steel C",
             "type": "string"
           },
+          "f_ymf": {
+            "title": "F Ymf",
+            "type": "integer"
+          },
+          "f_ymw": {
+            "title": "F Ymw",
+            "type": "integer"
+          },
+          "f_yn": {
+            "title": "F Yn",
+            "type": "integer"
+          },
           "boundary_condition": {
             "title": "Boundary Condition",
             "type": "string"
           },
+          "lateral_lp": {
+            "title": "Lateral Lp",
+            "type": "string"
+          },
           "direction_lp": {
             "title": "Direction Lp",
+            "type": "string"
+          },
+          "axis_of_bending": {
+            "title": "Axis Of Bending",
+            "type": "string"
+          },
+          "axial_lp": {
+            "title": "Axial Lp",
             "type": "string"
           },
           "p_g_over_p_ym": {
@@ -1182,9 +1348,25 @@
             "title": "Th 80",
             "type": "number"
           },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
           "built_up": {
             "title": "Built Up",
             "type": "boolean"
+          },
+          "axial_shortening_count": {
+            "title": "Axial Shortening Count",
+            "type": "integer"
+          },
+          "moment_count": {
+            "title": "Moment Count",
+            "type": "integer"
           }
         }
       },
@@ -1196,8 +1378,13 @@
           "h_over_t_cw",
           "b_f_over_t_cf",
           "l_b_over_r_yc",
+          "f_ymf",
+          "f_ymw",
+          "f_yn",
           "p_g_over_p_ym",
-          "th_80"
+          "th_80",
+          "axial_shortening_count",
+          "moment_count"
         ],
         "type": "string",
         "description": "An enumeration."

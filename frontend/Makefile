@@ -9,3 +9,6 @@ test:
 
 lint:
 	npm run lint
+
+api:
+	npm run api

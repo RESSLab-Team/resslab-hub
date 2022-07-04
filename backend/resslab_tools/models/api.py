@@ -134,12 +134,22 @@ class ColumnModel(BaseModel):
     b_f_over_t_cf: Decimal
     l_b_over_r_yc: Decimal
     steel_c: str
+    f_ymf: int
+    f_ymw: int
+    f_yn: int
     boundary_condition: str
+    lateral_lp: str
     direction_lp: str
+    axis_of_bending: str
+    axial_lp: str
     p_g_over_p_ym: Decimal
     th_80: Optional[Decimal]
+    reference: str
+    link: str
 
     built_up: bool
+    axial_shortening_count: int
+    moment_count: int
 
 
 ColumnField = Enum(

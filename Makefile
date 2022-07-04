@@ -28,7 +28,7 @@ deploy:
 
 api:
 	cd backend; DATABASE_UPGRADE=false poetry run python api.py ../openapi.json
-	cd frontend; npm run generate:backend
+	$(MAKE) -C frontend api
 
 upload-data:
 	$(MAKE) -C backend upload-data

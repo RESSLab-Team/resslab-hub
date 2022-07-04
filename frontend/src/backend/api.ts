@@ -38,11 +38,21 @@ export enum ColumnField {
     BFOverTCf = 'b_f_over_t_cf',
     LBOverRYc = 'l_b_over_r_yc',
     SteelC = 'steel_c',
+    FYmf = 'f_ymf',
+    FYmw = 'f_ymw',
+    FYn = 'f_yn',
     BoundaryCondition = 'boundary_condition',
+    LateralLp = 'lateral_lp',
     DirectionLp = 'direction_lp',
+    AxisOfBending = 'axis_of_bending',
+    AxialLp = 'axial_lp',
     PGOverPYm = 'p_g_over_p_ym',
     Th80 = 'th_80',
-    BuiltUp = 'built_up'
+    Reference = 'reference',
+    Link = 'link',
+    BuiltUp = 'built_up',
+    AxialShorteningCount = 'axial_shortening_count',
+    MomentCount = 'moment_count'
 }
 
 /**
@@ -113,6 +123,24 @@ export interface ColumnModel {
     'steel_c': string;
     /**
      * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'f_ymf': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'f_ymw': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'f_yn': number;
+    /**
+     * 
      * @type {string}
      * @memberof ColumnModel
      */
@@ -122,7 +150,25 @@ export interface ColumnModel {
      * @type {string}
      * @memberof ColumnModel
      */
+    'lateral_lp': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
     'direction_lp': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'axis_of_bending': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'axial_lp': string;
     /**
      * 
      * @type {number}
@@ -137,10 +183,34 @@ export interface ColumnModel {
     'th_80'?: number;
     /**
      * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'link': string;
+    /**
+     * 
      * @type {boolean}
      * @memberof ColumnModel
      */
     'built_up': boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'axial_shortening_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'moment_count': number;
 }
 /**
  * An enumeration.
@@ -154,8 +224,13 @@ export enum ColumnNumberField {
     HOverTCw = 'h_over_t_cw',
     BFOverTCf = 'b_f_over_t_cf',
     LBOverRYc = 'l_b_over_r_yc',
+    FYmf = 'f_ymf',
+    FYmw = 'f_ymw',
+    FYn = 'f_yn',
     PGOverPYm = 'p_g_over_p_ym',
-    Th80 = 'th_80'
+    Th80 = 'th_80',
+    AxialShorteningCount = 'axial_shortening_count',
+    MomentCount = 'moment_count'
 }
 
 /**
@@ -734,6 +809,45 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Get axial shortening series from column
+         * @summary Get Columns Axial Shortening
+         * @param {string} columnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsAxialShortening: async (columnId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'columnId' is not null or undefined
+            assertParamExists('getColumnsAxialShortening', 'columnId', columnId)
+            const localVarPath = `/columns/{column_id}/axial-shortening`
+                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get occurences count of field values
          * @summary Get Columns Counts
          * @param {Array<ColumnField>} [fields] 
@@ -851,6 +965,45 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Get moment series from column
+         * @summary Get Columns Moment
+         * @param {string} columnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsMoment: async (columnId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'columnId' is not null or undefined
+            assertParamExists('getColumnsMoment', 'columnId', columnId)
+            const localVarPath = `/columns/{column_id}/moment`
+                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get range of field
          * @summary Get Columns Range
          * @param {ColumnNumberField} field 
@@ -913,6 +1066,18 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get axial shortening series from column
+         * @summary Get Columns Axial Shortening
+         * @param {string} columnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getColumnsAxialShortening(columnId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsAxialShortening(columnId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get occurences count of field values
          * @summary Get Columns Counts
          * @param {Array<ColumnField>} [fields] 
@@ -945,6 +1110,18 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          */
         async getColumnsMatrix(fields: Array<ColumnField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMatrix(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get moment series from column
+         * @summary Get Columns Moment
+         * @param {string} columnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getColumnsMoment(columnId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMoment(columnId, size, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -983,6 +1160,17 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getColumns(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get axial shortening series from column
+         * @summary Get Columns Axial Shortening
+         * @param {string} columnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsAxialShortening(columnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getColumnsAxialShortening(columnId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get occurences count of field values
          * @summary Get Columns Counts
          * @param {Array<ColumnField>} [fields] 
@@ -1013,6 +1201,17 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          */
         getColumnsMatrix(fields: Array<ColumnField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
             return localVarFp.getColumnsMatrix(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get moment series from column
+         * @summary Get Columns Moment
+         * @param {string} columnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsMoment(columnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getColumnsMoment(columnId, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Get range of field
@@ -1051,6 +1250,19 @@ export class ColumnsApi extends BaseAPI {
     }
 
     /**
+     * Get axial shortening series from column
+     * @summary Get Columns Axial Shortening
+     * @param {string} columnId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ColumnsApi
+     */
+    public getColumnsAxialShortening(columnId: string, size?: number, options?: AxiosRequestConfig) {
+        return ColumnsApiFp(this.configuration).getColumnsAxialShortening(columnId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Get occurences count of field values
      * @summary Get Columns Counts
      * @param {Array<ColumnField>} [fields] 
@@ -1086,6 +1298,19 @@ export class ColumnsApi extends BaseAPI {
      */
     public getColumnsMatrix(fields: Array<ColumnField>, query?: string, options?: AxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get moment series from column
+     * @summary Get Columns Moment
+     * @param {string} columnId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ColumnsApi
+     */
+    public getColumnsMoment(columnId: string, size?: number, options?: AxiosRequestConfig) {
+        return ColumnsApiFp(this.configuration).getColumnsMoment(columnId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
