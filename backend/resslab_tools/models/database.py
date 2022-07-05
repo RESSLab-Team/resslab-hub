@@ -22,7 +22,7 @@ from resslab_tools.utils.database import Base
 DecimalFloat = Float(asdecimal=True)
 
 
-class ConnectionBeam(Base):
+class ConnectionBeam(Base):  # type: ignore
     __tablename__ = "connection_beam"
 
     connection_id = Column(
@@ -34,7 +34,7 @@ class ConnectionBeam(Base):
     moment = Column(Numeric, nullable=False)
 
 
-class ConnectionBeamWest(Base):
+class ConnectionBeamWest(Base):  # type: ignore
     __tablename__ = "connection_beam_west"
 
     connection_id = Column(
@@ -46,7 +46,7 @@ class ConnectionBeamWest(Base):
     moment = Column(Numeric, nullable=False)
 
 
-class ConnectionGlobal(Base):
+class ConnectionGlobal(Base):  # type: ignore
     __tablename__ = "connection_global"
 
     connection_id = Column(
@@ -58,7 +58,7 @@ class ConnectionGlobal(Base):
     actuator_force = Column(Numeric, nullable=False)
 
 
-class ConnectionGlobalWest(Base):
+class ConnectionGlobalWest(Base):  # type: ignore
     __tablename__ = "connection_global_west"
 
     connection_id = Column(
@@ -70,7 +70,7 @@ class ConnectionGlobalWest(Base):
     actuator_force = Column(Numeric, nullable=False)
 
 
-class ConnectionPanelZone(Base):
+class ConnectionPanelZone(Base):  # type: ignore
     __tablename__ = "connection_panel_zone"
 
     connection_id = Column(
@@ -82,7 +82,7 @@ class ConnectionPanelZone(Base):
     shear_force = Column(Numeric, nullable=False)
 
 
-class Connection(Base):
+class Connection(Base):  # type: ignore
     __tablename__ = "connection"
 
     id = Column(String, primary_key=True)
@@ -268,7 +268,7 @@ class Connection(Base):
     )
 
 
-class ColumnAxialShortening(Base):
+class ColumnAxialShortening(Base):  # type: ignore
     __tablename__ = "column_axial_shortening"
 
     column_id = Column(String, ForeignKey("column.id"), primary_key=True, index=True)
@@ -278,7 +278,7 @@ class ColumnAxialShortening(Base):
     axial_shortening = Column(Numeric, nullable=False)
 
 
-class ColumnMoment(Base):
+class ColumnMoment(Base):  # type: ignore
     __tablename__ = "column_moment"
 
     column_id = Column(String, ForeignKey("column.id"), primary_key=True, index=True)
@@ -288,7 +288,7 @@ class ColumnMoment(Base):
     moment = Column(Numeric, nullable=False)
 
 
-class ColumnEntity(Base):
+class ColumnEntity(Base):  # type: ignore
     __tablename__ = "column"
 
     id = Column(String, primary_key=True)
