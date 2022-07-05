@@ -170,7 +170,6 @@ export default class DoubleChart extends Vue {
         },
         nameGap: 28,
         boundaryGap: this.type === "bar",
-        scale: true,
         axisTick: {
           alignWithLabel: true,
         },

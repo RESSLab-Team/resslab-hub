@@ -8,7 +8,7 @@
     :color="color"
     :get-matrix="getMatrix"
   >
-    <template v-slot:title>
+    <template #title>
       <slot name="title"></slot>
     </template>
   </simple-parallel-chart>

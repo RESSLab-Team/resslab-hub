@@ -35,7 +35,7 @@
       :sort-by="tableHeaders[0].value"
       @click:row="click"
     >
-      <template v-slot:top>
+      <template #top>
         <v-row class="px-4 pb-4">
           <v-col v-for="header in filterHeaders" :key="header.value">
             <v-select
@@ -77,7 +77,7 @@
           </v-col>
         </v-row>
       </template>
-      <template v-slot:[`body.prepend`]>
+      <template #[`body.prepend`]>
         <tr>
           <td>
             <!-- select -->
@@ -95,7 +95,7 @@
               :items="header.options"
               single-line
             >
-              <template v-slot:item="{ item, on, attrs }">
+              <template #item="{ item, on, attrs }">
                 <slot
                   :name="`column.header.item.${header.value}`"
                   :item="item"
@@ -139,7 +139,7 @@
           </td>
         </tr>
       </template>
-      <template v-slot:[`item.t_dp_tot`]="{ item }">
+      <template #[`item.t_dp_tot`]="{ item }">
         <template v-if="item.t_dp_tot">{{ item.t_dp_tot }}</template>
       </template>
     </v-data-table>
@@ -167,17 +167,6 @@
     ></checkbox-dialog>
   </v-card>
 </template>
-
-<style>
-/* for select dropdown column search */
-.v-menu__content {
-  min-width: 300px !important;
-}
-
-.v-data-table__wrapper > table > tbody > tr:hover {
-  cursor: pointer;
-}
-</style>
 
 <script lang="ts">
 import { CountModel } from "@/backend";
@@ -415,3 +404,14 @@ interface TableHeader extends DataTableHeader {
   multiple?: boolean;
 }
 </script>
+
+<style>
+/* for select dropdown column search */
+.v-menu__content {
+  min-width: 300px !important;
+}
+
+.v-data-table__wrapper > table > tbody > tr:hover {
+  cursor: pointer;
+}
+</style>

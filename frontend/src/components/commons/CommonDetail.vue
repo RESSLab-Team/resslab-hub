@@ -49,13 +49,6 @@
   </v-card>
 </template>
 
-<style lang="scss">
-.v-carousel__item > .v-responsive__content {
-  display: flex;
-  justify-content: center;
-}
-</style>
-
 <script lang="ts">
 import SimpleLineChart from "@/components/commons/charts/SimpleLineChart.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
@@ -93,3 +86,10 @@ export interface CarouselItem {
   yAxisName: string;
 }
 </script>
+
+<style lang="scss">
+.v-carousel__item > .v-responsive__content {
+  display: flex;
+  justify-content: center;
+}
+</style>

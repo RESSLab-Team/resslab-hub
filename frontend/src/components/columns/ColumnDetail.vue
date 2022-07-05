@@ -5,11 +5,11 @@
     :carousel-items="carouselItems"
     @close="close"
   >
-    <template v-slot:title>
+    <template #title>
       {{ column.experimental_program }} - ({{ column.date }}) -
       {{ column.specimen_designation }}
     </template>
-    <template v-slot:parameters>
+    <template #parameters>
       <property-item name="Loading protocol">
         {{ column.lateral_lp }}
       </property-item>
@@ -29,7 +29,7 @@
         {{ column.l_b_over_r_yc }}
       </property-item>
     </template>
-    <template v-slot:designation>
+    <template #designation>
       <property-item name="Steel type">
         {{ column.steel_c }}
       </property-item>
@@ -45,13 +45,6 @@
     </template>
   </common-detail>
 </template>
-
-<style lang="scss">
-.v-carousel__item > .v-responsive__content {
-  display: flex;
-  justify-content: center;
-}
-</style>
 
 <script lang="ts">
 import { ColumnModel } from "@/backend";
@@ -115,3 +108,10 @@ export default class ColumnDetail extends CommonDetailMixin {
   }
 }
 </script>
+
+<style lang="scss">
+.v-carousel__item > .v-responsive__content {
+  display: flex;
+  justify-content: center;
+}
+</style>

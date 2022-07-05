@@ -4,7 +4,7 @@
       <v-tabs hide-slider>
         <template v-for="item in menuItems">
           <v-menu v-if="item.children" :key="item.to" offset-y open-on-hover>
-            <template v-slot:activator="{ on, attrs }">
+            <template #activator="{ on, attrs }">
               <v-tab :to="item.to" v-bind="attrs" v-on="on">
                 {{ item.text }}
               </v-tab>
@@ -31,13 +31,6 @@
     </v-main>
   </v-app>
 </template>
-
-<style lang="scss" scoped>
-.v-toolbar__title {
-  overflow: unset;
-  text-transform: none;
-}
-</style>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
@@ -91,3 +84,10 @@ interface MenuItem {
   children?: MenuItem[];
 }
 </script>
+
+<style lang="scss" scoped>
+.v-toolbar__title {
+  overflow: unset;
+  text-transform: none;
+}
+</style>

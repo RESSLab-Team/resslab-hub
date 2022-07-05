@@ -1,9 +1,9 @@
 <template>
   <v-select v-model="item" :items="items" hide-details>
-    <template v-slot:selection="data">
+    <template #selection="data">
       {{ $t(prefix + data.item) }}
     </template>
-    <template v-slot:item="data">
+    <template #item="data">
       {{ $t(prefix + data.item) }}
     </template>
   </v-select>

@@ -11,7 +11,7 @@
     :track-color="lightenColor"
     @end="onRangeChange"
   >
-    <template v-slot:prepend>
+    <template #prepend>
       <v-text-field
         :value="range[0]"
         class="mt-0 pt-0"
@@ -25,7 +25,7 @@
         @change="onChangeMin"
       ></v-text-field>
     </template>
-    <template v-slot:append>
+    <template #append>
       <v-text-field
         :value="range[1]"
         class="mt-0 pt-0"

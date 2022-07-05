@@ -10,12 +10,6 @@
   </tr>
 </template>
 
-<style lang="scss" scoped>
-td {
-  white-space: nowrap;
-}
-</style>
-
 <script lang="ts">
 import UnitMixin from "@/components/commons/UnitMixin.vue";
 import { Component, Prop } from "vue-property-decorator";
@@ -43,3 +37,9 @@ export interface UnitTableRowData {
   unit: string;
 }
 </script>
+
+<style lang="scss" scoped>
+td {
+  white-space: nowrap;
+}
+</style>

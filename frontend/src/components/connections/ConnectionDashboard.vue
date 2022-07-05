@@ -19,7 +19,7 @@
             :searches.sync="searches"
             :query="query"
           >
-            <template v-slot:title>
+            <template #title>
               Parallel View of all Tests
               <info-tooltip>
                 <p>

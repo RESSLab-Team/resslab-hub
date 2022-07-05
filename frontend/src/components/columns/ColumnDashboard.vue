@@ -19,7 +19,7 @@
             :searches.sync="searches"
             :query="query"
           >
-            <template v-slot:title>
+            <template #title>
               <info-tooltip>Parallel Axis</info-tooltip>
             </template>
           </column-parallel-chart>

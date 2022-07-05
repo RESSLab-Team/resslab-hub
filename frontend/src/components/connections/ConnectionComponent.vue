@@ -141,7 +141,7 @@
         </v-card-title>
         <v-card-text>
           <v-simple-table dense fixed-header>
-            <template v-slot:default>
+            <template #default>
               <thead>
                 <tr>
                   <th>Parameter</th>

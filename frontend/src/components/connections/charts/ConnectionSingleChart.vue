@@ -9,7 +9,7 @@
     @mouseover="mouseover"
     @mouseout="mouseout"
   >
-    <template v-slot>
+    <template #default>
       <v-img
         v-if="imageUrl"
         aspect-ratio="3"

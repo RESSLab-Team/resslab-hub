@@ -8,3 +8,10 @@
     </p>
   </v-container>
 </template>
+
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+@Component
+export default class Bracings extends Vue {}
+</script>

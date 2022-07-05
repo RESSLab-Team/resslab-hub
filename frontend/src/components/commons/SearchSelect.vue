@@ -7,7 +7,7 @@
     :label="label"
     single-line
   >
-    <template v-slot:prepend-item>
+    <template #prepend-item>
       <v-list-item>
         <v-text-field
           v-model="search"

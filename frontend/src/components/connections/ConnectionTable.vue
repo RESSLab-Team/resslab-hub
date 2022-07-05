@@ -10,7 +10,7 @@
     :searches.sync="columnSearches"
     @click="click"
   >
-    <template v-slot:title>
+    <template #title>
       Connections
       <info-tooltip>
         <p>
@@ -40,10 +40,8 @@
         </ul>
       </info-tooltip>
     </template>
-    <template
-      v-slot:[`column.header.item.connection_type`]="{ item, on, attrs }"
-    >
-      <v-list-item #default="{ active }" v-bind="attrs" v-on="on">
+    <template #[`column.header.item.connection_type`]="{ item, on, attrs }">
+      <v-list-item v-slot="{ active }" v-bind="attrs" v-on="on">
         <v-list-item-action>
           <v-checkbox :input-value="active"></v-checkbox>
         </v-list-item-action>

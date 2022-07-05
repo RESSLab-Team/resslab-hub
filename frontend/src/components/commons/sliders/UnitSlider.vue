@@ -12,9 +12,9 @@
       :thumb-color="darkenColor"
       :track-color="lightenColor"
     >
-      <template v-slot:prepend>
+      <template #prepend>
         <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
+          <template #activator="{ on, attrs }">
             <div class="mt-0 pt-0 label" v-bind="attrs" v-on="on">
               <!-- eslint-disable-next-line vue/no-v-html -->
               <span v-html="label"></span>
@@ -26,7 +26,7 @@
           <template v-if="unitLabel"> [{{ unitLabel }}]</template>
         </v-tooltip>
       </template>
-      <template v-slot:append>
+      <template #append>
         <v-text-field
           v-model="textModel"
           class="mt-0 pt-0"
@@ -42,24 +42,6 @@
     </v-slider>
   </v-sheet>
 </template>
-
-<style lang="scss" scoped>
-.v-input__slider {
-  align-items: center;
-}
-div.label {
-  line-height: initial;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.v-input__append-outer,
-.v-input__prepend-outer {
-  & > div {
-    width: 64px;
-  }
-}
-</style>
 
 <script lang="ts">
 import { Component, Mixins, Prop, VModel } from "vue-property-decorator";
@@ -106,3 +88,21 @@ export default class UnitSlider extends Mixins(SliderMixin, UnitMixin) {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.v-input__slider {
+  align-items: center;
+}
+div.label {
+  line-height: initial;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.v-input__append-outer,
+.v-input__prepend-outer {
+  & > div {
+    width: 64px;
+  }
+}
+</style>

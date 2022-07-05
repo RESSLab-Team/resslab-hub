@@ -5,11 +5,11 @@
     :carousel-items="carouselItems"
     @close="close"
   >
-    <template v-slot:title>
+    <template #title>
       {{ connection.experimental_program }} ({{ connection.date }}) -
       {{ connection.specimen_designation }}
     </template>
-    <template v-slot:parameters>
+    <template #parameters>
       <v-row>
         <v-col cols="6">
           <p>
@@ -65,7 +65,7 @@
         </p>
       </template>
     </template>
-    <template v-slot:designation>
+    <template #designation>
       <v-row>
         <v-col>
           <h3>Beam</h3>
@@ -114,13 +114,6 @@
     </template>
   </common-detail>
 </template>
-
-<style lang="scss">
-.v-carousel__item > .v-responsive__content {
-  display: flex;
-  justify-content: center;
-}
-</style>
 
 <script lang="ts">
 import { ConnectionModel } from "@/backend";
@@ -246,3 +239,10 @@ export default class ConnectionDetail extends CommonDetailMixin {
   }
 }
 </script>
+
+<style lang="scss">
+.v-carousel__item > .v-responsive__content {
+  display: flex;
+  justify-content: center;
+}
+</style>
