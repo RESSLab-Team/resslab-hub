@@ -12,7 +12,11 @@
 import UnitMixin from "@/components/commons/UnitMixin.vue";
 import { UnitSystem } from "@/utils/unit";
 import { LineChart } from "echarts/charts";
-import { GridComponent, TooltipComponent } from "echarts/components";
+import {
+  GridComponent,
+  LegendComponent,
+  TooltipComponent,
+} from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import {
@@ -26,7 +30,13 @@ import _ from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue } from "vue-property-decorator";
 
-use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
+use([
+  CanvasRenderer,
+  LineChart,
+  GridComponent,
+  LegendComponent,
+  TooltipComponent,
+]);
 
 @Component({
   components: {
@@ -78,11 +88,30 @@ export default class UnitChart extends Vue {
     const xAXisOption: XAXisOption = this.option.xAxis as XAXisOption;
     const yAXisOption: YAXisOption = this.option.yAxis as YAXisOption;
     const changedOption: EChartsOption = {
+      grid: {
+        left: 32,
+        top: 50,
+        right: 16,
+        bottom: 32,
+        containLabel: true,
+      },
+      legend: {
+        type: "scroll",
+        top: 0,
+      },
       xAxis: {
         name: `${xAXisOption.name} [${this.xUnitParent.unitLabel}]`,
+        nameLocation: "middle",
+        nameGap: 26,
       },
       yAxis: {
         name: `${yAXisOption.name} [${this.yUnitParent.unitLabel}]`,
+        nameLocation: "middle",
+        nameGap: 70,
+      },
+      tooltip: {
+        trigger: "axis",
+        confine: true,
       },
       series: (this.option.series as SeriesOption[]).map((serie) =>
         _.merge({}, serie, {

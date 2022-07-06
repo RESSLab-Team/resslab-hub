@@ -7,6 +7,10 @@ declare module "*-sections.csv" {
     h: number;
     tf: number;
     tw: number;
+    ix: number;
+    zx: number;
+    ry: number;
+    d: number;
   }[];
   export default content;
 }
