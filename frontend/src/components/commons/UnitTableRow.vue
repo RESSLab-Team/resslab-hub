@@ -26,7 +26,7 @@ export default class UnitTableRow extends UnitMixin {
   get values(): string[] {
     return this.columns
       .map((d) => d[this.field])
-      .map((v) => v * this.ratio)
+      .map((v) => v / this.ratio)
       .map((v) => v.toLocaleString());
   }
 }

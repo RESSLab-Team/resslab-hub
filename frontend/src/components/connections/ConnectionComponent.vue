@@ -100,8 +100,7 @@
                     :max="item.max"
                     :min="item.min"
                     :step="item.step"
-                    :default-unit="item.unit"
-                    :units="item.units"
+                    :unit="item.unit"
                     :unit-system="unitSystem"
                   ></unit-slider>
                 </v-col>
@@ -125,12 +124,12 @@
     </v-col>
     <v-col cols="6">
       <v-row>
-        <v-col>
+        <v-col cols="6">
           <v-card>
-            <v-card-title>Beams without RBS</v-card-title>
+            <v-card-title>Beams with RBS</v-card-title>
             <v-card-text>
               <unit-chart
-                :option="option(backboneCurveWithoutRbs)"
+                :option="option(backboneWithRbs, envelopeWithRbs)"
                 :unit-system="unitSystem"
                 x-unit="rad"
                 y-unit="kN⋅mm"
@@ -138,12 +137,12 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col>
+        <v-col cols="6">
           <v-card>
-            <v-card-title>Beams with RBS</v-card-title>
+            <v-card-title>Beams without RBS</v-card-title>
             <v-card-text>
               <unit-chart
-                :option="option(backboneCurveWithRbs)"
+                :option="option(backboneWithoutRbs, envelopeWithoutRbs)"
                 :unit-system="unitSystem"
                 x-unit="rad"
                 y-unit="kN⋅mm"
@@ -162,14 +161,20 @@
           </info-tooltip>
         </v-card-title>
         <v-card-text>
-          <v-simple-table dense fixed-header>
+          <v-simple-table dense>
             <template #default>
               <thead>
                 <tr>
-                  <th>Parameter</th>
-                  <th>Unit</th>
-                  <th>Value (Beams without RBS)</th>
-                  <th>Value (Beams with RBS)</th>
+                  <th rowspan="2">Parameter</th>
+                  <th rowspan="2">Unit</th>
+                  <th colspan="2">Beams with RBS</th>
+                  <th colspan="2">Beams without RBS</th>
+                </tr>
+                <tr>
+                  <th>Monotonic Backbone</th>
+                  <th>First Cycle Envelope</th>
+                  <th>Monotonic Backbone</th>
+                  <th>First Cycle Envelope</th>
                 </tr>
               </thead>
               <tbody>
@@ -179,7 +184,12 @@
                   :field="item.key"
                   :text="item.text"
                   :unit="item.unit"
-                  :columns="[backboneCurveWithoutRbs, backboneCurveWithRbs]"
+                  :columns="[
+                    backboneWithRbs,
+                    envelopeWithRbs,
+                    backboneWithoutRbs,
+                    envelopeWithoutRbs,
+                  ]"
                   :unit-system="unitSystem"
                 ></unit-table-row>
               </tbody>
@@ -207,6 +217,7 @@ import { publicPath, Section } from "@/utils/common";
 import { UnitSystem, unitSystems } from "@/utils/unit";
 import { primaryColor, secondaryColor, SelectItem } from "@/utils/vuetify";
 import { EChartsOption } from "echarts/types/dist/shared";
+import { clamp } from "lodash";
 import { Component, Vue, Watch } from "vue-property-decorator";
 
 @Component({
@@ -227,7 +238,6 @@ export default class ConnectionComponent extends Vue {
   readonly variableBind = {
     cols: "12",
     md: "6",
-    lg: "4",
     xl: "3",
   };
   readonly chartBind = {
@@ -259,25 +269,25 @@ export default class ConnectionComponent extends Vue {
       min: 5,
       max: 100,
     }),
-    new Variable({
-      key: "ratio",
-      text: "Flange Reduction for RBS",
-      min: 0,
-      max: 0.5,
-    }),
   ];
 
   readonly memberProperties: Variable[] = [
     new Variable({
-      key: "lb",
-      text: "L<sub>b</sub>",
+      key: "rbsReduction",
+      text: "RBS flange reduction",
+      min: 0,
+      max: 0.5,
+    }),
+    new Variable({
+      key: "l",
+      text: "L",
       unit: "mm",
       min: 1000,
       max: 12000,
     }),
     new Variable({
-      key: "l",
-      text: "L",
+      key: "lb",
+      text: "L<sub>b</sub>",
       unit: "mm",
       min: 1000,
       max: 12000,
@@ -288,25 +298,6 @@ export default class ConnectionComponent extends Vue {
       unit: "MPa",
       min: 250,
       max: 500,
-    }),
-    new Variable({
-      key: "mc_my",
-      text: "<sup>Mc</sup>/<sub>My</sub>",
-      min: 1,
-      max: 1.5,
-    }),
-    new Variable({
-      key: "k",
-      text: "K",
-      min: 0,
-      max: 0.5,
-    }),
-    new Variable({
-      key: "thetau",
-      text: "&theta;<sub>u</sub>",
-      unit: "rad",
-      min: 0.05,
-      max: 0.5,
     }),
   ];
 
@@ -327,22 +318,22 @@ export default class ConnectionComponent extends Vue {
       unit: "kN⋅mm",
     },
     {
-      key: "mr",
+      key: "mRes",
       text: "M<sub>r</sub>",
       unit: "kN⋅mm",
     },
     {
-      key: "thetap",
+      key: "thetaP",
       text: "&theta;<sub>p</sub>",
       unit: "rad",
     },
     {
-      key: "thetapc",
+      key: "thetaPc",
       text: "&theta;<sub>pc</sub>",
       unit: "rad",
     },
     {
-      key: "thetau",
+      key: "thetaUlt",
       text: "&theta;<sub>u</sub>",
       unit: "rad",
     },
@@ -356,11 +347,32 @@ export default class ConnectionComponent extends Vue {
       text: "K (residual strength ratio)",
       unit: "",
     },
+    {
+      key: "ix",
+      text: "Ix",
+      unit: "mm<sup>4</sup>",
+    },
+    {
+      key: "zx",
+      text: "Zx",
+      unit: "mm<sup>3</sup>",
+    },
+    {
+      key: "ry",
+      text: "ry",
+      unit: "mm",
+    },
+    {
+      key: "d",
+      text: "d",
+      unit: "mm",
+    },
+    {
+      key: "thetaY",
+      text: "&theta;<sub>y</sub>",
+      unit: "rad",
+    },
   ];
-
-  readonly c1 = 1;
-  readonly c2 = 1;
-  readonly e = 2e5;
 
   unitSystem: UnitSystem = "metric";
   database: Database = "aisc";
@@ -402,24 +414,54 @@ export default class ConnectionComponent extends Vue {
     }
   }
 
+  readonly e = 205;
+
   bf = 100;
   h = 100;
   tf = 5;
   tw = 5;
-  ratio = 0;
-  lb = 1000;
-  l = 1000;
-  fy = 250;
-  mc_my = 1;
-  k = 0;
-  thetau = 0.05;
+  rbsReduction = 0.5; // 0
+  l = 8000; // 1000
+  lb = 4000; // 1000
+  fy = 380; // 250
 
   private get ix(): number {
+    if (this.section) {
+      return this.section.ix;
+    }
+    // FIXME
     return (
       (this.bf * Math.pow(this.d, 3) -
         Math.pow(this.h, 3) * (this.bf - this.tw)) /
       12
     );
+  }
+
+  private get zx(): number {
+    if (this.section) {
+      return this.section.zx;
+    }
+    // FIXME
+    return (
+      this.bf * this.tf * (this.d - this.tf) +
+      0.25 * this.tw * Math.pow(this.d - 2 * this.tf, 2)
+    );
+  }
+
+  private get ry(): number {
+    if (this.section) {
+      return this.section.ry;
+    }
+    // FIXME
+    return Math.sqrt(this.iy / this.a);
+  }
+
+  private get d(): number {
+    if (this.section) {
+      return this.section.d;
+    }
+    // FIXME
+    return this.h + 2 * this.tf;
   }
 
   private get iy(): number {
@@ -430,264 +472,330 @@ export default class ConnectionComponent extends Vue {
     return this.bf * this.d - this.h * (this.bf - this.tw);
   }
 
-  private get ry(): number {
-    return Math.sqrt(this.iy / this.a);
-  }
+  private rbs(): {
+    lRbs: number;
+    lCanti: number;
+    k: number;
+    my: number;
+  } {
+    const _a = 0.625 * this.bf;
+    const _b = 0.75 * this.d;
+    const _c = this.rbsReduction * this.bf;
+    const lRbs = _a + 0.5 * _b;
+    const zRbs = this.zx - _c * this.tf * (this.d - this.tf);
 
-  private get d(): number {
-    return this.h + 2 * this.tf;
-  }
+    const lCanti = this.l / 2;
 
-  private get ke(): number {
-    return ((6 * this.e * this.ix) / this.l) * 1e-3;
-  }
-
-  private get h_tw(): number {
-    return this.h / this.tw;
-  }
-
-  private get bf_2tf(): number {
-    return this.bf / (2 * this.tf);
-  }
-  private get lb_ry(): number {
-    return this.lb / this.ry;
-  }
-
-  private get l_d(): number {
-    return this.l / this.d;
-  }
-
-  private get c1_d(): number {
-    return (this.c1 * this.d) / 533;
-  }
-
-  private get c2_fy(): number {
-    return (this.c2 * this.fy) / 355;
-  }
-
-  private mc(isRbs: boolean): number {
-    return this.mc_my * this.my(isRbs);
-  }
-
-  private zx(isRbs: boolean): number {
-    const zx =
-      this.bf * this.tf * (this.d - this.tf) +
-      0.25 * this.tw * Math.pow(this.d - 2 * this.tf, 2);
-    if (isRbs) {
-      return (1 - this.ratio) * zx;
-    } else {
-      return zx;
-    }
-  }
-
-  private my(isRbs: boolean): number {
-    return 1.1 * this.zx(isRbs) * this.fy * 1e-3;
-  }
-
-  private mr(isRbs: boolean): number {
-    return this.k * this.my(isRbs);
-  }
-
-  private thetap(isRbs: boolean): number {
-    if (isRbs) {
-      return (
-        0.19 *
-        Math.pow(this.h_tw, -0.314) *
-        Math.pow(this.bf_2tf, -0.1) *
-        Math.pow(this.lb_ry, -0.185) *
-        Math.pow(this.l_d, 0.113) *
-        Math.pow(this.c1_d, -0.76) *
-        Math.pow(this.c2_fy, -0.07)
-      );
-    } else {
-      if (this.d < 533) {
-        return (
-          0.0865 *
-          Math.pow(this.h_tw, -0.365) *
-          Math.pow(this.bf_2tf, -0.14) *
-          Math.pow(this.l_d, 0.34) *
-          Math.pow(this.c1_d, -0.721) *
-          Math.pow(this.c2_fy, -0.23)
-        );
-      } else {
-        return (
-          0.318 *
-          Math.pow(this.h_tw, -0.55) *
-          Math.pow(this.bf_2tf, -0.345) *
-          Math.pow(this.lb_ry, 0.023) *
-          Math.pow(this.l_d, 0.09) *
-          Math.pow(this.c1_d, -0.33) *
-          Math.pow(this.c2_fy, -0.13)
-        );
-      }
-    }
-  }
-
-  private thetapc(isRbs: boolean): number {
-    if (isRbs) {
-      return (
-        9.52 *
-        Math.pow(this.h_tw, -0.513) *
-        Math.pow(this.bf_2tf, -0.863) *
-        Math.pow(this.lb_ry, -0.108) *
-        Math.pow(this.c2_fy, -0.36)
-      );
-    } else {
-      if (this.d < 533) {
-        return (
-          5.63 *
-          Math.pow(this.h_tw, -0.565) *
-          Math.pow(this.bf_2tf, -0.8) *
-          Math.pow(this.c1_d, -0.28) *
-          Math.pow(this.c2_fy, -0.43)
-        );
-      } else {
-        return (
-          7.5 *
-          Math.pow(this.h_tw, -0.61) *
-          Math.pow(this.bf_2tf, -0.71) *
-          Math.pow(this.lb_ry, -0.11) *
-          Math.pow(this.c1_d, -0.161) *
-          Math.pow(this.c2_fy, -0.32)
-        );
-      }
-    }
-  }
-
-  private lamdba(isRbs: boolean): number {
-    if (isRbs) {
-      return (
-        585 *
-        Math.pow(this.h_tw, -1.14) *
-        Math.pow(this.bf_2tf, -0.632) *
-        Math.pow(this.lb_ry, -0.205) *
-        Math.pow(this.c2_fy, -0.391)
-      );
-    } else {
-      if (this.d < 533) {
-        return (
-          495 *
-          Math.pow(this.h_tw, -1.34) *
-          Math.pow(this.bf_2tf, -0.595) *
-          Math.pow(this.c2_fy, -0.36)
-        );
-      } else {
-        return (
-          536 *
-          Math.pow(this.h_tw, -1.26) *
-          Math.pow(this.bf_2tf, -0.525) *
-          Math.pow(this.lb_ry, -0.13) *
-          Math.pow(this.c2_fy, -0.291)
-        );
-      }
-    }
-  }
-
-  private residualStrengthData(
-    my: number,
-    mc: number,
-    mr: number,
-    thetap: number,
-    thetapc: number,
-    v: number
-  ): [number, number][] {
-    const a = (thetapc * mr) / mc;
-    const c = thetap + v + (thetapc - a);
-    if (c < this.thetau) {
-      return [
-        [c, mr],
-        [this.thetau, mr],
-        [this.thetau, 0],
-      ];
-    } else {
-      return [
-        [
-          this.thetau,
-          this.thetau < v + thetap
-            ? my + ((mc - my) / thetap) * (this.thetau - v)
-            : (-1 * (this.thetau - thetapc - thetap - v) * mc) / thetapc,
-        ],
-        [this.thetau, 0],
-      ];
-    }
-  }
-
-  private backboneCurve(isRbs: boolean): BackboneCurve {
-    const my = this.my(isRbs);
-    const mc = this.mc(isRbs);
-    const mr = this.mr(isRbs);
-    const v = my / this.ke;
-    const thetap = this.thetap(isRbs);
-    const thetapc = this.thetapc(isRbs);
+    const k = (6 * this.e * this.ix) / this.l;
+    const my = 1.06 * zRbs * (this.fy / 1000);
     return {
-      ke: this.ke,
-      my: my,
-      mc: mc,
-      mr: mr,
-      thetap: thetap,
-      thetapc: this.thetapc(isRbs),
-      thetau: this.thetau,
-      lamdba: this.lamdba(isRbs),
-      k: this.k,
-      backboneCurveData: [
-        [0, 0],
-        [v, my],
-        [v + thetap, this.mc_my * my],
-        [v + thetap + thetapc, 0],
-      ],
-      residualStrengthData: this.residualStrengthData(
-        my,
-        mc,
-        mr,
-        thetap,
-        thetapc,
-        v
-      ),
+      lRbs,
+      lCanti,
+      k,
+      my,
     };
   }
 
-  get backboneCurveWithoutRbs(): BackboneCurve {
-    return this.backboneCurve(false);
-  }
+  private getBackboneRbs(): Backbone {
+    const { lRbs, lCanti, k, my } = this.rbs();
 
-  get backboneCurveWithRbs(): BackboneCurve {
-    return this.backboneCurve(true);
-  }
+    const a = 1.09;
+    const mc = a * my;
+    const res = 0.4;
+    const mRes = res * my;
 
-  option(backboneCurve: BackboneCurve): EChartsOption {
+    const thetaY = my / k;
+    const thetaP =
+      0.19 *
+      Math.pow(this.h / this.tw, -0.314) *
+      Math.pow(this.bf / 2 / this.tf, -0.1) *
+      Math.pow(this.lb / this.ry, -0.185) *
+      Math.pow((lCanti - lRbs) / this.d, 0.113) *
+      Math.pow(this.d / 533, -0.76) *
+      Math.pow(this.fy / 355, -0.07);
+    const thetaPc =
+      9.52 *
+      Math.pow(this.h / this.tw, -0.513) *
+      Math.pow(this.bf / 2 / this.tf, -0.863) *
+      Math.pow(this.lb / this.ry, -0.108) *
+      Math.pow(this.fy / 355, -0.36);
+    const thetaUlt = 0.2;
+    const alpha = ((mc - my) / thetaP / k) * (lCanti / (lCanti - lRbs));
+    const alphaPc = (-mc / (k * thetaPc)) * (lCanti / (lCanti - lRbs));
+    const lambda = clamp(
+      585 *
+        Math.pow(this.h / this.tw, -1.14) *
+        Math.pow(this.bf / 2 / this.tf, -0.632) *
+        Math.pow(this.lb / this.ry, -0.205) *
+        Math.pow(this.fy / 355, -0.391),
+      3.0
+    );
     return {
-      grid: {
-        left: 30,
-        top: 10,
-        right: 20,
-        bottom: 20,
-        containLabel: true,
-      },
+      k,
+      my,
+      thetaY,
+      a,
+      mc,
+      thetaP,
+      thetaPc,
+      res,
+      mRes,
+      thetaUlt,
+      alpha,
+      alphaPc,
+      lRbs,
+      lambda,
+    };
+  }
+
+  private getEnvelopeRbs(): Envelope {
+    const { lRbs, lCanti, k, my } = this.rbs();
+
+    const res = 0.3;
+    const mRes = res * my;
+
+    const thetaY = my / k;
+    const thetaP =
+      0.25 *
+      Math.pow(this.h / this.tw, -0.5) *
+      Math.pow(this.bf / 2 / this.tf, -0.7) *
+      Math.pow(this.lb / this.ry, -0.5) *
+      Math.pow((lCanti - lRbs) / this.d, 0.8) *
+      Math.pow(this.e / this.fy, 0.23);
+    const thetaPc = clamp(
+      2.5 *
+        Math.pow(this.h / this.tw, -1.1) *
+        Math.pow(this.bf / 2 / this.tf, -0.1) *
+        Math.pow(this.lb / this.ry, -0.1) *
+        Math.pow(this.e / this.fy, 0.09),
+      0.05
+    );
+    const thetaUlt = 0.08;
+    const alpha = 0.03;
+    const mc = my + alpha * k * thetaP;
+
+    const alphaPc = (-mc / (k * thetaPc)) * (lCanti / (lCanti - lRbs));
+    return {
+      k,
+      my,
+      thetaY,
+      mc,
+      thetaP,
+      thetaPc,
+      res,
+      mRes,
+      thetaUlt,
+      alpha,
+      alphaPc,
+      lRbs,
+    };
+  }
+
+  private nonRbs(): {
+    lCanti: number;
+    k: number;
+    my: number;
+  } {
+    const lCanti = this.l / 2;
+    const k = (6 * this.e * this.ix) / this.l;
+    const my = 1.17 * this.zx * (this.fy / 1000);
+    return {
+      lCanti,
+      k,
+      my,
+    };
+  }
+
+  private getBackboneNonRbs(): Backbone {
+    const { lCanti, k, my } = this.nonRbs();
+
+    const a = 1.11;
+    const mc = a * my;
+    const res = 0.4;
+    const mRes = res * my;
+
+    const thetaY = my / k;
+
+    let thetaP;
+    let thetaPc;
+    let lambda;
+    if (this.d <= 533) {
+      thetaP =
+        0.0865 *
+        Math.pow(this.h / this.tw, -0.365) *
+        Math.pow(this.bf / 2 / this.tf, -0.14) *
+        Math.pow(lCanti / this.d, 0.34) *
+        Math.pow(this.d / 533, -0.721) *
+        Math.pow(this.fy / 355, -0.23);
+      thetaPc =
+        5.63 *
+        Math.pow(this.h / this.tw, -0.565) *
+        Math.pow(this.bf / 2 / this.tf, -0.8) *
+        Math.pow(this.d / 533, -0.28) *
+        Math.pow(this.fy / 355, -0.43);
+      lambda = clamp(
+        536 *
+          Math.pow(this.h / this.tw, -1.26) *
+          Math.pow(this.bf / 2 / this.tf, -0.525) *
+          Math.pow(this.lb / this.ry, -0.13) *
+          Math.pow(this.fy / 355, -0.291),
+        3.0
+      );
+    } else {
+      thetaP =
+        0.318 *
+        Math.pow(this.h / this.tw, -0.55) *
+        Math.pow(this.bf / 2 / this.tf, -0.345) *
+        Math.pow(this.lb / this.ry, -0.023) *
+        Math.pow(lCanti / this.d, 0.09) *
+        Math.pow(this.d / 533, -0.33) *
+        Math.pow(this.fy / 355, -0.13);
+
+      thetaPc =
+        7.5 *
+        Math.pow(this.h / this.tw, -0.61) *
+        Math.pow(this.bf / 2 / this.tf, -0.71) *
+        Math.pow(this.lb / this.ry, -0.11) *
+        Math.pow(this.d / 533, -0.161) *
+        Math.pow(this.fy / 355, -0.32);
+      lambda = clamp(
+        585 *
+          Math.pow(this.h / this.tw, -1.14) *
+          Math.pow(this.bf / 2 / this.tf, -0.632) *
+          Math.pow(this.lb / this.ry, -0.205) *
+          Math.pow(this.fy / 355, -0.391),
+        3.0
+      );
+    }
+    const thetaUlt = 0.2;
+    const alpha = (mc - my) / thetaP / k;
+    const alphaPc = -mc / (k * thetaPc);
+    return {
+      k,
+      my,
+      thetaY,
+      a,
+      mc,
+      thetaP,
+      thetaPc,
+      res,
+      mRes,
+      thetaUlt,
+      alpha,
+      alphaPc,
+      lambda,
+    };
+  }
+
+  private getEnvelopeNonRbs(): Envelope {
+    const { lCanti, k, my } = this.nonRbs();
+    const res = 0.3;
+    const mRes = res * my;
+    const thetaY = my / k;
+
+    const thetaP =
+      0.5 *
+      Math.pow(this.h / this.tw, -0.9) *
+      Math.pow(this.bf / 2 / this.tf, -1.1) *
+      Math.pow(this.lb / this.ry, -0.2) *
+      Math.pow(lCanti / this.d, 1.1) *
+      Math.pow(this.e / this.fy, 0.2);
+    const thetaPc = clamp(
+      6.4 *
+        Math.pow(this.h / this.tw, -0.9) *
+        Math.pow(this.bf / 2 / this.tf, -0.2) *
+        Math.pow(this.lb / this.ry, -0.5) *
+        Math.pow(this.e / this.fy, 0.1),
+      0.05
+    );
+    const thetaUlt = 0.08;
+    const alpha = 0.03;
+    const mc = my + alpha * k * thetaP;
+    const alphaPc = (0.0 - mc) / (k * thetaPc);
+    return {
+      k,
+      my,
+      thetaY,
+      mc,
+      thetaP,
+      thetaPc,
+      res,
+      mRes,
+      thetaUlt,
+      alpha,
+      alphaPc,
+    };
+  }
+
+  private getPoints(output: Envelope | Backbone): Point[] {
+    const p1: Point = [0, 0];
+    const p2: Point = [output.thetaY, output.my];
+    const p3: Point = [p2[0] + output.thetaP, output.mc];
+    const p4: Point = [
+      p3[0] + (output.mc - output.mRes) / (-output.alphaPc * output.k),
+      output.mRes,
+    ];
+    if (output.thetaUlt > p4[0]) {
+      const p5: Point = [output.thetaUlt, output.mRes];
+      const p6: Point = [p5[0], 0];
+      return [p1, p2, p3, p4, p5, p6];
+    } else {
+      const p5: Point = [
+        output.thetaUlt,
+        output.mc +
+          output.alphaPc * output.k * (output.thetaPc - output.thetaUlt),
+      ];
+      const p6: Point = [p5[0], 0];
+      return [p1, p2, p3, p5, p6];
+    }
+  }
+
+  private getResult(output: Envelope | Backbone): Result {
+    return {
+      ix: this.ix,
+      zx: this.zx,
+      ry: this.ry,
+      d: this.d,
+      ...output,
+      points: this.getPoints(output),
+    };
+  }
+
+  get backboneWithRbs(): Result {
+    return this.getResult(this.getBackboneRbs());
+  }
+
+  get backboneWithoutRbs(): Result {
+    return this.getResult(this.getBackboneNonRbs());
+  }
+
+  get envelopeWithRbs(): Result {
+    return this.getResult(this.getEnvelopeRbs());
+  }
+
+  get envelopeWithoutRbs(): Result {
+    return this.getResult(this.getEnvelopeNonRbs());
+  }
+
+  option(backbone: Result, envelope: Result): EChartsOption {
+    return {
       xAxis: {
         name: "Chord Rotation, \u03b8",
-        nameLocation: "middle",
-        nameGap: 26,
       },
       yAxis: {
         name: "Moment, M",
-        nameLocation: "middle",
-        nameGap: 65,
-      },
-      tooltip: {
-        trigger: "axis",
-        confine: true,
       },
       series: [
         {
           type: "line",
-          name: "Backbone Curve",
-          data: backboneCurve.backboneCurveData,
+          name: "Monotonic Backbone",
+          data: backbone.points,
           color: primaryColor.base,
         },
         {
           type: "line",
-          name: "Residual Strength",
-          data: backboneCurve.residualStrengthData,
+          name: "First-Cycle Envelope",
+          data: envelope.points,
           color: secondaryColor.base,
         },
       ],
@@ -717,19 +825,45 @@ class Variable {
   }
 }
 
-interface BackboneCurve {
-  ke: number; // d
+interface Result {
+  // ke: number; // d
   my: number; // p
   mc: number; // y
-  mr: number; // b
-  thetap: number; // m
-  thetapc: number; // g
-  thetau: number;
-  lamdba: number; // w
+  mRes: number; // b
+  thetaP: number; // m
+  thetaPc: number; // g
+  thetaUlt: number;
+  lamdba?: number; // w
   k: number;
-  backboneCurveData: [number, number][];
-  residualStrengthData: [number, number][];
+  ix: number;
+  zx: number;
+  ry: number;
+  d: number;
+  thetaY: number;
+  points: Point[];
 }
+
+interface Envelope {
+  k: number;
+  my: number;
+  thetaY: number;
+  mc: number;
+  thetaP: number;
+  thetaPc: number;
+  res: number;
+  mRes: number;
+  thetaUlt: number;
+  alpha: number;
+  alphaPc: number;
+  lRbs?: number;
+}
+
+interface Backbone extends Envelope {
+  a: number;
+  lambda: number;
+}
+
+type Point = [number, number];
 
 type Database = "aisc" | "european" | "japanese";
 </script>

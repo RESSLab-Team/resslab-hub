@@ -18,6 +18,18 @@ export const units: Unit[] = [
   },
   {
     system: "imperial",
+    referenceUnit: "mm<sup>3</sup>",
+    unit: "in<sup>3</sup>",
+    ratio: Math.pow(25.4, 3), // https://en.wikipedia.org/wiki/Inch
+  },
+  {
+    system: "imperial",
+    referenceUnit: "mm<sup>4</sup>",
+    unit: "in<sup>4</sup>",
+    ratio: Math.pow(25.4, 4), // https://en.wikipedia.org/wiki/Inch
+  },
+  {
+    system: "imperial",
     referenceUnit: "MPa",
     unit: "ksi",
     ratio: 6.894757, // https://en.wikipedia.org/wiki/Pound_per_square_inch

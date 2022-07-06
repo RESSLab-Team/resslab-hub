@@ -59,8 +59,8 @@ def main():
             ),
             Mapping("tf", lambda item: from_number(float(item["t_f"]) * INCH)),
             Mapping("tw", lambda item: from_number(float(item["t_w"]) * INCH)),
-            Mapping("ix", lambda item: from_number(float(item["i_x"]) * INCH)),
-            Mapping("zx", lambda item: from_number(float(item["z_x"]) * INCH)),
+            Mapping("ix", lambda item: from_number(float(item["i_x"]) * pow(INCH, 4))),
+            Mapping("zx", lambda item: from_number(float(item["z_x"]) * pow(INCH, 3))),
             Mapping("ry", lambda item: from_number(float(item["r_y"]) * INCH)),
             Mapping("d", lambda item: from_number(float(item["d"]) * INCH)),
         ]
