@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
-from data.common import CSV_ENCODING, CSV_MODE, get_abs_path
+from data.common import CSV_ENCODING, CSV_READ_MODE, get_abs_path
 from resslab_tools.models.database import (
     ColumnAxialShortening,
     ColumnEntity,
@@ -77,7 +77,7 @@ class TableUploader(Uploader):
 
     def upload_one(self, file_path: str) -> None:
         file_path = get_abs_path(file_path)
-        with open(file_path, CSV_MODE, encoding=CSV_ENCODING) as file:
+        with open(file_path, CSV_READ_MODE, encoding=CSV_ENCODING) as file:
             reader = csv.reader(file, strict=True)
             headers = next(reader)
             id_index = headers.index(self.id_column_key)

@@ -50,6 +50,18 @@
       ],
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"
+    },
+    {
+      "name": "backend: data-csv-transformer",
+      "type": "python",
+      "request": "launch",
+      "module": "data.csv_transformer",
+      "args": [
+        "japanese",
+        "../../resslab-tools-data/connections/component/japanese.csv",
+        "../frontend/src/assets/connection/japanese-sections.csv"
+      ],
+      "cwd": "${workspaceFolder}/backend"
     }
   ]
 }
