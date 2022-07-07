@@ -24,3 +24,8 @@ upload-data:
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py connection-panel-zone ../../resslab-tools-data/connections/Panel_zone/*.csv
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py connection-beam ../../resslab-tools-data/connections/Beam_moment_rotation/*.csv
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py connection-beam-west ../../resslab-tools-data/connections/Beam_moment_rotation_west/*.csv
+
+transform-data:
+	poetry run python data/csv_transformer.py aisc ../../resslab-tools-data/connections/component/aisc.csv ../frontend/src/assets/connection/aisc-sections.csv
+	poetry run python data/csv_transformer.py european ../../resslab-tools-data/connections/component/european.csv ../frontend/src/assets/connection/european-sections.csv
+	poetry run python data/csv_transformer.py japanese ../../resslab-tools-data/connections/component/japanese.csv ../frontend/src/assets/connection/japanese-sections.csv

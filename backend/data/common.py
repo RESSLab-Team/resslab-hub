@@ -1,6 +1,6 @@
 from os import path
 
-CSV_MODE = "rt"
+CSV_READ_MODE = "rt"
 CSV_ENCODING = "unicode_escape"
 
 
