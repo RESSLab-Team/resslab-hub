@@ -429,22 +429,24 @@ export default class ConnectionComponent extends Vue {
     if (this.section) {
       return this.section.ix;
     }
-    // FIXME
     return (
-      (this.bf * Math.pow(this.d, 3) -
-        Math.pow(this.h, 3) * (this.bf - this.tw)) /
-      12
+      (Math.pow(this.d - 2 * this.tf, 3) * this.tw) / 12 +
+      2 *
+        this.bf *
+        this.tf *
+        (Math.pow(this.tf, 2) / 12 + Math.pow((this.d - this.tf) / 2, 2))
     );
   }
 
-  private get zx(): number {
+  private zx(rbs: boolean): number {
     if (this.section) {
       return this.section.zx;
     }
-    // FIXME
+    const n = rbs ? this.rbsReduction : 1;
     return (
-      this.bf * this.tf * (this.d - this.tf) +
-      0.25 * this.tw * Math.pow(this.d - 2 * this.tf, 2)
+      2 *
+      (n * this.bf * this.tf * ((this.d - this.tf) / 2) +
+        (Math.pow(this.d - 2 * this.tf, 2) * this.tw) / 4)
     );
   }
 
@@ -482,7 +484,7 @@ export default class ConnectionComponent extends Vue {
     const _b = 0.75 * this.d;
     const _c = this.rbsReduction * this.bf;
     const lRbs = _a + 0.5 * _b;
-    const zRbs = this.zx - _c * this.tf * (this.d - this.tf);
+    const zRbs = this.zx(true) - _c * this.tf * (this.d - this.tf);
 
     const lCanti = this.l / 2;
 
@@ -598,7 +600,7 @@ export default class ConnectionComponent extends Vue {
   } {
     const lCanti = this.l / 2;
     const k = (6 * this.e * this.ix) / this.l;
-    const my = 1.17 * this.zx * (this.fy / 1000);
+    const my = 1.17 * this.zx(false) * (this.fy / 1000);
     return {
       lCanti,
       k,
@@ -753,7 +755,6 @@ export default class ConnectionComponent extends Vue {
   private getResult(output: Envelope | Backbone): Result {
     return {
       ix: this.ix,
-      zx: this.zx,
       ry: this.ry,
       d: this.d,
       ...output,
@@ -836,7 +837,6 @@ interface Result {
   lamdba?: number; // w
   k: number;
   ix: number;
-  zx: number;
   ry: number;
   d: number;
   thetaY: number;
