@@ -3,6 +3,7 @@ import Vue from "vue";
 import App from "./App.vue";
 import i18n from "./i18n";
 import "./plugins/axios";
+import "./plugins/gtag";
 import vuetify from "./plugins/vuetify";
 import "./registerServiceWorker";
 import router from "./router";
