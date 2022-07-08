@@ -113,6 +113,21 @@
         </a>
       </v-col>
     </v-row>
+    <v-row>
+      <v-col>
+        <!-- https://www.epfl.ch/campus/services/website/legal-recommendations-for-publishing-on-the-epfl-web/use-of-google-analytics/ -->
+        <a
+          href="https://www.epfl.ch/about/overview/regulations-and-guidelines/disclaimer/"
+          target="_blank"
+        >
+          Disclaimer
+        </a>
+        <br />
+        <a href="https://go.epfl.ch/privacy-policy/" target="_blank">
+          Privacy policy
+        </a>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
