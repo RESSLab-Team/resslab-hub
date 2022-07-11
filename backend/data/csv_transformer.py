@@ -4,7 +4,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any, Callable, Dict, List, Union
 
-from data.common import CSV_ENCODING, CSV_READ_MODE
+from data.common import CSV_READ_MODE, UTF8_ENCODING
 
 INCH = Decimal(25.4)
 
@@ -25,7 +25,7 @@ def transform(input_path: str, output_path: str, mappings: List[Mapping]) -> Non
     with open(output_path, "w", newline="") as output_file:
         writer = csv.writer(output_file, strict=True)
         writer.writerow([mapping.key for mapping in mappings])
-        with open(input_path, CSV_READ_MODE, encoding=CSV_ENCODING) as input_file:
+        with open(input_path, CSV_READ_MODE, encoding=UTF8_ENCODING) as input_file:
             reader = csv.DictReader(input_file, strict=True)
             for row in reader:
                 if any(len(value) > 0 for value in row.values()):

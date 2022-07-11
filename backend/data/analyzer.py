@@ -9,7 +9,7 @@ from typing import List, Set
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from data.common import CSV_ENCODING, CSV_READ_MODE, get_abs_path
+from data.common import CSV_READ_MODE, UTF8_ENCODING, get_abs_path
 from resslab_tools.utils.database import url
 
 engine = create_engine(url, echo=False)
@@ -88,7 +88,7 @@ class Column:
 
 def analyze(filename: str):
     file_path = get_abs_path(filename)
-    with open(file_path, CSV_READ_MODE, encoding=CSV_ENCODING) as file:
+    with open(file_path, CSV_READ_MODE, encoding=UTF8_ENCODING) as file:
         reader = csv.reader(file, strict=True)
         headers = next(reader)
         columns = [Column(header) for header in headers if header]
