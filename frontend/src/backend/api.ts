@@ -27,6 +27,103 @@ import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } fr
  * @enum {string}
  */
 
+export enum BraceField {
+    Id = 'id',
+    Investigator = 'investigator',
+    SpecimenId = 'specimen_ID',
+    CrossSectionShape = 'cross_section_shape',
+    CrossSectionSize = 'cross_section_size',
+    Area = 'area',
+    Steel = 'steel',
+    Reference = 'reference',
+    Link = 'link',
+    DisplacementCount = 'displacement_count'
+}
+
+/**
+ * 
+ * @export
+ * @interface BraceModel
+ */
+export interface BraceModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'investigator': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'specimen_ID': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'cross_section_shape': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'cross_section_size': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'area': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'steel': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'link': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'displacement_count': number;
+}
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export enum BraceNumberField {
+    Area = 'area',
+    DisplacementCount = 'displacement_count'
+}
+
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
 export enum ColumnField {
     Id = 'id',
     ExperimentalProgram = 'experimental_program',
@@ -592,6 +689,37 @@ export interface CountModel {
 /**
  * 
  * @export
+ * @interface ExtendedPageBraceModel
+ */
+export interface ExtendedPageBraceModel {
+    /**
+     * 
+     * @type {Array<BraceModel>}
+     * @memberof ExtendedPageBraceModel
+     */
+    'items': Array<BraceModel>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageBraceModel
+     */
+    'total': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageBraceModel
+     */
+    'page': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageBraceModel
+     */
+    'size': number;
+}
+/**
+ * 
+ * @export
  * @interface ExtendedPageColumnModel
  */
 export interface ExtendedPageColumnModel {
@@ -746,6 +874,511 @@ export interface ValidationError {
      */
     'type': string;
 }
+
+/**
+ * BracesApi - axios parameter creator
+ * @export
+ */
+export const BracesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get paginated Braces
+         * @summary Get Braces
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBraces: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/braces`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            if (sortBy) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+            if (sortDesc) {
+                localVarQueryParameter['sort_desc'] = sortDesc;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Braces Counts
+         * @param {Array<BraceField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesCounts: async (fields?: Array<BraceField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/braces/counts`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get master csv
+         * @summary Get Braces Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/braces/csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (ids) {
+                localVarQueryParameter['ids'] = ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get displacement series from brace
+         * @summary Get Braces Displacement
+         * @param {string} braceId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesDisplacement: async (braceId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'braceId' is not null or undefined
+            assertParamExists('getBracesDisplacement', 'braceId', braceId)
+            const localVarPath = `/braces/{brace_id}/displacement`
+                .replace(`{${"brace_id"}}`, encodeURIComponent(String(braceId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Braces Matrix
+         * @param {Array<BraceField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesMatrix: async (fields: Array<BraceField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getBracesMatrix', 'fields', fields)
+            const localVarPath = `/braces/matrix`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get range of field
+         * @summary Get Braces Range
+         * @param {BraceNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesRange: async (field: BraceNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getBracesRange', 'field', field)
+            const localVarPath = `/braces/range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * BracesApi - functional programming interface
+ * @export
+ */
+export const BracesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = BracesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get paginated Braces
+         * @summary Get Braces
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getBraces(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageBraceModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getBraces(query, sortBy, sortDesc, page, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Braces Counts
+         * @param {Array<BraceField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getBracesCounts(fields?: Array<BraceField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesCounts(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get master csv
+         * @summary Get Braces Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getBracesCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesCsv(ids, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get displacement series from brace
+         * @summary Get Braces Displacement
+         * @param {string} braceId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getBracesDisplacement(braceId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesDisplacement(braceId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Braces Matrix
+         * @param {Array<BraceField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getBracesMatrix(fields: Array<BraceField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesMatrix(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get range of field
+         * @summary Get Braces Range
+         * @param {BraceNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getBracesRange(field: BraceNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesRange(field, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * BracesApi - factory interface
+ * @export
+ */
+export const BracesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = BracesApiFp(configuration)
+    return {
+        /**
+         * Get paginated Braces
+         * @summary Get Braces
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBraces(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageBraceModel> {
+            return localVarFp.getBraces(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Braces Counts
+         * @param {Array<BraceField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesCounts(fields?: Array<BraceField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getBracesCounts(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get master csv
+         * @summary Get Braces Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+            return localVarFp.getBracesCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get displacement series from brace
+         * @summary Get Braces Displacement
+         * @param {string} braceId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesDisplacement(braceId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getBracesDisplacement(braceId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Braces Matrix
+         * @param {Array<BraceField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesMatrix(fields: Array<BraceField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+            return localVarFp.getBracesMatrix(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get range of field
+         * @summary Get Braces Range
+         * @param {BraceNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesRange(field: BraceNumberField, options?: any): AxiosPromise<RangeModel> {
+            return localVarFp.getBracesRange(field, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * BracesApi - object-oriented interface
+ * @export
+ * @class BracesApi
+ * @extends {BaseAPI}
+ */
+export class BracesApi extends BaseAPI {
+    /**
+     * Get paginated Braces
+     * @summary Get Braces
+     * @param {string} [query] 
+     * @param {Array<string>} [sortBy] 
+     * @param {Array<boolean>} [sortDesc] 
+     * @param {number} [page] 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BracesApi
+     */
+    public getBraces(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+        return BracesApiFp(this.configuration).getBraces(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurences count of field values
+     * @summary Get Braces Counts
+     * @param {Array<BraceField>} [fields] 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BracesApi
+     */
+    public getBracesCounts(fields?: Array<BraceField>, query?: string, options?: AxiosRequestConfig) {
+        return BracesApiFp(this.configuration).getBracesCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get master csv
+     * @summary Get Braces Csv
+     * @param {Array<string>} [ids] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BracesApi
+     */
+    public getBracesCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+        return BracesApiFp(this.configuration).getBracesCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get displacement series from brace
+     * @summary Get Braces Displacement
+     * @param {string} braceId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BracesApi
+     */
+    public getBracesDisplacement(braceId: string, size?: number, options?: AxiosRequestConfig) {
+        return BracesApiFp(this.configuration).getBracesDisplacement(braceId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Braces Matrix
+     * @param {Array<BraceField>} fields 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BracesApi
+     */
+    public getBracesMatrix(fields: Array<BraceField>, query?: string, options?: AxiosRequestConfig) {
+        return BracesApiFp(this.configuration).getBracesMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get range of field
+     * @summary Get Braces Range
+     * @param {BraceNumberField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BracesApi
+     */
+    public getBracesRange(field: BraceNumberField, options?: AxiosRequestConfig) {
+        return BracesApiFp(this.configuration).getBracesRange(field, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
 
 /**
  * ColumnsApi - axios parameter creator

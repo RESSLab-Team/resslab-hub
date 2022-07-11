@@ -24,6 +24,353 @@
         }
       }
     },
+    "/braces": {
+      "get": {
+        "tags": [
+          "braces"
+        ],
+        "summary": "Get Braces",
+        "description": "Get paginated Braces",
+        "operationId": "get_braces",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort By",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "sort_by",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort Desc",
+              "type": "array",
+              "items": {
+                "type": "boolean"
+              },
+              "default": []
+            },
+            "name": "sort_desc",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page",
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 1
+            },
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "maximum": 1000.0,
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 10
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedPage_BraceModel_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/braces/counts": {
+      "get": {
+        "tags": [
+          "braces"
+        ],
+        "summary": "Get Braces Counts",
+        "description": "Get occurences count of field values",
+        "operationId": "get_braces_counts",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/BraceField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Braces Counts Braces Counts Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountModel"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/braces/range": {
+      "get": {
+        "tags": [
+          "braces"
+        ],
+        "summary": "Get Braces Range",
+        "description": "Get range of field",
+        "operationId": "get_braces_range",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/BraceNumberField"
+            },
+            "name": "field",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/braces/matrix": {
+      "get": {
+        "tags": [
+          "braces"
+        ],
+        "summary": "Get Braces Matrix",
+        "operationId": "get_braces_matrix",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/BraceField"
+              }
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/braces/csv": {
+      "get": {
+        "tags": [
+          "braces"
+        ],
+        "summary": "Get Braces Csv",
+        "description": "Get master csv",
+        "operationId": "get_braces_csv",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Ids",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "ids",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/braces/{brace_id}/displacement": {
+      "get": {
+        "tags": [
+          "braces"
+        ],
+        "summary": "Get Braces Displacement",
+        "description": "Get displacement series from brace",
+        "operationId": "get_braces_displacement",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Brace Id",
+              "type": "string"
+            },
+            "name": "brace_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Braces Displacement Braces  Brace Id  Displacement Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/columns": {
       "get": {
         "tags": [
@@ -1206,6 +1553,90 @@
   },
   "components": {
     "schemas": {
+      "BraceField": {
+        "title": "BraceField",
+        "enum": [
+          "id",
+          "investigator",
+          "specimen_ID",
+          "cross_section_shape",
+          "cross_section_size",
+          "area",
+          "steel",
+          "reference",
+          "link",
+          "displacement_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "BraceModel": {
+        "title": "BraceModel",
+        "required": [
+          "id",
+          "investigator",
+          "specimen_ID",
+          "cross_section_shape",
+          "cross_section_size",
+          "area",
+          "steel",
+          "reference",
+          "link",
+          "displacement_count"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "investigator": {
+            "title": "Investigator",
+            "type": "string"
+          },
+          "specimen_ID": {
+            "title": "Specimen Id",
+            "type": "string"
+          },
+          "cross_section_shape": {
+            "title": "Cross Section Shape",
+            "type": "string"
+          },
+          "cross_section_size": {
+            "title": "Cross Section Size",
+            "type": "string"
+          },
+          "area": {
+            "title": "Area",
+            "type": "number"
+          },
+          "steel": {
+            "title": "Steel",
+            "type": "string"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "displacement_count": {
+            "title": "Displacement Count",
+            "type": "integer"
+          }
+        }
+      },
+      "BraceNumberField": {
+        "title": "BraceNumberField",
+        "enum": [
+          "area",
+          "displacement_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
       "ColumnField": {
         "title": "ColumnField",
         "enum": [
@@ -1693,6 +2124,40 @@
           }
         },
         "description": "Count"
+      },
+      "ExtendedPage_BraceModel_": {
+        "title": "ExtendedPage[BraceModel]",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BraceModel"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "page": {
+            "title": "Page",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "minimum": 1.0,
+            "type": "integer"
+          }
+        }
       },
       "ExtendedPage_ColumnModel_": {
         "title": "ExtendedPage[ColumnModel]",
