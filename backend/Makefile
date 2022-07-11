@@ -1,6 +1,5 @@
 install:
 	poetry install
-	poetry run pre-commit install
 
 run:
 	poetry run dotenv -f ../secrets/.env run uvicorn resslab_tools.main:app --reload
