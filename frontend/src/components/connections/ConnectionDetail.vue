@@ -239,10 +239,3 @@ export default class ConnectionDetail extends CommonDetailMixin {
   }
 }
 </script>
-
-<style lang="scss">
-.v-carousel__item > .v-responsive__content {
-  display: flex;
-  justify-content: center;
-}
-</style>
