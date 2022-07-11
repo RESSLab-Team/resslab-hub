@@ -13,10 +13,18 @@ lint:
 update:
 	pre-commit autoupdate
 
-upload-data:
+upload-data: upload-brace upload-column upload-connection
+
+upload-brace:
+	poetry run dotenv -f ../secrets/.env run py data/uploader.py brace ../../resslab-tools-data/braces/steel_braces.csv
+	poetry run dotenv -f ../secrets/.env run py data/uploader.py brace-displacement ../../resslab-tools-data/braces/force_displacement/*.csv
+
+upload-column:
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py column ../../resslab-tools-data/columns/steel_columns.csv
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py column-axial-shortening ../../resslab-tools-data/columns/axial_shortening_rotation/*.csv
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py column-moment ../../resslab-tools-data/columns/moment_rotation/*.csv
+
+upload-connection:
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py connection ../../resslab-tools-data/connections/connections.csv
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py connection-global ../../resslab-tools-data/connections/Global/*.csv
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py connection-global-west ../../resslab-tools-data/connections/Global_west/*.csv

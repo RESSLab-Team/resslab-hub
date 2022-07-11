@@ -3,8 +3,8 @@ import csv
 from decimal import Decimal
 from enum import Enum
 from typing import Any, Callable, Dict, List, Union
-from data.common import CSV_ENCODING, CSV_READ_MODE
 
+from data.common import CSV_ENCODING, CSV_READ_MODE
 
 INCH = Decimal(25.4)
 

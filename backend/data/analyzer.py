@@ -37,15 +37,18 @@ class Column:
         self.header: str = header
         self.values: Set[str] = set()
 
+    def upper_values(self):
+        return [value.upper() for value in self.values]
+
     def is_nullable(self) -> bool:
-        return "NA" in self.values
+        return "NA" in self.upper_values()
 
     def get_type(self) -> ColumnType:
-        non_null_values = [value for value in self.values if value != "NA"]
+        non_null_values = [value for value in self.upper_values() if value != "NA"]
         if all([value.lower() in self.__boolean_values for value in non_null_values]):
             return ColumnType.BOOLEAN
         if all([value == "NR" or self.is_float(value) for value in non_null_values]):
-            if "NR" in self.values:
+            if "NR" in self.upper_values():
                 return ColumnType.DECIMAL_FLOAT
             float_values = [float(value) for value in non_null_values]
             if all([value.is_integer() for value in float_values]):
@@ -88,7 +91,7 @@ def analyze(filename: str):
     with open(file_path, CSV_READ_MODE, encoding=CSV_ENCODING) as file:
         reader = csv.reader(file, strict=True)
         headers = next(reader)
-        columns = [Column(header) for header in headers]
+        columns = [Column(header) for header in headers if header]
         for row in reader:
             for column, value in zip(columns, row):
                 column.values.add(value)
