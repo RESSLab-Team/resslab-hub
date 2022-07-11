@@ -1,8 +1,7 @@
 install:
-	git config --unset-all core.hooksPath
+	npm install
 	$(MAKE) -C backend install
 	$(MAKE) -C frontend install
-	npm install
 
 run-backend:
 	$(MAKE) -C backend run
