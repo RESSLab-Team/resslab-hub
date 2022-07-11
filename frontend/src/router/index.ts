@@ -54,13 +54,24 @@ const routes: Array<RouteConfig> = [
     ],
   },
   {
-    path: "/bracings",
-    name: "Bracings",
-    component: () => import("../views/Bracings.vue"),
+    path: "/braces",
+    component: () => import("../views/Braces.vue"),
     children: [
       {
-        path: "*",
-        redirect: "",
+        path: "",
+        redirect: "database",
+      },
+      {
+        path: "database",
+        component: () => import("../views/BracesDatabase.vue"),
+      },
+      {
+        path: "fragility-curve",
+        component: () => import("../views/BracesFragilityCurve.vue"),
+      },
+      {
+        path: "component-model",
+        component: () => import("../views/BracesComponentModel.vue"),
       },
     ],
   },

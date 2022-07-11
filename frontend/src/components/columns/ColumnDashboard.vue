@@ -65,7 +65,7 @@
             <v-card-text>
               <column-single-chart
                 :color="colors.green"
-                :field="ColumnField.SteelC"
+                :field="steelField"
                 :query="query"
                 :searches.sync="searches"
               ></column-single-chart>
@@ -102,7 +102,6 @@ import colors from "vuetify/lib/util/colors";
   },
 })
 export default class ColumnDashboard extends DashboardMixin<ColumnModel> {
-  readonly ColumnField = ColumnField;
   readonly colors = colors;
   readonly parallelFields: ParallelField<ColumnField>[] = [
     { id: ColumnField.Th80 },
@@ -125,6 +124,7 @@ export default class ColumnDashboard extends DashboardMixin<ColumnModel> {
       ]),
     },
   ];
+  readonly steelField = ColumnField.SteelC;
 
   get fields(): string[] {
     return Object.values(ColumnField);

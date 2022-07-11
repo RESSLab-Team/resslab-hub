@@ -67,8 +67,8 @@ export default class App extends Vue {
       children: this.subMenuItems,
     },
     {
-      text: "Bracings",
-      to: "/bracings",
+      text: "Braces",
+      to: "/braces",
       children: this.subMenuItems,
     },
     {
