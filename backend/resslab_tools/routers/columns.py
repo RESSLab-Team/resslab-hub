@@ -20,7 +20,8 @@ from resslab_tools.models.api import (
 from resslab_tools.models.database import (
     ColumnAxialShortening,
     ColumnEntity,
-    ColumnMoment,
+    ColumnMomentStrong,
+    ColumnMomentWeak,
 )
 from resslab_tools.utils.common import Component
 from resslab_tools.utils.database import get_session
@@ -37,20 +38,12 @@ component = Component(
     model_type=ColumnModel,
     id_column=ColumnEntity.id,
     ignored_columns={
-        ColumnEntity.moment_count,
         ColumnEntity.axial_shortening_count,
+        ColumnEntity.moment_strong_count,
+        ColumnEntity.moment_weak_count,
     },
 )
 
-moment_component = component.get_sub(
-    "moment",
-    ColumnMoment.column_id,
-    ColumnMoment.id,
-    {
-        ColumnMoment.chord_rotation: "Chord Rotation [rads]",
-        ColumnMoment.moment: "Moment [kN-mm]",
-    },
-)
 axial_shortening_component = component.get_sub(
     "axial-shortening",
     ColumnAxialShortening.column_id,
@@ -58,6 +51,24 @@ axial_shortening_component = component.get_sub(
     {
         ColumnAxialShortening.chord_rotation: "Chord Rotation [rads]",
         ColumnAxialShortening.axial_shortening: "Axial Shortening [mm]",
+    },
+)
+moment_strong_component = component.get_sub(
+    "moment",
+    ColumnMomentStrong.column_id,
+    ColumnMomentStrong.id,
+    {
+        ColumnMomentStrong.chord_rotation: "Chord Rotation [rads]",
+        ColumnMomentStrong.moment: "Moment [kN-mm]",
+    },
+)
+moment_weak_component = component.get_sub(
+    "moment",
+    ColumnMomentWeak.column_id,
+    ColumnMomentWeak.id,
+    {
+        ColumnMomentWeak.chord_rotation: "Chord Rotation [rads]",
+        ColumnMomentWeak.moment: "Moment [kN-mm]",
     },
 )
 
@@ -118,18 +129,6 @@ async def get_columns_csv(
     return await component.get_csv(session, ids)
 
 
-@router.get("/{column_id}/moment", response_model=List[List[Decimal]])
-async def get_columns_moment(
-    session: AsyncSession = Depends(get_session),
-    column_id: str = Path(...),
-    size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
-    """
-    Get moment series from column
-    """
-    return await moment_component.get_series(session, column_id, size)
-
-
 @router.get("/{column_id}/axial-shortening", response_model=List[List[Decimal]])
 async def get_columns_axial_shortening(
     session: AsyncSession = Depends(get_session),
@@ -140,3 +139,27 @@ async def get_columns_axial_shortening(
     Get axial shortening series from column
     """
     return await axial_shortening_component.get_series(session, column_id, size)
+
+
+@router.get("/{column_id}/moment-strong", response_model=List[List[Decimal]])
+async def get_columns_moment_strong(
+    session: AsyncSession = Depends(get_session),
+    column_id: str = Path(...),
+    size: int = Query(1024, ge=0),
+) -> List[List[Decimal]]:
+    """
+    Get moment strong series from column
+    """
+    return await moment_strong_component.get_series(session, column_id, size)
+
+
+@router.get("/{column_id}/moment-weak", response_model=List[List[Decimal]])
+async def get_columns_moment_weak(
+    session: AsyncSession = Depends(get_session),
+    column_id: str = Path(...),
+    size: int = Query(1024, ge=0),
+) -> List[List[Decimal]]:
+    """
+    Get moment weak series from column
+    """
+    return await moment_weak_component.get_series(session, column_id, size)

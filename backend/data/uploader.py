@@ -22,7 +22,8 @@ from resslab_tools.models.database import (
     BraceDisplacement,
     ColumnAxialShortening,
     ColumnEntity,
-    ColumnMoment,
+    ColumnMomentStrong,
+    ColumnMomentWeak,
     Connection,
     ConnectionBeam,
     ConnectionBeamWest,
@@ -39,7 +40,8 @@ session = Session(engine)
 class Type(Enum):
     COLUMN = "column"
     COLUMN_AXIAL_SHORTENING = "column-axial-shortening"
-    COLUMN_MOMENT = "column-moment"
+    COLUMN_MOMENT_STRONG = "column-moment-strong"
+    COLUMN_MOMENT_WEAK = "column-moment-weak"
     CONNECTION = "connection"
     CONNECTION_BEAM = "connection-beam"
     CONNECTION_BEAM_WEST = "connection-beam-west"
@@ -134,19 +136,26 @@ class CsvFileUploader(Uploader):
         self,
         get_delete: Callable[[str], delete],
         get_instance: Callable[[str, int, List[str]], Any],
+        filename_prefix="",
+        filename_suffix="",
     ) -> None:
         self.get_delete = get_delete
         self.get_instance = get_instance
+        self.filename_prefix = filename_prefix
+        self.filename_suffix = filename_suffix
 
     def upload_one(self, file_path: str) -> None:
         file_path = get_abs_path(file_path)
         filename = self.__get_filename(file_path)
+        id = filename.removeprefix(self.filename_prefix).removesuffix(
+            self.filename_suffix
+        )
         with open(file_path, "rt", encoding=UTF8_ENCODING) as file:
             reader = csv.reader(file, strict=True)
             next(reader)  # skip header
-            session.execute(self.get_delete(filename))
+            session.execute(self.get_delete(id))
             for index, value in enumerate(reader):
-                session.add(self.get_instance(filename, index, value))
+                session.add(self.get_instance(id, index, value))
         try:
             session.commit()
         except IntegrityError as e:
@@ -187,16 +196,34 @@ def main():
                 chord_rotation=value[0],
                 axial_shortening=value[1],
             ),
+            filename_prefix="Columns_",
+            filename_suffix="_ShorteningRotation",
         )
-    elif input_type == Type.COLUMN_MOMENT:
+    elif input_type == Type.COLUMN_MOMENT_STRONG:
         uploader = CsvFileUploader(
-            lambda id: delete(ColumnMoment).where(ColumnMoment.column_id == id),
-            lambda id, index, value: ColumnMoment(
+            lambda id: delete(ColumnMomentStrong).where(
+                ColumnMomentStrong.column_id == id
+            ),
+            lambda id, index, value: ColumnMomentStrong(
                 column_id=id,
                 id=index,
                 chord_rotation=value[0],
                 moment=value[1],
             ),
+            filename_prefix="Columns_",
+            filename_suffix="_MomentRotation",
+        )
+    elif input_type == Type.COLUMN_MOMENT_WEAK:
+        uploader = CsvFileUploader(
+            lambda id: delete(ColumnMomentWeak).where(ColumnMomentWeak.column_id == id),
+            lambda id, index, value: ColumnMomentWeak(
+                column_id=id,
+                id=index,
+                chord_rotation=value[0],
+                moment=value[1],
+            ),
+            filename_prefix="Columns_",
+            filename_suffix="_MomentRotation",
         )
     elif input_type == Type.CONNECTION_BEAM:
         uploader = CsvFileUploader(

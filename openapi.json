@@ -657,67 +657,6 @@
         }
       }
     },
-    "/columns/{column_id}/moment": {
-      "get": {
-        "tags": [
-          "columns"
-        ],
-        "summary": "Get Columns Moment",
-        "description": "Get moment series from column",
-        "operationId": "get_columns_moment",
-        "parameters": [
-          {
-            "required": true,
-            "schema": {
-              "title": "Column Id",
-              "type": "string"
-            },
-            "name": "column_id",
-            "in": "path"
-          },
-          {
-            "required": false,
-            "schema": {
-              "title": "Size",
-              "minimum": 0.0,
-              "type": "integer",
-              "default": 1024
-            },
-            "name": "size",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "title": "Response Get Columns Moment Columns  Column Id  Moment Get",
-                  "type": "array",
-                  "items": {
-                    "type": "array",
-                    "items": {
-                      "type": "number"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/columns/{column_id}/axial-shortening": {
       "get": {
         "tags": [
@@ -755,6 +694,128 @@
               "application/json": {
                 "schema": {
                   "title": "Response Get Columns Axial Shortening Columns  Column Id  Axial Shortening Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/{column_id}/moment-strong": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Moment Strong",
+        "description": "Get moment strong series from column",
+        "operationId": "get_columns_moment_strong",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Column Id",
+              "type": "string"
+            },
+            "name": "column_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Columns Moment Strong Columns  Column Id  Moment Strong Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/{column_id}/moment-weak": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Moment Weak",
+        "description": "Get moment weak series from column",
+        "operationId": "get_columns_moment_weak",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Column Id",
+              "type": "string"
+            },
+            "name": "column_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Columns Moment Weak Columns  Column Id  Moment Weak Get",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -1664,7 +1725,8 @@
           "link",
           "built_up",
           "axial_shortening_count",
-          "moment_count"
+          "moment_strong_count",
+          "moment_weak_count"
         ],
         "type": "string",
         "description": "An enumeration."
@@ -1695,7 +1757,8 @@
           "link",
           "built_up",
           "axial_shortening_count",
-          "moment_count"
+          "moment_strong_count",
+          "moment_weak_count"
         ],
         "type": "object",
         "properties": {
@@ -1795,8 +1858,12 @@
             "title": "Axial Shortening Count",
             "type": "integer"
           },
-          "moment_count": {
-            "title": "Moment Count",
+          "moment_strong_count": {
+            "title": "Moment Strong Count",
+            "type": "integer"
+          },
+          "moment_weak_count": {
+            "title": "Moment Weak Count",
             "type": "integer"
           }
         }
@@ -1815,7 +1882,8 @@
           "p_g_over_p_ym",
           "th_80",
           "axial_shortening_count",
-          "moment_count"
+          "moment_strong_count",
+          "moment_weak_count"
         ],
         "type": "string",
         "description": "An enumeration."
@@ -1859,6 +1927,7 @@
           "ru_rn_pl_m",
           "g_max_g_y",
           "reference",
+          "link",
           "beam_count",
           "beam_west_count",
           "global_count",
@@ -1896,6 +1965,7 @@
           "ru_rn_pl_n",
           "g_max_g_y",
           "reference",
+          "link",
           "beam_count",
           "beam_west_count",
           "global_count",
@@ -2046,6 +2116,10 @@
           },
           "reference": {
             "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
             "type": "string"
           },
           "beam_count": {

@@ -22,7 +22,8 @@ upload-brace:
 upload-column:
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py column ../../resslab-tools-data/columns/steel_columns.csv
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py column-axial-shortening ../../resslab-tools-data/columns/axial_shortening_rotation/*.csv
-	poetry run dotenv -f ../secrets/.env run py data/uploader.py column-moment ../../resslab-tools-data/columns/moment_rotation/*.csv
+	poetry run dotenv -f ../secrets/.env run py data/uploader.py column-moment-strong ../../resslab-tools-data/columns/moment_rotation_strong/*.csv
+	poetry run dotenv -f ../secrets/.env run py data/uploader.py column-moment-weak ../../resslab-tools-data/columns/moment_rotation_weak/*.csv
 
 upload-connection:
 	poetry run dotenv -f ../secrets/.env run py data/uploader.py connection ../../resslab-tools-data/connections/connections.csv

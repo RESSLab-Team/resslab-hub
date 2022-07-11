@@ -69,6 +69,7 @@ class ConnectionModel(BaseModel):
     ru_rn_pl_m: Optional[Decimal]
     g_max_g_y: Decimal
     reference: str
+    link: str
 
     beam_count: int
     beam_west_count: int
@@ -149,7 +150,8 @@ class ColumnModel(BaseModel):
 
     built_up: bool
     axial_shortening_count: int
-    moment_count: int
+    moment_strong_count: int
+    moment_weak_count: int
 
 
 ColumnField = Enum(
