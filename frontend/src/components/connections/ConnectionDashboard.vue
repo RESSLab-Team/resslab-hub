@@ -19,26 +19,6 @@
             :searches.sync="searches"
             :query="query"
           >
-            <template #title>
-              Parallel View of all Tests
-              <info-tooltip>
-                <p>
-                  In this parallel coordinate plots, you can view all available
-                  tests in the database, ordered according to key variables.
-                  Each line represents a single test.
-                </p>
-                How to use?
-                <ul>
-                  <li>
-                    Filter a subset of the data by selecting values on the
-                    vertical axis directly
-                  </li>
-                  <li>
-                    Select a specific test by clicking on the respective line.
-                  </li>
-                </ul>
-              </info-tooltip>
-            </template>
           </connection-parallel-chart>
         </v-col>
       </v-row>
@@ -101,25 +81,7 @@
         </v-col>
         <v-col sm="6">
           <v-card>
-            <v-card-title>
-              Beam Depth [mm]
-              <info-tooltip>
-                <p>
-                  This histogram displays the distribution of all available beam
-                  depths in the Database. Beam depth is the full depth of the
-                  bare cross section even in case of composite-steel cross
-                  sections.
-                </p>
-                How to use?
-                <ul>
-                  <li>
-                    Filter database for specific beam sizes, by clicking on a
-                    bar or using the slider below
-                  </li>
-                  <li>Filter for Bare/Composite by clicking on the legend.</li>
-                </ul>
-              </info-tooltip>
-            </v-card-title>
+            <column-depth-card-title></column-depth-card-title>
             <v-card-text>
               <connection-double-chart
                 :color="colors.red"
@@ -164,28 +126,7 @@
         </v-col>
         <v-col cols="12">
           <v-card>
-            <v-card-title>
-              Steel Material Type
-              <info-tooltip>
-                <p>
-                  This rectangle below displays the proportion of each steel
-                  material in the database. Steel materials are defined
-                  according to the respective region of origin.
-                </p>
-                How to use?
-                <ul>
-                  <li>
-                    See the available steel materials and by hovering over the
-                    corresponding material in the rectangle you can see how many
-                    tests are available per steel material type
-                  </li>
-                  <li>
-                    Filter the Database for a specific steel material type by
-                    clicking on the rectangle of using the dates sliders
-                  </li>
-                </ul>
-              </info-tooltip>
-            </v-card-title>
+            <steel-type-card-title></steel-type-card-title>
             <v-card-text>
               <connection-single-chart
                 :color="colors.deepPurple"
@@ -203,8 +144,10 @@
 
 <script lang="ts">
 import { ConnectionField, ConnectionModel } from "@/backend";
+import ColumnDepthCardTitle from "@/components/commons/ColumnDepthCardTitle.vue";
 import DashboardMixin from "@/components/commons/DashboardMixin.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
 import ConnectionDoubleChart from "@/components/connections/charts/ConnectionDoubleChart.vue";
 import ConnectionParallelChart from "@/components/connections/charts/ConnectionParallelChart.vue";
 import ConnectionSingleChart from "@/components/connections/charts/ConnectionSingleChart.vue";
@@ -217,12 +160,14 @@ import { ParallelField } from "../commons/charts/SimpleParallelChart.vue";
 
 @Component({
   components: {
+    ColumnDepthCardTitle,
     ConnectionTable,
     ConnectionSingleChart,
     ConnectionDoubleChart,
     ConnectionParallelChart,
     ConnectionDetail,
     InfoTooltip,
+    SteelTypeCardTitle,
   },
 })
 export default class ConnectionDashboard extends DashboardMixin<ConnectionModel> {
