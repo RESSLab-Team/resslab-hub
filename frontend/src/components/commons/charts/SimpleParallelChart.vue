@@ -1,7 +1,24 @@
 <template>
   <v-card>
     <v-card-title>
-      <slot name="title"></slot>
+      <slot name="title">
+        Parallel View of all Tests
+        <info-tooltip>
+          <p>
+            In this parallel coordinate plots, you can view all available tests
+            in the database, ordered according to key variables. Each line
+            represents a single test.
+          </p>
+          How to use?
+          <ul>
+            <li>
+              Filter a subset of the data by selecting values on the vertical
+              axis directly
+            </li>
+            <li>Select a specific test by clicking on the respective line.</li>
+          </ul>
+        </info-tooltip>
+      </slot>
     </v-card-title>
     <v-responsive aspect-ratio="4" min-height="100">
       <v-chart
@@ -28,6 +45,7 @@
 
 <script lang="ts">
 import { MatrixModel } from "@/backend";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import { Searches } from "@/utils/common";
 import { VerticalAlign, ZRFontWeight } from "@/utils/echarts";
 import { primaryColor } from "@/utils/vuetify";
@@ -47,6 +65,7 @@ use([CanvasRenderer, ParallelChart, BrushComponent, ToolboxComponent]);
 
 @Component({
   components: {
+    InfoTooltip,
     VChart,
   },
 })

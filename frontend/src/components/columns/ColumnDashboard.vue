@@ -19,9 +19,6 @@
             :searches.sync="searches"
             :query="query"
           >
-            <template #title>
-              <info-tooltip>Parallel Axis</info-tooltip>
-            </template>
           </column-parallel-chart>
         </v-col>
       </v-row>
@@ -48,7 +45,7 @@
         </v-col>
         <v-col cols="12" md="6">
           <v-card>
-            <v-card-title>Column Depth [mm]</v-card-title>
+            <column-depth-card-title></column-depth-card-title>
             <v-card-text>
               <column-double-chart
                 :color="colors.red"
@@ -61,7 +58,7 @@
         </v-col>
         <v-col cols="12">
           <v-card>
-            <v-card-title>Steel Material</v-card-title>
+            <steel-type-card-title></steel-type-card-title>
             <v-card-text>
               <column-single-chart
                 :color="colors.green"
@@ -86,19 +83,23 @@ import ColumnDetail from "@/components/columns/ColumnDetail.vue";
 import ColumnTable from "@/components/columns/ColumnTable.vue";
 import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
 import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
+import ColumnDepthCardTitle from "@/components/commons/ColumnDepthCardTitle.vue";
 import DashboardMixin from "@/components/commons/DashboardMixin.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
 import { Component } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
 
 @Component({
   components: {
+    ColumnDepthCardTitle,
     ColumnDetail,
     ColumnDoubleChart,
     ColumnParallelChart,
     ColumnSingleChart,
     ColumnTable,
     InfoTooltip,
+    SteelTypeCardTitle,
   },
 })
 export default class ColumnDashboard extends DashboardMixin<ColumnModel> {
