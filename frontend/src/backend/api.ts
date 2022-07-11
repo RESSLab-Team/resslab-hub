@@ -149,7 +149,8 @@ export enum ColumnField {
     Link = 'link',
     BuiltUp = 'built_up',
     AxialShorteningCount = 'axial_shortening_count',
-    MomentCount = 'moment_count'
+    MomentStrongCount = 'moment_strong_count',
+    MomentWeakCount = 'moment_weak_count'
 }
 
 /**
@@ -307,7 +308,13 @@ export interface ColumnModel {
      * @type {number}
      * @memberof ColumnModel
      */
-    'moment_count': number;
+    'moment_strong_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'moment_weak_count': number;
 }
 /**
  * An enumeration.
@@ -327,7 +334,8 @@ export enum ColumnNumberField {
     PGOverPYm = 'p_g_over_p_ym',
     Th80 = 'th_80',
     AxialShorteningCount = 'axial_shortening_count',
-    MomentCount = 'moment_count'
+    MomentStrongCount = 'moment_strong_count',
+    MomentWeakCount = 'moment_weak_count'
 }
 
 /**
@@ -373,6 +381,7 @@ export enum ConnectionField {
     RuRnPlM = 'ru_rn_pl_m',
     GMaxGY = 'g_max_g_y',
     Reference = 'reference',
+    Link = 'link',
     BeamCount = 'beam_count',
     BeamWestCount = 'beam_west_count',
     GlobalCount = 'global_count',
@@ -602,6 +611,12 @@ export interface ConnectionModel {
      * @memberof ConnectionModel
      */
     'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectionModel
+     */
+    'link': string;
     /**
      * 
      * @type {number}
@@ -1598,17 +1613,56 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Get moment series from column
-         * @summary Get Columns Moment
+         * Get moment strong series from column
+         * @summary Get Columns Moment Strong
          * @param {string} columnId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMoment: async (columnId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsMomentStrong: async (columnId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'columnId' is not null or undefined
-            assertParamExists('getColumnsMoment', 'columnId', columnId)
-            const localVarPath = `/columns/{column_id}/moment`
+            assertParamExists('getColumnsMomentStrong', 'columnId', columnId)
+            const localVarPath = `/columns/{column_id}/moment-strong`
+                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get moment weak series from column
+         * @summary Get Columns Moment Weak
+         * @param {string} columnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsMomentWeak: async (columnId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'columnId' is not null or undefined
+            assertParamExists('getColumnsMomentWeak', 'columnId', columnId)
+            const localVarPath = `/columns/{column_id}/moment-weak`
                 .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1746,15 +1800,27 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Get moment series from column
-         * @summary Get Columns Moment
+         * Get moment strong series from column
+         * @summary Get Columns Moment Strong
          * @param {string} columnId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsMoment(columnId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMoment(columnId, size, options);
+        async getColumnsMomentStrong(columnId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMomentStrong(columnId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get moment weak series from column
+         * @summary Get Columns Moment Weak
+         * @param {string} columnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getColumnsMomentWeak(columnId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMomentWeak(columnId, size, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -1836,15 +1902,26 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getColumnsMatrix(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
-         * Get moment series from column
-         * @summary Get Columns Moment
+         * Get moment strong series from column
+         * @summary Get Columns Moment Strong
          * @param {string} columnId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMoment(columnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
-            return localVarFp.getColumnsMoment(columnId, size, options).then((request) => request(axios, basePath));
+        getColumnsMomentStrong(columnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getColumnsMomentStrong(columnId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get moment weak series from column
+         * @summary Get Columns Moment Weak
+         * @param {string} columnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsMomentWeak(columnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getColumnsMomentWeak(columnId, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Get range of field
@@ -1934,16 +2011,29 @@ export class ColumnsApi extends BaseAPI {
     }
 
     /**
-     * Get moment series from column
-     * @summary Get Columns Moment
+     * Get moment strong series from column
+     * @summary Get Columns Moment Strong
      * @param {string} columnId 
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ColumnsApi
      */
-    public getColumnsMoment(columnId: string, size?: number, options?: AxiosRequestConfig) {
-        return ColumnsApiFp(this.configuration).getColumnsMoment(columnId, size, options).then((request) => request(this.axios, this.basePath));
+    public getColumnsMomentStrong(columnId: string, size?: number, options?: AxiosRequestConfig) {
+        return ColumnsApiFp(this.configuration).getColumnsMomentStrong(columnId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get moment weak series from column
+     * @summary Get Columns Moment Weak
+     * @param {string} columnId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ColumnsApi
+     */
+    public getColumnsMomentWeak(columnId: string, size?: number, options?: AxiosRequestConfig) {
+        return ColumnsApiFp(this.configuration).getColumnsMomentWeak(columnId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

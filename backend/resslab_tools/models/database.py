@@ -235,6 +235,7 @@ class Connection(Base):  # type: ignore
     g_y = Column(Numeric, nullable=False)
     g_max_g_y = Column(Numeric, nullable=False)
     reference = Column(String, nullable=False)
+    link = Column(String)
 
     beam_count = column_property(
         select(func.count(ConnectionBeam.id))
@@ -278,8 +279,18 @@ class ColumnAxialShortening(Base):  # type: ignore
     axial_shortening = Column(Numeric, nullable=False)
 
 
-class ColumnMoment(Base):  # type: ignore
-    __tablename__ = "column_moment"
+class ColumnMomentStrong(Base):  # type: ignore
+    __tablename__ = "column_moment_strong"
+
+    column_id = Column(String, ForeignKey("column.id"), primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    chord_rotation = Column(Numeric, nullable=False)
+    moment = Column(Numeric, nullable=False)
+
+
+class ColumnMomentWeak(Base):  # type: ignore
+    __tablename__ = "column_moment_weak"
 
     column_id = Column(String, ForeignKey("column.id"), primary_key=True, index=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
@@ -395,10 +406,16 @@ class ColumnEntity(Base):  # type: ignore
         .correlate_except(ColumnAxialShortening)
         .scalar_subquery()  # type: ignore
     )
-    moment_count = column_property(
-        select(func.count(ColumnMoment.id))
-        .where(ColumnMoment.column_id == id)
-        .correlate_except(ColumnMoment)
+    moment_strong_count = column_property(
+        select(func.count(ColumnMomentStrong.id))
+        .where(ColumnMomentStrong.column_id == id)
+        .correlate_except(ColumnMomentStrong)
+        .scalar_subquery()  # type: ignore
+    )
+    moment_weak_count = column_property(
+        select(func.count(ColumnMomentWeak.id))
+        .where(ColumnMomentWeak.column_id == id)
+        .correlate_except(ColumnMomentWeak)
         .scalar_subquery()  # type: ignore
     )
 

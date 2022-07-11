@@ -76,16 +76,6 @@ export default class ColumnDetail extends CommonDetailMixin {
 
   get carouselItems(): CarouselItem[][] {
     return [
-      this.column.moment_count > 0
-        ? [
-            {
-              promise: this.momentPromise,
-              title: "Moment",
-              xAxisName: "Chord Rotation [rads]",
-              yAxisName: "Moment [kN-mm]",
-            },
-          ]
-        : [],
       this.column.axial_shortening_count > 0
         ? [
             {
@@ -96,11 +86,33 @@ export default class ColumnDetail extends CommonDetailMixin {
             },
           ]
         : [],
+      this.column.moment_strong_count > 0 || this.column.moment_weak_count > 0
+        ? [
+            {
+              hidden: this.column.moment_strong_count === 0,
+              promise: this.momentStrongPromise,
+              title: "Moment Strong",
+              xAxisName: "Chord Rotation [rads]",
+              yAxisName: "Moment [kN-mm]",
+            },
+            {
+              hidden: this.column.moment_weak_count === 0,
+              promise: this.momentWeakPromise,
+              title: "Moment Weak",
+              xAxisName: "Chord Rotation [rads]",
+              yAxisName: "Moment [kN-mm]",
+            },
+          ]
+        : [],
     ].filter((item) => item.length > 0);
   }
 
-  get momentPromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$columnsApi.getColumnsMoment(this.column.id);
+  get momentStrongPromise(): Promise<AxiosResponse<number[][]>> {
+    return this.$columnsApi.getColumnsMomentStrong(this.column.id);
+  }
+
+  get momentWeakPromise(): Promise<AxiosResponse<number[][]>> {
+    return this.$columnsApi.getColumnsMomentWeak(this.column.id);
   }
 
   get axialShorteningPromise(): Promise<AxiosResponse<number[][]>> {

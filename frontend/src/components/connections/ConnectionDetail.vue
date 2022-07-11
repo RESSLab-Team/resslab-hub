@@ -1,6 +1,6 @@
 <template>
   <common-detail
-    :reference="connection.reference"
+    :reference="reference"
     :link="link"
     :carousel-items="carouselItems"
     @close="close"
@@ -138,9 +138,17 @@ export default class ConnectionDetail extends CommonDetailMixin {
   @VModel({ type: Object as () => ConnectionModel })
   readonly connection!: ConnectionModel;
 
+  get reference(): string {
+    return this.connection.reference;
+  }
+
+  get link(): string | undefined {
+    return this.connection.link;
+  }
+
   get carouselItems(): CarouselItem[][] {
     return [
-      this.connection.global_count + this.connection.global_west_count > 0
+      this.connection.global_count > 0 || this.connection.global_west_count > 0
         ? [
             {
               hidden: this.connection.global_count === 0,
@@ -168,7 +176,7 @@ export default class ConnectionDetail extends CommonDetailMixin {
             },
           ]
         : [],
-      this.connection.beam_count + this.connection.beam_west_count > 0
+      this.connection.beam_count > 0 || this.connection.beam_west_count > 0
         ? [
             {
               hidden: this.connection.beam_count === 0,
@@ -214,13 +222,6 @@ export default class ConnectionDetail extends CommonDetailMixin {
       return "";
     }
     return this.connection.backing_bar ? "kept in place" : "removed";
-  }
-
-  get link(): string | undefined {
-    const matches: string[] | null =
-      this.connection.reference.match(/\bhttps?:\/\/\S+/gi);
-    const link: string | undefined = matches ? matches[0] : undefined;
-    return link?.replace(/\.$/, "");
   }
 
   get specimenTypeImageSrc(): string {
