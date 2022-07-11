@@ -46,7 +46,8 @@
       "module": "data.analyzer",
       "args": [
         "../../resslab-tools-data/connections/connections.csv",
-        "../../resslab-tools-data/columns/steel_columns.csv"
+        "../../resslab-tools-data/columns/steel_columns.csv",
+        "../../resslab-tools-data/braces/steel_braces.csv"
       ],
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"

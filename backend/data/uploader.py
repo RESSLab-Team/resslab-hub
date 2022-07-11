@@ -18,6 +18,8 @@ from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
 from data.common import CSV_ENCODING, CSV_READ_MODE, get_abs_path
 from resslab_tools.models.database import (
+    Brace,
+    BraceDisplacement,
     ColumnAxialShortening,
     ColumnEntity,
     ColumnMoment,
@@ -44,6 +46,8 @@ class Type(Enum):
     CONNECTION_GLOBAL = "connection-global"
     CONNECTION_GLOBAL_WEST = "connection-global-west"
     CONNECTION_PANEL_ZONE = "connection-panel-zone"
+    BRACE = "brace"
+    BRACE_DISPLACEMENT = "brace-displacement"
 
 
 class Uploader(ABC):
@@ -104,9 +108,9 @@ class TableUploader(Uploader):
     def __get_value(column: Column, headers: List[str], row: List[str]) -> Any:
         index = headers.index(column.key or "")
         value = row[index]
-        if value == "NA":
+        if value.upper() == "NA":
             return None
-        if value == "NR":
+        if value.upper() == "NR":
             return nan
         if isinstance(column.type, Boolean):
             if value.lower() == "yes":
@@ -170,6 +174,8 @@ def main():
         uploader = TableUploader(ColumnEntity)
     elif input_type == Type.CONNECTION:
         uploader = TableUploader(Connection)
+    elif input_type == Type.BRACE:
+        uploader = TableUploader(Brace)
     elif input_type == Type.COLUMN_AXIAL_SHORTENING:
         uploader = CsvFileUploader(
             lambda id: delete(ColumnAxialShortening).where(
@@ -248,6 +254,18 @@ def main():
                 id=index,
                 shear_distortion=value[0],
                 shear_force=value[1],
+            ),
+        )
+    elif input_type == Type.BRACE_DISPLACEMENT:
+        uploader = CsvFileUploader(
+            lambda id: delete(BraceDisplacement).where(
+                BraceDisplacement.brace_id == id
+            ),
+            lambda id, index, value: BraceDisplacement(
+                brace_id=id,
+                id=index,
+                displacement=value[0],
+                force=value[1],
             ),
         )
     else:
