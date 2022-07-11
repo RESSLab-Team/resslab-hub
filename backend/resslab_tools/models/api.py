@@ -169,3 +169,36 @@ ColumnNumberField = Enum(
     module=__name__,
     type=str,
 )
+
+
+class BraceModel(BaseModel):
+    id: str
+    investigator: str
+    specimen_ID: str
+    cross_section_shape: str
+    cross_section_size: str
+    area: Decimal
+    steel: str
+    reference: str
+    link: str
+
+    displacement_count: int
+
+
+BraceField = Enum(
+    "BraceField",
+    {key: key for key in BraceModel.__fields__},
+    module=__name__,
+    type=str,
+)
+
+BraceNumberField = Enum(
+    "BraceNumberField",
+    {
+        key: key
+        for key, field in BraceModel.__fields__.items()
+        if field.type_ in [Decimal, int]
+    },
+    module=__name__,
+    type=str,
+)
