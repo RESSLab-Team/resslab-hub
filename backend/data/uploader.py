@@ -177,7 +177,7 @@ def main():
     input_type: Type = args.type
     filenames: List[str] = args.filenames
 
-    print(f"Connecting to {engine.url}")
+    print(f"connecting to {engine.url}")
 
     if input_type == Type.COLUMN:
         uploader = TableUploader(ColumnEntity)
@@ -196,8 +196,6 @@ def main():
                 chord_rotation=value[0],
                 axial_shortening=value[1],
             ),
-            filename_prefix="Columns_",
-            filename_suffix="_ShorteningRotation",
         )
     elif input_type == Type.COLUMN_MOMENT_STRONG:
         uploader = CsvFileUploader(
@@ -210,8 +208,6 @@ def main():
                 chord_rotation=value[0],
                 moment=value[1],
             ),
-            filename_prefix="Columns_",
-            filename_suffix="_MomentRotation",
         )
     elif input_type == Type.COLUMN_MOMENT_WEAK:
         uploader = CsvFileUploader(
@@ -222,8 +218,6 @@ def main():
                 chord_rotation=value[0],
                 moment=value[1],
             ),
-            filename_prefix="Columns_",
-            filename_suffix="_MomentRotation",
         )
     elif input_type == Type.CONNECTION_BEAM:
         uploader = CsvFileUploader(
