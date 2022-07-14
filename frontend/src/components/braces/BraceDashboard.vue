@@ -77,9 +77,15 @@ import colors from "vuetify/lib/util/colors";
 export default class BraceDashboard extends DashboardMixin<BraceModel> {
   readonly colors = colors;
   readonly parallelFields: ParallelField<BraceField>[] = [
+    { id: BraceField.KlR },
+    {
+      id: {
+        dividend: BraceField.DBr,
+        divisor: BraceField.TBr,
+      },
+    },
     { id: BraceField.CrossSectionShape },
-    { id: BraceField.CrossSectionSize },
-    { id: BraceField.Area },
+    { id: BraceField.BoundaryCondition },
   ];
   readonly steelField = BraceField.Steel;
 

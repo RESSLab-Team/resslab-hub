@@ -34,7 +34,11 @@ export enum BraceField {
     CrossSectionShape = 'cross_section_shape',
     CrossSectionSize = 'cross_section_size',
     Area = 'area',
+    DBr = 'd_br',
+    TBr = 't_br',
     Steel = 'steel',
+    BoundaryCondition = 'boundary_condition',
+    KlR = 'kl_r',
     Reference = 'reference',
     Link = 'link',
     DisplacementCount = 'displacement_count'
@@ -84,10 +88,34 @@ export interface BraceModel {
     'area': number;
     /**
      * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'd_br': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    't_br': number;
+    /**
+     * 
      * @type {string}
      * @memberof BraceModel
      */
     'steel': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'boundary_condition': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'kl_r': number;
     /**
      * 
      * @type {string}
@@ -115,6 +143,9 @@ export interface BraceModel {
 
 export enum BraceNumberField {
     Area = 'area',
+    DBr = 'd_br',
+    TBr = 't_br',
+    KlR = 'kl_r',
     DisplacementCount = 'displacement_count'
 }
 

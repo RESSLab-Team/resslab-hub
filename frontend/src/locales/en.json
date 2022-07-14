@@ -1,4 +1,14 @@
 {
+  "brace": {
+    "investigator": "Investigator",
+    "specimen_ID": "Specimen Designation",
+    "cross_section_size": "Cross Section",
+    "steel": "Steel Grade",
+    "kl_r": "kL/ry",
+    "d_br/t_br": "b/t",
+    "cross_section_shape": "Cross Section Shape",
+    "boundary_condition": "Boundary Condition"
+  },
   "column": {
     "experimental_program": "Experimental Program",
     "date": "Date",

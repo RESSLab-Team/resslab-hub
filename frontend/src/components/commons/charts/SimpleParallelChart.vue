@@ -133,9 +133,9 @@ export default class SimpleParallelChart extends Vue {
         toolbox: ["clear"],
       },
       parallel: {
-        left: 80,
+        left: 60,
         top: 40,
-        right: 80,
+        right: 120,
         bottom: 8,
       },
       parallelAxis: this.fields.map((field, index) => {

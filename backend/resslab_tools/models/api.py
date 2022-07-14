@@ -180,7 +180,11 @@ class BraceModel(BaseModel):
     cross_section_shape: str
     cross_section_size: str
     area: Decimal
+    d_br: Decimal
+    t_br: Decimal
     steel: str
+    boundary_condition: str
+    kl_r: Decimal
     reference: str
     link: str
 
