@@ -1623,7 +1623,11 @@
           "cross_section_shape",
           "cross_section_size",
           "area",
+          "d_br",
+          "t_br",
           "steel",
+          "boundary_condition",
+          "kl_r",
           "reference",
           "link",
           "displacement_count"
@@ -1640,7 +1644,11 @@
           "cross_section_shape",
           "cross_section_size",
           "area",
+          "d_br",
+          "t_br",
           "steel",
+          "boundary_condition",
+          "kl_r",
           "reference",
           "link",
           "displacement_count"
@@ -1671,9 +1679,25 @@
             "title": "Area",
             "type": "number"
           },
+          "d_br": {
+            "title": "D Br",
+            "type": "number"
+          },
+          "t_br": {
+            "title": "T Br",
+            "type": "number"
+          },
           "steel": {
             "title": "Steel",
             "type": "string"
+          },
+          "boundary_condition": {
+            "title": "Boundary Condition",
+            "type": "string"
+          },
+          "kl_r": {
+            "title": "Kl R",
+            "type": "number"
           },
           "reference": {
             "title": "Reference",
@@ -1693,6 +1717,9 @@
         "title": "BraceNumberField",
         "enum": [
           "area",
+          "d_br",
+          "t_br",
+          "kl_r",
           "displacement_count"
         ],
         "type": "string",

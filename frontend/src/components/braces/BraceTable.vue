@@ -53,15 +53,15 @@ export default class BraceTable extends Vue {
       type: "text",
     },
     {
-      value: BraceField.CrossSectionShape,
-      type: "text",
-    },
-    {
       value: BraceField.CrossSectionSize,
       type: "text",
     },
     {
-      value: BraceField.Area,
+      value: BraceField.Steel,
+      type: "text",
+    },
+    {
+      value: BraceField.KlR,
       type: "number",
     },
   ];
