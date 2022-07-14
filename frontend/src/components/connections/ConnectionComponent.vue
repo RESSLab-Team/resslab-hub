@@ -62,7 +62,6 @@
                     :label="item.text"
                     :max="item.max"
                     :min="item.min"
-                    :step="item.step"
                     :unit="item.unit"
                     :unit-system="unitSystem"
                   ></unit-slider>
@@ -99,7 +98,6 @@
                     :label="item.text"
                     :max="item.max"
                     :min="item.min"
-                    :step="item.step"
                     :unit="item.unit"
                     :unit-system="unitSystem"
                   ></unit-slider>
@@ -501,7 +499,7 @@ export default class ConnectionComponent extends Vue {
     };
   }
 
-  private getBackboneRbs(): Backbone {
+  get backboneRbs(): Backbone {
     const { zx, lRbs, lCanti, k, my } = this.rbs();
 
     const a = 1.09;
@@ -554,7 +552,7 @@ export default class ConnectionComponent extends Vue {
     };
   }
 
-  private getEnvelopeRbs(): Envelope {
+  get envelopeRbs(): Envelope {
     const { zx, lRbs, lCanti, k, my } = this.rbs();
 
     const res = 0.3;
@@ -616,7 +614,7 @@ export default class ConnectionComponent extends Vue {
     };
   }
 
-  private getBackboneNonRbs(): Backbone {
+  get backboneNonRbs(): Backbone {
     const { zx, lCanti, k, my } = this.nonRbs();
 
     const a = 1.11;
@@ -698,7 +696,7 @@ export default class ConnectionComponent extends Vue {
     };
   }
 
-  private getEnvelopeNonRbs(): Envelope {
+  get envelopeNonRbs(): Envelope {
     const { zx, lCanti, k, my } = this.nonRbs();
     const res = 0.3;
     const mRes = res * my;
@@ -773,19 +771,19 @@ export default class ConnectionComponent extends Vue {
   }
 
   get backboneWithRbs(): Result {
-    return this.getResult(this.getBackboneRbs());
+    return this.getResult(this.backboneRbs);
   }
 
   get backboneWithoutRbs(): Result {
-    return this.getResult(this.getBackboneNonRbs());
+    return this.getResult(this.backboneNonRbs);
   }
 
   get envelopeWithRbs(): Result {
-    return this.getResult(this.getEnvelopeRbs());
+    return this.getResult(this.envelopeRbs);
   }
 
   get envelopeWithoutRbs(): Result {
-    return this.getResult(this.getEnvelopeNonRbs());
+    return this.getResult(this.envelopeNonRbs);
   }
 
   option(backbone: Result, envelope: Result): EChartsOption {
@@ -826,7 +824,6 @@ class Variable {
     unit?: string;
     min: number;
     max: number;
-    step?: number;
   }) {
     this.key = options.key;
     this.text = options.text;
