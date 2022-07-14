@@ -24,7 +24,7 @@ async_url = "postgresql+asyncpg" + __url_without_driver
 
 engine = create_async_engine(async_url, echo=True)
 
-async_session = sessionmaker(engine, class_=AsyncSession)
+async_session = sessionmaker(engine, class_=AsyncSession)  # type: ignore
 
 Base = declarative_base(bind=engine)
 

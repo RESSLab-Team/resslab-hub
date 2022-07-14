@@ -165,16 +165,16 @@
             <template #default>
               <thead>
                 <tr>
-                  <th rowspan="2">Parameter</th>
-                  <th rowspan="2">Unit</th>
-                  <th colspan="2">Beams with RBS</th>
-                  <th colspan="2">Beams without RBS</th>
+                  <th class="text-center" rowspan="2">Parameter</th>
+                  <th class="text-center" rowspan="2">Unit</th>
+                  <th class="text-center" colspan="2">Beams with RBS</th>
+                  <th class="text-center" colspan="2">Beams without RBS</th>
                 </tr>
                 <tr>
-                  <th>Monotonic Backbone</th>
-                  <th>First Cycle Envelope</th>
-                  <th>Monotonic Backbone</th>
-                  <th>First Cycle Envelope</th>
+                  <th class="text-center">Monotonic Backbone</th>
+                  <th class="text-center">First Cycle Envelope</th>
+                  <th class="text-center">Monotonic Backbone</th>
+                  <th class="text-center">First Cycle Envelope</th>
                 </tr>
               </thead>
               <tbody>
@@ -184,6 +184,7 @@
                   :field="item.key"
                   :text="item.text"
                   :unit="item.unit"
+                  :fraction-digit="item.fractionDigit"
                   :columns="[
                     backboneWithRbs,
                     envelopeWithRbs,
@@ -254,7 +255,7 @@ export default class ConnectionComponent extends Vue {
       min: 100,
       max: 500,
     }),
-    new Variable({ key: "h", text: "h", unit: "mm", min: 100, max: 1000 }),
+    new Variable({ key: "d", text: "d", unit: "mm", min: 100, max: 2000 }),
     new Variable({
       key: "tf",
       text: "t<sub>f</sub>",
@@ -311,16 +312,19 @@ export default class ConnectionComponent extends Vue {
       key: "my",
       text: "M<sub>y</sub>",
       unit: "kN⋅mm",
+      fractionDigit: 0,
     },
     {
       key: "mc",
       text: "M<sub>c</sub>",
       unit: "kN⋅mm",
+      fractionDigit: 0,
     },
     {
       key: "mRes",
       text: "M<sub>r</sub>",
       unit: "kN⋅mm",
+      fractionDigit: 0,
     },
     {
       key: "thetaP",
@@ -344,18 +348,20 @@ export default class ConnectionComponent extends Vue {
     },
     {
       key: "k",
-      text: "K (residual strength ratio)",
-      unit: "",
+      text: "K",
+      unit: "residual strength ratio",
     },
     {
       key: "ix",
       text: "Ix",
       unit: "mm<sup>4</sup>",
+      fractionDigit: 0,
     },
     {
       key: "zx",
       text: "Zx",
       unit: "mm<sup>3</sup>",
+      fractionDigit: 0,
     },
     {
       key: "ry",
@@ -408,7 +414,7 @@ export default class ConnectionComponent extends Vue {
   onSectionChanged(): void {
     if (this.section) {
       this.bf = this.section.bf;
-      this.h = this.section.h;
+      this.d = this.section.d;
       this.tf = this.section.tf;
       this.tw = this.section.tw;
     }
@@ -417,13 +423,20 @@ export default class ConnectionComponent extends Vue {
   readonly e = 205;
 
   bf = 100;
-  h = 100;
+  d = 100;
   tf = 5;
   tw = 5;
   rbsReduction = 0.5; // 0
   l = 8000; // 1000
   lb = 4000; // 1000
   fy = 380; // 250
+
+  private get h(): number {
+    if (this.section) {
+      return this.section.h;
+    }
+    return this.d - 2 * this.tf;
+  }
 
   private get ix(): number {
     if (this.section) {
@@ -438,6 +451,17 @@ export default class ConnectionComponent extends Vue {
     );
   }
 
+  private get ry(): number {
+    if (this.section) {
+      return this.section.ry;
+    }
+    const a = 2 * this.tf * this.bf + (this.d - 2 * this.tf) * this.tw;
+    const iy =
+      (this.tf * Math.pow(this.bf, 3)) / 12 +
+      ((this.d - 2 * this.tf) * Math.pow(this.tw, 3)) / 12;
+    return Math.sqrt(iy / a);
+  }
+
   private zx(rbs: boolean): number {
     if (this.section) {
       return this.section.zx;
@@ -450,31 +474,8 @@ export default class ConnectionComponent extends Vue {
     );
   }
 
-  private get ry(): number {
-    if (this.section) {
-      return this.section.ry;
-    }
-    // FIXME
-    return Math.sqrt(this.iy / this.a);
-  }
-
-  private get d(): number {
-    if (this.section) {
-      return this.section.d;
-    }
-    // FIXME
-    return this.h + 2 * this.tf;
-  }
-
-  private get iy(): number {
-    return (this.tf * Math.pow(this.bf, 3) + this.h * Math.pow(this.tw, 3)) / 6;
-  }
-
-  private get a(): number {
-    return this.bf * this.d - this.h * (this.bf - this.tw);
-  }
-
   private rbs(): {
+    zx: number;
     lRbs: number;
     lCanti: number;
     k: number;
@@ -483,14 +484,16 @@ export default class ConnectionComponent extends Vue {
     const _a = 0.625 * this.bf;
     const _b = 0.75 * this.d;
     const _c = this.rbsReduction * this.bf;
+    const zx = this.zx(true);
     const lRbs = _a + 0.5 * _b;
-    const zRbs = this.zx(true) - _c * this.tf * (this.d - this.tf);
+    const zRbs = zx - _c * this.tf * (this.d - this.tf);
 
     const lCanti = this.l / 2;
 
     const k = (6 * this.e * this.ix) / this.l;
     const my = 1.06 * zRbs * (this.fy / 1000);
     return {
+      zx,
       lRbs,
       lCanti,
       k,
@@ -499,7 +502,7 @@ export default class ConnectionComponent extends Vue {
   }
 
   private getBackboneRbs(): Backbone {
-    const { lRbs, lCanti, k, my } = this.rbs();
+    const { zx, lRbs, lCanti, k, my } = this.rbs();
 
     const a = 1.09;
     const mc = a * my;
@@ -545,13 +548,14 @@ export default class ConnectionComponent extends Vue {
       thetaUlt,
       alpha,
       alphaPc,
+      zx,
       lRbs,
       lambda,
     };
   }
 
   private getEnvelopeRbs(): Envelope {
-    const { lRbs, lCanti, k, my } = this.rbs();
+    const { zx, lRbs, lCanti, k, my } = this.rbs();
 
     const res = 0.3;
     const mRes = res * my;
@@ -589,19 +593,23 @@ export default class ConnectionComponent extends Vue {
       thetaUlt,
       alpha,
       alphaPc,
+      zx,
       lRbs,
     };
   }
 
   private nonRbs(): {
+    zx: number;
     lCanti: number;
     k: number;
     my: number;
   } {
+    const zx = this.zx(false);
     const lCanti = this.l / 2;
     const k = (6 * this.e * this.ix) / this.l;
-    const my = 1.17 * this.zx(false) * (this.fy / 1000);
+    const my = 1.17 * zx * (this.fy / 1000);
     return {
+      zx,
       lCanti,
       k,
       my,
@@ -609,7 +617,7 @@ export default class ConnectionComponent extends Vue {
   }
 
   private getBackboneNonRbs(): Backbone {
-    const { lCanti, k, my } = this.nonRbs();
+    const { zx, lCanti, k, my } = this.nonRbs();
 
     const a = 1.11;
     const mc = a * my;
@@ -685,12 +693,13 @@ export default class ConnectionComponent extends Vue {
       thetaUlt,
       alpha,
       alphaPc,
+      zx,
       lambda,
     };
   }
 
   private getEnvelopeNonRbs(): Envelope {
-    const { lCanti, k, my } = this.nonRbs();
+    const { zx, lCanti, k, my } = this.nonRbs();
     const res = 0.3;
     const mRes = res * my;
     const thetaY = my / k;
@@ -726,6 +735,7 @@ export default class ConnectionComponent extends Vue {
       thetaUlt,
       alpha,
       alphaPc,
+      zx,
     };
   }
 
@@ -855,6 +865,7 @@ interface Envelope {
   thetaUlt: number;
   alpha: number;
   alphaPc: number;
+  zx: number;
   lRbs?: number;
 }
 
