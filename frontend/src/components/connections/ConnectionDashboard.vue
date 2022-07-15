@@ -214,9 +214,5 @@ export default class ConnectionDashboard extends DashboardMixin<ConnectionModel>
       ]),
     },
   ];
-
-  get fields(): string[] {
-    return Object.values(ConnectionField);
-  }
 }
 </script>

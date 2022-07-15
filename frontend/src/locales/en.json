@@ -7,7 +7,8 @@
     "kl_r": "kL/ry",
     "d_br/t_br": "b/t",
     "cross_section_shape": "Cross Section Shape",
-    "boundary_condition": "Boundary Condition"
+    "boundary_condition": "Boundary Condition",
+    "date": "Date"
   },
   "column": {
     "experimental_program": "Experimental Program",

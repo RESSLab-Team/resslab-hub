@@ -31,6 +31,7 @@ export enum BraceField {
     Id = 'id',
     Investigator = 'investigator',
     SpecimenId = 'specimen_ID',
+    Date = 'date',
     CrossSectionShape = 'cross_section_shape',
     CrossSectionSize = 'cross_section_size',
     Area = 'area',
@@ -68,6 +69,12 @@ export interface BraceModel {
      * @memberof BraceModel
      */
     'specimen_ID': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'date': number;
     /**
      * 
      * @type {string}
@@ -142,6 +149,7 @@ export interface BraceModel {
  */
 
 export enum BraceNumberField {
+    Date = 'date',
     Area = 'area',
     DBr = 'd_br',
     TBr = 't_br',

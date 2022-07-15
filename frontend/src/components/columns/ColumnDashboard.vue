@@ -126,9 +126,5 @@ export default class ColumnDashboard extends DashboardMixin<ColumnModel> {
     },
   ];
   readonly steelField = ColumnField.SteelC;
-
-  get fields(): string[] {
-    return Object.values(ColumnField);
-  }
 }
 </script>
