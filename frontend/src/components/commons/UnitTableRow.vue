@@ -21,7 +21,7 @@ export default class UnitTableRow extends UnitMixin {
   @Prop({ type: String })
   readonly text!: string;
   @Prop({ type: Array as () => Record<string, number>[] })
-  readonly columns!: Record<string, number>[];
+  readonly columns!: Record<string, number | undefined>[];
   @Prop({ type: Number, default: 2 })
   readonly fractionDigit!: number;
 
@@ -35,8 +35,9 @@ export default class UnitTableRow extends UnitMixin {
   get values(): string[] {
     return this.columns
       .map((d) => d[this.field])
-      .map((v) => v / this.ratio)
-      .map((v) => this.formatter.format(v));
+      .map((v) =>
+        v !== undefined ? this.formatter.format(v / this.ratio) : ""
+      );
   }
 }
 

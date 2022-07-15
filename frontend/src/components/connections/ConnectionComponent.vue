@@ -305,6 +305,7 @@ export default class ConnectionComponent extends Vue {
       key: "ke",
       text: "K<sub>e</sub>",
       unit: "<sup>kN⋅mm</sup>/<sub>rad</sub>",
+      fractionDigit: 0,
     },
     {
       key: "my",
@@ -342,38 +343,6 @@ export default class ConnectionComponent extends Vue {
     {
       key: "lamdba",
       text: "&Lambda;",
-      unit: "rad",
-    },
-    {
-      key: "k",
-      text: "K",
-      unit: "residual strength ratio",
-    },
-    {
-      key: "ix",
-      text: "Ix",
-      unit: "mm<sup>4</sup>",
-      fractionDigit: 0,
-    },
-    {
-      key: "zx",
-      text: "Zx",
-      unit: "mm<sup>3</sup>",
-      fractionDigit: 0,
-    },
-    {
-      key: "ry",
-      text: "ry",
-      unit: "mm",
-    },
-    {
-      key: "d",
-      text: "d",
-      unit: "mm",
-    },
-    {
-      key: "thetaY",
-      text: "&theta;<sub>y</sub>",
       unit: "rad",
     },
   ];
@@ -460,6 +429,14 @@ export default class ConnectionComponent extends Vue {
     return Math.sqrt(iy / a);
   }
 
+  get ke(): number {
+    return (6 * this.e * this.ix) / this.l;
+  }
+
+  private get le(): number {
+    return this.l / 2;
+  }
+
   private zx(rbs: boolean): number {
     if (this.section) {
       return this.section.zx;
@@ -475,8 +452,6 @@ export default class ConnectionComponent extends Vue {
   private rbs(): {
     zx: number;
     lRbs: number;
-    lCanti: number;
-    k: number;
     my: number;
   } {
     const _a = 0.625 * this.bf;
@@ -486,34 +461,29 @@ export default class ConnectionComponent extends Vue {
     const lRbs = _a + 0.5 * _b;
     const zRbs = zx - _c * this.tf * (this.d - this.tf);
 
-    const lCanti = this.l / 2;
-
-    const k = (6 * this.e * this.ix) / this.l;
     const my = 1.06 * zRbs * (this.fy / 1000);
     return {
       zx,
       lRbs,
-      lCanti,
-      k,
       my,
     };
   }
 
   get backboneRbs(): Backbone {
-    const { zx, lRbs, lCanti, k, my } = this.rbs();
+    const { zx, lRbs, my } = this.rbs();
 
     const a = 1.09;
     const mc = a * my;
     const res = 0.4;
     const mRes = res * my;
 
-    const thetaY = my / k;
+    const thetaY = my / this.ke;
     const thetaP =
       0.19 *
       Math.pow(this.h / this.tw, -0.314) *
       Math.pow(this.bf / 2 / this.tf, -0.1) *
       Math.pow(this.lb / this.ry, -0.185) *
-      Math.pow((lCanti - lRbs) / this.d, 0.113) *
+      Math.pow((this.le - lRbs) / this.d, 0.113) *
       Math.pow(this.d / 533, -0.76) *
       Math.pow(this.fy / 355, -0.07);
     const thetaPc =
@@ -523,8 +493,8 @@ export default class ConnectionComponent extends Vue {
       Math.pow(this.lb / this.ry, -0.108) *
       Math.pow(this.fy / 355, -0.36);
     const thetaUlt = 0.2;
-    const alpha = ((mc - my) / thetaP / k) * (lCanti / (lCanti - lRbs));
-    const alphaPc = (-mc / (k * thetaPc)) * (lCanti / (lCanti - lRbs));
+    const alpha = ((mc - my) / thetaP / this.ke) * (this.le / (this.le - lRbs));
+    const alphaPc = (-mc / (this.ke * thetaPc)) * (this.le / (this.le - lRbs));
     const lambda = clamp(
       585 *
         Math.pow(this.h / this.tw, -1.14) *
@@ -534,7 +504,6 @@ export default class ConnectionComponent extends Vue {
       3.0
     );
     return {
-      k,
       my,
       thetaY,
       a,
@@ -553,18 +522,18 @@ export default class ConnectionComponent extends Vue {
   }
 
   get envelopeRbs(): Envelope {
-    const { zx, lRbs, lCanti, k, my } = this.rbs();
+    const { zx, lRbs, my } = this.rbs();
 
     const res = 0.3;
     const mRes = res * my;
 
-    const thetaY = my / k;
+    const thetaY = my / this.ke;
     const thetaP =
       0.25 *
       Math.pow(this.h / this.tw, -0.5) *
       Math.pow(this.bf / 2 / this.tf, -0.7) *
       Math.pow(this.lb / this.ry, -0.5) *
-      Math.pow((lCanti - lRbs) / this.d, 0.8) *
+      Math.pow((this.le - lRbs) / this.d, 0.8) *
       Math.pow(this.e / this.fy, 0.23);
     const thetaPc = clamp(
       2.5 *
@@ -576,11 +545,10 @@ export default class ConnectionComponent extends Vue {
     );
     const thetaUlt = 0.08;
     const alpha = 0.03;
-    const mc = my + alpha * k * thetaP;
+    const mc = my + alpha * this.ke * thetaP;
 
-    const alphaPc = (-mc / (k * thetaPc)) * (lCanti / (lCanti - lRbs));
+    const alphaPc = (-mc / (this.ke * thetaPc)) * (this.le / (this.le - lRbs));
     return {
-      k,
       my,
       thetaY,
       mc,
@@ -598,31 +566,25 @@ export default class ConnectionComponent extends Vue {
 
   private nonRbs(): {
     zx: number;
-    lCanti: number;
-    k: number;
     my: number;
   } {
     const zx = this.zx(false);
-    const lCanti = this.l / 2;
-    const k = (6 * this.e * this.ix) / this.l;
     const my = 1.17 * zx * (this.fy / 1000);
     return {
       zx,
-      lCanti,
-      k,
       my,
     };
   }
 
   get backboneNonRbs(): Backbone {
-    const { zx, lCanti, k, my } = this.nonRbs();
+    const { zx, my } = this.nonRbs();
 
     const a = 1.11;
     const mc = a * my;
     const res = 0.4;
     const mRes = res * my;
 
-    const thetaY = my / k;
+    const thetaY = my / this.ke;
 
     let thetaP;
     let thetaPc;
@@ -632,7 +594,7 @@ export default class ConnectionComponent extends Vue {
         0.0865 *
         Math.pow(this.h / this.tw, -0.365) *
         Math.pow(this.bf / 2 / this.tf, -0.14) *
-        Math.pow(lCanti / this.d, 0.34) *
+        Math.pow(this.le / this.d, 0.34) *
         Math.pow(this.d / 533, -0.721) *
         Math.pow(this.fy / 355, -0.23);
       thetaPc =
@@ -655,7 +617,7 @@ export default class ConnectionComponent extends Vue {
         Math.pow(this.h / this.tw, -0.55) *
         Math.pow(this.bf / 2 / this.tf, -0.345) *
         Math.pow(this.lb / this.ry, -0.023) *
-        Math.pow(lCanti / this.d, 0.09) *
+        Math.pow(this.le / this.d, 0.09) *
         Math.pow(this.d / 533, -0.33) *
         Math.pow(this.fy / 355, -0.13);
 
@@ -676,10 +638,9 @@ export default class ConnectionComponent extends Vue {
       );
     }
     const thetaUlt = 0.2;
-    const alpha = (mc - my) / thetaP / k;
-    const alphaPc = -mc / (k * thetaPc);
+    const alpha = (mc - my) / thetaP / this.ke;
+    const alphaPc = -mc / (this.ke * thetaPc);
     return {
-      k,
       my,
       thetaY,
       a,
@@ -697,17 +658,17 @@ export default class ConnectionComponent extends Vue {
   }
 
   get envelopeNonRbs(): Envelope {
-    const { zx, lCanti, k, my } = this.nonRbs();
+    const { zx, my } = this.nonRbs();
     const res = 0.3;
     const mRes = res * my;
-    const thetaY = my / k;
+    const thetaY = my / this.ke;
 
     const thetaP =
       0.5 *
       Math.pow(this.h / this.tw, -0.9) *
       Math.pow(this.bf / 2 / this.tf, -1.1) *
       Math.pow(this.lb / this.ry, -0.2) *
-      Math.pow(lCanti / this.d, 1.1) *
+      Math.pow(this.le / this.d, 1.1) *
       Math.pow(this.e / this.fy, 0.2);
     const thetaPc = clamp(
       6.4 *
@@ -719,10 +680,9 @@ export default class ConnectionComponent extends Vue {
     );
     const thetaUlt = 0.08;
     const alpha = 0.03;
-    const mc = my + alpha * k * thetaP;
-    const alphaPc = (0.0 - mc) / (k * thetaPc);
+    const mc = my + alpha * this.ke * thetaP;
+    const alphaPc = (0.0 - mc) / (this.ke * thetaPc);
     return {
-      k,
       my,
       thetaY,
       mc,
@@ -742,7 +702,7 @@ export default class ConnectionComponent extends Vue {
     const p2: Point = [output.thetaY, output.my];
     const p3: Point = [p2[0] + output.thetaP, output.mc];
     const p4: Point = [
-      p3[0] + (output.mc - output.mRes) / (-output.alphaPc * output.k),
+      p3[0] + (output.mc - output.mRes) / (-output.alphaPc * this.ke),
       output.mRes,
     ];
     if (output.thetaUlt > p4[0]) {
@@ -753,7 +713,7 @@ export default class ConnectionComponent extends Vue {
       const p5: Point = [
         output.thetaUlt,
         output.mc +
-          output.alphaPc * output.k * (output.thetaPc - output.thetaUlt),
+          output.alphaPc * this.ke * (output.thetaPc - output.thetaUlt),
       ];
       const p6: Point = [p5[0], 0];
       return [p1, p2, p3, p5, p6];
@@ -762,9 +722,8 @@ export default class ConnectionComponent extends Vue {
 
   private getResult(output: Envelope | Backbone): Result {
     return {
-      ix: this.ix,
-      ry: this.ry,
-      d: this.d,
+      ke: this.ke,
+      lamdba: (output as Backbone).lambda,
       ...output,
       points: this.getPoints(output),
     };
@@ -834,24 +793,18 @@ class Variable {
 }
 
 interface Result {
-  // ke: number; // d
-  my: number; // p
-  mc: number; // y
-  mRes: number; // b
-  thetaP: number; // m
-  thetaPc: number; // g
+  ke: number;
+  my: number;
+  mc: number;
+  mRes: number;
+  thetaP: number;
+  thetaPc: number;
   thetaUlt: number;
-  lamdba?: number; // w
-  k: number;
-  ix: number;
-  ry: number;
-  d: number;
-  thetaY: number;
+  lamdba?: number;
   points: Point[];
 }
 
 interface Envelope {
-  k: number;
   my: number;
   thetaY: number;
   mc: number;
