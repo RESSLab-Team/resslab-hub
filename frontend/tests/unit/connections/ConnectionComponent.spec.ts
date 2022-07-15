@@ -25,7 +25,8 @@ describe("ConnectionComponent.vue", () => {
       fy: 379.211635,
     });
 
-    expect(wrapper.vm.backboneRbs.k).toBeCloseTo(578520058, mmPrecision);
+    expect(wrapper.vm.ke).toBeCloseTo(578520058, mmPrecision);
+
     expect(wrapper.vm.backboneRbs.my).toBeCloseTo(2528265, mmPrecision);
     expect(wrapper.vm.backboneRbs.thetaY).toBeCloseTo(
       0.004370228904778947,
@@ -36,7 +37,6 @@ describe("ConnectionComponent.vue", () => {
       radPrecision
     );
 
-    expect(wrapper.vm.backboneNonRbs.k).toBeCloseTo(578520058, mmPrecision);
     expect(wrapper.vm.backboneNonRbs.my).toBeCloseTo(4224203, mmPrecision);
     expect(wrapper.vm.backboneNonRbs.thetaY).toBeCloseTo(
       0.007301740201213988,
@@ -47,7 +47,6 @@ describe("ConnectionComponent.vue", () => {
       radPrecision
     );
 
-    expect(wrapper.vm.envelopeRbs.k).toBeCloseTo(578520058, mmPrecision);
     expect(wrapper.vm.envelopeRbs.my).toBeCloseTo(2528265, mmPrecision);
     expect(wrapper.vm.envelopeRbs.thetaY).toBeCloseTo(
       0.004370228904778947,
@@ -58,7 +57,6 @@ describe("ConnectionComponent.vue", () => {
       radPrecision
     );
 
-    expect(wrapper.vm.envelopeNonRbs.k).toBeCloseTo(578520058, mmPrecision);
     expect(wrapper.vm.envelopeNonRbs.my).toBeCloseTo(4224203, mmPrecision);
     expect(wrapper.vm.envelopeNonRbs.thetaY).toBeCloseTo(
       0.007301740201213988,
