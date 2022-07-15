@@ -37,3 +37,9 @@ transform-data:
 	poetry run python data/csv_transformer.py aisc ../../resslab-tools-data/connections/component/aisc.csv ../frontend/src/assets/connection/aisc-sections.csv
 	poetry run python data/csv_transformer.py european ../../resslab-tools-data/connections/component/european.csv ../frontend/src/assets/connection/european-sections.csv
 	poetry run python data/csv_transformer.py japanese ../../resslab-tools-data/connections/component/japanese.csv ../frontend/src/assets/connection/japanese-sections.csv
+
+upgrade-database:
+	poetry run dotenv -f ../secrets/.env run alembic upgrade head
+
+upgrade-database-prod:
+	ENV_FOR_DYNACONF=production $(MAKE) upgrade-database

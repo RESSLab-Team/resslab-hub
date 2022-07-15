@@ -436,6 +436,7 @@ class Brace(Base):  # type: ignore
     id = Column(String, primary_key=True)
     investigator = Column(String, nullable=False)
     specimen_ID = Column(String, nullable=False)
+    date = Column(SmallInteger, nullable=True)  # FIXME
     cross_section_shape = Column(String, nullable=False)
     cross_section_size = Column(String, nullable=False)
     area = Column(DecimalFloat, nullable=False)
@@ -459,7 +460,7 @@ class Brace(Base):  # type: ignore
     f_yn = Column(SmallInteger, nullable=False)
     fy_m = Column(DecimalFloat, nullable=False)
     f_um = Column(DecimalFloat, nullable=False)
-    boundary_condition = Column(String, nullable=True)  # FIXME
+    boundary_condition = Column(String, nullable=False)
     l_1t = Column(String)
     l_2t = Column(String)
     l_3t = Column(String)
