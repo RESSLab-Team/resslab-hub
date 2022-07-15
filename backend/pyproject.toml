@@ -16,10 +16,10 @@ fastapi-pagination = {extras = ["async_sqlalchemy"], version = "^0.9.3"}
 asyncpg = "^0.26.0"
 alembic = "^1.7.5"
 psycopg2 = "^2.9.2"
+uvicorn = "^0.18.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
-uvicorn = "^0.18.2"
 python-dotenv = {extras = ["cli"], version = "^0.20.0"}
 pre-commit = "^2.16.0"
 flake8 = "^4.0.1"
