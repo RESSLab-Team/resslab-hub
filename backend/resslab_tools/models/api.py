@@ -177,6 +177,7 @@ class BraceModel(BaseModel):
     id: str
     investigator: str
     specimen_ID: str
+    date: int
     cross_section_shape: str
     cross_section_size: str
     area: Decimal

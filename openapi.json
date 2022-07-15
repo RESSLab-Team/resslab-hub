@@ -1620,6 +1620,7 @@
           "id",
           "investigator",
           "specimen_ID",
+          "date",
           "cross_section_shape",
           "cross_section_size",
           "area",
@@ -1641,6 +1642,7 @@
           "id",
           "investigator",
           "specimen_ID",
+          "date",
           "cross_section_shape",
           "cross_section_size",
           "area",
@@ -1666,6 +1668,10 @@
           "specimen_ID": {
             "title": "Specimen Id",
             "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "integer"
           },
           "cross_section_shape": {
             "title": "Cross Section Shape",
@@ -1716,6 +1722,7 @@
       "BraceNumberField": {
         "title": "BraceNumberField",
         "enum": [
+          "date",
           "area",
           "d_br",
           "t_br",
