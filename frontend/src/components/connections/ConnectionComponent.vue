@@ -452,6 +452,7 @@ export default class ConnectionComponent extends Vue {
   private rbs(): {
     zx: number;
     lRbs: number;
+    zRbs: number;
     my: number;
   } {
     const _a = 0.625 * this.bf;
@@ -465,12 +466,13 @@ export default class ConnectionComponent extends Vue {
     return {
       zx,
       lRbs,
+      zRbs,
       my,
     };
   }
 
   get backboneRbs(): Backbone {
-    const { zx, lRbs, my } = this.rbs();
+    const { zx, lRbs, zRbs, my } = this.rbs();
 
     const a = 1.09;
     const mc = a * my;
@@ -518,11 +520,12 @@ export default class ConnectionComponent extends Vue {
       zx,
       lRbs,
       lambda,
+      zRbs,
     };
   }
 
   get envelopeRbs(): Envelope {
-    const { zx, lRbs, my } = this.rbs();
+    const { zx, lRbs, zRbs, my } = this.rbs();
 
     const res = 0.3;
     const mRes = res * my;
@@ -561,6 +564,7 @@ export default class ConnectionComponent extends Vue {
       alphaPc,
       zx,
       lRbs,
+      zRbs,
     };
   }
 
@@ -817,6 +821,8 @@ interface Envelope {
   alphaPc: number;
   zx: number;
   lRbs?: number;
+  // For debugging
+  zRbs?: number;
 }
 
 interface Backbone extends Envelope {
