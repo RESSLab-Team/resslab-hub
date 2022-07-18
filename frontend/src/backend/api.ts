@@ -38,7 +38,17 @@ export enum BraceField {
     DBr = 'd_br',
     TBr = 't_br',
     Steel = 'steel',
+    FYn = 'f_yn',
+    FyM = 'fy_m',
+    FUm = 'f_um',
     BoundaryCondition = 'boundary_condition',
+    TT = 't_t',
+    SteelGp = 'steel_gp',
+    FYnGp = 'f_yn_gp',
+    FYmGp = 'f_ym_gp',
+    FUmGp = 'f_um_gp',
+    ReinforcementPl = 'reinforcement_pl',
+    LoadingProtocol = 'loading_protocol',
     KlR = 'kl_r',
     Reference = 'reference',
     Link = 'link',
@@ -113,10 +123,70 @@ export interface BraceModel {
     'steel': string;
     /**
      * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'f_yn': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'fy_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'f_um'?: number;
+    /**
+     * 
      * @type {string}
      * @memberof BraceModel
      */
     'boundary_condition': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    't_t'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'steel_gp'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'f_yn_gp'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'f_ym_gp'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'f_um_gp'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'reinforcement_pl'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'loading_protocol': string;
     /**
      * 
      * @type {number}
@@ -153,6 +223,13 @@ export enum BraceNumberField {
     Area = 'area',
     DBr = 'd_br',
     TBr = 't_br',
+    FYn = 'f_yn',
+    FyM = 'fy_m',
+    FUm = 'f_um',
+    TT = 't_t',
+    FYnGp = 'f_yn_gp',
+    FYmGp = 'f_ym_gp',
+    FUmGp = 'f_um_gp',
     KlR = 'kl_r',
     DisplacementCount = 'displacement_count'
 }

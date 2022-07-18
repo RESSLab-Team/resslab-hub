@@ -21,7 +21,7 @@ from resslab_tools.utils.database import Base
 from resslab_tools.utils.fastapi import HttpHeader, MediaType, attachment
 from resslab_tools.utils.pagination import paginate
 
-D = TypeVar("D", bound=Base)
+D = TypeVar("D", bound=Base)  # type: ignore
 M = TypeVar("M", bound=BaseModel)
 
 
@@ -108,13 +108,15 @@ class Component(ABC, Generic[D, M]):
             desc(self.__get_column(key)) if is_desc else self.__get_column(key)
             for key, is_desc in zip(sort_by, sort_desc)
         ]
-        return await paginate(
+        page = await paginate(
             session,
             select(*self.model_columns)
             .where(and_(*where_clauses))
             .order_by(*order_clauses),
             self.model_type,
+            self.__get_non_nan,
         )
+        return page
 
     async def get_counts(
         self,
@@ -132,7 +134,7 @@ class Component(ABC, Generic[D, M]):
         )
         return [
             CountModel(
-                names=[self.__format_value(value) for value in list(row)[:-1]],
+                names=[str(self.__format_value(value)) for value in list(row)[:-1]],
                 value=row[-1],
             )
             for row in rows
@@ -232,7 +234,7 @@ class Component(ABC, Generic[D, M]):
         )
 
     @staticmethod
-    def __clean_value(value: Any) -> Optional[Decimal]:
+    def __clean_value(value: Any) -> Optional[Union[Decimal, str]]:
         if type(value) == Decimal and isnan(value):
             return None
         return value
@@ -300,7 +302,7 @@ class Component(ABC, Generic[D, M]):
         return column == expression
 
     @staticmethod
-    def __format_value(value: Any):
+    def __format_value(value: Optional[Union[str, Decimal]]) -> Union[str, Decimal]:
         if value is None:
             return "NA"
         if isinstance(value, Decimal):
@@ -308,6 +310,13 @@ class Component(ABC, Generic[D, M]):
                 return "NR"
             return Decimal(f"{value.normalize():f}")
         return value
+
+    @staticmethod
+    def __get_non_nan(value: Any) -> Any:
+        if isinstance(value, Decimal) and isnan(value):
+            return None
+        else:
+            return value
 
     @staticmethod
     async def __get_csv_stream(
@@ -319,7 +328,7 @@ class Component(ABC, Generic[D, M]):
     ):
         yield separator.join(headers) + "\n"
         result = await session.stream(statement)
-        async for partition in result.partitions(partition_size):
+        async for partition in result.partitions(partition_size):  # type: ignore
             for row in partition:
                 yield separator.join(
                     [str(Component.__format_value(item)) for item in row]
