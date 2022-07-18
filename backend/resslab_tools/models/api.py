@@ -184,7 +184,17 @@ class BraceModel(BaseModel):
     d_br: Decimal
     t_br: Decimal
     steel: str
+    f_yn: Decimal
+    fy_m: Optional[Decimal]
+    f_um: Optional[Decimal]
     boundary_condition: str
+    t_t: Optional[Decimal]
+    steel_gp: Optional[str]
+    f_yn_gp: Optional[Decimal]
+    f_ym_gp: Optional[Decimal]
+    f_um_gp: Optional[Decimal]
+    reinforcement_pl: Optional[str]
+    loading_protocol: str
     kl_r: Decimal
     reference: str
     link: str

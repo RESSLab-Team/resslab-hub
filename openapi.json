@@ -1627,7 +1627,17 @@
           "d_br",
           "t_br",
           "steel",
+          "f_yn",
+          "fy_m",
+          "f_um",
           "boundary_condition",
+          "t_t",
+          "steel_gp",
+          "f_yn_gp",
+          "f_ym_gp",
+          "f_um_gp",
+          "reinforcement_pl",
+          "loading_protocol",
           "kl_r",
           "reference",
           "link",
@@ -1649,7 +1659,9 @@
           "d_br",
           "t_br",
           "steel",
+          "f_yn",
           "boundary_condition",
+          "loading_protocol",
           "kl_r",
           "reference",
           "link",
@@ -1697,8 +1709,48 @@
             "title": "Steel",
             "type": "string"
           },
+          "f_yn": {
+            "title": "F Yn",
+            "type": "number"
+          },
+          "fy_m": {
+            "title": "Fy M",
+            "type": "number"
+          },
+          "f_um": {
+            "title": "F Um",
+            "type": "number"
+          },
           "boundary_condition": {
             "title": "Boundary Condition",
+            "type": "string"
+          },
+          "t_t": {
+            "title": "T T",
+            "type": "number"
+          },
+          "steel_gp": {
+            "title": "Steel Gp",
+            "type": "string"
+          },
+          "f_yn_gp": {
+            "title": "F Yn Gp",
+            "type": "number"
+          },
+          "f_ym_gp": {
+            "title": "F Ym Gp",
+            "type": "number"
+          },
+          "f_um_gp": {
+            "title": "F Um Gp",
+            "type": "number"
+          },
+          "reinforcement_pl": {
+            "title": "Reinforcement Pl",
+            "type": "string"
+          },
+          "loading_protocol": {
+            "title": "Loading Protocol",
             "type": "string"
           },
           "kl_r": {
@@ -1726,6 +1778,13 @@
           "area",
           "d_br",
           "t_br",
+          "f_yn",
+          "fy_m",
+          "f_um",
+          "t_t",
+          "f_yn_gp",
+          "f_ym_gp",
+          "f_um_gp",
           "kl_r",
           "displacement_count"
         ],

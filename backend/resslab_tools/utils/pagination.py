@@ -1,7 +1,7 @@
 """
 https://uriyyo-fastapi-pagination.netlify.app/customization/
 """
-from typing import Generic, Optional, Type, TypeVar
+from typing import Any, Callable, Generic, Optional, Type, TypeVar
 
 from fastapi import Query
 from fastapi_pagination.api import resolve_params
@@ -27,6 +27,7 @@ async def paginate(
     session: AsyncSession,
     query: Select,
     type: Type[T],
+    map_value: Callable[[Any], Any],
     params: Optional[AbstractParams] = None,
 ) -> Page[T]:
     params = resolve_params(params)
@@ -34,9 +35,12 @@ async def paginate(
     total = await session.scalar(select(func.count()).select_from(query.subquery()))
     result = await session.execute(paginate_query(query, params))
     items = result.unique().all()
+    mapped_items = [
+        {k: map_value(v) for k, v in item._mapping.items()} for item in items
+    ]
 
     return ExtendedPage.create(
-        [type(**item._mapping) for item in items],
+        [type(**item) for item in mapped_items],
         total,
         params,
     )
