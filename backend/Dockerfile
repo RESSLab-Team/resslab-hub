@@ -1,23 +1,25 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9-alpine3.14
-
-RUN apk --no-cache add \
-    build-base \
-    curl
-
-# Install Poetry
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | POETRY_HOME=/opt/poetry python && \
-    cd /usr/local/bin && \
-    ln -s /opt/poetry/bin/poetry && \
-    poetry config virtualenvs.create false
-
-RUN apk --no-cache add \
-    postgresql-dev
-
-# Copy using poetry.lock* in case it doesn't exist yet
+FROM python:3.10-alpine as build-stage
+WORKDIR /app
+RUN pip install poetry
 COPY ./pyproject.toml ./poetry.lock* /app/
+RUN poetry export --output requirements.txt
 
-RUN poetry install --no-root --no-dev
+
+FROM python:3.9-alpine as production-stage
+EXPOSE 80
+WORKDIR /app
+RUN apk add --no-cache \
+    build-base \
+    gcc \
+    musl-dev \
+    postgresql-dev \
+    python3-dev
+
+COPY --from=build-stage /app/requirements.txt /app
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./alembic.ini /app/
 COPY ./alembic /app/alembic
 COPY ./resslab_tools /app/resslab_tools
+
+CMD [ "uvicorn", "resslab_tools.main:app", "--host", "0.0.0.0", "--port", "80" ]
