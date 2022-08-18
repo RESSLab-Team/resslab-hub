@@ -35,7 +35,7 @@ services:
       MODULE_NAME: resslab_tools.main
       FORWARDED_ALLOW_IPS: "*"
       CORS_ENABLED: "true"
-      DATABASE_HOST: database
+      POSTGRES_HOST: database
       ROOT_PATH: /api
     labels:
       - "traefik.http.routers.backend.tls=true"
