@@ -35,7 +35,7 @@
       "type": "python",
       "request": "launch",
       "module": "data.uploader",
-      "args": ["column", "../../resslab-tools-data/columns/steel_columns.csv"],
+      "args": ["column", "../../resslab-hub-data/columns/steel_columns.csv"],
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"
     },
@@ -45,9 +45,9 @@
       "request": "launch",
       "module": "data.analyzer",
       "args": [
-        "../../resslab-tools-data/connections/connections.csv",
-        "../../resslab-tools-data/columns/steel_columns.csv",
-        "../../resslab-tools-data/braces/steel_braces.csv"
+        "../../resslab-hub-data/connections/connections.csv",
+        "../../resslab-hub-data/columns/steel_columns.csv",
+        "../../resslab-hub-data/braces/steel_braces.csv"
       ],
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"
@@ -59,7 +59,7 @@
       "module": "data.csv_transformer",
       "args": [
         "japanese",
-        "../../resslab-tools-data/connections/component/japanese.csv",
+        "../../resslab-hub-data/connections/component/japanese.csv",
         "../frontend/src/assets/connection/japanese-sections.csv"
       ],
       "cwd": "${workspaceFolder}/backend"
