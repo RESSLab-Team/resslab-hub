@@ -17,7 +17,7 @@ from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
 from data.common import CSV_READ_MODE, UTF8_ENCODING, get_abs_path
-from resslab_tools.models.database import (
+from resslab_hub.models.database import (
     Brace,
     BraceDisplacement,
     ColumnAxialShortening,
@@ -31,7 +31,7 @@ from resslab_tools.models.database import (
     ConnectionGlobalWest,
     ConnectionPanelZone,
 )
-from resslab_tools.utils.database import url
+from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
 session = Session(engine)

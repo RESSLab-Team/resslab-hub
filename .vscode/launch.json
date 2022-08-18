@@ -9,7 +9,7 @@
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
-      "args": ["resslab_tools.main:app", "--reload"],
+      "args": ["resslab_hub.main:app", "--reload"],
       "jinja": true,
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"

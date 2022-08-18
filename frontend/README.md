@@ -1,4 +1,4 @@
-# resslab-tools
+# resslab-hub
 
 ## Project setup
 ```

@@ -32,7 +32,7 @@ services:
       - database
     env_file: secrets/.env
     environment:
-      MODULE_NAME: resslab_tools.main
+      MODULE_NAME: resslab_hub.main
       FORWARDED_ALLOW_IPS: "*"
       CORS_ENABLED: "true"
       POSTGRES_HOST: database
