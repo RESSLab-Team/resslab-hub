@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from data.common import CSV_READ_MODE, UTF8_ENCODING, get_abs_path
-from resslab_tools.utils.database import url
+from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
 session = Session(engine)

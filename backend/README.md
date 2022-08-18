@@ -1,4 +1,4 @@
-# resslab_tools
+# resslab_hub
 
 ## Database Migration
 
@@ -20,6 +20,7 @@ make upload-data
 ```
 
 ## SSH Port Forwarding
+
 ```bash
 # local_port:localhost:remote_port
 ssh -NL 5432:localhost:5432 root@enacvm0074.xaas.epfl.ch

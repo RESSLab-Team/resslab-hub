@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 
 from alembic.command import upgrade
 from alembic.config import Config
-from resslab_tools.config import settings
+from resslab_hub.config import settings
 
 __username: str = settings.postgres_user  # type: ignore
 __password: str = settings.postgres_password  # type: ignore

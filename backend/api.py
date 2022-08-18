@@ -4,8 +4,8 @@ import os
 
 from fastapi.openapi.utils import get_openapi
 
-from resslab_tools import __name__, __version__
-from resslab_tools.main import app
+from resslab_hub import __name__, __version__
+from resslab_hub.main import app
 
 parser = argparse.ArgumentParser(description=__name__)
 parser.add_argument("output", help="OpenAPI output file")

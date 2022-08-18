@@ -6,7 +6,7 @@ from dynaconf import Dynaconf, Validator
 settings = Dynaconf(
     environments=True,
     envvar_prefix=False,
-    settings_files=["resslab_tools/settings.toml"],
+    settings_files=["resslab_hub/settings.toml"],
     validators=[
         Validator("cors_enabled", default=False),
         Validator("root_path", default=""),

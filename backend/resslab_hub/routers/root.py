@@ -3,9 +3,9 @@ Handle / requests
 """
 from fastapi import APIRouter
 
-from resslab_tools import __name__ as name
-from resslab_tools import __version__
-from resslab_tools.models import Info
+from resslab_hub import __name__ as name
+from resslab_hub import __version__
+from resslab_hub.models import Info
 
 router = APIRouter()
 

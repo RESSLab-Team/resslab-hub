@@ -6,12 +6,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
 
-from resslab_tools import __name__ as title
-from resslab_tools import __version__
-from resslab_tools.config import settings
-from resslab_tools.routers import braces, columns, connections, root
-from resslab_tools.utils.database import upgrade_database
-from resslab_tools.utils.fastapi import use_route_names_as_operation_ids
+from resslab_hub import __name__ as title
+from resslab_hub import __version__
+from resslab_hub.config import settings
+from resslab_hub.routers import braces, columns, connections, root
+from resslab_hub.utils.database import upgrade_database
+from resslab_hub.utils.fastapi import use_route_names_as_operation_ids
 
 app = FastAPI(
     title=title,

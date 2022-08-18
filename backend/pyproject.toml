@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "resslab-tools"
+name = "resslab-hub"
 version = "0.1.0"
 description = ""
 license = "GPL-3.0-or-later"

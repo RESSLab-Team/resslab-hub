@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from resslab_tools.models.api import (
+from resslab_hub.models.api import (
     BraceField,
     BraceModel,
     BraceNumberField,
@@ -17,10 +17,10 @@ from resslab_tools.models.api import (
     MatrixModel,
     RangeModel,
 )
-from resslab_tools.models.database import Brace, BraceDisplacement
-from resslab_tools.utils.common import Component
-from resslab_tools.utils.database import get_session
-from resslab_tools.utils.pagination import ExtendedPage
+from resslab_hub.models.database import Brace, BraceDisplacement
+from resslab_hub.utils.common import Component
+from resslab_hub.utils.database import get_session
+from resslab_hub.utils.pagination import ExtendedPage
 
 router = APIRouter(
     prefix="/braces",

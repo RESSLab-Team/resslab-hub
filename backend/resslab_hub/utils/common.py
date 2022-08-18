@@ -16,10 +16,10 @@ from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.selectable import Select
 from sqlalchemy.sql.sqltypes import BigInteger, Boolean, Float, Integer, Numeric, String
 
-from resslab_tools.models.api import CountModel, MatrixModel, RangeModel
-from resslab_tools.utils.database import Base
-from resslab_tools.utils.fastapi import HttpHeader, MediaType, attachment
-from resslab_tools.utils.pagination import paginate
+from resslab_hub.models.api import CountModel, MatrixModel, RangeModel
+from resslab_hub.utils.database import Base
+from resslab_hub.utils.fastapi import HttpHeader, MediaType, attachment
+from resslab_hub.utils.pagination import paginate
 
 D = TypeVar("D", bound=Base)  # type: ignore
 M = TypeVar("M", bound=BaseModel)

@@ -20,6 +20,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./alembic.ini /app/
 COPY ./alembic /app/alembic
-COPY ./resslab_tools /app/resslab_tools
+COPY ./resslab_hub /app/resslab_hub
 
-CMD [ "uvicorn", "resslab_tools.main:app", "--host", "0.0.0.0", "--port", "80" ]
+CMD [ "uvicorn", "resslab_hub.main:app", "--host", "0.0.0.0", "--port", "80" ]

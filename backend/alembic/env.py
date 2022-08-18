@@ -3,8 +3,8 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from resslab_tools.models.database import Base
-from resslab_tools.utils.database import url
+from resslab_hub.models.database import Base
+from resslab_hub.utils.database import url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

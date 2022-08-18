@@ -1,4 +1,4 @@
-from resslab_tools import __version__
+from resslab_hub import __version__
 
 
 def test_version():

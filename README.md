@@ -1,4 +1,4 @@
-# resslab-tools
+# resslab-hub
 
 ## Development
 
@@ -15,9 +15,7 @@ Prerequisites:
 
 ### Secrets
 
-An environment file should be created (see all available keys in `backend/resslab_tools/config.py`).
-
-Copy `secrets` folder from `//enac1files.epfl.ch/common/IT4R/github/resslab-tools` to this repository root or:
+An environment file should be created (see all available keys in `backend/resslab_hub/config.py`).
 
 ```bash
 mkdir -p secrets && echo POSTGRES_PASSWORD=changeit > secrets/.env
@@ -28,6 +26,7 @@ mkdir -p secrets && echo POSTGRES_PASSWORD=changeit > secrets/.env
 ```bash
 make install
 ```
+
 #### for MAC OS
 
 1. Do not hesitate to use pyenv to setup python3.9.6 at least
