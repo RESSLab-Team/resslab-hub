@@ -709,18 +709,29 @@ export default class ConnectionComponent extends Vue {
       p3[0] + (output.mc - output.mRes) / (-output.alphaPc * this.ke),
       output.mRes,
     ];
-    if (output.thetaUlt > p4[0]) {
+    if (p4[0] < output.thetaUlt) {
       const p5: Point = [output.thetaUlt, output.mRes];
       const p6: Point = [p5[0], 0];
       return [p1, p2, p3, p4, p5, p6];
-    } else {
+    } else if (p3[0] < output.thetaUlt && output.thetaUlt <= p4[0]) {
       const p5: Point = [
         output.thetaUlt,
         output.mc +
-          output.alphaPc * this.ke * (output.thetaPc - output.thetaUlt),
+          output.alphaPc * this.ke * Math.abs(output.thetaPc - output.thetaUlt),
       ];
       const p6: Point = [p5[0], 0];
       return [p1, p2, p3, p5, p6];
+    } else if (p2[0] < output.thetaUlt && output.thetaUlt <= p3[0]) {
+      const p5: Point = [
+        output.thetaUlt,
+        output.my + output.alpha * this.ke * (output.thetaUlt - output.thetaY),
+      ];
+      const p6: Point = [p5[0], 0];
+      return [p1, p2, p5, p6];
+    } else {
+      const p5: Point = [output.thetaUlt, this.ke * output.thetaUlt];
+      const p6: Point = [p5[0], 0];
+      return [p1, p5, p6];
     }
   }
 
