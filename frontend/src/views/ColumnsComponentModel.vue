@@ -1,10 +1,15 @@
 <template>
-  <div>
-    <h1>Component Model</h1>
-    <p class="text-center">
-      <v-icon>mdi-alert</v-icon>
-      Section under construction
-      <v-icon>mdi-alert</v-icon>
-    </p>
-  </div>
+  <column-component></column-component>
 </template>
+
+<script lang="ts">
+import ColumnComponent from "@/components/columns/ColumnComponent.vue";
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
+  components: {
+    ColumnComponent,
+  },
+})
+export default class ColumnsComponentModel extends Vue {}
+</script>

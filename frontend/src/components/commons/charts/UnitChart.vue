@@ -1,5 +1,5 @@
 <template>
-  <v-responsive aspect-ratio="1">
+  <v-responsive :aspect-ratio="aspectRatio">
     <v-chart
       autoresize
       :option="actualOption"
@@ -57,6 +57,8 @@ export default class UnitChart extends Vue {
   readonly xUnit: string | undefined;
   @Prop({ type: String })
   readonly yUnit: string | undefined;
+  @Prop({ type: Number, default: () => 1 })
+  readonly aspectRatio!: number;
 
   get xUnitParent(): UnitMixin {
     return new UnitMixin({
@@ -89,10 +91,10 @@ export default class UnitChart extends Vue {
     const yAXisOption: YAXisOption = this.option.yAxis as YAXisOption;
     const changedOption: EChartsOption = {
       grid: {
-        left: 32,
-        top: 50,
-        right: 16,
-        bottom: 32,
+        left: 40,
+        top: 40,
+        right: 20,
+        bottom: 20,
         containLabel: true,
       },
       legend: {
