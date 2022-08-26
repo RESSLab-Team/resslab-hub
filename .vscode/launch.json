@@ -5,6 +5,20 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "frontend: run",
+      "type": "firefox",
+      "request": "launch",
+      "url": "http://localhost:8080",
+      "webRoot": "${workspaceFolder}/frontend/src",
+      "pathMappings": [
+        {
+          "url": "webpack://resslab-hub/src/",
+          "path": "${webRoot}/"
+        }
+      ],
+      "preLaunchTask": "serve-frontend"
+    },
+    {
       "name": "backend: run",
       "type": "python",
       "request": "launch",
@@ -12,22 +26,8 @@
       "args": ["resslab_hub.main:app", "--reload"],
       "jinja": true,
       "cwd": "${workspaceFolder}/backend",
-      "envFile": "${workspaceFolder}/secrets/.env"
-    },
-    {
-      "name": "frontend: run",
-      "type": "chrome",
-      "request": "launch",
-      "url": "http://localhost:8080",
-      "webRoot": "${workspaceFolder}/frontend",
-      "preLaunchTask": "serve",
-      "sourceMapPathOverrides": {
-        "webpack:/*": "${webRoot}/*",
-        "/./*": "${webRoot}/*",
-        "/src/*": "${webRoot}/*",
-        "/*": "*",
-        "/./~/*": "${webRoot}/node_modules/*"
-      }
+      "envFile": "${workspaceFolder}/secrets/.env",
+      "preLaunchTask": "run-database"
     },
     {
       "name": "backend: data-uploader",
