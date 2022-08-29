@@ -1,10 +1,15 @@
 <template>
-  <div>
-    <h1>Fragility Curve</h1>
-    <p class="text-center">
-      <v-icon>mdi-alert</v-icon>
-      Section under construction
-      <v-icon>mdi-alert</v-icon>
-    </p>
-  </div>
+  <connection-fragility></connection-fragility>
 </template>
+
+<script lang="ts">
+import ConnectionFragility from "@/components/connections/ConnectionFragility.vue";
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
+  components: {
+    ConnectionFragility,
+  },
+})
+export default class ConnectionFragilityCurve extends Vue {}
+</script>

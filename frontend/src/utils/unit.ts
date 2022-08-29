@@ -1,7 +1,5 @@
 export type UnitSystem = "metric" | "imperial";
 
-export const unitSystems: UnitSystem[] = ["metric", "imperial"];
-
 export interface Unit {
   system: string;
   referenceUnit: string;

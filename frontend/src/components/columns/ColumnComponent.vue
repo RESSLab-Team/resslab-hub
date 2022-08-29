@@ -10,7 +10,7 @@
           </p>
         </v-col>
         <v-col cols="auto">
-          <toggle v-model="unitSystem" :items="unitSystems"></toggle>
+          <toggle v-model="unitSystem" :items="unitItems"></toggle>
         </v-col>
       </v-row>
     </v-col>
@@ -177,12 +177,12 @@ import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SearchSelect from "@/components/commons/SearchSelect.vue";
 import UnitSlider from "@/components/commons/sliders/UnitSlider.vue";
-import Toggle from "@/components/commons/Toggle.vue";
+import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import UnitTableRow, {
   UnitTableRowData,
 } from "@/components/commons/UnitTableRow.vue";
 import { publicPath, Section } from "@/utils/common";
-import { UnitSystem, unitSystems } from "@/utils/unit";
+import { UnitSystem } from "@/utils/unit";
 import { primaryColor, secondaryColor, SelectItem } from "@/utils/vuetify";
 import { EChartsOption } from "echarts/types/dist/shared";
 import { clamp } from "lodash";
@@ -199,7 +199,7 @@ import { Component, Vue, Watch } from "vue-property-decorator";
   },
 })
 export default class ColumnComponent extends Vue {
-  readonly unitSystems = unitSystems;
+  readonly unitItems = unitItems;
   readonly publicPath = publicPath;
   readonly databases: Database[] = ["aisc", "european", "japanese"];
 

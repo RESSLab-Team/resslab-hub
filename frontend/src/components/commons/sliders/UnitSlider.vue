@@ -87,6 +87,14 @@ export default class UnitSlider extends Mixins(SliderMixin, UnitMixin) {
     return this.max / this.ratio;
   }
 }
+
+export interface UnitSliderItem<K = string> {
+  key: K;
+  label: string;
+  min: number;
+  max: number;
+  unit?: string;
+}
 </script>
 
 <style lang="scss" scoped>
