@@ -46,6 +46,20 @@
             </v-card-text>
           </v-card>
         </v-col>
+        <v-col cols="12" md="6">
+          <v-card>
+            <v-card-title>Loading Protocol</v-card-title>
+            <v-card-text>
+              <brace-single-chart
+                :color="colors.red"
+                :field="loadingProtocolField"
+                :query="query"
+                :searches.sync="searches"
+                type="line"
+              ></brace-single-chart>
+            </v-card-text>
+          </v-card>
+        </v-col>
         <v-col cols="12">
           <v-card>
             <v-card-title>Steel Material</v-card-title>
@@ -105,6 +119,7 @@ export default class BraceDashboard extends DashboardMixin<BraceModel> {
     BraceField.Date,
     BraceField.BoundaryCondition,
   ];
+  readonly loadingProtocolField = BraceField.LoadingProtocol;
   readonly steelField = BraceField.Steel;
 }
 </script>
