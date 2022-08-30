@@ -56,7 +56,7 @@ import { BrushComponent, ToolboxComponent } from "echarts/components";
 import { ECharts, use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { CallbackDataParams } from "echarts/types/dist/shared";
-import _ from "lodash";
+import { chain, merge, zip } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
@@ -110,11 +110,11 @@ export default class SimpleParallelChart extends Vue {
   }
 
   get transposedData(): (string | number)[][] {
-    return _.zip(...this.data) as (string | number)[][];
+    return zip(...this.data) as (string | number)[][];
   }
 
   get requestFields(): string[] {
-    return _(this.fields)
+    return chain(this.fields)
       .flatMap((f) => {
         if (typeof f.id === "string") {
           return [f.id];
@@ -158,13 +158,13 @@ export default class SimpleParallelChart extends Vue {
         if (values) {
           const type = typeof values.find((v) => v != null);
           if (type === "number") {
-            return _.merge(option, {
+            return merge(option, {
               type: "value",
               scale: true,
             });
           } else {
-            const sortedValues = _(values).uniq().sort().value();
-            return _.merge(option, {
+            const sortedValues = chain(values).uniq().sort().value();
+            return merge(option, {
               nameLocation: "start",
               inverse: true,
               type: "category",
@@ -218,7 +218,7 @@ export default class SimpleParallelChart extends Vue {
     if (typeof field.id === "string") {
       return this.transposedData[this.requestFields.indexOf(field.id)];
     } else {
-      return _.zip(
+      return zip(
         this.transposedData[this.requestFields.indexOf(field.id.dividend)],
         this.transposedData[this.requestFields.indexOf(field.id.divisor)]
       )

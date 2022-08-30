@@ -49,3 +49,12 @@ export function getColorPalette(color: Color, count: number): string[] {
 
 export const primaryColor = colors.blue;
 export const secondaryColor = colors.red;
+
+export const colorPalette: string[] = [
+  colors.blue,
+  colors.red,
+  colors.green,
+  colors.amber,
+  colors.deepPurple,
+  colors.orange,
+].map((color) => color.base);

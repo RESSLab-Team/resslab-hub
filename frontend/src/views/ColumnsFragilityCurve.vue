@@ -1,10 +1,15 @@
 <template>
-  <div>
-    <h1>Fragility Curve</h1>
-    <p class="text-center">
-      <v-icon>mdi-alert</v-icon>
-      Section under construction
-      <v-icon>mdi-alert</v-icon>
-    </p>
-  </div>
+  <column-fragility></column-fragility>
 </template>
+
+<script lang="ts">
+import ColumnFragility from "@/components/columns/ColumnFragility.vue";
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
+  components: {
+    ColumnFragility,
+  },
+})
+export default class ColumnFragilityCurve extends Vue {}
+</script>

@@ -24,6 +24,7 @@ import { Searches, sum } from "@/utils/common";
 import { BinData, toBins } from "@/utils/statistics";
 import { getColorPalette, primaryColor } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
+import { EChartsOption, SetOptionOpts } from "echarts";
 import { BarChart, LineChart } from "echarts/charts";
 import {
   GridComponent,
@@ -33,12 +34,8 @@ import {
 } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import {
-  CallbackDataParams,
-  EChartsOption,
-  SetOptionOpts,
-} from "echarts/types/dist/shared";
-import _ from "lodash";
+import { CallbackDataParams } from "echarts/types/dist/shared";
+import { chain, isEqual, range } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
@@ -126,7 +123,7 @@ export default class DoubleChart extends Vue {
   }
 
   get firstKeys(): string[] {
-    return _(this.counts)
+    return chain(this.counts)
       .map((count) => count.names[0])
       .uniq()
       .sort()
@@ -134,7 +131,7 @@ export default class DoubleChart extends Vue {
   }
 
   get option(): EChartsOption {
-    const secondKeys: string[] = _(this.counts)
+    const secondKeys: string[] = chain(this.counts)
       .groupBy((count) => count.names[1])
       .map((values, key) => ({
         key: key,
@@ -241,7 +238,7 @@ export default class DoubleChart extends Vue {
             Number(firstKey)
           );
           let acc = 0;
-          const values: [number, number][] = _.range(
+          const values: [number, number][] = range(
             Math.min(...firstKeyNumbers),
             Math.max(...firstKeyNumbers) + 1
           ).map((firstKeyNumber) => {
@@ -276,7 +273,7 @@ export default class DoubleChart extends Vue {
   }
 
   private getCount(firstKey: string, secondKey: string): number | undefined {
-    return this.counts.find((c) => _.isEqual(c.names, [firstKey, secondKey]))
+    return this.counts.find((c) => isEqual(c.names, [firstKey, secondKey]))
       ?.value;
   }
 

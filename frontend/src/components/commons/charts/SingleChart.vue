@@ -19,15 +19,12 @@ import { CountModel } from "@/backend";
 import { Searches } from "@/utils/common";
 import { getColorPalette, primaryColor } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
+import { EChartsOption, SetOptionOpts } from "echarts";
 import { TreemapChart } from "echarts/charts";
 import { TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import {
-  CallbackDataParams,
-  EChartsOption,
-  SetOptionOpts,
-} from "echarts/types/dist/shared";
+import { CallbackDataParams } from "echarts/types/dist/shared";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";

@@ -184,7 +184,7 @@ import UnitTableRow, {
 import { publicPath, Section } from "@/utils/common";
 import { UnitSystem } from "@/utils/unit";
 import { primaryColor, secondaryColor, SelectItem } from "@/utils/vuetify";
-import { EChartsOption } from "echarts/types/dist/shared";
+import { EChartsOption } from "echarts";
 import { clamp } from "lodash";
 import { Component, Vue, Watch } from "vue-property-decorator";
 

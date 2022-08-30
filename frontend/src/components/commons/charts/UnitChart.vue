@@ -11,6 +11,7 @@
 <script lang="ts">
 import UnitMixin from "@/components/commons/UnitMixin.vue";
 import { UnitSystem } from "@/utils/unit";
+import { EChartsOption, SeriesOption, SetOptionOpts } from "echarts";
 import { LineChart } from "echarts/charts";
 import {
   GridComponent,
@@ -19,14 +20,8 @@ import {
 } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import {
-  EChartsOption,
-  SeriesOption,
-  SetOptionOpts,
-  XAXisOption,
-  YAXisOption,
-} from "echarts/types/dist/shared";
-import _ from "lodash";
+import { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
+import { merge } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue } from "vue-property-decorator";
 
@@ -57,7 +52,7 @@ export default class UnitChart extends Vue {
   readonly xUnit: string | undefined;
   @Prop({ type: String })
   readonly yUnit: string | undefined;
-  @Prop({ type: Number, default: () => 1 })
+  @Prop({ type: Number, default: 1 })
   readonly aspectRatio!: number;
 
   get xUnitParent(): UnitMixin {
@@ -116,7 +111,7 @@ export default class UnitChart extends Vue {
         confine: true,
       },
       series: (this.option.series as SeriesOption[]).map((serie) =>
-        _.merge({}, serie, {
+        merge({}, serie, {
           data: (serie.data as [number, number][]).map((v) => [
             v[0] * this.xRatio,
             v[1] * this.yRatio,
@@ -124,7 +119,7 @@ export default class UnitChart extends Vue {
         })
       ),
     };
-    return _.merge({}, this.option, changedOption);
+    return merge({}, this.option, changedOption);
   }
 }
 </script>
