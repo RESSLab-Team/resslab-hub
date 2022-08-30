@@ -60,7 +60,7 @@ import UnitSlider, {
   UnitSliderItem,
 } from "@/components/commons/sliders/UnitSlider.vue";
 import { EChartsGlOption } from "@/utils/echarts-gl";
-import { fragilityCurve } from "@/utils/fragility";
+import { univariateOption } from "@/utils/fragility";
 import { subscripts } from "@/utils/unicode";
 import { UnitSystem } from "@/utils/unit";
 import { colorPalette } from "@/utils/vuetify";
@@ -99,10 +99,7 @@ export default class ColumnFragility extends Vue {
   pPyn = 0.2;
 
   get univariateOption(): EChartsOption {
-    const damageStates: {
-      median: number;
-      beta: number;
-    }[] = [
+    return univariateOption([
       {
         median: 0.507,
         beta: 0.425,
@@ -123,23 +120,7 @@ export default class ColumnFragility extends Vue {
         median: 4.336,
         beta: 0.327,
       },
-    ];
-    const maxMedian = Math.max(...damageStates.map((state) => state.median));
-    return {
-      xAxis: {
-        name: "SDR",
-      },
-      yAxis: {
-        name: "P(DS)",
-      },
-      color: colorPalette,
-      series: damageStates.map((state, index) => ({
-        type: "line",
-        name: `DS${index + 1}`,
-        showSymbol: false,
-        data: fragilityCurve(state.median, state.beta, maxMedian),
-      })),
-    };
+    ]);
   }
 
   get multivariateOption(): EChartsOption {
@@ -182,7 +163,7 @@ export default class ColumnFragility extends Vue {
         name: "SDR [% rad]",
       },
       zAxis3D: {
-        name: `P(DS${subscripts[name]} | SDR)`,
+        name: `P(DS${subscripts[name]}|SDR)`,
       },
       series: [
         {

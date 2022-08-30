@@ -109,6 +109,7 @@ export default class UnitChart extends Vue {
       tooltip: {
         trigger: "axis",
         confine: true,
+        valueFormatter: (value) => (value as number).toFixed(2),
       },
       series: (this.option.series as SeriesOption[]).map((serie) =>
         merge({}, serie, {

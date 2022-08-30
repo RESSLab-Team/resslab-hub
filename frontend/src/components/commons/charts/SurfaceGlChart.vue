@@ -45,7 +45,6 @@ export default class SurfaceGlChart extends Vue {
     const changedOption: EChartsGlOption = {
       grid3D: {
         viewControl: {
-          zoomSensitivity: 0,
           distance: 320,
         },
       },
