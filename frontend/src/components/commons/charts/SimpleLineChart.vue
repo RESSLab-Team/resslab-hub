@@ -7,11 +7,11 @@
 <script lang="ts">
 import { primaryColor } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
+import { EChartsOption } from "echarts";
 import { LineChart } from "echarts/charts";
 import { GridComponent, TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { EChartsOption } from "echarts/types/dist/shared";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";

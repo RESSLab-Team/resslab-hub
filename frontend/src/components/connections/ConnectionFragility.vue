@@ -51,12 +51,11 @@ import UnitSlider, {
   UnitSliderItem,
 } from "@/components/commons/sliders/UnitSlider.vue";
 import Toggle, { ToggleItem } from "@/components/commons/Toggle.vue";
+import { fragilityCurve } from "@/utils/fragility";
 import { UnitSystem } from "@/utils/unit";
-import cdf from "@stdlib/stats-base-dists-lognormal-cdf";
-import { EChartsOption } from "echarts/types/dist/shared";
-import { range } from "lodash";
+import { colorPalette } from "@/utils/vuetify";
+import { EChartsOption } from "echarts";
 import { Component, Vue } from "vue-property-decorator";
-import { colors } from "vuetify/lib";
 
 @Component({
   components: {
@@ -98,16 +97,6 @@ export default class ConnectionFragility extends Vue {
   l = 4000;
   db = 600;
 
-  storyDriftRatio(median: number): number[] {
-    return range(0, median * 2.5, 0.01);
-  }
-
-  fragilityCurve(median: number, sigma: number): [number, number][] {
-    const sdr = this.storyDriftRatio(median);
-    const medianLog = Math.log(median);
-    return sdr.map((value) => [value, cdf(value, medianLog, sigma)]);
-  }
-
   get postNorthridgeOption(): EChartsOption {
     return {
       xAxis: {
@@ -116,41 +105,37 @@ export default class ConnectionFragility extends Vue {
       yAxis: {
         name: "P(DS)",
       },
+      color: colorPalette,
       series: [
         {
           type: "line",
           name: "Yielding Anywhere",
-          color: colors.shades.black,
           showSymbol: false,
-          data: this.fragilityCurve(1, 0.17),
+          data: fragilityCurve(1, 0.17),
         },
         {
           type: "line",
           name: "Yielding @ Panel Zone",
-          color: colors.red.base,
           showSymbol: false,
-          data: this.fragilityCurve(1, 0.15),
+          data: fragilityCurve(1, 0.15),
         },
         {
           type: "line",
           name: "Yielding @ Flanges",
-          color: colors.green.base,
           showSymbol: false,
-          data: this.fragilityCurve(0.96, 0.1),
+          data: fragilityCurve(0.96, 0.1),
         },
         {
           type: "line",
           name: "Local Buckling",
-          color: colors.deepPurple.base,
           showSymbol: false,
-          data: this.fragilityCurve(2.16, 0.3),
+          data: fragilityCurve(2.16, 0.3),
         },
         {
           type: "line",
           name: "Ductile Tearing",
-          color: colors.blue.base,
           showSymbol: false,
-          data: this.fragilityCurve(5, 0.31),
+          data: fragilityCurve(5, 0.31),
         },
       ],
     };
@@ -168,20 +153,19 @@ export default class ConnectionFragility extends Vue {
       yAxis: {
         name: "P(DS)",
       },
+      color: colorPalette,
       series: [
         {
           type: "line",
           name: "Yielding",
-          color: colors.shades.black,
           showSymbol: false,
-          data: this.fragilityCurve(yieldingMedian, yieldingSigma),
+          data: fragilityCurve(yieldingMedian, yieldingSigma),
         },
         {
           type: "line",
           name: "Brittle Fracture",
-          color: colors.red.base,
           showSymbol: false,
-          data: this.fragilityCurve(fractureMedian, fractureSigma),
+          data: fragilityCurve(fractureMedian, fractureSigma),
         },
       ],
     };
