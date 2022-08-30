@@ -1,10 +1,15 @@
 <template>
-  <div>
-    <h1>Fragility Curve</h1>
-    <p class="text-center">
-      <v-icon>mdi-alert</v-icon>
-      Section under construction
-      <v-icon>mdi-alert</v-icon>
-    </p>
-  </div>
+  <brace-fragility></brace-fragility>
 </template>
+
+<script lang="ts">
+import BraceFragility from "@/components/braces/BraceFragility.vue";
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
+  components: {
+    BraceFragility,
+  },
+})
+export default class BracesFragilityCurve extends Vue {}
+</script>

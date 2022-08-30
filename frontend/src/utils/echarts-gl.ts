@@ -40,6 +40,7 @@ interface SurfaceSeries {
     y?: EquationValue;
     z?: (x: number, y: number) => number;
   };
+  data?: [number, number, number][];
 }
 
 interface EquationValue {
