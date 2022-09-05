@@ -1,11 +1,14 @@
 FROM python:3.10-alpine as build-stage
 WORKDIR /app
+RUN apk add --no-cache \
+    gcc \
+    musl-dev
 RUN pip install poetry
 COPY ./pyproject.toml ./poetry.lock* /app/
 RUN poetry export --output requirements.txt
 
 
-FROM python:3.9-alpine as production-stage
+FROM python:3.10-alpine as production-stage
 EXPOSE 80
 WORKDIR /app
 RUN apk add --no-cache \
