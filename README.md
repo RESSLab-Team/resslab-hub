@@ -1,5 +1,10 @@
 # resslab-hub
 
+## Related Repositories
+
+- [resslab-hub-data](https://github.com/RESSLab-Team/resslab-hub-data) contains the csv to populate the database
+- [resslab-hub-scripts](https://github.com/RESSLab-Team/resslab-hub-scripts) contains the MATLAB scripts translated for component models and fraglity curves
+
 ## Development
 
 ### Prerequisites
@@ -93,20 +98,4 @@ make generate-api
 
 ```bash
 make deploy-local
-```
-
-### Server
-
-Deployed on http://enacvm0070.xaas.epfl.ch/
-
-Prerequisites:
-
-- [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
-
-```bash
-# Install on new server
-make install-server
-
-# Deploy
-make deploy-prod
 ```

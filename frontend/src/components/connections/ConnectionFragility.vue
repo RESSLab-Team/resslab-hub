@@ -57,6 +57,9 @@ import { colorPalette } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import { Component, Vue } from "vue-property-decorator";
 
+/**
+ * Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_connections
+ */
 @Component({
   components: {
     Toggle,

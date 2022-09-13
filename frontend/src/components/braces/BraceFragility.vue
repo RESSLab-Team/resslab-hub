@@ -67,6 +67,9 @@ import { range, zip } from "lodash";
 import { index, Matrix, matrix, max, sum } from "mathjs";
 import { Component, Vue } from "vue-property-decorator";
 
+/**
+ * Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_braces
+ */
 @Component({
   components: {
     SurfaceGlChart,

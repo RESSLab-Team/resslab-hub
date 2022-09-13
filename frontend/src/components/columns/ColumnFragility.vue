@@ -68,6 +68,9 @@ import { EChartsOption } from "echarts";
 import { range } from "lodash";
 import { Component, Vue } from "vue-property-decorator";
 
+/**
+ * Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_columns
+ */
 @Component({
   components: {
     SurfaceGlChart,
