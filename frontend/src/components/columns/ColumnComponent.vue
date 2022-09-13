@@ -188,6 +188,9 @@ import { EChartsOption } from "echarts";
 import { clamp } from "lodash";
 import { Component, Vue, Watch } from "vue-property-decorator";
 
+/**
+ * Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/steel_columns
+ */
 @Component({
   components: {
     InfoTooltip,
