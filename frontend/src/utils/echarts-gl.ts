@@ -35,12 +35,33 @@ interface Axis3D {
 
 interface SurfaceSeries {
   type: "surface";
+  parametric?: boolean;
+  wireframe?: {
+    show?: boolean;
+    lineStyle?: {
+      color?: string;
+      opacity?: number;
+      width?: number;
+    };
+  };
   equation?: {
     x?: EquationValue;
     y?: EquationValue;
     z?: (x: number, y: number) => number;
   };
+  parametricEquation?: {
+    u: EquationValue;
+    v: EquationValue;
+    x: ParametricEquationValue;
+    y: ParametricEquationValue;
+    z: ParametricEquationValue;
+  };
+  itemStyle?: {
+    color?: string;
+    opacity?: number;
+  };
   data?: [number, number, number][];
+  shading?: "color" | "lambert" | "realistic";
 }
 
 interface EquationValue {
@@ -48,3 +69,5 @@ interface EquationValue {
   min?: number;
   max?: number;
 }
+
+type ParametricEquationValue = (u: number, v: number) => number;

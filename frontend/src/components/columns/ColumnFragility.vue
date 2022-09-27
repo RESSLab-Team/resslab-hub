@@ -149,15 +149,27 @@ export default class ColumnFragility extends Vue {
 
   get surfaceOptions(): EChartsGlOption[] {
     return this.alphas.map((alpha, index) =>
-      ColumnFragility.getSurfaceOption((index + 1).toString(), alpha, this.pPyn)
+      ColumnFragility.getSurfaceOption(
+        (index + 1).toString(),
+        alpha,
+        this.hTw,
+        this.pPyn,
+        colorPalette[index]
+      )
     );
   }
 
   static getSurfaceOption(
     name: string,
     alpha: number,
-    pPyn: number
+    hTw: number,
+    pPyn: number,
+    color: string
   ): EChartsGlOption {
+    const yMin = 0;
+    const yMax = 7;
+    const zMin = 0;
+    const zMax = 1;
     return {
       xAxis3D: {
         name: "h/tw",
@@ -171,6 +183,9 @@ export default class ColumnFragility extends Vue {
       series: [
         {
           type: "surface",
+          wireframe: {
+            show: false,
+          },
           equation: {
             x: {
               min: 0,
@@ -178,14 +193,30 @@ export default class ColumnFragility extends Vue {
               step: 1,
             },
             y: {
-              min: 0,
-              max: 7,
+              min: yMin,
+              max: yMax,
               step: 0.1,
             },
             z: (x: number, y: number) => {
               return this.surface(x, y, alpha, pPyn);
             },
           },
+          itemStyle: {
+            color,
+          },
+        },
+        {
+          type: "surface",
+          itemStyle: {
+            color: "black",
+            opacity: 0.5,
+          },
+          data: [
+            [hTw, yMin, zMin],
+            [hTw, yMin, zMax],
+            [hTw, yMax, zMin],
+            [hTw, yMax, zMax],
+          ],
         },
       ],
     };
