@@ -11,7 +11,12 @@
 <script lang="ts">
 import UnitMixin from "@/components/commons/UnitMixin.vue";
 import { UnitSystem } from "@/utils/unit";
-import { EChartsOption, SeriesOption, SetOptionOpts } from "echarts";
+import {
+  EChartsOption,
+  SeriesOption,
+  SetOptionOpts,
+  TooltipComponentFormatterCallbackParams,
+} from "echarts";
 import { LineChart } from "echarts/charts";
 import {
   GridComponent,
@@ -110,6 +115,31 @@ export default class UnitChart extends Vue {
         trigger: "axis",
         confine: true,
         valueFormatter: (value) => (value as number).toFixed(2),
+        formatter: (params: TooltipComponentFormatterCallbackParams) => {
+          if (Array.isArray(params)) {
+            const value = (params[0].value as number[])[0].toFixed(2);
+            return [
+              `<b>${xAXisOption.name?.split(", ")[0]}: ${value} [${
+                this.xUnitParent.unitLabel
+              }]</b>`,
+              ...params
+                .map((param) => {
+                  if (Array.isArray(param.value)) {
+                    const value = param.value[1] as number;
+                    return value !== 0
+                      ? `${param.marker} ${param.seriesName}: ${value.toFixed(
+                          2
+                        )} [${this.yUnitParent.unitLabel}]`
+                      : "";
+                  }
+                  return `${param.value}`;
+                })
+                .filter((text) => text.length > 0),
+            ].join("<br />");
+          } else {
+            return "";
+          }
+        },
       },
       series: (this.option.series as SeriesOption[]).map((serie) =>
         merge({}, serie, {

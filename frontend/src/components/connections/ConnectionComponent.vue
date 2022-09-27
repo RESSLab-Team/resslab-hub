@@ -332,21 +332,25 @@ export default class ConnectionComponent extends Vue {
       key: "thetaP",
       text: "&theta;<sub>p</sub>",
       unit: "rad",
+      fractionDigit: 3,
     },
     {
       key: "thetaPc",
       text: "&theta;<sub>pc</sub>",
       unit: "rad",
+      fractionDigit: 3,
     },
     {
       key: "thetaUlt",
       text: "&theta;<sub>u</sub>",
       unit: "rad",
+      fractionDigit: 3,
     },
     {
       key: "lamdba",
       text: "&Lambda;",
       unit: "rad",
+      fractionDigit: 3,
     },
   ];
 
