@@ -4,13 +4,13 @@
 
 ```bash
 # Generate new revision
-poetry run dotenv -f ../secrets/.env run alembic revision --autogenerate -m ""
+DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic revision --autogenerate -m ""
 
 # Manually upgrade database (automatically run at startup)
-poetry run dotenv -f ../secrets/.env run alembic upgrade head
+DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic upgrade head
 
 # Downgrade https://alembic.sqlalchemy.org/en/latest/tutorial.html#downgrading
-poetry run dotenv -f ../secrets/.env run alembic downgrade
+DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic downgrade
 ```
 
 ## Upload data
