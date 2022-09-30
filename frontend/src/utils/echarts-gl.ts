@@ -26,6 +26,8 @@ export interface EChartsGlOption {
 interface Axis3D {
   show?: boolean;
   name?: string;
+  min?: number | "dataMin";
+  max?: number | "dataMax";
   axisLabel?: {
     show?: boolean;
     margin?: number;

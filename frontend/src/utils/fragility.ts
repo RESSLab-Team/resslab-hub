@@ -31,11 +31,16 @@ export function univariateOption(damageStates: DamageState[]): EChartsOption {
     yAxis: {
       name: "P(DS)",
     },
-    color: colorPalette,
     series: damageStates.map((state, index) => ({
       type: "line",
       name: `DS${index + 1}`,
       showSymbol: false,
+      itemStyle: {
+        color: colorPalette[index],
+      },
+      lineStyle: {
+        color: colorPalette[index],
+      },
       data: fragilityCurve(state.median, state.beta, maxMedian),
     })),
   };
