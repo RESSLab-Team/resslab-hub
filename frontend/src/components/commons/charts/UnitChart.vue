@@ -26,7 +26,7 @@ import {
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
-import { merge } from "lodash";
+import { merge, round } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue } from "vue-property-decorator";
 
@@ -48,6 +48,7 @@ export default class UnitChart extends Vue {
   readonly updateOptions: SetOptionOpts = {
     notMerge: true,
   };
+  readonly axisLabelMaxDigits = 2;
 
   @Prop({ type: Object as () => EChartsOption })
   readonly option!: EChartsOption;
@@ -108,6 +109,10 @@ export default class UnitChart extends Vue {
         nameLocation: "middle",
         nameGap: 26,
         max: "dataMax",
+        axisLabel: {
+          formatter: (value: number) =>
+            `${round(value, this.axisLabelMaxDigits)}`,
+        },
       },
       yAxis: {
         name: this.yUnit
@@ -115,35 +120,40 @@ export default class UnitChart extends Vue {
           : yAXisOption.name,
         nameLocation: "middle",
         nameGap: 50,
+        max: "dataMax",
+        axisLabel: {
+          formatter: (value: number) =>
+            `${round(value, this.axisLabelMaxDigits)}`,
+        },
       },
       tooltip: {
         trigger: "axis",
         confine: true,
         valueFormatter: (value) => (value as number).toFixed(2),
         formatter: (params: TooltipComponentFormatterCallbackParams) => {
-          if (Array.isArray(params)) {
-            const value = (params[0].value as number[])[0].toFixed(2);
-            return [
-              `<b>${xAXisOption.name?.split(", ")[0]}: ${value} [${
-                this.xUnitParent.unitLabel
-              }]</b>`,
-              ...params
-                .map((param) => {
-                  if (Array.isArray(param.value)) {
-                    const value = param.value[1] as number;
-                    return value !== 0
-                      ? `${param.marker} ${param.seriesName}: ${value.toFixed(
-                          2
-                        )} [${this.yUnitParent.unitLabel}]`
-                      : "";
-                  }
-                  return `${param.value}`;
-                })
-                .filter((text) => text.length > 0),
-            ].join("<br />");
-          } else {
+          if (!Array.isArray(params)) {
             return "";
           }
+          const value = (params[0].value as number[])[0].toFixed(2);
+          const suffix = this.yUnit ? ` [${this.yUnitParent.unitLabel}]` : "";
+          return [
+            `<b>${xAXisOption.name?.split(", ")[0]}: ${value} [${
+              this.xUnitParent.unitLabel
+            }]</b>`,
+            ...params
+              .map((param) => {
+                if (Array.isArray(param.value)) {
+                  const value = param.value[1] as number;
+                  const displayValue = value.toFixed(2);
+                  return value !== 0
+                    ? `${param.marker} ${param.seriesName}: ${displayValue}` +
+                        suffix
+                    : "";
+                }
+                return `${param.value}`;
+              })
+              .filter((text) => text.length > 0),
+          ].join("<br />");
         },
       },
       series: (this.option.series as SeriesOption[]).map((serie) =>

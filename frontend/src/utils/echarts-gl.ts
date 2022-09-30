@@ -31,7 +31,7 @@ interface Axis3D {
   axisLabel?: {
     show?: boolean;
     margin?: number;
-    formatter?: string | ((name: string) => string);
+    formatter?: string | ((value: number) => string);
   };
 }
 

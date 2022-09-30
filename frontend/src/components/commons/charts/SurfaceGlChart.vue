@@ -16,7 +16,7 @@ import { SurfaceChart } from "echarts-gl/charts";
 import { Grid3DComponent } from "echarts-gl/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { merge } from "lodash";
+import { merge, round } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue } from "vue-property-decorator";
 
@@ -32,6 +32,7 @@ export default class SurfaceGlChart extends Vue {
   readonly updateOptions: SetOptionOpts = {
     notMerge: true,
   };
+  readonly axisLabelMaxDigits = 2;
 
   @Prop({ type: Object as () => EChartsGlOption })
   readonly option!: EChartsGlOption;
@@ -51,10 +52,23 @@ export default class SurfaceGlChart extends Vue {
       xAxis3D: {
         min: "dataMin",
         max: "dataMax",
+        axisLabel: {
+          formatter: (value) => `${round(value, this.axisLabelMaxDigits)}`,
+        },
       },
       yAxis3D: {
         min: "dataMin",
         max: "dataMax",
+        axisLabel: {
+          formatter: (value) => `${round(value, this.axisLabelMaxDigits)}`,
+        },
+      },
+      zAxis3D: {
+        min: "dataMin",
+        max: "dataMax",
+        axisLabel: {
+          formatter: (value) => `${round(value, this.axisLabelMaxDigits)}`,
+        },
       },
     };
     return merge({}, this.option, defaultOption);

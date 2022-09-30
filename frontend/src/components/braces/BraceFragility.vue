@@ -2,48 +2,19 @@
   <v-row>
     <v-col cols="12">
       <h1>Fragility Curve Plotter</h1>
-    </v-col>
-    <v-col cols="6">
-      <h2>Univariate Fragility Curves</h2>
-      <v-row>
-        <v-col cols="6">
-          <h3>Square HSS Braces</h3>
-          <unit-chart
-            :option="univariateOptions['square-hss']"
-            x-unit="rad"
-          ></unit-chart>
-        </v-col>
-        <v-col cols="6">
-          <h3>Round HSS Braces</h3>
-          <unit-chart
-            :option="univariateOptions['round-hss']"
-            x-unit="rad"
-          ></unit-chart>
-        </v-col>
-        <v-col cols="6">
-          <h3>Wide-Flange Braces</h3>
-          <unit-chart
-            :option="univariateOptions['w-shape']"
-            x-unit="rad"
-          ></unit-chart>
-        </v-col>
-        <v-col cols="6">
-          <h3>Angle (L-shape) Braces</h3>
-          <unit-chart
-            :option="univariateOptions['l-shape']"
-            x-unit="rad"
-          ></unit-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col cols="6">
-      <h2>Multivariate Fragility Curves</h2>
       <toggle v-model="option" :items="options"></toggle>
+    </v-col>
+    <v-col cols="3">
+      <h2>Univariate Fragility Curves</h2>
+      <unit-chart :option="univariateOptions[option]" x-unit="rad"></unit-chart>
+    </v-col>
+    <v-col cols="9">
+      <h2>Surfaces</h2>
       <v-row>
         <v-col
           v-for="(item, index) in multivariateOptions"
           :key="index"
-          cols="6"
+          cols="4"
         >
           <surface-gl-chart :option="item"></surface-gl-chart>
         </v-col>
@@ -61,6 +32,7 @@ import { EChartsGlOption } from "@/utils/echarts-gl";
 import { DamageState, univariateOption } from "@/utils/fragility";
 import { subscripts } from "@/utils/unicode";
 import { UnitSystem } from "@/utils/unit";
+import { colorPalette } from "@/utils/vuetify";
 import cdf from "@stdlib/stats-base-dists-lognormal-cdf";
 import { EChartsOption } from "echarts";
 import { range, zip } from "lodash";
@@ -236,14 +208,20 @@ export default class BraceFragility extends Vue {
           item[0] !== undefined && item[1] !== undefined
       )
       .map(([ds, kl], index) =>
-        this.correlatedBivariateOption(ds, kl, (index + 1).toString())
+        this.correlatedBivariateOption(
+          ds,
+          kl,
+          (index + 1).toString(),
+          colorPalette[index]
+        )
       );
   }
 
   correlatedBivariateOption(
     ds: DamageState,
     kl: DamageState,
-    name: string
+    name: string,
+    color: string
   ): EChartsGlOption {
     return {
       xAxis3D: {
@@ -258,6 +236,12 @@ export default class BraceFragility extends Vue {
       series: [
         {
           type: "surface",
+          wireframe: {
+            show: false,
+          },
+          itemStyle: {
+            color,
+          },
           data: this.correlatedBivariate(
             range(0.0001, 0.05, 0.005),
             range(10, 105, 5),
