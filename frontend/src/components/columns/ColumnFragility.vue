@@ -31,6 +31,10 @@
           <h2>Multivariate Fragility Curves</h2>
           <unit-chart :option="multivariateOption" x-unit="rad"></unit-chart>
         </v-col>
+        <v-col cols="6">
+          <h2>Fragility Curves</h2>
+          <unit-chart :option="variateOption" x-unit="rad"></unit-chart>
+        </v-col>
       </v-row>
     </v-col>
     <v-col cols="6">
@@ -64,7 +68,7 @@ import { univariateOption } from "@/utils/fragility";
 import { subscripts } from "@/utils/unicode";
 import { UnitSystem } from "@/utils/unit";
 import { colorPalette } from "@/utils/vuetify";
-import { EChartsOption } from "echarts";
+import { EChartsOption, SeriesOption } from "echarts";
 import { range } from "lodash";
 import { Component, Vue } from "vue-property-decorator";
 
@@ -96,7 +100,7 @@ export default class ColumnFragility extends Vue {
     },
   ];
   readonly alphas: number[] = [5.515, 10.753, 14.664, 16.659];
-  readonly sdr = range(0, 7, 0.01);
+  readonly sdr = range(0, 11, 0.01);
 
   hTw = 40;
   pPyn = 0.2;
@@ -139,11 +143,33 @@ export default class ColumnFragility extends Vue {
         type: "line",
         name: `P(DS\u2265ds${subscripts[(index + 1).toString()]})`,
         showSymbol: false,
+        itemStyle: {
+          color: colorPalette[index],
+        },
+        lineStyle: {
+          color: colorPalette[index],
+          type: "dotted",
+        },
         data: this.sdr.map((item) => [
           item,
           ColumnFragility.surface(this.hTw, item, alpha, this.pPyn),
         ]),
       })),
+    };
+  }
+
+  get variateOption(): EChartsOption {
+    return {
+      xAxis: {
+        name: "SDR",
+      },
+      yAxis: {
+        name: "P(DS)",
+      },
+      series: [
+        ...((this.univariateOption.series as SeriesOption[]) ?? []),
+        ...((this.multivariateOption.series as SeriesOption[]) ?? []),
+      ],
     };
   }
 

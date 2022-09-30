@@ -102,14 +102,19 @@ export default class UnitChart extends Vue {
         top: 0,
       },
       xAxis: {
-        name: `${xAXisOption.name} [${this.xUnitParent.unitLabel}]`,
+        name: this.xUnit
+          ? `${xAXisOption.name} [${this.xUnitParent.unitLabel}]`
+          : xAXisOption.name,
         nameLocation: "middle",
         nameGap: 26,
+        max: "dataMax",
       },
       yAxis: {
-        name: `${yAXisOption.name} [${this.yUnitParent.unitLabel}]`,
+        name: this.yUnit
+          ? `${yAXisOption.name} [${this.yUnitParent.unitLabel}]`
+          : yAXisOption.name,
         nameLocation: "middle",
-        nameGap: 70,
+        nameGap: 50,
       },
       tooltip: {
         trigger: "axis",

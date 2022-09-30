@@ -42,14 +42,22 @@ export default class SurfaceGlChart extends Vue {
    * https://echarts.apache.org/en/option-gl.html
    */
   get actualOption(): EChartsGlOption {
-    const changedOption: EChartsGlOption = {
+    const defaultOption: EChartsGlOption = {
       grid3D: {
         viewControl: {
           distance: 320,
         },
       },
+      xAxis3D: {
+        min: "dataMin",
+        max: "dataMax",
+      },
+      yAxis3D: {
+        min: "dataMin",
+        max: "dataMax",
+      },
     };
-    return merge({}, this.option, changedOption);
+    return merge({}, this.option, defaultOption);
   }
 }
 </script>
