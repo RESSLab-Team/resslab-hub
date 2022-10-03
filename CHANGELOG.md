@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/RESSLab-Team/resslab-hub/compare/v0.2.0...v0.3.0) (2022-10-03)
+
+
+### Features
+
+* **fragility:** add color map interpolation ([05d21bb](https://github.com/RESSLab-Team/resslab-hub/commit/05d21bb9d3641ddaea4f3af7192633c6e737ce30))
+* **fragility:** add tooltip to 3d charts ([9e45893](https://github.com/RESSLab-Team/resslab-hub/commit/9e45893b6e28ee1efaf0b490f254e363fd6c44a0))
+
 ## [0.2.0](https://github.com/RESSLab-Team/resslab-hub/compare/v0.1.0...v0.2.0) (2022-10-03)
 
 
