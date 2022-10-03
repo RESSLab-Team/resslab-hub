@@ -67,7 +67,7 @@ import { EChartsGlOption } from "@/utils/echarts-gl";
 import { univariateOption } from "@/utils/fragility";
 import { subscripts } from "@/utils/unicode";
 import { UnitSystem } from "@/utils/unit";
-import { colorPalette } from "@/utils/vuetify";
+import { getColorMap } from "@/utils/vuetify";
 import { EChartsOption, SeriesOption } from "echarts";
 import { range } from "lodash";
 import { Component, Vue } from "vue-property-decorator";
@@ -130,6 +130,10 @@ export default class ColumnFragility extends Vue {
     ]);
   }
 
+  get alphaColorPalette(): string[] {
+    return getColorMap(this.alphas.length);
+  }
+
   get multivariateOption(): EChartsOption {
     return {
       xAxis: {
@@ -138,16 +142,15 @@ export default class ColumnFragility extends Vue {
       yAxis: {
         name: "P(DS\u2265ds)",
       },
-      color: colorPalette,
       series: this.alphas.map((alpha, index) => ({
         type: "line",
         name: `P(DS\u2265ds${subscripts[(index + 1).toString()]})`,
         showSymbol: false,
         itemStyle: {
-          color: colorPalette[index],
+          color: this.alphaColorPalette[index],
         },
         lineStyle: {
-          color: colorPalette[index],
+          color: this.alphaColorPalette[index],
           type: "dotted",
         },
         data: this.sdr.map((item) => [
@@ -180,7 +183,7 @@ export default class ColumnFragility extends Vue {
         alpha,
         this.hTw,
         this.pPyn,
-        colorPalette[index]
+        this.alphaColorPalette[index]
       )
     );
   }

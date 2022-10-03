@@ -32,7 +32,7 @@ import { EChartsGlOption } from "@/utils/echarts-gl";
 import { DamageState, univariateOption } from "@/utils/fragility";
 import { subscripts } from "@/utils/unicode";
 import { UnitSystem } from "@/utils/unit";
-import { colorPalette } from "@/utils/vuetify";
+import { getColorMap } from "@/utils/vuetify";
 import cdf from "@stdlib/stats-base-dists-lognormal-cdf";
 import { EChartsOption } from "echarts";
 import { range, zip } from "lodash";
@@ -202,19 +202,22 @@ export default class BraceFragility extends Vue {
   }
 
   get multivariateOptions(): EChartsGlOption[] {
-    return zip(this.damageStates[this.option], this.slendernesses[this.option])
-      .filter(
-        (item): item is [DamageState, DamageState] =>
-          item[0] !== undefined && item[1] !== undefined
+    const tuples = zip(
+      this.damageStates[this.option],
+      this.slendernesses[this.option]
+    ).filter(
+      (item): item is [DamageState, DamageState] =>
+        item[0] !== undefined && item[1] !== undefined
+    );
+    const colorPalette = getColorMap(tuples.length);
+    return tuples.map(([ds, kl], index) =>
+      this.correlatedBivariateOption(
+        ds,
+        kl,
+        (index + 1).toString(),
+        colorPalette[index]
       )
-      .map(([ds, kl], index) =>
-        this.correlatedBivariateOption(
-          ds,
-          kl,
-          (index + 1).toString(),
-          colorPalette[index]
-        )
-      );
+    );
   }
 
   correlatedBivariateOption(

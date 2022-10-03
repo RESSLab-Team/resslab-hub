@@ -1,3 +1,4 @@
+import colormap from "colormap";
 import colors, { Color } from "vuetify/lib/util/colors";
 
 export const booleanOptions = [true, false];
@@ -58,3 +59,13 @@ export const colorPalette: string[] = [
   colors.deepPurple,
   colors.orange,
 ].map((color) => color.base);
+
+export function getColorMap(count: number): string[] {
+  return colormap<"hex">({
+    colormap: [
+      { index: 0, rgb: [33, 150, 243] }, // #2196F3
+      { index: 1, rgb: [244, 67, 54] }, // #F44336
+    ],
+    nshades: count,
+  });
+}

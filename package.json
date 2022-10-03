@@ -1,4 +1,6 @@
 {
+  "name": "resslab-hub",
+  "version": "0.2.0",
   "scripts": {
     "prepare": "husky install"
   },
@@ -6,6 +8,5 @@
     "@commitlint/cli": "^17.0.3",
     "@commitlint/config-conventional": "^17.0.3",
     "husky": "^8.0.0"
-  },
-  "version": "0.2.0"
+  }
 }

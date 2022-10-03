@@ -1,7 +1,7 @@
 import cdf from "@stdlib/stats-base-dists-lognormal-cdf";
 import { EChartsOption } from "echarts";
 import { range } from "lodash";
-import { colorPalette } from "./vuetify";
+import { getColorMap } from "./vuetify";
 
 function storyDriftRatio(median: number): number[] {
   return range(0, median * 2.5, 0.01);
@@ -23,6 +23,7 @@ export interface DamageState {
 }
 
 export function univariateOption(damageStates: DamageState[]): EChartsOption {
+  const colorPalette = getColorMap(damageStates.length);
   const maxMedian = Math.max(...damageStates.map((state) => state.median));
   return {
     xAxis: {
