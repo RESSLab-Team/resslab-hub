@@ -212,6 +212,7 @@ export default class ColumnFragility extends Vue {
       series: [
         {
           type: "surface",
+          name: "",
           wireframe: {
             show: false,
           },
@@ -236,6 +237,7 @@ export default class ColumnFragility extends Vue {
         },
         {
           type: "surface",
+          name: "",
           itemStyle: {
             color: "black",
             opacity: 0.5,
@@ -246,6 +248,8 @@ export default class ColumnFragility extends Vue {
             [hTw, yMax, zMin],
             [hTw, yMax, zMax],
           ],
+          silent: true,
+          dataShape: [2, 2],
         },
       ],
     };

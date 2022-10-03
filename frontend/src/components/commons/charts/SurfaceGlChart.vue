@@ -44,6 +44,9 @@ export default class SurfaceGlChart extends Vue {
    */
   get actualOption(): EChartsGlOption {
     const defaultOption: EChartsGlOption = {
+      tooltip: {
+        confine: true,
+      },
       grid3D: {
         viewControl: {
           distance: 320,

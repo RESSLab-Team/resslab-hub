@@ -226,6 +226,8 @@ export default class BraceFragility extends Vue {
     name: string,
     color: string
   ): EChartsGlOption {
+    const xRange = range(0.0001, 0.05, 0.005);
+    const yRange = range(10, 105, 5);
     return {
       xAxis3D: {
         name: "SDR [rad]",
@@ -239,18 +241,15 @@ export default class BraceFragility extends Vue {
       series: [
         {
           type: "surface",
+          name: "",
           wireframe: {
             show: false,
           },
           itemStyle: {
             color,
           },
-          data: this.correlatedBivariate(
-            range(0.0001, 0.05, 0.005),
-            range(10, 105, 5),
-            ds,
-            kl
-          ),
+          data: this.correlatedBivariate(xRange, yRange, ds, kl),
+          dataShape: [xRange.length, yRange.length],
         },
       ],
     };

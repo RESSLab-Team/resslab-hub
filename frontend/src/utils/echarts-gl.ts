@@ -1,3 +1,5 @@
+import { TooltipComponentOption } from "echarts";
+
 declare module "echarts-gl/charts" {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
   interface SurfaceChart {}
@@ -11,6 +13,7 @@ declare module "echarts-gl/components" {
  * https://echarts.apache.org/en/option-gl.html
  */
 export interface EChartsGlOption {
+  tooltip?: TooltipComponentOption;
   grid3D?: {
     viewControl?: {
       zoomSensitivity?: number;
@@ -37,6 +40,7 @@ interface Axis3D {
 
 interface SurfaceSeries {
   type: "surface";
+  name?: string;
   parametric?: boolean;
   wireframe?: {
     show?: boolean;
@@ -64,6 +68,9 @@ interface SurfaceSeries {
   };
   data?: [number, number, number][];
   shading?: "color" | "lambert" | "realistic";
+  silent?: boolean;
+  // not in docs
+  dataShape?: [number, number];
 }
 
 interface EquationValue {
