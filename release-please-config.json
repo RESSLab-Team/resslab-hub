@@ -1,0 +1,23 @@
+{
+  "packages": {
+    ".": {
+      "component": "root",
+      "release-type": "node"
+    },
+    "backend": {
+      "component": "backend",
+      "release-type": "python"
+    },
+    "frontend": {
+      "component": "frontend",
+      "release-type": "node"
+    }
+  },
+  "plugins": [
+    {
+      "type": "linked-versions",
+      "group-name": "resslab-hub",
+      "components": ["root", "backend", "frontend"]
+    }
+  ]
+}
