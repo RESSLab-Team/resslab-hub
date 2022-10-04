@@ -11,7 +11,6 @@
 <script lang="ts">
 import UnitMixin from "@/components/commons/UnitMixin.vue";
 import { EChartsGlOption } from "@/utils/echarts-gl";
-import { SetOptionOpts } from "echarts";
 import { SurfaceChart } from "echarts-gl/charts";
 import { Grid3DComponent } from "echarts-gl/components";
 import { TooltipComponent } from "echarts/components";
@@ -20,6 +19,7 @@ import { CanvasRenderer } from "echarts/renderers";
 import { merge, round } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue } from "vue-property-decorator";
+import { updateOptions } from "@/components/commons/charts/utils";
 
 use([CanvasRenderer, SurfaceChart, Grid3DComponent, TooltipComponent]);
 
@@ -30,9 +30,7 @@ use([CanvasRenderer, SurfaceChart, Grid3DComponent, TooltipComponent]);
   },
 })
 export default class SurfaceGlChart extends Vue {
-  readonly updateOptions: SetOptionOpts = {
-    notMerge: true,
-  };
+  readonly updateOptions = updateOptions;
   readonly axisLabelMaxDigits = 2;
 
   @Prop({ type: Object as () => EChartsGlOption })

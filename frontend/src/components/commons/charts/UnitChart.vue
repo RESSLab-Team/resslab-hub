@@ -2,6 +2,7 @@
   <v-responsive :aspect-ratio="aspectRatio">
     <v-chart
       autoresize
+      :init-options="initOptions"
       :option="actualOption"
       :update-options="updateOptions"
     ></v-chart>
@@ -14,7 +15,6 @@ import { UnitSystem } from "@/utils/unit";
 import {
   EChartsOption,
   SeriesOption,
-  SetOptionOpts,
   TooltipComponentFormatterCallbackParams,
 } from "echarts";
 import { LineChart } from "echarts/charts";
@@ -24,19 +24,14 @@ import {
   TooltipComponent,
 } from "echarts/components";
 import { use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
+import { SVGRenderer } from "echarts/renderers";
 import { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
 import { merge, round } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue } from "vue-property-decorator";
+import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 
-use([
-  CanvasRenderer,
-  LineChart,
-  GridComponent,
-  LegendComponent,
-  TooltipComponent,
-]);
+use([SVGRenderer, LineChart, GridComponent, LegendComponent, TooltipComponent]);
 
 @Component({
   components: {
@@ -45,9 +40,8 @@ use([
   },
 })
 export default class UnitChart extends Vue {
-  readonly updateOptions: SetOptionOpts = {
-    notMerge: true,
-  };
+  readonly initOptions = initOptions;
+  readonly updateOptions = updateOptions;
   readonly axisLabelMaxDigits = 2;
 
   @Prop({ type: Object as () => EChartsOption })

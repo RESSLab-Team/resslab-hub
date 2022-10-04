@@ -3,6 +3,7 @@
     <v-responsive min-height="100">
       <v-chart
         autoresize
+        :init-options="initOptions"
         :option="option"
         :update-options="updateOptions"
         @click="click"
@@ -19,17 +20,18 @@ import { CountModel } from "@/backend";
 import { Searches } from "@/utils/common";
 import { getColorPalette, primaryColor } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
-import { EChartsOption, SetOptionOpts } from "echarts";
+import { EChartsOption } from "echarts";
 import { TreemapChart } from "echarts/charts";
 import { TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
+import { SVGRenderer } from "echarts/renderers";
 import { CallbackDataParams } from "echarts/types/dist/shared";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
+import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 
-use([CanvasRenderer, TreemapChart, TooltipComponent]);
+use([SVGRenderer, TreemapChart, TooltipComponent]);
 
 @Component({
   components: {
@@ -37,9 +39,8 @@ use([CanvasRenderer, TreemapChart, TooltipComponent]);
   },
 })
 export default class SingleChart extends Vue {
-  readonly updateOptions: SetOptionOpts = {
-    notMerge: true,
-  };
+  readonly initOptions = initOptions;
+  readonly updateOptions = updateOptions;
 
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
