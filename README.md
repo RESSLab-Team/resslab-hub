@@ -11,7 +11,7 @@
 
 Prerequisites:
 
-- [Python](https://www.python.org/) 3.9
+- [Python](https://www.python.org/) 3.10
 - [Make](https://www.gnu.org/software/make/)
 - [Poetry](https://python-poetry.org/)
 - [Node.js](https://nodejs.org/) 16.x
@@ -75,21 +75,25 @@ make run-frontend
 
 Run configurations are in `.vscode`: https://code.visualstudio.com/docs/editor/debugging
 
-### Data
+## Upload Data
 
-Populate data to database
+Upload data to database.
+See [backend](./backend/README.md)
 
 ```bash
+# To local database
 make upload-data
+
+# To prod database
+make upload-data-prod
 ```
 
 ## Generate API for frontend
 
-Folder frontend/src/backend is generated from backend API. It should be updated when the backend api changes.
+Folder `frontend/src/backend` is generated from backend API. It should be updated when the backend api changes.
 
 ```bash
-# update generated files (requires Java installed)
-make generate-api
+make api
 ```
 
 ## Deployment

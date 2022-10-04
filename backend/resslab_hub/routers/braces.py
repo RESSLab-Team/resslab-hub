@@ -17,7 +17,7 @@ from resslab_hub.models.api import (
     MatrixModel,
     RangeModel,
 )
-from resslab_hub.models.database import Brace, BraceDisplacement
+from resslab_hub.models.database.brace import Brace, BraceDisplacement
 from resslab_hub.utils.common import Component
 from resslab_hub.utils.database import get_session
 from resslab_hub.utils.pagination import ExtendedPage
