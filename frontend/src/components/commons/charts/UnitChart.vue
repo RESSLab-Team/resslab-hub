@@ -60,6 +60,8 @@ export default class UnitChart extends Vue {
   readonly yUnit: string | undefined;
   @Prop({ type: Number, default: 1 })
   readonly aspectRatio!: number;
+  @Prop({ type: Boolean, default: false })
+  readonly legendSide!: boolean;
 
   get xUnitParent(): UnitMixin {
     return new UnitMixin({
@@ -94,13 +96,15 @@ export default class UnitChart extends Vue {
       grid: {
         left: 40,
         top: 40,
-        right: 20,
+        right: this.legendSide ? 120 : 20,
         bottom: 20,
         containLabel: true,
       },
       legend: {
         type: "scroll",
         top: 0,
+        right: this.legendSide ? 0 : undefined,
+        orient: this.legendSide ? "vertical" : "horizontal",
       },
       xAxis: {
         name: this.xUnit

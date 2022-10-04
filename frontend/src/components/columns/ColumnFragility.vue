@@ -1,60 +1,75 @@
 <template>
-  <v-row>
-    <v-col cols="12">
-      <h1>Fragility Curve Plotter</h1>
-    </v-col>
-    <v-col cols="12">
-      <v-card>
-        <v-card-title>Parameters</v-card-title>
-        <v-card-text>
-          <unit-slider
-            v-for="item in parameters"
-            :key="item.key"
-            v-model="$data[item.key]"
-            class="my-4"
-            :label="item.label"
-            :max="item.max"
-            :min="item.min"
-            :unit="item.unit"
-            :unit-system="unitSystem"
-          ></unit-slider>
-        </v-card-text>
-      </v-card>
-    </v-col>
-    <v-col cols="6">
-      <v-row>
-        <v-col cols="6">
-          <h2>Univariate Fragility Curves</h2>
-          <unit-chart :option="univariateOption" x-unit="rad"></unit-chart>
-        </v-col>
-        <v-col cols="6">
-          <h2>Multivariate Fragility Curves</h2>
-          <unit-chart :option="multivariateOption" x-unit="rad"></unit-chart>
-        </v-col>
-        <v-col cols="6">
-          <h2>Fragility Curves</h2>
-          <unit-chart :option="variateOption" x-unit="rad"></unit-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col cols="6">
-      <h2>Surface Fragility Curves</h2>
-      <v-row>
-        <v-col cols="6">
-          <surface-gl-chart :option="surfaceOptions[0]"></surface-gl-chart>
-        </v-col>
-        <v-col cols="6">
-          <surface-gl-chart :option="surfaceOptions[1]"></surface-gl-chart>
-        </v-col>
-        <v-col cols="6">
-          <surface-gl-chart :option="surfaceOptions[2]"></surface-gl-chart>
-        </v-col>
-        <v-col cols="6">
-          <surface-gl-chart :option="surfaceOptions[3]"></surface-gl-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+  <div>
+    <v-row>
+      <v-col cols="12">
+        <h1>Fragility Curve Plotter</h1>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="6">
+        <v-row>
+          <v-col cols="12">
+            <v-card>
+              <v-card-title>Parameters</v-card-title>
+              <v-card-text>
+                <unit-slider
+                  v-for="item in parameters"
+                  :key="item.key"
+                  v-model="$data[item.key]"
+                  class="my-4"
+                  :label="item.label"
+                  :max="item.max"
+                  :min="item.min"
+                  :unit="item.unit"
+                  :unit-system="unitSystem"
+                ></unit-slider>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="6">
+            <h2>Univariate Fragility Curves</h2>
+            <unit-chart :option="univariateOption" x-unit="rad"></unit-chart>
+          </v-col>
+          <v-col cols="6">
+            <h2>Multivariate Fragility Curves</h2>
+            <unit-chart :option="multivariateOption" x-unit="rad"></unit-chart>
+          </v-col>
+          <v-col cols="12">
+            <h2>Fragility Curves</h2>
+            <unit-chart
+              :aspect-ratio="2"
+              legend-side
+              :option="variateOption"
+              x-unit="rad"
+            ></unit-chart>
+          </v-col>
+        </v-row>
+      </v-col>
+      <v-col cols="6">
+        <h2>Surface Fragility Curves</h2>
+        <v-row>
+          <v-col cols="6">
+            <h3>DS1</h3>
+            <surface-gl-chart :option="surfaceOptions[0]"></surface-gl-chart>
+          </v-col>
+          <v-col cols="6">
+            <h3>DS2</h3>
+            <surface-gl-chart :option="surfaceOptions[1]"></surface-gl-chart>
+          </v-col>
+          <v-col cols="6">
+            <h3>DS3</h3>
+            <surface-gl-chart :option="surfaceOptions[2]"></surface-gl-chart>
+          </v-col>
+          <v-col cols="6">
+            <h3>DS4</h3>
+            <surface-gl-chart :option="surfaceOptions[3]"></surface-gl-chart>
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
+  </div>
 </template>
 
 <script lang="ts">

@@ -1,4 +1,4 @@
-import { TooltipComponentOption } from "echarts";
+import { TitleComponentOption, TooltipComponentOption } from "echarts";
 
 declare module "echarts-gl/charts" {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -13,6 +13,7 @@ declare module "echarts-gl/components" {
  * https://echarts.apache.org/en/option-gl.html
  */
 export interface EChartsGlOption {
+  title?: TitleComponentOption;
   tooltip?: TooltipComponentOption;
   grid3D?: {
     viewControl?: {

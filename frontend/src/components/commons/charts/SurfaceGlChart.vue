@@ -14,13 +14,14 @@ import { EChartsGlOption } from "@/utils/echarts-gl";
 import { SetOptionOpts } from "echarts";
 import { SurfaceChart } from "echarts-gl/charts";
 import { Grid3DComponent } from "echarts-gl/components";
+import { TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { merge, round } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue } from "vue-property-decorator";
 
-use([CanvasRenderer, SurfaceChart, Grid3DComponent]);
+use([CanvasRenderer, SurfaceChart, Grid3DComponent, TooltipComponent]);
 
 @Component({
   components: {
