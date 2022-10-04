@@ -17,13 +17,14 @@ from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
 from data.common import CSV_READ_MODE, UTF8_ENCODING, get_abs_path
-from resslab_hub.models.database import (
-    Brace,
-    BraceDisplacement,
+from resslab_hub.models.database.brace import Brace, BraceDisplacement
+from resslab_hub.models.database.column import (
     ColumnAxialShortening,
     ColumnEntity,
     ColumnMomentStrong,
     ColumnMomentWeak,
+)
+from resslab_hub.models.database.connection import (
     Connection,
     ConnectionBeam,
     ConnectionBeamWest,

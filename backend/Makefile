@@ -13,7 +13,11 @@ lint:
 update:
 	pre-commit autoupdate
 
-upload-data: upload-brace upload-column upload-connection
+upgrade-database:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic upgrade head
+
+upgrade-database-prod:
+	ENV_FOR_DYNACONF=production $(MAKE) upgrade-database
 
 upload-brace:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py brace ../../resslab-hub-data/braces/steel_braces.csv
@@ -33,13 +37,15 @@ upload-connection:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py connection-beam ../../resslab-hub-data/connections/Beam_moment_rotation/*.csv
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py connection-beam-west ../../resslab-hub-data/connections/Beam_moment_rotation_west/*.csv
 
+upload-data: upload-brace upload-column upload-connection
+
+upload-data-prod:
+	ENV_FOR_DYNACONF=production $(MAKE) upload-data
+
 transform-data:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python python data/csv_transformer.py aisc ../../resslab-hub-data/connections/component/aisc.csv ../frontend/src/assets/connection/aisc-sections.csv
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python python data/csv_transformer.py european ../../resslab-hub-data/connections/component/european.csv ../frontend/src/assets/connection/european-sections.csv
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python python data/csv_transformer.py japanese ../../resslab-hub-data/connections/component/japanese.csv ../frontend/src/assets/connection/japanese-sections.csv
 
-upgrade-database:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic upgrade head
-
-upgrade-database-prod:
-	ENV_FOR_DYNACONF=production $(MAKE) upgrade-database
+analyze-data:
+	poetry run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv

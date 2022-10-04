@@ -17,7 +17,7 @@ from resslab_hub.models.api import (
     MatrixModel,
     RangeModel,
 )
-from resslab_hub.models.database import (
+from resslab_hub.models.database.connection import (
     Connection,
     ConnectionBeam,
     ConnectionBeamWest,
