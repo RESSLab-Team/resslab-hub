@@ -24,7 +24,9 @@
       <v-chart
         ref="chart"
         autoresize
+        :init-options="initOptions"
         :option="option"
+        :update-options="updateOptions"
         @click="onClick"
         @brushselected="onBrush"
       ></v-chart>
@@ -54,14 +56,15 @@ import { EChartsOption, Payload } from "echarts";
 import { ParallelChart } from "echarts/charts";
 import { BrushComponent, ToolboxComponent } from "echarts/components";
 import { ECharts, use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
+import { SVGRenderer } from "echarts/renderers";
 import { CallbackDataParams } from "echarts/types/dist/shared";
 import { chain, merge, zip } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
+import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 
-use([CanvasRenderer, ParallelChart, BrushComponent, ToolboxComponent]);
+use([SVGRenderer, ParallelChart, BrushComponent, ToolboxComponent]);
 
 @Component({
   components: {
@@ -70,6 +73,9 @@ use([CanvasRenderer, ParallelChart, BrushComponent, ToolboxComponent]);
   },
 })
 export default class SimpleParallelChart extends Vue {
+  readonly initOptions = initOptions;
+  readonly updateOptions = updateOptions;
+
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;
   @Prop({ type: String, default: "" })

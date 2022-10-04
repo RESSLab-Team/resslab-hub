@@ -3,6 +3,7 @@
     <v-responsive aspect-ratio="2.5" min-height="200">
       <v-chart
         autoresize
+        :init-options="initOptions"
         :option="option"
         :update-options="updateOptions"
         @click="click"
@@ -24,7 +25,7 @@ import { Searches, sum } from "@/utils/common";
 import { BinData, toBins } from "@/utils/statistics";
 import { getColorPalette, primaryColor } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
-import { EChartsOption, SetOptionOpts } from "echarts";
+import { EChartsOption } from "echarts";
 import { BarChart, LineChart } from "echarts/charts";
 import {
   GridComponent,
@@ -33,15 +34,16 @@ import {
   TooltipComponent,
 } from "echarts/components";
 import { use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
+import { SVGRenderer } from "echarts/renderers";
 import { CallbackDataParams } from "echarts/types/dist/shared";
 import { chain, isEqual, range } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
+import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 
 use([
-  CanvasRenderer,
+  SVGRenderer,
   BarChart,
   LineChart,
   GridComponent,
@@ -57,9 +59,8 @@ use([
   },
 })
 export default class DoubleChart extends Vue {
-  readonly updateOptions: SetOptionOpts = {
-    notMerge: true,
-  };
+  readonly initOptions = initOptions;
+  readonly updateOptions = updateOptions;
 
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
   fieldSearches!: Searches;

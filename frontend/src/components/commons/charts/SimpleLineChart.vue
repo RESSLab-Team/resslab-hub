@@ -1,6 +1,12 @@
 <template>
   <v-responsive aspect-ratio="1.2" :max-width="maxWidth">
-    <v-chart v-if="hasData" autoresize :option="option"></v-chart>
+    <v-chart
+      v-if="hasData"
+      autoresize
+      :init-options="initOptions"
+      :option="option"
+      :update-options="updateOptions"
+    ></v-chart>
   </v-responsive>
 </template>
 
@@ -11,12 +17,13 @@ import { EChartsOption } from "echarts";
 import { LineChart } from "echarts/charts";
 import { GridComponent, TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
+import { SVGRenderer } from "echarts/renderers";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
+import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 
-use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
+use([SVGRenderer, LineChart, GridComponent, TooltipComponent]);
 
 @Component({
   components: {
@@ -24,6 +31,9 @@ use([CanvasRenderer, LineChart, GridComponent, TooltipComponent]);
   },
 })
 export default class SimpleLineChart extends Vue {
+  readonly initOptions = initOptions;
+  readonly updateOptions = updateOptions;
+
   @Prop({ type: Object as () => Color, default: () => primaryColor })
   readonly color!: Color;
   @Prop({ type: Number, default: 300 })
