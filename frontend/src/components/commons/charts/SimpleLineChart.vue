@@ -72,6 +72,9 @@ export default class SimpleLineChart extends Vue {
           fontWeight: "bold",
         },
         nameGap: 32,
+        axisLabel: {
+          hideOverlap: true,
+        },
       },
       yAxis: {
         name: this.yAxisName,
@@ -80,6 +83,9 @@ export default class SimpleLineChart extends Vue {
           fontWeight: "bold",
         },
         nameGap: 70,
+        axisLabel: {
+          hideOverlap: true,
+        },
       },
       tooltip: {
         trigger: "axis",
