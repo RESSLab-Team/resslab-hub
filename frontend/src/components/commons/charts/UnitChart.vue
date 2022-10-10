@@ -110,6 +110,7 @@ export default class UnitChart extends Vue {
         axisLabel: {
           formatter: (value: number) =>
             `${round(value, this.axisLabelMaxDigits)}`,
+          hideOverlap: true,
         },
       },
       yAxis: {
@@ -122,6 +123,7 @@ export default class UnitChart extends Vue {
         axisLabel: {
           formatter: (value: number) =>
             `${round(value, this.axisLabelMaxDigits)}`,
+          hideOverlap: true,
         },
       },
       tooltip: {
