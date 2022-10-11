@@ -2,6 +2,9 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
 
+import resslab_hub.models.database.brace
+import resslab_hub.models.database.column
+import resslab_hub.models.database.connection  # noqa: F401
 from alembic import context
 from resslab_hub.utils.database import Base, url
 
