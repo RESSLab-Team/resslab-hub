@@ -1,7 +1,8 @@
 <template>
   <v-container class="text-justify">
     <h1>About this Site</h1>
-
+    <h2>Data overview map</h2>
+    <overview-map></overview-map>
     <h2>Disclaimer</h2>
     <p>
       The databases in RESSLab-hub were assembled as a service to the research
@@ -132,10 +133,15 @@
 </template>
 
 <script lang="ts">
+import OverviewMap from "@/components/commons/OverviewMap.vue";
 import { publicPath } from "@/utils/common";
 import { Component, Vue } from "vue-property-decorator";
 
-@Component
+@Component({
+  components: {
+    OverviewMap,
+  },
+})
 export default class About extends Vue {
   readonly logos: Logo[] = [
     {
