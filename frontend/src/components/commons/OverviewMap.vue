@@ -11,7 +11,7 @@ import "leaflet/dist/leaflet.css";
 import * as L from "leaflet";
 import "leaflet.markercluster";
 
-import * as d3 from "d3-array";
+import * as d3 from "d3";
 import fakeData from "@/assets/connection/fake_data_overviewmap.csv";
 import {
   PieChart,
@@ -50,10 +50,11 @@ export default class OverviewMap extends Vue {
     );
 
     const cluster = new L.MarkerClusterGroup({
+      showCoverageOnHover: false,
       iconCreateFunction: function (cluster) {
         var childCount = cluster.getChildCount();
 
-        let radius = scaleRadius(childCount);
+        let radius = scaleRadius.domain([0, fakeData.length])(childCount);
 
         const allChilds = cluster.getAllChildMarkers();
 
@@ -62,8 +63,6 @@ export default class OverviewMap extends Vue {
           (v) => v.length,
           (d) => (d.feature ? d.feature.properties.type : null)
         );
-        console.log(childCount, radius, cluster, allChilds);
-        console.log(counts);
 
         return new L.DivIcon({
           html: PieChart(
@@ -71,6 +70,7 @@ export default class OverviewMap extends Vue {
             {
               name: (d) => d.name,
               value: (d) => d.value,
+              innerRadius: Math.max(7, radius / 4),
               width: radius,
               height: radius,
             }
@@ -81,6 +81,8 @@ export default class OverviewMap extends Vue {
       },
     });
 
+    let markers: L.Marker[] = [];
+
     for (let d of fakeData) {
       let marker = L.marker([d.latitude, d.longitude], {
         icon: icons.get(d.type),
@@ -90,6 +92,8 @@ export default class OverviewMap extends Vue {
         properties: d,
         geometry: { type: "Point", coordinates: [d.latitude, d.longitude] },
       };
+      markers.push(marker);
+
       cluster.addLayer(marker);
     }
 
@@ -97,24 +101,38 @@ export default class OverviewMap extends Vue {
 
     var legend = new L.Control({ position: "bottomright" });
 
-    legend.onAdd = function () {
+    legend.onAdd = function (map) {
       var div = L.DomUtil.create("div", "legend");
 
       for (let type of types) {
-        div.innerHTML +=
-          '<i style="background:' +
-          scaleColor(type) +
-          '"></i> ' +
-          type +
-          "<br>";
+        div.innerHTML += `<input id="checkbox_${type.replace(
+          /\s/g,
+          ""
+        )}" type='checkbox' checked /> <i style='background: ${scaleColor(
+          type
+        )}'> </i> ${type} <br>`;
       }
+
+      for (let type of types) {
+        d3.select(div)
+          .select(`#checkbox_${type.replace(/\s/g, "")}`)
+          .on("change", (e) => {
+            e.stopPropagation();
+
+            let layers = markers.filter(({ feature }) =>
+              feature ? feature.properties.type === type : false
+            );
+            if (e.target.checked) cluster.addLayers(layers);
+            else cluster.removeLayers(layers);
+          });
+      }
+
+      d3.select(div).on("dblclick", (e) => e.stopPropagation());
 
       return div;
     };
 
     legend.addTo(map);
-
-    console.log(map);
   }
 
   mounted() {
@@ -125,8 +143,9 @@ export default class OverviewMap extends Vue {
 
 <style>
 .legend {
-  line-height: 18px;
+  line-height: 22px;
   color: #555;
+  font-size: medium;
 }
 
 #mapContainer {
@@ -134,8 +153,8 @@ export default class OverviewMap extends Vue {
 }
 
 .legend i {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   float: left;
   margin-right: 8px;
   opacity: 0.7;
