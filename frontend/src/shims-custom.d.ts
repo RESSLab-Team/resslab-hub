@@ -14,3 +14,15 @@ declare module "*-sections.csv" {
   }[];
   export default content;
 }
+
+declare module "*overviewmap.csv" {
+  const content: {
+    id: string;
+    experimental_program: string;
+    date: number;
+    latitude: number;
+    longitude: number;
+    type: string;
+  }[];
+  export default content;
+}
