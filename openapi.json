@@ -932,6 +932,32 @@
         }
       }
     },
+    "/connections/locations": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Connections Locations",
+        "description": "Get occurences location of field values",
+        "operationId": "get_connections_locations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Connections Locations Connections Locations Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LocationModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/connections/counts": {
       "get": {
         "tags": [
@@ -2025,7 +2051,9 @@
           "beam_west_count",
           "global_count",
           "global_west_count",
-          "panel_zone_count"
+          "panel_zone_count",
+          "latitude",
+          "longitude"
         ],
         "type": "string",
         "description": "An enumeration."
@@ -2063,7 +2091,9 @@
           "beam_west_count",
           "global_count",
           "global_west_count",
-          "panel_zone_count"
+          "panel_zone_count",
+          "latitude",
+          "longitude"
         ],
         "type": "object",
         "properties": {
@@ -2234,6 +2264,14 @@
           "panel_zone_count": {
             "title": "Panel Zone Count",
             "type": "integer"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "integer"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "integer"
           }
         },
         "description": "Connection"
@@ -2265,7 +2303,9 @@
           "beam_west_count",
           "global_count",
           "global_west_count",
-          "panel_zone_count"
+          "panel_zone_count",
+          "latitude",
+          "longitude"
         ],
         "type": "string",
         "description": "An enumeration."
@@ -2425,6 +2465,25 @@
           }
         },
         "description": "App Info"
+      },
+      "LocationModel": {
+        "title": "LocationModel",
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "description": "Location"
       },
       "MatrixModel": {
         "title": "MatrixModel",

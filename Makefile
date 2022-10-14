@@ -28,7 +28,7 @@ deploy:
 	docker-compose up --remove-orphans
 
 api:
-	cd backend; DATABASE_UPGRADE=false poetry run py api.py ../openapi.json
+	cd backend; DATABASE_UPGRADE=false poetry run python api.py ../openapi.json
 	$(MAKE) -C frontend api
 
 upload-data:

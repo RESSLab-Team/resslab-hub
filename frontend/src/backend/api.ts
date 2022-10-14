@@ -502,7 +502,9 @@ export enum ConnectionField {
     BeamWestCount = 'beam_west_count',
     GlobalCount = 'global_count',
     GlobalWestCount = 'global_west_count',
-    PanelZoneCount = 'panel_zone_count'
+    PanelZoneCount = 'panel_zone_count',
+    Latitude = 'latitude',
+    Longitude = 'longitude'
 }
 
 /**
@@ -763,6 +765,18 @@ export interface ConnectionModel {
      * @memberof ConnectionModel
      */
     'panel_zone_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'longitude': number;
 }
 /**
  * An enumeration.
@@ -795,7 +809,9 @@ export enum ConnectionNumberField {
     BeamWestCount = 'beam_west_count',
     GlobalCount = 'global_count',
     GlobalWestCount = 'global_west_count',
-    PanelZoneCount = 'panel_zone_count'
+    PanelZoneCount = 'panel_zone_count',
+    Latitude = 'latitude',
+    Longitude = 'longitude'
 }
 
 /**
@@ -941,6 +957,25 @@ export interface Info {
      * @memberof Info
      */
     'version': string;
+}
+/**
+ * Location
+ * @export
+ * @interface LocationModel
+ */
+export interface LocationModel {
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationModel
+     */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationModel
+     */
+    'longitude': number;
 }
 /**
  * 
@@ -2595,6 +2630,36 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
+         * Get occurences location of field values
+         * @summary Get Connections Locations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsLocations: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/connections/locations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Get Connections Matrix
          * @param {Array<ConnectionField>} fields 
@@ -2887,6 +2952,16 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get occurences location of field values
+         * @summary Get Connections Locations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getConnectionsLocations(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<LocationModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsLocations(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * 
          * @summary Get Connections Matrix
          * @param {Array<ConnectionField>} fields 
@@ -3060,6 +3135,15 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          */
         getConnectionsGlobalWestCsv(connectionId: string, options?: any): AxiosPromise<void> {
             return localVarFp.getConnectionsGlobalWestCsv(connectionId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurences location of field values
+         * @summary Get Connections Locations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsLocations(options?: any): AxiosPromise<Array<LocationModel>> {
+            return localVarFp.getConnectionsLocations(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -3252,6 +3336,17 @@ export class ConnectionsApi extends BaseAPI {
      */
     public getConnectionsGlobalWestCsv(connectionId: string, options?: AxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsGlobalWestCsv(connectionId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurences location of field values
+     * @summary Get Connections Locations
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public getConnectionsLocations(options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getConnectionsLocations(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
