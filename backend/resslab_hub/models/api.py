@@ -77,6 +77,12 @@ class ConnectionModel(BaseModel):
     global_west_count: int
     panel_zone_count: int
 
+    global_west_count: int
+    panel_zone_count: int
+
+    latitude: int
+    longitude: int
+
 
 class CountModel(BaseModel):
     """
@@ -94,6 +100,15 @@ class RangeModel(BaseModel):
 
     min: Decimal
     max: Decimal
+
+
+class LocationModel(BaseModel):
+    """
+    Location
+    """
+
+    latitude: Decimal
+    longitude: Decimal
 
 
 class MatrixModel(BaseModel):
