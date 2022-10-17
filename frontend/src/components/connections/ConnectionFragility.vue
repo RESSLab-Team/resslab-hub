@@ -35,12 +35,12 @@
       </v-card>
     </v-col>
     <v-col cols="6">
-      <h2>Post-Northridge</h2>
-      <unit-chart :option="postNorthridgeOption" x-unit="rad"></unit-chart>
-    </v-col>
-    <v-col cols="6">
       <h2>Pre-Northridge</h2>
       <unit-chart :option="preNorthridgeOption" x-unit="rad"></unit-chart>
+    </v-col>
+    <v-col cols="6">
+      <h2>Post-Northridge</h2>
+      <unit-chart :option="postNorthridgeOption" x-unit="rad"></unit-chart>
     </v-col>
   </v-row>
 </template>
@@ -53,7 +53,7 @@ import UnitSlider, {
 import Toggle, { ToggleItem } from "@/components/commons/Toggle.vue";
 import { fragilityCurve } from "@/utils/fragility";
 import { UnitSystem } from "@/utils/unit";
-import { colorPalette } from "@/utils/vuetify";
+import { getColorMap } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import { Component, Vue } from "vue-property-decorator";
 
@@ -100,6 +100,36 @@ export default class ConnectionFragility extends Vue {
   l = 4000;
   db = 600;
 
+  get preNorthridgeOption(): EChartsOption {
+    const yieldingMedian = this.material === "a36" ? 0.77 : 0.76;
+    const yieldingSigma = this.material === "a36" ? 0.32 : 0.19;
+    const fractureMedian = 1.85;
+    const fractureSigma = 0.47;
+    return {
+      xAxis: {
+        name: "SDR",
+      },
+      yAxis: {
+        name: "P(DS)",
+      },
+      color: getColorMap(2),
+      series: [
+        {
+          type: "line",
+          name: "Yielding",
+          showSymbol: false,
+          data: fragilityCurve(yieldingMedian, yieldingSigma),
+        },
+        {
+          type: "line",
+          name: "Brittle Fracture",
+          showSymbol: false,
+          data: fragilityCurve(fractureMedian, fractureSigma),
+        },
+      ],
+    };
+  }
+
   get postNorthridgeOption(): EChartsOption {
     return {
       xAxis: {
@@ -108,7 +138,7 @@ export default class ConnectionFragility extends Vue {
       yAxis: {
         name: "P(DS)",
       },
-      color: colorPalette,
+      color: getColorMap(5),
       series: [
         {
           type: "line",
@@ -139,36 +169,6 @@ export default class ConnectionFragility extends Vue {
           name: "Ductile Tearing",
           showSymbol: false,
           data: fragilityCurve(5, 0.31),
-        },
-      ],
-    };
-  }
-
-  get preNorthridgeOption(): EChartsOption {
-    const yieldingMedian = this.material === "a36" ? 0.77 : 0.76;
-    const yieldingSigma = this.material === "a36" ? 0.32 : 0.19;
-    const fractureMedian = 1.85;
-    const fractureSigma = 0.47;
-    return {
-      xAxis: {
-        name: "SDR",
-      },
-      yAxis: {
-        name: "P(DS)",
-      },
-      color: colorPalette,
-      series: [
-        {
-          type: "line",
-          name: "Yielding",
-          showSymbol: false,
-          data: fragilityCurve(yieldingMedian, yieldingSigma),
-        },
-        {
-          type: "line",
-          name: "Brittle Fracture",
-          showSymbol: false,
-          data: fragilityCurve(fractureMedian, fractureSigma),
         },
       ],
     };
