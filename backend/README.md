@@ -23,13 +23,13 @@ We use [Alembic](https://alembic.sqlalchemy.org/en/latest/) to autogenerate the 
 
 ```bash
 # Generate new revision
-DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic revision --autogenerate -m ""
+make database-revision name="TODO revision name"
 
 # Manually upgrade database (automatically run at startup)
-DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic upgrade head
+make database-upgrade
 
 # Downgrade https://alembic.sqlalchemy.org/en/latest/tutorial.html#downgrading
-DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic downgrade
+make database-downgrade revision=
 ```
 
 ## Upload data
