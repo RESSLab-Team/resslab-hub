@@ -13,11 +13,17 @@ lint:
 update:
 	pre-commit autoupdate
 
-upgrade-database:
+database-upgrade:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic upgrade head
 
-upgrade-database-prod:
-	ENV_FOR_DYNACONF=production $(MAKE) upgrade-database
+database-upgrade-prod:
+	ENV_FOR_DYNACONF=production $(MAKE) database-upgrade
+
+database-downgrade:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic downgrade $(revision)
+
+database-revision:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic revision --autogenerate -m "$(name)"
 
 upload-brace:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py brace ../../resslab-hub-data/braces/steel_braces.csv
