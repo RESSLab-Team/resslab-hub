@@ -2,6 +2,7 @@ from os import path
 
 CSV_READ_MODE = "rt"
 UTF8_ENCODING = "utf-8"
+ASCII_ENCODING = "ascii"
 
 
 def get_abs_path(file_path: str) -> str:

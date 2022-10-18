@@ -30,11 +30,23 @@
       "preLaunchTask": "run-database"
     },
     {
-      "name": "backend: data-uploader",
+      "name": "backend: data-uploader-table",
       "type": "python",
       "request": "launch",
       "module": "data.uploader",
       "args": ["column", "../../resslab-hub-data/columns/steel_columns.csv"],
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/secrets/.env"
+    },
+    {
+      "name": "backend: data-uploader-csv",
+      "type": "python",
+      "request": "launch",
+      "module": "data.uploader",
+      "args": [
+        "brace-displacement",
+        "../../resslab-hub-data/braces/force_displacement/Broderick_CylS1-40H.csv"
+      ],
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"
     },
