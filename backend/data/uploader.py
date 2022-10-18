@@ -7,16 +7,18 @@ import os
 from abc import ABC, abstractmethod
 from decimal import Decimal
 from enum import Enum
+from io import TextIOWrapper
 from math import nan
 from typing import Any, Callable, List
 
+from chardet import detect
 from sqlalchemy import create_engine, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
-from data.common import CSV_READ_MODE, UTF8_ENCODING, get_abs_path
+from data.common import ASCII_ENCODING, CSV_READ_MODE, UTF8_ENCODING, get_abs_path
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
 from resslab_hub.models.database.column import (
     ColumnAxialShortening,
@@ -71,6 +73,13 @@ class Uploader(ABC):
         for filename in file_paths:
             self.upload_one(filename)
 
+    def check_file(self, file: TextIOWrapper) -> None:
+        detection = detect(file.read().encode())
+        encoding = (detection or {}).get("encoding")
+        if encoding not in [UTF8_ENCODING, ASCII_ENCODING]:
+            raise Exception(f"expecting utf-8 encoded file but get {encoding}")
+        file.seek(0)
+
 
 class TableUploader(Uploader):
     """
@@ -85,18 +94,22 @@ class TableUploader(Uploader):
     def upload_one(self, file_path: str) -> None:
         file_path = get_abs_path(file_path)
         with open(file_path, CSV_READ_MODE, encoding=UTF8_ENCODING) as file:
+            self.check_file(file)
             reader = csv.reader(file, strict=True)
             headers = next(reader)
             id_index = headers.index(self.id_column_key)
             ids = []
             # add new rows
             for row in reader:
-                ids.append(row[id_index])
-                data = {
-                    column.key: self.__get_value(column, headers, row)
-                    for column in self.base_model.__table__.c
-                }
-                session.merge(self.base_model(**data))
+                if all([len(value) == 0 for value in row]):
+                    print("skip empty line")
+                else:
+                    ids.append(row[id_index])
+                    data = {
+                        column.key: self.__get_value(column, headers, row)
+                        for column in self.base_model.__table__.c
+                    }
+                    session.merge(self.base_model(**data))
             # remove outdated rows
             database_ids = [row[0] for row in session.query(self.id_column).all()]
             removed_ids = set(database_ids) - set(ids)
@@ -152,6 +165,7 @@ class CsvFileUploader(Uploader):
             self.filename_suffix
         )
         with open(file_path, "rt", encoding=UTF8_ENCODING) as file:
+            self.check_file(file)
             reader = csv.reader(file, strict=True)
             next(reader)  # skip header
             session.execute(self.get_delete(id))
