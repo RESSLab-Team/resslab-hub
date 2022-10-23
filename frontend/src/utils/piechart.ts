@@ -1,21 +1,20 @@
 import { colorPalette } from "@/utils/vuetify";
-import * as d3 from "d3";
+import { arc, create, pie, range, scaleLinear, scaleOrdinal, sum } from "d3";
 
 export interface Datum {
   name: string;
   value: number;
 }
 
-export const types = ["Steel Material", "Columns", "Components", "Braces"];
+export const typesNames = ["Steel Material", "Columns", "Components", "Braces"];
 
 export interface OverviewMapOptions {
-  name?: (arg0: any) => string;
-  value?: (arg0: any) => number;
+  name?: (arg0: Datum) => string;
+  value?: (arg0: Datum) => number;
   width?: number;
   height?: number;
   innerRadius?: number;
   outerRadius?: number;
-  labelRadius?: number;
   stroke?: number;
   strokeWidth?: number;
   strokeLinejoin?: string;
@@ -26,23 +25,23 @@ export function MarkerSVG(color: string) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 820" version="1.1" xml:space="preserve" style="fill-rule: evenodd; clip-rule: evenodd; stroke-linecap: round;"><g transform="matrix(19.5417,0,0,19.5417,-7889.1,-9807.44)"><path d="M416.544,503.612C409.971,503.612 404.5,509.303 404.5,515.478C404.5,518.256 406.064,521.786 407.194,524.224L416.5,542.096L425.762,524.224C426.892,521.786 428.5,518.433 428.5,515.478C428.5,509.303 423.117,503.612 416.544,503.612ZM416.544,510.767C419.128,510.784 421.223,512.889 421.223,515.477C421.223,518.065 419.128,520.14 416.544,520.156C413.96,520.139 411.865,518.066 411.865,515.477C411.865,512.889 413.96,510.784 416.544,510.767Z" stroke-width="1.1px" fill="${color}"/></g></svg>`;
 }
 
-export const scaleRadius = d3.scaleLinear().rangeRound([20, 180]);
+export const scaleRadius = scaleLinear().rangeRound([20, 180]);
 
-export const scaleColor = d3.scaleOrdinal(types, colorPalette);
+export const scaleColor = scaleOrdinal(typesNames, colorPalette);
 
 export function PieChart(
   data: Datum[],
   options: OverviewMapOptions = {}
 ): SVGSVGElement | null {
-  const name: (arg0: any) => string =
+  const name: (arg0: Datum) => string =
     options.name ||
-    function ([x]) {
-      return x;
+    function (arg) {
+      return arg.name;
     }; // given d in data, returns the (ordinal) label
-  const value: (arg0: any) => number =
+  const value: (arg0: Datum) => number =
     options.value ||
-    function ([_, y]) {
-      return y;
+    function (arg) {
+      return arg.value;
     }; // given d in data, returns the (quantitative) value
 
   const width: number = options.width || 640;
@@ -50,8 +49,7 @@ export function PieChart(
   const innerRadius: number = options.innerRadius || 0; // inner radius of pie, in pixels (non-zero for donut)
   const outerRadius: number =
     options.outerRadius || Math.min(width, height) / 2; // outer radius of pie, in pixels
-  const labelRadius: number =
-    options.labelRadius || innerRadius * 0.2 + outerRadius * 0.6; // center radius of labels
+
   const stroke: number | string =
     options.stroke || innerRadius > 0 ? "none" : "white"; // stroke separating widths
   const strokeWidth: number = options.strokeWidth || 1; // width of stroke separating wedges
@@ -62,22 +60,19 @@ export function PieChart(
   // Compute values.
   const N = data.map(name);
   const V = data.map(value);
-  const I = d3.range(N.length).filter((i) => !isNaN(V[i]));
+  const I = range(N.length).filter((i) => !isNaN(V[i]));
 
   const title = (index: number) => V[index];
   // Construct arcs.
-  const arcs = d3
-    .pie()
+  const arcs = pie()
     .padAngle(padAngle)
     .sort(null)
     .value((d, i: number) => V[i])(I)
     .filter((d) => d.value > 0);
 
-  const arc = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius);
-  const arcLabel = d3.arc().innerRadius(labelRadius).outerRadius(labelRadius);
+  const arcFn = arc().innerRadius(innerRadius).outerRadius(outerRadius);
 
-  const svg = d3
-    .create("svg")
+  const svg = create("svg")
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [-width / 2, -height / 2, width, height])
@@ -94,7 +89,7 @@ export function PieChart(
     .data(arcs)
     .join("path")
     .attr("fill", (d) => scaleColor(N[d.index]))
-    .attr("d", (d: any) => arc(d))
+    .attr("d", (d) => arcFn({ ...d, innerRadius, outerRadius }))
     .append("title")
     .text((d) => title(d.index));
 
@@ -117,7 +112,7 @@ export function PieChart(
     // .attr("x", 0)
     // .attr("y", 3)
 
-    .text((d) => d3.sum(V));
+    .text(() => sum(V));
 
   return svg.node();
 }
