@@ -1,55 +1,70 @@
 <template>
   <v-responsive aspect-ratio="1.2" :max-height="maxHeight">
-    <div id="container">
-      <div id="mapContainer"></div>
-    </div>
+    <div id="mapContainer"></div>
   </v-responsive>
 </template>
 
 <script lang="ts">
 import "leaflet/dist/leaflet.css";
-import * as L from "leaflet";
+import {
+  map as LMap,
+  tileLayer,
+  divIcon,
+  MarkerClusterGroup,
+  DivIcon,
+  Point,
+  Marker,
+  Control,
+  DomUtil,
+} from "leaflet";
 import "leaflet.markercluster";
 
-import * as d3 from "d3";
+import { rollups, select } from "d3";
 import fakeData from "@/assets/connection/fake_data_overviewmap.csv";
 import {
   PieChart,
-  types,
+  typesNames,
   MarkerSVG,
   scaleRadius,
   scaleColor,
 } from "@/utils/piechart";
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import { LocationModel } from "@/backend";
 
 @Component
 export default class OverviewMap extends Vue {
-  @Prop({ type: String, default: "" })
-  private readonly title!: string;
-
   @Prop({ type: Number, default: 500 })
   public maxHeight!: number;
 
-  private values: boolean[] = [];
+  private icons = new Map(
+    typesNames.map((type) => [
+      type,
+      divIcon({
+        html: MarkerSVG(scaleColor(type)),
+        className: "",
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+      }),
+    ])
+  );
 
-  public createMap() {
-    const map = L.map("mapContainer").setView([45, 0], 2);
-    L.tileLayer(
+  private connectionsLocations: LocationModel[] = [];
+
+  @Watch("connectionsLocations")
+  onConnectionsChanged() {
+    this.updateMap();
+  }
+
+  private get map() {
+    const map = LMap("mapContainer").setView([45, 0], 2);
+    tileLayer(
       "https://cartodb-basemaps-1.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
     ).addTo(map);
+    return map;
+  }
 
-    const icons = new Map(
-      types.map((type) => [
-        type,
-        L.divIcon({
-          html: MarkerSVG(scaleColor(type)),
-          className: "",
-          iconSize: [30, 30],
-        }),
-      ])
-    );
-
-    const cluster = new L.MarkerClusterGroup({
+  private get cluster() {
+    return new MarkerClusterGroup({
       showCoverageOnHover: false,
       iconCreateFunction: function (cluster) {
         var childCount = cluster.getChildCount();
@@ -58,13 +73,13 @@ export default class OverviewMap extends Vue {
 
         const allChilds = cluster.getAllChildMarkers();
 
-        const counts = d3.rollups(
+        const counts = rollups(
           allChilds,
           (v) => v.length,
           (d) => (d.feature ? d.feature.properties.type : null)
         );
 
-        return new L.DivIcon({
+        return new DivIcon({
           html: PieChart(
             counts.map(([name, value]) => ({ name, value })),
             {
@@ -76,35 +91,43 @@ export default class OverviewMap extends Vue {
             }
           ) as unknown as HTMLElement,
           className: "",
-          iconSize: new L.Point(radius, radius),
+          iconSize: new Point(radius, radius),
         });
       },
     });
+  }
 
-    let markers: L.Marker[] = [];
+  fakeType() {
+    return typesNames[~~(Math.random() * typesNames.length)];
+  }
 
-    for (let d of fakeData) {
-      let marker = L.marker([d.latitude, d.longitude], {
-        icon: icons.get(d.type),
-      }).bindPopup(`${d.experimental_program} ${d.date} <br> ${d.type}`);
+  createMarkers(data: LocationModel[], type: string) {
+    return data.map((d) => {
+      let marker = new Marker([d.latitude, d.longitude], {
+        icon: this.icons.get(type),
+      }).bindPopup(`TO DO<br> EXAMPLE`);
       marker.feature = {
         type: "Feature",
-        properties: d,
-        geometry: { type: "Point", coordinates: [d.latitude, d.longitude] },
+        properties: Object.assign(d, { type }),
+        geometry: {
+          type: "Point",
+          coordinates: [d.latitude, d.longitude],
+        },
       };
-      markers.push(marker);
+      return marker;
+    });
+  }
 
-      cluster.addLayer(marker);
-    }
+  private get markers() {
+    return this.createMarkers(this.connectionsLocations, "Components");
+  }
+  private get legend() {
+    let legend = new Control({ position: "bottomright" });
 
-    map.addLayer(cluster);
+    legend.onAdd = function () {
+      var div = DomUtil.create("div", "legend");
 
-    var legend = new L.Control({ position: "bottomright" });
-
-    legend.onAdd = function (map) {
-      var div = L.DomUtil.create("div", "legend");
-
-      for (let type of types) {
+      for (let type of typesNames) {
         div.innerHTML += `<input id="checkbox_${type.replace(
           /\s/g,
           ""
@@ -113,30 +136,52 @@ export default class OverviewMap extends Vue {
         )}'> </i> ${type} <br>`;
       }
 
-      for (let type of types) {
-        d3.select(div)
-          .select(`#checkbox_${type.replace(/\s/g, "")}`)
-          .on("change", (e) => {
-            e.stopPropagation();
-
-            let layers = markers.filter(({ feature }) =>
-              feature ? feature.properties.type === type : false
-            );
-            if (e.target.checked) cluster.addLayers(layers);
-            else cluster.removeLayers(layers);
-          });
-      }
-
-      d3.select(div).on("dblclick", (e) => e.stopPropagation());
-
       return div;
     };
+    return legend;
+  }
 
-    legend.addTo(map);
+  setEventListenerLegend() {
+    let div = ".legend";
+
+    for (let type of typesNames) {
+      select(div)
+        .select(`#checkbox_${type.replace(/\s/g, "")}`)
+        .on("change", (e) => {
+          e.stopPropagation();
+
+          let layers = this.markers.filter(({ feature }) =>
+            feature ? feature.properties.type === type : false
+          );
+          if (e.target.checked) this.cluster.addLayers(layers);
+          else this.cluster.removeLayers(layers);
+        });
+    }
+
+    select(div).on("dblclick", (e) => e.stopPropagation());
+  }
+
+  public setupMap() {
+    this.cluster.addLayers(this.markers);
+    this.map.addLayer(this.cluster);
+    this.legend.addTo(this.map);
+    this.setEventListenerLegend();
+  }
+
+  public updateMap() {
+    console.log("Update");
+    this.cluster.addLayers(this.markers);
+    this.map.addLayer(this.cluster);
+    this.setEventListenerLegend();
   }
 
   mounted() {
-    this.createMap();
+    this.setupMap();
+  }
+  public created() {
+    this.$connectionsApi
+      .getConnectionsLocations()
+      .then((res) => (this.connectionsLocations = res.data));
   }
 }
 </script>
