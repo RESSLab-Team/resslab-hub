@@ -45,8 +45,17 @@
       "module": "data.uploader",
       "args": [
         "brace-displacement",
-        "../../resslab-hub-data/braces/force_displacement/Broderick_CylS1-40H.csv"
+        "../../resslab-hub-data/braces/force_displacement/*.csv"
       ],
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/secrets/.env"
+    },
+    {
+      "name": "backend: data-uploader-all",
+      "type": "python",
+      "request": "launch",
+      "module": "data.uploader",
+      "args": ["all", "../../resslab-hub-data"],
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"
     },
