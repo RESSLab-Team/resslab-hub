@@ -7,6 +7,7 @@ import os
 from abc import ABC, abstractmethod
 from decimal import Decimal
 from enum import Enum
+from glob import iglob
 from io import TextIOWrapper
 from math import nan
 from typing import Any, Callable, List
@@ -41,6 +42,12 @@ session = Session(engine)
 
 
 class Type(Enum):
+    ALL = "all"
+    ALL_COLUMN = "all-column"
+    ALL_BRACE = "all-brace"
+    ALL_CONNECTION = "all-connection"
+    BRACE = "brace"
+    BRACE_DISPLACEMENT = "brace-displacement"
     COLUMN = "column"
     COLUMN_AXIAL_SHORTENING = "column-axial-shortening"
     COLUMN_MOMENT_STRONG = "column-moment-strong"
@@ -51,8 +58,6 @@ class Type(Enum):
     CONNECTION_GLOBAL = "connection-global"
     CONNECTION_GLOBAL_WEST = "connection-global-west"
     CONNECTION_PANEL_ZONE = "connection-panel-zone"
-    BRACE = "brace"
-    BRACE_DISPLACEMENT = "brace-displacement"
 
 
 class Uploader(ABC):
@@ -70,10 +75,12 @@ class Uploader(ABC):
         """
         Upload multiple files
         """
-        for filename in file_paths:
-            self.upload_one(filename)
+        for file_path in file_paths:
+            for filename in iglob(file_path):
+                self.upload_one(filename)
 
-    def check_file(self, file: TextIOWrapper) -> None:
+    @staticmethod
+    def check_file(file: TextIOWrapper) -> None:
         detection = detect(file.read().encode())
         encoding = (detection or {}).get("encoding")
         if encoding not in [UTF8_ENCODING, ASCII_ENCODING]:
@@ -183,6 +190,181 @@ class CsvFileUploader(Uploader):
         return os.path.splitext(basename)[0]
 
 
+def upload(input_type: Type, filenames: List[str]):
+    match input_type:
+        case Type.ALL:
+            upload(Type.ALL_BRACE, filenames)
+            upload(Type.ALL_COLUMN, filenames)
+            upload(Type.ALL_CONNECTION, filenames)
+            return
+        case Type.ALL_BRACE:
+            root_folder = os.path.join(filenames[0], "braces")
+            upload(Type.BRACE, [os.path.join(root_folder, "steel_braces.csv")])
+            upload(
+                Type.BRACE_DISPLACEMENT,
+                [os.path.join(root_folder, "force_displacement", "*.csv")],
+            )
+            return
+        case Type.ALL_COLUMN:
+            root_folder = os.path.join(filenames[0], "columns")
+            upload(Type.COLUMN, [os.path.join(root_folder, "steel_columns.csv")])
+            upload(
+                Type.COLUMN_AXIAL_SHORTENING,
+                [os.path.join(root_folder, "axial_shortening_rotation", "*.csv")],
+            )
+            upload(
+                Type.COLUMN_MOMENT_STRONG,
+                [os.path.join(root_folder, "moment_rotation_strong", "*.csv")],
+            )
+            upload(
+                Type.COLUMN_MOMENT_WEAK,
+                [os.path.join(root_folder, "moment_rotation_weak", "*.csv")],
+            )
+            return
+        case Type.ALL_CONNECTION:
+            root_folder = os.path.join(filenames[0], "connections")
+            upload(Type.COLUMN, [os.path.join(root_folder, "steel_columns.csv")])
+            upload(
+                Type.CONNECTION_BEAM,
+                [os.path.join(root_folder, "Beam_moment_rotation", "*.csv")],
+            )
+            upload(
+                Type.CONNECTION_BEAM_WEST,
+                [os.path.join(root_folder, "Beam_moment_rotation_west", "*.csv")],
+            )
+            upload(
+                Type.CONNECTION_GLOBAL,
+                [os.path.join(root_folder, "Global", "*.csv")],
+            )
+            upload(
+                Type.CONNECTION_GLOBAL_WEST,
+                [os.path.join(root_folder, "Global_west", "*.csv")],
+            )
+            upload(
+                Type.CONNECTION_PANEL_ZONE,
+                [os.path.join(root_folder, "Panel_zone", "*.csv")],
+            )
+            return
+        case Type.BRACE:
+            uploader = TableUploader(Brace)
+        case Type.COLUMN:
+            uploader = TableUploader(ColumnEntity)
+        case Type.CONNECTION:
+            uploader = TableUploader(Connection)
+        case Type.BRACE_DISPLACEMENT:
+            uploader = CsvFileUploader(
+                lambda id: delete(BraceDisplacement).where(
+                    BraceDisplacement.brace_id == id
+                ),
+                lambda id, index, value: BraceDisplacement(
+                    brace_id=id,
+                    id=index,
+                    displacement=value[0],
+                    force=value[1],
+                ),
+            )
+        case Type.COLUMN_AXIAL_SHORTENING:
+            uploader = CsvFileUploader(
+                lambda id: delete(ColumnAxialShortening).where(
+                    ColumnAxialShortening.column_id == id
+                ),
+                lambda id, index, value: ColumnAxialShortening(
+                    column_id=id,
+                    id=index,
+                    chord_rotation=value[0],
+                    axial_shortening=value[1],
+                ),
+            )
+        case Type.COLUMN_MOMENT_STRONG:
+            uploader = CsvFileUploader(
+                lambda id: delete(ColumnMomentStrong).where(
+                    ColumnMomentStrong.column_id == id
+                ),
+                lambda id, index, value: ColumnMomentStrong(
+                    column_id=id,
+                    id=index,
+                    chord_rotation=value[0],
+                    moment=value[1],
+                ),
+            )
+        case Type.COLUMN_MOMENT_WEAK:
+            uploader = CsvFileUploader(
+                lambda id: delete(ColumnMomentWeak).where(
+                    ColumnMomentWeak.column_id == id
+                ),
+                lambda id, index, value: ColumnMomentWeak(
+                    column_id=id,
+                    id=index,
+                    chord_rotation=value[0],
+                    moment=value[1],
+                ),
+            )
+        case Type.CONNECTION_BEAM:
+            uploader = CsvFileUploader(
+                lambda id: delete(ConnectionBeam).where(
+                    ConnectionBeam.connection_id == id
+                ),
+                lambda id, index, value: ConnectionBeam(
+                    connection_id=id,
+                    id=index,
+                    chord_rotation=value[0],
+                    moment=value[1],
+                ),
+            )
+        case Type.CONNECTION_BEAM_WEST:
+            uploader = CsvFileUploader(
+                lambda id: delete(ConnectionBeamWest).where(
+                    ConnectionBeamWest.connection_id == id
+                ),
+                lambda id, index, value: ConnectionBeamWest(
+                    connection_id=id,
+                    id=index,
+                    chord_rotation=value[0],
+                    moment=value[1],
+                ),
+            )
+        case Type.CONNECTION_GLOBAL:
+            uploader = CsvFileUploader(
+                lambda id: delete(ConnectionGlobal).where(
+                    ConnectionGlobal.connection_id == id
+                ),
+                lambda id, index, value: ConnectionGlobal(
+                    connection_id=id,
+                    id=index,
+                    story_drift_angle=value[0],
+                    actuator_force=value[1],
+                ),
+            )
+        case Type.CONNECTION_GLOBAL_WEST:
+            uploader = CsvFileUploader(
+                lambda id: delete(ConnectionGlobalWest).where(
+                    ConnectionGlobalWest.connection_id == id
+                ),
+                lambda id, index, value: ConnectionGlobalWest(
+                    connection_id=id,
+                    id=index,
+                    story_drift_angle=value[0],
+                    actuator_force=value[1],
+                ),
+            )
+        case Type.CONNECTION_PANEL_ZONE:
+            uploader = CsvFileUploader(
+                lambda id: delete(ConnectionPanelZone).where(
+                    ConnectionPanelZone.connection_id == id
+                ),
+                lambda id, index, value: ConnectionPanelZone(
+                    connection_id=id,
+                    id=index,
+                    shear_distortion=value[0],
+                    shear_force=value[1],
+                ),
+            )
+        case _:
+            raise NotImplementedError(f"unknown type {input_type}")
+
+    uploader.upload_all(filenames)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Upload csv files to database")
     parser.add_argument("type", type=Type, choices=list(Type))
@@ -194,120 +376,7 @@ def main():
 
     print(f"connecting to {engine.url}")
 
-    if input_type == Type.COLUMN:
-        uploader = TableUploader(ColumnEntity)
-    elif input_type == Type.CONNECTION:
-        uploader = TableUploader(Connection)
-    elif input_type == Type.BRACE:
-        uploader = TableUploader(Brace)
-    elif input_type == Type.COLUMN_AXIAL_SHORTENING:
-        uploader = CsvFileUploader(
-            lambda id: delete(ColumnAxialShortening).where(
-                ColumnAxialShortening.column_id == id
-            ),
-            lambda id, index, value: ColumnAxialShortening(
-                column_id=id,
-                id=index,
-                chord_rotation=value[0],
-                axial_shortening=value[1],
-            ),
-        )
-    elif input_type == Type.COLUMN_MOMENT_STRONG:
-        uploader = CsvFileUploader(
-            lambda id: delete(ColumnMomentStrong).where(
-                ColumnMomentStrong.column_id == id
-            ),
-            lambda id, index, value: ColumnMomentStrong(
-                column_id=id,
-                id=index,
-                chord_rotation=value[0],
-                moment=value[1],
-            ),
-        )
-    elif input_type == Type.COLUMN_MOMENT_WEAK:
-        uploader = CsvFileUploader(
-            lambda id: delete(ColumnMomentWeak).where(ColumnMomentWeak.column_id == id),
-            lambda id, index, value: ColumnMomentWeak(
-                column_id=id,
-                id=index,
-                chord_rotation=value[0],
-                moment=value[1],
-            ),
-        )
-    elif input_type == Type.CONNECTION_BEAM:
-        uploader = CsvFileUploader(
-            lambda id: delete(ConnectionBeam).where(ConnectionBeam.connection_id == id),
-            lambda id, index, value: ConnectionBeam(
-                connection_id=id,
-                id=index,
-                chord_rotation=value[0],
-                moment=value[1],
-            ),
-        )
-    elif input_type == Type.CONNECTION_BEAM_WEST:
-        uploader = CsvFileUploader(
-            lambda id: delete(ConnectionBeamWest).where(
-                ConnectionBeamWest.connection_id == id
-            ),
-            lambda id, index, value: ConnectionBeamWest(
-                connection_id=id,
-                id=index,
-                chord_rotation=value[0],
-                moment=value[1],
-            ),
-        )
-    elif input_type == Type.CONNECTION_GLOBAL:
-        uploader = CsvFileUploader(
-            lambda id: delete(ConnectionGlobal).where(
-                ConnectionGlobal.connection_id == id
-            ),
-            lambda id, index, value: ConnectionGlobal(
-                connection_id=id,
-                id=index,
-                story_drift_angle=value[0],
-                actuator_force=value[1],
-            ),
-        )
-    elif input_type == Type.CONNECTION_GLOBAL_WEST:
-        uploader = CsvFileUploader(
-            lambda id: delete(ConnectionGlobalWest).where(
-                ConnectionGlobalWest.connection_id == id
-            ),
-            lambda id, index, value: ConnectionGlobalWest(
-                connection_id=id,
-                id=index,
-                story_drift_angle=value[0],
-                actuator_force=value[1],
-            ),
-        )
-    elif input_type == Type.CONNECTION_PANEL_ZONE:
-        uploader = CsvFileUploader(
-            lambda id: delete(ConnectionPanelZone).where(
-                ConnectionPanelZone.connection_id == id
-            ),
-            lambda id, index, value: ConnectionPanelZone(
-                connection_id=id,
-                id=index,
-                shear_distortion=value[0],
-                shear_force=value[1],
-            ),
-        )
-    elif input_type == Type.BRACE_DISPLACEMENT:
-        uploader = CsvFileUploader(
-            lambda id: delete(BraceDisplacement).where(
-                BraceDisplacement.brace_id == id
-            ),
-            lambda id, index, value: BraceDisplacement(
-                brace_id=id,
-                id=index,
-                displacement=value[0],
-                force=value[1],
-            ),
-        )
-    else:
-        raise NotImplementedError(f"unknown type {input_type}")
-
-    uploader.upload_all(filenames)
+    upload(input_type, filenames)
 
 
 if __name__ == "__main__":
