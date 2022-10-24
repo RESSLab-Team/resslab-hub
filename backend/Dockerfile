@@ -12,17 +12,18 @@ FROM python:3.10-alpine as production-stage
 EXPOSE 80
 WORKDIR /app
 RUN apk add --no-cache \
-    build-base \
+    g++ \
     gcc \
     musl-dev \
-    postgresql-dev \
-    python3-dev
+    postgresql-dev
 
 COPY --from=build-stage /app/requirements.txt /app
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./alembic.ini /app/
-COPY ./alembic /app/alembic
+COPY ./alembic.ini ./pyproject.toml ./README.md /app/
 COPY ./resslab_hub /app/resslab_hub
+COPY ./alembic /app/alembic
+
+RUN pip install --no-cache-dir .
 
 CMD [ "uvicorn", "resslab_hub.main:app", "--host", "0.0.0.0", "--port", "80" ]
