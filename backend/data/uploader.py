@@ -100,32 +100,35 @@ class TableUploader(Uploader):
 
     def upload_one(self, file_path: str) -> None:
         file_path = get_abs_path(file_path)
-        with open(file_path, CSV_READ_MODE, encoding=UTF8_ENCODING) as file:
-            self.check_file(file)
-            reader = csv.reader(file, strict=True)
-            headers = next(reader)
-            id_index = headers.index(self.id_column_key)
-            ids = []
-            # add new rows
-            for row in reader:
-                if all([len(value) == 0 for value in row]):
-                    print("skip empty line")
-                else:
-                    ids.append(row[id_index])
-                    data = {
-                        column.key: self.__get_value(column, headers, row)
-                        for column in self.base_model.__table__.c
-                    }
-                    session.merge(self.base_model(**data))
-            # remove outdated rows
-            database_ids = [row[0] for row in session.query(self.id_column).all()]
-            removed_ids = set(database_ids) - set(ids)
-            if removed_ids:
-                session.execute(
-                    delete(self.base_model).where(self.id_column.in_(removed_ids)),
-                )
-                print(f"deleted {removed_ids}")
-        session.commit()
+        try:
+            with open(file_path, CSV_READ_MODE, encoding=UTF8_ENCODING) as file:
+                self.check_file(file)
+                reader = csv.reader(file, strict=True)
+                headers = next(reader)
+                id_index = headers.index(self.id_column_key)
+                ids = []
+                # add new rows
+                for row in reader:
+                    if all([len(value) == 0 for value in row]):
+                        print("skip empty line")
+                    else:
+                        ids.append(row[id_index])
+                        data = {
+                            column.key: self.__get_value(column, headers, row)
+                            for column in self.base_model.__table__.c
+                        }
+                        session.merge(self.base_model(**data))
+                # remove outdated rows
+                database_ids = [row[0] for row in session.query(self.id_column).all()]
+                removed_ids = set(database_ids) - set(ids)
+                if removed_ids:
+                    session.execute(
+                        delete(self.base_model).where(self.id_column.in_(removed_ids)),
+                    )
+                    print(f"deleted {removed_ids}")
+            session.commit()
+        except Exception as e:
+            print(f"skiping {file_path} due to error {e}")
 
     @staticmethod
     def __get_value(column: Column, headers: List[str], row: List[str]) -> Any:
@@ -167,22 +170,25 @@ class CsvFileUploader(Uploader):
 
     def upload_one(self, file_path: str) -> None:
         file_path = get_abs_path(file_path)
-        filename = self.__get_filename(file_path)
-        id = filename.removeprefix(self.filename_prefix).removesuffix(
-            self.filename_suffix
-        )
-        with open(file_path, "rt", encoding=UTF8_ENCODING) as file:
-            self.check_file(file)
-            reader = csv.reader(file, strict=True)
-            next(reader)  # skip header
-            session.execute(self.get_delete(id))
-            for index, value in enumerate(reader):
-                session.add(self.get_instance(id, index, value))
         try:
-            session.commit()
-        except IntegrityError as e:
-            session.rollback()
-            print(f"error: {e.orig}")
+            filename = self.__get_filename(file_path)
+            id = filename.removeprefix(self.filename_prefix).removesuffix(
+                self.filename_suffix
+            )
+            with open(file_path, "rt", encoding=UTF8_ENCODING) as file:
+                self.check_file(file)
+                reader = csv.reader(file, strict=True)
+                next(reader)  # skip header
+                session.execute(self.get_delete(id))
+                for index, value in enumerate(reader):
+                    session.add(self.get_instance(id, index, value))
+            try:
+                session.commit()
+            except IntegrityError as e:
+                session.rollback()
+                print(f"error: {e.orig}")
+        except Exception as e:
+            print(f"skiping {file_path} due to error {e}")
 
     @staticmethod
     def __get_filename(file_path: str) -> str:
