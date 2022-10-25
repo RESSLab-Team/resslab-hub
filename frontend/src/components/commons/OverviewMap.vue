@@ -20,7 +20,6 @@ import {
 import "leaflet.markercluster";
 
 import { rollups, select } from "d3";
-import fakeData from "@/assets/connection/fake_data_overviewmap.csv";
 import {
   PieChart,
   typesNames,
@@ -50,6 +49,11 @@ export default class OverviewMap extends Vue {
 
   private connectionsLocations: LocationModel[] = [];
 
+  // should return this.connectionsLocations.length + this.steelMaterialsLocations.length etc... when endpoint finished
+  get dataLength(): number {
+    return this.connectionsLocations.length;
+  }
+
   @Watch("connectionsLocations")
   onConnectionsChanged() {
     this.updateMap();
@@ -64,12 +68,13 @@ export default class OverviewMap extends Vue {
   }
 
   private get cluster() {
+    let dataLength = this.dataLength;
     return new MarkerClusterGroup({
       showCoverageOnHover: false,
       iconCreateFunction: function (cluster) {
         var childCount = cluster.getChildCount();
 
-        let radius = scaleRadius.domain([0, fakeData.length])(childCount);
+        let radius = scaleRadius.domain([0, dataLength])(childCount);
 
         const allChilds = cluster.getAllChildMarkers();
 
@@ -169,7 +174,6 @@ export default class OverviewMap extends Vue {
   }
 
   public updateMap() {
-    console.log("Update");
     this.cluster.addLayers(this.markers);
     this.map.addLayer(this.cluster);
     this.setEventListenerLegend();
