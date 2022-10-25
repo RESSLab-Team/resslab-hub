@@ -22,12 +22,14 @@ services:
       - /etc/ssl:/etc/ssl
   frontend:
     build: ./frontend
+    image: ghcr.io/resslab-team/resslab-hub/frontend:latest
     labels:
       - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
     restart: unless-stopped
   backend:
     build: ./backend
+    image: ghcr.io/resslab-team/resslab-hub/backend:latest
     depends_on:
       - database
     env_file: secrets/.env
