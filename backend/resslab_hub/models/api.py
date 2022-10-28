@@ -109,6 +109,10 @@ class LocationModel(BaseModel):
 
     latitude: Decimal
     longitude: Decimal
+    date: str
+    reference: str
+    connection_type: str
+    specimen_type: str
 
 
 class MatrixModel(BaseModel):
