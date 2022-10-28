@@ -7,11 +7,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from sqlalchemy import (
-    select,
-)
 
 from resslab_hub.models.api import (
     ConnectionField,
@@ -121,7 +118,16 @@ async def get_connections_locations(
     Get occurences location of field values
     """
 
-    rows = await session.execute(select(Connection.latitude, Connection.longitude))
+    rows = await session.execute(
+        select(
+            Connection.latitude,
+            Connection.longitude,
+            Connection.date,
+            Connection.reference,
+            Connection.connection_type,
+            Connection.specimen_type,
+        )
+    )
     return rows.all()
 
 
