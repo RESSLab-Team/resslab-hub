@@ -56,6 +56,7 @@ export default class OverviewMap extends Vue {
 
   @Watch("connectionsLocations")
   onConnectionsChanged() {
+    console.log(this.connectionsLocations[0]);
     this.updateMap();
   }
 
@@ -110,7 +111,9 @@ export default class OverviewMap extends Vue {
     return data.map((d) => {
       let marker = new Marker([d.latitude, d.longitude], {
         icon: this.icons.get(type),
-      }).bindPopup(`TO DO<br> EXAMPLE`);
+      }).bindPopup(
+        `<h3>${d.experimental_program} ${d.date}</h3><br>${d.specimen_type}<br>${d.connection_type}, Beam: ${d.section_b} Col: ${d.section_c}`
+      );
       marker.feature = {
         type: "Feature",
         properties: Object.assign(d, { type }),
