@@ -976,6 +976,48 @@ export interface LocationModel {
      * @memberof LocationModel
      */
     'longitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationModel
+     */
+    'date': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationModel
+     */
+    'experimental_program': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationModel
+     */
+    'section_b': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationModel
+     */
+    'section_c': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationModel
+     */
+    'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationModel
+     */
+    'connection_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationModel
+     */
+    'specimen_type': string;
 }
 /**
  * 
