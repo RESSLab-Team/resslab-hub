@@ -2470,7 +2470,14 @@
         "title": "LocationModel",
         "required": [
           "latitude",
-          "longitude"
+          "longitude",
+          "date",
+          "experimental_program",
+          "section_b",
+          "section_c",
+          "reference",
+          "connection_type",
+          "specimen_type"
         ],
         "type": "object",
         "properties": {
@@ -2481,6 +2488,34 @@
           "longitude": {
             "title": "Longitude",
             "type": "number"
+          },
+          "date": {
+            "title": "Date",
+            "type": "integer"
+          },
+          "experimental_program": {
+            "title": "Experimental Program",
+            "type": "string"
+          },
+          "section_b": {
+            "title": "Section B",
+            "type": "string"
+          },
+          "section_c": {
+            "title": "Section C",
+            "type": "string"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "connection_type": {
+            "title": "Connection Type",
+            "type": "string"
+          },
+          "specimen_type": {
+            "title": "Specimen Type",
+            "type": "string"
           }
         },
         "description": "Location"

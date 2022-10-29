@@ -109,7 +109,12 @@ class LocationModel(BaseModel):
 
     latitude: Decimal
     longitude: Decimal
-    date: str
+    date: int
+    experimental_program: str
+    section_b: str
+    section_c: str
+    # link creates a problem I cannot find why
+    # link: str
     reference: str
     connection_type: str
     specimen_type: str
