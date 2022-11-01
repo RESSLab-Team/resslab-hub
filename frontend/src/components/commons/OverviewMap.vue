@@ -70,13 +70,13 @@ export default class OverviewMap extends Vue {
   }
 
   private get cluster() {
-    let dataLength = this.dataLength;
+    const dataLength = this.dataLength;
     return new MarkerClusterGroup({
       showCoverageOnHover: false,
       iconCreateFunction: function (cluster) {
         var childCount = cluster.getChildCount();
 
-        let radius = scaleRadius.domain([0, dataLength])(childCount);
+        const radius = scaleRadius.domain([0, dataLength])(childCount);
 
         const allChilds = cluster.getAllChildMarkers();
 
@@ -114,24 +114,26 @@ export default class OverviewMap extends Vue {
         <li>
           <img alt="${d.specimen_type}" src="${specimenTypeImageSrc(
       d.specimen_type
-    )}"></img>  
+    )}"></img>
         </li>
         <li><a href=''>View experimental data</a></li>
       </ul>
       </div>`;
   }
 
-  createMarkers(data: LocationModel[], type: string) {
-    let createTooltip = (d: LocationModel) =>
-      `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`;
+  getCreateTooltip(type: string) {
     switch (type) {
       case "Connections":
-        createTooltip = this.createTooltipConnections;
-        break;
+        return this.createTooltipConnections;
     }
+    return (d: LocationModel) =>
+      `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`;
+  }
 
+  createMarkers(data: LocationModel[], type: string) {
+    const createTooltip = this.getCreateTooltip(type);
     return data.map((d) => {
-      let marker = new Marker([d.latitude, d.longitude], {
+      const marker = new Marker([d.latitude, d.longitude], {
         icon: this.icons.get(type),
       }).bindPopup(createTooltip(d));
       marker.feature = {
@@ -150,12 +152,12 @@ export default class OverviewMap extends Vue {
     return this.createMarkers(this.connectionsLocations, "Connections");
   }
   private get legend() {
-    let legend = new Control({ position: "bottomright" });
+    const legend = new Control({ position: "bottomright" });
 
     legend.onAdd = function () {
       var div = DomUtil.create("div", "legend");
 
-      for (let type of typesNames) {
+      for (const type of typesNames) {
         div.innerHTML += `<input id="checkbox_${type.replace(
           /\s/g,
           ""
@@ -170,15 +172,15 @@ export default class OverviewMap extends Vue {
   }
 
   setEventListenerLegend() {
-    let div = ".legend";
+    const div = ".legend";
 
-    for (let type of typesNames) {
+    for (const type of typesNames) {
       select(div)
         .select(`#checkbox_${type.replace(/\s/g, "")}`)
         .on("change", (e) => {
           e.stopPropagation();
 
-          let layers = this.markers.filter(({ feature }) =>
+          const layers = this.markers.filter(({ feature }) =>
             feature ? feature.properties.type === type : false
           );
           if (e.target.checked) this.cluster.addLayers(layers);
