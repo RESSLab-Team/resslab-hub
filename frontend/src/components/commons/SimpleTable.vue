@@ -295,6 +295,7 @@ export default class SimpleTable<T, P extends Page<T>> extends Vue {
         .then((page) => {
           this.items = page.items;
           this.totalFilteredCount = page.total;
+          this.$emit("loadPage", page);
         })
         .finally(() => {
           this.loading = false;

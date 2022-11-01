@@ -8,6 +8,7 @@
             :searches.sync="searches"
             :query="query"
             @click="click"
+            @loadPage="loadPage"
           ></brace-table>
         </v-col>
       </v-row>
@@ -121,5 +122,9 @@ export default class BraceDashboard extends DashboardMixin<BraceModel> {
   ];
   readonly loadingProtocolField = BraceField.LoadingProtocol;
   readonly steelField = BraceField.Steel;
+
+  get fields(): string[] {
+    return Object.values(BraceField);
+  }
 }
 </script>

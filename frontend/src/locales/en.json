@@ -8,7 +8,8 @@
     "d_br/t_br": "b/t",
     "cross_section_shape": "Cross Section Shape",
     "boundary_condition": "Boundary Condition",
-    "date": "Date"
+    "date": "Date",
+    "loading_protocol": "Loading Protocol"
   },
   "column": {
     "experimental_program": "Experimental Program",

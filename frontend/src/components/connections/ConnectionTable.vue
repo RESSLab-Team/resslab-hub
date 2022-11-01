@@ -9,6 +9,7 @@
     :search.sync="globalSearch"
     :searches.sync="columnSearches"
     @click="click"
+    @loadPage="loadPage"
   >
     <template #title>
       Connections
@@ -72,7 +73,8 @@ import SimpleTable, {
 } from "@/components/commons/SimpleTable.vue";
 import { publicPath, Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
-import { Component, Prop, PropSync, Vue } from "vue-property-decorator";
+import { Component, Prop, PropSync } from "vue-property-decorator";
+import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
 
 @Component({
   components: {
@@ -80,7 +82,7 @@ import { Component, Prop, PropSync, Vue } from "vue-property-decorator";
     SimpleTable,
   },
 })
-export default class ConnectionTable extends Vue {
+export default class ConnectionTable extends SimpleTableMixin<ConnectionModel> {
   @Prop({ default: "" })
   readonly query!: string;
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
@@ -162,10 +164,6 @@ export default class ConnectionTable extends Vue {
       page,
       size
     );
-  }
-
-  click(connection: ConnectionModel): void {
-    this.$emit("click", connection);
   }
 
   getFiles(

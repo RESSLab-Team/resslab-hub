@@ -10,6 +10,7 @@
     :search.sync="globalSearch"
     :searches.sync="braceSearches"
     @click="click"
+    @loadPage="loadPage"
   >
   </simple-table>
 </template>
@@ -28,14 +29,15 @@ import SimpleTable, {
 } from "@/components/commons/SimpleTable.vue";
 import { Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
-import { Component, Prop, PropSync, Vue } from "vue-property-decorator";
+import { Component, Prop, PropSync } from "vue-property-decorator";
+import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
 
 @Component({
   components: {
     SimpleTable,
   },
 })
-export default class BraceTable extends Vue {
+export default class BraceTable extends SimpleTableMixin<BraceModel> {
   @Prop({ default: "" })
   readonly query!: string;
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
@@ -78,10 +80,6 @@ export default class BraceTable extends Vue {
     size?: number
   ): Promise<AxiosResponse<ExtendedPageBraceModel>> {
     return this.$bracesApi.getBraces(query, sortBy, sortDesc, page, size);
-  }
-
-  click(item: BraceModel): void {
-    this.$emit("click", item);
   }
 
   getFiles(
