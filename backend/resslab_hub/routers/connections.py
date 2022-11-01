@@ -120,6 +120,7 @@ async def get_connections_locations(
 
     rows = await session.execute(
         select(
+            Connection.id,
             Connection.latitude,
             Connection.longitude,
             Connection.date,

@@ -2469,6 +2469,7 @@
       "LocationModel": {
         "title": "LocationModel",
         "required": [
+          "id",
           "latitude",
           "longitude",
           "date",
@@ -2481,6 +2482,10 @@
         ],
         "type": "object",
         "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
           "latitude": {
             "title": "Latitude",
             "type": "number"
