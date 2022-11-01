@@ -58,7 +58,6 @@ export default class OverviewMap extends Vue {
 
   @Watch("connectionsLocations")
   onConnectionsChanged() {
-    console.log(this.connectionsLocations[0]);
     this.updateMap();
   }
 
