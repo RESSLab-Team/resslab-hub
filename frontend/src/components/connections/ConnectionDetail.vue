@@ -123,7 +123,7 @@ import CommonDetail, {
 } from "@/components/commons/CommonDetail.vue";
 import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { publicPath } from "@/utils/common";
+import { specimenTypeImageSrc } from "@/utils/connections";
 import { AxiosResponse } from "axios";
 import { Component, VModel } from "vue-property-decorator";
 
@@ -225,18 +225,7 @@ export default class ConnectionDetail extends CommonDetailMixin {
   }
 
   get specimenTypeImageSrc(): string {
-    switch (this.connection.specimen_type) {
-      case "Exterior - Beam Loaded - Subassembly":
-        return publicPath + "img/specimen-type/exterior-beam.svg";
-      case "Exterior - Column Loaded - Subassembly":
-        return publicPath + "img/specimen-type/exterior-column.svg";
-      case "Interior - Column Loaded - Subassembly":
-        return publicPath + "img/specimen-type/interior-column.svg";
-      case "Interior - Beam Loaded - Subassembly":
-        return publicPath + "img/specimen-type/interior-beam.svg";
-      default:
-        return "";
-    }
+    return specimenTypeImageSrc(this.connection.specimen_type);
   }
 }
 </script>
