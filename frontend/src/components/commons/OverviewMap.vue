@@ -6,6 +6,8 @@
 
 <script lang="ts">
 import "leaflet/dist/leaflet.css";
+import { specimenTypeImageSrc } from "@/utils/connections";
+
 import {
   map as LMap,
   tileLayer,
@@ -103,17 +105,36 @@ export default class OverviewMap extends Vue {
     });
   }
 
-  fakeType() {
-    return typesNames[~~(Math.random() * typesNames.length)];
+  createTooltipConnections(d: LocationModel) {
+    return `<div class="tooltip">
+      <h3><a href="${d.link}">${d.experimental_program} (${d.date})</a></h3>
+      <br>
+      <ul>
+        <li>${d.specimen_type}</li >
+        <li>${d.connection_type}, Beam: ${d.section_b} Col: ${d.section_c}</li>
+        <li>
+          <img alt="${d.specimen_type}" src="${specimenTypeImageSrc(
+      d.specimen_type
+    )}"></img>  
+        </li>
+        <li><a href=''>View experimental data</a></li>
+      </ul>
+      </div>`;
   }
 
   createMarkers(data: LocationModel[], type: string) {
+    let createTooltip = (d: LocationModel) =>
+      `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`;
+    switch (type) {
+      case "Connections":
+        createTooltip = this.createTooltipConnections;
+        break;
+    }
+
     return data.map((d) => {
       let marker = new Marker([d.latitude, d.longitude], {
         icon: this.icons.get(type),
-      }).bindPopup(
-        `<h3>${d.experimental_program} ${d.date}</h3><br>${d.specimen_type}<br>${d.connection_type}, Beam: ${d.section_b} Col: ${d.section_c}`
-      );
+      }).bindPopup(createTooltip(d));
       marker.feature = {
         type: "Feature",
         properties: Object.assign(d, { type }),
@@ -127,7 +148,7 @@ export default class OverviewMap extends Vue {
   }
 
   private get markers() {
-    return this.createMarkers(this.connectionsLocations, "Components");
+    return this.createMarkers(this.connectionsLocations, "Connections");
   }
   private get legend() {
     let legend = new Control({ position: "bottomright" });
@@ -222,5 +243,19 @@ div.legend {
 .legend h4 {
   margin: 0 0 5px;
   color: #777;
+}
+
+.tooltip ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.tooltip li {
+  padding-bottom: 5px;
+}
+
+.tooltip img {
+  max-height: 130px;
+  max-width: 100%;
 }
 </style>

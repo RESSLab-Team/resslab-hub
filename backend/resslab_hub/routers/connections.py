@@ -126,7 +126,7 @@ async def get_connections_locations(
             Connection.experimental_program,
             Connection.section_b,
             Connection.section_c,
-            # Connection.link,
+            Connection.link,
             Connection.reference,
             Connection.connection_type,
             Connection.specimen_type,

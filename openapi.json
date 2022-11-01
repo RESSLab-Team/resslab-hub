@@ -2505,6 +2505,10 @@
             "title": "Section C",
             "type": "string"
           },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
           "reference": {
             "title": "Reference",
             "type": "string"

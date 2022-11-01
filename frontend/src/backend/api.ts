@@ -1005,6 +1005,12 @@ export interface LocationModel {
      * @type {string}
      * @memberof LocationModel
      */
+    'link'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationModel
+     */
     'reference': string;
     /**
      * 
