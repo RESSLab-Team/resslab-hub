@@ -6,7 +6,12 @@ export interface Datum {
   value: number;
 }
 
-export const typesNames = ["Steel Material", "Columns", "Components", "Braces"];
+export const typesNames = [
+  "Steel Material",
+  "Columns",
+  "Connections",
+  "Braces",
+];
 
 export interface OverviewMapOptions {
   name?: (arg0: Datum) => string;

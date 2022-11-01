@@ -114,7 +114,7 @@ class LocationModel(BaseModel):
     section_b: str
     section_c: str
     # link creates a problem I cannot find why
-    # link: str
+    link: Optional[str]
     reference: str
     connection_type: str
     specimen_type: str
