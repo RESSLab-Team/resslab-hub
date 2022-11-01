@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import "leaflet/dist/leaflet.css";
-import { specimenTypeImageSrc } from "@/utils/connections";
+import { specimenTypeImageSrc as getConnectionImageSrc } from "@/utils/connections";
 
 import {
   map as LMap,
@@ -109,10 +109,10 @@ export default class OverviewMap extends Vue {
       <h3><a href="${d.link}">${d.experimental_program} (${d.date})</a></h3>
       <br>
       <ul>
-        <li>${d.specimen_type}</li >
+        <li>${d.specimen_type}</li>
         <li>${d.connection_type}, Beam: ${d.section_b} Col: ${d.section_c}</li>
         <li>
-          <img alt="${d.specimen_type}" src="${specimenTypeImageSrc(
+          <img alt="${d.specimen_type}" src="${getConnectionImageSrc(
       d.specimen_type
     )}"></img>
         </li>

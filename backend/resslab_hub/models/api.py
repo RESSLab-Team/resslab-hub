@@ -113,7 +113,6 @@ class LocationModel(BaseModel):
     experimental_program: str
     section_b: str
     section_c: str
-    # link creates a problem I cannot find why
     link: Optional[str]
     reference: str
     connection_type: str
