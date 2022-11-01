@@ -8,6 +8,7 @@
             :searches.sync="searches"
             :query="query"
             @click="click"
+            @loadPage="loadPage"
           ></connection-table>
         </v-col>
       </v-row>
@@ -155,8 +156,8 @@ import ConnectionDetail from "@/components/connections/ConnectionDetail.vue";
 import ConnectionTable from "@/components/connections/ConnectionTable.vue";
 import { Component } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
-import { DoubleFields } from "../commons/charts/DoubleChart.vue";
-import { ParallelField } from "../commons/charts/SimpleParallelChart.vue";
+import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
+import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
 
 @Component({
   components: {
@@ -214,5 +215,9 @@ export default class ConnectionDashboard extends DashboardMixin<ConnectionModel>
       ]),
     },
   ];
+
+  get fields(): string[] {
+    return Object.values(ConnectionField);
+  }
 }
 </script>

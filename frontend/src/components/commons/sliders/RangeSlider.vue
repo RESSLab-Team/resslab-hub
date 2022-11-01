@@ -46,7 +46,7 @@
 import { RangeModel } from "@/backend";
 import { AxiosResponse } from "axios";
 import { Component, Prop, Watch } from "vue-property-decorator";
-import SliderMixin from "./SliderMixin.vue";
+import SliderMixin from "@/components/commons/sliders/SliderMixin.vue";
 
 @Component
 export default class RangeSlider extends SliderMixin {

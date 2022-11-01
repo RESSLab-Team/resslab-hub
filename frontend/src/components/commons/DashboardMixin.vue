@@ -1,4 +1,5 @@
 <script lang="ts">
+import { Page } from "@/utils/backend";
 import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
 import { Component, Vue } from "vue-property-decorator";
 
@@ -7,6 +8,7 @@ export default class DashboardMixin<T> extends Vue {
   search = "";
   searches: Searches = {};
   item: T | null = null;
+  detail = false;
 
   get fields(): string[] {
     throw new Error("Should be overriden in children");
@@ -31,6 +33,14 @@ export default class DashboardMixin<T> extends Vue {
     const globalSearchValue = this.$route.query[globalSearchKey];
     if (typeof globalSearchValue === "string") {
       this.search = globalSearchValue;
+    }
+    const detailValue = this.$route.query["detail"];
+    if (
+      detailValue &&
+      typeof detailValue === "string" &&
+      detailValue.toLowerCase() === "true"
+    ) {
+      this.detail = true;
     }
   }
 
@@ -63,6 +73,13 @@ export default class DashboardMixin<T> extends Vue {
 
   close(): void {
     this.item = null;
+  }
+
+  loadPage(page: Page<T>): void {
+    if (this.detail && page.total === 1) {
+      this.item = page.items[0];
+      this.detail = false;
+    }
   }
 }
 </script>

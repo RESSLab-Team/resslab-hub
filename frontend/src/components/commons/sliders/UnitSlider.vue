@@ -45,8 +45,8 @@
 
 <script lang="ts">
 import { Component, Mixins, Prop, VModel } from "vue-property-decorator";
-import UnitMixin from "../UnitMixin.vue";
-import SliderMixin from "./SliderMixin.vue";
+import UnitMixin from "@/components/commons/UnitMixin.vue";
+import SliderMixin from "@/components/commons/sliders/SliderMixin.vue";
 
 @Component
 export default class UnitSlider extends Mixins(SliderMixin, UnitMixin) {

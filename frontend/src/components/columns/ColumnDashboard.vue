@@ -8,6 +8,7 @@
             :searches.sync="searches"
             :query="query"
             @click="click"
+            @loadPage="loadPage"
           ></column-table>
         </v-col>
       </v-row>
@@ -126,5 +127,9 @@ export default class ColumnDashboard extends DashboardMixin<ColumnModel> {
     },
   ];
   readonly steelField = ColumnField.SteelC;
+
+  get fields(): string[] {
+    return Object.values(ColumnField);
+  }
 }
 </script>

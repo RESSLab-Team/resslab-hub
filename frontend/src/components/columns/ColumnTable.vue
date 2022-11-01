@@ -9,6 +9,7 @@
     :search.sync="globalSearch"
     :searches.sync="columnSearches"
     @click="click"
+    @loadPage="loadPage"
   >
     <template #title>
       Column
@@ -57,7 +58,8 @@ import SimpleTable, {
 } from "@/components/commons/SimpleTable.vue";
 import { Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
-import { Component, Prop, PropSync, Vue } from "vue-property-decorator";
+import { Component, Prop, PropSync } from "vue-property-decorator";
+import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
 
 @Component({
   components: {
@@ -65,7 +67,7 @@ import { Component, Prop, PropSync, Vue } from "vue-property-decorator";
     SimpleTable,
   },
 })
-export default class ColumnTable extends Vue {
+export default class ColumnTable extends SimpleTableMixin<ColumnModel> {
   @Prop({ default: "" })
   readonly query!: string;
   @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
@@ -112,10 +114,6 @@ export default class ColumnTable extends Vue {
     size?: number
   ): Promise<AxiosResponse<ExtendedPageColumnModel>> {
     return this.$columnsApi.getColumns(query, sortBy, sortDesc, page, size);
-  }
-
-  click(item: ColumnModel): void {
-    this.$emit("click", item);
   }
 
   getFiles(
