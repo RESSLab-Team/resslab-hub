@@ -116,7 +116,9 @@ export default class OverviewMap extends Vue {
       d.specimen_type
     )}"></img>
         </li>
-        <li><a href=''>View experimental data</a></li>
+        <li><a href='/connections/database?id=${
+          d.id
+        }&detail=true'>View experimental data</a></li>
       </ul>
       </div>`;
   }

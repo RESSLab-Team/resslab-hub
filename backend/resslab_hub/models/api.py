@@ -107,6 +107,7 @@ class LocationModel(BaseModel):
     Location
     """
 
+    id: str
     latitude: Decimal
     longitude: Decimal
     date: int

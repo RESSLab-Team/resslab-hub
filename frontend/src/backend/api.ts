@@ -966,6 +966,12 @@ export interface Info {
 export interface LocationModel {
     /**
      * 
+     * @type {string}
+     * @memberof LocationModel
+     */
+    'id': string;
+    /**
+     * 
      * @type {number}
      * @memberof LocationModel
      */
