@@ -9,6 +9,7 @@
 </template>
 
 <script lang="ts">
+import { updateOptions } from "@/components/commons/charts/utils";
 import UnitMixin from "@/components/commons/UnitMixin.vue";
 import { EChartsGlOption } from "@/utils/echarts-gl";
 import { SurfaceChart } from "echarts-gl/charts";
@@ -19,7 +20,6 @@ import { CanvasRenderer } from "echarts/renderers";
 import { merge, round } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { updateOptions } from "@/components/commons/charts/utils";
 
 use([CanvasRenderer, SurfaceChart, Grid3DComponent, TooltipComponent]);
 

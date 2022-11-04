@@ -11,6 +11,7 @@
 </template>
 
 <script lang="ts">
+import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 import { primaryColor } from "@/utils/vuetify";
 import { AxiosResponse } from "axios";
 import { EChartsOption } from "echarts";
@@ -21,7 +22,6 @@ import { SVGRenderer } from "echarts/renderers";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
-import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 
 use([SVGRenderer, LineChart, GridComponent, TooltipComponent]);
 

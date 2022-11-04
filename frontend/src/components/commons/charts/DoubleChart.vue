@@ -20,6 +20,7 @@
 
 <script lang="ts">
 import { CountModel, RangeModel } from "@/backend";
+import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 import RangeSlider from "@/components/commons/sliders/RangeSlider.vue";
 import { Searches, sum } from "@/utils/common";
 import { BinData, toBins } from "@/utils/statistics";
@@ -40,7 +41,6 @@ import { chain, isEqual, range } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
-import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 
 use([
   SVGRenderer,
