@@ -47,6 +47,7 @@
 
 <script lang="ts">
 import { MatrixModel } from "@/backend";
+import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import { Searches } from "@/utils/common";
 import { VerticalAlign, ZRFontWeight } from "@/utils/echarts";
@@ -62,7 +63,6 @@ import { chain, merge, zip } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
-import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 
 use([SVGRenderer, ParallelChart, BrushComponent, ToolboxComponent]);
 

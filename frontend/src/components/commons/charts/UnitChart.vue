@@ -10,6 +10,7 @@
 </template>
 
 <script lang="ts">
+import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 import UnitMixin from "@/components/commons/UnitMixin.vue";
 import { UnitSystem } from "@/utils/unit";
 import {
@@ -29,7 +30,6 @@ import { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
 import { merge, round } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 
 use([SVGRenderer, LineChart, GridComponent, LegendComponent, TooltipComponent]);
 
