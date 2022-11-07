@@ -15,7 +15,7 @@ from resslab_hub.models.api import (
     ConnectionModel,
     ConnectionNumberField,
     CountModel,
-    LocationModel,
+    LocationConnectionsModel,
     MatrixModel,
     RangeModel,
 )
@@ -110,7 +110,7 @@ async def get_connections(
     return await component.get_page(session, query, sort_by, sort_desc)
 
 
-@router.get("/locations", response_model=List[LocationModel])
+@router.get("/locations", response_model=List[LocationConnectionsModel])
 async def get_connections_locations(
     session: AsyncSession = Depends(get_session),
 ):

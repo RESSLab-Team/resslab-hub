@@ -116,6 +116,32 @@
         }
       }
     },
+    "/braces/locations": {
+      "get": {
+        "tags": [
+          "braces"
+        ],
+        "summary": "Get Braces Locations",
+        "description": "Get occurences location of field values",
+        "operationId": "get_braces_locations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Braces Locations Braces Locations Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LocationModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/braces/counts": {
       "get": {
         "tags": [
@@ -456,6 +482,32 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/locations": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Locations",
+        "description": "Get occurences location of field values",
+        "operationId": "get_columns_locations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Columns Locations Columns Locations Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LocationModel"
+                  }
                 }
               }
             }
@@ -949,7 +1001,7 @@
                   "title": "Response Get Connections Locations Connections Locations Get",
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/LocationModel"
+                    "$ref": "#/components/schemas/LocationConnectionsModel"
                   }
                 }
               }
@@ -2466,17 +2518,17 @@
         },
         "description": "App Info"
       },
-      "LocationModel": {
-        "title": "LocationModel",
+      "LocationConnectionsModel": {
+        "title": "LocationConnectionsModel",
         "required": [
           "id",
           "latitude",
           "longitude",
           "date",
+          "reference",
           "experimental_program",
           "section_b",
           "section_c",
-          "reference",
           "connection_type",
           "specimen_type"
         ],
@@ -2498,6 +2550,14 @@
             "title": "Date",
             "type": "integer"
           },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
           "experimental_program": {
             "title": "Experimental Program",
             "type": "string"
@@ -2510,20 +2570,50 @@
             "title": "Section C",
             "type": "string"
           },
-          "link": {
-            "title": "Link",
-            "type": "string"
-          },
-          "reference": {
-            "title": "Reference",
-            "type": "string"
-          },
           "connection_type": {
             "title": "Connection Type",
             "type": "string"
           },
           "specimen_type": {
             "title": "Specimen Type",
+            "type": "string"
+          }
+        },
+        "description": "Location"
+      },
+      "LocationModel": {
+        "title": "LocationModel",
+        "required": [
+          "id",
+          "latitude",
+          "longitude",
+          "date",
+          "reference"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "date": {
+            "title": "Date",
+            "type": "integer"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
             "type": "string"
           }
         },
