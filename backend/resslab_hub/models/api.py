@@ -111,11 +111,14 @@ class LocationModel(BaseModel):
     latitude: Decimal
     longitude: Decimal
     date: int
+    reference: str
+    link: Optional[str]
+
+
+class LocationConnectionsModel(LocationModel):
     experimental_program: str
     section_b: str
     section_c: str
-    link: Optional[str]
-    reference: str
     connection_type: str
     specimen_type: str
 

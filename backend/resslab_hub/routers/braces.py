@@ -7,6 +7,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from resslab_hub.models.api import (
@@ -14,6 +15,7 @@ from resslab_hub.models.api import (
     BraceModel,
     BraceNumberField,
     CountModel,
+    LocationModel,
     MatrixModel,
     RangeModel,
 )
@@ -59,6 +61,32 @@ async def get_braces(
     Get paginated Braces
     """
     return await component.get_page(session, query, sort_by, sort_desc)
+
+
+@router.get("/locations", response_model=List[LocationModel])
+async def get_braces_locations(
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Get occurences location of field values
+    """
+
+    rows = await session.execute(
+        select(
+            Brace.id,
+            Brace.latitude,
+            Brace.longitude,
+            Brace.date,
+            Brace.reference,
+            Brace.link,
+            # Brace.boundary_condition,
+            # Brace.brace_angle,
+            # Brace.cross_section_shape,
+            # Brace.weld_type,
+            # Brace.configuration,
+        )
+    )
+    return rows.all()
 
 
 @router.get("/counts", response_model=List[CountModel])

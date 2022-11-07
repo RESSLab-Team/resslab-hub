@@ -152,6 +152,8 @@ class ColumnEntity(Base):  # type: ignore
     cfe = Column(Boolean, nullable=False)
     reference = Column(String, nullable=False)
     link = Column(String, nullable=False)
+    latitude = Column(Numeric, nullable=True)
+    longitude = Column(Numeric, nullable=True)
 
     built_up = column_property(section_c.ilike(text("'%built_up%'")))
 

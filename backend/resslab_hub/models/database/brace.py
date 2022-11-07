@@ -104,6 +104,8 @@ class Brace(Base):  # type: ignore
     kl_r_theory = Column(DecimalFloat, nullable=False)
     reference = Column(String, nullable=False)
     link = Column(String, nullable=False)
+    latitude = Column(Numeric, nullable=True)
+    longitude = Column(Numeric, nullable=True)
 
     displacement_count = column_property(
         select(func.count(BraceDisplacement.id))
