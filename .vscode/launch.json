@@ -23,7 +23,10 @@
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
-      "args": ["resslab_hub.main:app", "--reload"],
+      "args": [
+        "resslab_hub.main:app",
+        "--reload"
+      ],
       "jinja": true,
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env",
@@ -34,7 +37,10 @@
       "type": "python",
       "request": "launch",
       "module": "data.uploader",
-      "args": ["column", "../../resslab-hub-data/columns/steel_columns.csv"],
+      "args": [
+        "column",
+        "../../resslab-hub-data/columns/steel_columns.csv"
+      ],
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"
     },
@@ -44,8 +50,8 @@
       "request": "launch",
       "module": "data.uploader",
       "args": [
-        "brace-displacement",
-        "../../resslab-hub-data/braces/force_displacement/*.csv"
+        "connection-beam",
+        "../../resslab-hub-data/connections/Beam_moment_rotation/*.csv"
       ],
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"
@@ -55,7 +61,10 @@
       "type": "python",
       "request": "launch",
       "module": "data.uploader",
-      "args": ["all", "../../resslab-hub-data"],
+      "args": [
+        "all",
+        "../../resslab-hub-data"
+      ],
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"
     },

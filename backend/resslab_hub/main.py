@@ -2,6 +2,8 @@
 Entrypoint for FastAPI application
 https://fastapi.tiangolo.com/tutorial/bigger-applications/
 """
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
@@ -13,6 +15,8 @@ from resslab_hub.routers import braces, columns, connections, root
 from resslab_hub.utils.database import upgrade_database
 from resslab_hub.utils.fastapi import use_route_names_as_operation_ids
 
+logging.basicConfig(level=logging.INFO)
+
 app = FastAPI(
     title=title,
     version=__version__,
@@ -20,9 +24,9 @@ app = FastAPI(
 )
 
 if settings.cors_enabled:  # type: ignore
-    print("cors enabled")
+    logging.debug("cors enabled")
 else:
-    print("cors disabled")
+    logging.warning("cors disabled")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

@@ -3,6 +3,7 @@ CLI for uploading csv to database
 """
 import argparse
 import csv
+import logging
 import os
 from abc import ABC, abstractmethod
 from decimal import Decimal
@@ -110,7 +111,7 @@ class TableUploader(Uploader):
                 # add new rows
                 for row in reader:
                     if all([len(value) == 0 for value in row]):
-                        print("skip empty line")
+                        logging.warning("skip empty line")
                     else:
                         ids.append(row[id_index])
                         data = {
@@ -125,10 +126,10 @@ class TableUploader(Uploader):
                     session.execute(
                         delete(self.base_model).where(self.id_column.in_(removed_ids)),
                     )
-                    print(f"deleted {removed_ids}")
+                    logging.warning(f"deleted {removed_ids}")
             session.commit()
         except Exception as e:
-            print(f"skiping {file_path} due to error {e}")
+            logging.error(f"skiping {file_path} due to error {e}")
 
     @staticmethod
     def __get_value(column: Column, headers: List[str], row: List[str]) -> Any:
@@ -186,9 +187,9 @@ class CsvFileUploader(Uploader):
                 session.commit()
             except IntegrityError as e:
                 session.rollback()
-                print(f"error: {e.orig}")
+                logging.error(f"error: {e.orig}")
         except Exception as e:
-            print(f"skiping {file_path} due to error {e}")
+            logging.error(f"skiping {file_path} due to error {e}")
 
     @staticmethod
     def __get_filename(file_path: str) -> str:
@@ -380,10 +381,11 @@ def main():
     input_type: Type = args.type
     filenames: List[str] = args.filenames
 
-    print(f"connecting to {engine.url}")
+    logging.debug(f"connecting to {engine.url}")
 
     upload(input_type, filenames)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     main()
