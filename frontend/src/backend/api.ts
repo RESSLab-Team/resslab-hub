@@ -1005,6 +1005,12 @@ export interface LocationBracesModel {
      * @type {string}
      * @memberof LocationBracesModel
      */
+    'investigator': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationBracesModel
+     */
     'cross_section_size': string;
     /**
      * 
@@ -1061,6 +1067,12 @@ export interface LocationColumnsModel {
      * @memberof LocationColumnsModel
      */
     'link'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationColumnsModel
+     */
+    'experimental_program': string;
     /**
      * 
      * @type {string}

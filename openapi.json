@@ -2526,6 +2526,7 @@
           "longitude",
           "date",
           "reference",
+          "investigator",
           "cross_section_size",
           "kl_r",
           "boundary_condition"
@@ -2556,6 +2557,10 @@
             "title": "Link",
             "type": "string"
           },
+          "investigator": {
+            "title": "Investigator",
+            "type": "string"
+          },
           "cross_section_size": {
             "title": "Cross Section Size",
             "type": "string"
@@ -2579,6 +2584,7 @@
           "longitude",
           "date",
           "reference",
+          "experimental_program",
           "boundary_condition",
           "axial_lp",
           "p_g_over_p_ym",
@@ -2608,6 +2614,10 @@
           },
           "link": {
             "title": "Link",
+            "type": "string"
+          },
+          "experimental_program": {
+            "title": "Experimental Program",
             "type": "string"
           },
           "boundary_condition": {

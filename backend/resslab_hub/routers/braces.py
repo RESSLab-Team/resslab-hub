@@ -74,6 +74,7 @@ async def get_braces_locations(
     rows = await session.execute(
         select(
             Brace.id,
+            Brace.investigator,
             Brace.latitude,
             Brace.longitude,
             Brace.date,
