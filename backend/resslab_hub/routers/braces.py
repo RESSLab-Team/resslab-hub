@@ -15,7 +15,7 @@ from resslab_hub.models.api import (
     BraceModel,
     BraceNumberField,
     CountModel,
-    LocationModel,
+    LocationBracesModel,
     MatrixModel,
     RangeModel,
 )
@@ -63,7 +63,7 @@ async def get_braces(
     return await component.get_page(session, query, sort_by, sort_desc)
 
 
-@router.get("/locations", response_model=List[LocationModel])
+@router.get("/locations", response_model=List[LocationBracesModel])
 async def get_braces_locations(
     session: AsyncSession = Depends(get_session),
 ):
@@ -79,11 +79,9 @@ async def get_braces_locations(
             Brace.date,
             Brace.reference,
             Brace.link,
-            # Brace.boundary_condition,
-            # Brace.brace_angle,
-            # Brace.cross_section_shape,
-            # Brace.weld_type,
-            # Brace.configuration,
+            Brace.cross_section_size,
+            Brace.kl_r,
+            Brace.boundary_condition,
         )
     )
     return rows.all()

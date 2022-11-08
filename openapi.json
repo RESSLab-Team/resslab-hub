@@ -133,7 +133,7 @@
                   "title": "Response Get Braces Locations Braces Locations Get",
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/LocationModel"
+                    "$ref": "#/components/schemas/LocationBracesModel"
                   }
                 }
               }
@@ -506,7 +506,7 @@
                   "title": "Response Get Columns Locations Columns Locations Get",
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/LocationModel"
+                    "$ref": "#/components/schemas/LocationColumnsModel"
                   }
                 }
               }
@@ -2518,6 +2518,117 @@
         },
         "description": "App Info"
       },
+      "LocationBracesModel": {
+        "title": "LocationBracesModel",
+        "required": [
+          "id",
+          "latitude",
+          "longitude",
+          "date",
+          "reference",
+          "cross_section_size",
+          "kl_r",
+          "boundary_condition"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "date": {
+            "title": "Date",
+            "type": "integer"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "cross_section_size": {
+            "title": "Cross Section Size",
+            "type": "string"
+          },
+          "kl_r": {
+            "title": "Kl R",
+            "type": "number"
+          },
+          "boundary_condition": {
+            "title": "Boundary Condition",
+            "type": "string"
+          }
+        },
+        "description": "Location"
+      },
+      "LocationColumnsModel": {
+        "title": "LocationColumnsModel",
+        "required": [
+          "id",
+          "latitude",
+          "longitude",
+          "date",
+          "reference",
+          "boundary_condition",
+          "axial_lp",
+          "p_g_over_p_ym",
+          "section_c"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "date": {
+            "title": "Date",
+            "type": "integer"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "boundary_condition": {
+            "title": "Boundary Condition",
+            "type": "string"
+          },
+          "axial_lp": {
+            "title": "Axial Lp",
+            "type": "string"
+          },
+          "p_g_over_p_ym": {
+            "title": "P G Over P Ym",
+            "type": "number"
+          },
+          "section_c": {
+            "title": "Section C",
+            "type": "string"
+          }
+        },
+        "description": "Location"
+      },
       "LocationConnectionsModel": {
         "title": "LocationConnectionsModel",
         "required": [
@@ -2576,44 +2687,6 @@
           },
           "specimen_type": {
             "title": "Specimen Type",
-            "type": "string"
-          }
-        },
-        "description": "Location"
-      },
-      "LocationModel": {
-        "title": "LocationModel",
-        "required": [
-          "id",
-          "latitude",
-          "longitude",
-          "date",
-          "reference"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "title": "Id",
-            "type": "string"
-          },
-          "latitude": {
-            "title": "Latitude",
-            "type": "number"
-          },
-          "longitude": {
-            "title": "Longitude",
-            "type": "number"
-          },
-          "date": {
-            "title": "Date",
-            "type": "integer"
-          },
-          "reference": {
-            "title": "Reference",
-            "type": "string"
-          },
-          "link": {
-            "title": "Link",
             "type": "string"
           }
         },
