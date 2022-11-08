@@ -961,6 +961,134 @@ export interface Info {
 /**
  * Location
  * @export
+ * @interface LocationBracesModel
+ */
+export interface LocationBracesModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationBracesModel
+     */
+    'id': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationBracesModel
+     */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationBracesModel
+     */
+    'longitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationBracesModel
+     */
+    'date': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationBracesModel
+     */
+    'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationBracesModel
+     */
+    'link'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationBracesModel
+     */
+    'cross_section_size': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationBracesModel
+     */
+    'kl_r': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationBracesModel
+     */
+    'boundary_condition': string;
+}
+/**
+ * Location
+ * @export
+ * @interface LocationColumnsModel
+ */
+export interface LocationColumnsModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationColumnsModel
+     */
+    'id': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationColumnsModel
+     */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationColumnsModel
+     */
+    'longitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationColumnsModel
+     */
+    'date': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationColumnsModel
+     */
+    'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationColumnsModel
+     */
+    'link'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationColumnsModel
+     */
+    'boundary_condition': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationColumnsModel
+     */
+    'axial_lp': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationColumnsModel
+     */
+    'p_g_over_p_ym': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationColumnsModel
+     */
+    'section_c': string;
+}
+/**
+ * Location
+ * @export
  * @interface LocationConnectionsModel
  */
 export interface LocationConnectionsModel {
@@ -1030,49 +1158,6 @@ export interface LocationConnectionsModel {
      * @memberof LocationConnectionsModel
      */
     'specimen_type': string;
-}
-/**
- * Location
- * @export
- * @interface LocationModel
- */
-export interface LocationModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationModel
-     */
-    'id': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationModel
-     */
-    'latitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationModel
-     */
-    'longitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationModel
-     */
-    'date': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationModel
-     */
-    'reference': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationModel
-     */
-    'link'?: string;
 }
 /**
  * 
@@ -1488,7 +1573,7 @@ export const BracesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getBracesLocations(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<LocationModel>>> {
+        async getBracesLocations(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<LocationBracesModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesLocations(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -1577,7 +1662,7 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesLocations(options?: any): AxiosPromise<Array<LocationModel>> {
+        getBracesLocations(options?: any): AxiosPromise<Array<LocationBracesModel>> {
             return localVarFp.getBracesLocations(options).then((request) => request(axios, basePath));
         },
         /**
@@ -2131,7 +2216,7 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsLocations(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<LocationModel>>> {
+        async getColumnsLocations(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<LocationColumnsModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsLocations(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -2244,7 +2329,7 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsLocations(options?: any): AxiosPromise<Array<LocationModel>> {
+        getColumnsLocations(options?: any): AxiosPromise<Array<LocationColumnsModel>> {
             return localVarFp.getColumnsLocations(options).then((request) => request(axios, basePath));
         },
         /**

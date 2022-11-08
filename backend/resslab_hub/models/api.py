@@ -123,6 +123,19 @@ class LocationConnectionsModel(LocationModel):
     specimen_type: str
 
 
+class LocationColumnsModel(LocationModel):
+    boundary_condition: str
+    axial_lp: str
+    p_g_over_p_ym: Decimal
+    section_c: str
+
+
+class LocationBracesModel(LocationModel):
+    cross_section_size: str
+    kl_r: Decimal
+    boundary_condition: str
+
+
 class MatrixModel(BaseModel):
     ids: List[str]
     data: List[List[Optional[Union[Decimal, str]]]]

@@ -15,7 +15,7 @@ from resslab_hub.models.api import (
     ColumnModel,
     ColumnNumberField,
     CountModel,
-    LocationModel,
+    LocationColumnsModel,
     MatrixModel,
     RangeModel,
 )
@@ -88,7 +88,7 @@ async def get_columns(
     return await component.get_page(session, query, sort_by, sort_desc)
 
 
-@router.get("/locations", response_model=List[LocationModel])
+@router.get("/locations", response_model=List[LocationColumnsModel])
 async def get_columns_locations(
     session: AsyncSession = Depends(get_session),
 ):
@@ -104,11 +104,10 @@ async def get_columns_locations(
             ColumnEntity.date,
             ColumnEntity.link,
             ColumnEntity.reference,
-            # ColumnEntity.experimental_program,
-            # ColumnEntity.boundary_condition,
-            # ColumnEntity.section_c,
-            # ColumnEntity.axial_lp,
-            # ColumnEntity.specimen_designation,
+            ColumnEntity.boundary_condition,
+            ColumnEntity.axial_lp,
+            ColumnEntity.p_g_over_p_ym,
+            ColumnEntity.section_c,
         )
     )
     return rows.all()
