@@ -99,6 +99,7 @@ async def get_columns_locations(
     rows = await session.execute(
         select(
             ColumnEntity.id,
+            ColumnEntity.experimental_program,
             ColumnEntity.latitude,
             ColumnEntity.longitude,
             ColumnEntity.date,

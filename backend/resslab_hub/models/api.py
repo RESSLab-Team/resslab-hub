@@ -124,6 +124,7 @@ class LocationConnectionsModel(LocationModel):
 
 
 class LocationColumnsModel(LocationModel):
+    experimental_program: str
     boundary_condition: str
     axial_lp: str
     p_g_over_p_ym: Decimal
@@ -131,6 +132,7 @@ class LocationColumnsModel(LocationModel):
 
 
 class LocationBracesModel(LocationModel):
+    investigator: str
     cross_section_size: str
     kl_r: Decimal
     boundary_condition: str
