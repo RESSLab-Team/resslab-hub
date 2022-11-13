@@ -18,7 +18,6 @@ import {
   Marker,
   Control,
   DomUtil,
-  tooltip,
 } from "leaflet";
 import "leaflet.markercluster";
 
