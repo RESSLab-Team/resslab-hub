@@ -18,6 +18,7 @@ import {
   Marker,
   Control,
   DomUtil,
+  tooltip,
 } from "leaflet";
 import "leaflet.markercluster";
 
@@ -150,7 +151,7 @@ export default class OverviewMap extends Vue {
         <li>Cross section: ${d.cross_section_size}</li>
         <li>KL/r:   ${d.kl_r}</li>
         <li>
-          <img alt="Braces placeholder" src=""></img>
+          <img alt="Braces placeholder image" src=""></img>
         </li>
         <li><a href='/braces/database?id=${d.id}&detail=true'>View experimental data</a></li>
       </ul>
@@ -165,25 +166,27 @@ export default class OverviewMap extends Vue {
         <li>${d.boundary_condition}</li>
         <li>${d.axial_lp} (Pg/Py = ${d.p_g_over_p_ym}), Column: ${d.section_c}</li>
         <li>
-          <img alt="Columns placeholder" src=""></img>
+          <img alt="Columns placeholder image" src=""></img>
         </li>
         <li><a href='/columns/database?id=${d.id}&detail=true'>View experimental data</a></li>
       </ul>
       </div>`;
   }
 
-  getCreateTooltip(type: string) {
+  createTooltip(
+    d: LocationBracesModel | LocationConnectionsModel | LocationColumnsModel,
+    type: string
+  ) {
     switch (type) {
       case "Connections":
-        return this.createTooltipConnections;
+        return this.createTooltipConnections(d as LocationConnectionsModel);
       case "Columns":
-        return this.createTooltipColumns;
+        return this.createTooltipColumns(d as LocationColumnsModel);
       case "Braces":
-        return this.createTooltipBraces;
+        return this.createTooltipBraces(d as LocationBracesModel);
+      default:
+        return `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`;
     }
-    return (
-      d: LocationBracesModel | LocationConnectionsModel | LocationColumnsModel
-    ) => `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`;
   }
 
   createMarkers(
@@ -194,17 +197,11 @@ export default class OverviewMap extends Vue {
     )[],
     type: string
   ) {
-    const createTooltip = this.getCreateTooltip(type);
+    const createTooltip = this.createTooltip;
     return data.map((d) => {
       const marker = new Marker([d.latitude, d.longitude], {
         icon: this.icons.get(type),
-      }).bindPopup(
-        createTooltip(
-          d as unknown as LocationConnectionsModel &
-            LocationColumnsModel &
-            LocationBracesModel
-        )
-      );
+      }).bindPopup(createTooltip(d, type));
       marker.feature = {
         type: "Feature",
         properties: Object.assign(d, { type }),
