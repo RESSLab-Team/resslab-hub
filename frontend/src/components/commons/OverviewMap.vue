@@ -5,36 +5,34 @@
 </template>
 
 <script lang="ts">
-import "leaflet/dist/leaflet.css";
-import { specimenTypeImageSrc as getConnectionImageSrc } from "@/utils/connections";
-
 import {
-  map as LMap,
-  tileLayer,
-  divIcon,
-  MarkerClusterGroup,
-  DivIcon,
-  Point,
-  Marker,
-  Control,
-  DomUtil,
-} from "leaflet";
-import "leaflet.markercluster";
-
-import { rollups, select } from "d3";
-import {
-  PieChart,
-  typesNames,
-  MarkerSVG,
-  scaleRadius,
-  scaleColor,
-} from "@/utils/piechart";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import {
-  LocationConnectionsModel,
   LocationBracesModel,
   LocationColumnsModel,
+  LocationConnectionsModel,
 } from "@/backend";
+import { specimenTypeImageSrc as getConnectionImageSrc } from "@/utils/connections";
+import {
+  MarkerSVG,
+  PieChart,
+  scaleColor,
+  scaleRadius,
+  typesNames,
+} from "@/utils/piechart";
+import { rollups, select } from "d3";
+import {
+  Control,
+  divIcon,
+  DivIcon,
+  DomUtil,
+  map as LMap,
+  Marker,
+  MarkerClusterGroup,
+  Point,
+  tileLayer,
+} from "leaflet";
+import "leaflet.markercluster";
+import "leaflet/dist/leaflet.css";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 
 @Component
 export default class OverviewMap extends Vue {
@@ -306,7 +304,7 @@ export default class OverviewMap extends Vue {
 }
 </script>
 
-<style>
+<style scoped>
 .legend {
   line-height: 22px;
   color: #555;
