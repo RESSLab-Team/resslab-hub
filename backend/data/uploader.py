@@ -230,7 +230,7 @@ def upload(input_type: Type, filenames: List[str]):
             return
         case Type.ALL_CONNECTION:
             root_folder = os.path.join(filenames[0], "connections")
-            upload(Type.COLUMN, [os.path.join(root_folder, "steel_columns.csv")])
+            upload(Type.CONNECTION, [os.path.join(root_folder, "connections.csv")])
             upload(
                 Type.CONNECTION_BEAM,
                 [os.path.join(root_folder, "Beam_moment_rotation", "*.csv")],
