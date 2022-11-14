@@ -4,3 +4,6 @@ postgres_password = ""
 
 [production]
 postgres_host = "resslab-hub.epfl.ch"
+
+[test]
+postgres_host = "resslab-hub-test.epfl.ch"
