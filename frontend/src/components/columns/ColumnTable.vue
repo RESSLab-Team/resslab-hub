@@ -56,10 +56,10 @@ import SimpleTable, {
   DownloadFile,
   DownloadType,
 } from "@/components/commons/SimpleTable.vue";
+import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
 import { Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { Component, Prop, PropSync } from "vue-property-decorator";
-import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
 
 @Component({
   components: {

@@ -145,6 +145,8 @@
 
 <script lang="ts">
 import { ConnectionField, ConnectionModel } from "@/backend";
+import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
+import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
 import ColumnDepthCardTitle from "@/components/commons/ColumnDepthCardTitle.vue";
 import DashboardMixin from "@/components/commons/DashboardMixin.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
@@ -156,8 +158,6 @@ import ConnectionDetail from "@/components/connections/ConnectionDetail.vue";
 import ConnectionTable from "@/components/connections/ConnectionTable.vue";
 import { Component } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
-import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
-import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
 
 @Component({
   components: {
