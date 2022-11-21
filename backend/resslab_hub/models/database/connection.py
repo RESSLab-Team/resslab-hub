@@ -236,8 +236,8 @@ class Connection(Base):  # type: ignore
     g_max_g_y = Column(Numeric, nullable=False)
     reference = Column(String, nullable=False)
     link = Column(String)
-    latitude = Column(Numeric, nullable=False)
-    longitude = Column(Numeric, nullable=False)
+    latitude = Column(Numeric, nullable=True)
+    longitude = Column(Numeric, nullable=True)
 
     beam_count = column_property(
         select(func.count(ConnectionBeam.id))
