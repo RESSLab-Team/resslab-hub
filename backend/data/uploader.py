@@ -20,7 +20,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
-from data.common import ASCII_ENCODING, CSV_READ_MODE, UTF8_ENCODING, get_abs_path
+from data.common import (
+    ASCII_ENCODING,
+    CSV_READ_MODE,
+    UTF8_ENCODING,
+    get_abs_path,
+    is_empty_row,
+)
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
 from resslab_hub.models.database.column import (
     ColumnAxialShortening,
@@ -36,6 +42,7 @@ from resslab_hub.models.database.connection import (
     ConnectionGlobalWest,
     ConnectionPanelZone,
 )
+from resslab_hub.models.database.material import Material, MaterialStressStrain
 from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
@@ -47,6 +54,7 @@ class Type(Enum):
     ALL_COLUMN = "all-column"
     ALL_BRACE = "all-brace"
     ALL_CONNECTION = "all-connection"
+    ALL_MATERIAL = "all-material"
     BRACE = "brace"
     BRACE_DISPLACEMENT = "brace-displacement"
     COLUMN = "column"
@@ -59,6 +67,8 @@ class Type(Enum):
     CONNECTION_GLOBAL = "connection-global"
     CONNECTION_GLOBAL_WEST = "connection-global-west"
     CONNECTION_PANEL_ZONE = "connection-panel-zone"
+    MATERIAL = "material"
+    MATERIAL_STRESS_STRAIN = "material-stress-strain"
 
 
 class Uploader(ABC):
@@ -110,7 +120,7 @@ class TableUploader(Uploader):
                 ids = []
                 # add new rows
                 for row in reader:
-                    if all([len(value) == 0 for value in row]):
+                    if is_empty_row(row):
                         logging.warning("skip empty line")
                     else:
                         ids.append(row[id_index])
@@ -252,12 +262,22 @@ def upload(input_type: Type, filenames: List[str]):
                 [os.path.join(root_folder, "Panel_zone", "*.csv")],
             )
             return
+        case Type.ALL_MATERIAL:
+            root_folder = os.path.join(filenames[0], "material")
+            upload(Type.MATERIAL, [os.path.join(root_folder, "steel_material.csv")])
+            upload(
+                Type.MATERIAL_STRESS_STRAIN,
+                [os.path.join(root_folder, "stress_strain", "*.csv")],
+            )
+            return
         case Type.BRACE:
             uploader = TableUploader(Brace)
         case Type.COLUMN:
             uploader = TableUploader(ColumnEntity)
         case Type.CONNECTION:
             uploader = TableUploader(Connection)
+        case Type.MATERIAL:
+            uploader = TableUploader(Material)
         case Type.BRACE_DISPLACEMENT:
             uploader = CsvFileUploader(
                 lambda id: delete(BraceDisplacement).where(
@@ -364,6 +384,18 @@ def upload(input_type: Type, filenames: List[str]):
                     id=index,
                     shear_distortion=value[0],
                     shear_force=value[1],
+                ),
+            )
+        case Type.MATERIAL_STRESS_STRAIN:
+            uploader = CsvFileUploader(
+                lambda id: delete(MaterialStressStrain).where(
+                    MaterialStressStrain.material_id == id
+                ),
+                lambda id, index, value: MaterialStressStrain(
+                    material_id=id,
+                    id=index,
+                    stress=value[0],
+                    strain=value[1],
                 ),
             )
         case _:
