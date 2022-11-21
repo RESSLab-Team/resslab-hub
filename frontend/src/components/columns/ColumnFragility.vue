@@ -12,30 +12,23 @@
             <v-card>
               <v-card-title>Parameters</v-card-title>
               <v-card-text>
-                <unit-slider
-                  v-for="item in parameters"
-                  :key="item.key"
-                  v-model="$data[item.key]"
-                  class="my-4"
-                  :label="item.label"
-                  :max="item.max"
-                  :min="item.min"
-                  :unit="item.unit"
-                  :unit-system="unitSystem"
-                ></unit-slider>
+                <v-row>
+                  <v-col v-for="item in parameters" :key="item.key">
+                    <unit-slider
+                      v-model="$data[item.key]"
+                      :label="item.label"
+                      :max="item.max"
+                      :min="item.min"
+                      :unit="item.unit"
+                      :unit-system="unitSystem"
+                    ></unit-slider>
+                  </v-col>
+                </v-row>
               </v-card-text>
             </v-card>
           </v-col>
         </v-row>
         <v-row>
-          <v-col cols="6">
-            <h2>Univariate Fragility Curves</h2>
-            <unit-chart :option="univariateOption" x-unit="rad"></unit-chart>
-          </v-col>
-          <v-col cols="6">
-            <h2>Multivariate Fragility Curves</h2>
-            <unit-chart :option="multivariateOption" x-unit="rad"></unit-chart>
-          </v-col>
           <v-col cols="12">
             <h2>Fragility Curves</h2>
             <unit-chart
@@ -50,21 +43,9 @@
       <v-col cols="6">
         <h2>Surface Fragility Curves</h2>
         <v-row>
-          <v-col cols="6">
-            <h3>DS1</h3>
-            <surface-gl-chart :option="surfaceOptions[0]"></surface-gl-chart>
-          </v-col>
-          <v-col cols="6">
-            <h3>DS2</h3>
-            <surface-gl-chart :option="surfaceOptions[1]"></surface-gl-chart>
-          </v-col>
-          <v-col cols="6">
-            <h3>DS3</h3>
-            <surface-gl-chart :option="surfaceOptions[2]"></surface-gl-chart>
-          </v-col>
-          <v-col cols="6">
-            <h3>DS4</h3>
-            <surface-gl-chart :option="surfaceOptions[3]"></surface-gl-chart>
+          <v-col v-for="(item, index) in surfaceOptions" :key="index" cols="6">
+            <h3>DS{{ index + 1 }}</h3>
+            <surface-gl-chart :option="item"></surface-gl-chart>
           </v-col>
         </v-row>
       </v-col>
@@ -115,34 +96,35 @@ export default class ColumnFragility extends Vue {
     },
   ];
   readonly alphas: number[] = [5.515, 10.753, 14.664, 16.659];
-  readonly sdr = range(0, 11, 0.01);
+  readonly maxSdr = 11.01;
+  readonly sdr = range(0, this.maxSdr, 0.01);
 
   hTw = 40;
   pPyn = 0.2;
 
   get univariateOption(): EChartsOption {
-    return univariateOption([
-      {
-        median: 0.507,
-        beta: 0.425,
-      },
-      {
-        median: 1.368,
-        beta: 0.552,
-      },
-      {
-        median: 2.292,
-        beta: 0.491,
-      },
-      {
-        median: 3.502,
-        beta: 0.321,
-      },
-      {
-        median: 4.336,
-        beta: 0.327,
-      },
-    ]);
+    return univariateOption(
+      [
+        {
+          median: 0.507,
+          beta: 0.425,
+        },
+        {
+          median: 1.368,
+          beta: 0.552,
+        },
+        {
+          median: 2.292,
+          beta: 0.491,
+        },
+        {
+          median: 3.502,
+          beta: 0.321,
+        },
+      ],
+      this.maxSdr,
+      "Univariate "
+    );
   }
 
   get alphaColorPalette(): string[] {
@@ -159,7 +141,7 @@ export default class ColumnFragility extends Vue {
       },
       series: this.alphas.map((alpha, index) => ({
         type: "line",
-        name: `P(DS\u2265ds${subscripts[(index + 1).toString()]})`,
+        name: `Multivariate P(DS\u2265ds${subscripts[(index + 1).toString()]})`,
         showSymbol: false,
         itemStyle: {
           color: this.alphaColorPalette[index],
