@@ -10,9 +10,10 @@ function storyDriftRatio(median: number): number[] {
 export function fragilityCurve(
   median: number,
   sigma: number,
-  maxMedian = median
+  maxMedian = median,
+  maxSdr?: number
 ): [number, number][] {
-  const sdr = storyDriftRatio(maxMedian);
+  const sdr = maxSdr ? range(0, maxSdr, 0.01) : storyDriftRatio(maxMedian);
   const medianLog = Math.log(median);
   return sdr.map((value) => [value, cdf(value, medianLog, sigma)]);
 }
@@ -22,7 +23,11 @@ export interface DamageState {
   beta: number;
 }
 
-export function univariateOption(damageStates: DamageState[]): EChartsOption {
+export function univariateOption(
+  damageStates: DamageState[],
+  maxSdr?: number,
+  namePrefix = ""
+): EChartsOption {
   const colorPalette = getColorMap(damageStates.length);
   const maxMedian = Math.max(...damageStates.map((state) => state.median));
   return {
@@ -34,7 +39,7 @@ export function univariateOption(damageStates: DamageState[]): EChartsOption {
     },
     series: damageStates.map((state, index) => ({
       type: "line",
-      name: `DS${index + 1}`,
+      name: namePrefix + `DS${index + 1}`,
       showSymbol: false,
       itemStyle: {
         color: colorPalette[index],
@@ -42,7 +47,7 @@ export function univariateOption(damageStates: DamageState[]): EChartsOption {
       lineStyle: {
         color: colorPalette[index],
       },
-      data: fragilityCurve(state.median, state.beta, maxMedian),
+      data: fragilityCurve(state.median, state.beta, maxMedian, maxSdr),
     })),
   };
 }

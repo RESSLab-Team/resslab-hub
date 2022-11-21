@@ -90,7 +90,7 @@ export default class UnitChart extends Vue {
       grid: {
         left: 40,
         top: 40,
-        right: this.legendSide ? 120 : 20,
+        right: this.legendSide ? 180 : 20,
         bottom: 20,
         containLabel: true,
       },
