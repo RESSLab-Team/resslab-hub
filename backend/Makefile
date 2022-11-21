@@ -43,6 +43,9 @@ upload-connection:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py connection-beam ../../resslab-hub-data/connections/Beam_moment_rotation/*.csv
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py connection-beam-west ../../resslab-hub-data/connections/Beam_moment_rotation_west/*.csv
 
+upload-material:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-material ../../resslab-hub-data
+
 upload-data:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all ../../resslab-hub-data
 

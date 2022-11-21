@@ -2,6 +2,7 @@
 CLI for uploading csv to database
 """
 import csv
+import logging
 from argparse import ArgumentParser
 from enum import Enum
 from typing import List, Set
@@ -9,7 +10,7 @@ from typing import List, Set
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from data.common import CSV_READ_MODE, UTF8_ENCODING, get_abs_path
+from data.common import CSV_READ_MODE, UTF8_ENCODING, get_abs_path, is_empty_row
 from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
@@ -32,6 +33,7 @@ class ColumnType(Enum):
 
 class Column:
     __boolean_values = ["yes", "no"]
+    __null_values = ["", "NA"]
 
     def __init__(self, header: str) -> None:
         self.header: str = header
@@ -41,10 +43,12 @@ class Column:
         return [value.upper() for value in self.values]
 
     def is_nullable(self) -> bool:
-        return "NA" in self.upper_values()
+        return any([value in self.__null_values for value in self.upper_values()])
 
     def get_type(self) -> ColumnType:
-        non_null_values = [value for value in self.upper_values() if value != "NA"]
+        non_null_values = [
+            value for value in self.upper_values() if value not in self.__null_values
+        ]
         if all([value.lower() in self.__boolean_values for value in non_null_values]):
             return ColumnType.BOOLEAN
         if all([value == "NR" or self.is_float(value) for value in non_null_values]):
@@ -93,8 +97,9 @@ def analyze(filename: str):
         headers = next(reader)
         columns = [Column(header) for header in headers if header]
         for row in reader:
-            for column, value in zip(columns, row):
-                column.values.add(value)
+            if not is_empty_row(row):
+                for column, value in zip(columns, row):
+                    column.values.add(value)
         for column in columns:
             print(column.get_declaration())
         print()
@@ -111,4 +116,5 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     main()
