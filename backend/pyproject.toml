@@ -8,15 +8,15 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.85.1"
+fastapi = "^0.87.0"
 dynaconf = "^3.1.7"
 greenlet = "^1.1.2"
 SQLAlchemy = {extras = ["asyncio"], version = "^1.4.39"}
 fastapi-pagination = {extras = ["async_sqlalchemy"], version = "^0.10.0"}
-asyncpg = "^0.26.0"
+asyncpg = "^0.27.0"
 alembic = "^1.7.5"
 psycopg2 = "^2.9.2"
-uvicorn = {extras = ["standard"], version = "^0.19.0"}
+uvicorn = "^0.20.0"
 chardet = "^5.0.0"
 
 [tool.poetry.dev-dependencies]
