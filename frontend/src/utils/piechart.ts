@@ -106,17 +106,6 @@ export function PieChart(
     .attr("font-size", 10)
     .attr("text-anchor", "middle")
     .attr("font-weight", "bold")
-
-    // .selectAll("text")
-    // .data(arcs)
-    // .join("text")
-    // .attr("transform", (d: any) =>
-    //   arcs.length > 1 ? `translate(${arcLabel.centroid(d)})` : ""
-    // )
-    // .append("tspan")
-    // .attr("x", 0)
-    // .attr("y", 3)
-
     .text(() => sum(V));
 
   return svg.node();

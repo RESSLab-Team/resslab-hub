@@ -234,7 +234,7 @@ export default class OverviewMap extends Vue {
     const legend = new Control({ position: "bottomright" });
 
     legend.onAdd = function () {
-      var div = DomUtil.create("div", "legend");
+      const div = DomUtil.create("div", "legend");
 
       for (const type of typesNames) {
         div.innerHTML += `<input id="checkbox_${type.replace(
@@ -304,15 +304,31 @@ export default class OverviewMap extends Vue {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+#mapContainer {
+  height: 500px;
+}
+
+.tooltip ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.tooltip li {
+  padding-bottom: 5px;
+}
+
+.tooltip img {
+  max-height: 130px;
+  max-width: 100%;
+}
+</style>
+
+<style>
 .legend {
   line-height: 22px;
   color: #555;
   font-size: medium;
-}
-
-#mapContainer {
-  height: 500px;
 }
 
 .legend i {
@@ -333,19 +349,5 @@ div.legend {
 .legend h4 {
   margin: 0 0 5px;
   color: #777;
-}
-
-.tooltip ul {
-  list-style-type: none;
-  padding-left: 0;
-}
-
-.tooltip li {
-  padding-bottom: 5px;
-}
-
-.tooltip img {
-  max-height: 130px;
-  max-width: 100%;
 }
 </style>
