@@ -308,23 +308,23 @@ export default class OverviewMap extends Vue {
 #mapContainer {
   height: 500px;
 }
+</style>
 
-.tooltip ul {
+<style>
+#mapContainer .tooltip ul {
   list-style-type: none;
   padding-left: 0;
 }
 
-.tooltip li {
+#mapContainer .tooltip li {
   padding-bottom: 5px;
 }
 
-.tooltip img {
+#mapContainer .tooltip img {
   max-height: 130px;
   max-width: 100%;
 }
-</style>
 
-<style>
 .legend {
   line-height: 22px;
   color: #555;
