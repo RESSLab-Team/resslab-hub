@@ -1,6 +1,6 @@
 <template>
   <v-responsive aspect-ratio="1.2" :max-height="maxHeight">
-    <div id="mapContainer"></div>
+    <div ref="mapContainer" class="mapContainer"></div>
   </v-responsive>
 </template>
 
@@ -78,7 +78,7 @@ export default class OverviewMap extends Vue {
   }
 
   private get map() {
-    const map = LMap("mapContainer").setView([45, 0], 2);
+    const map = LMap(this.$refs.mapContainer).setView([45, 0], 2);
     tileLayer(
       "https://cartodb-basemaps-1.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
     ).addTo(map);
@@ -305,33 +305,31 @@ export default class OverviewMap extends Vue {
 </script>
 
 <style lang="scss" scoped>
-#mapContainer {
+.mapContainer {
   height: 500px;
 }
-</style>
 
-<style>
-#mapContainer .tooltip ul {
+.mapContainer::v-deep .tooltip ul {
   list-style-type: none;
   padding-left: 0;
 }
 
-#mapContainer .tooltip li {
+.mapContainer::v-deep .tooltip li {
   padding-bottom: 5px;
 }
 
-#mapContainer .tooltip img {
+.mapContainer::v-deep .tooltip img {
   max-height: 130px;
   max-width: 100%;
 }
 
-.legend {
+.mapContainer::v-deep .legend {
   line-height: 22px;
   color: #555;
   font-size: medium;
 }
 
-.legend i {
+.mapContainer::v-deep .legend i {
   width: 22px;
   height: 22px;
   float: left;
@@ -339,14 +337,14 @@ export default class OverviewMap extends Vue {
   opacity: 0.7;
 }
 
-div.legend {
+.mapContainer::v-deep div.legend {
   padding: 6px 8px;
   background-color: rgba(255, 255, 255, 0.8);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   border-radius: 5px;
 }
 
-.legend h4 {
+.mapContainer::v-deep .legend h4 {
   margin: 0 0 5px;
   color: #777;
 }
