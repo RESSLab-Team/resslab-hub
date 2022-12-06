@@ -307,29 +307,30 @@ export default class OverviewMap extends Vue {
 <style lang="scss" scoped>
 .mapContainer {
   height: 500px;
+  z-index: 1;
 }
 
-.mapContainer::v-deep .tooltip ul {
+.mapContainer :deep(.tooltip) ul {
   list-style-type: none;
   padding-left: 0;
 }
 
-.mapContainer::v-deep .tooltip li {
+.mapContainer :deep(.tooltip) li {
   padding-bottom: 5px;
 }
 
-.mapContainer::v-deep .tooltip img {
+.mapContainer :deep(.tooltip) img {
   max-height: 130px;
   max-width: 100%;
 }
 
-.mapContainer::v-deep .legend {
+.mapContainer :deep(.legend) {
   line-height: 22px;
   color: #555;
   font-size: medium;
 }
 
-.mapContainer::v-deep .legend i {
+.mapContainer :deep(.legend) i {
   width: 22px;
   height: 22px;
   float: left;
@@ -337,14 +338,14 @@ export default class OverviewMap extends Vue {
   opacity: 0.7;
 }
 
-.mapContainer::v-deep div.legend {
+.mapContainer :deep(div.legend) {
   padding: 6px 8px;
   background-color: rgba(255, 255, 255, 0.8);
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   border-radius: 5px;
 }
 
-.mapContainer::v-deep .legend h4 {
+.mapContainer :deep(.legend) h4 {
   margin: 0 0 5px;
   color: #777;
 }
