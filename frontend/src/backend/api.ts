@@ -27,33 +27,36 @@ import { BASE_PATH, COLLECTION_FORMATS, RequestArgs, BaseAPI, RequiredError } fr
  * @enum {string}
  */
 
-export enum BraceField {
-    Id = 'id',
-    Investigator = 'investigator',
-    SpecimenId = 'specimen_ID',
-    Date = 'date',
-    CrossSectionShape = 'cross_section_shape',
-    CrossSectionSize = 'cross_section_size',
-    Area = 'area',
-    DBr = 'd_br',
-    TBr = 't_br',
-    Steel = 'steel',
-    FYn = 'f_yn',
-    FyM = 'fy_m',
-    FUm = 'f_um',
-    BoundaryCondition = 'boundary_condition',
-    TT = 't_t',
-    SteelGp = 'steel_gp',
-    FYnGp = 'f_yn_gp',
-    FYmGp = 'f_ym_gp',
-    FUmGp = 'f_um_gp',
-    ReinforcementPl = 'reinforcement_pl',
-    LoadingProtocol = 'loading_protocol',
-    KlR = 'kl_r',
-    Reference = 'reference',
-    Link = 'link',
-    DisplacementCount = 'displacement_count'
-}
+export const BraceField = {
+    Id: 'id',
+    Investigator: 'investigator',
+    SpecimenId: 'specimen_ID',
+    Date: 'date',
+    CrossSectionShape: 'cross_section_shape',
+    CrossSectionSize: 'cross_section_size',
+    Area: 'area',
+    DBr: 'd_br',
+    TBr: 't_br',
+    Steel: 'steel',
+    FYn: 'f_yn',
+    FyM: 'fy_m',
+    FUm: 'f_um',
+    BoundaryCondition: 'boundary_condition',
+    TT: 't_t',
+    SteelGp: 'steel_gp',
+    FYnGp: 'f_yn_gp',
+    FYmGp: 'f_ym_gp',
+    FUmGp: 'f_um_gp',
+    ReinforcementPl: 'reinforcement_pl',
+    LoadingProtocol: 'loading_protocol',
+    KlR: 'kl_r',
+    Reference: 'reference',
+    Link: 'link',
+    DisplacementCount: 'displacement_count'
+} as const;
+
+export type BraceField = typeof BraceField[keyof typeof BraceField];
+
 
 /**
  * 
@@ -218,21 +221,24 @@ export interface BraceModel {
  * @enum {string}
  */
 
-export enum BraceNumberField {
-    Date = 'date',
-    Area = 'area',
-    DBr = 'd_br',
-    TBr = 't_br',
-    FYn = 'f_yn',
-    FyM = 'fy_m',
-    FUm = 'f_um',
-    TT = 't_t',
-    FYnGp = 'f_yn_gp',
-    FYmGp = 'f_ym_gp',
-    FUmGp = 'f_um_gp',
-    KlR = 'kl_r',
-    DisplacementCount = 'displacement_count'
-}
+export const BraceNumberField = {
+    Date: 'date',
+    Area: 'area',
+    DBr: 'd_br',
+    TBr: 't_br',
+    FYn: 'f_yn',
+    FyM: 'fy_m',
+    FUm: 'f_um',
+    TT: 't_t',
+    FYnGp: 'f_yn_gp',
+    FYmGp: 'f_ym_gp',
+    FUmGp: 'f_um_gp',
+    KlR: 'kl_r',
+    DisplacementCount: 'displacement_count'
+} as const;
+
+export type BraceNumberField = typeof BraceNumberField[keyof typeof BraceNumberField];
+
 
 /**
  * An enumeration.
@@ -240,34 +246,37 @@ export enum BraceNumberField {
  * @enum {string}
  */
 
-export enum ColumnField {
-    Id = 'id',
-    ExperimentalProgram = 'experimental_program',
-    Date = 'date',
-    SectionC = 'section_c',
-    SpecimenDesignation = 'specimen_designation',
-    DC = 'd_c',
-    HOverTCw = 'h_over_t_cw',
-    BFOverTCf = 'b_f_over_t_cf',
-    LBOverRYc = 'l_b_over_r_yc',
-    SteelC = 'steel_c',
-    FYmf = 'f_ymf',
-    FYmw = 'f_ymw',
-    FYn = 'f_yn',
-    BoundaryCondition = 'boundary_condition',
-    LateralLp = 'lateral_lp',
-    DirectionLp = 'direction_lp',
-    AxisOfBending = 'axis_of_bending',
-    AxialLp = 'axial_lp',
-    PGOverPYm = 'p_g_over_p_ym',
-    Th80 = 'th_80',
-    Reference = 'reference',
-    Link = 'link',
-    BuiltUp = 'built_up',
-    AxialShorteningCount = 'axial_shortening_count',
-    MomentStrongCount = 'moment_strong_count',
-    MomentWeakCount = 'moment_weak_count'
-}
+export const ColumnField = {
+    Id: 'id',
+    ExperimentalProgram: 'experimental_program',
+    Date: 'date',
+    SectionC: 'section_c',
+    SpecimenDesignation: 'specimen_designation',
+    DC: 'd_c',
+    HOverTCw: 'h_over_t_cw',
+    BFOverTCf: 'b_f_over_t_cf',
+    LBOverRYc: 'l_b_over_r_yc',
+    SteelC: 'steel_c',
+    FYmf: 'f_ymf',
+    FYmw: 'f_ymw',
+    FYn: 'f_yn',
+    BoundaryCondition: 'boundary_condition',
+    LateralLp: 'lateral_lp',
+    DirectionLp: 'direction_lp',
+    AxisOfBending: 'axis_of_bending',
+    AxialLp: 'axial_lp',
+    PGOverPYm: 'p_g_over_p_ym',
+    Th80: 'th_80',
+    Reference: 'reference',
+    Link: 'link',
+    BuiltUp: 'built_up',
+    AxialShorteningCount: 'axial_shortening_count',
+    MomentStrongCount: 'moment_strong_count',
+    MomentWeakCount: 'moment_weak_count'
+} as const;
+
+export type ColumnField = typeof ColumnField[keyof typeof ColumnField];
+
 
 /**
  * 
@@ -438,21 +447,24 @@ export interface ColumnModel {
  * @enum {string}
  */
 
-export enum ColumnNumberField {
-    Date = 'date',
-    DC = 'd_c',
-    HOverTCw = 'h_over_t_cw',
-    BFOverTCf = 'b_f_over_t_cf',
-    LBOverRYc = 'l_b_over_r_yc',
-    FYmf = 'f_ymf',
-    FYmw = 'f_ymw',
-    FYn = 'f_yn',
-    PGOverPYm = 'p_g_over_p_ym',
-    Th80 = 'th_80',
-    AxialShorteningCount = 'axial_shortening_count',
-    MomentStrongCount = 'moment_strong_count',
-    MomentWeakCount = 'moment_weak_count'
-}
+export const ColumnNumberField = {
+    Date: 'date',
+    DC: 'd_c',
+    HOverTCw: 'h_over_t_cw',
+    BFOverTCf: 'b_f_over_t_cf',
+    LBOverRYc: 'l_b_over_r_yc',
+    FYmf: 'f_ymf',
+    FYmw: 'f_ymw',
+    FYn: 'f_yn',
+    PGOverPYm: 'p_g_over_p_ym',
+    Th80: 'th_80',
+    AxialShorteningCount: 'axial_shortening_count',
+    MomentStrongCount: 'moment_strong_count',
+    MomentWeakCount: 'moment_weak_count'
+} as const;
+
+export type ColumnNumberField = typeof ColumnNumberField[keyof typeof ColumnNumberField];
+
 
 /**
  * An enumeration.
@@ -460,52 +472,55 @@ export enum ColumnNumberField {
  * @enum {string}
  */
 
-export enum ConnectionField {
-    Id = 'id',
-    ExperimentalProgram = 'experimental_program',
-    Date = 'date',
-    SpecimenDesignation = 'specimen_designation',
-    Northridge = 'northridge',
-    SpecimenType = 'specimen_type',
-    LoadingProtocol = 'loading_protocol',
-    Slab = 'slab',
-    ConnectionType = 'connection_type',
-    SectionB = 'section_b',
-    DB = 'd_b',
-    SteelB = 'steel_b',
-    FYb = 'f_yb',
-    FYbw = 'f_ybw',
-    FYbf = 'f_ybf',
-    SectionC = 'section_c',
-    DC = 'd_c',
-    TCf = 't_cf',
-    SteelC = 'steel_c',
-    FYc = 'f_yc',
-    FYcw = 'f_ycw',
-    FYcf = 'f_ycf',
-    BackingBar = 'backing_bar',
-    Electrode = 'electrode',
-    W = 'w',
-    HT = 'h_t',
-    FCm = 'f_cm',
-    DeckRibsOrientation = 'deck_ribs_orientation',
-    NDp = 'n_dp',
-    TDp = 't_dp',
-    TDpTot = 't_dp_tot',
-    RuRnPlN = 'ru_rn_pl_n',
-    RuRnElM = 'ru_rn_el_m',
-    RuRnPlM = 'ru_rn_pl_m',
-    GMaxGY = 'g_max_g_y',
-    Reference = 'reference',
-    Link = 'link',
-    BeamCount = 'beam_count',
-    BeamWestCount = 'beam_west_count',
-    GlobalCount = 'global_count',
-    GlobalWestCount = 'global_west_count',
-    PanelZoneCount = 'panel_zone_count',
-    Latitude = 'latitude',
-    Longitude = 'longitude'
-}
+export const ConnectionField = {
+    Id: 'id',
+    ExperimentalProgram: 'experimental_program',
+    Date: 'date',
+    SpecimenDesignation: 'specimen_designation',
+    Northridge: 'northridge',
+    SpecimenType: 'specimen_type',
+    LoadingProtocol: 'loading_protocol',
+    Slab: 'slab',
+    ConnectionType: 'connection_type',
+    SectionB: 'section_b',
+    DB: 'd_b',
+    SteelB: 'steel_b',
+    FYb: 'f_yb',
+    FYbw: 'f_ybw',
+    FYbf: 'f_ybf',
+    SectionC: 'section_c',
+    DC: 'd_c',
+    TCf: 't_cf',
+    SteelC: 'steel_c',
+    FYc: 'f_yc',
+    FYcw: 'f_ycw',
+    FYcf: 'f_ycf',
+    BackingBar: 'backing_bar',
+    Electrode: 'electrode',
+    W: 'w',
+    HT: 'h_t',
+    FCm: 'f_cm',
+    DeckRibsOrientation: 'deck_ribs_orientation',
+    NDp: 'n_dp',
+    TDp: 't_dp',
+    TDpTot: 't_dp_tot',
+    RuRnPlN: 'ru_rn_pl_n',
+    RuRnElM: 'ru_rn_el_m',
+    RuRnPlM: 'ru_rn_pl_m',
+    GMaxGY: 'g_max_g_y',
+    Reference: 'reference',
+    Link: 'link',
+    BeamCount: 'beam_count',
+    BeamWestCount: 'beam_west_count',
+    GlobalCount: 'global_count',
+    GlobalWestCount: 'global_west_count',
+    PanelZoneCount: 'panel_zone_count',
+    Latitude: 'latitude',
+    Longitude: 'longitude'
+} as const;
+
+export type ConnectionField = typeof ConnectionField[keyof typeof ConnectionField];
+
 
 /**
  * Connection
@@ -784,35 +799,38 @@ export interface ConnectionModel {
  * @enum {string}
  */
 
-export enum ConnectionNumberField {
-    Date = 'date',
-    DB = 'd_b',
-    FYb = 'f_yb',
-    FYbw = 'f_ybw',
-    FYbf = 'f_ybf',
-    DC = 'd_c',
-    TCf = 't_cf',
-    FYc = 'f_yc',
-    FYcw = 'f_ycw',
-    FYcf = 'f_ycf',
-    W = 'w',
-    HT = 'h_t',
-    FCm = 'f_cm',
-    NDp = 'n_dp',
-    TDp = 't_dp',
-    TDpTot = 't_dp_tot',
-    RuRnPlN = 'ru_rn_pl_n',
-    RuRnElM = 'ru_rn_el_m',
-    RuRnPlM = 'ru_rn_pl_m',
-    GMaxGY = 'g_max_g_y',
-    BeamCount = 'beam_count',
-    BeamWestCount = 'beam_west_count',
-    GlobalCount = 'global_count',
-    GlobalWestCount = 'global_west_count',
-    PanelZoneCount = 'panel_zone_count',
-    Latitude = 'latitude',
-    Longitude = 'longitude'
-}
+export const ConnectionNumberField = {
+    Date: 'date',
+    DB: 'd_b',
+    FYb: 'f_yb',
+    FYbw: 'f_ybw',
+    FYbf: 'f_ybf',
+    DC: 'd_c',
+    TCf: 't_cf',
+    FYc: 'f_yc',
+    FYcw: 'f_ycw',
+    FYcf: 'f_ycf',
+    W: 'w',
+    HT: 'h_t',
+    FCm: 'f_cm',
+    NDp: 'n_dp',
+    TDp: 't_dp',
+    TDpTot: 't_dp_tot',
+    RuRnPlN: 'ru_rn_pl_n',
+    RuRnElM: 'ru_rn_el_m',
+    RuRnPlM: 'ru_rn_pl_m',
+    GMaxGY: 'g_max_g_y',
+    BeamCount: 'beam_count',
+    BeamWestCount: 'beam_west_count',
+    GlobalCount: 'global_count',
+    GlobalWestCount: 'global_west_count',
+    PanelZoneCount: 'panel_zone_count',
+    Latitude: 'latitude',
+    Longitude: 'longitude'
+} as const;
+
+export type ConnectionNumberField = typeof ConnectionNumberField[keyof typeof ConnectionNumberField];
+
 
 /**
  * Count
@@ -832,6 +850,13 @@ export interface CountModel {
      * @memberof CountModel
      */
     'value': number;
+}
+/**
+ * 
+ * @export
+ * @interface DataInnerInner
+ */
+export interface DataInnerInner {
 }
 /**
  * 
@@ -923,6 +948,37 @@ export interface ExtendedPageConnectionModel {
      * 
      * @type {number}
      * @memberof ExtendedPageConnectionModel
+     */
+    'size': number;
+}
+/**
+ * 
+ * @export
+ * @interface ExtendedPageMaterialModel
+ */
+export interface ExtendedPageMaterialModel {
+    /**
+     * 
+     * @type {Array<MaterialModel>}
+     * @memberof ExtendedPageMaterialModel
+     */
+    'items': Array<MaterialModel>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageMaterialModel
+     */
+    'total': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageMaterialModel
+     */
+    'page': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageMaterialModel
      */
     'size': number;
 }
@@ -1174,6 +1230,126 @@ export interface LocationConnectionsModel {
 /**
  * 
  * @export
+ * @interface LocationInner
+ */
+export interface LocationInner {
+}
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const MaterialField = {
+    Id: 'id',
+    ExperimentalProgram: 'experimental_program',
+    Profile: 'profile',
+    Source: 'source',
+    Thickness: 'thickness',
+    Date: 'date',
+    FyNMpa: 'fy_n__mpa_',
+    YieldStressMpa: 'yield_stress__mpa_',
+    FractureStrain: 'fracture_strain',
+    Type: 'type',
+    StressStrainCount: 'stress_strain_count'
+} as const;
+
+export type MaterialField = typeof MaterialField[keyof typeof MaterialField];
+
+
+/**
+ * 
+ * @export
+ * @interface MaterialModel
+ */
+export interface MaterialModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'experimental_program': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'profile': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'source': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'thickness': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'date': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'fy_n__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'yield_stress__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'fracture_strain'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'type': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'stress_strain_count': number;
+}
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const MaterialNumberField = {
+    Thickness: 'thickness',
+    FyNMpa: 'fy_n__mpa_',
+    YieldStressMpa: 'yield_stress__mpa_',
+    FractureStrain: 'fracture_strain',
+    StressStrainCount: 'stress_strain_count'
+} as const;
+
+export type MaterialNumberField = typeof MaterialNumberField[keyof typeof MaterialNumberField];
+
+
+/**
+ * 
+ * @export
  * @interface MatrixModel
  */
 export interface MatrixModel {
@@ -1185,10 +1361,10 @@ export interface MatrixModel {
     'ids': Array<string>;
     /**
      * 
-     * @type {Array<Array<number | string>>}
+     * @type {Array<Array<DataInnerInner>>}
      * @memberof MatrixModel
      */
-    'data': Array<Array<number | string>>;
+    'data': Array<Array<DataInnerInner>>;
 }
 /**
  * Range
@@ -1217,10 +1393,10 @@ export interface RangeModel {
 export interface ValidationError {
     /**
      * 
-     * @type {Array<string | number>}
+     * @type {Array<LocationInner>}
      * @memberof ValidationError
      */
-    'loc': Array<string | number>;
+    'loc': Array<LocationInner>;
     /**
      * 
      * @type {string}
@@ -3809,6 +3985,511 @@ export class DefaultApi extends BaseAPI {
      */
     public root(options?: AxiosRequestConfig) {
         return DefaultApiFp(this.configuration).root(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
+ * MaterialsApi - axios parameter creator
+ * @export
+ */
+export const MaterialsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get paginated Materials
+         * @summary Get Materials
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterials: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/materials`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            if (sortBy) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+            if (sortDesc) {
+                localVarQueryParameter['sort_desc'] = sortDesc;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Materials Counts
+         * @param {Array<MaterialField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsCounts: async (fields?: Array<MaterialField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/materials/counts`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get master csv
+         * @summary Get Materials Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/materials/csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (ids) {
+                localVarQueryParameter['ids'] = ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get displacement series from material
+         * @summary Get Materials Displacement
+         * @param {string} materialId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsDisplacement: async (materialId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'materialId' is not null or undefined
+            assertParamExists('getMaterialsDisplacement', 'materialId', materialId)
+            const localVarPath = `/materials/{material_id}/stress-strain`
+                .replace(`{${"material_id"}}`, encodeURIComponent(String(materialId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Materials Matrix
+         * @param {Array<MaterialField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsMatrix: async (fields: Array<MaterialField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getMaterialsMatrix', 'fields', fields)
+            const localVarPath = `/materials/matrix`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get range of field
+         * @summary Get Materials Range
+         * @param {MaterialNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsRange: async (field: MaterialNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getMaterialsRange', 'field', field)
+            const localVarPath = `/materials/range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * MaterialsApi - functional programming interface
+ * @export
+ */
+export const MaterialsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = MaterialsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get paginated Materials
+         * @summary Get Materials
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterials(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageMaterialModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterials(query, sortBy, sortDesc, page, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Materials Counts
+         * @param {Array<MaterialField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterialsCounts(fields?: Array<MaterialField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsCounts(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get master csv
+         * @summary Get Materials Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterialsCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsCsv(ids, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get displacement series from material
+         * @summary Get Materials Displacement
+         * @param {string} materialId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterialsDisplacement(materialId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsDisplacement(materialId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Materials Matrix
+         * @param {Array<MaterialField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterialsMatrix(fields: Array<MaterialField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsMatrix(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get range of field
+         * @summary Get Materials Range
+         * @param {MaterialNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterialsRange(field: MaterialNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsRange(field, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * MaterialsApi - factory interface
+ * @export
+ */
+export const MaterialsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = MaterialsApiFp(configuration)
+    return {
+        /**
+         * Get paginated Materials
+         * @summary Get Materials
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterials(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageMaterialModel> {
+            return localVarFp.getMaterials(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Materials Counts
+         * @param {Array<MaterialField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsCounts(fields?: Array<MaterialField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getMaterialsCounts(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get master csv
+         * @summary Get Materials Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+            return localVarFp.getMaterialsCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get displacement series from material
+         * @summary Get Materials Displacement
+         * @param {string} materialId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsDisplacement(materialId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getMaterialsDisplacement(materialId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Materials Matrix
+         * @param {Array<MaterialField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsMatrix(fields: Array<MaterialField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+            return localVarFp.getMaterialsMatrix(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get range of field
+         * @summary Get Materials Range
+         * @param {MaterialNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsRange(field: MaterialNumberField, options?: any): AxiosPromise<RangeModel> {
+            return localVarFp.getMaterialsRange(field, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * MaterialsApi - object-oriented interface
+ * @export
+ * @class MaterialsApi
+ * @extends {BaseAPI}
+ */
+export class MaterialsApi extends BaseAPI {
+    /**
+     * Get paginated Materials
+     * @summary Get Materials
+     * @param {string} [query] 
+     * @param {Array<string>} [sortBy] 
+     * @param {Array<boolean>} [sortDesc] 
+     * @param {number} [page] 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterials(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterials(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurences count of field values
+     * @summary Get Materials Counts
+     * @param {Array<MaterialField>} [fields] 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterialsCounts(fields?: Array<MaterialField>, query?: string, options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterialsCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get master csv
+     * @summary Get Materials Csv
+     * @param {Array<string>} [ids] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterialsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterialsCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get displacement series from material
+     * @summary Get Materials Displacement
+     * @param {string} materialId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterialsDisplacement(materialId: string, size?: number, options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterialsDisplacement(materialId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Materials Matrix
+     * @param {Array<MaterialField>} fields 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterialsMatrix(fields: Array<MaterialField>, query?: string, options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterialsMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get range of field
+     * @summary Get Materials Range
+     * @param {MaterialNumberField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterialsRange(field: MaterialNumberField, options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterialsRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

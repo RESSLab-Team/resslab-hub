@@ -7,7 +7,7 @@
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
-    "api": "rm -rf src/backend && openapi-generator-cli generate -i ../openapi.json -g typescript-axios -o src/backend",
+    "api": "rm -rf src/backend && openapi-generator-cli generate",
     "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\""
   },
   "dependencies": {

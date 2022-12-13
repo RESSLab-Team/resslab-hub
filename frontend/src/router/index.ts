@@ -76,6 +76,20 @@ const routes: Array<RouteConfig> = [
     ],
   },
   {
+    path: "/materials",
+    component: () => import("../views/Materials.vue"),
+    children: [
+      {
+        path: "",
+        redirect: "database",
+      },
+      {
+        path: "database",
+        component: () => import("../views/MaterialsDatabase.vue"),
+      },
+    ],
+  },
+  {
     path: "/about",
     name: "About",
     component: () => import("../views/About.vue"),

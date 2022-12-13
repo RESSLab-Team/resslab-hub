@@ -47,5 +47,17 @@
     "t_dp_tot": "Total Doubler Plate Thickness [mm]",
     "ru_rn_pl_n": "Ru / Rn,pl",
     "g_max_g_y": "\u03b3max / \u03b3y"
+  },
+  "material": {
+    "experimental_program": "Experimental Program",
+    "id": "Specimen Designation",
+    "type": "Steel Type",
+    "profile": "Profile",
+    "source": "Source",
+    "date": "Date",
+    "yield_stress__mpa_": "fy,m [MPa]",
+    "yield_stress__mpa_/fy_n__mpa_": "Ry",
+    "fracture_strain": "En",
+    "thickness": "t [mm]"
   }
 }

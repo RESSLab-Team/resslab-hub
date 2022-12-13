@@ -216,7 +216,7 @@ export default class SimpleParallelChart extends Vue {
       .then((response) => response.data)
       .then((matrixModel) => {
         this.ids = matrixModel.ids;
-        this.data = matrixModel.data;
+        this.data = matrixModel.data as (string | number)[][];
       });
   }
 

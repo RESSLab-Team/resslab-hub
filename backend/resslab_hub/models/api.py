@@ -261,3 +261,37 @@ BraceNumberField = Enum(
     module=__name__,
     type=str,
 )
+
+
+class MaterialModel(BaseModel):
+    id: str
+    experimental_program: str
+    profile: str
+    source: str
+    thickness: int
+    date: str
+    fy_n__mpa_: int
+    yield_stress__mpa_: Decimal
+    fracture_strain: Optional[Decimal]
+    type: str
+
+    stress_strain_count: int
+
+
+MaterialField = Enum(
+    "MaterialField",
+    {key: key for key in MaterialModel.__fields__},
+    module=__name__,
+    type=str,
+)
+
+MaterialNumberField = Enum(
+    "MaterialNumberField",
+    {
+        key: key
+        for key, field in MaterialModel.__fields__.items()
+        if field.type_ in [Decimal, int]
+    },
+    module=__name__,
+    type=str,
+)
