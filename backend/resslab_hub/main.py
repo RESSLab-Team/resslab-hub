@@ -11,7 +11,7 @@ from fastapi_pagination import add_pagination
 from resslab_hub import __name__ as title
 from resslab_hub import __version__
 from resslab_hub.config import settings
-from resslab_hub.routers import braces, columns, connections, root
+from resslab_hub.routers import braces, columns, connections, materials, root
 from resslab_hub.utils.database import upgrade_database
 from resslab_hub.utils.fastapi import use_route_names_as_operation_ids
 
@@ -39,6 +39,7 @@ app.include_router(root.router)
 app.include_router(braces.router)
 app.include_router(columns.router)
 app.include_router(connections.router)
+app.include_router(materials.router)
 add_pagination(app)
 use_route_names_as_operation_ids(app)
 

@@ -1688,6 +1688,353 @@
           }
         }
       }
+    },
+    "/materials": {
+      "get": {
+        "tags": [
+          "materials"
+        ],
+        "summary": "Get Materials",
+        "description": "Get paginated Materials",
+        "operationId": "get_materials",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort By",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "sort_by",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort Desc",
+              "type": "array",
+              "items": {
+                "type": "boolean"
+              },
+              "default": []
+            },
+            "name": "sort_desc",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page",
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 1
+            },
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "maximum": 1000.0,
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 10
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedPage_MaterialModel_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/materials/counts": {
+      "get": {
+        "tags": [
+          "materials"
+        ],
+        "summary": "Get Materials Counts",
+        "description": "Get occurences count of field values",
+        "operationId": "get_materials_counts",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/MaterialField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Materials Counts Materials Counts Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountModel"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/materials/range": {
+      "get": {
+        "tags": [
+          "materials"
+        ],
+        "summary": "Get Materials Range",
+        "description": "Get range of field",
+        "operationId": "get_materials_range",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MaterialNumberField"
+            },
+            "name": "field",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/materials/matrix": {
+      "get": {
+        "tags": [
+          "materials"
+        ],
+        "summary": "Get Materials Matrix",
+        "operationId": "get_materials_matrix",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/MaterialField"
+              }
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/materials/csv": {
+      "get": {
+        "tags": [
+          "materials"
+        ],
+        "summary": "Get Materials Csv",
+        "description": "Get master csv",
+        "operationId": "get_materials_csv",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Ids",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "ids",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/materials/{material_id}/stress-strain": {
+      "get": {
+        "tags": [
+          "materials"
+        ],
+        "summary": "Get Materials Displacement",
+        "description": "Get displacement series from material",
+        "operationId": "get_materials_displacement",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Material Id",
+              "type": "string"
+            },
+            "name": "material_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Materials Displacement Materials  Material Id  Stress Strain Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2486,6 +2833,40 @@
           }
         }
       },
+      "ExtendedPage_MaterialModel_": {
+        "title": "ExtendedPage[MaterialModel]",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialModel"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "page": {
+            "title": "Page",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "minimum": 1.0,
+            "type": "integer"
+          }
+        }
+      },
       "HTTPValidationError": {
         "title": "HTTPValidationError",
         "type": "object",
@@ -2701,6 +3082,98 @@
           }
         },
         "description": "Location"
+      },
+      "MaterialField": {
+        "title": "MaterialField",
+        "enum": [
+          "id",
+          "experimental_program",
+          "profile",
+          "source",
+          "thickness",
+          "date",
+          "fy_n__mpa_",
+          "yield_stress__mpa_",
+          "fracture_strain",
+          "type",
+          "stress_strain_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "MaterialModel": {
+        "title": "MaterialModel",
+        "required": [
+          "id",
+          "experimental_program",
+          "profile",
+          "source",
+          "thickness",
+          "date",
+          "fy_n__mpa_",
+          "yield_stress__mpa_",
+          "type",
+          "stress_strain_count"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "experimental_program": {
+            "title": "Experimental Program",
+            "type": "string"
+          },
+          "profile": {
+            "title": "Profile",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "thickness": {
+            "title": "Thickness",
+            "type": "integer"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "fy_n__mpa_": {
+            "title": "Fy N  Mpa ",
+            "type": "integer"
+          },
+          "yield_stress__mpa_": {
+            "title": "Yield Stress  Mpa ",
+            "type": "number"
+          },
+          "fracture_strain": {
+            "title": "Fracture Strain",
+            "type": "number"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "stress_strain_count": {
+            "title": "Stress Strain Count",
+            "type": "integer"
+          }
+        }
+      },
+      "MaterialNumberField": {
+        "title": "MaterialNumberField",
+        "enum": [
+          "thickness",
+          "fy_n__mpa_",
+          "yield_stress__mpa_",
+          "fracture_strain",
+          "stress_strain_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
       },
       "MatrixModel": {
         "title": "MatrixModel",

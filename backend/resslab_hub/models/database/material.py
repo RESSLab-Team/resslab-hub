@@ -11,6 +11,7 @@ from sqlalchemy import (
     String,
     func,
     select,
+    text,
 )
 from sqlalchemy.orm import column_property
 
@@ -97,6 +98,8 @@ class Material(Base):  # type: ignore
     latitude = Column(Numeric, nullable=False)
     longitude = Column(Numeric, nullable=False)
     citekey = Column(String, nullable=False)
+
+    type = column_property(grade + text("'-'") + spec)
 
     stress_strain_count = column_property(
         select(func.count(MaterialStressStrain.id))
