@@ -772,7 +772,7 @@ export default class ConnectionComponent extends Vue {
   option(backbone: Result, envelope: Result): EChartsOption {
     return {
       xAxis: {
-        name: "Chord Rotation, \u03b8",
+        name: "Chord Rotation, θ",
       },
       yAxis: {
         name: "Moment, M",

@@ -137,11 +137,11 @@ export default class ColumnFragility extends Vue {
         name: "SDR",
       },
       yAxis: {
-        name: "P(DS\u2265ds)",
+        name: "P(DS≥ds)",
       },
       series: this.alphas.map((alpha, index) => ({
         type: "line",
-        name: `Multivariate P(DS\u2265ds${subscripts[(index + 1).toString()]})`,
+        name: `Multivariate P(DS≥ds${subscripts[(index + 1).toString()]})`,
         showSymbol: false,
         itemStyle: {
           color: this.alphaColorPalette[index],
