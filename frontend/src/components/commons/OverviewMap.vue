@@ -32,7 +32,7 @@ import {
 } from "leaflet";
 import "leaflet.markercluster";
 import "leaflet/dist/leaflet.css";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import { Component, Prop, Ref, Vue, Watch } from "vue-property-decorator";
 
 @Component
 export default class OverviewMap extends Vue {
@@ -77,8 +77,11 @@ export default class OverviewMap extends Vue {
     this.updateMap();
   }
 
+  @Ref("mapContainer")
+  readonly mapContainer!: HTMLDivElement;
+
   private get map() {
-    const map = LMap(this.$refs.mapContainer).setView([45, 0], 2);
+    const map = LMap(this.mapContainer).setView([45, 0], 2);
     tileLayer(
       "https://cartodb-basemaps-1.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
     ).addTo(map);
