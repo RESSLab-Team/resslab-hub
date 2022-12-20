@@ -123,7 +123,7 @@ import CommonDetail, {
 } from "@/components/commons/CommonDetail.vue";
 import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { specimenTypeImageSrc } from "@/utils/connections";
+import { getConnectionSpecimenImage } from "@/utils/component";
 import { AxiosResponse } from "axios";
 import { Component, VModel } from "vue-property-decorator";
 
@@ -225,7 +225,7 @@ export default class ConnectionDetail extends CommonDetailMixin {
   }
 
   get specimenTypeImageSrc(): string {
-    return specimenTypeImageSrc(this.connection.specimen_type);
+    return getConnectionSpecimenImage(this.connection.specimen_type);
   }
 }
 </script>

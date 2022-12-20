@@ -10,24 +10,31 @@
       {{ column.specimen_designation }}
     </template>
     <template #parameters>
-      <property-item name="Loading protocol">
-        {{ column.lateral_lp }}
-      </property-item>
-      <property-item name="Axial load ratio">
-        {{ column.axial_lp }} (Pg/Py = {{ column.p_g_over_p_ym }})
-      </property-item>
-      <property-item name="Axis of bending">
-        {{ column.axis_of_bending }}
-      </property-item>
-      <property-item name="Boundary conditions">
-        {{ column.boundary_condition }}
-      </property-item>
-      <property-item name="Column cross section">
-        {{ column.section_c }}
-      </property-item>
-      <property-item name="Member slenderness ratio, Lb/ry">
-        {{ column.l_b_over_r_yc }}
-      </property-item>
+      <v-row>
+        <v-col cols="6">
+          <property-item name="Loading protocol">
+            {{ column.lateral_lp }}
+          </property-item>
+          <property-item name="Axial load ratio">
+            {{ column.axial_lp }} (Pg/Py = {{ column.p_g_over_p_ym }})
+          </property-item>
+          <property-item name="Axis of bending">
+            {{ column.axis_of_bending }}
+          </property-item>
+          <property-item name="Boundary conditions">
+            {{ column.boundary_condition }}
+          </property-item>
+          <property-item name="Column cross section">
+            {{ column.section_c }}
+          </property-item>
+          <property-item name="Member slenderness ratio, Lb/ry">
+            {{ column.l_b_over_r_yc }}
+          </property-item>
+        </v-col>
+        <v-col cols="6">
+          <v-img contain max-height="256" :src="imageSrc"></v-img>
+        </v-col>
+      </v-row>
     </template>
     <template #designation>
       <property-item name="Steel type">
@@ -53,6 +60,7 @@ import CommonDetail, {
 } from "@/components/commons/CommonDetail.vue";
 import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
+import { getColumnImage } from "@/utils/component";
 import { AxiosResponse } from "axios";
 import { Component, VModel } from "vue-property-decorator";
 
@@ -117,6 +125,14 @@ export default class ColumnDetail extends CommonDetailMixin {
 
   get axialShorteningPromise(): Promise<AxiosResponse<number[][]>> {
     return this.$columnsApi.getColumnsAxialShortening(this.column.id);
+  }
+
+  get imageSrc(): string | undefined {
+    return getColumnImage(
+      this.column.axis_of_bending,
+      this.column.boundary_condition,
+      this.column.direction_lp
+    );
   }
 }
 </script>
