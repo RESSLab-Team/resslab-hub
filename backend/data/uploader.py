@@ -213,6 +213,7 @@ def upload(input_type: Type, filenames: List[str]):
             upload(Type.ALL_BRACE, filenames)
             upload(Type.ALL_COLUMN, filenames)
             upload(Type.ALL_CONNECTION, filenames)
+            upload(Type.ALL_MATERIAL, filenames)
             return
         case Type.ALL_BRACE:
             root_folder = os.path.join(filenames[0], "braces")
