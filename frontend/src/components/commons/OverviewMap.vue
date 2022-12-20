@@ -10,7 +10,7 @@ import {
   LocationColumnsModel,
   LocationConnectionsModel,
 } from "@/backend";
-import { specimenTypeImageSrc as getConnectionImageSrc } from "@/utils/connections";
+import { getConnectionSpecimenImage } from "@/utils/component";
 import {
   MarkerSVG,
   PieChart,
@@ -132,7 +132,7 @@ export default class OverviewMap extends Vue {
         <li>${d.specimen_type}</li>
         <li>${d.connection_type}, Beam: ${d.section_b} Col: ${d.section_c}</li>
         <li>
-          <img alt="${d.specimen_type}" src="${getConnectionImageSrc(
+          <img alt="${d.specimen_type}" src="${getConnectionSpecimenImage(
       d.specimen_type
     )}"></img>
         </li>
