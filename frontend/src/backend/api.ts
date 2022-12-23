@@ -1243,13 +1243,21 @@ export interface LocationInner {
 export const MaterialField = {
     Id: 'id',
     ExperimentalProgram: 'experimental_program',
+    ProfileType: 'profile_type',
     Profile: 'profile',
     Source: 'source',
     Thickness: 'thickness',
+    Grade: 'grade',
+    Spec: 'spec',
+    Size: 'size',
+    TADegC: 't_a__deg_c_',
     Date: 'date',
     FyNMpa: 'fy_n__mpa_',
+    FuNMpa: 'fu_n__mpa_',
     YieldStressMpa: 'yield_stress__mpa_',
     FractureStrain: 'fracture_strain',
+    Reference: 'reference',
+    Link: 'link',
     Type: 'type',
     StressStrainCount: 'stress_strain_count'
 } as const;
@@ -1280,6 +1288,12 @@ export interface MaterialModel {
      * @type {string}
      * @memberof MaterialModel
      */
+    'profile_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
     'profile': string;
     /**
      * 
@@ -1298,6 +1312,30 @@ export interface MaterialModel {
      * @type {string}
      * @memberof MaterialModel
      */
+    'grade': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'spec': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'size': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    't_a__deg_c_': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
     'date': string;
     /**
      * 
@@ -1310,6 +1348,12 @@ export interface MaterialModel {
      * @type {number}
      * @memberof MaterialModel
      */
+    'fu_n__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
     'yield_stress__mpa_': number;
     /**
      * 
@@ -1317,6 +1361,18 @@ export interface MaterialModel {
      * @memberof MaterialModel
      */
     'fracture_strain'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'link': string;
     /**
      * 
      * @type {string}
@@ -1338,7 +1394,9 @@ export interface MaterialModel {
 
 export const MaterialNumberField = {
     Thickness: 'thickness',
+    TADegC: 't_a__deg_c_',
     FyNMpa: 'fy_n__mpa_',
+    FuNMpa: 'fu_n__mpa_',
     YieldStressMpa: 'yield_stress__mpa_',
     FractureStrain: 'fracture_strain',
     StressStrainCount: 'stress_strain_count'
@@ -4126,45 +4184,6 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
-         * Get displacement series from material
-         * @summary Get Materials Displacement
-         * @param {string} materialId 
-         * @param {number} [size] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getMaterialsDisplacement: async (materialId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'materialId' is not null or undefined
-            assertParamExists('getMaterialsDisplacement', 'materialId', materialId)
-            const localVarPath = `/materials/{material_id}/stress-strain`
-                .replace(`{${"material_id"}}`, encodeURIComponent(String(materialId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            if (size !== undefined) {
-                localVarQueryParameter['size'] = size;
-            }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
@@ -4243,6 +4262,45 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Get Stress-Strain series from material
+         * @summary Get Materials Stress Strain
+         * @param {string} materialId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsStressStrain: async (materialId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'materialId' is not null or undefined
+            assertParamExists('getMaterialsStressStrain', 'materialId', materialId)
+            const localVarPath = `/materials/{material_id}/stress-strain`
+                .replace(`{${"material_id"}}`, encodeURIComponent(String(materialId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -4292,18 +4350,6 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Get displacement series from material
-         * @summary Get Materials Displacement
-         * @param {string} materialId 
-         * @param {number} [size] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getMaterialsDisplacement(materialId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsDisplacement(materialId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
@@ -4324,6 +4370,18 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
          */
         async getMaterialsRange(field: MaterialNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsRange(field, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Stress-Strain series from material
+         * @summary Get Materials Stress Strain
+         * @param {string} materialId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterialsStressStrain(materialId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsStressStrain(materialId, size, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -4372,17 +4430,6 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
             return localVarFp.getMaterialsCsv(ids, options).then((request) => request(axios, basePath));
         },
         /**
-         * Get displacement series from material
-         * @summary Get Materials Displacement
-         * @param {string} materialId 
-         * @param {number} [size] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getMaterialsDisplacement(materialId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
-            return localVarFp.getMaterialsDisplacement(materialId, size, options).then((request) => request(axios, basePath));
-        },
-        /**
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
@@ -4402,6 +4449,17 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          */
         getMaterialsRange(field: MaterialNumberField, options?: any): AxiosPromise<RangeModel> {
             return localVarFp.getMaterialsRange(field, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Stress-Strain series from material
+         * @summary Get Materials Stress Strain
+         * @param {string} materialId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsStressStrain(materialId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getMaterialsStressStrain(materialId, size, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -4455,19 +4513,6 @@ export class MaterialsApi extends BaseAPI {
     }
 
     /**
-     * Get displacement series from material
-     * @summary Get Materials Displacement
-     * @param {string} materialId 
-     * @param {number} [size] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof MaterialsApi
-     */
-    public getMaterialsDisplacement(materialId: string, size?: number, options?: AxiosRequestConfig) {
-        return MaterialsApiFp(this.configuration).getMaterialsDisplacement(materialId, size, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
      * 
      * @summary Get Materials Matrix
      * @param {Array<MaterialField>} fields 
@@ -4490,6 +4535,19 @@ export class MaterialsApi extends BaseAPI {
      */
     public getMaterialsRange(field: MaterialNumberField, options?: AxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsRange(field, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Stress-Strain series from material
+     * @summary Get Materials Stress Strain
+     * @param {string} materialId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterialsStressStrain(materialId: string, size?: number, options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterialsStressStrain(materialId, size, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

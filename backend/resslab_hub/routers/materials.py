@@ -105,12 +105,12 @@ async def get_materials_csv(
 
 
 @router.get("/{material_id}/stress-strain", response_model=List[List[Decimal]])
-async def get_materials_displacement(
+async def get_materials_stress_strain(
     session: AsyncSession = Depends(get_session),
     material_id: str = Path(...),
     size: int = Query(1024, ge=0),
 ) -> List[List[Decimal]]:
     """
-    Get displacement series from material
+    Get Stress-Strain series from material
     """
     return await stress_strain_component.get_series(session, material_id, size)

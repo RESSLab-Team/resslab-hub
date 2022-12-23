@@ -7,6 +7,7 @@
             :search.sync="search"
             :searches.sync="searches"
             :query="query"
+            @click="click"
             @loadPage="loadPage"
           ></material-table>
         </v-col>
@@ -28,9 +29,9 @@
     </v-col>
     <v-col md="6">
       <v-row v-if="item">
-        <!-- <v-col cols="12">
+        <v-col cols="12">
           <material-detail :value="item" @close="close"></material-detail>
-        </v-col> -->
+        </v-col>
       </v-row>
       <v-row v-else>
         <v-col cols="12">
@@ -85,14 +86,14 @@ import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import MaterialDoubleChart from "@/components/materials/charts/MaterialDoubleChart.vue";
 import MaterialParallelChart from "@/components/materials/charts/MaterialParallelChart.vue";
 import MaterialSingleChart from "@/components/materials/charts/MaterialSingleChart.vue";
-// import MaterialDetail from "@/components/materials/MaterialDetail.vue";
+import MaterialDetail from "@/components/materials/MaterialDetail.vue";
 import MaterialTable from "@/components/materials/MaterialTable.vue";
 import { Component } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
 
 @Component({
   components: {
-    // MaterialDetail,
+    MaterialDetail,
     MaterialDoubleChart,
     MaterialParallelChart,
     MaterialSingleChart,

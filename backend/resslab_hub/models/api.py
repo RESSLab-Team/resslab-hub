@@ -266,13 +266,21 @@ BraceNumberField = Enum(
 class MaterialModel(BaseModel):
     id: str
     experimental_program: str
+    profile_type: str
     profile: str
     source: str
     thickness: int
+    grade: str
+    spec: str
+    size: str
+    t_a__deg_c_: Decimal
     date: str
     fy_n__mpa_: int
+    fu_n__mpa_: int
     yield_stress__mpa_: Decimal
     fracture_strain: Optional[Decimal]
+    reference: str
+    link: str
     type: str
 
     stress_strain_count: int
