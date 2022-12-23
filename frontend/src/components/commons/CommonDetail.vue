@@ -41,8 +41,10 @@
           </template>
         </v-carousel-item>
       </v-carousel>
-      <h2>Loading and Geometric Parameters</h2>
+      <h2 v-if="$slots.parameters">Loading and Geometric Parameters</h2>
       <slot name="parameters"></slot>
+      <h2 v-if="$slots.element">Structural Steel Element</h2>
+      <slot name="element"></slot>
       <h2>Steel Material Designation</h2>
       <slot name="designation"></slot>
     </v-card-text>

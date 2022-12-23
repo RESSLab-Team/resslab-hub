@@ -1980,9 +1980,9 @@
         "tags": [
           "materials"
         ],
-        "summary": "Get Materials Displacement",
-        "description": "Get displacement series from material",
-        "operationId": "get_materials_displacement",
+        "summary": "Get Materials Stress Strain",
+        "description": "Get Stress-Strain series from material",
+        "operationId": "get_materials_stress_strain",
         "parameters": [
           {
             "required": true,
@@ -2011,7 +2011,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Materials Displacement Materials  Material Id  Stress Strain Get",
+                  "title": "Response Get Materials Stress Strain Materials  Material Id  Stress Strain Get",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -3088,13 +3088,21 @@
         "enum": [
           "id",
           "experimental_program",
+          "profile_type",
           "profile",
           "source",
           "thickness",
+          "grade",
+          "spec",
+          "size",
+          "t_a__deg_c_",
           "date",
           "fy_n__mpa_",
+          "fu_n__mpa_",
           "yield_stress__mpa_",
           "fracture_strain",
+          "reference",
+          "link",
           "type",
           "stress_strain_count"
         ],
@@ -3106,12 +3114,20 @@
         "required": [
           "id",
           "experimental_program",
+          "profile_type",
           "profile",
           "source",
           "thickness",
+          "grade",
+          "spec",
+          "size",
+          "t_a__deg_c_",
           "date",
           "fy_n__mpa_",
+          "fu_n__mpa_",
           "yield_stress__mpa_",
+          "reference",
+          "link",
           "type",
           "stress_strain_count"
         ],
@@ -3123,6 +3139,10 @@
           },
           "experimental_program": {
             "title": "Experimental Program",
+            "type": "string"
+          },
+          "profile_type": {
+            "title": "Profile Type",
             "type": "string"
           },
           "profile": {
@@ -3137,12 +3157,32 @@
             "title": "Thickness",
             "type": "integer"
           },
+          "grade": {
+            "title": "Grade",
+            "type": "string"
+          },
+          "spec": {
+            "title": "Spec",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "string"
+          },
+          "t_a__deg_c_": {
+            "title": "T A  Deg C ",
+            "type": "number"
+          },
           "date": {
             "title": "Date",
             "type": "string"
           },
           "fy_n__mpa_": {
             "title": "Fy N  Mpa ",
+            "type": "integer"
+          },
+          "fu_n__mpa_": {
+            "title": "Fu N  Mpa ",
             "type": "integer"
           },
           "yield_stress__mpa_": {
@@ -3152,6 +3192,14 @@
           "fracture_strain": {
             "title": "Fracture Strain",
             "type": "number"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
           },
           "type": {
             "title": "Type",
@@ -3167,7 +3215,9 @@
         "title": "MaterialNumberField",
         "enum": [
           "thickness",
+          "t_a__deg_c_",
           "fy_n__mpa_",
+          "fu_n__mpa_",
           "yield_stress__mpa_",
           "fracture_strain",
           "stress_strain_count"
