@@ -48,7 +48,7 @@ export default class SurfaceGlChart extends Vue {
       },
       grid3D: {
         viewControl: {
-          distance: 320,
+          distance: 260,
         },
       },
       xAxis3D: {

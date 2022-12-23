@@ -118,7 +118,7 @@ export default class UnitChart extends Vue {
           ? `${yAXisOption.name} [${this.yUnitParent.unitLabel}]`
           : yAXisOption.name,
         nameLocation: "middle",
-        nameGap: 50,
+        nameGap: 80,
         max: "dataMax",
         axisLabel: {
           formatter: (value: number) =>

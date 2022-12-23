@@ -30,6 +30,9 @@ export interface EChartsGlOption {
 interface Axis3D {
   show?: boolean;
   name?: string;
+  nameTextStyle?: {
+    fontSize?: number;
+  };
   min?: number | "dataMin";
   max?: number | "dataMax";
   axisLabel?: {

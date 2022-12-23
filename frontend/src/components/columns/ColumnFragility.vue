@@ -199,12 +199,21 @@ export default class ColumnFragility extends Vue {
     return {
       xAxis3D: {
         name: "h/tw",
+        nameTextStyle: {
+          fontSize: 14,
+        },
       },
       yAxis3D: {
         name: "SDR [% rad]",
+        nameTextStyle: {
+          fontSize: 14,
+        },
       },
       zAxis3D: {
-        name: `P(DS${subscripts[name]}|SDR)`,
+        name: `P(DS${name})`,
+        nameTextStyle: {
+          fontSize: 14,
+        },
       },
       series: [
         {
