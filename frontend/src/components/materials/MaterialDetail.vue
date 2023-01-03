@@ -101,7 +101,7 @@ export default class MaterialDetail extends CommonDetailMixin {
         {
           promise: this.stressStrain,
           title: "Stress Strain",
-          xAxisName: "e",
+          xAxisName: "ε",
           yAxisName: "σ [MPa]",
         },
       ]);

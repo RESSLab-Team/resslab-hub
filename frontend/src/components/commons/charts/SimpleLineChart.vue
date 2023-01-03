@@ -89,6 +89,7 @@ export default class SimpleLineChart extends Vue {
       },
       tooltip: {
         trigger: "axis",
+        confine: true,
       },
       series: [
         {
