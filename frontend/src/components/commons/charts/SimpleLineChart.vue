@@ -39,7 +39,7 @@ export default class SimpleLineChart extends Vue {
   @Prop({ type: Number, default: 300 })
   readonly maxWidth!: number;
   @Prop({ type: Promise })
-  readonly promise: Promise<AxiosResponse<number[][]>> | undefined;
+  readonly promise: Promise<AxiosResponse<number[][]> | number[][]> | undefined;
   @Prop({ type: String })
   readonly title: string | undefined;
   @Prop({ type: String })
@@ -118,7 +118,9 @@ export default class SimpleLineChart extends Vue {
   onChanged(): void {
     if (this.promise) {
       this.promise
-        .then((response) => response.data)
+        .then((response) =>
+          Array.isArray(response) ? response : response.data
+        )
         .then((series) => {
           this.series = series;
         });
