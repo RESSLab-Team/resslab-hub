@@ -2,8 +2,7 @@
   <v-container fluid>
     <v-tabs>
       <v-tab to="/materials/database">Database</v-tab>
-      <v-tab to="/materials/component-model">Component Model</v-tab>
-      <v-tab to="/materials/fragility-curve">Fragility Curve</v-tab>
+      <v-tab to="/materials/model">Material Model</v-tab>
     </v-tabs>
     <router-view></router-view>
   </v-container>

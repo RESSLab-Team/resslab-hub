@@ -44,7 +44,7 @@ export default class App extends Vue {
     },
     {
       text: "Component Model",
-      to: "/component-model",
+      to: "/model",
     },
     {
       text: "Fragility Curve",
@@ -74,7 +74,16 @@ export default class App extends Vue {
     {
       text: "Materials",
       to: "/materials",
-      children: this.subMenuItems,
+      children: [
+        {
+          text: "Database",
+          to: "/database",
+        },
+        {
+          text: "Material Model",
+          to: "/model",
+        },
+      ],
     },
     {
       text: "About",

@@ -26,7 +26,7 @@ const routes: Array<RouteConfig> = [
         component: () => import("../views/ConnectionsFragilityCurve.vue"),
       },
       {
-        path: "component-model",
+        path: "model",
         component: () => import("../views/ConnectionsComponentModel.vue"),
       },
     ],
@@ -48,7 +48,7 @@ const routes: Array<RouteConfig> = [
         component: () => import("../views/ColumnsFragilityCurve.vue"),
       },
       {
-        path: "component-model",
+        path: "model",
         component: () => import("../views/ColumnsComponentModel.vue"),
       },
     ],
@@ -70,7 +70,7 @@ const routes: Array<RouteConfig> = [
         component: () => import("../views/BracesFragilityCurve.vue"),
       },
       {
-        path: "component-model",
+        path: "model",
         component: () => import("../views/BracesComponentModel.vue"),
       },
     ],
@@ -86,6 +86,10 @@ const routes: Array<RouteConfig> = [
       {
         path: "database",
         component: () => import("../views/MaterialsDatabase.vue"),
+      },
+      {
+        path: "model",
+        component: () => import("../views/MaterialsModel.vue"),
       },
     ],
   },
