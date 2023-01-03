@@ -59,7 +59,9 @@ import CommonDetail, {
 import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
 import { publicPath } from "@/utils/common";
+import { computeUvc } from "@/utils/material";
 import { AxiosResponse } from "axios";
+import { zip } from "lodash";
 import { Component, VModel } from "vue-property-decorator";
 
 @Component({
@@ -104,6 +106,12 @@ export default class MaterialDetail extends CommonDetailMixin {
           xAxisName: "ε",
           yAxisName: "σ [MPa]",
         },
+        {
+          promise: this.uvc,
+          title: "Updated Voce-Chaboche",
+          xAxisName: "ε",
+          yAxisName: "σ [MPa]",
+        },
       ]);
     }
     return items;
@@ -111,6 +119,21 @@ export default class MaterialDetail extends CommonDetailMixin {
 
   get stressStrain(): Promise<AxiosResponse<number[][]>> {
     return this.$materialsApi.getMaterialsStressStrain(this.material.id);
+  }
+
+  get uvc(): Promise<number[][]> {
+    return this.$materialsApi
+      .getMaterialsStressStrain(this.material.id)
+      .then((response) => response.data)
+      .then((series) => {
+        const uvc = computeUvc(
+          series.map((serie) => serie[0]),
+          series.map((serie) => serie[1])
+        );
+        return zip(uvc.stress, uvc.strain).filter(
+          (v): v is [number, number] => v[0] !== undefined && v[1] !== undefined
+        );
+      });
   }
 
   get imageSrc(): string {

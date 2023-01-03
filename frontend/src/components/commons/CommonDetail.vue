@@ -83,7 +83,7 @@ export default class CommonDetail extends Vue {
 
 export interface CarouselItem {
   hidden?: boolean;
-  promise: Promise<AxiosResponse<number[][]>>;
+  promise: Promise<AxiosResponse<number[][]> | number[][]>;
   title: string;
   xAxisName: string;
   yAxisName: string;
