@@ -9,33 +9,44 @@
       {{ material.experimental_program }} ({{ material.date }}) -
       {{ material.id }}
     </template>
-    <template #element>
-      <property-item name="Profile type">
-        {{ material.profile_type }}
-      </property-item>
-      <property-item name="Cross section">
-        {{ material.profile }} {{ material.source }}
-      </property-item>
-      <property-item name="Reference round coupon">
-        {{ material.size }}
-      </property-item>
-      <property-item name="Temperature" unit="°C">
-        {{ material.t_a__deg_c_ }}
-      </property-item>
-    </template>
-    <template #designation>
-      <property-item name="Steel type">
-        {{ material.grade }} {{ material.spec }}
-      </property-item>
-      <property-item name="Nominal yield stress" unit="MPa">
-        {{ material.fy_n__mpa_ | formatNumber }}
-      </property-item>
-      <property-item name="Measured yield stress" unit="MPa">
-        {{ material.yield_stress__mpa_ | formatNumber }}
-      </property-item>
-      <property-item name="Nominal ultimate stress" unit="MPa">
-        {{ material.fu_n__mpa_ | formatNumber }}
-      </property-item>
+    <template #body>
+      <v-row>
+        <v-col cols="6">
+          <h2>Structural Steel Element</h2>
+          <p>
+            <property-item name="Profile type">
+              {{ material.profile_type }}
+            </property-item>
+            <property-item name="Cross section">
+              {{ material.profile }} {{ material.source }}
+            </property-item>
+            <property-item name="Reference round coupon">
+              {{ material.size }}
+            </property-item>
+            <property-item name="Temperature" unit="°C">
+              {{ material.t_a__deg_c_ }}
+            </property-item>
+          </p>
+          <h2>Steel Material Designation</h2>
+          <p>
+            <property-item name="Steel type">
+              {{ material.grade }} {{ material.spec }}
+            </property-item>
+            <property-item name="Nominal yield stress" unit="MPa">
+              {{ material.fy_n__mpa_ | formatNumber }}
+            </property-item>
+            <property-item name="Measured yield stress" unit="MPa">
+              {{ material.yield_stress__mpa_ | formatNumber }}
+            </property-item>
+            <property-item name="Nominal ultimate stress" unit="MPa">
+              {{ material.fu_n__mpa_ | formatNumber }}
+            </property-item>
+          </p>
+        </v-col>
+        <v-col cols="6">
+          <v-img contain :src="imageSrc"></v-img>
+        </v-col>
+      </v-row>
     </template>
   </common-detail>
 </template>
@@ -47,6 +58,7 @@ import CommonDetail, {
 } from "@/components/commons/CommonDetail.vue";
 import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
+import { publicPath } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { Component, VModel } from "vue-property-decorator";
 
@@ -83,22 +95,26 @@ export default class MaterialDetail extends CommonDetailMixin {
   }
 
   get carouselItems(): CarouselItem[][] {
-    return [
-      this.material.stress_strain_count > 0
-        ? [
-            {
-              promise: this.stressStrain,
-              title: "Stress Strain",
-              xAxisName: "e",
-              yAxisName: "σ [MPa]",
-            },
-          ]
-        : [],
-    ].filter((item) => item.length > 0);
+    const items: CarouselItem[][] = [];
+    if (this.material.stress_strain_count > 0) {
+      items.push([
+        {
+          promise: this.stressStrain,
+          title: "Stress Strain",
+          xAxisName: "e",
+          yAxisName: "σ [MPa]",
+        },
+      ]);
+    }
+    return items;
   }
 
   get stressStrain(): Promise<AxiosResponse<number[][]>> {
     return this.$materialsApi.getMaterialsStressStrain(this.material.id);
+  }
+
+  get imageSrc(): string {
+    return publicPath + "img/material/detail.png";
   }
 }
 </script>
