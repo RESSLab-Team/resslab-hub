@@ -1258,6 +1258,16 @@ export const MaterialField = {
     FractureStrain: 'fracture_strain',
     Reference: 'reference',
     Link: 'link',
+    UvcEMpa: 'uvc_e__mpa_',
+    UvcSigmaMpa: 'uvc_sigma__mpa_',
+    UvcQMpa: 'uvc_q__mpa_',
+    UvcB: 'uvc_b',
+    UvcDMpa: 'uvc_d__mpa_',
+    UvcA: 'uvc_a',
+    UvcC1Mpa: 'uvc_c1__mpa_',
+    UvcG1: 'uvc_g1',
+    UvcC2Mpa: 'uvc_c2__mpa_',
+    UvcG2: 'uvc_g2',
     Type: 'type',
     StressStrainCount: 'stress_strain_count'
 } as const;
@@ -1375,6 +1385,66 @@ export interface MaterialModel {
     'link': string;
     /**
      * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_e__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_sigma__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_q__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_b': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_d__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_a': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_c1__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_g1': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_c2__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_g2': number;
+    /**
+     * 
      * @type {string}
      * @memberof MaterialModel
      */
@@ -1399,6 +1469,16 @@ export const MaterialNumberField = {
     FuNMpa: 'fu_n__mpa_',
     YieldStressMpa: 'yield_stress__mpa_',
     FractureStrain: 'fracture_strain',
+    UvcEMpa: 'uvc_e__mpa_',
+    UvcSigmaMpa: 'uvc_sigma__mpa_',
+    UvcQMpa: 'uvc_q__mpa_',
+    UvcB: 'uvc_b',
+    UvcDMpa: 'uvc_d__mpa_',
+    UvcA: 'uvc_a',
+    UvcC1Mpa: 'uvc_c1__mpa_',
+    UvcG1: 'uvc_g1',
+    UvcC2Mpa: 'uvc_c2__mpa_',
+    UvcG2: 'uvc_g2',
     StressStrainCount: 'stress_strain_count'
 } as const;
 

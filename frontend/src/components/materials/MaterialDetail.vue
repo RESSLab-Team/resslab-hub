@@ -128,7 +128,17 @@ export default class MaterialDetail extends CommonDetailMixin {
       .then((series) => {
         const uvc = computeUvc(
           series.map((serie) => serie[0]),
-          series.map((serie) => serie[1])
+          series.map((serie) => serie[1]),
+          this.material.uvc_e__mpa_,
+          this.material.uvc_sigma__mpa_,
+          this.material.uvc_q__mpa_,
+          this.material.uvc_b,
+          this.material.uvc_d__mpa_,
+          this.material.uvc_a,
+          [
+            { c: this.material.uvc_c1__mpa_, gamma: this.material.uvc_g1 },
+            { c: this.material.uvc_c2__mpa_, gamma: this.material.uvc_g2 },
+          ]
         );
         return zip(uvc.stress, uvc.strain).filter(
           (v): v is [number, number] => v[0] !== undefined && v[1] !== undefined

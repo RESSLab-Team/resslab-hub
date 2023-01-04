@@ -281,6 +281,18 @@ class MaterialModel(BaseModel):
     fracture_strain: Optional[Decimal]
     reference: str
     link: str
+
+    uvc_e__mpa_: Decimal
+    uvc_sigma__mpa_: Decimal
+    uvc_q__mpa_: Decimal
+    uvc_b: Decimal
+    uvc_d__mpa_: Decimal
+    uvc_a: Decimal
+    uvc_c1__mpa_: Decimal
+    uvc_g1: Decimal
+    uvc_c2__mpa_: Decimal
+    uvc_g2: Decimal
+
     type: str
 
     stress_strain_count: int

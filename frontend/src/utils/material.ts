@@ -6,16 +6,13 @@ import { clone, fill, sum, zip } from "lodash";
 export function computeUvc(
   eTrue: number[],
   sigmaTrue: number[],
-  E = 197410.0,
-  sy_0 = 338.8,
-  Q = 134.34,
-  b = 14.71,
-  D = 133.75,
-  a = 229.25,
-  ks: { c: number; gamma: number }[] = [
-    { c: 26242.0, gamma: 199.04 },
-    { c: 2445.3, gamma: 11.66 },
-  ],
+  E: number,
+  sy_0: number,
+  Q: number,
+  b: number,
+  D: number,
+  a: number,
+  ks: { c: number; gamma: number }[],
   tol = 1.0e-8,
   maximum_iterations = 1000
 ): {
@@ -114,7 +111,7 @@ export function computeUvc(
 
     // Calculate the error
     stress_sim = stress * 1.0;
-    stress_test = sigmaTrue[increment_number + 1];
+    stress_test = sigmaTrue[increment_number];
 
     sum_abs_de += Math.abs(strain_inc);
     area_test +=
