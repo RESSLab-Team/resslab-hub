@@ -11,12 +11,13 @@ from enum import Enum
 from glob import iglob
 from io import TextIOWrapper
 from math import nan
-from typing import Any, Callable, List
+from multiprocessing import Pool, cpu_count
+from typing import Any, Callable, List, Tuple
 
 from chardet import detect
 from sqlalchemy import create_engine, delete
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
@@ -46,7 +47,14 @@ from resslab_hub.models.database.material import Material, MaterialStressStrain
 from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
-session = Session(engine)
+Session = sessionmaker(engine)
+
+
+def initializer():
+    """
+    https://docs.sqlalchemy.org/en/20/core/pooling.html#using-connection-pools-with-multiprocessing-or-os-fork
+    """
+    engine.dispose(close=False)  # type: ignore
 
 
 class Type(Enum):
@@ -82,14 +90,6 @@ class Uploader(ABC):
         Upload one file
         """
 
-    def upload_all(self, file_paths: List[str]) -> None:
-        """
-        Upload multiple files
-        """
-        for file_path in file_paths:
-            for filename in iglob(file_path):
-                self.upload_one(filename)
-
     @staticmethod
     def check_file(file: TextIOWrapper) -> None:
         detection = detect(file.read().encode())
@@ -112,32 +112,37 @@ class TableUploader(Uploader):
     def upload_one(self, file_path: str) -> None:
         file_path = get_abs_path(file_path)
         try:
-            with open(file_path, CSV_READ_MODE, encoding=UTF8_ENCODING) as file:
-                self.check_file(file)
-                reader = csv.reader(file, strict=True)
-                headers = next(reader)
-                id_index = headers.index(self.id_column_key)
-                ids = []
-                # add new rows
-                for row in reader:
-                    if is_empty_row(row):
-                        logging.warning("skip empty line")
-                    else:
-                        ids.append(row[id_index])
-                        data = {
-                            column.key: self.__get_value(column, headers, row)
-                            for column in self.base_model.__table__.c
-                        }
-                        session.merge(self.base_model(**data))
-                # remove outdated rows
-                database_ids = [row[0] for row in session.query(self.id_column).all()]
-                removed_ids = set(database_ids) - set(ids)
-                if removed_ids:
-                    session.execute(
-                        delete(self.base_model).where(self.id_column.in_(removed_ids)),
-                    )
-                    logging.warning(f"deleted {removed_ids}")
-            session.commit()
+            with (engine.connect() as connection, Session(bind=connection) as session):
+                with open(file_path, CSV_READ_MODE, encoding=UTF8_ENCODING) as file:
+                    self.check_file(file)
+                    reader = csv.reader(file, strict=True)
+                    headers = next(reader)
+                    id_index = headers.index(self.id_column_key)
+                    ids = []
+                    # add new rows
+                    for row in reader:
+                        if is_empty_row(row):
+                            logging.warning("skip empty line")
+                        else:
+                            ids.append(row[id_index])
+                            data = {
+                                column.key: self.__get_value(column, headers, row)
+                                for column in self.base_model.__table__.c
+                            }
+                            session.merge(self.base_model(**data))
+                    # remove outdated rows
+                    database_ids = [
+                        row[0] for row in session.query(self.id_column).all()
+                    ]
+                    removed_ids = set(database_ids) - set(ids)
+                    if removed_ids:
+                        session.execute(
+                            delete(self.base_model).where(
+                                self.id_column.in_(removed_ids)
+                            ),
+                        )
+                        logging.warning(f"deleted {removed_ids}")
+                session.commit()
         except Exception as e:
             logging.error(f"skiping {file_path} due to error {e}")
 
@@ -186,17 +191,18 @@ class CsvFileUploader(Uploader):
             id = filename.removeprefix(self.filename_prefix).removesuffix(
                 self.filename_suffix
             )
-            with open(file_path, "rt", encoding=UTF8_ENCODING) as file:
-                self.check_file(file)
-                reader = csv.DictReader(file, strict=True)
-                session.execute(self.get_delete(id))
-                for index, value in enumerate(reader):
-                    session.add(self.get_instance(id, index, value))
-            try:
-                session.commit()
-            except IntegrityError as e:
-                session.rollback()
-                logging.error(f"error: {e.orig}")
+            with (engine.connect() as connection, Session(bind=connection) as session):
+                with open(file_path, "rt", encoding=UTF8_ENCODING) as file:
+                    self.check_file(file)
+                    reader = csv.DictReader(file, strict=True)
+                    session.execute(self.get_delete(id))
+                    for index, value in enumerate(reader):
+                        session.add(self.get_instance(id, index, value))
+                try:
+                    session.commit()
+                except IntegrityError as e:
+                    session.rollback()
+                    logging.error(f"error: {e.orig}")
         except Exception as e:
             logging.error(f"skiping {file_path} due to error {e}")
 
@@ -206,70 +212,8 @@ class CsvFileUploader(Uploader):
         return os.path.splitext(basename)[0]
 
 
-def upload(input_type: Type, filenames: List[str]):
+def upload_one(input_type: Type, filename: str):
     match input_type:
-        case Type.ALL:
-            upload(Type.ALL_BRACE, filenames)
-            upload(Type.ALL_COLUMN, filenames)
-            upload(Type.ALL_CONNECTION, filenames)
-            upload(Type.ALL_MATERIAL, filenames)
-            return
-        case Type.ALL_BRACE:
-            root_folder = os.path.join(filenames[0], "braces")
-            upload(Type.BRACE, [os.path.join(root_folder, "steel_braces.csv")])
-            upload(
-                Type.BRACE_DISPLACEMENT,
-                [os.path.join(root_folder, "force_displacement", "*.csv")],
-            )
-            return
-        case Type.ALL_COLUMN:
-            root_folder = os.path.join(filenames[0], "columns")
-            upload(Type.COLUMN, [os.path.join(root_folder, "steel_columns.csv")])
-            upload(
-                Type.COLUMN_AXIAL_SHORTENING,
-                [os.path.join(root_folder, "axial_shortening_rotation", "*.csv")],
-            )
-            upload(
-                Type.COLUMN_MOMENT_STRONG,
-                [os.path.join(root_folder, "moment_rotation_strong", "*.csv")],
-            )
-            upload(
-                Type.COLUMN_MOMENT_WEAK,
-                [os.path.join(root_folder, "moment_rotation_weak", "*.csv")],
-            )
-            return
-        case Type.ALL_CONNECTION:
-            root_folder = os.path.join(filenames[0], "connections")
-            upload(Type.CONNECTION, [os.path.join(root_folder, "connections.csv")])
-            upload(
-                Type.CONNECTION_BEAM,
-                [os.path.join(root_folder, "Beam_moment_rotation", "*.csv")],
-            )
-            upload(
-                Type.CONNECTION_BEAM_WEST,
-                [os.path.join(root_folder, "Beam_moment_rotation_west", "*.csv")],
-            )
-            upload(
-                Type.CONNECTION_GLOBAL,
-                [os.path.join(root_folder, "Global", "*.csv")],
-            )
-            upload(
-                Type.CONNECTION_GLOBAL_WEST,
-                [os.path.join(root_folder, "Global_west", "*.csv")],
-            )
-            upload(
-                Type.CONNECTION_PANEL_ZONE,
-                [os.path.join(root_folder, "Panel_zone", "*.csv")],
-            )
-            return
-        case Type.ALL_MATERIAL:
-            root_folder = os.path.join(filenames[0], "material")
-            upload(Type.MATERIAL, [os.path.join(root_folder, "steel_material.csv")])
-            upload(
-                Type.MATERIAL_STRESS_STRAIN,
-                [os.path.join(root_folder, "stress_strain", "*.csv")],
-            )
-            return
         case Type.BRACE:
             uploader = TableUploader(Brace)
         case Type.COLUMN:
@@ -401,7 +345,93 @@ def upload(input_type: Type, filenames: List[str]):
         case _:
             raise NotImplementedError(f"unknown type {input_type}")
 
-    uploader.upload_all(filenames)
+    uploader.upload_one(filename)
+
+
+def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
+    match input_type:
+        case Type.ALL:
+            return (
+                get_args_all(Type.ALL_BRACE, filename)
+                + get_args_all(Type.ALL_COLUMN, filename)
+                + get_args_all(Type.ALL_CONNECTION, filename)
+                + get_args_all(Type.ALL_MATERIAL, filename)
+            )
+        case Type.ALL_BRACE:
+            root_folder = os.path.join(filename, "braces")
+            return [
+                (Type.BRACE, os.path.join(root_folder, "steel_braces.csv")),
+                (
+                    Type.BRACE_DISPLACEMENT,
+                    os.path.join(root_folder, "force_displacement", "*.csv"),
+                ),
+            ]
+        case Type.ALL_COLUMN:
+            root_folder = os.path.join(filename, "columns")
+            return [
+                (Type.COLUMN, os.path.join(root_folder, "steel_columns.csv")),
+                (
+                    Type.COLUMN_AXIAL_SHORTENING,
+                    os.path.join(root_folder, "axial_shortening_rotation", "*.csv"),
+                ),
+                (
+                    Type.COLUMN_MOMENT_STRONG,
+                    os.path.join(root_folder, "moment_rotation_strong", "*.csv"),
+                ),
+                (
+                    Type.COLUMN_MOMENT_WEAK,
+                    os.path.join(root_folder, "moment_rotation_weak", "*.csv"),
+                ),
+            ]
+        case Type.ALL_CONNECTION:
+            root_folder = os.path.join(filename, "connections")
+            return [
+                (Type.CONNECTION, os.path.join(root_folder, "connections.csv")),
+                (
+                    Type.CONNECTION_BEAM,
+                    os.path.join(root_folder, "Beam_moment_rotation", "*.csv"),
+                ),
+                (
+                    Type.CONNECTION_BEAM_WEST,
+                    os.path.join(root_folder, "Beam_moment_rotation_west", "*.csv"),
+                ),
+                (
+                    Type.CONNECTION_GLOBAL,
+                    os.path.join(root_folder, "Global", "*.csv"),
+                ),
+                (
+                    Type.CONNECTION_GLOBAL_WEST,
+                    os.path.join(root_folder, "Global_west", "*.csv"),
+                ),
+                (
+                    Type.CONNECTION_PANEL_ZONE,
+                    os.path.join(root_folder, "Panel_zone", "*.csv"),
+                ),
+            ]
+        case Type.ALL_MATERIAL:
+            root_folder = os.path.join(filename, "material")
+            return [
+                (Type.MATERIAL, os.path.join(root_folder, "steel_material.csv")),
+                (
+                    Type.MATERIAL_STRESS_STRAIN,
+                    os.path.join(root_folder, "stress_strain", "*.csv"),
+                ),
+            ]
+        case _:
+            return [(input_type, filename)]
+
+
+def upload_all(input_type: Type, filenames: List[str]):
+    wildcard_args: List[Tuple[Type, str]] = [
+        arg for filename in filenames for arg in get_args_all(input_type, filename)
+    ]
+    args: List[Tuple[Type, str]] = [
+        (arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])
+    ]
+    cpu = cpu_count()
+    logging.info(f"using {cpu} processes")
+    with Pool(cpu, initializer=initializer) as pool:
+        pool.starmap(upload_one, args)
 
 
 def main():
@@ -415,7 +445,7 @@ def main():
 
     logging.debug(f"connecting to {engine.url}")
 
-    upload(input_type, filenames)
+    upload_all(input_type, filenames)
 
 
 if __name__ == "__main__":
