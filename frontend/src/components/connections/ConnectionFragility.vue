@@ -9,6 +9,9 @@
         <v-card-text>
           <v-row>
             <v-col>
+              <toggle v-model="unitSystem" :items="unitItems"></toggle>
+              <br />
+              <br />
               <h2>Steel Type</h2>
               <toggle
                 v-model="material"
@@ -18,11 +21,17 @@
             </v-col>
             <v-col>
               <h2>Geometric Parameters</h2>
+              <v-switch
+                v-model="infoAvailable"
+                color="blue"
+                label="Geometric parameters available"
+              ></v-switch>
               <unit-slider
                 v-for="item in parameters"
                 :key="item.key"
                 v-model="$data[item.key]"
                 class="my-4"
+                :disabled="!infoAvailable"
                 :label="item.label"
                 :max="item.max"
                 :min="item.min"
@@ -36,11 +45,19 @@
     </v-col>
     <v-col cols="6">
       <h2>Pre-Northridge</h2>
-      <unit-chart :option="preNorthridgeOption" x-unit="rad"></unit-chart>
+      <unit-chart
+        :option="preNorthridgeOption"
+        :unit-system="unitSystem"
+        x-unit="rad"
+      ></unit-chart>
     </v-col>
     <v-col cols="6">
       <h2>Post-Northridge</h2>
-      <unit-chart :option="postNorthridgeOption" x-unit="rad"></unit-chart>
+      <unit-chart
+        :option="postNorthridgeOption"
+        :unit-system="unitSystem"
+        x-unit="rad"
+      ></unit-chart>
     </v-col>
   </v-row>
 </template>
@@ -50,7 +67,7 @@ import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import UnitSlider, {
   UnitSliderItem,
 } from "@/components/commons/sliders/UnitSlider.vue";
-import Toggle, { ToggleItem } from "@/components/commons/Toggle.vue";
+import Toggle, { ToggleItem, unitItems } from "@/components/commons/Toggle.vue";
 import { fragilityCurve } from "@/utils/fragility";
 import { UnitSystem } from "@/utils/unit";
 import { getColorMap } from "@/utils/vuetify";
@@ -63,11 +80,12 @@ import { Component, Vue } from "vue-property-decorator";
 @Component({
   components: {
     Toggle,
-    UnitSlider,
     UnitChart,
+    UnitSlider,
   },
 })
 export default class ConnectionFragility extends Vue {
+  readonly unitItems = unitItems;
   readonly unitSystem: UnitSystem = "metric";
 
   readonly parameters: UnitSliderItem<keyof ConnectionFragility>[] = [
@@ -76,15 +94,18 @@ export default class ConnectionFragility extends Vue {
       label: "L",
       min: 1000,
       max: 12000,
+      unit: "mm",
     },
     {
       key: "db",
       label: "d<sub>b</sub>",
       min: 100,
       max: 2000,
+      unit: "mm",
     },
   ];
 
+  infoAvailable = true;
   material: Material = "a36";
   materials: ToggleItem<Material>[] = [
     {
@@ -101,10 +122,24 @@ export default class ConnectionFragility extends Vue {
   db = 600;
 
   get preNorthridgeOption(): EChartsOption {
-    const yieldingMedian = this.material === "a36" ? 0.77 : 0.76;
-    const yieldingSigma = this.material === "a36" ? 0.32 : 0.19;
-    const fractureMedian = 1.85;
-    const fractureSigma = 0.47;
+    let yieldingMedian: number;
+    let yieldingSigma: number;
+    let fractureMedian: number;
+    let fractureSigma: number;
+    if (this.infoAvailable) {
+      yieldingMedian =
+        this.material === "a36"
+          ? Math.exp(-1.83 + 0.16 * (this.l / this.db))
+          : Math.exp(-0.56 + 0.028 * (this.l / this.db));
+      yieldingSigma = this.material === "a36" ? 0.24 : 0.18;
+      fractureMedian = Math.exp(0.99 - 0.0074 * (this.db / 10));
+      fractureSigma = 0.44;
+    } else {
+      yieldingMedian = this.material === "a36" ? 0.77 : 0.76;
+      yieldingSigma = this.material === "a36" ? 0.32 : 0.19;
+      fractureMedian = 1.85;
+      fractureSigma = 0.47;
+    }
     return {
       xAxis: {
         name: "SDR",
