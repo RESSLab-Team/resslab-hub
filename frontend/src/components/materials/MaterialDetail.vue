@@ -60,7 +60,6 @@ import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
 import { publicPath } from "@/utils/common";
 import { computeUvc } from "@/utils/material";
-import { AxiosResponse } from "axios";
 import { zip } from "lodash";
 import { Component, VModel } from "vue-property-decorator";
 
@@ -117,8 +116,11 @@ export default class MaterialDetail extends CommonDetailMixin {
     return items;
   }
 
-  get stressStrain(): Promise<AxiosResponse<number[][]>> {
-    return this.$materialsApi.getMaterialsStressStrain(this.material.id);
+  get stressStrain(): Promise<number[][]> {
+    return this.$materialsApi
+      .getMaterialsStressStrain(this.material.id)
+      .then((response) => response.data)
+      .then((series) => series.map((serie) => [serie[1], serie[0]]));
   }
 
   get uvc(): Promise<number[][]> {
@@ -127,8 +129,8 @@ export default class MaterialDetail extends CommonDetailMixin {
       .then((response) => response.data)
       .then((series) => {
         const uvc = computeUvc(
-          series.map((serie) => serie[0]),
           series.map((serie) => serie[1]),
+          series.map((serie) => serie[0]),
           this.material.uvc_e__mpa_,
           this.material.uvc_sigma__mpa_,
           this.material.uvc_q__mpa_,
