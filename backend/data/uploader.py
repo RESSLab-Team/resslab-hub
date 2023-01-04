@@ -170,7 +170,7 @@ class CsvFileUploader(Uploader):
     def __init__(
         self,
         get_delete: Callable[[str], delete],
-        get_instance: Callable[[str, int, List[str]], Any],
+        get_instance: Callable[[str, int, dict[str, str]], Any],
         filename_prefix="",
         filename_suffix="",
     ) -> None:
@@ -188,8 +188,7 @@ class CsvFileUploader(Uploader):
             )
             with open(file_path, "rt", encoding=UTF8_ENCODING) as file:
                 self.check_file(file)
-                reader = csv.reader(file, strict=True)
-                next(reader)  # skip header
+                reader = csv.DictReader(file, strict=True)
                 session.execute(self.get_delete(id))
                 for index, value in enumerate(reader):
                     session.add(self.get_instance(id, index, value))
@@ -287,8 +286,8 @@ def upload(input_type: Type, filenames: List[str]):
                 lambda id, index, value: BraceDisplacement(
                     brace_id=id,
                     id=index,
-                    displacement=value[0],
-                    force=value[1],
+                    displacement=value["Displacement [mm]"],
+                    force=value["Force [kN]"],
                 ),
             )
         case Type.COLUMN_AXIAL_SHORTENING:
@@ -299,8 +298,8 @@ def upload(input_type: Type, filenames: List[str]):
                 lambda id, index, value: ColumnAxialShortening(
                     column_id=id,
                     id=index,
-                    chord_rotation=value[0],
-                    axial_shortening=value[1],
+                    chord_rotation=value["Chord Rotation [rads]"],
+                    axial_shortening=value["Axial Shortening [mm]"],
                 ),
             )
         case Type.COLUMN_MOMENT_STRONG:
@@ -311,8 +310,8 @@ def upload(input_type: Type, filenames: List[str]):
                 lambda id, index, value: ColumnMomentStrong(
                     column_id=id,
                     id=index,
-                    chord_rotation=value[0],
-                    moment=value[1],
+                    chord_rotation=value["Chord Rotation [rads]"],
+                    moment=value["Moment [kN-mm]"],
                 ),
             )
         case Type.COLUMN_MOMENT_WEAK:
@@ -323,8 +322,8 @@ def upload(input_type: Type, filenames: List[str]):
                 lambda id, index, value: ColumnMomentWeak(
                     column_id=id,
                     id=index,
-                    chord_rotation=value[0],
-                    moment=value[1],
+                    chord_rotation=value["Chord Rotation [rads]"],
+                    moment=value["Moment [kN-mm]"],
                 ),
             )
         case Type.CONNECTION_BEAM:
@@ -335,8 +334,8 @@ def upload(input_type: Type, filenames: List[str]):
                 lambda id, index, value: ConnectionBeam(
                     connection_id=id,
                     id=index,
-                    chord_rotation=value[0],
-                    moment=value[1],
+                    chord_rotation=value["Chrord Rotation, θ [rads]"],
+                    moment=value["Moment [kN-mm]"],
                 ),
             )
         case Type.CONNECTION_BEAM_WEST:
@@ -347,8 +346,8 @@ def upload(input_type: Type, filenames: List[str]):
                 lambda id, index, value: ConnectionBeamWest(
                     connection_id=id,
                     id=index,
-                    chord_rotation=value[0],
-                    moment=value[1],
+                    chord_rotation=value["Chrord Rotation, θ [rads]"],
+                    moment=value["Moment [kN-mm]"],
                 ),
             )
         case Type.CONNECTION_GLOBAL:
@@ -359,8 +358,8 @@ def upload(input_type: Type, filenames: List[str]):
                 lambda id, index, value: ConnectionGlobal(
                     connection_id=id,
                     id=index,
-                    story_drift_angle=value[0],
-                    actuator_force=value[1],
+                    story_drift_angle=value["Total story drift angle (rad)"],
+                    actuator_force=value["Force in the actuator (kN)"],
                 ),
             )
         case Type.CONNECTION_GLOBAL_WEST:
@@ -371,8 +370,8 @@ def upload(input_type: Type, filenames: List[str]):
                 lambda id, index, value: ConnectionGlobalWest(
                     connection_id=id,
                     id=index,
-                    story_drift_angle=value[0],
-                    actuator_force=value[1],
+                    story_drift_angle=value["Total story drift angle (rad)"],
+                    actuator_force=value["Force in the actuator (kN)"],
                 ),
             )
         case Type.CONNECTION_PANEL_ZONE:
@@ -383,8 +382,8 @@ def upload(input_type: Type, filenames: List[str]):
                 lambda id, index, value: ConnectionPanelZone(
                     connection_id=id,
                     id=index,
-                    shear_distortion=value[0],
-                    shear_force=value[1],
+                    shear_distortion=value["panel zone shear distortion (rad)"],
+                    shear_force=value["panel zone shear force (kN)"],
                 ),
             )
         case Type.MATERIAL_STRESS_STRAIN:
@@ -395,8 +394,8 @@ def upload(input_type: Type, filenames: List[str]):
                 lambda id, index, value: MaterialStressStrain(
                     material_id=id,
                     id=index,
-                    stress=value[0],
-                    strain=value[1],
+                    stress=value["Sigma_true"],
+                    strain=value["e_true"],
                 ),
             )
         case _:
