@@ -62,6 +62,7 @@ import { publicPath } from "@/utils/common";
 import { computeUvc } from "@/utils/material";
 import { zip } from "lodash";
 import { Component, VModel } from "vue-property-decorator";
+import colors from "vuetify/lib/util/colors";
 
 @Component({
   components: {
@@ -108,6 +109,13 @@ export default class MaterialDetail extends CommonDetailMixin {
         {
           promise: this.uvc,
           title: "Updated Voce-Chaboche",
+          xAxisName: "ε",
+          yAxisName: "σ [MPa]",
+          color: colors.blue,
+        },
+        {
+          promises: [this.stressStrain, this.uvc],
+          title: "Stress Strain",
           xAxisName: "ε",
           yAxisName: "σ [MPa]",
         },

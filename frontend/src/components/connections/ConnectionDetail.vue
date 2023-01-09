@@ -117,7 +117,6 @@
 
 <script lang="ts">
 import { ConnectionModel } from "@/backend";
-import SimpleLineChart from "@/components/commons/charts/SimpleLineChart.vue";
 import CommonDetail, {
   CarouselItem,
 } from "@/components/commons/CommonDetail.vue";
@@ -130,7 +129,6 @@ import { Component, VModel } from "vue-property-decorator";
 @Component({
   components: {
     CommonDetail,
-    SimpleLineChart,
     PropertyItem,
   },
 })
