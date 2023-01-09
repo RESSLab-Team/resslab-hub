@@ -12,7 +12,7 @@ export function computeUvc(
   b: number,
   D: number,
   a: number,
-  ks: { c: number; gamma: number }[],
+  backstresses: { c: number; gamma: number }[],
   tol = 1.0e-8,
   maximum_iterations = 1000
 ): {
@@ -22,7 +22,7 @@ export function computeUvc(
   num_its: number[];
   area: number;
 } {
-  const alpha_components = fill(Array(ks.length), 0);
+  const alpha_components = fill(Array(backstresses.length), 0);
   let strain = 0;
   let stress = 0;
   let ep_eq = 0;
@@ -50,7 +50,7 @@ export function computeUvc(
     const flow_dir = Math.sign(relative_stress);
 
     const yield_condition = Math.abs(relative_stress) - yield_stress;
-    let is_converged = yield_condition > tol;
+    let is_converged = yield_condition <= tol;
 
     // For error
     const stress_sim_1 = stress_sim * 1.0;
@@ -72,7 +72,7 @@ export function computeUvc(
       // Kinematic hardening and kinematic modulus
       let alpha = 0;
       let kin_modulus = 0;
-      ks.forEach((k, i) => {
+      backstresses.forEach((k, i) => {
         const e_k = Math.exp(-k.gamma * (ep_eq - ep_eq_init));
         alpha +=
           (flow_dir * k.c) / k.gamma +
@@ -97,7 +97,7 @@ export function computeUvc(
 
     // Update the variables
     stress = trial_stress - E * flow_dir * consist_param;
-    ks.forEach((k, i) => {
+    backstresses.forEach((k, i) => {
       const e_k = Math.exp(-k.gamma * (ep_eq - ep_eq_init));
       alpha_components[i] =
         (flow_dir * k.c) / k.gamma +
@@ -133,13 +133,26 @@ export function computeUvc(
 
   const area = area_test / sum_abs_de;
   error = error / sum_abs_de;
-  return {
+  const result = {
     stress: stress_track,
     strain: strain_track,
     error: error,
     num_its: iteration_track,
     area: area,
   };
+  // console.debug([
+  //   E,
+  //   sy_0,
+  //   Q,
+  //   b,
+  //   D,
+  //   a,
+  //   ...backstresses.flatMap((k) => [k.c, k.gamma]),
+  // ]);
+  // console.debug(eTrue);
+  // console.debug(sigmaTrue);
+  // console.debug(result);
+  return result;
 }
 
 /**

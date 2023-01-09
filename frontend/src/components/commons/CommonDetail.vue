@@ -27,18 +27,35 @@
           v-for="(carouselItem, carouselIndex) in carouselItems"
           :key="carouselIndex"
         >
-          <template v-for="(item, index) in carouselItem">
-            <simple-line-chart
-              v-if="!item.hidden"
-              :key="index"
-              :color="color"
-              :max-width="chartHeight"
-              :promise="item.promise"
-              :title="item.title"
-              :x-axis-name="item.xAxisName"
-              :y-axis-name="item.yAxisName"
-            ></simple-line-chart>
-          </template>
+          <v-row>
+            <template v-for="(item, index) in carouselItem">
+              <v-col
+                v-if="!item.hidden"
+                :key="index"
+                class="d-flex justify-center"
+                :cols="12 / carouselItem.filter((item) => !item.hidden).length"
+              >
+                <simple-line-chart
+                  v-if="item.promise"
+                  :color="item.color ?? chartColor"
+                  :max-width="chartHeight"
+                  :promise="item.promise"
+                  :title="item.title"
+                  :x-axis-name="item.xAxisName"
+                  :y-axis-name="item.yAxisName"
+                ></simple-line-chart>
+                <multiple-line-chart
+                  v-if="item.promises"
+                  :colors="chartColors"
+                  :max-width="chartHeight"
+                  :promises="item.promises"
+                  :title="item.title"
+                  :x-axis-name="item.xAxisName"
+                  :y-axis-name="item.yAxisName"
+                ></multiple-line-chart>
+              </v-col>
+            </template>
+          </v-row>
         </v-carousel-item>
       </v-carousel>
       <slot v-if="$slots.body" name="body"></slot>
@@ -53,21 +70,25 @@
 </template>
 
 <script lang="ts">
+import MultipleLineChart, {
+  Response,
+} from "@/components/commons/charts/MultipleLineChart.vue";
 import SimpleLineChart from "@/components/commons/charts/SimpleLineChart.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { AxiosResponse } from "axios";
 import { Component, Prop, Vue } from "vue-property-decorator";
-import colors from "vuetify/lib/util/colors";
+import colors, { Color } from "vuetify/lib/util/colors";
 
 @Component({
   components: {
+    MultipleLineChart,
     SimpleLineChart,
     PropertyItem,
   },
 })
 export default class CommonDetail extends Vue {
-  readonly color = colors.red;
   readonly chartHeight = 300;
+  readonly chartColor = colors.red;
+  readonly chartColors = [colors.red, colors.blue];
 
   @Prop(String)
   readonly reference!: string;
@@ -83,10 +104,12 @@ export default class CommonDetail extends Vue {
 
 export interface CarouselItem {
   hidden?: boolean;
-  promise: Promise<AxiosResponse<number[][]> | number[][]>;
+  promise?: Promise<Response>;
+  promises?: Promise<Response>[];
   title: string;
   xAxisName: string;
   yAxisName: string;
+  color?: Color;
 }
 </script>
 
