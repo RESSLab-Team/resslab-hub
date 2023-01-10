@@ -33,6 +33,8 @@ def transform(input_path: str, output_path: str, mappings: List[Mapping]) -> Non
 
 
 def from_number(value: Union[Decimal, str]) -> Any:
+    if isinstance(value, str):
+        value = value.replace("'", "")
     return Decimal(value).normalize()
 
 
@@ -68,6 +70,8 @@ def main():
             ),
             Mapping("ry", lambda item: from_number(Decimal(item["r_y"]) * INCH)),
             Mapping("d", lambda item: from_number(Decimal(item["d"]) * INCH)),
+            Mapping("a", lambda item: from_number(Decimal(item["a"]) * INCH)),
+            Mapping("iy", lambda item: from_number(Decimal(item["i_y"]) * INCH)),
         ]
     elif source == Source.EUROPEAN:
         mappings = [
@@ -87,6 +91,8 @@ def main():
             Mapping("zx", lambda item: from_number(item["w_ply"])),
             Mapping("ry", lambda item: from_number(item["r_z"])),
             Mapping("d", lambda item: from_number(item["h"])),
+            Mapping("a", lambda item: from_number(item["a"])),
+            Mapping("iy", lambda item: from_number(item["i_y"])),
         ]
     elif source == Source.JAPANESE:
         mappings = [
@@ -106,6 +112,8 @@ def main():
             Mapping("zx", lambda item: from_number(item["z_x"].replace("'", ""))),
             Mapping("ry", lambda item: from_number(item["r_y"])),
             Mapping("d", lambda item: from_number(item["d"])),
+            Mapping("a", lambda item: from_number(item["a"])),
+            Mapping("iy", lambda item: from_number(item["i_y"])),
         ]
 
     transform(input, output, mappings)
