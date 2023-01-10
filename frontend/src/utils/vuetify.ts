@@ -4,11 +4,10 @@ import colors, { Color } from "vuetify/lib/util/colors";
 export const booleanOptions = [true, false];
 
 // https://vuetifyjs.com/en/api/v-select/#props-items
-interface SelectItemObject {
+export interface SelectItemObject<V = string | number | object> {
   // eslint-disable-next-line @typescript-eslint/ban-types
   text: string | number | object;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  value: string | number | object;
+  value: V;
   disabled?: boolean;
   divider?: boolean;
   header?: string;
