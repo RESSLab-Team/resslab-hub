@@ -1,12 +1,12 @@
-import ConnectionComponent from "@/components/connections/ConnectionComponent.vue";
+import ConnectionModel from "@/components/connections/ConnectionModel.vue";
 import { shallowMount } from "@vue/test-utils";
 
-describe("ConnectionComponent.vue", () => {
+describe("ConnectionModel.vue", () => {
   it("aisc - W36X150", async () => {
     const radPrecision = 4;
     const mmPrecision = 0;
 
-    const wrapper = shallowMount<ConnectionComponent>(ConnectionComponent);
+    const wrapper = shallowMount<ConnectionModel>(ConnectionModel);
     await wrapper.setData({
       section: {
         id: "W36X150",

@@ -6,5 +6,8 @@
     {
       "path": "../resslab-hub-data"
     }
-  ]
+  ],
+  "settings": {
+    "vetur.validation.script": false
+  }
 }

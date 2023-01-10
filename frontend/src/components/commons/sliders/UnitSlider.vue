@@ -95,6 +95,27 @@ export interface UnitSliderItem<K = string> {
   max: number;
   unit?: string;
 }
+
+export class Variable {
+  public key: string;
+  public text: string;
+  public unit: string;
+  public min: number;
+  public max: number;
+  constructor(options: {
+    key: string;
+    text: string;
+    unit?: string;
+    min: number;
+    max: number;
+  }) {
+    this.key = options.key;
+    this.text = options.text;
+    this.unit = options.unit ?? "";
+    this.min = options.min;
+    this.max = options.max;
+  }
+}
 </script>
 
 <style lang="scss" scoped>
