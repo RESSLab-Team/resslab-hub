@@ -106,7 +106,7 @@ export default class UnitChart extends Vue {
           : xAXisOption.name,
         nameLocation: "middle",
         nameGap: 26,
-        max: "dataMax",
+        max: xAXisOption.max ?? "dataMax",
         axisLabel: {
           formatter: (value: number) =>
             `${round(value, this.axisLabelMaxDigits)}`,
@@ -118,8 +118,8 @@ export default class UnitChart extends Vue {
           ? `${yAXisOption.name} [${this.yUnitParent.unitLabel}]`
           : yAXisOption.name,
         nameLocation: "middle",
-        nameGap: 80,
-        max: "dataMax",
+        nameGap: 50,
+        max: yAXisOption.max ?? "dataMax",
         axisLabel: {
           formatter: (value: number) =>
             `${round(value, this.axisLabelMaxDigits)}`,
