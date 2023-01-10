@@ -11,6 +11,8 @@ declare module "*-sections.csv" {
     zx: number;
     ry: number;
     d: number;
+    a: number;
+    iy: number;
   }[];
   export default content;
 }

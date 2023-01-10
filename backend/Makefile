@@ -56,9 +56,9 @@ upload-data-test:
 	ENV_FOR_DYNACONF=test $(MAKE) upload-data
 
 transform-data:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python python data/csv_transformer.py aisc ../../resslab-hub-data/connections/component/aisc.csv ../frontend/src/assets/connection/aisc-sections.csv
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python python data/csv_transformer.py european ../../resslab-hub-data/connections/component/european.csv ../frontend/src/assets/connection/european-sections.csv
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python python data/csv_transformer.py japanese ../../resslab-hub-data/connections/component/japanese.csv ../frontend/src/assets/connection/japanese-sections.csv
+	poetry run python data/csv_transformer.py aisc ../../resslab-hub-data/connections/component/aisc.csv ../frontend/src/assets/connection/aisc-sections.csv
+	poetry run python data/csv_transformer.py european ../../resslab-hub-data/connections/component/european.csv ../frontend/src/assets/connection/european-sections.csv
+	poetry run python data/csv_transformer.py japanese ../../resslab-hub-data/connections/component/japanese.csv ../frontend/src/assets/connection/japanese-sections.csv
 
 analyze-data:
 	poetry run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv

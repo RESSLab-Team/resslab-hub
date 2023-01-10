@@ -30,4 +30,6 @@ export interface Section {
   zx: number;
   ry: number;
   d: number;
+  a: number;
+  iy: number;
 }
