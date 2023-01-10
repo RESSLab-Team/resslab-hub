@@ -7,8 +7,51 @@ import UnitSlider, {
 import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import { publicPath, Section } from "@/utils/common";
 import { UnitSystem } from "@/utils/unit";
-import { reactive, ref, Ref } from "vue";
+import { SelectItemObject } from "@/utils/vuetify";
 
+import { reactive, ref, Ref, watch } from "vue";
+
+type SteelType = "S235" | "S275" | "S355" | "S420" | "S460";
+type Option =
+  | "wide-flange"
+  | "double-c"
+  | "double-l"
+  | "round"
+  | "square"
+  | "l-shape";
+
+const steelTypes: SteelType[] = ["S235", "S275", "S355", "S420", "S460"];
+const options: SelectItemObject<Option>[] = [
+  {
+    text: "Wide-Flange",
+    value: "wide-flange",
+  },
+  {
+    text: "Double C-shape",
+    value: "double-c",
+    disabled: true,
+  },
+  {
+    text: "Double L-shape",
+    value: "double-l",
+    disabled: true,
+  },
+  {
+    text: "Round",
+    value: "round",
+    disabled: true,
+  },
+  {
+    text: "Square or Rectangular",
+    value: "square",
+    disabled: true,
+  },
+  {
+    text: "L-shape",
+    value: "l-shape",
+    disabled: true,
+  },
+];
 const variableBind = {
   cols: "12",
   md: "6",
@@ -38,14 +81,79 @@ const steelShapeDimensions: Variable[] = [
     max: 100,
   }),
 ];
+const steelTypeVariables: Variable[] = [
+  new Variable({
+    key: "omega",
+    text: "Omega",
+    min: 1,
+    max: 2,
+  }),
+  new Variable({
+    key: "fy",
+    text: "fy",
+    unit: "MPa",
+    min: 250,
+    max: 500,
+  }),
+];
+const additionalParameterVariables: Variable[] = [
+  new Variable({
+    key: "lee",
+    text: "Lee",
+    min: 1000,
+    max: 12000,
+  }),
+  new Variable({
+    key: "lcr",
+    text: "Lcr",
+    min: 1000,
+    max: 12000,
+  }),
+];
 
 const unitSystem: Ref<UnitSystem> = ref("metric");
-const section: Ref<Section> = ref();
+const section: Ref<Section | undefined> = ref();
+const steelType: Ref<SteelType | undefined> = ref();
+const option: Ref<Option> = ref("wide-flange");
+
 const variables = reactive({
   bf: 100,
   d: 100,
   tf: 5,
   tw: 5,
+  omega: 1,
+  fy: 250,
+  e: 210000,
+  lee: 8000,
+  lcr: 8000,
+  a: 10000,
+  iz: 10000,
+  iy: 1000000,
+});
+
+watch(steelType, (value) => {
+  switch (value) {
+    case "S235":
+      variables.omega = 1.45;
+      variables.fy = 235;
+      return;
+    case "S275":
+      variables.omega = 1.35;
+      variables.fy = 275;
+      return;
+    case "S355":
+      variables.omega = 1.25;
+      variables.fy = 255;
+      return;
+    case "S420":
+      variables.omega = 1.25;
+      variables.fy = 420;
+      return;
+    case "S460":
+      variables.omega = 1.2;
+      variables.fy = 460;
+      return;
+  }
 });
 
 function onSectionChanged(value: Section): void {
@@ -117,12 +225,83 @@ function onSectionChanged(value: Section): void {
           </v-card>
         </v-col>
       </v-row>
+      <v-row>
+        <v-col>
+          <v-card>
+            <v-card-title>Steel Type</v-card-title>
+            <v-card-text>
+              <v-row>
+                <v-col v-bind="variableBind">
+                  <v-select
+                    v-model="steelType"
+                    clearable
+                    hide-details
+                    :items="steelTypes"
+                    label="Select Steel Type"
+                    single-line
+                  ></v-select>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col
+                  v-for="item in steelTypeVariables"
+                  :key="item.key"
+                  v-bind="variableBind"
+                >
+                  <unit-slider
+                    v-model="variables[item.key]"
+                    :disabled="!!steelType"
+                    :label="item.text"
+                    :max="item.max"
+                    :min="item.min"
+                    :unit="item.unit"
+                    :unit-system="unitSystem"
+                  ></unit-slider>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
     </v-col>
     <v-col cols="6">
       <v-img
         contain
         :src="publicPath + 'img/brace/I_shaped_Bracing.png'"
       ></v-img>
+    </v-col>
+    <v-col cols="6">
+      <v-card>
+        <v-card-title>Additional Parameters</v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col
+              v-for="item in additionalParameterVariables"
+              :key="item.key"
+              v-bind="variableBind"
+            >
+              <unit-slider
+                v-model="variables[item.key]"
+                :label="item.text"
+                :max="item.max"
+                :min="item.min"
+                :unit="item.unit"
+                :unit-system="unitSystem"
+              ></unit-slider>
+            </v-col>
+            <v-col v-bind="variableBind">
+              <v-select
+                v-model="option"
+                clearable
+                hide-details
+                :items="options"
+                label="Select Option"
+                single-line
+              ></v-select>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
     </v-col>
   </v-row>
 </template>

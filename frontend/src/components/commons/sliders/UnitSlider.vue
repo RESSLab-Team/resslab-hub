@@ -96,14 +96,14 @@ export interface UnitSliderItem<K = string> {
   unit?: string;
 }
 
-export class Variable {
-  public key: string;
+export class Variable<K = string> {
+  public key: K;
   public text: string;
   public unit: string;
   public min: number;
   public max: number;
   constructor(options: {
-    key: string;
+    key: K;
     text: string;
     unit?: string;
     min: number;
