@@ -7,9 +7,11 @@ import UnitSlider, {
 import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import { publicPath, Section } from "@/utils/common";
 import { UnitSystem } from "@/utils/unit";
-import { SelectItemObject } from "@/utils/vuetify";
+import { primaryColor, SelectItemObject } from "@/utils/vuetify";
+import { EChartsOption } from "echarts";
+import UnitChart from "@/components/commons/charts/UnitChart.vue";
 
-import { reactive, ref, Ref, watch } from "vue";
+import { computed, reactive, ref, Ref, watch } from "vue";
 
 type SteelType = "S235" | "S275" | "S355" | "S420" | "S460";
 type Option =
@@ -19,6 +21,15 @@ type Option =
   | "round"
   | "square"
   | "l-shape";
+interface Result {
+  delta_y: number;
+  delta_ut: number;
+  Nple: number;
+  delta_c: number;
+  delta_ub: number;
+  Nbe: number;
+  Nu_c: number;
+}
 
 const steelTypes: SteelType[] = ["S235", "S275", "S355", "S420", "S460"];
 const options: SelectItemObject<Option>[] = [
@@ -156,6 +167,64 @@ watch(steelType, (value) => {
   }
 });
 
+const result: Ref<Result> = computed(() => {
+  const Imin = Math.min(variables.iz, variables.iy);
+  const i = Math.sqrt(Imin / variables.a);
+
+  let lamda_f: number;
+  let lamda_CL1: number;
+  switch (option.value) {
+    case "wide-flange": {
+      const c = 10;
+      const t = 2;
+      lamda_f = c / t;
+      lamda_CL1 = 9 * Math.sqrt(235 / variables.fy);
+    }
+  }
+  const NbRd = 1;
+  const NplRd = 1;
+  const Nple = variables.omega * NplRd;
+  const Nbe = variables.omega * NbRd;
+  const Nu_c = 0.2 * variables.omega * NbRd;
+  const delta_y = 1;
+  const delta_c = 1;
+
+  let delta_ub: number;
+  let delta_ut: number;
+  switch (option.value) {
+    case "wide-flange": {
+      delta_ub =
+        5.6 *
+        Math.pow(lamda_f / lamda_CL1, -1.7) *
+        Math.pow(
+          (variables.lcr / i) *
+            Math.sqrt((variables.omega * variables.fy) / variables.e),
+          0.4
+        ) *
+        delta_c;
+      delta_ut =
+        3.4 *
+        Math.pow(lamda_f / lamda_CL1, -1.7) *
+        Math.pow(
+          (variables.lcr / i) *
+            Math.sqrt((variables.omega * variables.fy) / variables.e),
+          0.4
+        ) *
+        delta_y;
+    }
+  }
+
+  return {
+    delta_y: delta_y,
+    delta_ut: delta_ut,
+    Nple: Nple,
+    delta_c: delta_c,
+    delta_ub: delta_ub,
+    Nbe: Nbe,
+    Nu_c: Nu_c,
+  };
+});
+
 function onSectionChanged(value: Section): void {
   section.value = value ?? null;
   if (value) {
@@ -164,6 +233,76 @@ function onSectionChanged(value: Section): void {
     variables.tf = value.tf;
     variables.tw = value.tw;
   }
+}
+
+function getTensionOption(result: Result): EChartsOption {
+  return {
+    xAxis: {
+      name: "Normalized Axial Displacement, δ / δy",
+      max: 1.2 * result.delta_ut,
+    },
+    yAxis: {
+      name: "Normalized Axial Resistance, Nt / N",
+      max: 1.2 * result.Nple,
+    },
+    series: [
+      {
+        type: "line",
+        data: [
+          [0, 0],
+          [result.delta_y, result.Nple],
+          [result.delta_ut, result.Nple],
+        ],
+        color: primaryColor.base,
+      },
+      {
+        type: "line",
+        data: [
+          [result.delta_ut, result.Nple],
+          [result.delta_ut, 0],
+        ],
+        color: primaryColor.base,
+        lineStyle: {
+          type: "dashed",
+        },
+      },
+    ],
+  };
+}
+
+function getCompressionOption(result: Result): EChartsOption {
+  return {
+    xAxis: {
+      name: "Normalized Axial Displacement, δ / δb",
+      max: 1.2 * result.delta_ub,
+    },
+    yAxis: {
+      name: "Normalized Axial Resistance, Nc / N",
+      max: 1.2 * result.Nbe,
+    },
+    series: [
+      {
+        type: "line",
+        data: [
+          [0, 0],
+          [result.delta_c, result.Nbe],
+          [result.delta_ub, result.Nu_c],
+        ],
+        color: primaryColor.base,
+      },
+      {
+        type: "line",
+        data: [
+          [result.delta_ub, result.Nu_c],
+          [result.delta_ub, 0],
+        ],
+        color: primaryColor.base,
+        lineStyle: {
+          type: "dashed",
+        },
+      },
+    ],
+  };
 }
 </script>
 
@@ -300,6 +439,28 @@ function onSectionChanged(value: Section): void {
               ></v-select>
             </v-col>
           </v-row>
+        </v-card-text>
+      </v-card>
+    </v-col>
+    <v-col cols="3">
+      <v-card>
+        <v-card-title>Tension</v-card-title>
+        <v-card-text>
+          <unit-chart
+            :option="getTensionOption(result)"
+            :unit-system="unitSystem"
+          ></unit-chart>
+        </v-card-text>
+      </v-card>
+    </v-col>
+    <v-col cols="3">
+      <v-card>
+        <v-card-title>Compression</v-card-title>
+        <v-card-text>
+          <unit-chart
+            :option="getCompressionOption(result)"
+            :unit-system="unitSystem"
+          ></unit-chart>
         </v-card-text>
       </v-card>
     </v-col>
