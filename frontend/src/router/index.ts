@@ -27,7 +27,7 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: "model",
-        component: () => import("../views/ConnectionsComponentModel.vue"),
+        component: () => import("../views/ConnectionModelView.vue"),
       },
     ],
   },
@@ -71,7 +71,7 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: "model",
-        component: () => import("../views/BracesComponentModel.vue"),
+        component: () => import("../views/BracesModelView.vue"),
       },
     ],
   },

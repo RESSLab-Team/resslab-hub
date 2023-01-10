@@ -32,24 +32,9 @@
               </info-tooltip>
             </v-card-title>
             <v-card-text>
-              <v-row>
-                <v-col cols="6">
-                  <v-select
-                    v-model="database"
-                    hide-details
-                    :items="databases"
-                    label="Select Database"
-                    single-line
-                  ></v-select>
-                </v-col>
-                <v-col cols="6">
-                  <search-select
-                    v-model="section"
-                    :items="sections"
-                    label="Select Section"
-                  ></search-select>
-                </v-col>
-              </v-row>
+              <section-selector
+                @update:section="onSectionChanged($event)"
+              ></section-selector>
               <v-row>
                 <v-col
                   v-for="item in steelShapeDimensions"
@@ -201,23 +186,22 @@
 </template>
 
 <script lang="ts">
-import aiscSections from "@/assets/connection/aisc-sections.csv";
-import europeanSections from "@/assets/connection/european-sections.csv";
-import japaneseSections from "@/assets/connection/japanese-sections.csv";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SearchSelect from "@/components/commons/SearchSelect.vue";
-import UnitSlider from "@/components/commons/sliders/UnitSlider.vue";
+import SectionSelector from "@/components/commons/SectionSelector.vue";
+import UnitSlider, {
+  Variable,
+} from "@/components/commons/sliders/UnitSlider.vue";
 import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import UnitTableRow, {
   UnitTableRowData,
 } from "@/components/commons/UnitTableRow.vue";
 import { publicPath, Section } from "@/utils/common";
 import { UnitSystem } from "@/utils/unit";
-import { primaryColor, secondaryColor, SelectItem } from "@/utils/vuetify";
+import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import { clamp } from "lodash";
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 
 /**
  * Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/steel_beams
@@ -225,17 +209,16 @@ import { Component, Vue, Watch } from "vue-property-decorator";
 @Component({
   components: {
     InfoTooltip,
-    SearchSelect,
+    SectionSelector,
     Toggle,
     UnitChart,
     UnitSlider,
     UnitTableRow,
   },
 })
-export default class ConnectionComponent extends Vue {
+export default class ConnectionModel extends Vue {
   readonly unitItems = unitItems;
   readonly publicPath = publicPath;
-  readonly databases: Database[] = ["aisc", "european", "japanese"];
 
   readonly variableBind = {
     cols: "12",
@@ -355,42 +338,15 @@ export default class ConnectionComponent extends Vue {
   ];
 
   unitSystem: UnitSystem = "metric";
-  database: Database = "aisc";
   section: Section | null = null;
 
-  get sections(): SelectItem[] {
-    let sections: Section[];
-    switch (this.database) {
-      case "aisc":
-        sections = aiscSections;
-        break;
-      case "european":
-        sections = europeanSections;
-        break;
-      case "japanese":
-        sections = japaneseSections;
-        break;
-      default:
-        return [];
-    }
-    return sections.map((section) => ({
-      text: section.id,
-      value: section,
-    }));
-  }
-
-  @Watch("database")
-  onDatabaseChanged(): void {
-    this.section = null;
-  }
-
-  @Watch("section")
-  onSectionChanged(): void {
-    if (this.section) {
-      this.bf = this.section.bf;
-      this.d = this.section.d;
-      this.tf = this.section.tf;
-      this.tw = this.section.tw;
+  onSectionChanged(section: Section): void {
+    this.section = section ?? null;
+    if (section) {
+      this.bf = section.bf;
+      this.d = section.d;
+      this.tf = section.tf;
+      this.tw = section.tw;
     }
   }
 
@@ -795,27 +751,6 @@ export default class ConnectionComponent extends Vue {
   }
 }
 
-class Variable {
-  public key: string;
-  public text: string;
-  public unit: string;
-  public min: number;
-  public max: number;
-  constructor(options: {
-    key: string;
-    text: string;
-    unit?: string;
-    min: number;
-    max: number;
-  }) {
-    this.key = options.key;
-    this.text = options.text;
-    this.unit = options.unit ?? "";
-    this.min = options.min;
-    this.max = options.max;
-  }
-}
-
 interface Result {
   ke: number;
   my: number;
@@ -851,6 +786,4 @@ interface Backbone extends Envelope {
 }
 
 type Point = [number, number];
-
-type Database = "aisc" | "european" | "japanese";
 </script>
