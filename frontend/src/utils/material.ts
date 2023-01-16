@@ -3,9 +3,8 @@ import { clone, fill, sum, zip } from "lodash";
 /**
  * https://github.com/ahartloper/RESSPyLab/blob/master/RESSPyLab/uvc_model.py
  */
-export function computeUvc(
-  eTrue: number[],
-  sigmaTrue: number[],
+export function computeUvcStress(
+  eTrue: number[], // strain
   E: number,
   sy_0: number,
   Q: number,
@@ -15,32 +14,15 @@ export function computeUvc(
   backstresses: { c: number; gamma: number }[],
   tol = 1.0e-8,
   maximum_iterations = 1000
-): {
-  stress: number[];
-  strain: number[];
-  error: number;
-  num_its: number[];
-  area: number;
-} {
+): number[] {
   const alpha_components = fill(Array(backstresses.length), 0);
-  let strain = 0;
   let stress = 0;
   let ep_eq = 0;
 
-  let error = 0; // error measure
-  let sum_abs_de = 0; // total strain
-  let stress_sim = 0.0;
-  let stress_test = 0.0;
-  let area_test = 0.0;
-
   const stress_track: number[] = [];
-  const strain_track: number[] = [];
-  const strain_inc_track: number[] = [];
-  const iteration_track: number[] = [];
 
   const loading = discreteDifference(eTrue);
-  loading.forEach((strain_inc, increment_number) => {
-    strain += strain_inc;
+  loading.forEach((strain_inc) => {
     const alpha = sum(alpha_components);
     const yield_stress =
       sy_0 + Q * (1 - Math.exp(-b * ep_eq)) - D * (1 - Math.exp(-a * ep_eq));
@@ -51,10 +33,6 @@ export function computeUvc(
 
     const yield_condition = Math.abs(relative_stress) - yield_stress;
     let is_converged = yield_condition <= tol;
-
-    // For error
-    const stress_sim_1 = stress_sim * 1.0;
-    const stress_test_1 = stress_test * 1.0;
 
     // Return mapping if plastic loading
     const ep_eq_init = ep_eq;
@@ -105,24 +83,6 @@ export function computeUvc(
     });
 
     stress_track.push(stress);
-    strain_track.push(strain);
-    strain_inc_track.push(strain_inc);
-    iteration_track.push(number_of_iterations);
-
-    // Calculate the error
-    stress_sim = stress * 1.0;
-    stress_test = sigmaTrue[increment_number];
-
-    sum_abs_de += Math.abs(strain_inc);
-    area_test +=
-      (Math.abs(strain_inc) *
-        (Math.pow(stress_test, 2) + Math.pow(stress_test_1, 2))) /
-      2;
-    error +=
-      (Math.abs(strain_inc) *
-        (Math.pow(stress_sim - stress_test, 2) +
-          Math.pow(stress_sim_1 - stress_test_1, 2))) /
-      2;
 
     if (number_of_iterations >= maximum_iterations) {
       throw new Error(
@@ -131,28 +91,7 @@ export function computeUvc(
     }
   });
 
-  const area = area_test / sum_abs_de;
-  error = error / sum_abs_de;
-  const result = {
-    stress: stress_track,
-    strain: strain_track,
-    error: error,
-    num_its: iteration_track,
-    area: area,
-  };
-  // console.debug([
-  //   E,
-  //   sy_0,
-  //   Q,
-  //   b,
-  //   D,
-  //   a,
-  //   ...backstresses.flatMap((k) => [k.c, k.gamma]),
-  // ]);
-  // console.debug(eTrue);
-  // console.debug(sigmaTrue);
-  // console.debug(result);
-  return result;
+  return stress_track;
 }
 
 /**
