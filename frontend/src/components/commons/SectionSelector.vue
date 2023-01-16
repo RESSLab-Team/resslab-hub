@@ -3,21 +3,22 @@ import aiscSections from "@/assets/connection/aisc-sections.csv";
 import europeanSections from "@/assets/connection/european-sections.csv";
 import japaneseSections from "@/assets/connection/japanese-sections.csv";
 import { Section } from "@/utils/common";
-import { computed, defineEmits, ref, Ref, watch } from "vue";
+import { computed, defineEmits, ref, watch } from "vue";
 import SearchSelect from "@/components/commons/SearchSelect.vue";
+import { SelectItem } from "@/utils/vuetify";
 
 export type Database = "aisc" | "european" | "japanese";
 
 const emit = defineEmits<{
-  (e: "update:section", value: Section);
+  (e: "update:section", value: Section | undefined): void;
 }>();
 
 const databases: Database[] = ["aisc", "european", "japanese"];
 
-const database: Ref<Database> = ref("aisc");
-const section: Ref<Section> = ref();
+const database = ref<Database>("aisc");
+const section = ref<Section>();
 
-const sections = computed<Section[]>(() => {
+const sections = computed<SelectItem<Section>[]>(() => {
   let sections: Section[];
   switch (database.value) {
     case "aisc":

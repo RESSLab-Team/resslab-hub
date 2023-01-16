@@ -4,7 +4,7 @@ import colors, { Color } from "vuetify/lib/util/colors";
 export const booleanOptions = [true, false];
 
 // https://vuetifyjs.com/en/api/v-select/#props-items
-export interface SelectItemObject<V = string | number | object> {
+interface SelectItemObject<V = string | number | object> {
   // eslint-disable-next-line @typescript-eslint/ban-types
   text: string | number | object;
   value: V;
@@ -13,7 +13,9 @@ export interface SelectItemObject<V = string | number | object> {
   header?: string;
 }
 
-export type SelectItem = string | SelectItemObject;
+export type SelectItem<V = string | number | object> =
+  | string
+  | SelectItemObject<V>;
 
 export function getColorPalette(color: Color, count: number): string[] {
   switch (count) {

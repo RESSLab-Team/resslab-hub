@@ -7,11 +7,11 @@ import UnitSlider, {
 import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import { publicPath, Section } from "@/utils/common";
 import { UnitSystem } from "@/utils/unit";
-import { primaryColor, SelectItemObject } from "@/utils/vuetify";
+import { primaryColor, SelectItem } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
 
-import { computed, reactive, ref, Ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 
 type SteelType = "S235" | "S275" | "S355" | "S420" | "S460";
 type Option =
@@ -32,7 +32,7 @@ interface Result {
 }
 
 const steelTypes: SteelType[] = ["S235", "S275", "S355", "S420", "S460"];
-const options: SelectItemObject<Option>[] = [
+const options: SelectItem<Option>[] = [
   {
     text: "Wide-Flange",
     value: "wide-flange",
@@ -68,7 +68,7 @@ const variableBind = {
   md: "6",
   xl: "3",
 };
-const steelShapeDimensions: Variable[] = [
+const steelShapeDimensions: Variable<keyof Variables>[] = [
   new Variable({
     key: "bf",
     text: "b<sub>f</sub>",
@@ -92,7 +92,7 @@ const steelShapeDimensions: Variable[] = [
     max: 100,
   }),
 ];
-const steelTypeVariables: Variable[] = [
+const steelTypeVariables: Variable<keyof Variables>[] = [
   new Variable({
     key: "omega",
     text: "Omega",
@@ -107,7 +107,7 @@ const steelTypeVariables: Variable[] = [
     max: 500,
   }),
 ];
-const additionalParameterVariables: Variable[] = [
+const additionalParameterVariables: Variable<keyof Variables>[] = [
   new Variable({
     key: "lee",
     text: "Lee",
@@ -122,12 +122,26 @@ const additionalParameterVariables: Variable[] = [
   }),
 ];
 
-const unitSystem: Ref<UnitSystem> = ref("metric");
-const section: Ref<Section | undefined> = ref();
-const steelType: Ref<SteelType | undefined> = ref();
-const option: Ref<Option> = ref("wide-flange");
+const unitSystem = ref<UnitSystem>("metric");
+const section = ref<Section>();
+const steelType = ref<SteelType>();
+const option = ref<Option>("wide-flange");
 
-const variables = reactive({
+interface Variables {
+  bf: number;
+  d: number;
+  tf: number;
+  tw: number;
+  omega: number;
+  fy: number;
+  e: number;
+  lee: number;
+  lcr: number;
+  a: number;
+  iz: number;
+  iy: number;
+}
+const variables = reactive<Variables>({
   bf: 100,
   d: 100,
   tf: 5,
@@ -167,7 +181,7 @@ watch(steelType, (value) => {
   }
 });
 
-const result: Ref<Result> = computed(() => {
+const result = computed<Result>(() => {
   const Imin = Math.min(variables.iz, variables.iy);
   const i = Math.sqrt(Imin / variables.a);
 
@@ -179,7 +193,10 @@ const result: Ref<Result> = computed(() => {
       const t = 2;
       lamda_f = c / t;
       lamda_CL1 = 9 * Math.sqrt(235 / variables.fy);
+      break;
     }
+    default:
+      throw new Error(`Unhandled ${option.value}`);
   }
   const NbRd = 1;
   const NplRd = 1;
@@ -211,7 +228,10 @@ const result: Ref<Result> = computed(() => {
           0.4
         ) *
         delta_y;
+      break;
     }
+    default:
+      throw new Error(`Unhandled ${option.value}`);
   }
 
   return {
@@ -225,8 +245,8 @@ const result: Ref<Result> = computed(() => {
   };
 });
 
-function onSectionChanged(value: Section): void {
-  section.value = value ?? null;
+function onSectionChanged(value?: Section): void {
+  section.value = value;
   if (value) {
     variables.bf = value.bf;
     variables.d = value.d;
