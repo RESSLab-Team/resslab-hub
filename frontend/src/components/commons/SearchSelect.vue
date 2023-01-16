@@ -36,7 +36,7 @@ export default class SearchSelect extends Vue {
   @Prop({ type: String })
   readonly label: string | undefined;
 
-  private search: string | null = null;
+  search: string | null = null;
 
   get actualItems(): SelectItem[] {
     if (!this.search) {

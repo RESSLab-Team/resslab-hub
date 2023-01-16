@@ -7,7 +7,17 @@
       "path": "../resslab-hub-data"
     }
   ],
-  "settings": {
-    "vetur.validation.script": false
+  "extensions": {
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "ms-azuretools.vscode-docker",
+      "ms-python.isort",
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "ms-vscode.js-debug-nightly",
+      "vue.volar",
+      "vue.vscode-typescript-vue-plugin"
+    ]
   }
 }
