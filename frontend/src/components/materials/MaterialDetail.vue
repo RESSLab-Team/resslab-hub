@@ -59,7 +59,7 @@ import CommonDetail, {
 import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
 import { publicPath } from "@/utils/common";
-import { computeUvc } from "@/utils/material";
+import { computeUvcStress } from "@/utils/material";
 import { zip } from "lodash";
 import { Component, VModel } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
@@ -136,9 +136,9 @@ export default class MaterialDetail extends CommonDetailMixin {
       .getMaterialsStressStrain(this.material.id)
       .then((response) => response.data)
       .then((series) => {
-        const uvc = computeUvc(
-          series.map((serie) => serie[1]),
-          series.map((serie) => serie[0]),
+        const strain = series.map((serie) => serie[1]);
+        const uvcStress = computeUvcStress(
+          strain,
           this.material.uvc_e__mpa_,
           this.material.uvc_sigma__mpa_,
           this.material.uvc_q__mpa_,
@@ -150,7 +150,7 @@ export default class MaterialDetail extends CommonDetailMixin {
             { c: this.material.uvc_c2__mpa_, gamma: this.material.uvc_g2 },
           ]
         );
-        return zip(uvc.stress, uvc.strain).filter(
+        return zip(strain, uvcStress).filter(
           (v): v is [number, number] => v[0] !== undefined && v[1] !== undefined
         );
       });
