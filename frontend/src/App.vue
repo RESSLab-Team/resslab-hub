@@ -1,3 +1,65 @@
+<script setup lang="ts">
+interface MenuItem {
+  text: string;
+  to: string;
+  children?: MenuItem[];
+}
+
+const subMenuItems: MenuItem[] = [
+  {
+    text: "Database",
+    to: "/database",
+  },
+  {
+    text: "Component Model",
+    to: "/model",
+  },
+  {
+    text: "Fragility Curve",
+    to: "/fragility-curve",
+  },
+];
+const menuItems: MenuItem[] = [
+  {
+    text: "RESSLab Hub",
+    to: "/",
+  },
+  {
+    text: "Connections",
+    to: "/connections",
+    children: subMenuItems,
+  },
+  {
+    text: "Columns",
+    to: "/columns",
+    children: subMenuItems,
+  },
+  {
+    text: "Braces",
+    to: "/braces",
+    children: subMenuItems,
+  },
+  {
+    text: "Materials",
+    to: "/materials",
+    children: [
+      {
+        text: "Database",
+        to: "/database",
+      },
+      {
+        text: "Material Model",
+        to: "/model",
+      },
+    ],
+  },
+  {
+    text: "About",
+    to: "/about",
+  },
+];
+</script>
+
 <template>
   <v-app>
     <v-app-bar app dense>
@@ -11,7 +73,16 @@
             </template>
             <v-list>
               <v-list-item v-for="subItem in item.children" :key="subItem.to">
-                <v-tab :to="item.to + subItem.to">{{ subItem.text }}</v-tab>
+                <v-tab
+                  :to="item.to + subItem.to"
+                  :class="
+                    item.to + subItem.to == $route.path
+                      ? 'primary--text'
+                      : undefined
+                  "
+                >
+                  {{ subItem.text }}
+                </v-tab>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -24,6 +95,10 @@
             </template>
           </v-tab>
         </template>
+        <v-spacer></v-spacer>
+        <v-tab>
+          <v-icon>mdi-information-outline</v-icon>
+        </v-tab>
       </v-tabs>
     </v-app-bar>
     <v-main>
@@ -31,73 +106,6 @@
     </v-main>
   </v-app>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-
-@Component
-export default class App extends Vue {
-  readonly subMenuItems: MenuItem[] = [
-    {
-      text: "Database",
-      to: "/database",
-    },
-    {
-      text: "Component Model",
-      to: "/model",
-    },
-    {
-      text: "Fragility Curve",
-      to: "/fragility-curve",
-    },
-  ];
-  readonly menuItems: MenuItem[] = [
-    {
-      text: "RESSLab Hub",
-      to: "/",
-    },
-    {
-      text: "Connections",
-      to: "/connections",
-      children: this.subMenuItems,
-    },
-    {
-      text: "Columns",
-      to: "/columns",
-      children: this.subMenuItems,
-    },
-    {
-      text: "Braces",
-      to: "/braces",
-      children: this.subMenuItems,
-    },
-    {
-      text: "Materials",
-      to: "/materials",
-      children: [
-        {
-          text: "Database",
-          to: "/database",
-        },
-        {
-          text: "Material Model",
-          to: "/model",
-        },
-      ],
-    },
-    {
-      text: "About",
-      to: "/about",
-    },
-  ];
-}
-
-interface MenuItem {
-  text: string;
-  to: string;
-  children?: MenuItem[];
-}
-</script>
 
 <style lang="scss" scoped>
 .v-toolbar__title {

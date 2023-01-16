@@ -11,7 +11,7 @@ const routes: Array<RouteConfig> = [
   },
   {
     path: "/connections",
-    component: () => import("../views/Connections.vue"),
+    component: () => import("../views/ConnectionsView.vue"),
     children: [
       {
         path: "",
@@ -33,7 +33,7 @@ const routes: Array<RouteConfig> = [
   },
   {
     path: "/columns",
-    component: () => import("../views/Columns.vue"),
+    component: () => import("../views/ColumnsView.vue"),
     children: [
       {
         path: "",
@@ -55,7 +55,7 @@ const routes: Array<RouteConfig> = [
   },
   {
     path: "/braces",
-    component: () => import("../views/Braces.vue"),
+    component: () => import("../views/BracesView.vue"),
     children: [
       {
         path: "",
@@ -77,7 +77,7 @@ const routes: Array<RouteConfig> = [
   },
   {
     path: "/materials",
-    component: () => import("../views/Materials.vue"),
+    component: () => import("../views/MaterialsView.vue"),
     children: [
       {
         path: "",
