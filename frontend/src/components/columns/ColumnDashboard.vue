@@ -49,7 +49,7 @@
             <column-depth-card-title></column-depth-card-title>
             <v-card-text>
               <column-double-chart
-                :color="colors.red"
+                :color="colors.blue"
                 :fields="columnDepthFields"
                 :query="query"
                 :searches.sync="searches"

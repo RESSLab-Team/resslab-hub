@@ -75,8 +75,9 @@ import MultipleLineChart, {
 } from "@/components/commons/charts/MultipleLineChart.vue";
 import SimpleLineChart from "@/components/commons/charts/SimpleLineChart.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
+import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { Component, Prop, Vue } from "vue-property-decorator";
-import colors, { Color } from "vuetify/lib/util/colors";
+import { Color } from "vuetify/lib/util/colors";
 
 @Component({
   components: {
@@ -87,8 +88,8 @@ import colors, { Color } from "vuetify/lib/util/colors";
 })
 export default class CommonDetail extends Vue {
   readonly chartHeight = 300;
-  readonly chartColor = colors.red;
-  readonly chartColors = [colors.red, colors.blue];
+  readonly chartColor = primaryColor;
+  readonly chartColors = [primaryColor, secondaryColor];
 
   @Prop(String)
   readonly reference!: string;
