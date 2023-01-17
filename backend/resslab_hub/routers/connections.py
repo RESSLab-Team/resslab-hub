@@ -179,6 +179,17 @@ async def get_connections_csv(
     return await component.get_csv(session, ids)
 
 
+@router.get("/distinct", response_model=int)
+async def get_connections_distinct(
+    session: AsyncSession = Depends(get_session),
+    fields: List[ConnectionField] = Query([]),
+) -> int:
+    """
+    Get distinct count
+    """
+    return await component.get_distinct(session, [field.value for field in fields])
+
+
 @router.get("/{connection_id}/beam", response_model=List[List[Decimal]])
 async def get_connections_beam(
     session: AsyncSession = Depends(get_session),

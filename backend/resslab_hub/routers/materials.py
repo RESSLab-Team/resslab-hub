@@ -104,6 +104,17 @@ async def get_materials_csv(
     return await component.get_csv(session, ids)
 
 
+@router.get("/distinct", response_model=int)
+async def get_materials_distinct(
+    session: AsyncSession = Depends(get_session),
+    fields: List[MaterialField] = Query([]),
+) -> int:
+    """
+    Get distinct count
+    """
+    return await component.get_distinct(session, [field.value for field in fields])
+
+
 @router.get("/{material_id}/stress-strain", response_model=List[List[Decimal]])
 async def get_materials_stress_strain(
     session: AsyncSession = Depends(get_session),

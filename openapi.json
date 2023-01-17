@@ -336,6 +336,53 @@
         }
       }
     },
+    "/braces/distinct": {
+      "get": {
+        "tags": [
+          "braces"
+        ],
+        "summary": "Get Braces Distinct",
+        "description": "Get distinct count",
+        "operationId": "get_braces_distinct",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/BraceField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Braces Distinct Braces Distinct Get",
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/braces/{brace_id}/displacement": {
       "get": {
         "tags": [
@@ -695,6 +742,53 @@
         "responses": {
           "200": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/distinct": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Distinct",
+        "description": "Get distinct count",
+        "operationId": "get_columns_distinct",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ColumnField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Columns Distinct Columns Distinct Get",
+                  "type": "integer"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -1190,6 +1284,53 @@
         "responses": {
           "200": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/distinct": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Connections Distinct",
+        "description": "Get distinct count",
+        "operationId": "get_connections_distinct",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ConnectionField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Connections Distinct Connections Distinct Get",
+                  "type": "integer"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -1975,6 +2116,53 @@
         }
       }
     },
+    "/materials/distinct": {
+      "get": {
+        "tags": [
+          "materials"
+        ],
+        "summary": "Get Materials Distinct",
+        "description": "Get distinct count",
+        "operationId": "get_materials_distinct",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/MaterialField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Materials Distinct Materials Distinct Get",
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/materials/{material_id}/stress-strain": {
       "get": {
         "tags": [
@@ -2066,6 +2254,8 @@
           "kl_r",
           "reference",
           "link",
+          "latitude",
+          "longitude",
           "displacement_count"
         ],
         "type": "string",
@@ -2090,6 +2280,8 @@
           "kl_r",
           "reference",
           "link",
+          "latitude",
+          "longitude",
           "displacement_count"
         ],
         "type": "object",
@@ -2190,6 +2382,14 @@
             "title": "Link",
             "type": "string"
           },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
           "displacement_count": {
             "title": "Displacement Count",
             "type": "integer"
@@ -2211,6 +2411,8 @@
           "f_ym_gp",
           "f_um_gp",
           "kl_r",
+          "latitude",
+          "longitude",
           "displacement_count"
         ],
         "type": "string",
@@ -2241,6 +2443,8 @@
           "th_80",
           "reference",
           "link",
+          "latitude",
+          "longitude",
           "built_up",
           "axial_shortening_count",
           "moment_strong_count",
@@ -2273,6 +2477,8 @@
           "p_g_over_p_ym",
           "reference",
           "link",
+          "latitude",
+          "longitude",
           "built_up",
           "axial_shortening_count",
           "moment_strong_count",
@@ -2368,6 +2574,14 @@
             "title": "Link",
             "type": "string"
           },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
           "built_up": {
             "title": "Built Up",
             "type": "boolean"
@@ -2399,6 +2613,8 @@
           "f_yn",
           "p_g_over_p_ym",
           "th_80",
+          "latitude",
+          "longitude",
           "axial_shortening_count",
           "moment_strong_count",
           "moment_weak_count"
@@ -2446,13 +2662,13 @@
           "g_max_g_y",
           "reference",
           "link",
+          "latitude",
+          "longitude",
           "beam_count",
           "beam_west_count",
           "global_count",
           "global_west_count",
-          "panel_zone_count",
-          "latitude",
-          "longitude"
+          "panel_zone_count"
         ],
         "type": "string",
         "description": "An enumeration."
@@ -2486,13 +2702,13 @@
           "g_max_g_y",
           "reference",
           "link",
+          "latitude",
+          "longitude",
           "beam_count",
           "beam_west_count",
           "global_count",
           "global_west_count",
-          "panel_zone_count",
-          "latitude",
-          "longitude"
+          "panel_zone_count"
         ],
         "type": "object",
         "properties": {
@@ -2644,6 +2860,14 @@
             "title": "Link",
             "type": "string"
           },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
           "beam_count": {
             "title": "Beam Count",
             "type": "integer"
@@ -2662,14 +2886,6 @@
           },
           "panel_zone_count": {
             "title": "Panel Zone Count",
-            "type": "integer"
-          },
-          "latitude": {
-            "title": "Latitude",
-            "type": "integer"
-          },
-          "longitude": {
-            "title": "Longitude",
             "type": "integer"
           }
         },
@@ -2698,13 +2914,13 @@
           "ru_rn_el_m",
           "ru_rn_pl_m",
           "g_max_g_y",
+          "latitude",
+          "longitude",
           "beam_count",
           "beam_west_count",
           "global_count",
           "global_west_count",
-          "panel_zone_count",
-          "latitude",
-          "longitude"
+          "panel_zone_count"
         ],
         "type": "string",
         "description": "An enumeration."
@@ -3103,6 +3319,8 @@
           "fracture_strain",
           "reference",
           "link",
+          "latitude",
+          "longitude",
           "uvc_e__mpa_",
           "uvc_sigma__mpa_",
           "uvc_q__mpa_",
@@ -3138,6 +3356,8 @@
           "yield_stress__mpa_",
           "reference",
           "link",
+          "latitude",
+          "longitude",
           "uvc_e__mpa_",
           "uvc_sigma__mpa_",
           "uvc_q__mpa_",
@@ -3221,6 +3441,14 @@
             "title": "Link",
             "type": "string"
           },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
           "uvc_e__mpa_": {
             "title": "Uvc E  Mpa ",
             "type": "number"
@@ -3280,6 +3508,8 @@
           "fu_n__mpa_",
           "yield_stress__mpa_",
           "fracture_strain",
+          "latitude",
+          "longitude",
           "uvc_e__mpa_",
           "uvc_sigma__mpa_",
           "uvc_q__mpa_",

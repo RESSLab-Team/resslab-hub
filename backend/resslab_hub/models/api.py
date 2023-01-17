@@ -70,6 +70,8 @@ class ConnectionModel(BaseModel):
     g_max_g_y: Decimal
     reference: str
     link: str
+    latitude: Decimal
+    longitude: Decimal
 
     beam_count: int
     beam_west_count: int
@@ -79,9 +81,6 @@ class ConnectionModel(BaseModel):
 
     global_west_count: int
     panel_zone_count: int
-
-    latitude: int
-    longitude: int
 
 
 class CountModel(BaseModel):
@@ -189,6 +188,8 @@ class ColumnModel(BaseModel):
     th_80: Optional[Decimal]
     reference: str
     link: str
+    latitude: Decimal
+    longitude: Decimal
 
     built_up: bool
     axial_shortening_count: int
@@ -240,6 +241,8 @@ class BraceModel(BaseModel):
     kl_r: Decimal
     reference: str
     link: str
+    latitude: Decimal
+    longitude: Decimal
 
     displacement_count: int
 
@@ -281,6 +284,8 @@ class MaterialModel(BaseModel):
     fracture_strain: Optional[Decimal]
     reference: str
     link: str
+    latitude: Decimal
+    longitude: Decimal
 
     uvc_e__mpa_: Decimal
     uvc_sigma__mpa_: Decimal
