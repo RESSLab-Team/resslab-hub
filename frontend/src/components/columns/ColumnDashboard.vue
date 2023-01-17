@@ -46,7 +46,12 @@
         </v-col>
         <v-col cols="12" md="6">
           <v-card>
-            <column-depth-card-title></column-depth-card-title>
+            <column-depth-card-title>
+              <template #how-to-second>
+                Filter database for built-up or hot-rolled cross sections by
+                clicking on the appropriate legend
+              </template>
+            </column-depth-card-title>
             <v-card-text>
               <column-double-chart
                 :color="colors.blue"
