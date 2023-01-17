@@ -52,7 +52,7 @@
             <v-card-title>Loading Protocol</v-card-title>
             <v-card-text>
               <brace-single-chart
-                :color="colors.red"
+                :color="colors.blue"
                 :field="loadingProtocolField"
                 :query="query"
                 :searches.sync="searches"

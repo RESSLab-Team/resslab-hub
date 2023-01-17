@@ -1,4 +1,5 @@
 import colormap from "colormap";
+import hexRgb from "hex-rgb";
 import colors, { Color } from "vuetify/lib/util/colors";
 
 export const booleanOptions = [true, false];
@@ -49,23 +50,24 @@ export function getColorPalette(color: Color, count: number): string[] {
   }
 }
 
-export const primaryColor = colors.blue;
-export const secondaryColor = colors.red;
+export const primaryColor = colors.red;
+export const secondaryColor = colors.blue;
 
 export const colorPalette: string[] = [
-  colors.blue,
-  colors.red,
-  colors.green,
+  primaryColor,
+  secondaryColor,
   colors.amber,
-  colors.deepPurple,
+  colors.brown,
+  colors.blueGrey,
   colors.orange,
+  colors.pink,
 ].map((color) => color.base);
 
 export function getColorMap(count: number): string[] {
   return colormap<"hex">({
     colormap: [
-      { index: 0, rgb: [33, 150, 243] }, // #2196F3
-      { index: 1, rgb: [244, 67, 54] }, // #F44336
+      { index: 0, rgb: hexRgb(primaryColor.base, { format: "array" }) },
+      { index: 1, rgb: hexRgb(secondaryColor.base, { format: "array" }) },
     ],
     nshades: count,
   });

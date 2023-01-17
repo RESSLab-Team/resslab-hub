@@ -23,7 +23,7 @@
               <h2>Geometric Parameters</h2>
               <v-switch
                 v-model="infoAvailable"
-                color="blue"
+                color="primary"
                 label="Geometric parameters available"
               ></v-switch>
               <unit-slider
