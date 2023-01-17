@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+</script>
+
 <template>
   <v-card-title>
     Column Depth [mm]
@@ -13,22 +17,12 @@
           using the slider below
         </li>
         <li>
-          Filter database depending on the presence of doubler plates welded in
-          the panel zone (0/1/2) by clicking on the legend.
+          <slot name="how-to-second">
+            Filter database depending on the presence of doubler plates welded
+            in the panel zone (0/1/2) by clicking on the legend.
+          </slot>
         </li>
       </ul>
     </info-tooltip>
   </v-card-title>
 </template>
-
-<script lang="ts">
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import { Component, Vue } from "vue-property-decorator";
-
-@Component({
-  components: {
-    InfoTooltip,
-  },
-})
-export default class ColumnDepthCardTitle extends Vue {}
-</script>

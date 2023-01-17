@@ -15,11 +15,10 @@
       Column
       <info-tooltip>
         <p>
-          The Columns Database presents data from early 1970s on beam-to-column
-          columns under reversed cyclic and monotonic loading. The primary data
-          involve the global behavior of the column and the decomposed panel
-          zone shear versus shear distortion, deduced beam end moment versus
-          chord rotation, whenever available.
+          The Columns Database presents data from early 1970s on columns under
+          reversed cyclic and monotonic loading. The primary data involve the
+          deduced moment chord rotation of the column and deduced column axial
+          shortening versus chord rotation.
         </p>
         How to use?
         <ul>
