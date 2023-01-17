@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import AboutContent from "./components/commons/AboutContent.vue";
 
 interface MenuItem {
   text: string;
@@ -102,113 +103,7 @@ const aboutDialog = ref<boolean>(false);
               <v-icon>mdi-information-outline</v-icon>
             </v-tab>
           </template>
-          <v-card>
-            <v-card-title>About</v-card-title>
-            <v-card-text>
-              <h2>Acknowledgements</h2>
-              <p>
-                <a href="https://enacit4r.epfl.ch/" target="_blank"
-                  >ENAC-IT4Research</a
-                >
-                developed the web-based interfaces, visualisation features and
-                search capabilities for the assembled databases.
-              </p>
-              <p>
-                We would like to sincerely thank many researchers worldwide, who
-                generously shared their test data for the development of the
-                structural component databases for performance-based earthquake
-                engineering. The database users should cite the original
-                references for each test description in addition to these
-                databases.
-              </p>
-              <p>
-                An earlier version of the steel Beam-to-Column connections
-                database had been assembled by
-                <a
-                  href="https://people.epfl.ch/dimitrios.lignos"
-                  target="_blank"
-                  >Prof. Dimitrios Lignos</a
-                >
-                and the late
-                <a
-                  href="https://en.wikipedia.org/wiki/Helmut_Krawinkler"
-                  target="_blank"
-                  >Prof. Helmut Krawinkler</a
-                >
-                as part of a U.S. National Science Foundation (NSF)
-                <a
-                  href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=0421551"
-                  target="_blank"
-                  >grant</a
-                >
-                within the George E. Brown, Jr. Network for Earthquake
-                Engineering Simulation (NEES). The project title was
-                <a
-                  href="https://searchworks.stanford.edu/view/yg701cw5473"
-                  target="_blank"
-                  >"Sidesway collapse of deteriorating structural systems under
-                  seismic excitations"</a
-                >. The current version of the connections database was
-                significantly improved and expanded by
-                <a href="https://www.linkedin.com/in/andskia" target="_blank"
-                  >Mr. Andronikos Skiadopoulos</a
-                >
-                during his doctoral studies at EPFL.
-              </p>
-              <p>
-                The steel Columns database was assembled by
-                <a
-                  href="https://www.southampton.ac.uk/engineering/about/staff/amae1g19.page"
-                  target="_blank"
-                  >Prof. Ahmed Elkady</a
-                >
-                during his post-doctoral research work at EPFL and
-                <a
-                  href="https://www.linkedin.com/in/subash-ghimire-khumbutse-629bb9ba"
-                  target="_blank"
-                  >Mr. Subash Ghimire</a
-                >
-                during his internship at EPFL. The work was supported by a
-                <a href="https://www.snf.ch" target="_blank"
-                  >Swiss National Science Foundation (SNSF)</a
-                >
-                grant. The project title was
-                <a
-                  href="https://data.snf.ch/grants/grant/169248"
-                  target="_blank"
-                  >"Advanced Simulation Platform for Collapse Risk Assessment of
-                  Steel Frame Buildings"</a
-                >.
-              </p>
-              <p>
-                Report technical problems to
-                <a
-                  href="https://people.epfl.ch/dimitrios.lignos"
-                  target="_blank"
-                  >Prof. Dimitrios Lignos</a
-                >.
-              </p>
-            </v-card-text>
-            <v-card-text>
-              <!-- https://www.epfl.ch/campus/services/website/legal-recommendations-for-publishing-on-the-epfl-web/use-of-google-analytics/ -->
-              <a
-                href="https://www.epfl.ch/about/overview/regulations-and-guidelines/disclaimer/"
-                target="_blank"
-              >
-                Disclaimer
-              </a>
-              <br />
-              <a href="https://go.epfl.ch/privacy-policy/" target="_blank">
-                Privacy policy
-              </a>
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="primary" icon @click="aboutDialog = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-actions>
-          </v-card>
+          <about-content @click:close="aboutDialog = false" />
         </v-dialog>
       </v-tabs>
     </v-app-bar>
