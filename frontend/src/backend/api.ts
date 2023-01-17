@@ -52,6 +52,8 @@ export const BraceField = {
     KlR: 'kl_r',
     Reference: 'reference',
     Link: 'link',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
     DisplacementCount: 'displacement_count'
 } as const;
 
@@ -213,6 +215,18 @@ export interface BraceModel {
      * @type {number}
      * @memberof BraceModel
      */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'longitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
     'displacement_count': number;
 }
 /**
@@ -234,6 +248,8 @@ export const BraceNumberField = {
     FYmGp: 'f_ym_gp',
     FUmGp: 'f_um_gp',
     KlR: 'kl_r',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
     DisplacementCount: 'displacement_count'
 } as const;
 
@@ -269,6 +285,8 @@ export const ColumnField = {
     Th80: 'th_80',
     Reference: 'reference',
     Link: 'link',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
     BuiltUp: 'built_up',
     AxialShorteningCount: 'axial_shortening_count',
     MomentStrongCount: 'moment_strong_count',
@@ -418,6 +436,18 @@ export interface ColumnModel {
     'link': string;
     /**
      * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'longitude': number;
+    /**
+     * 
      * @type {boolean}
      * @memberof ColumnModel
      */
@@ -458,6 +488,8 @@ export const ColumnNumberField = {
     FYn: 'f_yn',
     PGOverPYm: 'p_g_over_p_ym',
     Th80: 'th_80',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
     AxialShorteningCount: 'axial_shortening_count',
     MomentStrongCount: 'moment_strong_count',
     MomentWeakCount: 'moment_weak_count'
@@ -510,13 +542,13 @@ export const ConnectionField = {
     GMaxGY: 'g_max_g_y',
     Reference: 'reference',
     Link: 'link',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
     BeamCount: 'beam_count',
     BeamWestCount: 'beam_west_count',
     GlobalCount: 'global_count',
     GlobalWestCount: 'global_west_count',
-    PanelZoneCount: 'panel_zone_count',
-    Latitude: 'latitude',
-    Longitude: 'longitude'
+    PanelZoneCount: 'panel_zone_count'
 } as const;
 
 export type ConnectionField = typeof ConnectionField[keyof typeof ConnectionField];
@@ -755,6 +787,18 @@ export interface ConnectionModel {
      * @type {number}
      * @memberof ConnectionModel
      */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'longitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
     'beam_count': number;
     /**
      * 
@@ -780,18 +824,6 @@ export interface ConnectionModel {
      * @memberof ConnectionModel
      */
     'panel_zone_count': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'latitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'longitude': number;
 }
 /**
  * An enumeration.
@@ -820,13 +852,13 @@ export const ConnectionNumberField = {
     RuRnElM: 'ru_rn_el_m',
     RuRnPlM: 'ru_rn_pl_m',
     GMaxGY: 'g_max_g_y',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
     BeamCount: 'beam_count',
     BeamWestCount: 'beam_west_count',
     GlobalCount: 'global_count',
     GlobalWestCount: 'global_west_count',
-    PanelZoneCount: 'panel_zone_count',
-    Latitude: 'latitude',
-    Longitude: 'longitude'
+    PanelZoneCount: 'panel_zone_count'
 } as const;
 
 export type ConnectionNumberField = typeof ConnectionNumberField[keyof typeof ConnectionNumberField];
@@ -1258,6 +1290,8 @@ export const MaterialField = {
     FractureStrain: 'fracture_strain',
     Reference: 'reference',
     Link: 'link',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
     UvcEMpa: 'uvc_e__mpa_',
     UvcSigmaMpa: 'uvc_sigma__mpa_',
     UvcQMpa: 'uvc_q__mpa_',
@@ -1388,6 +1422,18 @@ export interface MaterialModel {
      * @type {number}
      * @memberof MaterialModel
      */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'longitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
     'uvc_e__mpa_': number;
     /**
      * 
@@ -1469,6 +1515,8 @@ export const MaterialNumberField = {
     FuNMpa: 'fu_n__mpa_',
     YieldStressMpa: 'yield_stress__mpa_',
     FractureStrain: 'fracture_strain',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
     UvcEMpa: 'uvc_e__mpa_',
     UvcSigmaMpa: 'uvc_sigma__mpa_',
     UvcQMpa: 'uvc_q__mpa_',
@@ -1725,6 +1773,41 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
+         * Get distinct count
+         * @summary Get Braces Distinct
+         * @param {Array<BraceField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesDistinct: async (fields?: Array<BraceField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/braces/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get occurences location of field values
          * @summary Get Braces Locations
          * @param {*} [options] Override http request option.
@@ -1894,6 +1977,17 @@ export const BracesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get distinct count
+         * @summary Get Braces Distinct
+         * @param {Array<BraceField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getBracesDistinct(fields?: Array<BraceField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesDistinct(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get occurences location of field values
          * @summary Get Braces Locations
          * @param {*} [options] Override http request option.
@@ -1981,6 +2075,16 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
          */
         getBracesDisplacement(braceId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getBracesDisplacement(braceId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Braces Distinct
+         * @param {Array<BraceField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesDistinct(fields?: Array<BraceField>, options?: any): AxiosPromise<number> {
+            return localVarFp.getBracesDistinct(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences location of field values
@@ -2074,6 +2178,18 @@ export class BracesApi extends BaseAPI {
      */
     public getBracesDisplacement(braceId: string, size?: number, options?: AxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesDisplacement(braceId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Braces Distinct
+     * @param {Array<BraceField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BracesApi
+     */
+    public getBracesDistinct(fields?: Array<BraceField>, options?: AxiosRequestConfig) {
+        return BracesApiFp(this.configuration).getBracesDistinct(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2276,6 +2392,41 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
 
             if (ids) {
                 localVarQueryParameter['ids'] = ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distinct count
+         * @summary Get Columns Distinct
+         * @param {Array<ColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsDistinct: async (fields?: Array<ColumnField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/columns/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
             }
 
 
@@ -2537,6 +2688,17 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get distinct count
+         * @summary Get Columns Distinct
+         * @param {Array<ColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getColumnsDistinct(fields?: Array<ColumnField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsDistinct(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get occurences location of field values
          * @summary Get Columns Locations
          * @param {*} [options] Override http request option.
@@ -2648,6 +2810,16 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          */
         getColumnsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
             return localVarFp.getColumnsCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Columns Distinct
+         * @param {Array<ColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsDistinct(fields?: Array<ColumnField>, options?: any): AxiosPromise<number> {
+            return localVarFp.getColumnsDistinct(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences location of field values
@@ -2763,6 +2935,18 @@ export class ColumnsApi extends BaseAPI {
      */
     public getColumnsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Columns Distinct
+     * @param {Array<ColumnField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ColumnsApi
+     */
+    public getColumnsDistinct(fields?: Array<ColumnField>, options?: AxiosRequestConfig) {
+        return ColumnsApiFp(this.configuration).getColumnsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3098,6 +3282,41 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
 
             if (ids) {
                 localVarQueryParameter['ids'] = ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distinct count
+         * @summary Get Connections Distinct
+         * @param {Array<ConnectionField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsDistinct: async (fields?: Array<ConnectionField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/connections/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
             }
 
 
@@ -3534,6 +3753,17 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get distinct count
+         * @summary Get Connections Distinct
+         * @param {Array<ConnectionField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getConnectionsDistinct(fields?: Array<ConnectionField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsDistinct(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get global series from connection
          * @summary Get Connections Global
          * @param {string} connectionId 
@@ -3721,6 +3951,16 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          */
         getConnectionsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
             return localVarFp.getConnectionsCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Connections Distinct
+         * @param {Array<ConnectionField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsDistinct(fields?: Array<ConnectionField>, options?: any): AxiosPromise<number> {
+            return localVarFp.getConnectionsDistinct(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * Get global series from connection
@@ -3914,6 +4154,18 @@ export class ConnectionsApi extends BaseAPI {
      */
     public getConnectionsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Connections Distinct
+     * @param {Array<ConnectionField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public getConnectionsDistinct(fields?: Array<ConnectionField>, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getConnectionsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4264,6 +4516,41 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
+         * Get distinct count
+         * @summary Get Materials Distinct
+         * @param {Array<MaterialField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsDistinct: async (fields?: Array<MaterialField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/materials/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
@@ -4430,6 +4717,17 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get distinct count
+         * @summary Get Materials Distinct
+         * @param {Array<MaterialField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterialsDistinct(fields?: Array<MaterialField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsDistinct(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
@@ -4508,6 +4806,16 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          */
         getMaterialsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
             return localVarFp.getMaterialsCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Materials Distinct
+         * @param {Array<MaterialField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsDistinct(fields?: Array<MaterialField>, options?: any): AxiosPromise<number> {
+            return localVarFp.getMaterialsDistinct(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -4590,6 +4898,18 @@ export class MaterialsApi extends BaseAPI {
      */
     public getMaterialsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Materials Distinct
+     * @param {Array<MaterialField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterialsDistinct(fields?: Array<MaterialField>, options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterialsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

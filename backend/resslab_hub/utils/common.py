@@ -8,7 +8,7 @@ from typing import Any, Dict, Generic, List, Optional, Set, TypeVar, Union
 from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
 from pydantic.main import BaseModel
-from sqlalchemy import and_, desc, func, not_, or_, select
+from sqlalchemy import and_, desc, distinct, func, not_, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import column_property
 from sqlalchemy.sql.elements import BooleanClauseList, ColumnElement
@@ -182,6 +182,17 @@ class Component(ABC, Generic[D, M]):
             list(self.all_columns.keys()),
             filename,
         )
+
+    async def get_distinct(self, session: AsyncSession, fields: List[str]) -> int:
+        columns = [self.database_type.__dict__[field] for field in fields]
+        count = await session.scalar(
+            select(
+                func.count(distinct(tuple_(*columns)))
+                if len(columns) > 0
+                else func.count()
+            ).select_from(self.database_type)
+        )
+        return count
 
     def get_sub(
         self,

@@ -189,6 +189,19 @@ const aboutDialog = ref<boolean>(false);
                 >.
               </p>
             </v-card-text>
+            <v-card-text>
+              <!-- https://www.epfl.ch/campus/services/website/legal-recommendations-for-publishing-on-the-epfl-web/use-of-google-analytics/ -->
+              <a
+                href="https://www.epfl.ch/about/overview/regulations-and-guidelines/disclaimer/"
+                target="_blank"
+              >
+                Disclaimer
+              </a>
+              <br />
+              <a href="https://go.epfl.ch/privacy-policy/" target="_blank">
+                Privacy policy
+              </a>
+            </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="primary" icon @click="aboutDialog = false">

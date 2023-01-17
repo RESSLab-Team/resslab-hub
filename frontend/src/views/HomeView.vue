@@ -1,0 +1,273 @@
+<script setup lang="ts">
+import { publicPath } from "@/utils/common";
+import { ref, onMounted } from "vue";
+import OverviewMap from "@/components/commons/OverviewMap.vue";
+import { chain } from "lodash";
+import {
+  bracesApi,
+  columnsApi,
+  connectionsApi,
+  materialsApi,
+} from "@/plugins/axios";
+import {
+  BraceField,
+  ColumnField,
+  ConnectionField,
+  MaterialField,
+} from "@/backend";
+
+interface Image {
+  src: string;
+  credit: string;
+}
+
+const images: Image[] = [
+  "El Jisr and Lignos (2022)",
+  "Elkady and Lignos (2018)",
+  "Prof. Dimitrios Lignos, EPFL",
+  "Andronikos Skiadopoulos, EPFL",
+  "Suzuki and Lignos (2021)",
+  "Skiadopoulos and Lignos (2022)",
+  "Elkady and Lignos (2018)",
+  "Andronikos Skiadopoulos, EPFL",
+  "Prof. Dimitrios Lignos, EPFL",
+  "Left, Prof. Michael Engelhardt, UT Austin, Right, Hartloper et al. (2021)",
+].map((credit, index) => ({
+  src: publicPath + `img/home/Photo${index + 1}.jpg`,
+  credit: credit,
+}));
+const logos: {
+  src: string;
+  url: string;
+}[] = [
+  {
+    src: publicPath + "logo/resslab_logo_v1.svg",
+    url: "https://www.epfl.ch/labs/resslab",
+  },
+  {
+    src: publicPath + "logo/EPFL_Logo_184X53.svg",
+    url: "https://www.epfl.ch",
+  },
+  {
+    src: publicPath + "logo/SNF_logo_standard_web_color_pos_e.svg",
+    url: "https://www.snf.ch",
+  },
+];
+
+const imageIndex = ref(0);
+const testCount = ref<number>();
+const universityCount = ref<number>();
+const userCount = ref<number>();
+
+onMounted(() => {
+  Promise.all([
+    bracesApi.getBracesDistinct(),
+    columnsApi.getColumnsDistinct(),
+    connectionsApi.getConnectionsDistinct(),
+    materialsApi.getMaterialsDistinct(),
+  ])
+    .then((responses) =>
+      chain(responses)
+        .flatMap((response) => response.data)
+        .sum()
+        .value()
+    )
+    .then((count) => (testCount.value = count));
+
+  const latLngFields: (BraceField &
+    ColumnField &
+    ConnectionField &
+    MaterialField)[] = ["latitude", "longitude"];
+  Promise.all([
+    bracesApi.getBracesCounts(latLngFields),
+    columnsApi.getColumnsCounts(latLngFields),
+    connectionsApi.getConnectionsCounts(latLngFields),
+    materialsApi.getMaterialsCounts(latLngFields),
+  ])
+    .then((responses) =>
+      chain(responses)
+        .flatMap((response) => response.data)
+        .uniqBy((count) => count.names)
+        .size()
+        .value()
+    )
+    .then((count) => (universityCount.value = count));
+});
+</script>
+
+<template>
+  <v-container class="text-justify" fluid>
+    <v-row>
+      <v-col>
+        <v-responsive content-class="d-flex align-center" height="256px">
+          <video autoplay loop width="100%">
+            <source
+              :src="publicPath + 'video/steel-mrf-front-page.mp4'"
+              type="video/mp4"
+            />
+          </video>
+          <v-overlay absolute value="true" z-index="0">
+            <h1>
+              RESSLab Hub: Open-access databases and models for design and
+              assessment of steel structures
+            </h1>
+          </v-overlay>
+        </v-responsive>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="4">
+        <p>
+          Recent developments in Performance-Based Earthquake Engineering enable
+          studies to benchmark the seismic performance of infrastructure
+          systems, further develop our codes and standards and to minimize the
+          impacts of earthquakes worldwide. Moreover, digitalization of our
+          cities requires the use of standardized predictive models for
+          maintenance and life-cycle assessment of infrastructure systems.
+          Within such a context, the RESSLab-hub provides open-access to the
+          engineering and research communities to databases along with
+          state-of-the-art modeling with the overarching goal to advance
+          knowledge for minimizing the earthquake risk of steel and
+          composite-steel concrete structures.
+        </p>
+        <v-expansion-panels>
+          <v-expansion-panel>
+            <v-expansion-panel-header>More Info</v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <h2>Databases</h2>
+              <p>
+                A series of databases have been developed with enhanced
+                visualization features for efficient search and data
+                exploitation. The databases provide access to physical
+                experiments of a rich set of structural steel materials,
+                structural components and connections, residual stress
+                measurements that were tested worldwide since the 1970s. In
+                particular, the databases include highly heterogenous data in a
+                consistent format with parallel axis search and visualization
+                capabilities. Fully digitized experimental data is made
+                available that were extracted from experimental reports.
+              </p>
+              <h2>Component Models</h2>
+              <p>
+                A web-based interactive module allows for the automatically
+                constructed backbone and first-cycle envelope curves for
+                structural steel components for direct use in nonlinear static
+                and dynamic analyses procedures. This module incorporates the
+                state-of-the-art in component modeling for seismic assessment of
+                existing structures in North America and Europe. Besides the use
+                of built-up cross sections, it links with currently available
+                cross-sectional databases from North America, Europe and Japan
+                to extract geometric features from standardized hot-rolled
+                profiles, which are currently used in steel construction
+                worldwide.
+              </p>
+              <h2>Fragility Curves</h2>
+              <p>
+                A web-based interactive tool enables the exploitation of
+                fragility curves for structural components that allows for
+                financial loss estimation within the PBEE framework. The
+                fragility curves are either univariate or multivariate depending
+                on the component modeling resolution of interest. Visualization
+                features include bar plots to enable exploitation of fragility
+                curves and surfaces based on pertinent geometric and material
+                parameters of interest.
+              </p>
+              <h2>Future Updates</h2>
+              <p>
+                Other databases and web-based interactive tools are currently
+                under development. Stay tuned for future updates.
+              </p>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+        </v-expansion-panels>
+      </v-col>
+      <v-col cols="8">
+        <overview-map></overview-map>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="12">
+        <v-card dark>
+          <v-card-text>
+            <v-row>
+              <v-col class="d-flex flex-column align-center">
+                <strong>{{ testCount ?? "?" }}</strong>
+                <span>Tests</span>
+              </v-col>
+              <v-divider vertical></v-divider>
+              <v-col class="d-flex flex-column align-center">
+                <strong>{{ universityCount ?? "?" }}</strong>
+                <span>Universities contributed</span>
+              </v-col>
+              <v-divider vertical></v-divider>
+              <v-col class="d-flex flex-column align-center">
+                <strong>{{ userCount ?? "?" }}</strong>
+                <span>Users worldwide</span>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="8">
+        <v-skeleton-loader boilerplate type="card" />
+      </v-col>
+      <v-col cols="4">
+        <v-carousel v-model="imageIndex" cycle height="400">
+          <v-carousel-item v-for="(image, index) in images" :key="index">
+            <v-img :src="image.src" contain height="100%" width="100%"></v-img>
+          </v-carousel-item>
+        </v-carousel>
+        <p class="text-right">Credit: {{ images[imageIndex].credit }}</p>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col v-for="(logo, index) in logos" :key="index">
+        <a :href="logo.url" target="_blank">
+          <v-img contain :src="logo.src" max-height="128"></v-img>
+        </a>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="12">
+        <v-responsive>
+          <v-img :src="images[0].src" height="256"></v-img>
+          <v-overlay absolute value="true" z-index="0">
+            <div class="pa-3">
+              <h1>Copyrights</h1>
+              <p>
+                The databases in RESSLab-hub were assembled as a service to the
+                research and practice communities in earthquake engineering. The
+                assembled data, which have been fully digitized from various
+                experimental reports, are shared under the
+                <a
+                  href="https://creativecommons.org/licenses/by/2.0/legalcode"
+                  target="_blank"
+                  >Creative Commons Attribution 2.0 Generic</a
+                >
+                and the
+                <a
+                  href="https://github.com/amaelkady/Steel-Columns-Test-Data/blob/main/LICENSE"
+                  target="_blank"
+                  >GNU General Public</a
+                >
+                licences. EPFL, and the researchers who performed the
+                experiments make no warranties to the accuracy of the
+                information that has been collected and provided in this
+                website. If you have any questions, comments or suggestions,
+                please contact
+                <a
+                  href="https://people.epfl.ch/dimitrios.lignos"
+                  target="_blank"
+                  >Prof. Dimitrios Lignos</a
+                >
+                at <a href="https://www.epfl.ch" target="_blank">EPFL</a>.
+              </p>
+            </div>
+          </v-overlay>
+        </v-responsive>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>

@@ -131,6 +131,17 @@ async def get_braces_csv(
     return await component.get_csv(session, ids)
 
 
+@router.get("/distinct", response_model=int)
+async def get_braces_distinct(
+    session: AsyncSession = Depends(get_session),
+    fields: List[BraceField] = Query([]),
+) -> int:
+    """
+    Get distinct count
+    """
+    return await component.get_distinct(session, [field.value for field in fields])
+
+
 @router.get("/{brace_id}/displacement", response_model=List[List[Decimal]])
 async def get_braces_displacement(
     session: AsyncSession = Depends(get_session),
