@@ -17,16 +17,16 @@
       <v-col cols="5">
         <v-col cols="12">
           <v-card>
-            <v-card-title>Option</v-card-title>
-            <v-card-text>
-              <toggle v-model="option" class="my-4" :items="options"></toggle>
-            </v-card-text>
-            <v-card-title>How to use it ?</v-card-title>
-            <v-card-text>
-              <p>
+            <v-card-title
+              >Option
+              <info-tooltip>
                 Select the appropriate cross sectional shape of the bracing
                 member to visualize the corresponding fragility curve.
-              </p>
+              </info-tooltip></v-card-title
+            >
+
+            <v-card-text>
+              <toggle v-model="option" class="my-4" :items="options"></toggle>
             </v-card-text>
           </v-card>
         </v-col>
@@ -61,6 +61,7 @@
 <script lang="ts">
 import SurfaceGlChart from "@/components/commons/charts/SurfaceGlChart.vue";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import UnitSlider from "@/components/commons/sliders/UnitSlider.vue";
 import Toggle, { ToggleItem } from "@/components/commons/Toggle.vue";
 import { EChartsGlOption } from "@/utils/echarts-gl";
@@ -80,6 +81,7 @@ import { Component, Vue } from "vue-property-decorator";
 @Component({
   components: {
     SurfaceGlChart,
+    InfoTooltip,
     Toggle,
     UnitSlider,
     UnitChart,
