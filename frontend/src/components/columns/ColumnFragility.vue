@@ -3,6 +3,16 @@
     <v-row>
       <v-col cols="12">
         <h1>Fragility Curve Plotter for Wide-Flange Steel Columns</h1>
+
+        <p>
+          This module plots univariate and multivariate fragility curves for
+          wide-flange steel columns depending on their primary loading and
+          geometric characteristics. For further information please refer to
+          <a
+            href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
+            >Elkady et al. (2018)</a
+          >.
+        </p>
       </v-col>
     </v-row>
     <v-row>
@@ -10,20 +20,6 @@
         <v-row>
           <v-col cols="12">
             <v-card>
-              <v-card-title><h2>About</h2> </v-card-title>
-              <v-card-text>
-                <p>
-                  This module plots univariate and multivariate fragility curves
-                  for wide-flange steel columns depending on their primary
-                  loading and geometric characteristics. For further information
-                  please refer to
-                  <a
-                    href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
-                    >Elkady et al. (2018)</a
-                  >.
-                </p></v-card-text
-              >
-
               <v-card-title>Parameters</v-card-title>
               <v-card-text>
                 <v-row>

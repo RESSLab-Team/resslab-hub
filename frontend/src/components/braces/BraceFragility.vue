@@ -2,31 +2,27 @@
   <v-row>
     <v-col cols="12">
       <h1>Fragility Curve Plotter for Steel Bracings</h1>
+      <p>
+        This interactive module plots univariate and multivariate fragility
+        curves for steel bracings of various types of cross sections. the
+        multivariate curves depict the dependence of the fragility curve on
+        member slenderness. For further information refer to
+        <a
+          href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
+          >Lignos and Karamanci (2013)</a
+        >.
+      </p>
     </v-col>
     <v-row>
       <v-col cols="5">
         <v-col cols="12">
           <v-card>
-            <v-card-title> <h2>About</h2> </v-card-title>
+            <v-card-title>Option</v-card-title>
             <v-card-text>
-              <p>
-                This interactive module plots univariate and multivariate
-                fragility curves for steel bracings of various types of cross
-                sections. the multivariate curves depict the dependence of the
-                fragility curve on member slenderness. For further information
-                refer to
-                <a
-                  href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
-                  >Lignos and Karamanci (2013)</a
-                >.
-              </p>
-            </v-card-text>
-            <v-card-text>
-              <h2>Option</h2>
               <toggle v-model="option" class="my-4" :items="options"></toggle>
             </v-card-text>
+            <v-card-title>How to use it ?</v-card-title>
             <v-card-text>
-              <h2>How to use it ?</h2>
               <p>
                 Select the appropriate cross sectional shape of the bracing
                 member to visualize the corresponding fragility curve.
