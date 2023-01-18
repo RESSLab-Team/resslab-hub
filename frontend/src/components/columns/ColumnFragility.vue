@@ -2,7 +2,7 @@
   <div>
     <v-row>
       <v-col cols="12">
-        <h1>Fragility Curve Plotter</h1>
+        <h1>Fragility Curve Plotter for Wide-Flange Steel Columns</h1>
       </v-col>
     </v-row>
     <v-row>
@@ -10,6 +10,20 @@
         <v-row>
           <v-col cols="12">
             <v-card>
+              <v-card-title><h2>About</h2> </v-card-title>
+              <v-card-text>
+                <p>
+                  This module plots univariate and multivariate fragility curves
+                  for wide-flange steel columns depending on their primary
+                  loading and geometric characteristics. For further information
+                  please refer to
+                  <a
+                    href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
+                    >Elkady et al. (2018)</a
+                  >.
+                </p></v-card-text
+              >
+
               <v-card-title>Parameters</v-card-title>
               <v-card-text>
                 <v-row>
@@ -24,6 +38,12 @@
                     ></unit-slider>
                   </v-col>
                 </v-row>
+              </v-card-text>
+              <v-card-title>How to use it ?</v-card-title>
+              <v-card-text>
+                Please provide the imposed gravity-induced axial load ratio,
+                Pg/Pyn and the web slenderness ratio, h/tw of the wide-flange
+                cross section of the steel column.
               </v-card-text>
             </v-card>
           </v-col>
@@ -90,7 +110,7 @@ export default class ColumnFragility extends Vue {
     },
     {
       key: "pPyn",
-      label: "p / pyn",
+      label: "Pg / Pyn",
       min: 0,
       max: 1,
     },
