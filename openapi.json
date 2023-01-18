@@ -3185,7 +3185,9 @@
           "boundary_condition",
           "axial_lp",
           "p_g_over_p_ym",
-          "section_c"
+          "section_c",
+          "axis_of_bending",
+          "direction_lp"
         ],
         "type": "object",
         "properties": {
@@ -3231,6 +3233,14 @@
           },
           "section_c": {
             "title": "Section C",
+            "type": "string"
+          },
+          "axis_of_bending": {
+            "title": "Axis Of Bending",
+            "type": "string"
+          },
+          "direction_lp": {
+            "title": "Direction Lp",
             "type": "string"
           }
         },

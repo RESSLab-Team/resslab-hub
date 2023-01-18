@@ -128,6 +128,8 @@ class LocationColumnsModel(LocationModel):
     axial_lp: str
     p_g_over_p_ym: Decimal
     section_c: str
+    axis_of_bending: str
+    direction_lp: str
 
 
 class LocationBracesModel(LocationModel):
