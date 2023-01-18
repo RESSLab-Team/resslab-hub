@@ -20,7 +20,14 @@
         <v-row>
           <v-col cols="12">
             <v-card>
-              <v-card-title>Parameters</v-card-title>
+              <v-card-title
+                >Parameters
+                <info-tooltip
+                  >Please provide the imposed gravity-induced axial load ratio,
+                  Pg/Pyn and the web slenderness ratio, h/tw of the wide-flange
+                  cross section of the steel column.</info-tooltip
+                ></v-card-title
+              >
               <v-card-text>
                 <v-row>
                   <v-col v-for="item in parameters" :key="item.key">
@@ -34,12 +41,6 @@
                     ></unit-slider>
                   </v-col>
                 </v-row>
-              </v-card-text>
-              <v-card-title>How to use it ?</v-card-title>
-              <v-card-text>
-                Please provide the imposed gravity-induced axial load ratio,
-                Pg/Pyn and the web slenderness ratio, h/tw of the wide-flange
-                cross section of the steel column.
               </v-card-text>
             </v-card>
           </v-col>
@@ -72,6 +73,7 @@
 <script lang="ts">
 import SurfaceGlChart from "@/components/commons/charts/SurfaceGlChart.vue";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import UnitSlider, {
   UnitSliderItem,
 } from "@/components/commons/sliders/UnitSlider.vue";
@@ -89,6 +91,7 @@ import { Component, Vue } from "vue-property-decorator";
  */
 @Component({
   components: {
+    InfoTooltip,
     SurfaceGlChart,
     UnitSlider,
     UnitChart,
