@@ -7,7 +7,8 @@ export interface Datum {
 }
 
 export const typesNames = [
-  "Steel Material",
+  // Waiting  for the material DB to be included in Map
+  // "Steel Material",
   "Columns",
   "Connections",
   "Braces",

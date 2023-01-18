@@ -1185,6 +1185,18 @@ export interface LocationColumnsModel {
      * @memberof LocationColumnsModel
      */
     'section_c': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationColumnsModel
+     */
+    'axis_of_bending': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationColumnsModel
+     */
+    'direction_lp': string;
 }
 /**
  * Location

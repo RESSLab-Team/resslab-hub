@@ -109,6 +109,8 @@ async def get_columns_locations(
             ColumnEntity.axial_lp,
             ColumnEntity.p_g_over_p_ym,
             ColumnEntity.section_c,
+            ColumnEntity.axis_of_bending,
+            ColumnEntity.direction_lp,
         )
     )
     return rows.all()

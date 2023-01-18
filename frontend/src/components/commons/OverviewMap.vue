@@ -10,7 +10,11 @@ import {
   LocationColumnsModel,
   LocationConnectionsModel,
 } from "@/backend";
-import { getConnectionSpecimenImage } from "@/utils/component";
+import {
+  getBraceImage,
+  getColumnMapImage,
+  getConnectionSpecimenImage,
+} from "@/utils/component";
 import {
   MarkerSVG,
   PieChart,
@@ -151,9 +155,13 @@ export default class OverviewMap extends Vue {
         <li>Cross section: ${d.cross_section_size}</li>
         <li>KL/r:   ${d.kl_r}</li>
         <li>
-          <img alt="Braces placeholder image" src=""></img>
+          <img alt="Braces placeholder image" src="${getBraceImage(
+            d.boundary_condition
+          )}"></img>
         </li>
-        <li><a href='/braces/database?id=${d.id}&detail=true'>View experimental data</a></li>
+        <li><a href='/braces/database?id=${
+          d.id
+        }&detail=true'>View experimental data</a></li>
       </ul>
       </div>`;
   }
@@ -164,11 +172,18 @@ export default class OverviewMap extends Vue {
       <br>
       <ul>
         <li>${d.boundary_condition}</li>
-        <li>${d.axial_lp} (Pg/Py = ${d.p_g_over_p_ym}), Column: ${d.section_c}</li>
+        <li>${d.axial_lp} (Pg/Py = ${d.p_g_over_p_ym}), Column: ${
+      d.section_c
+    }</li>
         <li>
-          <img alt="Columns placeholder image" src=""></img>
+          <img alt="Columns placeholder image" src="${getColumnMapImage(
+            d.axis_of_bending,
+            d.boundary_condition
+          )}"></img>
         </li>
-        <li><a href='/columns/database?id=${d.id}&detail=true'>View experimental data</a></li>
+        <li><a href='/columns/database?id=${
+          d.id
+        }&detail=true'>View experimental data</a></li>
       </ul>
       </div>`;
   }
