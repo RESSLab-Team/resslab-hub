@@ -35,7 +35,7 @@ export function getColumnImage(
   if (axis_of_bending === "Weak" && boundary_condition === "Fixed-Free") {
     return publicPath + "img/column-type/fixed-free-weak-axis.png";
   }
-  if (direction_lp === "Birectional") {
+  if (direction_lp === "Bidirectional") {
     return publicPath + "img/column-type/bidirectional.png";
   }
   return undefined;
