@@ -331,16 +331,12 @@ function getCompressionOption(result: Result): EChartsOption {
     <v-col cols="12">
       <v-row align="center">
         <v-col>
-          <h1>Backbone Curve Plotter for Steel Components</h1>
+          <h1>Component Model for Steel Bracings</h1>
           <p>
-            Construct the backbone curve of beams with RBS and beams
-            other-than-RBS. For further information refer to
-            <a
-              href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376"
-              target="_blank"
-            >
-              Lignos and Krawinkler (2011)
-            </a>
+            This web-based interactive interface computes the basic parameters
+            for predictive modeling of steel bracings based on their basic
+            material and geometric properties. For further information refer to
+            Eurocode 8 Part 3.
           </p>
         </v-col>
         <v-col cols="auto">
@@ -349,6 +345,29 @@ function getCompressionOption(result: Result): EChartsOption {
       </v-row>
     </v-col>
     <v-col cols="6">
+      <v-row>
+        <v-col>
+          <v-card>
+            <v-card-title>
+              Select cross section type
+              <info-tooltip>
+                Select the cross-sectional shape of the bracing member
+              </info-tooltip>
+            </v-card-title>
+            <v-card-text>
+              <v-col v-bind="variableBind">
+                <v-select
+                  v-model="option"
+                  clearable
+                  hide-details
+                  :items="options"
+                  label="Select Option"
+                  single-line
+                ></v-select> </v-col
+            ></v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
       <v-row>
         <v-col>
           <v-card>
@@ -387,7 +406,14 @@ function getCompressionOption(result: Result): EChartsOption {
       <v-row>
         <v-col>
           <v-card>
-            <v-card-title>Steel Type</v-card-title>
+            <v-card-title
+              >Steel Type
+              <info-tooltip
+                >Select a standard steel grade or specify manually the material
+                overstrength (Omega) and the nominal yield strength,
+                fy)</info-tooltip
+              ></v-card-title
+            >
             <v-card-text>
               <v-row>
                 <v-col v-bind="variableBind">
@@ -431,7 +457,13 @@ function getCompressionOption(result: Result): EChartsOption {
     </v-col>
     <v-col cols="6">
       <v-card>
-        <v-card-title>Additional Parameters</v-card-title>
+        <v-card-title
+          >Associated Member Lengths
+          <info-tooltip
+            >Specify the associated member lengths as defined in the definition
+            in the upper left corner</info-tooltip
+          ></v-card-title
+        >
         <v-card-text>
           <v-row>
             <v-col
@@ -447,16 +479,6 @@ function getCompressionOption(result: Result): EChartsOption {
                 :unit="item.unit"
                 :unit-system="unitSystem"
               ></unit-slider>
-            </v-col>
-            <v-col v-bind="variableBind">
-              <v-select
-                v-model="option"
-                clearable
-                hide-details
-                :items="options"
-                label="Select Option"
-                single-line
-              ></v-select>
             </v-col>
           </v-row>
         </v-card-text>
