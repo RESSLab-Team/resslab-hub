@@ -1,25 +1,64 @@
 <template>
   <v-row>
     <v-col cols="12">
-      <h1>Fragility Curve Plotter</h1>
-      <toggle v-model="option" :items="options"></toggle>
+      <h1>Fragility Curve Plotter for Steel Bracings</h1>
     </v-col>
-    <v-col cols="3">
-      <h2>Univariate Fragility Curves</h2>
-      <unit-chart :option="univariateOptions[option]" x-unit="rad"></unit-chart>
-    </v-col>
-    <v-col cols="9">
-      <h2>Surfaces</h2>
-      <v-row>
-        <v-col
-          v-for="(item, index) in multivariateOptions"
-          :key="index"
-          cols="4"
-        >
-          <surface-gl-chart :option="item"></surface-gl-chart>
+    <v-row>
+      <v-col cols="5">
+        <v-col cols="12">
+          <v-card>
+            <v-card-title> <h2>About</h2> </v-card-title>
+            <v-card-text>
+              <p>
+                This interactive module plots univariate and multivariate
+                fragility curves for steel bracings of various types of cross
+                sections. the multivariate curves depict the dependence of the
+                fragility curve on member slenderness. For further information
+                refer to
+                <a
+                  href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
+                  >Lignos and Karamanci (2013)</a
+                >.
+              </p>
+            </v-card-text>
+            <v-card-text>
+              <h2>Option</h2>
+              <toggle v-model="option" class="my-4" :items="options"></toggle>
+            </v-card-text>
+            <v-card-text>
+              <h2>How to use it ?</h2>
+              <p>
+                Select the appropriate cross sectional shape of the bracing
+                member to visualize the corresponding fragility curve.
+              </p>
+            </v-card-text>
+          </v-card>
         </v-col>
-      </v-row>
-    </v-col>
+        <v-col cols="12"
+          ><h2>Univariate fragilities</h2>
+          <unit-chart
+            :aspect-ratio="2"
+            :option="univariateOptions[option]"
+            x-unit="rad"
+          ></unit-chart>
+        </v-col>
+      </v-col>
+      <v-col cols="7">
+        <h2>Multivariate fragilities</h2>
+        <v-row>
+          <v-col
+            v-for="(item, index) in multivariateOptions"
+            :key="index"
+            cols="4"
+          >
+            <surface-gl-chart
+              :aspect-ratio="1"
+              :option="item"
+            ></surface-gl-chart>
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
   </v-row>
 </template>
 
