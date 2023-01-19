@@ -10,6 +10,7 @@ import { UnitSystem } from "@/utils/unit";
 import { getColorMap } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import { computed, reactive, ref } from "vue";
+import { publicPath } from "@/utils/common";
 
 type Material = "a36" | "a572";
 interface Variables {
@@ -145,13 +146,27 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
   <v-row>
     <v-col cols="8">
       <h1>Fragility Curve Plotter for Steel Component</h1>
+      <p>
+        This tab introduces a web-based interactive module for visualizing
+        fragility curves of Pre- and Post-Northridge beam-to-column connections.
+        For further information refer to
+        <a
+          href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0000214"
+          >Lignos et al. (2010)</a
+        >
+        and
+        <a
+          href="https://www.sciencedirect.com/science/article/abs/pii/S0141029612003689"
+          >Ramirez et al. (2012)</a
+        >.
+      </p>
     </v-col>
     <v-col cols="4" class="d-flex justify-end">
       <toggle v-model="unitSystem" :items="unitItems"></toggle>
     </v-col>
     <v-col cols="4">
       <v-card>
-        <v-card-title>Select Material</v-card-title>
+        <v-card-title>Select units</v-card-title>
         <v-card-text>
           <h2>Steel Type</h2>
           <toggle v-model="material" class="my-4" :items="materials"></toggle>
@@ -177,6 +192,13 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
           ></unit-slider>
         </v-card-text>
       </v-card>
+      <v-col cols="12">
+        <v-img
+          contain
+          height="300px"
+          :src="publicPath + 'img/connection/connection_fragility.png'"
+        ></v-img>
+      </v-col>
     </v-col>
     <v-col cols="4">
       <h2>Pre-Northridge</h2>
