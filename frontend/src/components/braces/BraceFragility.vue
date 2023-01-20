@@ -9,52 +9,38 @@
         member slenderness. For further information refer to
         <a
           href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
+          target="_blank"
           >Lignos and Karamanci (2013)</a
         >.
       </p>
     </v-col>
-    <v-row>
-      <v-col cols="5">
-        <v-col cols="12">
-          <v-card>
-            <v-card-title
-              >Option
-              <info-tooltip>
-                Select the appropriate cross sectional shape of the bracing
-                member to visualize the corresponding fragility curve.
-              </info-tooltip></v-card-title
-            >
-
-            <v-card-text>
-              <toggle v-model="option" class="my-4" :items="options"></toggle>
-            </v-card-text>
-          </v-card>
+    <v-col cols="12">
+      <toggle v-model="option" :items="options"></toggle>
+      <info-tooltip>
+        Select the appropriate cross sectional shape of the bracing member to
+        visualize the corresponding fragility curve.
+      </info-tooltip>
+    </v-col>
+    <v-col cols="4">
+      <h2>Univariate fragilities</h2>
+      <unit-chart
+        :aspect-ratio="2"
+        :option="univariateOptions[option]"
+        x-unit="rad"
+      ></unit-chart>
+    </v-col>
+    <v-col cols="8">
+      <h2>Multivariate fragilities</h2>
+      <v-row>
+        <v-col
+          v-for="(item, index) in multivariateOptions"
+          :key="index"
+          cols="4"
+        >
+          <surface-gl-chart :aspect-ratio="1" :option="item"></surface-gl-chart>
         </v-col>
-        <v-col cols="12"
-          ><h2>Univariate fragilities</h2>
-          <unit-chart
-            :aspect-ratio="2"
-            :option="univariateOptions[option]"
-            x-unit="rad"
-          ></unit-chart>
-        </v-col>
-      </v-col>
-      <v-col cols="7">
-        <h2>Multivariate fragilities</h2>
-        <v-row>
-          <v-col
-            v-for="(item, index) in multivariateOptions"
-            :key="index"
-            cols="4"
-          >
-            <surface-gl-chart
-              :aspect-ratio="1"
-              :option="item"
-            ></surface-gl-chart>
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
+      </v-row>
+    </v-col>
   </v-row>
 </template>
 
@@ -67,7 +53,6 @@ import Toggle, { ToggleItem } from "@/components/commons/Toggle.vue";
 import { EChartsGlOption } from "@/utils/echarts-gl";
 import { DamageState, univariateOption } from "@/utils/fragility";
 import { subscripts } from "@/utils/unicode";
-import { UnitSystem } from "@/utils/unit";
 import { getColorMap } from "@/utils/vuetify";
 import cdf from "@stdlib/stats-base-dists-lognormal-cdf";
 import { EChartsOption } from "echarts";
@@ -88,7 +73,6 @@ import { Component, Vue } from "vue-property-decorator";
   },
 })
 export default class BraceFragility extends Vue {
-  readonly unitSystem: UnitSystem = "metric";
   readonly damageStates: Record<Option, DamageState[]> = {
     "square-hss": [
       {

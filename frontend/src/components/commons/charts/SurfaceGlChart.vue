@@ -73,7 +73,7 @@ export default class SurfaceGlChart extends Vue {
         },
       },
     };
-    return merge({}, this.option, defaultOption);
+    return merge(defaultOption, this.option);
   }
 }
 </script>
