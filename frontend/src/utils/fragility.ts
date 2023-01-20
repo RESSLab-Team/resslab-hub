@@ -41,6 +41,7 @@ export function univariateOption(
       type: "line",
       name: namePrefix + `DS${index + 1}`,
       showSymbol: false,
+      animation: false,
       itemStyle: {
         color: colorPalette[index],
       },
