@@ -30,7 +30,7 @@
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <material-detail :value="item" @close="close"></material-detail>
+          <material-detail :material="item" @close="close"></material-detail>
         </v-col>
       </v-row>
       <v-row v-else>
