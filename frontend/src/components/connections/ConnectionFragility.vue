@@ -152,11 +152,13 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
         For further information refer to
         <a
           href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0000214"
+          target="_blank"
           >Lignos et al. (2010)</a
         >
         and
         <a
           href="https://www.sciencedirect.com/science/article/abs/pii/S0141029612003689"
+          target="_blank"
           >Ramirez et al. (2012)</a
         >.
       </p>
@@ -166,13 +168,12 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
     </v-col>
     <v-col cols="4">
       <v-card>
-        <v-card-title>Select units</v-card-title>
+        <v-card-title>Steel Type</v-card-title>
         <v-card-text>
-          <h2>Steel Type</h2>
           <toggle v-model="material" class="my-4" :items="materials"></toggle>
         </v-card-text>
+        <v-card-title>Geometric Parameters</v-card-title>
         <v-card-text>
-          <h2>Geometric Parameters</h2>
           <v-switch
             v-model="infoAvailable"
             color="primary"
