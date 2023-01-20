@@ -19,10 +19,8 @@ export function computeUvcStress(
   let stress = 0;
   let ep_eq = 0;
 
-  const stress_track: number[] = [];
-
-  const loading = discreteDifference(eTrue);
-  loading.forEach((strain_inc) => {
+  const loading = [0, ...discreteDifference(eTrue)];
+  const stress_track = loading.map((strain_inc) => {
     const alpha = sum(alpha_components);
     const yield_stress =
       sy_0 + Q * (1 - Math.exp(-b * ep_eq)) - D * (1 - Math.exp(-a * ep_eq));
@@ -82,13 +80,13 @@ export function computeUvcStress(
         (alpha_components[i] - (flow_dir * k.c) / k.gamma) * e_k;
     });
 
-    stress_track.push(stress);
-
     if (number_of_iterations >= maximum_iterations) {
       throw new Error(
         `Return mapping did not converge in ${maximum_iterations} iterations.`
       );
     }
+
+    return stress;
   });
 
   return stress_track;
