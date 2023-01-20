@@ -95,7 +95,7 @@ const steelShapeDimensions: Variable<keyof Variables>[] = [
 const steelTypeVariables: Variable<keyof Variables>[] = [
   new Variable({
     key: "omega",
-    text: "Omega",
+    text: "Ω",
     min: 1,
     max: 2,
   }),
@@ -340,130 +340,104 @@ function getCompressionOption(result: Result): EChartsOption {
           </p>
         </v-col>
         <v-col cols="auto">
-          <toggle v-model="unitSystem" :items="unitItems"></toggle>
+          <toggle v-model="unitSystem" :items="unitItems" />
         </v-col>
       </v-row>
-    </v-col>
-    <v-col cols="6">
-      <v-row>
-        <v-col>
-          <v-card>
-            <v-card-title>
-              Select cross section type
-              <info-tooltip>
-                Select the cross-sectional shape of the bracing member
-              </info-tooltip>
-            </v-card-title>
-            <v-card-text>
-              <v-col v-bind="variableBind">
-                <v-select
-                  v-model="option"
-                  clearable
-                  hide-details
-                  :items="options"
-                  label="Select Option"
-                  single-line
-                ></v-select> </v-col
-            ></v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <v-card>
-            <v-card-title>
-              Select Steel Profile
-              <info-tooltip>
-                Here, you may choose to either select a W-Shape from the AISC
-                database or input your own dimensions using the sliders below
-              </info-tooltip>
-            </v-card-title>
-            <v-card-text>
-              <section-selector
-                @update:section="onSectionChanged($event)"
-              ></section-selector>
-              <v-row>
-                <v-col
-                  v-for="item in steelShapeDimensions"
-                  :key="item.key"
-                  v-bind="variableBind"
-                >
-                  <unit-slider
-                    v-model="variables[item.key]"
-                    :disabled="!!section"
-                    :label="item.text"
-                    :max="item.max"
-                    :min="item.min"
-                    :unit="item.unit"
-                    :unit-system="unitSystem"
-                  ></unit-slider>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <v-card>
-            <v-card-title
-              >Steel Type
-              <info-tooltip
-                >Select a standard steel grade or specify manually the material
-                overstrength (Omega) and the nominal yield strength,
-                fy)</info-tooltip
-              ></v-card-title
-            >
-            <v-card-text>
-              <v-row>
-                <v-col v-bind="variableBind">
-                  <v-select
-                    v-model="steelType"
-                    clearable
-                    hide-details
-                    :items="steelTypes"
-                    label="Select Steel Type"
-                    single-line
-                  ></v-select>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col
-                  v-for="item in steelTypeVariables"
-                  :key="item.key"
-                  v-bind="variableBind"
-                >
-                  <unit-slider
-                    v-model="variables[item.key]"
-                    :disabled="!!steelType"
-                    :label="item.text"
-                    :max="item.max"
-                    :min="item.min"
-                    :unit="item.unit"
-                    :unit-system="unitSystem"
-                  ></unit-slider>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col cols="6">
-      <v-img
-        contain
-        :src="publicPath + 'img/brace/I_shaped_Bracing.png'"
-      ></v-img>
     </v-col>
     <v-col cols="6">
       <v-card>
-        <v-card-title
-          >Associated Member Lengths
-          <info-tooltip
-            >Specify the associated member lengths as defined in the definition
-            in the upper left corner</info-tooltip
-          ></v-card-title
-        >
+        <v-card-title>
+          Select cross section type
+          <info-tooltip>
+            Select the cross-sectional shape of the bracing member
+          </info-tooltip>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col v-bind="variableBind">
+              <v-select
+                v-model="option"
+                clearable
+                hide-details
+                :items="options"
+                label="Select Option"
+                single-line
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-title>
+          Select Steel Profile
+          <info-tooltip>
+            Here, you may choose to either select a W-Shape from the AISC
+            database or input your own dimensions using the sliders below
+          </info-tooltip>
+        </v-card-title>
+        <v-card-text>
+          <section-selector @update:section="onSectionChanged($event)" />
+          <v-row>
+            <v-col
+              v-for="item in steelShapeDimensions"
+              :key="item.key"
+              v-bind="variableBind"
+            >
+              <unit-slider
+                v-model="variables[item.key]"
+                :disabled="!!section"
+                :label="item.text"
+                :max="item.max"
+                :min="item.min"
+                :unit="item.unit"
+                :unit-system="unitSystem"
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-title>
+          Steel Type
+          <info-tooltip>
+            Select a standard steel grade or specify manually the material
+            overstrength (Omega) and the nominal yield strength, fy)
+          </info-tooltip>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col v-bind="variableBind">
+              <v-select
+                v-model="steelType"
+                clearable
+                hide-details
+                :items="steelTypes"
+                label="Select Steel Type"
+                single-line
+              ></v-select>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col
+              v-for="item in steelTypeVariables"
+              :key="item.key"
+              v-bind="variableBind"
+            >
+              <unit-slider
+                v-model="variables[item.key]"
+                :disabled="!!steelType"
+                :label="item.text"
+                :max="item.max"
+                :min="item.min"
+                :unit="item.unit"
+                :unit-system="unitSystem"
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-title>
+          Associated Member Lengths
+          <info-tooltip>
+            Specify the associated member lengths as defined in the definition
+            in the upper left corner
+          </info-tooltip>
+        </v-card-title>
         <v-card-text>
           <v-row>
             <v-col
@@ -478,33 +452,40 @@ function getCompressionOption(result: Result): EChartsOption {
                 :min="item.min"
                 :unit="item.unit"
                 :unit-system="unitSystem"
-              ></unit-slider>
+              />
             </v-col>
           </v-row>
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col cols="3">
-      <v-card>
-        <v-card-title>Tension</v-card-title>
-        <v-card-text>
-          <unit-chart
-            :option="getTensionOption(result)"
-            :unit-system="unitSystem"
-          ></unit-chart>
-        </v-card-text>
-      </v-card>
-    </v-col>
-    <v-col cols="3">
-      <v-card>
-        <v-card-title>Compression</v-card-title>
-        <v-card-text>
-          <unit-chart
-            :option="getCompressionOption(result)"
-            :unit-system="unitSystem"
-          ></unit-chart>
-        </v-card-text>
-      </v-card>
+    <v-col cols="6">
+      <v-row>
+        <v-col cols="6">
+          <v-card>
+            <v-card-title>Tension</v-card-title>
+            <v-card-text>
+              <unit-chart
+                :option="getTensionOption(result)"
+                :unit-system="unitSystem"
+              />
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="6">
+          <v-card>
+            <v-card-title>Compression</v-card-title>
+            <v-card-text>
+              <unit-chart
+                :option="getCompressionOption(result)"
+                :unit-system="unitSystem"
+              />
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12">
+          <v-img contain :src="publicPath + 'img/brace/I_shaped_Bracing.png'" />
+        </v-col>
+      </v-row>
     </v-col>
   </v-row>
 </template>
