@@ -109,9 +109,16 @@ class LocationModel(BaseModel):
     id: str
     latitude: Decimal
     longitude: Decimal
-    date: int
     reference: str
     link: Optional[str]
+
+
+class LocationMaterialsModel(LocationModel):
+    # Materials DB uses "DD/MM/YY" instead of "YYYY" int format
+    date: str
+    profile_type: str
+    profile: str
+    experimental_program: str
 
 
 class LocationConnectionsModel(LocationModel):
@@ -120,6 +127,7 @@ class LocationConnectionsModel(LocationModel):
     section_c: str
     connection_type: str
     specimen_type: str
+    date: int
 
 
 class LocationColumnsModel(LocationModel):
@@ -130,6 +138,7 @@ class LocationColumnsModel(LocationModel):
     section_c: str
     axis_of_bending: str
     direction_lp: str
+    date: int
 
 
 class LocationBracesModel(LocationModel):
@@ -137,6 +146,7 @@ class LocationBracesModel(LocationModel):
     cross_section_size: str
     kl_r: Decimal
     boundary_condition: str
+    date: int
 
 
 class MatrixModel(BaseModel):

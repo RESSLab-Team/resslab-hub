@@ -6,13 +6,7 @@ export interface Datum {
   value: number;
 }
 
-export const typesNames = [
-  // Waiting  for the material DB to be included in Map
-  // "Steel Material",
-  "Columns",
-  "Connections",
-  "Braces",
-];
+export const typesNames = ["Materials", "Columns", "Connections", "Braces"];
 
 export interface OverviewMapOptions {
   name?: (arg0: Datum) => string;

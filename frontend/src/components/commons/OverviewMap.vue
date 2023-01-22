@@ -9,11 +9,13 @@ import {
   LocationBracesModel,
   LocationColumnsModel,
   LocationConnectionsModel,
+  LocationMaterialsModel,
 } from "@/backend";
 import {
   getBraceImage,
   getColumnMapImage,
   getConnectionSpecimenImage,
+  getSteelMaterialImage,
 } from "@/utils/component";
 import {
   MarkerSVG,
@@ -58,17 +60,24 @@ export default class OverviewMap extends Vue {
   private connectionsLocations: LocationConnectionsModel[] = [];
   private columnsLocations: LocationColumnsModel[] = [];
   private bracesLocations: LocationBracesModel[] = [];
+  private materialsLocations: LocationMaterialsModel[] = [];
 
   get dataLength(): number {
     return (
       this.connectionsLocations.length +
       this.columnsLocations.length +
-      this.bracesLocations.length
+      this.bracesLocations.length +
+      this.materialsLocations.length
     );
   }
 
   @Watch("connectionsLocations")
   onConnectionsChanged() {
+    this.updateMap();
+  }
+
+  @Watch("materialsLocations")
+  onMaterialsChanged() {
     this.updateMap();
   }
 
@@ -130,7 +139,9 @@ export default class OverviewMap extends Vue {
 
   createTooltipConnections(d: LocationConnectionsModel) {
     return `<div class="tooltip">
-      <h3><a href="${d.link}">${d.experimental_program} (${d.date})</a></h3>
+      <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${
+      d.date
+    })</a></h3>
       <br>
       <ul>
         <li>${d.specimen_type}</li>
@@ -149,7 +160,9 @@ export default class OverviewMap extends Vue {
 
   createTooltipBraces(d: LocationBracesModel) {
     return `<div class="tooltip">
-      <h3><a href="${d.link}">${d.investigator} (${d.date})</a></h3>
+      <h3><a target="_blank" href="${d.link}">${d.investigator} (${
+      d.date
+    })</a></h3>
       <br>
       <ul>
         <li>Cross section: ${d.cross_section_size}</li>
@@ -168,7 +181,9 @@ export default class OverviewMap extends Vue {
 
   createTooltipColumns(d: LocationColumnsModel) {
     return `<div class="tooltip">
-      <h3><a href="${d.link}">${d.experimental_program} (${d.date})</a></h3>
+      <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${
+      d.date
+    })</a></h3>
       <br>
       <ul>
         <li>${d.boundary_condition}</li>
@@ -188,8 +203,31 @@ export default class OverviewMap extends Vue {
       </div>`;
   }
 
+  createTooltipMaterials(d: LocationMaterialsModel) {
+    return `<div class="tooltip">
+      <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${
+      d.date
+    })</a></h3>
+      <br>
+      <ul>
+        <li>Profile type: ${d.profile_type}</li>
+        <li>Cross section: ${d.profile}</li>
+        <li>
+          <img alt="Materials placeholder image" src="${getSteelMaterialImage()}"></img>
+        </li>
+        <li><a href='/materials/database?id=${
+          d.id
+        }&detail=true'>View experimental data</a></li>
+      </ul>
+      </div>`;
+  }
+
   createTooltip(
-    d: LocationBracesModel | LocationConnectionsModel | LocationColumnsModel,
+    d:
+      | LocationBracesModel
+      | LocationConnectionsModel
+      | LocationColumnsModel
+      | LocationMaterialsModel,
     type: string
   ) {
     switch (type) {
@@ -199,6 +237,8 @@ export default class OverviewMap extends Vue {
         return this.createTooltipColumns(d as LocationColumnsModel);
       case "Braces":
         return this.createTooltipBraces(d as LocationBracesModel);
+      case "Materials":
+        return this.createTooltipMaterials(d as LocationMaterialsModel);
       default:
         return `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`;
     }
@@ -209,6 +249,7 @@ export default class OverviewMap extends Vue {
       | LocationBracesModel
       | LocationConnectionsModel
       | LocationColumnsModel
+      | LocationMaterialsModel
     )[],
     type: string
   ) {
@@ -233,20 +274,19 @@ export default class OverviewMap extends Vue {
     const connectionsMarkers = this.createMarkers(
       this.connectionsLocations,
       "Connections"
-      // this.createTooltipConnections
     );
-    const columnsMarkers = this.createMarkers(
-      this.columnsLocations,
-      "Columns"
-      // this.createTooltipColumns
-    );
-    const bracesMarkers = this.createMarkers(
-      this.bracesLocations,
-      "Braces"
-      // this.createTooltipBraces
+    const columnsMarkers = this.createMarkers(this.columnsLocations, "Columns");
+    const bracesMarkers = this.createMarkers(this.bracesLocations, "Braces");
+    const materialsMarkers = this.createMarkers(
+      this.materialsLocations,
+      "Materials"
     );
 
-    return connectionsMarkers.concat(columnsMarkers, bracesMarkers);
+    return connectionsMarkers.concat(
+      columnsMarkers,
+      bracesMarkers,
+      materialsMarkers
+    );
   }
   private get legend() {
     const legend = new Control({ position: "bottomright" });
@@ -318,6 +358,9 @@ export default class OverviewMap extends Vue {
     this.$bracesApi
       .getBracesLocations()
       .then((res) => (this.bracesLocations = res.data));
+    this.$materialsApi
+      .getMaterialsLocations()
+      .then((res) => (this.materialsLocations = res.data));
   }
 }
 </script>

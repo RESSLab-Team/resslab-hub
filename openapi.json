@@ -1922,6 +1922,32 @@
         }
       }
     },
+    "/materials/locations": {
+      "get": {
+        "tags": [
+          "materials"
+        ],
+        "summary": "Get Materials Locations",
+        "description": "Get occurences location of field values",
+        "operationId": "get_materials_locations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Materials Locations Materials Locations Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LocationMaterialsModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/materials/counts": {
       "get": {
         "tags": [
@@ -3121,12 +3147,12 @@
           "id",
           "latitude",
           "longitude",
-          "date",
           "reference",
           "investigator",
           "cross_section_size",
           "kl_r",
-          "boundary_condition"
+          "boundary_condition",
+          "date"
         ],
         "type": "object",
         "properties": {
@@ -3141,10 +3167,6 @@
           "longitude": {
             "title": "Longitude",
             "type": "number"
-          },
-          "date": {
-            "title": "Date",
-            "type": "integer"
           },
           "reference": {
             "title": "Reference",
@@ -3169,6 +3191,10 @@
           "boundary_condition": {
             "title": "Boundary Condition",
             "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "integer"
           }
         },
         "description": "Location"
@@ -3179,7 +3205,6 @@
           "id",
           "latitude",
           "longitude",
-          "date",
           "reference",
           "experimental_program",
           "boundary_condition",
@@ -3187,7 +3212,8 @@
           "p_g_over_p_ym",
           "section_c",
           "axis_of_bending",
-          "direction_lp"
+          "direction_lp",
+          "date"
         ],
         "type": "object",
         "properties": {
@@ -3202,10 +3228,6 @@
           "longitude": {
             "title": "Longitude",
             "type": "number"
-          },
-          "date": {
-            "title": "Date",
-            "type": "integer"
           },
           "reference": {
             "title": "Reference",
@@ -3242,6 +3264,10 @@
           "direction_lp": {
             "title": "Direction Lp",
             "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "integer"
           }
         },
         "description": "Location"
@@ -3252,13 +3278,13 @@
           "id",
           "latitude",
           "longitude",
-          "date",
           "reference",
           "experimental_program",
           "section_b",
           "section_c",
           "connection_type",
-          "specimen_type"
+          "specimen_type",
+          "date"
         ],
         "type": "object",
         "properties": {
@@ -3273,10 +3299,6 @@
           "longitude": {
             "title": "Longitude",
             "type": "number"
-          },
-          "date": {
-            "title": "Date",
-            "type": "integer"
           },
           "reference": {
             "title": "Reference",
@@ -3304,6 +3326,63 @@
           },
           "specimen_type": {
             "title": "Specimen Type",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "integer"
+          }
+        },
+        "description": "Location"
+      },
+      "LocationMaterialsModel": {
+        "title": "LocationMaterialsModel",
+        "required": [
+          "id",
+          "latitude",
+          "longitude",
+          "reference",
+          "date",
+          "profile_type",
+          "profile",
+          "experimental_program"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "profile_type": {
+            "title": "Profile Type",
+            "type": "string"
+          },
+          "profile": {
+            "title": "Profile",
+            "type": "string"
+          },
+          "experimental_program": {
+            "title": "Experimental Program",
             "type": "string"
           }
         },

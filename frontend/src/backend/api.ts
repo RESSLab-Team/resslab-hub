@@ -1072,12 +1072,6 @@ export interface LocationBracesModel {
     'longitude': number;
     /**
      * 
-     * @type {number}
-     * @memberof LocationBracesModel
-     */
-    'date': number;
-    /**
-     * 
      * @type {string}
      * @memberof LocationBracesModel
      */
@@ -1112,6 +1106,12 @@ export interface LocationBracesModel {
      * @memberof LocationBracesModel
      */
     'boundary_condition': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationBracesModel
+     */
+    'date': number;
 }
 /**
  * Location
@@ -1137,12 +1137,6 @@ export interface LocationColumnsModel {
      * @memberof LocationColumnsModel
      */
     'longitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationColumnsModel
-     */
-    'date': number;
     /**
      * 
      * @type {string}
@@ -1197,6 +1191,12 @@ export interface LocationColumnsModel {
      * @memberof LocationColumnsModel
      */
     'direction_lp': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationColumnsModel
+     */
+    'date': number;
 }
 /**
  * Location
@@ -1222,12 +1222,6 @@ export interface LocationConnectionsModel {
      * @memberof LocationConnectionsModel
      */
     'longitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationConnectionsModel
-     */
-    'date': number;
     /**
      * 
      * @type {string}
@@ -1270,6 +1264,12 @@ export interface LocationConnectionsModel {
      * @memberof LocationConnectionsModel
      */
     'specimen_type': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationConnectionsModel
+     */
+    'date': number;
 }
 /**
  * 
@@ -1277,6 +1277,67 @@ export interface LocationConnectionsModel {
  * @interface LocationInner
  */
 export interface LocationInner {
+}
+/**
+ * Location
+ * @export
+ * @interface LocationMaterialsModel
+ */
+export interface LocationMaterialsModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationMaterialsModel
+     */
+    'id': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationMaterialsModel
+     */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof LocationMaterialsModel
+     */
+    'longitude': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationMaterialsModel
+     */
+    'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationMaterialsModel
+     */
+    'link'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationMaterialsModel
+     */
+    'date': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationMaterialsModel
+     */
+    'profile_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationMaterialsModel
+     */
+    'profile': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LocationMaterialsModel
+     */
+    'experimental_program': string;
 }
 /**
  * An enumeration.
@@ -4563,6 +4624,36 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
+         * Get occurences location of field values
+         * @summary Get Materials Locations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsLocations: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/materials/locations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
@@ -4740,6 +4831,16 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get occurences location of field values
+         * @summary Get Materials Locations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterialsLocations(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<LocationMaterialsModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsLocations(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
@@ -4828,6 +4929,15 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          */
         getMaterialsDistinct(fields?: Array<MaterialField>, options?: any): AxiosPromise<number> {
             return localVarFp.getMaterialsDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurences location of field values
+         * @summary Get Materials Locations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsLocations(options?: any): AxiosPromise<Array<LocationMaterialsModel>> {
+            return localVarFp.getMaterialsLocations(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -4922,6 +5032,17 @@ export class MaterialsApi extends BaseAPI {
      */
     public getMaterialsDistinct(fields?: Array<MaterialField>, options?: AxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurences location of field values
+     * @summary Get Materials Locations
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterialsLocations(options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterialsLocations(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
