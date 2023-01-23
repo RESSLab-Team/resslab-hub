@@ -7,9 +7,8 @@ import PropertyItem from "@/components/commons/PropertyItem.vue";
 import { materialsApi } from "@/plugins/axios";
 import { publicPath } from "@/utils/common";
 import { computeUvcStress } from "@/utils/material";
-import { secondaryColor } from "@/utils/vuetify";
 import { zip } from "lodash";
-import { computed, defineProps, defineEmits, ref } from "vue";
+import { computed, defineProps, defineEmits } from "vue";
 import { formatNumber } from "@/utils/formatter";
 
 const props = defineProps<{
@@ -19,25 +18,10 @@ const emit = defineEmits<{
   (e: "close"): void;
 }>();
 
-const debugStrain = ref<number[]>([]);
-
 const carouselItems = computed<CarouselItem[][]>(() => {
   const items: CarouselItem[][] = [];
   if (props.material.stress_strain_count > 0) {
     items.push([
-      {
-        promise: stressStrain.value,
-        title: "Stress Strain",
-        xAxisName: "ε",
-        yAxisName: "σ [MPa]",
-      },
-      {
-        promise: uvc.value,
-        title: "Updated Voce-Chaboche",
-        xAxisName: "ε",
-        yAxisName: "σ [MPa]",
-        color: secondaryColor,
-      },
       {
         promises: [stressStrain.value, uvc.value],
         title: "Stress Strain with UVC",
@@ -64,10 +48,9 @@ const uvc = computed<Promise<number[][]>>(() => {
     .then((response) => response.data)
     .then((series) => {
       const strain = series.map((serie) => serie[1]);
-      debugStrain.value = strain;
       const uvcStress = computeUvcStress(
         strain,
-        props.material.uvc_e__mpa_,
+        props.material.uvc_e__mpa_ * 1000,
         props.material.uvc_sigma__mpa_,
         props.material.uvc_q__mpa_,
         props.material.uvc_b,
@@ -103,52 +86,6 @@ const uvc = computed<Promise<number[][]>>(() => {
       {{ material.id }}
     </template>
     <template #body>
-      <v-row>
-        <v-col>
-          <v-expansion-panels>
-            <v-expansion-panel>
-              <v-expansion-panel-header>Parameters</v-expansion-panel-header>
-              <v-expansion-panel-content>
-                <property-item name="eTrue">
-                  {{ debugStrain }}
-                </property-item>
-                <property-item name="E">
-                  {{ material.uvc_e__mpa_ }}
-                </property-item>
-                <property-item name="sy_0">
-                  {{ material.uvc_sigma__mpa_ }}
-                </property-item>
-                <property-item name="Q">
-                  {{ material.uvc_q__mpa_ }}
-                </property-item>
-                <property-item name="b">
-                  {{ material.uvc_b }}
-                </property-item>
-                <property-item name="D">
-                  {{ material.uvc_d__mpa_ }}
-                </property-item>
-                <property-item name="a">
-                  {{ material.uvc_a }}
-                </property-item>
-                <property-item name="a">
-                  {{
-                    [
-                      {
-                        c: props.material.uvc_c1__mpa_,
-                        gamma: props.material.uvc_g1,
-                      },
-                      {
-                        c: props.material.uvc_c2__mpa_,
-                        gamma: props.material.uvc_g2,
-                      },
-                    ]
-                  }}
-                </property-item>
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-          </v-expansion-panels>
-        </v-col>
-      </v-row>
       <v-row>
         <v-col cols="6">
           <h2>Structural Steel Element</h2>
