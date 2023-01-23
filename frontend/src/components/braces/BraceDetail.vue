@@ -83,12 +83,11 @@
 
 <script lang="ts">
 import { BraceModel } from "@/backend";
-import CommonDetail, {
-  CarouselItem,
-} from "@/components/commons/CommonDetail.vue";
+import CommonDetail from "@/components/commons/CommonDetail.vue";
 import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
 import { publicPath } from "@/utils/common";
+import { CarouselItem } from "@/utils/detail";
 import { AxiosResponse } from "axios";
 import { Component, VModel } from "vue-property-decorator";
 
