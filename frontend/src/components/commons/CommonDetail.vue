@@ -1,9 +1,34 @@
+<script setup lang="ts">
+import MultipleLineChart from "@/components/commons/charts/MultipleLineChart.vue";
+import SimpleLineChart from "@/components/commons/charts/SimpleLineChart.vue";
+import PropertyItem from "@/components/commons/PropertyItem.vue";
+import { primaryColor, secondaryColor } from "@/utils/vuetify";
+import { withDefaults, defineProps, defineEmits } from "vue";
+import { CarouselItem } from "@/utils/detail";
+
+export interface Props {
+  reference: string;
+  link: string | undefined;
+  carouselItems?: CarouselItem[][];
+}
+const props = withDefaults(defineProps<Props>(), {
+  carouselItems: () => [],
+});
+const emit = defineEmits<{
+  (e: "close"): void;
+}>();
+
+const chartHeight = 300;
+const chartColor = primaryColor;
+const chartColors = [primaryColor, secondaryColor];
+</script>
+
 <template>
   <v-card>
     <v-card-title>
       <slot name="title"></slot>
       <v-spacer></v-spacer>
-      <v-btn color="primary" text @click="close">
+      <v-btn color="primary" text @click="emit('close')">
         <v-icon>mdi-close</v-icon>
         Close
       </v-btn>
@@ -18,13 +43,13 @@
         </property-item>
       </p>
       <v-carousel
-        v-if="carouselItems.length > 0"
+        v-if="props.carouselItems.length > 0"
         :height="chartHeight"
         hide-delimiters
-        :show-arrows="carouselItems.length > 1"
+        :show-arrows="props.carouselItems.length > 1"
       >
         <v-carousel-item
-          v-for="(carouselItem, carouselIndex) in carouselItems"
+          v-for="(carouselItem, carouselIndex) in props.carouselItems"
           :key="carouselIndex"
         >
           <v-row>
@@ -69,52 +94,7 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import MultipleLineChart, {
-  Response,
-} from "@/components/commons/charts/MultipleLineChart.vue";
-import SimpleLineChart from "@/components/commons/charts/SimpleLineChart.vue";
-import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { primaryColor, secondaryColor } from "@/utils/vuetify";
-import { Component, Prop, Vue } from "vue-property-decorator";
-import { Color } from "vuetify/lib/util/colors";
-
-@Component({
-  components: {
-    MultipleLineChart,
-    SimpleLineChart,
-    PropertyItem,
-  },
-})
-export default class CommonDetail extends Vue {
-  readonly chartHeight = 300;
-  readonly chartColor = primaryColor;
-  readonly chartColors = [primaryColor, secondaryColor];
-
-  @Prop(String)
-  readonly reference!: string;
-  @Prop(String)
-  readonly link?: string;
-  @Prop({ type: Array as () => CarouselItem[][], default: () => [] })
-  readonly carouselItems!: CarouselItem[][];
-
-  close(): void {
-    this.$emit("close");
-  }
-}
-
-export interface CarouselItem {
-  hidden?: boolean;
-  promise?: Promise<Response>;
-  promises?: Promise<Response>[];
-  title: string;
-  xAxisName: string;
-  yAxisName: string;
-  color?: Color;
-}
-</script>
-
-<style lang="scss">
+<style lang="scss" scoped>
 .v-carousel__item > .v-responsive__content {
   display: flex;
   justify-content: center;

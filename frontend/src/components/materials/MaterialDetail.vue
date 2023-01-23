@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { MaterialModel } from "@/backend";
-import CommonDetail, {
-  CarouselItem,
-} from "@/components/commons/CommonDetail.vue";
+import CommonDetail from "@/components/commons/CommonDetail.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
 import { materialsApi } from "@/plugins/axios";
 import { publicPath } from "@/utils/common";
@@ -10,6 +8,7 @@ import { computeUvcStress } from "@/utils/material";
 import { zip } from "lodash";
 import { computed, defineProps, defineEmits } from "vue";
 import { formatNumber } from "@/utils/formatter";
+import { CarouselItem } from "@/utils/detail";
 
 const props = defineProps<{
   material: MaterialModel;
