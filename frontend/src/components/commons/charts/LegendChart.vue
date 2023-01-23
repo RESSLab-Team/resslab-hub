@@ -1,20 +1,3 @@
-<template>
-  <v-container>
-    <v-checkbox
-      v-for="(item, index) in items"
-      :key="index"
-      v-model="item.selected"
-      :hide-details="true"
-      :ripple="false"
-      :on-icon="item.icon"
-      :off-icon="item.icon"
-      :label="item.label"
-      :color="item.color"
-      :class="getClass(index)"
-    />
-  </v-container>
-</template>
-
 <script setup lang="ts">
 import { defineProps, defineEmits, computed, withDefaults } from "vue";
 import { VContainer } from "vuetify/lib";
@@ -53,6 +36,23 @@ const items = computed({
   },
 });
 </script>
+
+<template>
+  <v-container>
+    <v-checkbox
+      v-for="(item, index) in items"
+      :key="index"
+      v-model="item.selected"
+      :hide-details="true"
+      :ripple="false"
+      :on-icon="item.icon"
+      :off-icon="item.icon"
+      :label="item.label"
+      :color="item.color"
+      :class="getClass(index)"
+    />
+  </v-container>
+</template>
 
 <style scoped lang="scss">
 .legend-checkbox::v-deep .v-icon {

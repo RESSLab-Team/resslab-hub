@@ -247,8 +247,6 @@ export default class ColumnFragility extends Vue {
       series.push(...(selectedMultivariateSeries ?? []));
     }
 
-    console.log(this.univariateOption.series, this.multivariateOption.series);
-
     return {
       xAxis: {
         name: "SDR",
