@@ -1,24 +1,12 @@
-<template>
-  <v-responsive aspect-ratio="1.2" :max-height="maxHeight">
-    <div ref="mapContainer" class="mapContainer"></div>
-  </v-responsive>
-</template>
-
-<script lang="ts">
+<script setup lang="ts">
 import {
   LocationBracesModel,
   LocationColumnsModel,
   LocationConnectionsModel,
   LocationMaterialsModel,
 } from "@/backend";
+
 import {
-  getBraceImage,
-  getColumnMapImage,
-  getConnectionSpecimenImage,
-  getSteelMaterialImage,
-} from "@/utils/component";
-import {
-  MarkerSVG,
   PieChart,
   scaleColor,
   scaleRadius,
@@ -27,7 +15,6 @@ import {
 import { rollups, select } from "d3";
 import {
   Control,
-  divIcon,
   DivIcon,
   DomUtil,
   map as LMap,
@@ -38,332 +25,180 @@ import {
 } from "leaflet";
 import "leaflet.markercluster";
 import "leaflet/dist/leaflet.css";
-import { Component, Prop, Ref, Vue, Watch } from "vue-property-decorator";
+import {
+  bracesApi,
+  columnsApi,
+  connectionsApi,
+  materialsApi,
+} from "@/plugins/axios";
 
-@Component
-export default class OverviewMap extends Vue {
-  @Prop({ type: Number, default: 500 })
-  public maxHeight!: number;
+import { createMarkers } from "@/utils/overviewmap";
 
-  private icons = new Map(
-    typesNames.map((type) => [
-      type,
-      divIcon({
-        html: MarkerSVG(scaleColor(type)),
+import { computed, defineProps, onMounted, ref } from "vue";
+
+const props = defineProps({
+  maxHeight: {
+    type: Number,
+    default: 500,
+  },
+});
+
+const connectionsLocations = ref<LocationConnectionsModel[]>([]);
+connectionsApi
+  .getConnectionsLocations()
+  .then((res: { data: LocationConnectionsModel[] }) => {
+    connectionsLocations.value = res.data;
+    updateMap();
+  });
+
+const columnsLocations = ref<LocationColumnsModel[]>([]);
+columnsApi
+  .getColumnsLocations()
+  .then((res: { data: LocationColumnsModel[] }) => {
+    columnsLocations.value = res.data;
+    updateMap();
+  });
+
+const bracesLocations = ref<LocationBracesModel[]>([]);
+bracesApi.getBracesLocations().then((res: { data: LocationBracesModel[] }) => {
+  bracesLocations.value = res.data;
+  updateMap();
+});
+
+const materialsLocations = ref<LocationMaterialsModel[]>([]);
+materialsApi
+  .getMaterialsLocations()
+  .then((res: { data: LocationMaterialsModel[] }) => {
+    materialsLocations.value = res.data;
+    updateMap();
+  });
+
+const dataLength = computed(
+  () =>
+    connectionsLocations.value.length +
+    columnsLocations.value.length +
+    bracesLocations.value.length +
+    materialsLocations.value.length
+);
+
+const mapContainer = ref<HTMLDivElement>();
+
+const map = computed(() => {
+  const map = LMap(mapContainer.value as HTMLDivElement).setView([45, 0], 2);
+  tileLayer(
+    "https://cartodb-basemaps-1.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
+  ).addTo(map);
+  return map;
+});
+
+const prevCluster = ref<null | MarkerClusterGroup>(null);
+
+const cluster = computed(() => {
+  return new MarkerClusterGroup({
+    showCoverageOnHover: false,
+    iconCreateFunction: function (cluster) {
+      var childCount = cluster.getChildCount();
+      const radius = scaleRadius.domain([0, dataLength.value])(childCount);
+
+      const allChilds = cluster.getAllChildMarkers();
+
+      const counts = rollups(
+        allChilds,
+        (v) => v.length,
+        (d) => (d.feature ? d.feature.properties.type : null)
+      );
+
+      return new DivIcon({
+        html: PieChart(
+          counts.map(([name, value]) => ({ name, value })),
+          {
+            name: (d) => d.name,
+            value: (d) => d.value,
+            innerRadius: Math.max(7, radius / 4),
+            width: radius,
+            height: radius,
+          }
+        ) as unknown as HTMLElement,
         className: "",
-        iconSize: [30, 30],
-        iconAnchor: [15, 30],
-      }),
-    ])
-  );
+        iconSize: new Point(radius, radius),
+      });
+    },
+  });
+});
 
-  private connectionsLocations: LocationConnectionsModel[] = [];
-  private columnsLocations: LocationColumnsModel[] = [];
-  private bracesLocations: LocationBracesModel[] = [];
-  private materialsLocations: LocationMaterialsModel[] = [];
+const markers = computed<Marker[]>(() => {
+  return [
+    createMarkers(connectionsLocations.value, "Connections"),
+    createMarkers(columnsLocations.value, "Columns"),
+    createMarkers(bracesLocations.value, "Braces"),
+    createMarkers(materialsLocations.value, "Materials"),
+  ].flat();
+});
 
-  get dataLength(): number {
-    return (
-      this.connectionsLocations.length +
-      this.columnsLocations.length +
-      this.bracesLocations.length +
-      this.materialsLocations.length
-    );
-  }
+const legend = computed(() => {
+  const legend = new Control({ position: "bottomright" });
 
-  @Watch("connectionsLocations")
-  onConnectionsChanged() {
-    this.updateMap();
-  }
-
-  @Watch("materialsLocations")
-  onMaterialsChanged() {
-    this.updateMap();
-  }
-
-  @Watch("columnsLocations")
-  onColumnsChanged() {
-    this.updateMap();
-  }
-  @Watch("bracesLocations")
-  onBracesChanged() {
-    this.updateMap();
-  }
-
-  @Ref("mapContainer")
-  readonly mapContainer!: HTMLDivElement;
-
-  private get map() {
-    const map = LMap(this.mapContainer).setView([45, 0], 2);
-    tileLayer(
-      "https://cartodb-basemaps-1.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
-    ).addTo(map);
-    return map;
-  }
-
-  private prevCluster: null | MarkerClusterGroup = null;
-
-  private get cluster() {
-    const dataLength = this.dataLength;
-    return new MarkerClusterGroup({
-      showCoverageOnHover: false,
-      iconCreateFunction: function (cluster) {
-        var childCount = cluster.getChildCount();
-        const radius = scaleRadius.domain([0, dataLength])(childCount);
-
-        const allChilds = cluster.getAllChildMarkers();
-
-        const counts = rollups(
-          allChilds,
-          (v) => v.length,
-          (d) => (d.feature ? d.feature.properties.type : null)
-        );
-
-        return new DivIcon({
-          html: PieChart(
-            counts.map(([name, value]) => ({ name, value })),
-            {
-              name: (d) => d.name,
-              value: (d) => d.value,
-              innerRadius: Math.max(7, radius / 4),
-              width: radius,
-              height: radius,
-            }
-          ) as unknown as HTMLElement,
-          className: "",
-          iconSize: new Point(radius, radius),
-        });
-      },
-    });
-  }
-
-  createTooltipConnections(d: LocationConnectionsModel) {
-    return `<div class="tooltip">
-      <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${
-      d.date
-    })</a></h3>
-      <br>
-      <ul>
-        <li>${d.specimen_type}</li>
-        <li>${d.connection_type}, Beam: ${d.section_b} Col: ${d.section_c}</li>
-        <li>
-          <img alt="${d.specimen_type}" src="${getConnectionSpecimenImage(
-      d.specimen_type
-    )}"></img>
-        </li>
-        <li><a href='/connections/database?id=${
-          d.id
-        }&detail=true'>View experimental data</a></li>
-      </ul>
-      </div>`;
-  }
-
-  createTooltipBraces(d: LocationBracesModel) {
-    return `<div class="tooltip">
-      <h3><a target="_blank" href="${d.link}">${d.investigator} (${
-      d.date
-    })</a></h3>
-      <br>
-      <ul>
-        <li>Cross section: ${d.cross_section_size}</li>
-        <li>KL/r:   ${d.kl_r}</li>
-        <li>
-          <img alt="Braces placeholder image" src="${getBraceImage(
-            d.boundary_condition
-          )}"></img>
-        </li>
-        <li><a href='/braces/database?id=${
-          d.id
-        }&detail=true'>View experimental data</a></li>
-      </ul>
-      </div>`;
-  }
-
-  createTooltipColumns(d: LocationColumnsModel) {
-    return `<div class="tooltip">
-      <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${
-      d.date
-    })</a></h3>
-      <br>
-      <ul>
-        <li>${d.boundary_condition}</li>
-        <li>${d.axial_lp} (Pg/Py = ${d.p_g_over_p_ym}), Column: ${
-      d.section_c
-    }</li>
-        <li>
-          <img alt="Columns placeholder image" src="${getColumnMapImage(
-            d.axis_of_bending,
-            d.boundary_condition
-          )}"></img>
-        </li>
-        <li><a href='/columns/database?id=${
-          d.id
-        }&detail=true'>View experimental data</a></li>
-      </ul>
-      </div>`;
-  }
-
-  createTooltipMaterials(d: LocationMaterialsModel) {
-    return `<div class="tooltip">
-      <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${
-      d.date
-    })</a></h3>
-      <br>
-      <ul>
-        <li>Profile type: ${d.profile_type}</li>
-        <li>Cross section: ${d.profile}</li>
-        <li>
-          <img alt="Materials placeholder image" src="${getSteelMaterialImage()}"></img>
-        </li>
-        <li><a href='/materials/database?id=${
-          d.id
-        }&detail=true'>View experimental data</a></li>
-      </ul>
-      </div>`;
-  }
-
-  createTooltip(
-    d:
-      | LocationBracesModel
-      | LocationConnectionsModel
-      | LocationColumnsModel
-      | LocationMaterialsModel,
-    type: string
-  ) {
-    switch (type) {
-      case "Connections":
-        return this.createTooltipConnections(d as LocationConnectionsModel);
-      case "Columns":
-        return this.createTooltipColumns(d as LocationColumnsModel);
-      case "Braces":
-        return this.createTooltipBraces(d as LocationBracesModel);
-      case "Materials":
-        return this.createTooltipMaterials(d as LocationMaterialsModel);
-      default:
-        return `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`;
-    }
-  }
-
-  createMarkers(
-    data: (
-      | LocationBracesModel
-      | LocationConnectionsModel
-      | LocationColumnsModel
-      | LocationMaterialsModel
-    )[],
-    type: string
-  ) {
-    const createTooltip = this.createTooltip;
-    return data.map((d) => {
-      const marker = new Marker([d.latitude, d.longitude], {
-        icon: this.icons.get(type),
-      }).bindPopup(createTooltip(d, type));
-      marker.feature = {
-        type: "Feature",
-        properties: Object.assign(d, { type }),
-        geometry: {
-          type: "Point",
-          coordinates: [d.latitude, d.longitude],
-        },
-      };
-      return marker;
-    });
-  }
-
-  private get markers() {
-    const connectionsMarkers = this.createMarkers(
-      this.connectionsLocations,
-      "Connections"
-    );
-    const columnsMarkers = this.createMarkers(this.columnsLocations, "Columns");
-    const bracesMarkers = this.createMarkers(this.bracesLocations, "Braces");
-    const materialsMarkers = this.createMarkers(
-      this.materialsLocations,
-      "Materials"
-    );
-
-    return connectionsMarkers.concat(
-      columnsMarkers,
-      bracesMarkers,
-      materialsMarkers
-    );
-  }
-  private get legend() {
-    const legend = new Control({ position: "bottomright" });
-
-    legend.onAdd = function () {
-      const div = DomUtil.create("div", "legend");
-
-      for (const type of typesNames) {
-        div.innerHTML += `<input id="checkbox_${type.replace(
-          /\s/g,
-          ""
-        )}" type='checkbox' checked /> <i style='background: ${scaleColor(
-          type
-        )}'> </i> ${type} <br>`;
-      }
-
-      return div;
-    };
-    return legend;
-  }
-
-  setEventListenerLegend() {
-    const div = ".legend";
+  legend.onAdd = function () {
+    const div = DomUtil.create("div", "legend");
 
     for (const type of typesNames) {
-      select(div)
-        .select(`#checkbox_${type.replace(/\s/g, "")}`)
-        .on("change", (e) => {
-          e.stopPropagation();
-
-          const layers = this.markers.filter(({ feature }) =>
-            feature ? feature.properties.type === type : false
-          );
-          if (e.target.checked) this.cluster.addLayers(layers);
-          else this.cluster.removeLayers(layers);
-        });
+      div.innerHTML += `<input id="checkbox_${type.replace(
+        /\s/g,
+        ""
+      )}" type='checkbox' checked /> <i style='background: ${scaleColor(
+        type
+      )}'> </i> ${type} <br>`;
     }
 
-    select(div).on("dblclick", (e) => e.stopPropagation());
+    return div;
+  };
+  return legend;
+});
+
+function setEventListenerLegend() {
+  const div = ".legend";
+
+  for (const type of typesNames) {
+    select(div)
+      .select(`#checkbox_${type.replace(/\s/g, "")}`)
+      .on("change", (e) => {
+        e.stopPropagation();
+
+        const layers = markers.value.filter(({ feature }) =>
+          feature ? feature.properties.type === type : false
+        );
+        if (e.target.checked) cluster.value.addLayers(layers);
+        else cluster.value.removeLayers(layers);
+      });
   }
 
-  public setupMap() {
-    this.cluster.addLayers(this.markers);
-    this.map.addLayer(this.cluster);
-    this.prevCluster = this.cluster;
-    this.legend.addTo(this.map);
-    this.setEventListenerLegend();
-  }
-
-  public updateMap() {
-    if (this.prevCluster) this.map.removeLayer(this.prevCluster);
-    this.cluster.clearLayers();
-    this.cluster.addLayers(this.markers);
-    this.map.addLayer(this.cluster);
-    this.prevCluster = this.cluster;
-    this.setEventListenerLegend();
-  }
-
-  mounted() {
-    this.setupMap();
-  }
-  public created() {
-    this.$connectionsApi
-      .getConnectionsLocations()
-      .then((res) => (this.connectionsLocations = res.data));
-    this.$columnsApi
-      .getColumnsLocations()
-      .then((res) => (this.columnsLocations = res.data));
-    this.$bracesApi
-      .getBracesLocations()
-      .then((res) => (this.bracesLocations = res.data));
-    this.$materialsApi
-      .getMaterialsLocations()
-      .then((res) => (this.materialsLocations = res.data));
-  }
+  select(div).on("dblclick", (e) => e.stopPropagation());
 }
+
+function updateMap() {
+  if (prevCluster.value)
+    map.value.removeLayer(prevCluster.value as MarkerClusterGroup);
+  cluster.value.clearLayers();
+  cluster.value.addLayers(markers.value);
+  map.value.addLayer(cluster.value);
+  prevCluster.value = cluster.value;
+  setEventListenerLegend();
+}
+
+onMounted(() => {
+  cluster.value.addLayers(markers.value);
+  map.value.addLayer(cluster.value);
+  prevCluster.value = cluster.value;
+  legend.value.addTo(map.value);
+  setEventListenerLegend();
+});
 </script>
+
+<template>
+  <v-responsive aspect-ratio="1.2" :max-height="props.maxHeight">
+    <div ref="mapContainer" class="mapContainer"></div>
+  </v-responsive>
+</template>
 
 <style lang="scss" scoped>
 .mapContainer {
