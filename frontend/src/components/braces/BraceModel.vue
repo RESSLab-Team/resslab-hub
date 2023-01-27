@@ -460,6 +460,10 @@ function getCompressionOption(result: Result): EChartsOption {
     </v-col>
     <v-col cols="6">
       <v-row>
+        <v-col cols="2"></v-col>
+        <v-col cols="8">
+          <v-img contain :src="publicPath + 'img/brace/I_shaped_Bracing.png'" />
+        </v-col>
         <v-col cols="6">
           <v-card>
             <v-card-title>Tension</v-card-title>
@@ -481,9 +485,6 @@ function getCompressionOption(result: Result): EChartsOption {
               />
             </v-card-text>
           </v-card>
-        </v-col>
-        <v-col cols="12">
-          <v-img contain :src="publicPath + 'img/brace/I_shaped_Bracing.png'" />
         </v-col>
       </v-row>
     </v-col>
