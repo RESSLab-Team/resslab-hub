@@ -4,7 +4,6 @@
     :get-counts="getCounts"
     :get-files="getFiles"
     :get-page="getPage"
-    title="Brace"
     prefix="brace."
     :query="query"
     :search.sync="globalSearch"
@@ -12,6 +11,34 @@
     @click="click"
     @loadPage="loadPage"
   >
+    <template #title>
+      Brace
+      <info-tooltip>
+        <p>
+          The Brace Database presents data from mid 1970s on steel braces of
+          various configurations. The braces are subjected to monotonic,
+          symmetric cyclic and other loading histories. The primary data involve
+          the brace axial load versus axial displacement.
+        </p>
+        How to use?
+        <ul>
+          <li>
+            Filter the table by making selections in the various plots around
+            the table, or by using the filters and dropdowns above the table
+            headers.
+          </li>
+          <li>Click on a row to see the data of a single test.</li>
+          <li>
+            Download specific tests results by selecting the test (left-most
+            column) and click "Download" below.
+          </li>
+          <li>
+            Share specific tests results by selecting the test (left-most
+            column) and click "Share" below.
+          </li>
+        </ul>
+      </info-tooltip>
+    </template>
   </simple-table>
 </template>
 
@@ -22,6 +49,7 @@ import {
   CountModel,
   ExtendedPageBraceModel,
 } from "@/backend";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SimpleTable, {
   Column,
   DownloadFile,
@@ -35,6 +63,7 @@ import { Component, Prop, PropSync } from "vue-property-decorator";
 @Component({
   components: {
     SimpleTable,
+    InfoTooltip,
   },
 })
 export default class BraceTable extends SimpleTableMixin<BraceModel> {

@@ -49,7 +49,24 @@
         </v-col>
         <v-col cols="12" md="6">
           <v-card>
-            <v-card-title>Loading Protocol</v-card-title>
+            <v-card-title
+              >Loading Protocol
+              <info-tooltip>
+                <p>
+                  This rectangle below displays the proportion of each loading
+                  protocol in the database. See also the evolution of test data
+                  over the years on the right.
+                </p>
+                How to use?
+                <ul>
+                  <li>
+                    Filter the Database for a specific loading protocol type or
+                    dates by clicking on the rectangle of using the dates
+                    sliders.
+                  </li>
+                </ul></info-tooltip
+              ></v-card-title
+            >
             <v-card-text>
               <brace-single-chart
                 :color="colors.blue"
@@ -63,7 +80,7 @@
         </v-col>
         <v-col cols="12">
           <v-card>
-            <v-card-title>Steel Material</v-card-title>
+            <steel-type-card-title></steel-type-card-title>
             <v-card-text>
               <brace-single-chart
                 :color="colors.green"
@@ -90,6 +107,7 @@ import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
 import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
 import DashboardMixin from "@/components/commons/DashboardMixin.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
 import { Component } from "vue-property-decorator";
 import colors from "vuetify/lib/util/colors";
 
@@ -101,6 +119,7 @@ import colors from "vuetify/lib/util/colors";
     BraceSingleChart,
     BraceTable,
     InfoTooltip,
+    SteelTypeCardTitle,
   },
 })
 export default class BraceDashboard extends DashboardMixin<BraceModel> {
