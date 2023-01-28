@@ -16,7 +16,7 @@
         </li>
         <li>
           Filter the Database for a specific steel material type by clicking on
-          the rectangle of using the dates sliders
+          a rectangle or by using the dates sliders
         </li>
       </ul>
     </info-tooltip>
