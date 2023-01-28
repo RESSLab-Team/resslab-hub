@@ -64,7 +64,7 @@
             <v-card-title>Steel Material Type</v-card-title>
             <v-card-text>
               <material-single-chart
-                :color="colors.green"
+                :color="colors.deepPurple"
                 :field="steelField"
                 :query="query"
                 :searches.sync="searches"

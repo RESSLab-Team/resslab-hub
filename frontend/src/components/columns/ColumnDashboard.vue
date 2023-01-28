@@ -54,7 +54,7 @@
             </column-depth-card-title>
             <v-card-text>
               <column-double-chart
-                :color="colors.blue"
+                :color="colors.green"
                 :fields="columnDepthFields"
                 :query="query"
                 :searches.sync="searches"
@@ -67,7 +67,7 @@
             <steel-type-card-title></steel-type-card-title>
             <v-card-text>
               <column-single-chart
-                :color="colors.green"
+                :color="colors.deepPurple"
                 :field="steelField"
                 :query="query"
                 :searches.sync="searches"

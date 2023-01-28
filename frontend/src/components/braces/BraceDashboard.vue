@@ -83,7 +83,7 @@
             <steel-type-card-title></steel-type-card-title>
             <v-card-text>
               <brace-single-chart
-                :color="colors.green"
+                :color="colors.deepPurple"
                 :field="steelField"
                 :query="query"
                 :searches.sync="searches"
