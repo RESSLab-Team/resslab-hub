@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { MaterialModel } from "@/backend";
-import CommonDetail from "@/components/commons/CommonDetail.vue";
+import CommonDetail, {
+  DetailCarouselItem,
+} from "@/components/commons/CommonDetail.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
 import { materialsApi } from "@/plugins/axios";
 import { publicPath } from "@/utils/common";
 import { computeUvcStress } from "@/utils/material";
 import { zip } from "lodash";
-import { computed, defineProps, defineEmits } from "vue";
+import { defineProps, defineEmits, watch, ref } from "vue";
 import { formatNumber } from "@/utils/formatter";
-import { CarouselItem } from "@/utils/detail";
+import { LineSeriesOption } from "echarts";
 
 const props = defineProps<{
   material: MaterialModel;
@@ -17,60 +19,66 @@ const emit = defineEmits<{
   (e: "close"): void;
 }>();
 
-const carouselItems = computed<CarouselItem[][]>(() => {
-  const items: CarouselItem[][] = [];
-  if (props.material.stress_strain_count > 0) {
-    items.push([
-      {
-        promises: [stressStrain.value, uvc.value],
-        title: "Stress Strain with UVC",
-        xAxisName: "ε",
-        yAxisName: "σ [MPa]",
-      },
-    ]);
+const carouselItems = ref<DetailCarouselItem[][]>([]);
+
+watch(
+  () => props.material,
+  (material) => {
+    carouselItems.value = [
+      [
+        {
+          count: material.stress_strain_count,
+          promise: materialsApi
+            .getMaterialsStressStrain(material.id)
+            .then((response) => response.data)
+            .then((series) => {
+              const stressStrain = series.map((serie) => [serie[1], serie[0]]);
+              const strain = series.map((serie) => serie[1]);
+              const uvcStress = computeUvcStress(
+                strain,
+                material.uvc_e__mpa_ * 1000,
+                material.uvc_sigma__mpa_,
+                material.uvc_q__mpa_,
+                material.uvc_b,
+                material.uvc_d__mpa_,
+                material.uvc_a,
+                [
+                  {
+                    c: material.uvc_c1__mpa_,
+                    gamma: material.uvc_g1,
+                  },
+                  {
+                    c: material.uvc_c2__mpa_,
+                    gamma: material.uvc_g2,
+                  },
+                ]
+              );
+              const uvc = zip(strain, uvcStress).filter(
+                (v): v is [number, number] =>
+                  v[0] !== undefined && v[1] !== undefined
+              );
+              return [
+                {
+                  name: "Stress Strain",
+                  data: stressStrain,
+                },
+                {
+                  name: "uvc",
+                  data: uvc,
+                },
+              ] as LineSeriesOption[];
+            }),
+          title: "Stress Strain with UVC",
+          xAxisName: "ε",
+          yAxisName: "σ [MPa]",
+        },
+      ],
+    ];
+  },
+  {
+    immediate: true,
   }
-  return items;
-});
-
-const stressStrain = computed<Promise<number[][]>>(() => {
-  // eslint-disable-next-line vue/no-async-in-computed-properties
-  return materialsApi
-    .getMaterialsStressStrain(props.material.id)
-    .then((response) => response.data)
-    .then((series) => series.map((serie) => [serie[1], serie[0]]));
-});
-
-const uvc = computed<Promise<number[][]>>(() => {
-  // eslint-disable-next-line vue/no-async-in-computed-properties
-  return materialsApi
-    .getMaterialsStressStrain(props.material.id)
-    .then((response) => response.data)
-    .then((series) => {
-      const strain = series.map((serie) => serie[1]);
-      const uvcStress = computeUvcStress(
-        strain,
-        props.material.uvc_e__mpa_ * 1000,
-        props.material.uvc_sigma__mpa_,
-        props.material.uvc_q__mpa_,
-        props.material.uvc_b,
-        props.material.uvc_d__mpa_,
-        props.material.uvc_a,
-        [
-          {
-            c: props.material.uvc_c1__mpa_,
-            gamma: props.material.uvc_g1,
-          },
-          {
-            c: props.material.uvc_c2__mpa_,
-            gamma: props.material.uvc_g2,
-          },
-        ]
-      );
-      return zip(strain, uvcStress).filter(
-        (v): v is [number, number] => v[0] !== undefined && v[1] !== undefined
-      );
-    });
-});
+);
 </script>
 
 <template>

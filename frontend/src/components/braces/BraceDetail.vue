@@ -1,9 +1,80 @@
+<script setup lang="ts">
+import { BraceModel } from "@/backend";
+import CommonDetail, {
+  DetailCarouselItem,
+} from "@/components/commons/CommonDetail.vue";
+import PropertyItem from "@/components/commons/PropertyItem.vue";
+import { bracesApi } from "@/plugins/axios";
+import { publicPath } from "@/utils/common";
+import { defineProps, defineEmits, ref, watch, computed } from "vue";
+
+const props = defineProps<{
+  brace: BraceModel;
+}>();
+const emit = defineEmits<{
+  (e: "close"): void;
+}>();
+
+const carouselItems = ref<DetailCarouselItem[][]>([]);
+
+const isGussetPlate = computed<boolean>(
+  () => props.brace.boundary_condition === "Gusset plate"
+);
+
+const imageTypeSrc = computed<string | undefined>(() => {
+  switch (props.brace.boundary_condition) {
+    case "Gusset plate":
+      return publicPath + "img/brace/type/gusset-plate.png";
+    case "Pin-Pin end":
+      return publicPath + "img/brace/type/pinned-end.png";
+    case "Fixed-fixed end":
+      return publicPath + "img/brace/type/fixed-end.png";
+    case "Fixed_pinned end":
+      return publicPath + "img/brace/type/fixed-pinned.png";
+  }
+  return undefined;
+});
+
+watch(
+  () => props.brace,
+  (brace) => {
+    carouselItems.value = [
+      [
+        {
+          count: brace.displacement_count,
+          promise: bracesApi.getBracesDisplacement(brace.id),
+          title: "Force Displacement",
+          xAxisName: "Displacement [mm]",
+          yAxisName: "Force [kN]",
+        },
+      ],
+    ];
+  },
+  {
+    immediate: true,
+  }
+);
+
+function formatNumber(value?: number) {
+  return value ?? "Not Reported";
+}
+function formatString(value?: string): string {
+  if (value === undefined) {
+    return "No";
+  } else if (value === "NR") {
+    return "Not Reported";
+  } else {
+    return value;
+  }
+}
+</script>
+
 <template>
   <common-detail
-    :reference="reference"
-    :link="link"
+    :reference="brace.reference"
+    :link="brace.link"
     :carousel-items="carouselItems"
-    @close="close"
+    @close="emit('close')"
   >
     <template #title>
       {{ brace.investigator }} ({{ brace.date }}) -
@@ -35,7 +106,7 @@
                   {{ brace.t_t }}
                 </property-item>
                 <property-item name="Reinforcement plate">
-                  {{ brace.reinforcement_pl | formatString }}
+                  {{ formatString(brace.reinforcement_pl) }}
                 </property-item>
               </template>
             </v-col>
@@ -48,13 +119,13 @@
                 {{ brace.steel }}
               </property-item>
               <property-item name="Nominal yield stress" unit="MPa">
-                {{ brace.f_yn | formatNumber }}
+                {{ formatNumber(brace.f_yn) }}
               </property-item>
               <property-item name="Measured yield stress" unit="MPa">
-                {{ brace.fy_m | formatNumber }}
+                {{ formatNumber(brace.fy_m) }}
               </property-item>
               <property-item name="Ultimate tensile stress" unit="MPa">
-                {{ brace.f_um | formatNumber }}
+                {{ formatNumber(brace.f_um) }}
               </property-item>
               <h3>Gusset Plate</h3>
               <template v-if="isGussetPlate">
@@ -62,13 +133,13 @@
                   {{ brace.steel_gp }}
                 </property-item>
                 <property-item name="Nominal yield stress" unit="MPa">
-                  {{ brace.f_yn_gp | formatNumber }}
+                  {{ formatNumber(brace.f_yn_gp) }}
                 </property-item>
                 <property-item name="Measured yield stress" unit="MPa">
-                  {{ brace.f_ym_gp | formatNumber }}
+                  {{ formatNumber(brace.f_ym_gp) }}
                 </property-item>
                 <property-item name="Ultimate tensile stress" unit="MPa">
-                  {{ brace.f_um_gp | formatNumber }}
+                  {{ formatNumber(brace.f_um_gp) }}
                 </property-item>
               </template>
               <template v-else>
@@ -84,84 +155,3 @@
     </template>
   </common-detail>
 </template>
-
-<script lang="ts">
-import { BraceModel } from "@/backend";
-import CommonDetail from "@/components/commons/CommonDetail.vue";
-import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
-import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { publicPath } from "@/utils/common";
-import { CarouselItem } from "@/utils/detail";
-import { AxiosResponse } from "axios";
-import { Component, VModel } from "vue-property-decorator";
-
-@Component({
-  components: {
-    CommonDetail,
-    PropertyItem,
-  },
-  filters: {
-    formatNumber: function (value?: number) {
-      return value ?? "Not Reported";
-    },
-    formatString: function (value: string | null): string {
-      if (value === null) {
-        return "No";
-      } else if (value === "NR") {
-        return "Not Reported";
-      } else {
-        return value;
-      }
-    },
-  },
-})
-export default class BraceDetail extends CommonDetailMixin {
-  @VModel({ type: Object })
-  readonly brace!: BraceModel;
-
-  get reference(): string {
-    return this.brace.reference;
-  }
-
-  get link(): string {
-    return this.brace.link;
-  }
-
-  get carouselItems(): CarouselItem[][] {
-    return [
-      this.brace.displacement_count > 0
-        ? [
-            {
-              promise: this.displacementMoment,
-              title: "Force Displacement",
-              xAxisName: "Displacement [mm]",
-              yAxisName: "Force [kN]",
-            },
-          ]
-        : [],
-    ].filter((item) => item.length > 0);
-  }
-
-  get displacementMoment(): Promise<AxiosResponse<number[][]>> {
-    return this.$bracesApi.getBracesDisplacement(this.brace.id);
-  }
-
-  get isGussetPlate(): boolean {
-    return this.brace.boundary_condition === "Gusset plate";
-  }
-
-  get imageTypeSrc(): string | undefined {
-    switch (this.brace.boundary_condition) {
-      case "Gusset plate":
-        return publicPath + "img/brace/type/gusset-plate.png";
-      case "Pin-Pin end":
-        return publicPath + "img/brace/type/pinned-end.png";
-      case "Fixed-fixed end":
-        return publicPath + "img/brace/type/fixed-end.png";
-      case "Fixed_pinned end":
-        return publicPath + "img/brace/type/fixed-pinned.png";
-    }
-    return undefined;
-  }
-}
-</script>

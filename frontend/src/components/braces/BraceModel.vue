@@ -156,30 +156,36 @@ const variables = reactive<Variables>({
   iy: 1000000,
 });
 
-watch(steelType, (value) => {
-  switch (value) {
-    case "S235":
-      variables.omega = 1.45;
-      variables.fy = 235;
-      return;
-    case "S275":
-      variables.omega = 1.35;
-      variables.fy = 275;
-      return;
-    case "S355":
-      variables.omega = 1.25;
-      variables.fy = 255;
-      return;
-    case "S420":
-      variables.omega = 1.25;
-      variables.fy = 420;
-      return;
-    case "S460":
-      variables.omega = 1.2;
-      variables.fy = 460;
-      return;
+watch(
+  steelType,
+  (value) => {
+    switch (value) {
+      case "S235":
+        variables.omega = 1.45;
+        variables.fy = 235;
+        return;
+      case "S275":
+        variables.omega = 1.35;
+        variables.fy = 275;
+        return;
+      case "S355":
+        variables.omega = 1.25;
+        variables.fy = 255;
+        return;
+      case "S420":
+        variables.omega = 1.25;
+        variables.fy = 420;
+        return;
+      case "S460":
+        variables.omega = 1.2;
+        variables.fy = 460;
+        return;
+    }
+  },
+  {
+    immediate: true,
   }
-});
+);
 
 const result = computed<Result>(() => {
   const Imin = Math.min(variables.iz, variables.iy);

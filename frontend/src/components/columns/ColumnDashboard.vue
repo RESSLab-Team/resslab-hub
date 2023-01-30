@@ -27,7 +27,7 @@
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <column-detail :value="item" @close="close"></column-detail>
+          <column-detail :column="item" @close="close"></column-detail>
         </v-col>
       </v-row>
       <v-row v-else>
