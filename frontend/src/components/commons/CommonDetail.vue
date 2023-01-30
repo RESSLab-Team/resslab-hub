@@ -18,15 +18,15 @@ export interface Props {
   reference: string;
   link: string | undefined;
   carouselItems?: DetailCarouselItem[][];
+  carouselHeight?: number;
 }
 const props = withDefaults(defineProps<Props>(), {
   carouselItems: () => [],
+  carouselHeight: 300,
 });
 const emit = defineEmits<{
   (e: "close"): void;
 }>();
-
-const carouselHeight = 300;
 
 type SeriesCarouselItem = Omit<DetailCarouselItem, "promise"> & {
   series: LineSeriesOption[];
