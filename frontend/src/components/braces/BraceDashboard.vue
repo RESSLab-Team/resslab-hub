@@ -49,8 +49,8 @@
         </v-col>
         <v-col cols="12" md="6">
           <v-card>
-            <v-card-title
-              >Loading Protocol
+            <v-card-title>
+              Loading Protocol
               <info-tooltip>
                 <p>
                   This rectangle below displays the proportion of each loading
@@ -64,9 +64,9 @@
                     dates by clicking on the rectangle of using the dates
                     sliders.
                   </li>
-                </ul></info-tooltip
-              ></v-card-title
-            >
+                </ul>
+              </info-tooltip>
+            </v-card-title>
             <v-card-text>
               <brace-single-chart
                 :color="colors.blue"
