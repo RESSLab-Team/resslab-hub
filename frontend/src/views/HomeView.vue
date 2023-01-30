@@ -182,7 +182,7 @@ onMounted(() => {
         </v-expansion-panels>
       </v-col>
       <v-col cols="8">
-        <overview-map></overview-map>
+        <overview-map />
       </v-col>
     </v-row>
     <v-row>
