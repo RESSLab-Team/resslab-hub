@@ -40,7 +40,6 @@
               </template>
             </v-col>
           </v-row>
-
           <v-row>
             <v-col>
               <h2>Steel Material Designation</h2>
@@ -78,7 +77,9 @@
             </v-col>
           </v-row>
         </v-col>
-        <v-col cols="6"><v-img :src="imageTypeSrc" /> </v-col>
+        <v-col cols="6">
+          <v-img :src="imageTypeSrc" />
+        </v-col>
       </v-row>
     </template>
   </common-detail>
