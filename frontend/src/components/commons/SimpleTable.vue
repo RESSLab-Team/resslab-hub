@@ -146,7 +146,9 @@
     <v-card-actions>
       <v-btn
         color="primary"
-        :disabled="selectedItems.length === 0"
+        :disabled="
+          selectedItems.length === 0 || selectedItems.length > maxDownloadCount
+        "
         text
         @click="downloadZip"
       >
@@ -197,6 +199,7 @@ export default class SimpleTable<T, P extends Page<T>> extends Vue {
     snackbar: Snackbar;
   };
   readonly booleanOptions = booleanOptions;
+  readonly maxDownloadCount = 5;
 
   @Prop({ type: String, default: "" })
   readonly title!: string;
@@ -300,6 +303,15 @@ export default class SimpleTable<T, P extends Page<T>> extends Vue {
         .finally(() => {
           this.loading = false;
         });
+    }
+  }
+
+  @Watch("selectedItems")
+  onSelectedItemsChanged(): void {
+    if (this.selectedItems.length > this.maxDownloadCount) {
+      this.snackbar.open(
+        `You cannot download more than ${this.maxDownloadCount} items.`
+      );
     }
   }
 

@@ -85,11 +85,11 @@ class Component(ABC, Generic[D, M]):
         self.id_column = id_column
 
         model_keys: Set[str] = set(model_type.__fields__.keys())
-        self.model_columns: List[Column] = [
-            column
+        self.model_columns: Dict[str, Column] = {
+            key: column
             for key, column in database_type.__dict__.items()
             if key in model_keys
-        ]
+        }
         self.all_columns: Dict[str, Column] = {
             key: column
             for key, column in database_type.__dict__.items()
@@ -110,7 +110,7 @@ class Component(ABC, Generic[D, M]):
         ]
         page = await paginate(
             session,
-            select(*self.model_columns)
+            select(*self.model_columns.values())
             .where(and_(*where_clauses))
             .order_by(*order_clauses),
             self.model_type,
@@ -178,8 +178,8 @@ class Component(ABC, Generic[D, M]):
         filename = f"{self.name}-{time}.csv"
         return self.get_csv_response(
             session,
-            select(self.all_columns.values()).where(self.id_column.in_(ids)),
-            list(self.all_columns.keys()),
+            select(self.model_columns.values()).where(self.id_column.in_(ids)),
+            list(self.model_columns.keys()),
             filename,
         )
 
@@ -276,14 +276,14 @@ class Component(ABC, Generic[D, M]):
             return or_(
                 *[
                     column.cast(String).not_ilike(expression[1:])
-                    for column in self.model_columns
+                    for column in self.model_columns.values()
                 ]
             )
         else:
             return or_(
                 *[
                     column.cast(String).ilike(expression)
-                    for column in self.model_columns
+                    for column in self.model_columns.values()
                 ]
             )
 
