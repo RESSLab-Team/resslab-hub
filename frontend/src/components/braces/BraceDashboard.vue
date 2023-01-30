@@ -30,7 +30,7 @@
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <brace-detail :value="item" @close="close"></brace-detail>
+          <brace-detail :brace="item" @close="close"></brace-detail>
         </v-col>
       </v-row>
       <v-row v-else>

@@ -1,15 +1,23 @@
 <script setup lang="ts">
 import MultipleLineChart from "@/components/commons/charts/MultipleLineChart.vue";
-import SimpleLineChart from "@/components/commons/charts/SimpleLineChart.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
 import { primaryColor, secondaryColor } from "@/utils/vuetify";
-import { withDefaults, defineProps, defineEmits } from "vue";
-import { CarouselItem } from "@/utils/detail";
+import { withDefaults, defineProps, defineEmits, ref, watch } from "vue";
+import { LineSeriesOption } from "echarts";
+import { AxiosResponse } from "axios";
+
+export interface DetailCarouselItem {
+  count: number;
+  promise?: Promise<AxiosResponse<number[][]> | LineSeriesOption[]>;
+  title: string;
+  xAxisName: string;
+  yAxisName: string;
+}
 
 export interface Props {
   reference: string;
   link: string | undefined;
-  carouselItems?: CarouselItem[][];
+  carouselItems?: DetailCarouselItem[][];
 }
 const props = withDefaults(defineProps<Props>(), {
   carouselItems: () => [],
@@ -18,9 +26,43 @@ const emit = defineEmits<{
   (e: "close"): void;
 }>();
 
-const chartHeight = 300;
-const chartColor = primaryColor;
-const chartColors = [primaryColor, secondaryColor];
+const carouselHeight = 300;
+
+type SeriesCarouselItem = Omit<DetailCarouselItem, "promise"> & {
+  series: LineSeriesOption[];
+};
+
+const seriesCarouselItems = ref<SeriesCarouselItem[][]>([]);
+
+watch(
+  () => props.carouselItems,
+  async (carouselItems) => {
+    seriesCarouselItems.value = (
+      await Promise.all(
+        carouselItems.map((carouselItem) =>
+          Promise.all(
+            carouselItem
+              .filter((item) => item.count > 0)
+              .map(async (item) => {
+                const response = await item.promise;
+                const series: LineSeriesOption[] = Array.isArray(response)
+                  ? response
+                  : [{ data: response?.data }];
+                const carouselItem: SeriesCarouselItem = {
+                  series: series,
+                  ...item,
+                };
+                return carouselItem;
+              })
+          )
+        )
+      )
+    ).filter((row) => row.length > 0);
+  },
+  {
+    immediate: true,
+  }
+);
 </script>
 
 <template>
@@ -43,40 +85,26 @@ const chartColors = [primaryColor, secondaryColor];
         </property-item>
       </p>
       <v-carousel
-        v-if="props.carouselItems.length > 0"
-        :height="chartHeight"
+        v-if="seriesCarouselItems.length > 0"
+        :height="carouselHeight"
         hide-delimiters
-        :show-arrows="props.carouselItems.length > 1"
+        :show-arrows="seriesCarouselItems.length > 1"
       >
         <v-carousel-item
-          v-for="(carouselItem, carouselIndex) in props.carouselItems"
+          v-for="(carouselItem, carouselIndex) in seriesCarouselItems"
           :key="carouselIndex"
         >
           <v-row>
             <template v-for="(item, index) in carouselItem">
               <v-col
-                v-if="!item.hidden"
                 :key="index"
                 class="d-flex justify-center"
-                :cols="12 / carouselItem.filter((item) => !item.hidden).length"
+                :cols="12 / carouselItem.length"
               >
-                <simple-line-chart
-                  v-if="item.promise"
-                  :color="item.color ?? chartColor"
-                  :max-width="chartHeight"
-                  :promise="item.promise"
-                  :title="item.title"
-                  :x-axis-name="item.xAxisName"
-                  :y-axis-name="item.yAxisName"
-                ></simple-line-chart>
                 <multiple-line-chart
-                  v-if="item.promises"
-                  :colors="chartColors"
-                  :max-width="chartHeight"
-                  :promises="item.promises"
-                  :title="item.title"
-                  :x-axis-name="item.xAxisName"
-                  :y-axis-name="item.yAxisName"
+                  :colors="[primaryColor, secondaryColor]"
+                  :max-width="carouselHeight"
+                  v-bind="item"
                 ></multiple-line-chart>
               </v-col>
             </template>

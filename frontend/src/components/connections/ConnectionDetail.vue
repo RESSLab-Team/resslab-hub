@@ -1,9 +1,93 @@
+<script setup lang="ts">
+import { ConnectionModel } from "@/backend";
+import CommonDetail, {
+  DetailCarouselItem,
+} from "@/components/commons/CommonDetail.vue";
+import PropertyItem from "@/components/commons/PropertyItem.vue";
+import { connectionsApi } from "@/plugins/axios";
+import { getConnectionSpecimenImage } from "@/utils/component";
+import { formatString, formatNumber } from "@/utils/formatter";
+import { defineProps, defineEmits, ref, watch, computed } from "vue";
+
+const props = defineProps<{
+  connection: ConnectionModel;
+}>();
+const emit = defineEmits<{
+  (e: "close"): void;
+}>();
+
+const carouselItems = ref<DetailCarouselItem[][]>([]);
+
+const backingBar = computed<string>(() => {
+  if (props.connection.backing_bar === null) {
+    return "";
+  }
+  return props.connection.backing_bar ? "kept in place" : "removed";
+});
+
+const specimenTypeImageSrc = computed<string>(() =>
+  getConnectionSpecimenImage(props.connection.specimen_type)
+);
+
+watch(
+  () => props.connection,
+  (connection) => {
+    carouselItems.value = [
+      [
+        {
+          count: connection.global_count,
+          promise: connectionsApi.getConnectionsGlobal(connection.id),
+          title: "Subassembly Response",
+          xAxisName: "Total story drift angle [rad]",
+          yAxisName: "Lateral load [kN]",
+        },
+        {
+          count: connection.global_west_count,
+          promise: connectionsApi.getConnectionsGlobalWest(connection.id),
+          title: "Global West",
+          xAxisName: "Total story drift angle [rad]",
+          yAxisName: "Lateral load [kN]",
+        },
+      ],
+      [
+        {
+          count: connection.panel_zone_count,
+          promise: connectionsApi.getConnectionsPanelZones(connection.id),
+          title: "Panel Zone Response",
+          xAxisName: "Panel zone shear distortion [rad]",
+          yAxisName: "Panel zone shear force [kN]",
+        },
+      ],
+      [
+        {
+          count: connection.beam_count,
+          promise: connectionsApi.getConnectionsBeam(connection.id),
+          title: connection.beam_west_count > 0 ? "East Beam" : "Beam",
+          xAxisName: "Chord Rotation [rads]",
+          yAxisName: "Moment [kN-mm]",
+        },
+        {
+          count: connection.beam_west_count,
+          promise: connectionsApi.getConnectionsBeamWest(connection.id),
+          title: "West Beam",
+          xAxisName: "Chord Rotation [rads]",
+          yAxisName: "Moment [kN-mm]",
+        },
+      ],
+    ];
+  },
+  {
+    immediate: true,
+  }
+);
+</script>
+
 <template>
   <common-detail
-    :reference="reference"
-    :link="link"
+    :reference="connection.reference"
+    :link="connection.link"
     :carousel-items="carouselItems"
-    @close="close"
+    @close="emit('close')"
   >
     <template #title>
       {{ connection.experimental_program }} ({{ connection.date }}) -
@@ -36,7 +120,7 @@
               {{ connection.t_dp_tot }}
             </property-item>
             <property-item name="Beam flange-to-column flange weld electrode">
-              {{ connection.electrode | formatString }}
+              {{ formatString(connection.electrode) }}
             </property-item>
             <property-item name="Backing bar">
               {{ backingBar }}
@@ -54,13 +138,13 @@
             {{ connection.deck_ribs_orientation }}
           </property-item>
           <property-item name="Thickness" unit="mm">
-            {{ connection.h_t | formatNumber() }}
+            {{ formatNumber(connection.h_t) }}
           </property-item>
           <property-item name="Width" unit="mm">
-            {{ connection.w | formatNumber() }}
+            {{ formatNumber(connection.w) }}
           </property-item>
           <property-item name="Concrete compressive strength" unit="MPa">
-            {{ connection.f_cm | formatNumber(1) }}
+            {{ formatNumber(connection.f_cm, 1) }}
           </property-item>
         </p>
       </template>
@@ -74,13 +158,13 @@
               {{ connection.steel_b }}
             </property-item>
             <property-item name="Nominal yield stress" unit="MPa">
-              {{ connection.f_yb | formatNumber(0) }}
+              {{ formatNumber(connection.f_yb) }}
             </property-item>
             <property-item name="Measured yield stress (flange)" unit="MPa">
-              {{ connection.f_ybf | formatNumber(1) }}
+              {{ formatNumber(connection.f_ybf, 1) }}
             </property-item>
             <property-item name="Measured yield stress (web)" unit="MPa">
-              {{ connection.f_ybw | formatNumber(1) }}
+              {{ formatNumber(connection.f_ybw, 1) }}
             </property-item>
           </p>
         </v-col>
@@ -91,13 +175,13 @@
               {{ connection.steel_c }}
             </property-item>
             <property-item name="Nominal yield stress" unit="MPa">
-              {{ connection.f_yc | formatNumber(0) }}
+              {{ formatNumber(connection.f_yc) }}
             </property-item>
             <property-item name="Measured yield stress (flange)" unit="MPa">
-              {{ connection.f_ycf | formatNumber(1) }}
+              {{ formatNumber(connection.f_ycf, 1) }}
             </property-item>
             <property-item name="Measured yield stress (web)" unit="MPa">
-              {{ connection.f_ycw | formatNumber(1) }}
+              {{ formatNumber(connection.f_ycw, 1) }}
             </property-item>
           </p>
         </v-col>
@@ -105,124 +189,12 @@
       <h2>Panel zone strength ratio</h2>
       <p>
         <property-item name="Vpz,m/Rpz,el">
-          {{ connection.ru_rn_el_m | formatNumber(2) }}
+          {{ formatNumber(connection.ru_rn_el_m, 2) }}
         </property-item>
         <property-item name="Vpz,m/Rpz,pl">
-          {{ connection.ru_rn_pl_m | formatNumber(2) }}
+          {{ formatNumber(connection.ru_rn_pl_m, 2) }}
         </property-item>
       </p>
     </template>
   </common-detail>
 </template>
-
-<script lang="ts">
-import { ConnectionModel } from "@/backend";
-import CommonDetail from "@/components/commons/CommonDetail.vue";
-import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
-import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { getConnectionSpecimenImage } from "@/utils/component";
-import { CarouselItem } from "@/utils/detail";
-import { AxiosResponse } from "axios";
-import { Component, VModel } from "vue-property-decorator";
-
-@Component({
-  components: {
-    CommonDetail,
-    PropertyItem,
-  },
-})
-export default class ConnectionDetail extends CommonDetailMixin {
-  @VModel({ type: Object as () => ConnectionModel })
-  readonly connection!: ConnectionModel;
-
-  get reference(): string {
-    return this.connection.reference;
-  }
-
-  get link(): string | undefined {
-    return this.connection.link;
-  }
-
-  get carouselItems(): CarouselItem[][] {
-    return [
-      this.connection.global_count > 0 || this.connection.global_west_count > 0
-        ? [
-            {
-              hidden: this.connection.global_count === 0,
-              promise: this.globalPromise,
-              title: "Subassembly Response",
-              xAxisName: "Total story drift angle [rad]",
-              yAxisName: "Lateral load [kN]",
-            },
-            {
-              hidden: this.connection.global_west_count === 0,
-              promise: this.globalWestPromise,
-              title: "Global West",
-              xAxisName: "Total story drift angle [rad]",
-              yAxisName: "Lateral load [kN]",
-            },
-          ]
-        : [],
-      this.connection.panel_zone_count > 0
-        ? [
-            {
-              promise: this.panelZonePromise,
-              title: "Panel Zone Response",
-              xAxisName: "Panel zone shear distortion [rad]",
-              yAxisName: "Panel zone shear force [kN]",
-            },
-          ]
-        : [],
-      this.connection.beam_count > 0 || this.connection.beam_west_count > 0
-        ? [
-            {
-              hidden: this.connection.beam_count === 0,
-              promise: this.beamPromise,
-              title: this.connection.beam_west_count > 0 ? "East Beam" : "Beam",
-              xAxisName: "Chord Rotation [rads]",
-              yAxisName: "Moment [kN-mm]",
-            },
-            {
-              hidden: this.connection.beam_west_count === 0,
-              promise: this.beamWestPromise,
-              title: "West Beam",
-              xAxisName: "Chord Rotation [rads]",
-              yAxisName: "Moment [kN-mm]",
-            },
-          ]
-        : [],
-    ].filter((item) => item.length > 0);
-  }
-
-  get beamPromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$connectionsApi.getConnectionsBeam(this.connection.id);
-  }
-
-  get beamWestPromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$connectionsApi.getConnectionsBeamWest(this.connection.id);
-  }
-
-  get globalPromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$connectionsApi.getConnectionsGlobal(this.connection.id);
-  }
-
-  get globalWestPromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$connectionsApi.getConnectionsGlobalWest(this.connection.id);
-  }
-
-  get panelZonePromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$connectionsApi.getConnectionsPanelZones(this.connection.id);
-  }
-
-  get backingBar(): string {
-    if (this.connection.backing_bar === null) {
-      return "";
-    }
-    return this.connection.backing_bar ? "kept in place" : "removed";
-  }
-
-  get specimenTypeImageSrc(): string {
-    return getConnectionSpecimenImage(this.connection.specimen_type);
-  }
-}
-</script>

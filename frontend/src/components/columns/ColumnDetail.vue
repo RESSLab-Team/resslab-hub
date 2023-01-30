@@ -1,9 +1,73 @@
+<script setup lang="ts">
+import { ColumnModel } from "@/backend";
+import CommonDetail, {
+  DetailCarouselItem,
+} from "@/components/commons/CommonDetail.vue";
+import PropertyItem from "@/components/commons/PropertyItem.vue";
+import { columnsApi } from "@/plugins/axios";
+import { getColumnImage } from "@/utils/component";
+import { defineProps, defineEmits, ref, watch, computed } from "vue";
+
+const props = defineProps<{
+  column: ColumnModel;
+}>();
+const emit = defineEmits<{
+  (e: "close"): void;
+}>();
+
+const carouselItems = ref<DetailCarouselItem[][]>([]);
+
+const imageSrc = computed<string | undefined>(() =>
+  getColumnImage(
+    props.column.axis_of_bending,
+    props.column.boundary_condition,
+    props.column.direction_lp
+  )
+);
+
+watch(
+  () => props.column,
+  (column) => {
+    carouselItems.value = [
+      [
+        {
+          count: column.axial_shortening_count,
+          promise: columnsApi.getColumnsAxialShortening(column.id),
+          title: "Axial Shortening",
+          xAxisName: "Chord Rotation [rads]",
+          yAxisName: "Axial Shortening [mm]",
+        },
+      ],
+      [
+        {
+          count: column.moment_strong_count,
+          promise: columnsApi.getColumnsMomentStrong(column.id),
+          title: "Moment Strong",
+          xAxisName: "Chord Rotation [rads]",
+          yAxisName: "Moment [kN-mm]",
+        },
+        {
+          count: column.moment_weak_count,
+          promise: columnsApi.getColumnsMomentWeak(column.id),
+          title: "Moment Weak",
+          xAxisName: "Chord Rotation [rads]",
+          yAxisName: "Moment [kN-mm]",
+        },
+      ],
+    ];
+  },
+  {
+    immediate: true,
+  }
+);
+</script>
+
 <template>
   <common-detail
-    :reference="reference"
-    :link="link"
+    :reference="column.reference"
+    :link="column.link"
     :carousel-items="carouselItems"
-    @close="close"
+    @close="emit('close')"
   >
     <template #title>
       {{ column.experimental_program }} - ({{ column.date }}) -
@@ -52,86 +116,3 @@
     </template>
   </common-detail>
 </template>
-
-<script lang="ts">
-import { ColumnModel } from "@/backend";
-import CommonDetail from "@/components/commons/CommonDetail.vue";
-import CommonDetailMixin from "@/components/commons/CommonDetailMixin.vue";
-import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { getColumnImage } from "@/utils/component";
-import { CarouselItem } from "@/utils/detail";
-import { AxiosResponse } from "axios";
-import { Component, VModel } from "vue-property-decorator";
-
-@Component({
-  components: {
-    CommonDetail,
-    PropertyItem,
-  },
-})
-export default class ColumnDetail extends CommonDetailMixin {
-  @VModel({ type: Object })
-  readonly column!: ColumnModel;
-
-  get reference(): string {
-    return this.column.reference;
-  }
-
-  get link(): string {
-    return this.column.link;
-  }
-
-  get carouselItems(): CarouselItem[][] {
-    return [
-      this.column.axial_shortening_count > 0
-        ? [
-            {
-              promise: this.axialShorteningPromise,
-              title: "Axial Shortening",
-              xAxisName: "Chord Rotation [rads]",
-              yAxisName: "Axial Shortening [mm]",
-            },
-          ]
-        : [],
-      this.column.moment_strong_count > 0 || this.column.moment_weak_count > 0
-        ? [
-            {
-              hidden: this.column.moment_strong_count === 0,
-              promise: this.momentStrongPromise,
-              title: "Moment Strong",
-              xAxisName: "Chord Rotation [rads]",
-              yAxisName: "Moment [kN-mm]",
-            },
-            {
-              hidden: this.column.moment_weak_count === 0,
-              promise: this.momentWeakPromise,
-              title: "Moment Weak",
-              xAxisName: "Chord Rotation [rads]",
-              yAxisName: "Moment [kN-mm]",
-            },
-          ]
-        : [],
-    ].filter((item) => item.length > 0);
-  }
-
-  get momentStrongPromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$columnsApi.getColumnsMomentStrong(this.column.id);
-  }
-
-  get momentWeakPromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$columnsApi.getColumnsMomentWeak(this.column.id);
-  }
-
-  get axialShorteningPromise(): Promise<AxiosResponse<number[][]>> {
-    return this.$columnsApi.getColumnsAxialShortening(this.column.id);
-  }
-
-  get imageSrc(): string | undefined {
-    return getColumnImage(
-      this.column.axis_of_bending,
-      this.column.boundary_condition,
-      this.column.direction_lp
-    );
-  }
-}
-</script>

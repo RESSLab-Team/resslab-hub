@@ -1,3 +1,4 @@
+import { formatNumber, formatString } from "@/utils/formatter";
 import VSwitch from "v-switch-case";
 import Vue from "vue";
 import App from "./App.vue";
@@ -14,27 +15,8 @@ Vue.config.productionTip = false;
 
 Vue.use(VSwitch);
 
-Vue.filter(
-  "formatNumber",
-  function (value: number | null, fractionDigits: number | undefined): string {
-    if (value === null) {
-      return "Not Applicable";
-    } else if (isNaN(value)) {
-      return "Not Reported";
-    } else {
-      return value.toFixed(fractionDigits);
-    }
-  }
-);
-Vue.filter("formatString", function (value: string | null): string {
-  if (value === null) {
-    return "Not Applicable";
-  } else if (value === "NR") {
-    return "Not Reported";
-  } else {
-    return value;
-  }
-});
+Vue.filter("formatNumber", formatNumber);
+Vue.filter("formatString", formatString);
 
 new Vue({
   router,
