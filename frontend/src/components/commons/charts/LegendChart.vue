@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { defineProps, defineEmits, computed, withDefaults } from "vue";
-import { VContainer } from "vuetify/lib";
 
 interface LegendItem {
   selected: boolean;
@@ -14,11 +13,11 @@ interface LegendProps {
   separatorsIndex: number[];
 }
 
-const getClass = (index: number) => {
+function getClass(index: number): string {
   return `legend-checkbox ${
-    props.separatorsIndex.includes(index) ? "margin-top" : "no-top-margin"
+    props.separatorsIndex.includes(index) ? "mt-4" : "mt-0"
   }`;
-};
+}
 
 const props = withDefaults(defineProps<LegendProps>(), {
   separatorsIndex: () => [],
@@ -38,7 +37,7 @@ const items = computed({
 </script>
 
 <template>
-  <v-container>
+  <div>
     <v-checkbox
       v-for="(item, index) in items"
       :key="index"
@@ -51,24 +50,16 @@ const items = computed({
       :color="item.color"
       :class="getClass(index)"
     />
-  </v-container>
+  </div>
 </template>
 
 <style lang="scss" scoped>
-.legend-checkbox::v-deep .v-icon {
+:deep(.legend-checkbox) .v-icon {
   transition: none;
 }
 
 // Transform rectangles into "lines" symbols
-.legend-checkbox::v-deep .mdi-rectangle {
+:deep(.legend-checkbox) .mdi-rectangle {
   transform: scale(1.3, 0.4);
-}
-
-.margin-top {
-  margin-top: 15px;
-}
-
-.no-top-margin {
-  margin-top: 0;
 }
 </style>
