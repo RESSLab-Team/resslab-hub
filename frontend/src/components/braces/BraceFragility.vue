@@ -6,7 +6,6 @@ import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import Toggle, { ToggleItem } from "@/components/commons/Toggle.vue";
 import { EChartsGlOption } from "@/utils/echarts-gl";
 import { DamageState, univariateOption } from "@/utils/fragility";
-import { subscripts } from "@/utils/unicode";
 import { getColorMap } from "@/utils/vuetify";
 import cdf from "@stdlib/stats-base-dists-lognormal-cdf";
 import { EChartsOption } from "echarts";
@@ -188,6 +187,11 @@ function correlatedBivariateOption(
   const xRange = range(0.0001, 0.05, 0.005);
   const yRange = range(10, 105, 5);
   return {
+    grid3D: {
+      viewControl: {
+        distance: 300,
+      },
+    },
     xAxis3D: {
       name: "SDR [rad]",
     },
@@ -195,7 +199,7 @@ function correlatedBivariateOption(
       name: "KL/r",
     },
     zAxis3D: {
-      name: `P(DS${subscripts[name]}|SDR,KL/r)`,
+      name: `P(DS${name})`,
     },
     series: [
       {

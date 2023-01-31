@@ -3,7 +3,6 @@
     <v-row>
       <v-col cols="12">
         <h1>Fragility Curve Plotter for Wide-Flange Steel Columns</h1>
-
         <p>
           This module plots univariate and multivariate fragility curves for
           wide-flange steel columns depending on their primary loading and
@@ -20,14 +19,14 @@
         <v-row>
           <v-col cols="12">
             <v-card>
-              <v-card-title
-                >Parameters
-                <info-tooltip
-                  >Please provide the imposed gravity-induced axial load ratio,
+              <v-card-title>
+                Parameters
+                <info-tooltip>
+                  Please provide the imposed gravity-induced axial load ratio,
                   Pg/Pyn and the web slenderness ratio, h/tw of the wide-flange
-                  cross section of the steel column.</info-tooltip
-                ></v-card-title
-              >
+                  cross section of the steel column.
+                </info-tooltip>
+              </v-card-title>
               <v-card-text>
                 <v-row>
                   <v-col v-for="item in parameters" :key="item.key">
@@ -38,7 +37,7 @@
                       :min="item.min"
                       :unit="item.unit"
                       :unit-system="unitSystem"
-                    ></unit-slider>
+                    />
                   </v-col>
                 </v-row>
               </v-card-text>
@@ -54,11 +53,11 @@
                   :aspect-ratio="2"
                   :option="variateOption"
                   x-unit="rad"
-                ></unit-chart>
+                />
               </v-col>
-              <v-col cols="3"
-                ><legend-chart v-model="legendItems" :separators-index="[4]"
-              /></v-col>
+              <v-col cols="3">
+                <legend-chart v-model="legendItems" :separators-index="[4]" />
+              </v-col>
             </v-row>
           </v-col>
         </v-row>
@@ -67,8 +66,7 @@
         <h2>Surface Fragility Curves</h2>
         <v-row>
           <v-col v-for="(item, index) in surfaceOptions" :key="index" cols="6">
-            <h3>DS{{ index + 1 }}</h3>
-            <surface-gl-chart :option="item"></surface-gl-chart>
+            <surface-gl-chart :option="item" />
           </v-col>
         </v-row>
       </v-col>
@@ -77,6 +75,7 @@
 </template>
 
 <script lang="ts">
+import LegendChart from "@/components/commons/charts/LegendChart.vue";
 import SurfaceGlChart from "@/components/commons/charts/SurfaceGlChart.vue";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
@@ -91,7 +90,6 @@ import { getColorMap } from "@/utils/vuetify";
 import { EChartsOption, SeriesOption } from "echarts";
 import { range } from "lodash";
 import { Component, Vue } from "vue-property-decorator";
-import LegendChart from "../commons/charts/LegendChart.vue";
 
 /**
  * Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_columns
@@ -130,7 +128,7 @@ export default class ColumnFragility extends Vue {
   pPyn = 0.2;
 
   legendItems = [
-    ...this.alphas.map((alpha, index) => ({
+    ...this.alphas.map((_, index) => ({
       label: `DS${index + 1}`,
       indexToFilter: index,
       color: this.alphaColorPalette[index],
