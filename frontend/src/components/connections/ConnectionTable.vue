@@ -52,7 +52,7 @@
           max-width="128"
           :src="getImageSource(item)"
         ></v-img>
-        {{ item }}
+        <span class="ma-2">{{ item }}</span>
       </v-list-item>
     </template>
   </simple-table>

@@ -86,9 +86,8 @@ const contributorGroups: {
 
 <template>
   <v-card>
-    <v-card-title>About</v-card-title>
+    <v-card-title>Acknowledgements</v-card-title>
     <v-card-text>
-      <h2>Acknowledgements</h2>
       <p>
         <a href="https://enac-it4r.epfl.ch" target="_blank">ENAC-IT4Research</a>
         developed the web-based interfaces, visualisation features and search
@@ -165,7 +164,11 @@ const contributorGroups: {
     </v-card-text>
     <v-card-text>
       <v-row>
-        <v-col v-for="group in contributorGroups" :key="group.name" cols="auto">
+        <v-col
+          v-for="group in contributorGroups"
+          :key="group.name"
+          :cols="12 / contributorGroups.length"
+        >
           <v-card>
             <v-card-title>
               <a :href="group.url" target="_blank">{{ group.name }}</a>
@@ -216,8 +219,8 @@ const contributorGroups: {
   </v-card>
 </template>
 
-<style lang="scss">
-.v-avatar img {
+<style lang="scss" scoped>
+:deep(.v-avatar) > img {
   height: unset;
 }
 </style>

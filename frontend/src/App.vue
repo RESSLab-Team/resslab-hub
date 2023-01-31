@@ -97,7 +97,7 @@ const aboutDialog = ref<boolean>(false);
           </v-tab>
         </template>
         <v-spacer></v-spacer>
-        <v-dialog v-model="aboutDialog">
+        <v-dialog v-model="aboutDialog" max-width="800px">
           <template #activator="{ on, attrs }">
             <v-tab v-bind="attrs" v-on="on">
               <v-icon>mdi-information-outline</v-icon>
