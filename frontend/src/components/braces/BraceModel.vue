@@ -10,8 +10,8 @@ import { UnitSystem } from "@/utils/unit";
 import { primaryColor, SelectItem } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
-
 import { computed, reactive, ref, watch } from "vue";
+import { variableBind } from "@/utils/model";
 
 type SteelType = "S235" | "S275" | "S355" | "S420" | "S460";
 type Option =
@@ -63,63 +63,58 @@ const options: SelectItem<Option>[] = [
     disabled: true,
   },
 ];
-const variableBind = {
-  cols: "12",
-  md: "6",
-  xl: "3",
-};
 const steelShapeDimensions: Variable<keyof Variables>[] = [
-  new Variable({
+  {
     key: "bf",
     text: "b<sub>f</sub>",
     unit: "mm",
     min: 100,
     max: 500,
-  }),
-  new Variable({ key: "d", text: "d", unit: "mm", min: 100, max: 2000 }),
-  new Variable({
+  },
+  { key: "d", text: "d", unit: "mm", min: 100, max: 2000 },
+  {
     key: "tf",
     text: "t<sub>f</sub>",
     unit: "mm",
     min: 5,
     max: 100,
-  }),
-  new Variable({
+  },
+  {
     key: "tw",
     text: "t<sub>w</sub>",
     unit: "mm",
     min: 5,
     max: 100,
-  }),
+  },
 ];
 const steelTypeVariables: Variable<keyof Variables>[] = [
-  new Variable({
+  {
     key: "omega",
     text: "Ω",
     min: 1,
     max: 2,
-  }),
-  new Variable({
+  },
+  {
     key: "fy",
     text: "fy",
     unit: "MPa",
     min: 250,
     max: 500,
-  }),
+  },
 ];
 const additionalParameterVariables: Variable<keyof Variables>[] = [
-  new Variable({
+  {
     key: "lee",
     text: "Lee",
     min: 1000,
     max: 12000,
-  }),
-  new Variable({
+  },
+  {
     key: "lcr",
     text: "Lcr",
     min: 1000,
     max: 12000,
-  }),
+  },
 ];
 
 const unitSystem = ref<UnitSystem>("metric");

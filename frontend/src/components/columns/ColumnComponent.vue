@@ -171,12 +171,15 @@ import japaneseSections from "@/assets/connection/japanese-sections.csv";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SearchSelect from "@/components/commons/SearchSelect.vue";
-import UnitSlider from "@/components/commons/sliders/UnitSlider.vue";
+import UnitSlider, {
+  Variable,
+} from "@/components/commons/sliders/UnitSlider.vue";
 import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import UnitTableRow, {
   UnitTableRowData,
 } from "@/components/commons/UnitTableRow.vue";
 import { publicPath, Section } from "@/utils/common";
+import { variableBind } from "@/utils/model";
 import { UnitSystem } from "@/utils/unit";
 import { primaryColor, secondaryColor, SelectItem } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
@@ -199,13 +202,9 @@ import { Component, Vue, Watch } from "vue-property-decorator";
 export default class ColumnComponent extends Vue {
   readonly unitItems = unitItems;
   readonly publicPath = publicPath;
-  readonly databases: Database[] = ["aisc", "european", "japanese"];
+  readonly variableBind = variableBind;
 
-  readonly variableBind = {
-    cols: "12",
-    md: "6",
-    xl: "3",
-  };
+  readonly databases: Database[] = ["aisc", "european", "japanese"];
   readonly chartBind = {
     cols: "12",
     sm: "6",
@@ -213,58 +212,58 @@ export default class ColumnComponent extends Vue {
     xl: "2",
   };
   readonly steelShapeDimensions: Variable[] = [
-    new Variable({
+    {
       key: "bf",
       text: "b<sub>f</sub>",
       unit: "mm",
       min: 100,
       max: 500,
-    }),
-    new Variable({ key: "d", text: "d", unit: "mm", min: 100, max: 2000 }),
-    new Variable({
+    },
+    { key: "d", text: "d", unit: "mm", min: 100, max: 2000 },
+    {
       key: "tf",
       text: "t<sub>f</sub>",
       unit: "mm",
       min: 5,
       max: 100,
-    }),
-    new Variable({
+    },
+    {
       key: "tw",
       text: "t<sub>w</sub>",
       unit: "mm",
       min: 5,
       max: 100,
-    }),
+    },
   ];
 
   readonly memberProperties: Variable[] = [
-    new Variable({
+    {
       key: "pgPye",
       text: "P<sub>g</sub>/P<sub>ye</sub>",
       min: 0,
       max: 1,
-    }),
-    new Variable({
+    },
+    {
       key: "l",
       text: "L",
       unit: "mm",
       min: 1000,
       max: 12000,
-    }),
-    new Variable({
+    },
+    {
       key: "lb",
       text: "L<sub>b</sub>",
       unit: "mm",
       min: 1000,
       max: 12000,
-    }),
-    new Variable({
+    },
+    {
       key: "fy",
       text: "F<sub>y</sub>",
       unit: "MPa",
       min: 250,
       max: 500,
-    }),
+    },
   ];
 
   readonly rows: UnitTableRowData[] = [
@@ -602,27 +601,6 @@ export default class ColumnComponent extends Vue {
         },
       ],
     };
-  }
-}
-
-class Variable {
-  public key: string;
-  public text: string;
-  public unit: string;
-  public min: number;
-  public max: number;
-  constructor(options: {
-    key: string;
-    text: string;
-    unit?: string;
-    min: number;
-    max: number;
-  }) {
-    this.key = options.key;
-    this.text = options.text;
-    this.unit = options.unit ?? "";
-    this.min = options.min;
-    this.max = options.max;
   }
 }
 

@@ -27,7 +27,7 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: "model",
-        component: () => import("../views/ConnectionModelView.vue"),
+        component: () => import("../views/ConnectionsModelView.vue"),
       },
     ],
   },
@@ -89,7 +89,7 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: "model",
-        component: () => import("../views/MaterialsModel.vue"),
+        component: () => import("../views/MaterialsModelView.vue"),
       },
     ],
   },

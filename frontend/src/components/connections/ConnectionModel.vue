@@ -197,6 +197,7 @@ import UnitTableRow, {
   UnitTableRowData,
 } from "@/components/commons/UnitTableRow.vue";
 import { publicPath, Section } from "@/utils/common";
+import { variableBind } from "@/utils/model";
 import { UnitSystem } from "@/utils/unit";
 import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
@@ -219,12 +220,8 @@ import { Component, Vue } from "vue-property-decorator";
 export default class ConnectionModel extends Vue {
   readonly unitItems = unitItems;
   readonly publicPath = publicPath;
+  readonly variableBind = variableBind;
 
-  readonly variableBind = {
-    cols: "12",
-    md: "6",
-    xl: "3",
-  };
   readonly chartBind = {
     cols: "12",
     sm: "6",
@@ -232,58 +229,58 @@ export default class ConnectionModel extends Vue {
     xl: "2",
   };
   readonly steelShapeDimensions: Variable[] = [
-    new Variable({
+    {
       key: "bf",
       text: "b<sub>f</sub>",
       unit: "mm",
       min: 100,
       max: 500,
-    }),
-    new Variable({ key: "d", text: "d", unit: "mm", min: 100, max: 2000 }),
-    new Variable({
+    },
+    { key: "d", text: "d", unit: "mm", min: 100, max: 2000 },
+    {
       key: "tf",
       text: "t<sub>f</sub>",
       unit: "mm",
       min: 5,
       max: 100,
-    }),
-    new Variable({
+    },
+    {
       key: "tw",
       text: "t<sub>w</sub>",
       unit: "mm",
       min: 5,
       max: 100,
-    }),
+    },
   ];
 
   readonly memberProperties: Variable[] = [
-    new Variable({
+    {
       key: "rbsReduction",
       text: "RBS flange reduction",
       min: 0,
       max: 0.5,
-    }),
-    new Variable({
+    },
+    {
       key: "l",
       text: "L",
       unit: "mm",
       min: 1000,
       max: 12000,
-    }),
-    new Variable({
+    },
+    {
       key: "lb",
       text: "L<sub>b</sub>",
       unit: "mm",
       min: 1000,
       max: 12000,
-    }),
-    new Variable({
+    },
+    {
       key: "fy",
       text: "F<sub>y</sub>",
       unit: "MPa",
       min: 250,
       max: 500,
-    }),
+    },
   ];
 
   readonly rows: UnitTableRowData[] = [

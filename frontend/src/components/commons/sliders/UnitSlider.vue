@@ -96,25 +96,12 @@ export interface UnitSliderItem<K = string> {
   unit?: string;
 }
 
-export class Variable<K = string> {
-  public key: K;
-  public text: string;
-  public unit: string;
-  public min: number;
-  public max: number;
-  constructor(options: {
-    key: K;
-    text: string;
-    unit?: string;
-    min: number;
-    max: number;
-  }) {
-    this.key = options.key;
-    this.text = options.text;
-    this.unit = options.unit ?? "";
-    this.min = options.min;
-    this.max = options.max;
-  }
+export interface Variable<K extends string = string> {
+  key: K;
+  text: string;
+  unit?: string;
+  min: number;
+  max: number;
 }
 </script>
 
