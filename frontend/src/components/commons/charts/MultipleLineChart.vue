@@ -3,7 +3,11 @@ import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { EChartsOption, LineSeriesOption } from "echarts";
 import { LineChart } from "echarts/charts";
-import { GridComponent, TooltipComponent } from "echarts/components";
+import {
+  GridComponent,
+  TitleComponent,
+  TooltipComponent,
+} from "echarts/components";
 import { use } from "echarts/core";
 import { SVGRenderer } from "echarts/renderers";
 import { computed, withDefaults, defineProps } from "vue";
@@ -30,7 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
   yAxisName: undefined,
 });
 
-use([SVGRenderer, LineChart, GridComponent, TooltipComponent]);
+use([SVGRenderer, LineChart, GridComponent, TitleComponent, TooltipComponent]);
 
 const option = computed<EChartsOption>(
   () =>
