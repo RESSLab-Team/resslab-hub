@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { publicPath } from "@/utils/common";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, reactive } from "vue";
 import OverviewMap from "@/components/commons/OverviewMap.vue";
 import { chain } from "lodash";
 import {
@@ -15,10 +15,16 @@ import {
   ConnectionField,
   MaterialField,
 } from "@/backend";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 
 interface Image {
   src: string;
   credit: string;
+}
+interface IndicatorCount {
+  test?: number;
+  university?: number;
+  user?: number;
 }
 
 const images: Image[] = [
@@ -30,8 +36,6 @@ const images: Image[] = [
   "Skiadopoulos and Lignos (2022)",
   "Elkady and Lignos (2018)",
   "Andronikos Skiadopoulos, EPFL",
-  "Prof. Dimitrios Lignos, EPFL",
-  "Left, Prof. Michael Engelhardt, UT Austin, Right, Hartloper et al. (2021)",
 ].map((credit, index) => ({
   src: publicPath + `img/home/Photo${index + 1}.jpg`,
   credit: credit,
@@ -52,12 +56,31 @@ const logos: {
     src: publicPath + "logo/SNF_logo_standard_web_color_pos_e.svg",
     url: "https://www.snf.ch",
   },
+  {
+    src: publicPath + "logo/logo_IT4R.svg",
+    url: "https://enac-it4r.epfl.ch",
+  },
+];
+const indicators: {
+  key: keyof IndicatorCount;
+  text: string;
+}[] = [
+  {
+    key: "test",
+    text: "Tests",
+  },
+  {
+    key: "university",
+    text: "Universities contributed",
+  },
+  {
+    key: "user",
+    text: "Users worldwide",
+  },
 ];
 
 const imageIndex = ref(0);
-const testCount = ref<number>();
-const universityCount = ref<number>();
-const userCount = ref<number>();
+const indicatorCounts = reactive<IndicatorCount>({});
 
 onMounted(() => {
   Promise.all([
@@ -72,7 +95,7 @@ onMounted(() => {
         .sum()
         .value()
     )
-    .then((count) => (testCount.value = count));
+    .then((count) => (indicatorCounts.test = count));
 
   const latLngFields: (BraceField &
     ColumnField &
@@ -91,7 +114,7 @@ onMounted(() => {
         .size()
         .value()
     )
-    .then((count) => (universityCount.value = count));
+    .then((count) => (indicatorCounts.university = count));
 });
 </script>
 
@@ -100,7 +123,7 @@ onMounted(() => {
     <v-row>
       <v-col>
         <v-responsive content-class="d-flex align-center" height="256px">
-          <video autoplay loop width="100%">
+          <video autoplay loop muted preload="auto" width="100%">
             <source
               :src="publicPath + 'video/steel-mrf-front-page.mp4'"
               type="video/mp4"
@@ -130,56 +153,58 @@ onMounted(() => {
           knowledge for minimizing the earthquake risk of steel and
           composite-steel concrete structures.
         </p>
-        <v-expansion-panels>
-          <v-expansion-panel>
-            <v-expansion-panel-header>More Info</v-expansion-panel-header>
-            <v-expansion-panel-content>
-              <h2>Databases</h2>
-              <p>
-                A series of databases have been developed with enhanced
-                visualization features for efficient search and data
-                exploitation. The databases provide access to physical
-                experiments of a rich set of structural steel materials,
-                structural components and connections, residual stress
-                measurements that were tested worldwide since the 1970s. In
-                particular, the databases include highly heterogenous data in a
-                consistent format with parallel axis search and visualization
-                capabilities. Fully digitized experimental data is made
-                available that were extracted from experimental reports.
-              </p>
-              <h2>Component Models</h2>
-              <p>
-                A web-based interactive module allows for the automatically
-                constructed backbone and first-cycle envelope curves for
-                structural steel components for direct use in nonlinear static
-                and dynamic analyses procedures. This module incorporates the
-                state-of-the-art in component modeling for seismic assessment of
-                existing structures in North America and Europe. Besides the use
-                of built-up cross sections, it links with currently available
-                cross-sectional databases from North America, Europe and Japan
-                to extract geometric features from standardized hot-rolled
-                profiles, which are currently used in steel construction
-                worldwide.
-              </p>
-              <h2>Fragility Curves</h2>
-              <p>
-                A web-based interactive tool enables the exploitation of
-                fragility curves for structural components that allows for
-                financial loss estimation within the PBEE framework. The
-                fragility curves are either univariate or multivariate depending
-                on the component modeling resolution of interest. Visualization
-                features include bar plots to enable exploitation of fragility
-                curves and surfaces based on pertinent geometric and material
-                parameters of interest.
-              </p>
-              <h2>Future Updates</h2>
-              <p>
-                Other databases and web-based interactive tools are currently
-                under development. Stay tuned for future updates.
-              </p>
-            </v-expansion-panel-content>
-          </v-expansion-panel>
-        </v-expansion-panels>
+        <p>RESSLab Hub is composed of :</p>
+        <ul>
+          <li>
+            Databases
+            <info-tooltip>
+              A series of databases have been developed with enhanced
+              visualization features for efficient search and data exploitation.
+              The databases provide access to physical experiments of a rich set
+              of structural steel materials, structural components and
+              connections, residual stress measurements that were tested
+              worldwide since the 1970s. In particular, the databases include
+              highly heterogenous data in a consistent format with parallel axis
+              search and visualization capabilities. Fully digitized
+              experimental data is made available that were extracted from
+              experimental reports.
+            </info-tooltip>
+          </li>
+          <li>
+            Component Models
+            <info-tooltip>
+              A web-based interactive module allows for the automatically
+              constructed backbone and first-cycle envelope curves for
+              structural steel components for direct use in nonlinear static and
+              dynamic analyses procedures. This module incorporates the
+              state-of-the-art in component modeling for seismic assessment of
+              existing structures in North America and Europe. Besides the use
+              of built-up cross sections, it links with currently available
+              cross-sectional databases from North America, Europe and Japan to
+              extract geometric features from standardized hot-rolled profiles,
+              which are currently used in steel construction worldwide.
+            </info-tooltip>
+          </li>
+          <li>
+            Fragility Curves
+            <info-tooltip>
+              A web-based interactive tool enables the exploitation of fragility
+              curves for structural components that allows for financial loss
+              estimation within the PBEE framework. The fragility curves are
+              either univariate or multivariate depending on the component
+              modeling resolution of interest. Visualization features include
+              bar plots to enable exploitation of fragility curves and surfaces
+              based on pertinent geometric and material parameters of interest.
+            </info-tooltip>
+          </li>
+          <li>
+            ... and future updates
+            <info-tooltip>
+              Other databases and web-based interactive tools are currently
+              under development. Stay tuned for future updates.
+            </info-tooltip>
+          </li>
+        </ul>
       </v-col>
       <v-col cols="8">
         <overview-map />
@@ -190,19 +215,13 @@ onMounted(() => {
         <v-card dark>
           <v-card-text>
             <v-row>
-              <v-col class="d-flex flex-column align-center">
-                <strong>{{ testCount ?? "?" }}</strong>
-                <span>Tests</span>
-              </v-col>
-              <v-divider vertical></v-divider>
-              <v-col class="d-flex flex-column align-center">
-                <strong>{{ universityCount ?? "?" }}</strong>
-                <span>Universities contributed</span>
-              </v-col>
-              <v-divider vertical></v-divider>
-              <v-col class="d-flex flex-column align-center">
-                <strong>{{ userCount ?? "?" }}</strong>
-                <span>Users worldwide</span>
+              <v-col
+                v-for="item in indicators"
+                :key="item.key"
+                class="d-flex flex-column align-center"
+              >
+                <h1>{{ indicatorCounts[item.key] ?? "?" }}</h1>
+                <span>{{ item.text }}</span>
               </v-col>
             </v-row>
           </v-card-text>
@@ -212,14 +231,21 @@ onMounted(() => {
     <v-row>
       <v-col cols="8">
         <v-skeleton-loader boilerplate type="card" />
+        <span>Tutorial video will be available here</span>
       </v-col>
       <v-col cols="4">
-        <v-carousel v-model="imageIndex" cycle height="400">
+        <v-carousel
+          v-model="imageIndex"
+          cycle
+          height="400"
+          hide-delimiters
+          show-arrows-on-hover
+        >
           <v-carousel-item v-for="(image, index) in images" :key="index">
-            <v-img :src="image.src" contain height="100%" width="100%"></v-img>
+            <v-img :src="image.src" height="100%" width="100%"></v-img>
           </v-carousel-item>
         </v-carousel>
-        <p class="text-right">Credit: {{ images[imageIndex].credit }}</p>
+        <p class="text-right">Credits: {{ images[imageIndex].credit }}</p>
       </v-col>
     </v-row>
     <v-row>

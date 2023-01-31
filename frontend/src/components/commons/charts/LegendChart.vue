@@ -54,7 +54,7 @@ const items = computed({
   </v-container>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .legend-checkbox::v-deep .v-icon {
   transition: none;
 }
