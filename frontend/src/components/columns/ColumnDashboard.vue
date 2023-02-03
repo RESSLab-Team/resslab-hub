@@ -9,7 +9,7 @@
             :query="query"
             @click="click"
             @loadPage="loadPage"
-          ></column-table>
+          />
         </v-col>
       </v-row>
       <v-row v-if="!item">
@@ -19,15 +19,14 @@
             :fields="parallelFields"
             :searches.sync="searches"
             :query="query"
-          >
-          </column-parallel-chart>
+          />
         </v-col>
       </v-row>
     </v-col>
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <column-detail :column="item" @close="close"></column-detail>
+          <column-detail :column="item" @close="close" />
         </v-col>
       </v-row>
       <v-row v-else>
@@ -46,25 +45,39 @@
         </v-col>
         <v-col cols="12" md="6">
           <v-card>
-            <column-depth-card-title>
-              <template #how-to-second>
-                Filter database for built-up or hot-rolled cross sections by
-                clicking on the appropriate legend
-              </template>
-            </column-depth-card-title>
+            <v-card-title>
+              Column Depth [mm]
+              <info-tooltip>
+                <p>
+                  This histogram displays the distribution of column depths in
+                  the Database.
+                </p>
+                How to use?
+                <ul>
+                  <li>
+                    Filter database for specific column depths, by clicking on a
+                    bar or using the slider below
+                  </li>
+                  <li>
+                    Filter database for built-up or hot-rolled cross sections by
+                    clicking on the appropriate legend
+                  </li>
+                </ul>
+              </info-tooltip>
+            </v-card-title>
             <v-card-text>
               <column-double-chart
                 :color="colors.green"
                 :fields="columnDepthFields"
                 :query="query"
                 :searches.sync="searches"
-              ></column-double-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>
         <v-col cols="12">
           <v-card>
-            <steel-type-card-title></steel-type-card-title>
+            <steel-type-card-title />
             <v-card-text>
               <column-single-chart
                 :color="colors.deepPurple"
@@ -89,7 +102,6 @@ import ColumnDetail from "@/components/columns/ColumnDetail.vue";
 import ColumnTable from "@/components/columns/ColumnTable.vue";
 import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
 import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
-import ColumnDepthCardTitle from "@/components/commons/ColumnDepthCardTitle.vue";
 import DashboardMixin from "@/components/commons/DashboardMixin.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
@@ -98,7 +110,6 @@ import colors from "vuetify/lib/util/colors";
 
 @Component({
   components: {
-    ColumnDepthCardTitle,
     ColumnDetail,
     ColumnDoubleChart,
     ColumnParallelChart,
