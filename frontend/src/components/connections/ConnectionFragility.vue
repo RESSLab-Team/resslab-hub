@@ -198,7 +198,7 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
           contain
           height="300px"
           :src="publicPath + 'img/connection/connection_fragility.png'"
-        ></v-img>
+        />
       </v-col>
     </v-col>
     <v-col cols="4">

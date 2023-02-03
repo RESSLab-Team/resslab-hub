@@ -242,7 +242,7 @@ onMounted(() => {
           show-arrows-on-hover
         >
           <v-carousel-item v-for="(image, index) in images" :key="index">
-            <v-img :src="image.src" height="100%" width="100%"></v-img>
+            <v-img :src="image.src" height="100%" width="100%" />
           </v-carousel-item>
         </v-carousel>
         <p class="text-right">Credits: {{ images[imageIndex].credit }}</p>
@@ -251,14 +251,14 @@ onMounted(() => {
     <v-row>
       <v-col v-for="(logo, index) in logos" :key="index">
         <a :href="logo.url" target="_blank">
-          <v-img contain :src="logo.src" max-height="128"></v-img>
+          <v-img contain :src="logo.src" max-height="64" />
         </a>
       </v-col>
     </v-row>
     <v-row>
       <v-col cols="12">
         <v-responsive>
-          <v-img :src="images[0].src" height="256"></v-img>
+          <v-img :src="images[0].src" height="256" />
           <v-overlay absolute value="true" z-index="0">
             <div class="pa-3">
               <h1>Copyrights</h1>
