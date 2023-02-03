@@ -59,22 +59,22 @@ export function getColumnImage(
   direction_lp: string
 ): string | undefined {
   if (axis_of_bending === "Strong" && boundary_condition === "Fixed-Flexible") {
-    return publicPath + "img/column-type/fixed-flexible-strong-axis.png";
+    return publicPath + "img/column-type/Fixed_Flexible_StrongAxis.png";
   }
   if (axis_of_bending === "Strong" && boundary_condition === "Fixed-Fixed") {
-    return publicPath + "img/column-type/fixed-fixed-strong-axis.png";
+    return publicPath + "img/column-type/Fixed_Fixed_StrongAxis.png";
   }
   if (axis_of_bending === "Weak" && boundary_condition === "Fixed-Fixed") {
-    return publicPath + "img/column-type/fixed-fixed-weak-axis.png";
+    return publicPath + "img/column-type/Fixed_Fixed_WeakAxis.png";
   }
   if (axis_of_bending === "Strong" && boundary_condition === "Fixed-Free") {
-    return publicPath + "img/column-type/fixed-free-strong-axis.png";
+    return publicPath + "img/column-type/Fixed_Free_StrongAxis.png";
   }
   if (axis_of_bending === "Weak" && boundary_condition === "Fixed-Free") {
-    return publicPath + "img/column-type/fixed-free-weak-axis.png";
+    return publicPath + "img/column-type/Fixed_Free_WeakAxis.png";
   }
   if (direction_lp === "Bidirectional") {
-    return publicPath + "img/column-type/bidirectional.png";
+    return publicPath + "img/column-type/Fixed_Free_WeakAxis.png";
   }
   return undefined;
 }
