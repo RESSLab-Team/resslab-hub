@@ -56,11 +56,11 @@ export const secondaryColor = colors.blue;
 export const colorPalette: string[] = [
   primaryColor,
   secondaryColor,
-  colors.amber,
-  colors.brown,
-  colors.blueGrey,
   colors.orange,
+  colors.indigo,
   colors.pink,
+  colors.teal,
+  colors.cyan,
 ].map((color) => color.base);
 
 export function getColorMap(count: number): string[] {
