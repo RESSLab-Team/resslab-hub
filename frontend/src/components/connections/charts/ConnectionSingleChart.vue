@@ -16,7 +16,7 @@
         contain
         :src="imageUrl"
         min-height="120"
-      ></v-img>
+      />
     </template>
   </single-chart>
 </template>

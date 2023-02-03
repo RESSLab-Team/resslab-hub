@@ -107,7 +107,7 @@
         contain
         height="400px"
         :src="publicPath + 'img/column/component.png'"
-      ></v-img>
+      />
     </v-col>
     <v-col cols="6">
       <v-row justify="center">

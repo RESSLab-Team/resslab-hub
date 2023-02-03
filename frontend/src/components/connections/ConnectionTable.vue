@@ -51,7 +51,7 @@
           max-height="128"
           max-width="128"
           :src="getImageSource(item)"
-        ></v-img>
+        />
         <span class="ma-2">{{ item }}</span>
       </v-list-item>
     </template>

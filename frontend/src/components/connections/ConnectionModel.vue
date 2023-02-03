@@ -98,12 +98,12 @@
         contain
         height="200px"
         :src="publicPath + 'img/connection/component-1.png'"
-      ></v-img>
+      />
       <v-img
         contain
         height="200px"
         :src="publicPath + 'img/connection/component-2.png'"
-      ></v-img>
+      />
     </v-col>
     <v-col cols="6">
       <v-row>
