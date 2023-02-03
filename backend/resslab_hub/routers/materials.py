@@ -151,3 +151,14 @@ async def get_materials_stress_strain(
     Get Stress-Strain series from material
     """
     return await stress_strain_component.get_series(session, material_id, size)
+
+
+@router.get("/{material_id}/stress-strain/csv", response_class=StreamingResponse)
+async def get_materials_stress_strain_csv(
+    session: AsyncSession = Depends(get_session),
+    material_id: str = Path(...),
+) -> StreamingResponse:
+    """
+    Get Stress-Strain csv
+    """
+    return await stress_strain_component.get_csv(session, material_id)

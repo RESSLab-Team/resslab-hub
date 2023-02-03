@@ -231,7 +231,7 @@ export default class SimpleTable<T, P extends Page<T>> extends Vue {
 
   readonly checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
     {
-      key: DownloadType.Master,
+      key: DownloadType.Main,
       text: "Master data",
     },
     {
@@ -402,7 +402,7 @@ export interface Column {
 }
 
 export enum DownloadType {
-  Master = "master",
+  Main = "main",
   Test = "test",
 }
 

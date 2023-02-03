@@ -182,6 +182,17 @@ async def get_columns_axial_shortening(
     return await axial_shortening_component.get_series(session, column_id, size)
 
 
+@router.get("/{column_id}/axial-shortening/csv", response_class=StreamingResponse)
+async def get_columns_axial_shortening_csv(
+    session: AsyncSession = Depends(get_session),
+    column_id: str = Path(...),
+) -> StreamingResponse:
+    """
+    Get axial shortening csv
+    """
+    return await axial_shortening_component.get_csv(session, column_id)
+
+
 @router.get("/{column_id}/moment-strong", response_model=List[List[Decimal]])
 async def get_columns_moment_strong(
     session: AsyncSession = Depends(get_session),
@@ -194,6 +205,17 @@ async def get_columns_moment_strong(
     return await moment_strong_component.get_series(session, column_id, size)
 
 
+@router.get("/{column_id}/moment-strong/csv", response_class=StreamingResponse)
+async def get_columns_moment_strong_csv(
+    session: AsyncSession = Depends(get_session),
+    column_id: str = Path(...),
+) -> StreamingResponse:
+    """
+    Get moment strong csv
+    """
+    return await moment_strong_component.get_csv(session, column_id)
+
+
 @router.get("/{column_id}/moment-weak", response_model=List[List[Decimal]])
 async def get_columns_moment_weak(
     session: AsyncSession = Depends(get_session),
@@ -204,3 +226,14 @@ async def get_columns_moment_weak(
     Get moment weak series from column
     """
     return await moment_weak_component.get_series(session, column_id, size)
+
+
+@router.get("/{column_id}/moment-weak/csv", response_class=StreamingResponse)
+async def get_columns_moment_weak_csv(
+    session: AsyncSession = Depends(get_session),
+    column_id: str = Path(...),
+) -> StreamingResponse:
+    """
+    Get moment strong csv
+    """
+    return await moment_weak_component.get_csv(session, column_id)

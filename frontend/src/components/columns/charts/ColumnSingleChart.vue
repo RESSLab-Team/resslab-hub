@@ -13,13 +13,14 @@
 <script lang="ts">
 import { ColumnField, CountModel } from "@/backend";
 import SingleChartMixin from "@/components/commons/charts/SingleChartMixin.vue";
+import { columnsApi } from "@/plugins/axios";
 import { AxiosResponse } from "axios";
 import { Component } from "vue-property-decorator";
 
 @Component
 export default class ColumnSingleChart extends SingleChartMixin<ColumnField> {
   get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$columnsApi.getColumnsCounts([this.field], this.query);
+    return columnsApi.getColumnsCounts([this.field], this.query);
   }
 }
 </script>

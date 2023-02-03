@@ -20,16 +20,14 @@ import {
   RangeModel,
 } from "@/backend";
 import DoubleChartMixin from "@/components/commons/charts/DoubleChartMixin.vue";
+import { connectionsApi } from "@/plugins/axios";
 import { AxiosResponse } from "axios";
 import { Component } from "vue-property-decorator";
 
 @Component
 export default class ConnectionDoubleChart extends DoubleChartMixin<ConnectionField> {
   get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$connectionsApi.getConnectionsCounts(
-      this.requestFields,
-      this.query
-    );
+    return connectionsApi.getConnectionsCounts(this.requestFields, this.query);
   }
 
   get numberField(): ConnectionNumberField | undefined {
@@ -41,7 +39,7 @@ export default class ConnectionDoubleChart extends DoubleChartMixin<ConnectionFi
 
   get rangePromise(): Promise<AxiosResponse<RangeModel>> | undefined {
     if (this.numberField) {
-      return this.$connectionsApi.getConnectionsRange(this.numberField);
+      return connectionsApi.getConnectionsRange(this.numberField);
     } else {
       return undefined;
     }

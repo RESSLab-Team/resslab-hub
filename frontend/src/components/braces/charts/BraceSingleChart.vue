@@ -13,13 +13,14 @@
 <script lang="ts">
 import { BraceField, CountModel } from "@/backend";
 import SingleChartMixin from "@/components/commons/charts/SingleChartMixin.vue";
+import { bracesApi } from "@/plugins/axios";
 import { AxiosResponse } from "axios";
 import { Component } from "vue-property-decorator";
 
 @Component
 export default class BraceSingleChart extends SingleChartMixin<BraceField> {
   get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$bracesApi.getBracesCounts([this.field], this.query);
+    return bracesApi.getBracesCounts([this.field], this.query);
   }
 }
 </script>

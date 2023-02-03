@@ -13,6 +13,7 @@
 <script lang="ts">
 import { MaterialField, MatrixModel } from "@/backend";
 import SimpleParallelChartMixin from "@/components/commons/charts/SimpleParallelChartMixin.vue";
+import { materialsApi } from "@/plugins/axios";
 import { AxiosResponse } from "axios";
 import { Component } from "vue-property-decorator";
 
@@ -21,7 +22,7 @@ export default class MaterialParallelChart extends SimpleParallelChartMixin<Mate
   readonly idField = MaterialField.Id;
 
   getMatrix(fields: MaterialField[]): Promise<AxiosResponse<MatrixModel>> {
-    return this.$materialsApi.getMaterialsMatrix(fields, this.query);
+    return materialsApi.getMaterialsMatrix(fields, this.query);
   }
 }
 </script>

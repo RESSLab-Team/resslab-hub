@@ -24,6 +24,7 @@
 <script lang="ts">
 import { ConnectionField, CountModel } from "@/backend";
 import SingleChartMixin from "@/components/commons/charts/SingleChartMixin.vue";
+import { connectionsApi } from "@/plugins/axios";
 import { publicPath } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { CallbackDataParams } from "echarts/types/dist/shared";
@@ -34,7 +35,7 @@ export default class ConnectionSingleChart extends SingleChartMixin<ConnectionFi
   imageUrl = "";
 
   get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$connectionsApi.getConnectionsCounts([this.field], this.query);
+    return connectionsApi.getConnectionsCounts([this.field], this.query);
   }
 
   mouseover(params: CallbackDataParams): void {

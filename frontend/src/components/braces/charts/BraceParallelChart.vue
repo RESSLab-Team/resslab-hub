@@ -13,6 +13,7 @@
 <script lang="ts">
 import { BraceField, MatrixModel } from "@/backend";
 import SimpleParallelChartMixin from "@/components/commons/charts/SimpleParallelChartMixin.vue";
+import { bracesApi } from "@/plugins/axios";
 import { AxiosResponse } from "axios";
 import { Component } from "vue-property-decorator";
 
@@ -21,7 +22,7 @@ export default class BraceParallelChart extends SimpleParallelChartMixin<BraceFi
   readonly idField = BraceField.Id;
 
   getMatrix(fields: BraceField[]): Promise<AxiosResponse<MatrixModel>> {
-    return this.$bracesApi.getBracesMatrix(fields, this.query);
+    return bracesApi.getBracesMatrix(fields, this.query);
   }
 }
 </script>

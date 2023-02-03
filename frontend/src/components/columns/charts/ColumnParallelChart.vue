@@ -13,6 +13,7 @@
 <script lang="ts">
 import { ColumnField, MatrixModel } from "@/backend";
 import SimpleParallelChartMixin from "@/components/commons/charts/SimpleParallelChartMixin.vue";
+import { columnsApi } from "@/plugins/axios";
 import { AxiosResponse } from "axios";
 import { Component } from "vue-property-decorator";
 
@@ -21,7 +22,7 @@ export default class ColumnParallelChart extends SimpleParallelChartMixin<Column
   readonly idField = ColumnField.Id;
 
   getMatrix(fields: ColumnField[]): Promise<AxiosResponse<MatrixModel>> {
-    return this.$columnsApi.getColumnsMatrix(fields, this.query);
+    return columnsApi.getColumnsMatrix(fields, this.query);
   }
 }
 </script>

@@ -444,6 +444,42 @@
         }
       }
     },
+    "/braces/{brace_id}/displacement/csv": {
+      "get": {
+        "tags": [
+          "braces"
+        ],
+        "summary": "Get Braces Displacement Csv",
+        "description": "Get displacement csv",
+        "operationId": "get_braces_displacement_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Brace Id",
+              "type": "string"
+            },
+            "name": "brace_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/columns": {
       "get": {
         "tags": [
@@ -864,6 +900,42 @@
         }
       }
     },
+    "/columns/{column_id}/axial-shortening/csv": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Axial Shortening Csv",
+        "description": "Get axial shortening csv",
+        "operationId": "get_columns_axial_shortening_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Column Id",
+              "type": "string"
+            },
+            "name": "column_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/columns/{column_id}/moment-strong": {
       "get": {
         "tags": [
@@ -925,6 +997,42 @@
         }
       }
     },
+    "/columns/{column_id}/moment-strong/csv": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Moment Strong Csv",
+        "description": "Get moment strong csv",
+        "operationId": "get_columns_moment_strong_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Column Id",
+              "type": "string"
+            },
+            "name": "column_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/columns/{column_id}/moment-weak": {
       "get": {
         "tags": [
@@ -972,6 +1080,42 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/{column_id}/moment-weak/csv": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Moment Weak Csv",
+        "description": "Get moment strong csv",
+        "operationId": "get_columns_moment_weak_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Column Id",
+              "type": "string"
+            },
+            "name": "column_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",
@@ -2236,6 +2380,42 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/materials/{material_id}/stress-strain/csv": {
+      "get": {
+        "tags": [
+          "materials"
+        ],
+        "summary": "Get Materials Stress Strain Csv",
+        "description": "Get Stress-Strain csv",
+        "operationId": "get_materials_stress_strain_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Material Id",
+              "type": "string"
+            },
+            "name": "material_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",

@@ -17,6 +17,7 @@
 <script lang="ts">
 import { ConnectionField, MatrixModel } from "@/backend";
 import SimpleParallelChartMixin from "@/components/commons/charts/SimpleParallelChartMixin.vue";
+import { connectionsApi } from "@/plugins/axios";
 import { AxiosResponse } from "axios";
 import { Component } from "vue-property-decorator";
 
@@ -25,7 +26,7 @@ export default class ConnectionParallelChart extends SimpleParallelChartMixin<Co
   readonly idField = ConnectionField.Id;
 
   getMatrix(fields: ConnectionField[]): Promise<AxiosResponse<MatrixModel>> {
-    return this.$connectionsApi.getConnectionsMatrix(fields, this.query);
+    return connectionsApi.getConnectionsMatrix(fields, this.query);
   }
 }
 </script>
