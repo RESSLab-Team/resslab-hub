@@ -42,7 +42,7 @@ watch(
         {
           count: column.moment_strong_count,
           promise: columnsApi.getColumnsMomentStrong(column.id),
-          title: "Moment Strong",
+          title: "Moment Rotation",
           xAxisName: "Chord Rotation [rads]",
           yAxisName: "Moment [kN-mm]",
         },
