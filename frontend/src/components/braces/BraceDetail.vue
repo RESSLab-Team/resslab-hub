@@ -149,7 +149,7 @@ function formatString(value?: string): string {
           </v-row>
         </v-col>
         <v-col cols="6">
-          <v-img :src="imageTypeSrc" />
+          <v-img contain :src="imageTypeSrc" />
         </v-col>
       </v-row>
     </template>

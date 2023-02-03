@@ -128,28 +128,25 @@ watch(
           </p>
           <h2>Material Model Parameters *</h2>
           <p>
-            <property-item name="Young's Modulus, E" unit="MPa">
+            <property-item name="Young's modulus, E" unit="MPa">
               {{ formatNumber(material.uvc_e__mpa_ * 1000, 1) }}
             </property-item>
             <property-item name="Initial yield stress, σyo" unit="MPa">
               {{ formatNumber(material.uvc_sigma__mpa_, 1) }}
             </property-item>
             <property-item
-              name="pArameter for Magnitude of isotropic hardening, Q"
+              name="Parameter for magnitude of isotropic hardening, Q"
               unit="MPa"
             >
               {{ formatNumber(material.uvc_q__mpa_, 1) }}
             </property-item>
-            <property-item name="Rate of isotropic hardening, b" unit="MPa">
+            <property-item name="Rate of isotropic hardening, b">
               {{ formatNumber(material.uvc_b, 1) }}
             </property-item>
             <property-item name="Parameter for discount yielding, D" unit="MPa">
               {{ formatNumber(material.uvc_d__mpa_, 1) }}
             </property-item>
-            <property-item
-              name="Rate of decrease for discount yielding"
-              unit="MPa"
-            >
+            <property-item name="Rate of decrease for discount yielding, a">
               {{ formatNumber(material.uvc_a, 1) }}
             </property-item>
             <property-item name="Magnitude of backstress 1, C1" unit="MPa">
@@ -158,10 +155,10 @@ watch(
             <property-item name="Magnitude of backstress 2, C2" unit="MPa">
               {{ formatNumber(material.uvc_c2__mpa_, 1) }}
             </property-item>
-            <property-item name="Rate of backstress 1, γ1" unit="MPa">
+            <property-item name="Rate of backstress 1, γ1">
               {{ formatNumber(material.uvc_g1, 1) }}
             </property-item>
-            <property-item name="Rate of backstress 2, γ2" unit="MPa">
+            <property-item name="Rate of backstress 2, γ2">
               {{ formatNumber(material.uvc_g2, 1) }}
             </property-item>
           </p>
