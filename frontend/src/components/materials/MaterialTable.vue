@@ -28,6 +28,7 @@ import SimpleTable, {
   DownloadType,
 } from "@/components/commons/SimpleTable.vue";
 import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
+import { materialsApi } from "@/plugins/axios";
 import { Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { Component, Prop, PropSync } from "vue-property-decorator";
@@ -69,7 +70,7 @@ export default class MaterialTable extends SimpleTableMixin<MaterialModel> {
   ];
 
   getCounts(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$materialsApi.getMaterialsCounts();
+    return materialsApi.getMaterialsCounts();
   }
 
   getPage(
@@ -79,31 +80,24 @@ export default class MaterialTable extends SimpleTableMixin<MaterialModel> {
     page?: number,
     size?: number
   ): Promise<AxiosResponse<ExtendedPageMaterialModel>> {
-    return this.$materialsApi.getMaterials(query, sortBy, sortDesc, page, size);
+    return materialsApi.getMaterials(query, sortBy, sortDesc, page, size);
   }
 
   getFiles(
     selectedItems: MaterialModel[],
     types: DownloadType[]
   ): Promise<DownloadFile[]> {
-    const filePromises: Promise<DownloadFile>[] = [
-      types.includes(DownloadType.Master)
-        ? [
-            this.$materialsApi
-              .getMaterialsCsv(selectedItems.map((item) => item.id))
-              .then((response) => ({
-                filename: "materials.csv",
-                content: response.data as unknown as string,
-              })),
-          ]
-        : [],
-      types.includes(DownloadType.Test)
-        ? [
-            // TODO
-          ]
-        : [],
-    ].flat();
-    return Promise.all(filePromises);
+    return this.getDownloadFiles(
+      selectedItems,
+      types,
+      "material",
+      (ids) => materialsApi.getMaterialsCsv(ids),
+      {
+        name: "stress-strain",
+        countKey: "stress_strain_count",
+        getCsv: (id) => materialsApi.getMaterialsStressStrainCsv(id),
+      }
+    );
   }
 }
 </script>

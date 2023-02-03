@@ -1846,6 +1846,40 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
+         * Get displacement csv
+         * @summary Get Braces Displacement Csv
+         * @param {string} braceId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesDisplacementCsv: async (braceId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'braceId' is not null or undefined
+            assertParamExists('getBracesDisplacementCsv', 'braceId', braceId)
+            const localVarPath = `/braces/{brace_id}/displacement/csv`
+                .replace(`{${"brace_id"}}`, encodeURIComponent(String(braceId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get distinct count
          * @summary Get Braces Distinct
          * @param {Array<BraceField>} [fields] 
@@ -2050,6 +2084,17 @@ export const BracesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get displacement csv
+         * @summary Get Braces Displacement Csv
+         * @param {string} braceId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getBracesDisplacementCsv(braceId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesDisplacementCsv(braceId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get distinct count
          * @summary Get Braces Distinct
          * @param {Array<BraceField>} [fields] 
@@ -2148,6 +2193,16 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
          */
         getBracesDisplacement(braceId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getBracesDisplacement(braceId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get displacement csv
+         * @summary Get Braces Displacement Csv
+         * @param {string} braceId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesDisplacementCsv(braceId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getBracesDisplacementCsv(braceId, options).then((request) => request(axios, basePath));
         },
         /**
          * Get distinct count
@@ -2251,6 +2306,18 @@ export class BracesApi extends BaseAPI {
      */
     public getBracesDisplacement(braceId: string, size?: number, options?: AxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesDisplacement(braceId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get displacement csv
+     * @summary Get Braces Displacement Csv
+     * @param {string} braceId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BracesApi
+     */
+    public getBracesDisplacementCsv(braceId: string, options?: AxiosRequestConfig) {
+        return BracesApiFp(this.configuration).getBracesDisplacementCsv(braceId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2391,6 +2458,40 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
             if (size !== undefined) {
                 localVarQueryParameter['size'] = size;
             }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get axial shortening csv
+         * @summary Get Columns Axial Shortening Csv
+         * @param {string} columnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsAxialShorteningCsv: async (columnId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'columnId' is not null or undefined
+            assertParamExists('getColumnsAxialShorteningCsv', 'columnId', columnId)
+            const localVarPath = `/columns/{column_id}/axial-shortening/csv`
+                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
 
     
@@ -2625,6 +2726,40 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Get moment strong csv
+         * @summary Get Columns Moment Strong Csv
+         * @param {string} columnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsMomentStrongCsv: async (columnId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'columnId' is not null or undefined
+            assertParamExists('getColumnsMomentStrongCsv', 'columnId', columnId)
+            const localVarPath = `/columns/{column_id}/moment-strong/csv`
+                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get moment weak series from column
          * @summary Get Columns Moment Weak
          * @param {string} columnId 
@@ -2651,6 +2786,40 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
             if (size !== undefined) {
                 localVarQueryParameter['size'] = size;
             }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get moment strong csv
+         * @summary Get Columns Moment Weak Csv
+         * @param {string} columnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsMomentWeakCsv: async (columnId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'columnId' is not null or undefined
+            assertParamExists('getColumnsMomentWeakCsv', 'columnId', columnId)
+            const localVarPath = `/columns/{column_id}/moment-weak/csv`
+                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
 
     
@@ -2738,6 +2907,17 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get axial shortening csv
+         * @summary Get Columns Axial Shortening Csv
+         * @param {string} columnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getColumnsAxialShorteningCsv(columnId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsAxialShorteningCsv(columnId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get occurences count of field values
          * @summary Get Columns Counts
          * @param {Array<ColumnField>} [fields] 
@@ -2806,6 +2986,17 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get moment strong csv
+         * @summary Get Columns Moment Strong Csv
+         * @param {string} columnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getColumnsMomentStrongCsv(columnId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMomentStrongCsv(columnId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get moment weak series from column
          * @summary Get Columns Moment Weak
          * @param {string} columnId 
@@ -2815,6 +3006,17 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          */
         async getColumnsMomentWeak(columnId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMomentWeak(columnId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get moment strong csv
+         * @summary Get Columns Moment Weak Csv
+         * @param {string} columnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getColumnsMomentWeakCsv(columnId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMomentWeakCsv(columnId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -2862,6 +3064,16 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          */
         getColumnsAxialShortening(columnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getColumnsAxialShortening(columnId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get axial shortening csv
+         * @summary Get Columns Axial Shortening Csv
+         * @param {string} columnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsAxialShorteningCsv(columnId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getColumnsAxialShorteningCsv(columnId, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences count of field values
@@ -2926,6 +3138,16 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getColumnsMomentStrong(columnId, size, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get moment strong csv
+         * @summary Get Columns Moment Strong Csv
+         * @param {string} columnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsMomentStrongCsv(columnId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getColumnsMomentStrongCsv(columnId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get moment weak series from column
          * @summary Get Columns Moment Weak
          * @param {string} columnId 
@@ -2935,6 +3157,16 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          */
         getColumnsMomentWeak(columnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getColumnsMomentWeak(columnId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get moment strong csv
+         * @summary Get Columns Moment Weak Csv
+         * @param {string} columnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsMomentWeakCsv(columnId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getColumnsMomentWeakCsv(columnId, options).then((request) => request(axios, basePath));
         },
         /**
          * Get range of field
@@ -2983,6 +3215,18 @@ export class ColumnsApi extends BaseAPI {
      */
     public getColumnsAxialShortening(columnId: string, size?: number, options?: AxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsAxialShortening(columnId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get axial shortening csv
+     * @summary Get Columns Axial Shortening Csv
+     * @param {string} columnId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ColumnsApi
+     */
+    public getColumnsAxialShorteningCsv(columnId: string, options?: AxiosRequestConfig) {
+        return ColumnsApiFp(this.configuration).getColumnsAxialShorteningCsv(columnId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3060,6 +3304,18 @@ export class ColumnsApi extends BaseAPI {
     }
 
     /**
+     * Get moment strong csv
+     * @summary Get Columns Moment Strong Csv
+     * @param {string} columnId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ColumnsApi
+     */
+    public getColumnsMomentStrongCsv(columnId: string, options?: AxiosRequestConfig) {
+        return ColumnsApiFp(this.configuration).getColumnsMomentStrongCsv(columnId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Get moment weak series from column
      * @summary Get Columns Moment Weak
      * @param {string} columnId 
@@ -3070,6 +3326,18 @@ export class ColumnsApi extends BaseAPI {
      */
     public getColumnsMomentWeak(columnId: string, size?: number, options?: AxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsMomentWeak(columnId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get moment strong csv
+     * @summary Get Columns Moment Weak Csv
+     * @param {string} columnId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ColumnsApi
+     */
+    public getColumnsMomentWeakCsv(columnId: string, options?: AxiosRequestConfig) {
+        return ColumnsApiFp(this.configuration).getColumnsMomentWeakCsv(columnId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4771,6 +5039,40 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Materials Stress Strain Csv
+         * @param {string} materialId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsStressStrainCsv: async (materialId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'materialId' is not null or undefined
+            assertParamExists('getMaterialsStressStrainCsv', 'materialId', materialId)
+            const localVarPath = `/materials/{material_id}/stress-strain/csv`
+                .replace(`{${"material_id"}}`, encodeURIComponent(String(materialId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -4875,6 +5177,17 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsStressStrain(materialId, size, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Materials Stress Strain Csv
+         * @param {string} materialId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterialsStressStrainCsv(materialId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsStressStrainCsv(materialId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
     }
 };
 
@@ -4970,6 +5283,16 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          */
         getMaterialsStressStrain(materialId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getMaterialsStressStrain(materialId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Materials Stress Strain Csv
+         * @param {string} materialId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsStressStrainCsv(materialId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getMaterialsStressStrainCsv(materialId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -5081,6 +5404,18 @@ export class MaterialsApi extends BaseAPI {
      */
     public getMaterialsStressStrain(materialId: string, size?: number, options?: AxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsStressStrain(materialId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Stress-Strain csv
+     * @summary Get Materials Stress Strain Csv
+     * @param {string} materialId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterialsStressStrainCsv(materialId: string, options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterialsStressStrainCsv(materialId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

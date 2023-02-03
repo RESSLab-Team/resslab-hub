@@ -56,6 +56,7 @@ import SimpleTable, {
   DownloadType,
 } from "@/components/commons/SimpleTable.vue";
 import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
+import { columnsApi } from "@/plugins/axios";
 import { Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { Component, Prop, PropSync } from "vue-property-decorator";
@@ -102,7 +103,7 @@ export default class ColumnTable extends SimpleTableMixin<ColumnModel> {
   ];
 
   getCounts(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$columnsApi.getColumnsCounts();
+    return columnsApi.getColumnsCounts();
   }
 
   getPage(
@@ -112,31 +113,34 @@ export default class ColumnTable extends SimpleTableMixin<ColumnModel> {
     page?: number,
     size?: number
   ): Promise<AxiosResponse<ExtendedPageColumnModel>> {
-    return this.$columnsApi.getColumns(query, sortBy, sortDesc, page, size);
+    return columnsApi.getColumns(query, sortBy, sortDesc, page, size);
   }
 
   getFiles(
     selectedItems: ColumnModel[],
     types: DownloadType[]
   ): Promise<DownloadFile[]> {
-    const filePromises: Promise<DownloadFile>[] = [
-      types.includes(DownloadType.Master)
-        ? [
-            this.$columnsApi
-              .getColumnsCsv(selectedItems.map((item) => item.id))
-              .then((response) => ({
-                filename: "columns.csv",
-                content: response.data as unknown as string,
-              })),
-          ]
-        : [],
-      types.includes(DownloadType.Test)
-        ? [
-            // TODO
-          ]
-        : [],
-    ].flat();
-    return Promise.all(filePromises);
+    return this.getDownloadFiles(
+      selectedItems,
+      types,
+      "column",
+      (ids) => columnsApi.getColumnsCsv(ids),
+      {
+        name: "axial-shortening",
+        countKey: "axial_shortening_count",
+        getCsv: (id) => columnsApi.getColumnsAxialShorteningCsv(id),
+      },
+      {
+        name: "moment-strong",
+        countKey: "moment_strong_count",
+        getCsv: (id) => columnsApi.getColumnsMomentStrongCsv(id),
+      },
+      {
+        name: "moment-weak",
+        countKey: "moment_weak_count",
+        getCsv: (id) => columnsApi.getColumnsMomentWeakCsv(id),
+      }
+    );
   }
 }
 </script>

@@ -72,6 +72,7 @@ import SimpleTable, {
   DownloadType,
 } from "@/components/commons/SimpleTable.vue";
 import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
+import { connectionsApi } from "@/plugins/axios";
 import { publicPath, Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { Component, Prop, PropSync } from "vue-property-decorator";
@@ -147,7 +148,7 @@ export default class ConnectionTable extends SimpleTableMixin<ConnectionModel> {
   ];
 
   getCounts(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$connectionsApi.getConnectionsCounts();
+    return connectionsApi.getConnectionsCounts();
   }
 
   getPage(
@@ -157,91 +158,44 @@ export default class ConnectionTable extends SimpleTableMixin<ConnectionModel> {
     page?: number,
     size?: number
   ): Promise<AxiosResponse<ExtendedPageConnectionModel>> {
-    return this.$connectionsApi.getConnections(
-      query,
-      sortBy,
-      sortDesc,
-      page,
-      size
-    );
+    return connectionsApi.getConnections(query, sortBy, sortDesc, page, size);
   }
 
   getFiles(
     selectedItems: ConnectionModel[],
     types: DownloadType[]
   ): Promise<DownloadFile[]> {
-    const filePromises: Promise<DownloadFile>[] = [
-      types.includes(DownloadType.Master)
-        ? [
-            this.$connectionsApi
-              .getConnectionsCsv(selectedItems.map((item) => item.id))
-              .then((response) => ({
-                filename: "connections.csv",
-                content: response.data as unknown as string,
-              })),
-          ]
-        : [],
-      types.includes(DownloadType.Test)
-        ? [
-            ...selectedItems
-              .filter((item) => item.beam_count > 0)
-              .map((item) => item.id)
-              .map((id) =>
-                this.$connectionsApi
-                  .getConnectionsBeamCsv(id)
-                  .then((response) => ({
-                    filename: `connection-beam-${id}.csv`,
-                    content: response.data as unknown as string,
-                  }))
-              ),
-            ...selectedItems
-              .filter((item) => item.beam_west_count > 0)
-              .map((item) => item.id)
-              .map((id) =>
-                this.$connectionsApi
-                  .getConnectionsBeamWestCsv(id)
-                  .then((response) => ({
-                    filename: `connection-beam-west-${id}.csv`,
-                    content: response.data as unknown as string,
-                  }))
-              ),
-            ...selectedItems
-              .filter((item) => item.global_count > 0)
-              .map((item) => item.id)
-              .map((id) =>
-                this.$connectionsApi
-                  .getConnectionsGlobalCsv(id)
-                  .then((response) => ({
-                    filename: `connection-global-${id}.csv`,
-                    content: response.data as unknown as string,
-                  }))
-              ),
-            ...selectedItems
-              .filter((item) => item.global_west_count > 0)
-              .map((item) => item.id)
-              .map((id) =>
-                this.$connectionsApi
-                  .getConnectionsGlobalWestCsv(id)
-                  .then((response) => ({
-                    filename: `connection-global-west-${id}.csv`,
-                    content: response.data as unknown as string,
-                  }))
-              ),
-            ...selectedItems
-              .filter((item) => item.panel_zone_count > 0)
-              .map((item) => item.id)
-              .map((id) =>
-                this.$connectionsApi
-                  .getConnectionsPanelZonesCsv(id)
-                  .then((response) => ({
-                    filename: `connection-panel-zone-${id}.csv`,
-                    content: response.data as unknown as string,
-                  }))
-              ),
-          ]
-        : [],
-    ].flat();
-    return Promise.all(filePromises);
+    return this.getDownloadFiles(
+      selectedItems,
+      types,
+      "connection",
+      (ids) => connectionsApi.getConnectionsCsv(ids),
+      {
+        name: "beam",
+        countKey: "beam_count",
+        getCsv: (id) => connectionsApi.getConnectionsBeamCsv(id),
+      },
+      {
+        name: "beam-west",
+        countKey: "beam_west_count",
+        getCsv: (id) => connectionsApi.getConnectionsBeamWestCsv(id),
+      },
+      {
+        name: "global",
+        countKey: "global_count",
+        getCsv: (id) => connectionsApi.getConnectionsGlobalCsv(id),
+      },
+      {
+        name: "global-west",
+        countKey: "global_west_count",
+        getCsv: (id) => connectionsApi.getConnectionsGlobalWestCsv(id),
+      },
+      {
+        name: "panel-zone",
+        countKey: "panel_zone_count",
+        getCsv: (id) => connectionsApi.getConnectionsPanelZonesCsv(id),
+      }
+    );
   }
 
   getImageSource(item: string): string {

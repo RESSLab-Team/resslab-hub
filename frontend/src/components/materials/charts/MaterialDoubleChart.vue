@@ -20,16 +20,14 @@ import {
   RangeModel,
 } from "@/backend";
 import DoubleChartMixin from "@/components/commons/charts/DoubleChartMixin.vue";
+import { materialsApi } from "@/plugins/axios";
 import { AxiosResponse } from "axios";
 import { Component } from "vue-property-decorator";
 
 @Component
 export default class MaterialDoubleChart extends DoubleChartMixin<MaterialField> {
   get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$materialsApi.getMaterialsCounts(
-      this.requestFields,
-      this.query
-    );
+    return materialsApi.getMaterialsCounts(this.requestFields, this.query);
   }
 
   get numberField(): MaterialNumberField | undefined {
@@ -41,7 +39,7 @@ export default class MaterialDoubleChart extends DoubleChartMixin<MaterialField>
 
   get rangePromise(): Promise<AxiosResponse<RangeModel>> | undefined {
     if (this.numberField) {
-      return this.$materialsApi.getMaterialsRange(this.numberField);
+      return materialsApi.getMaterialsRange(this.numberField);
     } else {
       return undefined;
     }

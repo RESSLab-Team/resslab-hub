@@ -152,3 +152,14 @@ async def get_braces_displacement(
     Get displacement series from brace
     """
     return await displacement_component.get_series(session, brace_id, size)
+
+
+@router.get("/{brace_id}/displacement/csv", response_class=StreamingResponse)
+async def get_braces_displacement_csv(
+    session: AsyncSession = Depends(get_session),
+    brace_id: str = Path(...),
+) -> StreamingResponse:
+    """
+    Get displacement csv
+    """
+    return await displacement_component.get_csv(session, brace_id)

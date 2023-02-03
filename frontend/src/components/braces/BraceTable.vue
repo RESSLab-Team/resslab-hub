@@ -56,6 +56,7 @@ import SimpleTable, {
   DownloadType,
 } from "@/components/commons/SimpleTable.vue";
 import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
+import { bracesApi } from "@/plugins/axios";
 import { Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { Component, Prop, PropSync } from "vue-property-decorator";
@@ -98,7 +99,7 @@ export default class BraceTable extends SimpleTableMixin<BraceModel> {
   ];
 
   getCounts(): Promise<AxiosResponse<CountModel[]>> {
-    return this.$bracesApi.getBracesCounts();
+    return bracesApi.getBracesCounts();
   }
 
   getPage(
@@ -108,31 +109,24 @@ export default class BraceTable extends SimpleTableMixin<BraceModel> {
     page?: number,
     size?: number
   ): Promise<AxiosResponse<ExtendedPageBraceModel>> {
-    return this.$bracesApi.getBraces(query, sortBy, sortDesc, page, size);
+    return bracesApi.getBraces(query, sortBy, sortDesc, page, size);
   }
 
   getFiles(
     selectedItems: BraceModel[],
     types: DownloadType[]
   ): Promise<DownloadFile[]> {
-    const filePromises: Promise<DownloadFile>[] = [
-      types.includes(DownloadType.Master)
-        ? [
-            this.$bracesApi
-              .getBracesCsv(selectedItems.map((item) => item.id))
-              .then((response) => ({
-                filename: "braces.csv",
-                content: response.data as unknown as string,
-              })),
-          ]
-        : [],
-      types.includes(DownloadType.Test)
-        ? [
-            // TODO
-          ]
-        : [],
-    ].flat();
-    return Promise.all(filePromises);
+    return this.getDownloadFiles(
+      selectedItems,
+      types,
+      "brace",
+      (ids) => bracesApi.getBracesCsv(ids),
+      {
+        name: "displacement",
+        countKey: "displacement_count",
+        getCsv: (id) => bracesApi.getBracesDisplacementCsv(id),
+      }
+    );
   }
 }
 </script>
