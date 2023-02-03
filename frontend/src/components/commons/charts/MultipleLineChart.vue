@@ -5,6 +5,7 @@ import { EChartsOption, LineSeriesOption } from "echarts";
 import { LineChart } from "echarts/charts";
 import {
   GridComponent,
+  LegendComponent,
   TitleComponent,
   TooltipComponent,
 } from "echarts/components";
@@ -34,7 +35,14 @@ const props = withDefaults(defineProps<Props>(), {
   yAxisName: undefined,
 });
 
-use([SVGRenderer, LineChart, GridComponent, TitleComponent, TooltipComponent]);
+use([
+  SVGRenderer,
+  LineChart,
+  GridComponent,
+  LegendComponent,
+  TitleComponent,
+  TooltipComponent,
+]);
 
 const option = computed<EChartsOption>(
   () =>
@@ -42,6 +50,10 @@ const option = computed<EChartsOption>(
       title: {
         text: props.title,
         left: "center",
+      },
+      legend: {
+        top: 30,
+        show: props.series.length > 1,
       },
       grid: {
         left: 96,
