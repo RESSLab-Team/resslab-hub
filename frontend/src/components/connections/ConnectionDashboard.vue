@@ -9,7 +9,7 @@
             :query="query"
             @click="click"
             @loadPage="loadPage"
-          ></connection-table>
+          />
         </v-col>
       </v-row>
       <v-row v-if="!item">
@@ -19,18 +19,14 @@
             :fields="parallelFields"
             :searches.sync="searches"
             :query="query"
-          >
-          </connection-parallel-chart>
+          />
         </v-col>
       </v-row>
     </v-col>
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <connection-detail
-            :connection="item"
-            @close="close"
-          ></connection-detail>
+          <connection-detail :connection="item" @close="close" />
         </v-col>
       </v-row>
       <v-row v-else>
@@ -66,7 +62,7 @@
                     :field="ConnectionField.ConnectionType"
                     :query="query"
                     :searches.sync="searches"
-                  ></connection-single-chart>
+                  />
                 </v-col>
                 <v-col cols="12" sm="6">
                   <connection-double-chart
@@ -77,7 +73,7 @@
                     :query="query"
                     :searches.sync="searches"
                     type="line"
-                  ></connection-double-chart>
+                  />
                 </v-col>
               </v-row>
             </v-card-text>
@@ -85,14 +81,33 @@
         </v-col>
         <v-col sm="6">
           <v-card>
-            <column-depth-card-title></column-depth-card-title>
+            <v-card-title>
+              Beam Depth [mm]
+              <info-tooltip>
+                <p>
+                  This histogram displays the distribution of column depths in
+                  the Database.
+                </p>
+                How to use?
+                <ul>
+                  <li>
+                    Filter database for specific column depths, by clicking on a
+                    bar or using the slider below
+                  </li>
+                  <li>
+                    Filter database depending on the presence of doubler plates
+                    welded in the panel zone (0/1/2) by clicking on the legend.
+                  </li>
+                </ul>
+              </info-tooltip>
+            </v-card-title>
             <v-card-text>
               <connection-double-chart
                 :color="colors.blue"
                 :fields="beamFields"
                 :query="query"
                 :searches.sync="searches"
-              ></connection-double-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>
@@ -124,20 +139,20 @@
                 :fields="[ConnectionField.DC, ConnectionField.NDp]"
                 :query="query"
                 :searches.sync="searches"
-              ></connection-double-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>
         <v-col cols="12">
           <v-card>
-            <steel-type-card-title></steel-type-card-title>
+            <steel-type-card-title />
             <v-card-text>
               <connection-single-chart
                 :color="colors.deepPurple"
                 :field="ConnectionField.SteelB"
                 :query="query"
                 :searches.sync="searches"
-              ></connection-single-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>
@@ -150,7 +165,6 @@
 import { ConnectionField, ConnectionModel } from "@/backend";
 import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
 import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
-import ColumnDepthCardTitle from "@/components/commons/ColumnDepthCardTitle.vue";
 import DashboardMixin from "@/components/commons/DashboardMixin.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
@@ -164,7 +178,6 @@ import colors from "vuetify/lib/util/colors";
 
 @Component({
   components: {
-    ColumnDepthCardTitle,
     ConnectionTable,
     ConnectionSingleChart,
     ConnectionDoubleChart,
