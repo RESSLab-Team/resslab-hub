@@ -58,14 +58,14 @@ const materialVariables: Variable<keyof Material>[] = [
     text: "σ<sub>y0</sub>",
     min: 200,
     max: 700,
-    unit: "Mpa",
+    unit: "MPa",
   },
   {
     key: "q",
     text: "Q<sub>00</sub>",
     min: 0,
     max: 300,
-    unit: "Mpa",
+    unit: "MPa",
   },
   {
     key: "b",
@@ -78,7 +78,7 @@ const materialVariables: Variable<keyof Material>[] = [
     text: "D<sub>00</sub>",
     min: 0,
     max: 200,
-    unit: "Mpa",
+    unit: "MPa",
   },
   {
     key: "a",
@@ -91,7 +91,7 @@ const materialVariables: Variable<keyof Material>[] = [
     text: "c<sub>1</sub>",
     min: 5000,
     max: 40000,
-    unit: "Mpa",
+    unit: "MPa",
   },
   {
     key: "gamma1",
@@ -104,7 +104,7 @@ const materialVariables: Variable<keyof Material>[] = [
     text: "c<sub>2</sub>",
     min: 0,
     max: 5000,
-    unit: "Mpa",
+    unit: "MPa",
   },
   {
     key: "gamma2",
