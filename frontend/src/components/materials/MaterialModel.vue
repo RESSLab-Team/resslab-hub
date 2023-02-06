@@ -2,7 +2,7 @@
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import { variableBind } from "@/utils/model";
-import { UnitSystem } from "@/utils/unit";
+import { Unit, units, UnitSystem } from "@/utils/unit";
 import { SelectItemObject } from "@/utils/vuetify";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import UnitSlider, {
@@ -115,10 +115,10 @@ const materialVariables: Variable<keyof Material>[] = [
 ];
 type testId = "LP1_S1_C" | "LP6_S1_C" | "LP9_S1_D" | "LP5_S1_D";
 const charts: { title: string; id: testId }[] = [
-  { title: "LP1_S1_C", id: "LP1_S1_C" },
-  { title: "LP6_S1_C", id: "LP6_S1_C" },
-  { title: "LP9_S1_D", id: "LP9_S1_D" },
-  { title: "LP5_S1_D", id: "LP5_S1_D" },
+  { title: "Monotonic tensile", id: "LP1_S1_C" },
+  { title: "Symmetric cyclic", id: "LP6_S1_C" },
+  { title: "Random", id: "LP9_S1_D" },
+  { title: "Constant amplitude", id: "LP5_S1_D" },
 ];
 
 const snackbar = ref<Snackbar>();
@@ -165,10 +165,19 @@ const chartSeries = computed<Record<testId, LineSeriesOption>>(() => {
             },
           ]
         );
+
+        const imperialUnit = units.find(
+            (d) => d.referenceUnit === "MPa" && d.unit === "ksi"
+          ) as Unit,
+          mapToImperial = (stress: number) =>
+            unitSystem.value === "metric"
+              ? stress
+              : stress / imperialUnit.ratio;
+
         return [
           id,
           {
-            data: zip(strain, stress),
+            data: zip(strain, stress.map(mapToImperial)),
           } as LineSeriesOption,
         ];
       } catch (error) {
@@ -222,7 +231,13 @@ watch(
             <a
               href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
               target="_blank"
-              >Hartloper et al. 2021</a
+              >Hartloper et al. (2021)</a
+            >
+            The uniaxial loading protocols are based on work by
+            <a
+              href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29EM.1943-7889.0001922"
+              target="_blank"
+              >de Castro e Sousa et al. (2020)</a
             >
           </p>
         </v-col>
@@ -271,7 +286,7 @@ watch(
           <multiple-line-chart
             :title="item.title"
             x-axis-name="ε"
-            y-axis-name="σ [MPa]"
+            :y-axis-name="`σ [${unitSystem === 'metric' ? 'MPa' : 'ksi'}]`"
             :series="[chartSeries[item.id]]"
           />
         </v-col>
