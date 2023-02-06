@@ -118,7 +118,7 @@ div.label {
 .v-input__append-outer,
 .v-input__prepend-outer {
   & > div {
-    width: 64px;
+    width: 84px;
   }
 }
 </style>
