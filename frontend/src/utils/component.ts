@@ -58,6 +58,15 @@ export function getColumnImage(
   boundary_condition: string,
   direction_lp: string
 ): string | undefined {
+  if (
+    axis_of_bending === "Bi-axial" &&
+    boundary_condition === "Fixed-Flexible"
+  ) {
+    return publicPath + "img/column-type/Biaxial_Fixed_flexible.png";
+  }
+  if (axis_of_bending === "Bi-axial" && boundary_condition === "Fixed-Free") {
+    return publicPath + "img/column-type/Fixed_Free_Biaxial.png";
+  }
   if (axis_of_bending === "Strong" && boundary_condition === "Fixed-Flexible") {
     return publicPath + "img/column-type/Fixed_Flexible_StrongAxis.png";
   }
