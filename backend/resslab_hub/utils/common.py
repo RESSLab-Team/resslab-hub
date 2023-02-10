@@ -83,6 +83,7 @@ class Component(ABC, Generic[D, M]):
         self.database_type = database_type
         self.model_type = model_type
         self.id_column = id_column
+        self.ignored_columns = ignored_columns
 
         model_keys: Set[str] = set(model_type.__fields__.keys())
         self.model_columns: Dict[str, Column] = {
@@ -277,6 +278,7 @@ class Component(ABC, Generic[D, M]):
                 *[
                     column.cast(String).not_ilike(expression[1:])
                     for column in self.model_columns.values()
+                    if column not in self.ignored_columns
                 ]
             )
         else:
@@ -284,6 +286,7 @@ class Component(ABC, Generic[D, M]):
                 *[
                     column.cast(String).ilike(expression)
                     for column in self.model_columns.values()
+                    if column not in self.ignored_columns
                 ]
             )
 
