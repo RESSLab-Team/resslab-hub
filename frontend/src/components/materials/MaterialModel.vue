@@ -2,13 +2,13 @@
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import { variableBind } from "@/utils/model";
-import { Unit, units, UnitSystem } from "@/utils/unit";
+import { UnitSystem } from "@/utils/unit";
 import { SelectItemObject } from "@/utils/vuetify";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import UnitSlider, {
   Variable,
 } from "@/components/commons/sliders/UnitSlider.vue";
-import MultipleLineChart from "@/components/commons/charts/MultipleLineChart.vue";
+import UnitLineChart from "@/components/commons/charts/UnitLineChart.vue";
 import { materialsApi } from "@/plugins/axios";
 import { LineSeriesOption } from "echarts";
 import { computeUvcStress } from "@/utils/material";
@@ -286,19 +286,10 @@ const chartSeries = computed<Record<testId, LineSeriesOption>>(() => {
             },
           ]
         );
-
-        const imperialUnit = units.find(
-            (d) => d.referenceUnit === "MPa" && d.unit === "ksi"
-          ) as Unit,
-          mapToImperial = (stress: number) =>
-            unitSystem.value === "metric"
-              ? stress
-              : stress / imperialUnit.ratio;
-
         return [
           id,
           {
-            data: zip(strain, stress.map(mapToImperial)),
+            data: zip(strain, stress),
           } as LineSeriesOption,
         ];
       } catch (error) {
@@ -363,7 +354,7 @@ watch(
           </p>
         </v-col>
         <v-col cols="auto">
-          <toggle v-model="unitSystem" :items="unitItems"></toggle>
+          <toggle v-model="unitSystem" :items="unitItems" />
         </v-col>
       </v-row>
     </v-col>
@@ -404,11 +395,13 @@ watch(
     <v-col cols="6">
       <v-row>
         <v-col v-for="item in charts" :key="item.title" cols="6">
-          <multiple-line-chart
-            :title="item.title"
-            x-axis-name="ε"
-            :y-axis-name="`σ [${unitSystem === 'metric' ? 'MPa' : 'ksi'}]`"
+          <unit-line-chart
             :series="[chartSeries[item.id]]"
+            :title="item.title"
+            :unit-system="unitSystem"
+            x-axis-name="ε"
+            y-axis-name="σ"
+            y-unit="MPa"
           />
         </v-col>
       </v-row>

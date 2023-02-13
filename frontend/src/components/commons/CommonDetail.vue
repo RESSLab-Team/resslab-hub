@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MultipleLineChart from "@/components/commons/charts/MultipleLineChart.vue";
+import UnitLineChart from "@/components/commons/charts/UnitLineChart.vue";
 import PropertyItem from "@/components/commons/PropertyItem.vue";
 import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { withDefaults, defineProps, defineEmits, ref, watch } from "vue";
@@ -101,11 +101,11 @@ watch(
                 class="d-flex justify-center"
                 :cols="12 / carouselItem.length"
               >
-                <multiple-line-chart
+                <unit-line-chart
                   :colors="[primaryColor, secondaryColor]"
                   :max-width="carouselHeight"
                   v-bind="item"
-                ></multiple-line-chart>
+                />
               </v-col>
             </template>
           </v-row>
