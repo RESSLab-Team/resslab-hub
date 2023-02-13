@@ -781,7 +781,7 @@ export interface ConnectionModel {
      * @type {string}
      * @memberof ConnectionModel
      */
-    'link': string;
+    'link'?: string;
     /**
      * 
      * @type {number}

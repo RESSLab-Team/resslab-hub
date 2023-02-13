@@ -69,7 +69,7 @@ class ConnectionModel(BaseModel):
     ru_rn_pl_m: Optional[Decimal]
     g_max_g_y: Decimal
     reference: str
-    link: str
+    link: Optional[str]
     latitude: Decimal
     longitude: Decimal
 
