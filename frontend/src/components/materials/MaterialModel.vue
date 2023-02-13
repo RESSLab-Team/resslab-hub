@@ -14,6 +14,7 @@ import { LineSeriesOption } from "echarts";
 import { computeUvcStress } from "@/utils/material";
 import { zip } from "lodash";
 import Snackbar from "@/components/commons/Snackbar.vue";
+import materialParameters from "@/assets/material/parameter-material-list.csv";
 
 interface Material {
   e: number;
@@ -28,143 +29,22 @@ interface Material {
   gamma2: number;
 }
 
-const materialSelectItems: SelectItemObject<Material>[] = [
-  {
-    text: "S355 J2+N (plate)",
+const materialSelectItems: SelectItemObject<Material>[] =
+  materialParameters.map((item) => ({
+    text: item.steel,
     value: {
-      e: 200000,
-      sigma: 355,
-      q: 120.5,
-      b: 8.14,
-      d: 93.15,
-      a: 261.75,
-      c1: 21102,
-      gamma1: 173.6,
-      c2: 2300.6,
-      gamma2: 10.42,
+      e: item.E,
+      sigma: item.syo,
+      q: item.Q_inf,
+      b: item.b,
+      d: item.D_inf,
+      a: item.a,
+      c1: item.c1,
+      gamma1: item.gamma1,
+      c2: item.c2,
+      gamma2: item.gamma2,
     },
-  },
-  {
-    text: "S355 J2 (H-shape)",
-    value: {
-      e: 200000,
-      sigma: 355,
-      q: 138.01,
-      b: 11.36,
-      d: 96.16,
-      a: 223.66,
-      c1: 18574.8,
-      gamma1: 257.75,
-      c2: 1351.98,
-      gamma2: 6.52,
-    },
-  },
-  {
-    text: "S460 NL (plate)",
-    value: {
-      e: 200000,
-      sigma: 460,
-      q: 97.35,
-      b: 14.02,
-      d: 136.64,
-      a: 226.4,
-      c1: 26691,
-      gamma1: 185.75,
-      c2: 2892.4,
-      gamma2: 10.44,
-    },
-  },
-  {
-    text: "S690 QL (plate)",
-    value: {
-      e: 200000,
-      sigma: 690,
-      q: 0.11,
-      b: 0.11,
-      d: 132.3,
-      a: 285.15,
-      c1: 34575,
-      gamma1: 185.16,
-      c2: 3154.2,
-      gamma2: 20.14,
-    },
-  },
-  {
-    text: "A992 Gr. 50 (wide-flange)",
-    value: {
-      e: 200000,
-      sigma: 345,
-      q: 141.45,
-      b: 15.2,
-      d: 135.95,
-      a: 211.16,
-      c1: 25621,
-      gamma1: 235.12,
-      c2: 942.18,
-      gamma2: 3.16,
-    },
-  },
-  {
-    text: "A500 Gr. B (tube)",
-    value: {
-      e: 200000,
-      sigma: 315,
-      q: 228.02,
-      b: 0.11,
-      d: 50.41,
-      a: 270.4,
-      c1: 17707,
-      gamma1: 207.18,
-      c2: 1526.2,
-      gamma2: 6.22,
-    },
-  },
-  {
-    text: "BCP 325 (tube)",
-    value: {
-      e: 200000,
-      sigma: 325,
-      q: 112.25,
-      b: 10.78,
-      d: 105.95,
-      a: 221.92,
-      c1: 20104,
-      gamma1: 200.43,
-      c2: 2203,
-      gamma2: 11.76,
-    },
-  },
-  {
-    text: "BCR 295 (tube)",
-    value: {
-      e: 200000,
-      sigma: 295,
-      q: 0.09,
-      b: 0.09,
-      d: 103.3,
-      a: 212.83,
-      c1: 20750.59,
-      gamma1: 225.26,
-      c2: 1245.04,
-      gamma2: 2.09,
-    },
-  },
-  {
-    text: "HYP 400 (plate)",
-    value: {
-      e: 200000,
-      sigma: 400,
-      q: 62.63,
-      b: 16.57,
-      d: 109.28,
-      a: 145.74,
-      c1: 13860,
-      gamma1: 141.61,
-      c2: 1031.18,
-      gamma2: 3.53,
-    },
-  },
-];
+  }));
 
 const materialVariables: Variable<keyof Material>[] = [
   {
