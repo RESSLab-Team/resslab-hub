@@ -1,0 +1,88 @@
+<script setup lang="ts">
+import { primaryColor, secondaryColor } from "@/utils/vuetify";
+import { EChartsOption, LineSeriesOption } from "echarts";
+import { computed, withDefaults, defineProps } from "vue";
+import { Color } from "vuetify/lib/util/colors";
+import { merge } from "lodash";
+import UnitChart from "@/components/commons/charts/UnitChart.vue";
+import { TitleComponent } from "echarts/components";
+import { use } from "echarts/core";
+import { UnitSystem } from "@/utils/unit";
+
+export interface Props {
+  colors?: Color[];
+  series?: LineSeriesOption[];
+  aspectRatio?: number;
+  maxWidth?: number;
+  title: string;
+  xAxisName: string;
+  yAxisName: string;
+  unitSystem?: UnitSystem;
+  xUnit?: string;
+  yUnit?: string;
+}
+const props = withDefaults(defineProps<Props>(), {
+  colors: () => [primaryColor, secondaryColor],
+  series: () => [],
+  aspectRatio: 1,
+  maxWidth: undefined,
+  title: undefined,
+  xAxisName: undefined,
+  yAxisName: undefined,
+  unitSystem: undefined,
+  xUnit: undefined,
+  yUnit: undefined,
+});
+
+use([TitleComponent]);
+
+const option = computed<EChartsOption>(
+  () =>
+    ({
+      title: {
+        text: props.title,
+        left: "center",
+      },
+      grid: {
+        top: 60,
+      },
+      legend: {
+        top: 30,
+        show: props.series.length > 1,
+      },
+      xAxis: {
+        name: props.xAxisName,
+      },
+      yAxis: {
+        name: props.yAxisName,
+      },
+      tooltip: {
+        formatter: null as unknown as undefined,
+      },
+      series: props.series.map((serie) =>
+        merge<LineSeriesOption, LineSeriesOption>(
+          {
+            type: "line",
+            showSymbol: false,
+            lineStyle: {
+              width: 1,
+            },
+          },
+          serie
+        )
+      ),
+      color: props.colors.map((color) => color.base),
+    } as EChartsOption)
+);
+</script>
+
+<template>
+  <unit-chart
+    :aspect-ratio="aspectRatio"
+    :max-width="maxWidth"
+    :option="option"
+    :unit-system="unitSystem"
+    :x-unit="xUnit"
+    :y-unit="yUnit"
+  />
+</template>
