@@ -27,7 +27,7 @@ interface IndicatorCount {
   user?: number;
 }
 
-const images: Image[] = [
+const creditsCarousel: string[] = [
   "El Jisr and Lignos (2022)",
   "Elkady and Lignos (2018)",
   "Prof. Dimitrios Lignos, EPFL",
@@ -36,10 +36,17 @@ const images: Image[] = [
   "Skiadopoulos and Lignos (2022)",
   "Elkady and Lignos (2018)",
   "Andronikos Skiadopoulos, EPFL",
-].map((credit, index) => ({
-  src: publicPath + `img/home/Photo${index + 1}.jpg`,
-  credit: credit,
-}));
+];
+
+// first credit is related to video content, that's why creditsCarousel.slice(1)
+//also it was originally an image, to skip it I use index + 2 instead of +1
+const imagesCarousel: Image[] = creditsCarousel
+  .slice(1)
+  .map((credit, index) => ({
+    src: publicPath + `img/home/Photo${index + 2}.jpg`,
+    credit: credit,
+  }));
+
 const logos: {
   src: string;
   url: string;
@@ -245,18 +252,30 @@ onMounted(() => {
         <v-card class="rounded pa-5">
           <v-carousel
             v-model="imageIndex"
-            class="rounded"
+            class="grey darken-3 rounded"
             cycle
             height="500"
             hide-delimiter-background
             show-arrows-on-hover
           >
-            <v-carousel-item v-for="(image, index) in images" :key="index">
-              <v-img :src="image.src" height="100%" width="100%" />
+            <v-carousel-item>
+              <video autoplay loop muted preload="auto" height="100%">
+                <source
+                  :src="publicPath + 'video/steel-mrf-front-page.mp4'"
+                  type="video/mp4"
+                />
+              </video>
+            </v-carousel-item>
+            <v-carousel-item
+              v-for="(image, index) in imagesCarousel"
+              :key="index"
+              cover
+            >
+              <v-img :src="image.src" dark height="100%" contain="true" />
             </v-carousel-item>
           </v-carousel>
           <v-card-text class="pa-0 pt-5 mb-0 text-right">
-            Credits: {{ images[imageIndex].credit }}
+            Credits: {{ creditsCarousel[imageIndex] }}
           </v-card-text>
         </v-card>
       </v-col>
