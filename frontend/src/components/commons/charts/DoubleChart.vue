@@ -16,7 +16,7 @@
       :get-range="rangePromise"
     />
     <date-range-slider
-      v-if="date && dateMin && dateMax"
+      v-if="dateMin && dateMax"
       v-model="dateRange"
       :min="dateMin"
       :max="dateMax"
@@ -90,8 +90,6 @@ export default class DoubleChart extends Vue {
   readonly rangePromise: Promise<RangeModel> | undefined;
   @Prop({ type: Promise })
   readonly dateRangePromise: Promise<DateRangeModel> | undefined;
-  @Prop({ type: Boolean, default: false })
-  readonly date!: boolean;
 
   counts: CountModel[] = [];
   range: [number, number] | null = null;
@@ -234,7 +232,7 @@ export default class DoubleChart extends Vue {
 
   @Watch("range")
   onSliderChanged(value: [number, number] | null): void {
-    if (value) {
+    if (value && !isNaN(value[0]) && !isNaN(value[1])) {
       this.$set(this.fieldSearches, this.fields[0], `${value[0]}<<${value[1]}`);
     }
   }
