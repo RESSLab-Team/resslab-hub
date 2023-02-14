@@ -68,11 +68,10 @@ const actualOption = computed<EChartsOption>(() => {
   const yAXisOption: YAXisOption = option.yAxis as YAXisOption;
   const defaultOption: EChartsOption = {
     grid: {
-      left: 40,
+      left: 60,
       top: 40,
       right: props.legendSide ? 180 : 20,
-      bottom: 20,
-      containLabel: true,
+      bottom: 40,
     },
     legend: {
       type: "scroll",
@@ -97,7 +96,7 @@ const actualOption = computed<EChartsOption>(() => {
       nameTextStyle: {
         fontWeight: "bold",
       },
-      nameGap: 70,
+      nameGap: 50,
       max: yAXisOption?.max ?? "dataMax",
       axisLabel: {
         formatter: (value: number) => `${round(value, axisLabelMaxDigits)}`,
@@ -149,8 +148,8 @@ const actualOption = computed<EChartsOption>(() => {
     series: (option.series as SeriesOption[]).map((serie) =>
       merge(serie, {
         data: (serie.data as [number, number][]).map((v) => [
-          v[0] * xRatio.value,
-          v[1] * yRatio.value,
+          v[0] / xRatio.value,
+          v[1] / yRatio.value,
         ]),
       })
     ),
