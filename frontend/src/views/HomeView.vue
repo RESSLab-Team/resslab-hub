@@ -27,7 +27,7 @@ interface IndicatorCount {
   user?: number;
 }
 
-const creditsCarousel: string[] = [
+const carouselImages: Image[] = [
   "El Jisr and Lignos (2022)",
   "Elkady and Lignos (2018)",
   "Prof. Dimitrios Lignos, EPFL",
@@ -36,16 +36,10 @@ const creditsCarousel: string[] = [
   "Skiadopoulos and Lignos (2022)",
   "Elkady and Lignos (2018)",
   "Andronikos Skiadopoulos, EPFL",
-];
-
-// first credit is related to video content, that's why creditsCarousel.slice(1)
-//also it was originally an image, to skip it I use index + 2 instead of +1
-const imagesCarousel: Image[] = creditsCarousel
-  .slice(1)
-  .map((credit, index) => ({
-    src: publicPath + `img/home/Photo${index + 2}.jpg`,
-    credit: credit,
-  }));
+].map((credit, index) => ({
+  src: publicPath + `img/home/Photo${index + 1}.jpg`,
+  credit: credit,
+}));
 
 const logos: {
   src: string;
@@ -258,16 +252,8 @@ onMounted(() => {
             hide-delimiter-background
             show-arrows-on-hover
           >
-            <v-carousel-item>
-              <video autoplay loop muted preload="auto" height="100%">
-                <source
-                  :src="publicPath + 'video/steel-mrf-front-page.mp4'"
-                  type="video/mp4"
-                />
-              </video>
-            </v-carousel-item>
             <v-carousel-item
-              v-for="(image, index) in imagesCarousel"
+              v-for="(image, index) in carouselImages"
               :key="index"
               cover
             >
@@ -275,7 +261,7 @@ onMounted(() => {
             </v-carousel-item>
           </v-carousel>
           <v-card-text class="pa-0 pt-5 mb-0 text-right">
-            Credits: {{ creditsCarousel[imageIndex] }}
+            Credits: {{ carouselImages[imageIndex].credit }}
           </v-card-text>
         </v-card>
       </v-col>
