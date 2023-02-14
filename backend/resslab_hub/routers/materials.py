@@ -12,7 +12,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from resslab_hub.models.api import (
     CountModel,
+    DateRangeModel,
     LocationMaterialsModel,
+    MaterialDateField,
     MaterialField,
     MaterialModel,
     MaterialNumberField,
@@ -108,6 +110,17 @@ async def get_materials_range(
     Get range of field
     """
     return await component.get_range(session, field.value)
+
+
+@router.get("/date-range", response_model=DateRangeModel)
+async def get_materials_date_range(
+    session: AsyncSession = Depends(get_session),
+    field: MaterialDateField = Query(...),
+) -> DateRangeModel:
+    """
+    Get date range
+    """
+    return await component.get_date_range(session, field.value)
 
 
 @router.get("/matrix", response_model=MatrixModel)

@@ -45,7 +45,6 @@
 <script lang="ts">
 import { RangeModel } from "@/backend";
 import SliderMixin from "@/components/commons/sliders/SliderMixin.vue";
-import { AxiosResponse } from "axios";
 import { Component, Prop, Watch } from "vue-property-decorator";
 
 @Component
@@ -55,7 +54,7 @@ export default class RangeSlider extends SliderMixin {
   @Prop({ type: Array })
   readonly value: [number, number] | undefined;
   @Prop({ type: Promise })
-  readonly getRange: Promise<AxiosResponse<RangeModel>> | undefined;
+  readonly getRange: Promise<RangeModel> | undefined;
 
   min = 0;
   max = 0;
@@ -68,20 +67,18 @@ export default class RangeSlider extends SliderMixin {
   @Watch("getRange")
   onGetRangeChanged(): void {
     if (this.getRange) {
-      this.getRange
-        .then((res) => res.data)
-        .then((range) => {
-          const oldMin = this.min;
-          const oldMax = this.max;
-          this.min = range.min - (range.min % this.step);
-          this.max = Math.ceil(range.max / this.step) * this.step;
-          if (this.range[0] === oldMin || this.range[0] < this.min) {
-            this.$set(this.range, 0, this.min);
-          }
-          if (this.range[1] === oldMax || this.range[1] > this.max) {
-            this.$set(this.range, 1, this.max);
-          }
-        });
+      this.getRange.then((range) => {
+        const oldMin = this.min;
+        const oldMax = this.max;
+        this.min = range.min - (range.min % this.step);
+        this.max = Math.ceil(range.max / this.step) * this.step;
+        if (this.range[0] === oldMin || this.range[0] < this.min) {
+          this.$set(this.range, 0, this.min);
+        }
+        if (this.range[1] === oldMax || this.range[1] > this.max) {
+          this.$set(this.range, 1, this.max);
+        }
+      });
     }
   }
 

@@ -38,8 +38,8 @@
       "request": "launch",
       "module": "data.uploader",
       "args": [
-        "column",
-        "../../resslab-hub-data/columns/steel_columns.csv"
+        "material",
+        "../../resslab-hub-data/material/steel_material.csv"
       ],
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"

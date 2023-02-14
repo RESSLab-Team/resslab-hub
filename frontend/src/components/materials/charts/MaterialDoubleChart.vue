@@ -9,12 +9,16 @@
     :promise="promise"
     :number-field="numberField"
     :range-promise="rangePromise"
-  ></double-chart>
+    :date-range-promise="dateRangePromise"
+    :date="!!dateField"
+  />
 </template>
 
 <script lang="ts">
 import {
   CountModel,
+  DateRangeModel,
+  MaterialDateField,
   MaterialField,
   MaterialNumberField,
   RangeModel,
@@ -30,19 +34,38 @@ export default class MaterialDoubleChart extends DoubleChartMixin<MaterialField>
     return materialsApi.getMaterialsCounts(this.requestFields, this.query);
   }
 
+  get fieldString(): string {
+    return this.fields[0].toString();
+  }
+
   get numberField(): MaterialNumberField | undefined {
-    const fieldString = this.fields[0].toString();
     return Object.values(MaterialNumberField).find(
-      (numberField) => fieldString === numberField.toString()
+      (numberField) => this.fieldString === numberField.toString()
     );
   }
 
-  get rangePromise(): Promise<AxiosResponse<RangeModel>> | undefined {
+  get dateField(): MaterialDateField | undefined {
+    return Object.values(MaterialDateField).find(
+      (numberField) => this.fieldString === numberField.toString()
+    );
+  }
+
+  get rangePromise(): Promise<RangeModel> | undefined {
     if (this.numberField) {
-      return materialsApi.getMaterialsRange(this.numberField);
-    } else {
-      return undefined;
+      return materialsApi
+        .getMaterialsRange(this.numberField)
+        .then((response) => response.data);
     }
+    return undefined;
+  }
+
+  get dateRangePromise(): Promise<DateRangeModel> | undefined {
+    if (this.dateField) {
+      return materialsApi
+        .getMaterialsDateRange(this.dateField)
+        .then((response) => response.data);
+    }
+    return undefined;
   }
 }
 </script>

@@ -2193,6 +2193,48 @@
         }
       }
     },
+    "/materials/date-range": {
+      "get": {
+        "tags": [
+          "materials"
+        ],
+        "summary": "Get Materials Date Range",
+        "description": "Get date range",
+        "operationId": "get_materials_date_range",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MaterialDateField"
+            },
+            "name": "field",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DateRangeModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/materials/matrix": {
       "get": {
         "tags": [
@@ -3152,6 +3194,27 @@
         },
         "description": "Count"
       },
+      "DateRangeModel": {
+        "title": "DateRangeModel",
+        "required": [
+          "min",
+          "max"
+        ],
+        "type": "object",
+        "properties": {
+          "min": {
+            "title": "Min",
+            "type": "string",
+            "format": "date"
+          },
+          "max": {
+            "title": "Max",
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "description": "Date Range"
+      },
       "ExtendedPage_BraceModel_": {
         "title": "ExtendedPage[BraceModel]",
         "required": [
@@ -3567,6 +3630,14 @@
         },
         "description": "Location"
       },
+      "MaterialDateField": {
+        "title": "MaterialDateField",
+        "enum": [
+          "date"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
       "MaterialField": {
         "title": "MaterialField",
         "enum": [
@@ -3683,7 +3754,8 @@
           },
           "date": {
             "title": "Date",
-            "type": "string"
+            "type": "string",
+            "format": "date"
           },
           "fy_n__mpa_": {
             "title": "Fy N  Mpa ",

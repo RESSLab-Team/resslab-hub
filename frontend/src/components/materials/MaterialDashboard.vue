@@ -9,7 +9,7 @@
             :query="query"
             @click="click"
             @loadPage="loadPage"
-          ></material-table>
+          />
         </v-col>
       </v-row>
       <v-row v-if="!item">
@@ -30,7 +30,7 @@
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <material-detail :material="item" @close="close"></material-detail>
+          <material-detail :material="item" @close="close" />
         </v-col>
       </v-row>
       <v-row v-else>
@@ -45,7 +45,7 @@
                     :query="query"
                     :searches.sync="searches"
                     type="line"
-                  ></material-double-chart>
+                  />
                 </v-col>
                 <v-col cols="12" md="6">
                   <material-double-chart
@@ -53,7 +53,7 @@
                     :query="query"
                     :searches.sync="searches"
                     type="bar"
-                  ></material-double-chart>
+                  />
                 </v-col>
               </v-row>
             </v-card-text>
@@ -68,7 +68,7 @@
                 :field="steelField"
                 :query="query"
                 :searches.sync="searches"
-              ></material-single-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>

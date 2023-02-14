@@ -37,9 +37,11 @@ export default class ColumnDoubleChart extends DoubleChartMixin<ColumnField> {
     );
   }
 
-  get rangePromise(): Promise<AxiosResponse<RangeModel>> | undefined {
+  get rangePromise(): Promise<RangeModel> | undefined {
     if (this.numberField) {
-      return columnsApi.getColumnsRange(this.numberField);
+      return columnsApi
+        .getColumnsRange(this.numberField)
+        .then((response) => response.data);
     } else {
       return undefined;
     }

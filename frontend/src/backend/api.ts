@@ -891,6 +891,25 @@ export interface CountModel {
 export interface DataInnerInner {
 }
 /**
+ * Date Range
+ * @export
+ * @interface DateRangeModel
+ */
+export interface DateRangeModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof DateRangeModel
+     */
+    'min': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DateRangeModel
+     */
+    'max': string;
+}
+/**
  * 
  * @export
  * @interface ExtendedPageBraceModel
@@ -1339,6 +1358,19 @@ export interface LocationMaterialsModel {
      */
     'experimental_program': string;
 }
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const MaterialDateField = {
+    Date: 'date'
+} as const;
+
+export type MaterialDateField = typeof MaterialDateField[keyof typeof MaterialDateField];
+
+
 /**
  * An enumeration.
  * @export
@@ -4857,6 +4889,43 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
+         * Get date range
+         * @summary Get Materials Date Range
+         * @param {MaterialDateField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsDateRange: async (field: MaterialDateField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getMaterialsDateRange', 'field', field)
+            const localVarPath = `/materials/date-range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get distinct count
          * @summary Get Materials Distinct
          * @param {Array<MaterialField>} [fields] 
@@ -5122,6 +5191,17 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get date range
+         * @summary Get Materials Date Range
+         * @param {MaterialDateField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterialsDateRange(field: MaterialDateField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DateRangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsDateRange(field, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get distinct count
          * @summary Get Materials Distinct
          * @param {Array<MaterialField>} [fields] 
@@ -5234,6 +5314,16 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
             return localVarFp.getMaterialsCsv(ids, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get date range
+         * @summary Get Materials Date Range
+         * @param {MaterialDateField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsDateRange(field: MaterialDateField, options?: any): AxiosPromise<DateRangeModel> {
+            return localVarFp.getMaterialsDateRange(field, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get distinct count
          * @summary Get Materials Distinct
          * @param {Array<MaterialField>} [fields] 
@@ -5343,6 +5433,18 @@ export class MaterialsApi extends BaseAPI {
      */
     public getMaterialsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get date range
+     * @summary Get Materials Date Range
+     * @param {MaterialDateField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterialsDateRange(field: MaterialDateField, options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterialsDateRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
