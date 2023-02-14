@@ -10,7 +10,6 @@
     :number-field="numberField"
     :range-promise="rangePromise"
     :date-range-promise="dateRangePromise"
-    :date="!!dateField"
   />
 </template>
 
