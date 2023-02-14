@@ -122,7 +122,11 @@ onMounted(() => {
   <v-container class="text-justify" fluid>
     <v-row>
       <v-col>
-        <v-responsive content-class="d-flex align-center" height="256px">
+        <v-responsive
+          content-class="d-flex align-center"
+          class="rounded"
+          height="256px"
+        >
           <video autoplay loop muted preload="auto" width="100%">
             <source
               :src="publicPath + 'video/steel-mrf-front-page.mp4'"
@@ -207,7 +211,7 @@ onMounted(() => {
         </ul>
       </v-col>
       <v-col cols="8">
-        <overview-map />
+        <overview-map class="rounded" />
       </v-col>
     </v-row>
     <v-row>
@@ -235,6 +239,7 @@ onMounted(() => {
       </v-col>
       <v-col cols="4">
         <v-carousel
+          class="rounded"
           v-model="imageIndex"
           cycle
           height="400"
@@ -257,7 +262,7 @@ onMounted(() => {
     </v-row>
     <v-row>
       <v-col cols="12">
-        <v-responsive>
+        <v-responsive class="rounded">
           <v-img :src="images[0].src" height="256" />
           <v-overlay absolute value="true" z-index="0">
             <div class="pa-3">
