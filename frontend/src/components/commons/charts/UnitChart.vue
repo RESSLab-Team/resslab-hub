@@ -16,7 +16,7 @@ import {
 import { use } from "echarts/core";
 import { SVGRenderer } from "echarts/renderers";
 import { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
-import { clone, merge, round } from "lodash";
+import { cloneDeep, merge, round } from "lodash";
 import VChart from "vue-echarts";
 import { withDefaults, defineProps, computed } from "vue";
 
@@ -63,8 +63,9 @@ const yUnitParent = computed<UnitMixin>(
 const xRatio = computed(() => xUnitParent.value.ratio);
 const yRatio = computed(() => yUnitParent.value.ratio);
 const actualOption = computed<EChartsOption>(() => {
-  const xAXisOption: XAXisOption = props.option.xAxis as XAXisOption;
-  const yAXisOption: YAXisOption = props.option.yAxis as YAXisOption;
+  const option = cloneDeep(props.option);
+  const xAXisOption: XAXisOption = option.xAxis as XAXisOption;
+  const yAXisOption: YAXisOption = option.yAxis as YAXisOption;
   const defaultOption: EChartsOption = {
     grid: {
       left: 40,
@@ -145,8 +146,8 @@ const actualOption = computed<EChartsOption>(() => {
         ? `${yAXisOption.name} [${yUnitParent.value.unitLabel}]`
         : yAXisOption.name,
     },
-    series: (props.option.series as SeriesOption[]).map((serie) =>
-      merge(clone(serie), {
+    series: (option.series as SeriesOption[]).map((serie) =>
+      merge(serie, {
         data: (serie.data as [number, number][]).map((v) => [
           v[0] * xRatio.value,
           v[1] * yRatio.value,
@@ -154,7 +155,7 @@ const actualOption = computed<EChartsOption>(() => {
       })
     ),
   };
-  return merge(defaultOption, props.option, overrideOption);
+  return merge(defaultOption, option, overrideOption);
 });
 </script>
 
