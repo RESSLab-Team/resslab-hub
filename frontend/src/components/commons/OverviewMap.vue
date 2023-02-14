@@ -206,6 +206,9 @@ onMounted(() => {
   z-index: 1;
 }
 
+.mapContainer :deep(a) {
+  color: black;
+}
 .mapContainer :deep(.tooltip) ul {
   list-style-type: none;
   padding-left: 0;
