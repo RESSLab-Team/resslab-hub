@@ -315,7 +315,7 @@ function correlatedBivariate(
       </info-tooltip>
     </v-col>
     <v-col cols="4">
-      <h2>Univariate fragilities</h2>
+      <h2>Univariate Fragilities</h2>
       <unit-chart
         :aspect-ratio="2"
         :option="univariateOptions[option]"
@@ -323,7 +323,7 @@ function correlatedBivariate(
       ></unit-chart>
     </v-col>
     <v-col cols="8">
-      <h2>Multivariate fragilities</h2>
+      <h2>Multivariate Fragilities</h2>
       <v-row>
         <v-col v-for="(item, i) in multivariateOptions" :key="i" cols="4">
           <surface-gl-chart :aspect-ratio="1" :option="item"></surface-gl-chart>

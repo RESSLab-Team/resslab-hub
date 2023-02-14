@@ -116,10 +116,10 @@ const materialVariables: Variable<keyof Material>[] = [
 ];
 type testId = "LP1_S1_C" | "LP6_S1_C" | "LP9_S1_D" | "LP5_S1_D";
 const charts: { title: string; id: testId }[] = [
-  { title: "Monotonic tensile", id: "LP1_S1_C" },
-  { title: "Symmetric cyclic", id: "LP6_S1_C" },
+  { title: "Monotonic Tensile", id: "LP1_S1_C" },
+  { title: "Symmetric Cyclic", id: "LP6_S1_C" },
   { title: "Random", id: "LP9_S1_D" },
-  { title: "Constant amplitude", id: "LP5_S1_D" },
+  { title: "Constant Amplitude", id: "LP5_S1_D" },
 ];
 
 const snackbar = ref<Snackbar>();

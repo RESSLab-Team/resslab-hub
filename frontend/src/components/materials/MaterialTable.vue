@@ -4,7 +4,7 @@
     :get-counts="getCounts"
     :get-files="getFiles"
     :get-page="getPage"
-    title="Material"
+    title="Materials"
     prefix="material."
     :query="query"
     :search.sync="globalSearch"

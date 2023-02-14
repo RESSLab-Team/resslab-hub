@@ -348,7 +348,7 @@ function getCompressionOption(result: Result): EChartsOption {
     <v-col cols="6">
       <v-card>
         <v-card-title>
-          Select cross section type
+          Select Cross Section Type
           <info-tooltip>
             Select the cross-sectional shape of the bracing member
           </info-tooltip>
