@@ -7,20 +7,27 @@
         :option="option"
         :update-options="updateOptions"
         @click="click"
-      ></v-chart>
+      />
     </v-responsive>
     <range-slider
       v-if="isHistogram"
       v-model="range"
       :color="color"
       :get-range="rangePromise"
-    ></range-slider>
+    />
+    <date-range-slider
+      v-if="date && dateMin && dateMax"
+      v-model="dateRange"
+      :min="dateMin"
+      :max="dateMax"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { CountModel, RangeModel } from "@/backend";
+import { CountModel, DateRangeModel, RangeModel } from "@/backend";
 import { initOptions, updateOptions } from "@/components/commons/charts/utils";
+import DateRangeSlider from "@/components/commons/sliders/DateRangeSlider.vue";
 import RangeSlider from "@/components/commons/sliders/RangeSlider.vue";
 import { Searches, sum } from "@/utils/common";
 import { BinData, toBins } from "@/utils/statistics";
@@ -55,6 +62,7 @@ use([
 @Component({
   components: {
     VChart,
+    DateRangeSlider,
     RangeSlider,
   },
 })
@@ -79,10 +87,17 @@ export default class DoubleChart extends Vue {
   @Prop({ type: Promise })
   readonly promise!: Promise<AxiosResponse<CountModel[]>>;
   @Prop({ type: Promise })
-  readonly rangePromise: Promise<AxiosResponse<RangeModel>> | undefined;
+  readonly rangePromise: Promise<RangeModel> | undefined;
+  @Prop({ type: Promise })
+  readonly dateRangePromise: Promise<DateRangeModel> | undefined;
+  @Prop({ type: Boolean, default: false })
+  readonly date!: boolean;
 
   counts: CountModel[] = [];
   range: [number, number] | null = null;
+  dateRange: [string, string] | null = null;
+  dateMin: string | null = null;
+  dateMax: string | null = null;
   private unwatch: () => void = () => null;
 
   created(): void {
@@ -91,6 +106,10 @@ export default class DoubleChart extends Vue {
       `fieldSearches.${this.fields[0]}`,
       this.onFirstFieldChanged
     );
+    this.dateRangePromise?.then((range) => {
+      this.dateMin = range.min;
+      this.dateMax = range.max;
+    });
   }
 
   beforeDestroy(): void {
@@ -215,6 +234,13 @@ export default class DoubleChart extends Vue {
 
   @Watch("range")
   onSliderChanged(value: [number, number] | null): void {
+    if (value) {
+      this.$set(this.fieldSearches, this.fields[0], `${value[0]}<<${value[1]}`);
+    }
+  }
+
+  @Watch("dateRange")
+  onDateRangeChanged(value: [string, string] | null): void {
     if (value) {
       this.$set(this.fieldSearches, this.fields[0], `${value[0]}<<${value[1]}`);
     }

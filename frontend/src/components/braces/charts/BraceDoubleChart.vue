@@ -37,9 +37,11 @@ export default class BraceDoubleChart extends DoubleChartMixin<BraceField> {
     );
   }
 
-  get rangePromise(): Promise<AxiosResponse<RangeModel>> | undefined {
+  get rangePromise(): Promise<RangeModel> | undefined {
     if (this.numberField) {
-      return bracesApi.getBracesRange(this.numberField);
+      return bracesApi
+        .getBracesRange(this.numberField)
+        .then((response) => response.data);
     } else {
       return undefined;
     }

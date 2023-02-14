@@ -6,6 +6,7 @@ import csv
 import logging
 import os
 from abc import ABC, abstractmethod
+from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from glob import iglob
@@ -13,11 +14,18 @@ from math import nan
 from multiprocessing import Pool, cpu_count
 from typing import Any, Callable, List, Tuple
 
-from sqlalchemy import create_engine, delete
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    Float,
+    Integer,
+    Numeric,
+    create_engine,
+    delete,
+)
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql.schema import Column
-from sqlalchemy.sql.sqltypes import Boolean, Float, Integer, Numeric
 
 from data.common import get_abs_path, get_file_encoding, is_empty_row
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
@@ -148,6 +156,8 @@ class TableUploader(Uploader):
             return int(Decimal(value))
         if isinstance(column.type, (Float, Numeric)):
             return Decimal(value)
+        if isinstance(column.type, Date):
+            return datetime.strptime(value, "%d.%m.%y").date()
         return str(value)
 
 

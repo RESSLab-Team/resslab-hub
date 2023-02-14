@@ -1,5 +1,5 @@
 from abc import ABC
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from distutils.util import strtobool
 from math import ceil, isnan
@@ -14,9 +14,17 @@ from sqlalchemy.orm import column_property
 from sqlalchemy.sql.elements import BooleanClauseList, ColumnElement
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.selectable import Select
-from sqlalchemy.sql.sqltypes import BigInteger, Boolean, Float, Integer, Numeric, String
+from sqlalchemy.sql.sqltypes import (
+    BigInteger,
+    Boolean,
+    Date,
+    Float,
+    Integer,
+    Numeric,
+    String,
+)
 
-from resslab_hub.models.api import CountModel, MatrixModel, RangeModel
+from resslab_hub.models.api import CountModel, DateRangeModel, MatrixModel, RangeModel
 from resslab_hub.utils.database import Base
 from resslab_hub.utils.fastapi import HttpHeader, MediaType, attachment
 from resslab_hub.utils.pagination import paginate
@@ -153,6 +161,19 @@ class Component(ABC, Generic[D, M]):
         rows = await session.execute(select([func.min(column), func.max(column)]))
         row = next(rows)
         return RangeModel(min=row[0], max=row[1])
+
+    async def get_date_range(
+        self,
+        session: AsyncSession,
+        date_field: str,
+    ) -> DateRangeModel:
+        """
+        Get range of field
+        """
+        column: Column[Date] = self.__get_column(date_field)
+        rows = await session.execute(select([func.min(column), func.max(column)]))
+        row = next(rows)
+        return DateRangeModel(min=row[0], max=row[1])
 
     async def get_matrix(
         self,
@@ -300,7 +321,12 @@ class Component(ABC, Generic[D, M]):
             return column.in_(expression.split(","))
         if "<<" in expression:
             [min, max] = expression.split("<<", 2)
-            return column.between(Decimal(min), Decimal(max))
+            if isinstance(column.type, Integer):
+                return column.between(int(min), int(max))
+            if isinstance(column.type, Numeric):
+                return column.between(Decimal(min), Decimal(max))
+            if isinstance(column.type, Date):
+                return column.between(date.fromisoformat(min), date.fromisoformat(max))
         if expression.startswith("<"):
             return column < int(expression[1:])
         if expression.startswith(">"):

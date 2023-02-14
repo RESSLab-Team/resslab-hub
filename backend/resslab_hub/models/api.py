@@ -1,6 +1,7 @@
 """
 API Models
 """
+from datetime import date
 from decimal import Decimal
 from enum import Enum
 from math import isnan
@@ -99,6 +100,15 @@ class RangeModel(BaseModel):
 
     min: Decimal
     max: Decimal
+
+
+class DateRangeModel(BaseModel):
+    """
+    Date Range
+    """
+
+    min: date
+    max: date
 
 
 class LocationModel(BaseModel):
@@ -289,7 +299,7 @@ class MaterialModel(BaseModel):
     spec: str
     size: str
     t_a__deg_c_: Decimal
-    date: str
+    date: date
     fy_n__mpa_: int
     fu_n__mpa_: int
     yield_stress__mpa_: Decimal
@@ -328,6 +338,17 @@ MaterialNumberField = Enum(
         key: key
         for key, field in MaterialModel.__fields__.items()
         if field.type_ in [Decimal, int]
+    },
+    module=__name__,
+    type=str,
+)
+
+MaterialDateField = Enum(
+    "MaterialDateField",
+    {
+        key: key
+        for key, field in MaterialModel.__fields__.items()
+        if field.type_ in [date]
     },
     module=__name__,
     type=str,

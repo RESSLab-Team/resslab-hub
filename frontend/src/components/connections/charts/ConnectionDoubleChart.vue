@@ -37,9 +37,11 @@ export default class ConnectionDoubleChart extends DoubleChartMixin<ConnectionFi
     );
   }
 
-  get rangePromise(): Promise<AxiosResponse<RangeModel>> | undefined {
+  get rangePromise(): Promise<RangeModel> | undefined {
     if (this.numberField) {
-      return connectionsApi.getConnectionsRange(this.numberField);
+      return connectionsApi
+        .getConnectionsRange(this.numberField)
+        .then((response) => response.data);
     } else {
       return undefined;
     }
