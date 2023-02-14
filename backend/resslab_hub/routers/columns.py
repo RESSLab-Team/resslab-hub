@@ -15,6 +15,7 @@ from resslab_hub.models.api import (
     ColumnModel,
     ColumnNumberField,
     CountModel,
+    FieldsModel,
     LocationColumnsModel,
     MatrixModel,
     RangeModel,
@@ -114,6 +115,17 @@ async def get_columns_locations(
         )
     )
     return [row._mapping for row in rows.all()]
+
+
+@router.get("/fields", response_model=List[FieldsModel])
+async def get_columns_fields(
+    session: AsyncSession = Depends(get_session),
+    fields: List[ColumnField] = Query([]),
+) -> List[FieldsModel]:
+    """
+    Get filtered fields
+    """
+    return await component.get_fields(session, [field.value for field in fields])
 
 
 @router.get("/counts", response_model=List[CountModel])

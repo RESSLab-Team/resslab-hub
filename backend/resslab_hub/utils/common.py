@@ -16,7 +16,13 @@ from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.selectable import Select
 from sqlalchemy.sql.sqltypes import Boolean, Date, Float, Integer, Numeric, String
 
-from resslab_hub.models.api import CountModel, DateRangeModel, MatrixModel, RangeModel
+from resslab_hub.models.api import (
+    CountModel,
+    DateRangeModel,
+    FieldsModel,
+    MatrixModel,
+    RangeModel,
+)
 from resslab_hub.utils.database import Base
 from resslab_hub.utils.fastapi import HttpHeader, MediaType, attachment
 from resslab_hub.utils.pagination import paginate
@@ -76,7 +82,7 @@ class Component(ABC, Generic[D, M]):
         name: str,
         database_type: type[D],
         model_type: type[M],
-        id_column: Column[str],
+        id_column: Column[String],
         ignored_columns: Set[Column],
     ) -> None:
         self.name = name
@@ -118,6 +124,17 @@ class Component(ABC, Generic[D, M]):
             self.__get_non_nan,
         )
         return page
+
+    async def get_fields(
+        self,
+        session: AsyncSession,
+        fields: List[str],
+    ) -> List[FieldsModel]:
+        columns = [self.database_type.__dict__[field] for field in fields]
+        rows = await session.execute(select(*columns).select_from(self.database_type))
+        return [
+            {k: self.__get_non_nan(v) for k, v in row._mapping.items()} for row in rows
+        ]
 
     async def get_counts(
         self,

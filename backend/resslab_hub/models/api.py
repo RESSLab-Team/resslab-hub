@@ -5,7 +5,7 @@ from datetime import date
 from decimal import Decimal
 from enum import Enum
 from math import isnan
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, validator
 
@@ -157,6 +157,10 @@ class LocationBracesModel(LocationModel):
     kl_r: Decimal
     boundary_condition: str
     date: int
+
+
+# Somehow, the ordering of types in Union matters for the automatic conversion
+FieldsModel = Dict[str, Union[bool, Decimal, int, str, None]]
 
 
 class MatrixModel(BaseModel):

@@ -5,7 +5,9 @@ from typing import AsyncIterator
 from urllib.parse import quote_plus
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.orm import sessionmaker
+
+from sqlalchemy.ext.declarative import declarative_base
 
 from alembic.command import upgrade
 from alembic.config import Config
@@ -26,8 +28,12 @@ engine = create_async_engine(async_url, echo=True)
 async_session = sessionmaker(engine, class_=AsyncSession)  # type: ignore
 
 
-class Base(DeclarativeBase):
-    pass
+# qualify the base with __allow_unmapped__.
+class Base:
+    __allow_unmapped__ = True
+
+
+Base = declarative_base(cls=Base)
 
 
 def upgrade_database():

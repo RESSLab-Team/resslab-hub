@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from resslab_hub.models.api import (
     CountModel,
     DateRangeModel,
+    FieldsModel,
     LocationMaterialsModel,
     MaterialDateField,
     MaterialField,
@@ -87,6 +88,17 @@ async def get_materials_locations(
         )
     )
     return [row._mapping for row in rows.all()]
+
+
+@router.get("/fields", response_model=List[FieldsModel])
+async def get_materials_fields(
+    session: AsyncSession = Depends(get_session),
+    fields: List[MaterialField] = Query([]),
+) -> List[FieldsModel]:
+    """
+    Get filtered fields
+    """
+    return await component.get_fields(session, [field.value for field in fields])
 
 
 @router.get("/counts", response_model=List[CountModel])
