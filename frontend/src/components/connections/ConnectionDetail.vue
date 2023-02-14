@@ -186,7 +186,7 @@ watch(
           </p>
         </v-col>
       </v-row>
-      <h2>Panel zone strength ratio</h2>
+      <h2>Panel Zone Strength Ratio</h2>
       <p>
         <property-item name="Vpz,m/Rpz,el">
           {{ formatNumber(connection.ru_rn_el_m, 2) }}

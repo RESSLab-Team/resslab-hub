@@ -519,7 +519,7 @@ function option(backbone: Result, envelope: Result): EChartsOption {
     <v-col cols="6">
       <v-card>
         <v-card-title>
-          Predictive model for columns
+          Predictive Model for Columns
           <info-tooltip>
             Provided that the steel member is in double curvature
           </info-tooltip>

@@ -12,7 +12,7 @@
     @loadPage="loadPage"
   >
     <template #title>
-      Column
+      Columns
       <info-tooltip>
         <p>
           The Columns Database presents data from early 1970s on columns under

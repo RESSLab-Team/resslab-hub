@@ -12,7 +12,7 @@
     @loadPage="loadPage"
   >
     <template #title>
-      Brace
+      Braces
       <info-tooltip>
         <p>
           The Brace Database presents data from mid 1970s on steel braces of
