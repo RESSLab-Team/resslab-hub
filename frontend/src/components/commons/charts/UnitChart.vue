@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { initOptions, updateOptions } from "@/components/commons/charts/utils";
 import UnitMixin from "@/components/commons/UnitMixin.vue";
-import { UnitSystem } from "@/utils/unit";
 import {
   EChartsOption,
   SeriesOption,
@@ -19,26 +18,29 @@ import { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
 import { cloneDeep, merge, round } from "lodash";
 import VChart from "vue-echarts";
 import { withDefaults, defineProps, computed } from "vue";
-
-export interface Props {
-  option: EChartsOption;
-  unitSystem?: UnitSystem;
-  xUnit?: string;
-  yUnit?: string;
-  aspectRatio?: number;
-  maxWidth?: number;
-  legendSide?: boolean;
-}
-const props = withDefaults(defineProps<Props>(), {
-  unitSystem: undefined,
-  xUnit: undefined,
-  yUnit: undefined,
-  aspectRatio: 1,
-  maxWidth: undefined,
-  legendSide: false,
-});
+import { useUnitStore } from "@/stores/unit";
 
 use([SVGRenderer, LineChart, GridComponent, LegendComponent, TooltipComponent]);
+
+const props = withDefaults(
+  defineProps<{
+    option: EChartsOption;
+    xUnit?: string;
+    yUnit?: string;
+    aspectRatio?: number;
+    maxWidth?: number;
+    legendSide?: boolean;
+  }>(),
+  {
+    xUnit: undefined,
+    yUnit: undefined,
+    aspectRatio: 1,
+    maxWidth: undefined,
+    legendSide: false,
+  }
+);
+
+const unitStore = useUnitStore();
 
 const axisLabelMaxDigits = 2;
 
@@ -47,7 +49,7 @@ const xUnitParent = computed<UnitMixin>(
     new UnitMixin({
       propsData: {
         unit: props.xUnit,
-        unitSystem: props.unitSystem,
+        unitSystem: unitStore.unitSystem,
       },
     })
 );
@@ -56,7 +58,7 @@ const yUnitParent = computed<UnitMixin>(
     new UnitMixin({
       propsData: {
         unit: props.yUnit,
-        unitSystem: props.unitSystem,
+        unitSystem: unitStore.unitSystem,
       },
     })
 );

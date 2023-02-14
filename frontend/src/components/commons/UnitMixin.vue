@@ -1,20 +1,22 @@
 <script lang="ts">
-import { Unit, units, UnitSystem } from "@/utils/unit";
+import { useUnitStore } from "@/stores/unit";
+import { Unit, units } from "@/utils/unit";
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component
 export default class UnitMixin extends Vue {
+  unitStore = useUnitStore();
+
   @Prop({ type: String, default: "" })
   readonly unit!: string;
-  @Prop({ type: String as () => UnitSystem })
-  readonly unitSystem: UnitSystem | undefined;
 
   get filteredUnits(): Unit[] {
     return units.filter((u) => u.referenceUnit === this.unit);
   }
 
   get selectedUnit(): Unit | undefined {
-    return this.filteredUnits.find((u) => u.system === this.unitSystem);
+    const unitSystem = this.unitStore.unitSystem;
+    return this.filteredUnits.find((u) => u.system === unitSystem);
   }
 
   get unitLabel(): string {

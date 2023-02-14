@@ -5,13 +5,11 @@ import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import UnitSlider, {
   Variable,
 } from "@/components/commons/sliders/UnitSlider.vue";
-import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import UnitTableRow, {
   UnitTableRowData,
 } from "@/components/commons/UnitTableRow.vue";
 import { publicPath, Section } from "@/utils/common";
 import { variableBind } from "@/utils/model";
-import { UnitSystem } from "@/utils/unit";
 import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import { clamp } from "lodash";
@@ -152,7 +150,6 @@ const rows: UnitTableRowData[] = [
   },
 ];
 
-const unitSystem = ref<UnitSystem>("metric");
 const section = ref<Section>();
 
 interface Variables {
@@ -409,18 +406,11 @@ function option(backbone: Result, envelope: Result): EChartsOption {
 <template>
   <v-row>
     <v-col cols="12">
-      <v-row align="center">
-        <v-col>
-          <h1>Predictive Model for Steel wide Flange Columns</h1>
-          <p>
-            For further information refer to
-            <a href="" target="_blank"> Lignos et al. (2019) </a>
-          </p>
-        </v-col>
-        <v-col cols="auto">
-          <toggle v-model="unitSystem" :items="unitItems"></toggle>
-        </v-col>
-      </v-row>
+      <h1>Predictive Model for Steel wide Flange Columns</h1>
+      <p>
+        For further information refer to
+        <a href="" target="_blank"> Lignos et al. (2019) </a>
+      </p>
     </v-col>
     <v-col cols="6">
       <v-row>
@@ -448,8 +438,7 @@ function option(backbone: Result, envelope: Result): EChartsOption {
                     :max="item.max"
                     :min="item.min"
                     :unit="item.unit"
-                    :unit-system="unitSystem"
-                  ></unit-slider>
+                  />
                 </v-col>
               </v-row>
             </v-card-text>
@@ -484,7 +473,6 @@ function option(backbone: Result, envelope: Result): EChartsOption {
                     :max="item.max"
                     :min="item.min"
                     :unit="item.unit"
-                    :unit-system="unitSystem"
                   />
                 </v-col>
               </v-row>
@@ -507,7 +495,6 @@ function option(backbone: Result, envelope: Result): EChartsOption {
             <v-card-text>
               <unit-chart
                 :option="option(backboneResult, envelopeResult)"
-                :unit-system="unitSystem"
                 x-unit="rad"
                 y-unit="kN⋅mm"
               />
@@ -544,8 +531,7 @@ function option(backbone: Result, envelope: Result): EChartsOption {
                   :unit="item.unit"
                   :fraction-digit="item.fractionDigit"
                   :columns="[backboneResult, envelopeResult]"
-                  :unit-system="unitSystem"
-                ></unit-table-row>
+                />
               </tbody>
             </template>
           </v-simple-table>

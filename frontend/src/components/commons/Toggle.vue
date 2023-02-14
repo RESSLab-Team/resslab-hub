@@ -1,5 +1,11 @@
 <template>
-  <v-btn-toggle v-model="index" mandatory>
+  <v-btn-toggle
+    v-model="index"
+    class="align-center"
+    background-color="transparent"
+    dense
+    mandatory
+  >
     <v-btn v-for="item in items" :key="item.value">{{ item.text }}</v-btn>
   </v-btn-toggle>
 </template>

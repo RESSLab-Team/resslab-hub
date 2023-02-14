@@ -36,7 +36,6 @@
                       :max="item.max"
                       :min="item.min"
                       :unit="item.unit"
-                      :unit-system="unitSystem"
                     />
                   </v-col>
                 </v-row>
@@ -85,7 +84,6 @@ import UnitSlider, {
 import { EChartsGlOption } from "@/utils/echarts-gl";
 import { univariateOption } from "@/utils/fragility";
 import { subscripts } from "@/utils/unicode";
-import { UnitSystem } from "@/utils/unit";
 import { getColorMap } from "@/utils/vuetify";
 import { EChartsOption, SeriesOption } from "echarts";
 import { range } from "lodash";
@@ -104,8 +102,6 @@ import { Component, Vue } from "vue-property-decorator";
   },
 })
 export default class ColumnFragility extends Vue {
-  readonly unitSystem: UnitSystem = "metric";
-
   readonly parameters: UnitSliderItem<keyof ColumnFragility>[] = [
     {
       key: "hTw",

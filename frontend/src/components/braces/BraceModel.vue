@@ -6,7 +6,6 @@ import UnitSlider, {
 } from "@/components/commons/sliders/UnitSlider.vue";
 import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import { publicPath, Section } from "@/utils/common";
-import { UnitSystem } from "@/utils/unit";
 import { primaryColor, SelectItem } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
@@ -117,7 +116,6 @@ const additionalParameterVariables: Variable<keyof Variables>[] = [
   },
 ];
 
-const unitSystem = ref<UnitSystem>("metric");
 const section = ref<Section>();
 const steelType = ref<SteelType>();
 const option = ref<Option>("wide-flange");
@@ -330,20 +328,13 @@ function getCompressionOption(result: Result): EChartsOption {
 <template>
   <v-row>
     <v-col cols="12">
-      <v-row align="center">
-        <v-col>
-          <h1>Component Model for Steel Bracings</h1>
-          <p>
-            This web-based interactive interface computes the basic parameters
-            for predictive modeling of steel bracings based on their basic
-            material and geometric properties. For further information refer to
-            Eurocode 8 Part 3.
-          </p>
-        </v-col>
-        <v-col cols="auto">
-          <toggle v-model="unitSystem" :items="unitItems" />
-        </v-col>
-      </v-row>
+      <h1>Component Model for Steel Bracings</h1>
+      <p>
+        This web-based interactive interface computes the basic parameters for
+        predictive modeling of steel bracings based on their basic material and
+        geometric properties. For further information refer to Eurocode 8 Part
+        3.
+      </p>
     </v-col>
     <v-col cols="6">
       <v-card>
@@ -389,7 +380,6 @@ function getCompressionOption(result: Result): EChartsOption {
                 :max="item.max"
                 :min="item.min"
                 :unit="item.unit"
-                :unit-system="unitSystem"
               />
             </v-col>
           </v-row>
@@ -411,7 +401,7 @@ function getCompressionOption(result: Result): EChartsOption {
                 :items="steelTypes"
                 label="Select Steel Type"
                 single-line
-              ></v-select>
+              />
             </v-col>
           </v-row>
           <v-row>
@@ -427,7 +417,6 @@ function getCompressionOption(result: Result): EChartsOption {
                 :max="item.max"
                 :min="item.min"
                 :unit="item.unit"
-                :unit-system="unitSystem"
               />
             </v-col>
           </v-row>
@@ -452,7 +441,6 @@ function getCompressionOption(result: Result): EChartsOption {
                 :max="item.max"
                 :min="item.min"
                 :unit="item.unit"
-                :unit-system="unitSystem"
               />
             </v-col>
           </v-row>
@@ -468,10 +456,7 @@ function getCompressionOption(result: Result): EChartsOption {
           <v-card>
             <v-card-title>Tension</v-card-title>
             <v-card-text>
-              <unit-chart
-                :option="getTensionOption(result)"
-                :unit-system="unitSystem"
-              />
+              <unit-chart :option="getTensionOption(result)" />
             </v-card-text>
           </v-card>
         </v-col>
@@ -479,10 +464,7 @@ function getCompressionOption(result: Result): EChartsOption {
           <v-card>
             <v-card-title>Compression</v-card-title>
             <v-card-text>
-              <unit-chart
-                :option="getCompressionOption(result)"
-                :unit-system="unitSystem"
-              />
+              <unit-chart :option="getCompressionOption(result)" />
             </v-card-text>
           </v-card>
         </v-col>

@@ -1,24 +1,17 @@
 <template>
   <v-row>
     <v-col cols="12">
-      <v-row align="center">
-        <v-col>
-          <h1>Backbone Curve Plotter for Steel Components</h1>
-          <p>
-            Construct the backbone curve of beams with RBS and beams
-            other-than-RBS. For further information refer to
-            <a
-              href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376"
-              target="_blank"
-            >
-              Lignos and Krawinkler (2011)
-            </a>
-          </p>
-        </v-col>
-        <v-col cols="auto">
-          <toggle v-model="unitSystem" :items="unitItems"></toggle>
-        </v-col>
-      </v-row>
+      <h1>Backbone Curve Plotter for Steel Components</h1>
+      <p>
+        Construct the backbone curve of beams with RBS and beams other-than-RBS.
+        For further information refer to
+        <a
+          href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376"
+          target="_blank"
+        >
+          Lignos and Krawinkler (2011)
+        </a>
+      </p>
     </v-col>
     <v-col cols="6">
       <v-row>
@@ -46,7 +39,6 @@
                     :max="item.max"
                     :min="item.min"
                     :unit="item.unit"
-                    :unit-system="unitSystem"
                   ></unit-slider>
                 </v-col>
               </v-row>
@@ -82,7 +74,6 @@
                     :max="item.max"
                     :min="item.min"
                     :unit="item.unit"
-                    :unit-system="unitSystem"
                   ></unit-slider>
                 </v-col>
               </v-row>
@@ -111,7 +102,6 @@
             <v-card-text>
               <unit-chart
                 :option="option(backboneWithRbs, envelopeWithRbs)"
-                :unit-system="unitSystem"
                 x-unit="rad"
                 y-unit="kN⋅mm"
               ></unit-chart>
@@ -124,7 +114,6 @@
             <v-card-text>
               <unit-chart
                 :option="option(backboneWithoutRbs, envelopeWithoutRbs)"
-                :unit-system="unitSystem"
                 x-unit="rad"
                 y-unit="kN⋅mm"
               ></unit-chart>
@@ -172,8 +161,7 @@
                     backboneWithoutRbs,
                     envelopeWithoutRbs,
                   ]"
-                  :unit-system="unitSystem"
-                ></unit-table-row>
+                />
               </tbody>
             </template>
           </v-simple-table>
@@ -196,7 +184,6 @@ import UnitTableRow, {
 } from "@/components/commons/UnitTableRow.vue";
 import { publicPath, Section } from "@/utils/common";
 import { chartBind, Point, variableBind } from "@/utils/model";
-import { UnitSystem } from "@/utils/unit";
 import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import { clamp } from "lodash";
@@ -327,7 +314,6 @@ export default class ConnectionModel extends Vue {
     },
   ];
 
-  unitSystem: UnitSystem = "metric";
   section: Section | null = null;
 
   onSectionChanged(section: Section): void {

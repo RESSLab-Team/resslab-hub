@@ -7,32 +7,31 @@ import { merge } from "lodash";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import { TitleComponent } from "echarts/components";
 import { use } from "echarts/core";
-import { UnitSystem } from "@/utils/unit";
 
-export interface Props {
-  colors?: Color[];
-  series?: LineSeriesOption[];
-  aspectRatio?: number;
-  maxWidth?: number;
-  title: string;
-  xAxisName: string;
-  yAxisName: string;
-  unitSystem?: UnitSystem;
-  xUnit?: string;
-  yUnit?: string;
-}
-const props = withDefaults(defineProps<Props>(), {
-  colors: () => [primaryColor, secondaryColor],
-  series: () => [],
-  aspectRatio: 1,
-  maxWidth: undefined,
-  title: undefined,
-  xAxisName: undefined,
-  yAxisName: undefined,
-  unitSystem: undefined,
-  xUnit: undefined,
-  yUnit: undefined,
-});
+const props = withDefaults(
+  defineProps<{
+    colors?: Color[];
+    series?: LineSeriesOption[];
+    aspectRatio?: number;
+    maxWidth?: number;
+    title: string;
+    xAxisName: string;
+    yAxisName: string;
+    xUnit?: string;
+    yUnit?: string;
+  }>(),
+  {
+    colors: () => [primaryColor, secondaryColor],
+    series: () => [],
+    aspectRatio: 1,
+    maxWidth: undefined,
+    title: undefined,
+    xAxisName: undefined,
+    yAxisName: undefined,
+    xUnit: undefined,
+    yUnit: undefined,
+  }
+);
 
 use([TitleComponent]);
 
@@ -81,7 +80,6 @@ const option = computed<EChartsOption>(
     :aspect-ratio="aspectRatio"
     :max-width="maxWidth"
     :option="option"
-    :unit-system="unitSystem"
     :x-unit="xUnit"
     :y-unit="yUnit"
   />

@@ -4,9 +4,8 @@ import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import UnitSlider, {
   UnitSliderItem,
 } from "@/components/commons/sliders/UnitSlider.vue";
-import Toggle, { ToggleItem, unitItems } from "@/components/commons/Toggle.vue";
+import Toggle, { ToggleItem } from "@/components/commons/Toggle.vue";
 import { fragilityCurve } from "@/utils/fragility";
-import { UnitSystem } from "@/utils/unit";
 import { getColorMap } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import { computed, reactive, ref } from "vue";
@@ -45,7 +44,6 @@ const materials: ToggleItem<Material>[] = [
   },
 ];
 
-const unitSystem = ref<UnitSystem>("metric");
 const infoAvailable = ref(true);
 const material = ref<Material>("a36");
 const variables = reactive<Variables>({
@@ -144,7 +142,7 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
 
 <template>
   <v-row>
-    <v-col cols="8">
+    <v-col cols="12">
       <h1>Fragility Curve Plotter for Steel Component</h1>
       <p>
         This tab introduces a web-based interactive module for visualizing
@@ -163,14 +161,11 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
         >.
       </p>
     </v-col>
-    <v-col cols="4" class="d-flex justify-end">
-      <toggle v-model="unitSystem" :items="unitItems"></toggle>
-    </v-col>
     <v-col cols="4">
       <v-card>
         <v-card-title>Steel Type</v-card-title>
         <v-card-text>
-          <toggle v-model="material" class="my-4" :items="materials"></toggle>
+          <toggle v-model="material" class="my-4" :items="materials" />
         </v-card-text>
         <v-card-title>Geometric Parameters</v-card-title>
         <v-card-text>
@@ -189,8 +184,7 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
             :max="item.max"
             :min="item.min"
             :unit="item.unit"
-            :unit-system="unitSystem"
-          ></unit-slider>
+          />
         </v-card-text>
       </v-card>
       <v-col cols="12">
@@ -203,19 +197,11 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
     </v-col>
     <v-col cols="4">
       <h2>Pre-Northridge</h2>
-      <unit-chart
-        :option="preNorthridgeOption"
-        :unit-system="unitSystem"
-        x-unit="rad"
-      ></unit-chart>
+      <unit-chart :option="preNorthridgeOption" x-unit="rad" />
     </v-col>
     <v-col cols="4">
       <h2>Post-Northridge</h2>
-      <unit-chart
-        :option="postNorthridgeOption"
-        :unit-system="unitSystem"
-        x-unit="rad"
-      ></unit-chart>
+      <unit-chart :option="postNorthridgeOption" x-unit="rad" />
     </v-col>
   </v-row>
 </template>

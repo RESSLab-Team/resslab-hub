@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import { variableBind } from "@/utils/model";
-import { UnitSystem } from "@/utils/unit";
 import { SelectItemObject } from "@/utils/vuetify";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import UnitSlider, {
@@ -123,7 +121,6 @@ const charts: { title: string; id: testId }[] = [
 ];
 
 const snackbar = ref<Snackbar>();
-const unitSystem = ref<UnitSystem>("metric");
 const selectedMaterial = ref<Material>(materialSelectItems[0].value);
 const variables = reactive<Material>({
   e: 0,
@@ -213,30 +210,23 @@ watch(
 <template>
   <v-row>
     <v-col cols="12">
-      <v-row align="center">
-        <v-col>
-          <h1>Material Model</h1>
-          <p>
-            This web based interactive interface computes the hysteretic
-            behavior of typical steels under inelastic cyclic straining. For
-            further information refer to
-            <a
-              href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
-              target="_blank"
-              >Hartloper et al. (2021)</a
-            >
-            The uniaxial loading protocols are based on work by
-            <a
-              href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29EM.1943-7889.0001922"
-              target="_blank"
-              >de Castro e Sousa et al. (2020)</a
-            >
-          </p>
-        </v-col>
-        <v-col cols="auto">
-          <toggle v-model="unitSystem" :items="unitItems" />
-        </v-col>
-      </v-row>
+      <h1>Material Model</h1>
+      <p>
+        This web based interactive interface computes the hysteretic behavior of
+        typical steels under inelastic cyclic straining. For further information
+        refer to
+        <a
+          href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
+          target="_blank"
+          >Hartloper et al. (2021)</a
+        >
+        The uniaxial loading protocols are based on work by
+        <a
+          href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29EM.1943-7889.0001922"
+          target="_blank"
+          >de Castro e Sousa et al. (2020)</a
+        >
+      </p>
     </v-col>
     <v-col cols="6">
       <v-card>
@@ -265,7 +255,6 @@ watch(
                 :max="item.max"
                 :min="item.min"
                 :unit="item.unit"
-                :unit-system="unitSystem"
               />
             </v-col>
           </v-row>
@@ -278,7 +267,6 @@ watch(
           <unit-line-chart
             :series="[chartSeries[item.id]]"
             :title="item.title"
-            :unit-system="unitSystem"
             x-axis-name="ε"
             y-axis-name="σ"
             y-unit="MPa"
