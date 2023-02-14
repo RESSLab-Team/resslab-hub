@@ -49,7 +49,7 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: "model",
-        component: () => import("../views/ColumnsComponentModel.vue"),
+        component: () => import("../views/ColumnsModelView.vue"),
       },
     ],
   },

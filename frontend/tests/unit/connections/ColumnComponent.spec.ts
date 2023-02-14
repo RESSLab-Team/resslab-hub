@@ -1,4 +1,4 @@
-import ColumnComponent from "@/components/columns/ColumnComponent.vue";
+import ColumnComponent from "@/components/columns/ColumnModel.vue";
 import { shallowMount } from "@vue/test-utils";
 
 describe("ColumnComponent.vue", () => {

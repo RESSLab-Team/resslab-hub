@@ -32,9 +32,7 @@
               </info-tooltip>
             </v-card-title>
             <v-card-text>
-              <section-selector
-                @update:section="onSectionChanged($event)"
-              ></section-selector>
+              <section-selector @update:section="onSectionChanged($event)" />
               <v-row>
                 <v-col
                   v-for="item in steelShapeDimensions"
@@ -197,7 +195,7 @@ import UnitTableRow, {
   UnitTableRowData,
 } from "@/components/commons/UnitTableRow.vue";
 import { publicPath, Section } from "@/utils/common";
-import { variableBind } from "@/utils/model";
+import { chartBind, Point, variableBind } from "@/utils/model";
 import { UnitSystem } from "@/utils/unit";
 import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
@@ -221,13 +219,8 @@ export default class ConnectionModel extends Vue {
   readonly unitItems = unitItems;
   readonly publicPath = publicPath;
   readonly variableBind = variableBind;
+  readonly chartBind = chartBind;
 
-  readonly chartBind = {
-    cols: "12",
-    sm: "6",
-    lg: "3",
-    xl: "2",
-  };
   readonly steelShapeDimensions: Variable[] = [
     {
       key: "bf",
@@ -781,6 +774,4 @@ interface Backbone extends Envelope {
   a: number;
   lambda: number;
 }
-
-type Point = [number, number];
 </script>

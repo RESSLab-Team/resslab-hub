@@ -7,12 +7,11 @@ import { computed, defineEmits, ref, watch } from "vue";
 import SearchSelect from "@/components/commons/SearchSelect.vue";
 import { SelectItem } from "@/utils/vuetify";
 
-export type Database = "aisc" | "european" | "japanese";
-
 const emit = defineEmits<{
   (e: "update:section", value: Section | undefined): void;
 }>();
 
+type Database = "aisc" | "european" | "japanese";
 const databases: Database[] = ["aisc", "european", "japanese"];
 
 const database = ref<Database>("aisc");
