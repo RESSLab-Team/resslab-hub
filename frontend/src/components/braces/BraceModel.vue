@@ -4,7 +4,6 @@ import SectionSelector from "@/components/commons/SectionSelector.vue";
 import UnitSlider, {
   Variable,
 } from "@/components/commons/sliders/UnitSlider.vue";
-import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
 import { publicPath, Section } from "@/utils/common";
 import { primaryColor, SelectItem } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
@@ -120,6 +119,10 @@ const section = ref<Section>();
 const steelType = ref<SteelType>();
 const option = ref<Option>("wide-flange");
 
+const e = 210000;
+const a = 10000;
+const iz = 10000;
+const iy = 1000000;
 interface Variables {
   bf: number;
   d: number;
@@ -127,12 +130,8 @@ interface Variables {
   tw: number;
   omega: number;
   fy: number;
-  e: number;
   lee: number;
   lcr: number;
-  a: number;
-  iz: number;
-  iy: number;
 }
 const variables = reactive<Variables>({
   bf: 100,
@@ -141,12 +140,8 @@ const variables = reactive<Variables>({
   tw: 5,
   omega: 1,
   fy: 250,
-  e: 210000,
   lee: 8000,
   lcr: 8000,
-  a: 10000,
-  iz: 10000,
-  iy: 1000000,
 });
 
 watch(
@@ -181,8 +176,10 @@ watch(
 );
 
 const result = computed<Result>(() => {
-  const Imin = Math.min(variables.iz, variables.iy);
-  const i = Math.sqrt(Imin / variables.a);
+  const { omega, fy, lcr } = variables;
+
+  const Imin = Math.min(iz, iy);
+  const i = Math.sqrt(Imin / a);
 
   let lamda_f: number;
   let lamda_CL1: number;
@@ -191,7 +188,7 @@ const result = computed<Result>(() => {
       const c = 10;
       const t = 2;
       lamda_f = c / t;
-      lamda_CL1 = 9 * Math.sqrt(235 / variables.fy);
+      lamda_CL1 = 9 * Math.sqrt(235 / fy);
       break;
     }
     default:
@@ -199,9 +196,9 @@ const result = computed<Result>(() => {
   }
   const NbRd = 1;
   const NplRd = 1;
-  const Nple = variables.omega * NplRd;
-  const Nbe = variables.omega * NbRd;
-  const Nu_c = 0.2 * variables.omega * NbRd;
+  const Nple = omega * NplRd;
+  const Nbe = omega * NbRd;
+  const Nu_c = 0.2 * omega * NbRd;
   const delta_y = 1;
   const delta_c = 1;
 
@@ -212,20 +209,12 @@ const result = computed<Result>(() => {
       delta_ub =
         5.6 *
         Math.pow(lamda_f / lamda_CL1, -1.7) *
-        Math.pow(
-          (variables.lcr / i) *
-            Math.sqrt((variables.omega * variables.fy) / variables.e),
-          0.4
-        ) *
+        Math.pow((lcr / i) * Math.sqrt((omega * fy) / e), 0.4) *
         delta_c;
       delta_ut =
         3.4 *
         Math.pow(lamda_f / lamda_CL1, -1.7) *
-        Math.pow(
-          (variables.lcr / i) *
-            Math.sqrt((variables.omega * variables.fy) / variables.e),
-          0.4
-        ) *
+        Math.pow((lcr / i) * Math.sqrt((omega * fy) / e), 0.4) *
         delta_y;
       break;
     }

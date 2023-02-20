@@ -1,3 +1,577 @@
+<script setup lang="ts">
+// Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/steel_beams
+import UnitChart from "@/components/commons/charts/UnitChart.vue";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import SectionSelector from "@/components/commons/SectionSelector.vue";
+import UnitSlider, {
+  Variable,
+} from "@/components/commons/sliders/UnitSlider.vue";
+import UnitTableRow, {
+  UnitTableRowData,
+} from "@/components/commons/UnitTableRow.vue";
+import { publicPath, Section } from "@/utils/common";
+import { Point, variableBind } from "@/utils/model";
+import { primaryColor, secondaryColor } from "@/utils/vuetify";
+import { EChartsOption } from "echarts";
+import { clamp } from "lodash";
+import { computed, reactive, ref } from "vue";
+
+interface Result {
+  ke: number;
+  my: number;
+  mc: number;
+  mRes: number;
+  thetaP: number;
+  thetaPc: number;
+  thetaUlt: number;
+  lamdba?: number;
+  points: Point[];
+}
+
+interface Envelope {
+  my: number;
+  thetaY: number;
+  mc: number;
+  thetaP: number;
+  thetaPc: number;
+  res: number;
+  mRes: number;
+  thetaUlt: number;
+  alpha: number;
+  alphaPc: number;
+  zx: number;
+  lRbs?: number;
+  // For debugging
+  zRbs?: number;
+}
+
+interface Backbone extends Envelope {
+  a: number;
+  lambda: number;
+}
+
+const steelShapeDimensions: Variable<keyof Variables>[] = [
+  {
+    key: "bf",
+    text: "b<sub>f</sub>",
+    unit: "mm",
+    min: 100,
+    max: 500,
+  },
+  { key: "d", text: "d", unit: "mm", min: 100, max: 2000 },
+  {
+    key: "tf",
+    text: "t<sub>f</sub>",
+    unit: "mm",
+    min: 5,
+    max: 100,
+  },
+  {
+    key: "tw",
+    text: "t<sub>w</sub>",
+    unit: "mm",
+    min: 5,
+    max: 100,
+  },
+];
+const memberProperties: Variable<keyof Variables>[] = [
+  {
+    key: "rbsReduction",
+    text: "RBS flange reduction",
+    min: 0,
+    max: 0.5,
+  },
+  {
+    key: "l",
+    text: "L",
+    unit: "mm",
+    min: 1000,
+    max: 12000,
+  },
+  {
+    key: "lb",
+    text: "L<sub>b</sub>",
+    unit: "mm",
+    min: 1000,
+    max: 12000,
+  },
+  {
+    key: "fy",
+    text: "F<sub>y</sub>",
+    unit: "MPa",
+    min: 250,
+    max: 500,
+  },
+];
+const rows: UnitTableRowData[] = [
+  {
+    key: "ke",
+    text: "K<sub>e</sub>",
+    unit: "<sup>kN⋅mm</sup>/<sub>rad</sub>",
+    fractionDigit: 0,
+  },
+  {
+    key: "my",
+    text: "M<sub>y</sub>",
+    unit: "kN⋅mm",
+    fractionDigit: 0,
+  },
+  {
+    key: "mc",
+    text: "M<sub>c</sub>",
+    unit: "kN⋅mm",
+    fractionDigit: 0,
+  },
+  {
+    key: "mRes",
+    text: "M<sub>r</sub>",
+    unit: "kN⋅mm",
+    fractionDigit: 0,
+  },
+  {
+    key: "thetaP",
+    text: "&theta;<sub>p</sub>",
+    unit: "rad",
+    fractionDigit: 3,
+  },
+  {
+    key: "thetaPc",
+    text: "&theta;<sub>pc</sub>",
+    unit: "rad",
+    fractionDigit: 3,
+  },
+  {
+    key: "thetaUlt",
+    text: "&theta;<sub>u</sub>",
+    unit: "rad",
+    fractionDigit: 3,
+  },
+  {
+    key: "lamdba",
+    text: "&Lambda;",
+    unit: "rad",
+    fractionDigit: 3,
+  },
+];
+
+const section = ref<Section>();
+
+const e = 205;
+interface Variables {
+  bf: number;
+  d: number;
+  tf: number;
+  tw: number;
+  rbsReduction: number;
+  l: number;
+  lb: number;
+  fy: number;
+}
+const variables = reactive<Variables>({
+  bf: 100,
+  d: 100,
+  tf: 5,
+  tw: 5,
+  rbsReduction: 0.5,
+  l: 8000,
+  lb: 4000,
+  fy: 380,
+});
+
+const vars = computed(() => {
+  const { bf, d, tf, tw, l } = variables;
+
+  let h: number;
+  let ix: number;
+  let ry: number;
+  if (section.value) {
+    h = section.value.h;
+    ix = section.value.ix;
+    ry = section.value.ry;
+  } else {
+    h = d - 2 * tf;
+    ix =
+      (Math.pow(d - 2 * tf, 3) * tw) / 12 +
+      2 * bf * tf * (Math.pow(tf, 2) / 12 + Math.pow((d - tf) / 2, 2));
+    ry = Math.sqrt(
+      ((tf * Math.pow(bf, 3)) / 12 + ((d - 2 * tf) * Math.pow(tw, 3)) / 12) /
+        (2 * tf * bf + (d - 2 * tf) * tw)
+    );
+  }
+  const ke = (6 * e * ix) / l;
+  const le = l / 2;
+  return {
+    h,
+    ix,
+    ry,
+    ke,
+    le,
+  };
+});
+
+const rbs = computed<{
+  zx: number;
+  lRbs: number;
+  zRbs: number;
+  my: number;
+}>(() => {
+  const { bf, d, tf, rbsReduction, fy } = variables;
+
+  const _a = 0.625 * bf;
+  const _b = 0.75 * d;
+  const _c = rbsReduction * bf;
+  const zx = getZx(true);
+  const lRbs = _a + 0.5 * _b;
+  const zRbs = zx - _c * tf * (d - tf);
+
+  const my = 1.06 * zRbs * (fy / 1000);
+  return {
+    zx,
+    lRbs,
+    zRbs,
+    my,
+  };
+});
+const backboneRbs = computed(() => {
+  const { bf, d, tf, tw, lb, fy } = variables;
+  const { h, ry, ke, le } = vars.value;
+  const { zx, lRbs, zRbs, my } = rbs.value;
+
+  const a = 1.09;
+  const mc = a * my;
+  const res = 0.4;
+  const mRes = res * my;
+
+  const thetaY = my / ke;
+  const thetaP =
+    0.19 *
+    Math.pow(h / tw, -0.314) *
+    Math.pow(bf / 2 / tf, -0.1) *
+    Math.pow(lb / ry, -0.185) *
+    Math.pow((le - lRbs) / d, 0.113) *
+    Math.pow(d / 533, -0.76) *
+    Math.pow(fy / 355, -0.07);
+  const thetaPc =
+    9.52 *
+    Math.pow(h / tw, -0.513) *
+    Math.pow(bf / 2 / tf, -0.863) *
+    Math.pow(lb / ry, -0.108) *
+    Math.pow(fy / 355, -0.36);
+  const thetaUlt = 0.2;
+  const alpha = ((mc - my) / thetaP / ke) * (le / (le - lRbs));
+  const alphaPc = (-mc / (ke * thetaPc)) * (le / (le - lRbs));
+  const lambda = clamp(
+    585 *
+      Math.pow(h / tw, -1.14) *
+      Math.pow(bf / 2 / tf, -0.632) *
+      Math.pow(lb / ry, -0.205) *
+      Math.pow(fy / 355, -0.391),
+    3.0
+  );
+  return {
+    my,
+    thetaY,
+    a,
+    mc,
+    thetaP,
+    thetaPc,
+    res,
+    mRes,
+    thetaUlt,
+    alpha,
+    alphaPc,
+    zx,
+    lRbs,
+    lambda,
+    zRbs,
+  };
+});
+const envelopeRbs = computed<Envelope>(() => {
+  const { bf, d, tf, tw, lb, fy } = variables;
+  const { h, ry, ke, le } = vars.value;
+  const { zx, lRbs, zRbs, my } = rbs.value;
+
+  const res = 0.3;
+  const mRes = res * my;
+
+  const thetaY = my / ke;
+  const thetaP =
+    0.25 *
+    Math.pow(h / tw, -0.5) *
+    Math.pow(bf / 2 / tf, -0.7) *
+    Math.pow(lb / ry, -0.5) *
+    Math.pow((le - lRbs) / d, 0.8) *
+    Math.pow(e / fy, 0.23);
+  const thetaPc = clamp(
+    2.5 *
+      Math.pow(h / tw, -1.1) *
+      Math.pow(bf / 2 / tf, -0.1) *
+      Math.pow(lb / ry, -0.1) *
+      Math.pow(e / fy, 0.09),
+    0.05
+  );
+  const thetaUlt = 0.08;
+  const alpha = 0.03;
+  const mc = my + alpha * ke * thetaP;
+
+  const alphaPc = (-mc / (ke * thetaPc)) * (le / (le - lRbs));
+  return {
+    my,
+    thetaY,
+    mc,
+    thetaP,
+    thetaPc,
+    res,
+    mRes,
+    thetaUlt,
+    alpha,
+    alphaPc,
+    zx,
+    lRbs,
+    zRbs,
+  };
+});
+const nonRbs = computed<{
+  zx: number;
+  my: number;
+}>(() => {
+  const { fy } = variables;
+
+  const zx = getZx(false);
+  const my = 1.17 * zx * (fy / 1000);
+  return {
+    zx,
+    my,
+  };
+});
+const backboneNonRbs = computed<Backbone>(() => {
+  const { bf, d, tf, tw, lb, fy } = variables;
+  const { h, ry, ke, le } = vars.value;
+  const { zx, my } = nonRbs.value;
+
+  const a = 1.11;
+  const mc = a * my;
+  const res = 0.4;
+  const mRes = res * my;
+
+  const thetaY = my / ke;
+
+  let thetaP;
+  let thetaPc;
+  let lambda;
+  if (d <= 533) {
+    thetaP =
+      0.0865 *
+      Math.pow(h / tw, -0.365) *
+      Math.pow(bf / 2 / tf, -0.14) *
+      Math.pow(le / d, 0.34) *
+      Math.pow(d / 533, -0.721) *
+      Math.pow(fy / 355, -0.23);
+    thetaPc =
+      5.63 *
+      Math.pow(h / tw, -0.565) *
+      Math.pow(bf / 2 / tf, -0.8) *
+      Math.pow(d / 533, -0.28) *
+      Math.pow(fy / 355, -0.43);
+    lambda = clamp(
+      536 *
+        Math.pow(h / tw, -1.26) *
+        Math.pow(bf / 2 / tf, -0.525) *
+        Math.pow(lb / ry, -0.13) *
+        Math.pow(fy / 355, -0.291),
+      3.0
+    );
+  } else {
+    thetaP =
+      0.318 *
+      Math.pow(h / tw, -0.55) *
+      Math.pow(bf / 2 / tf, -0.345) *
+      Math.pow(lb / ry, -0.023) *
+      Math.pow(le / d, 0.09) *
+      Math.pow(d / 533, -0.33) *
+      Math.pow(fy / 355, -0.13);
+
+    thetaPc =
+      7.5 *
+      Math.pow(h / tw, -0.61) *
+      Math.pow(bf / 2 / tf, -0.71) *
+      Math.pow(lb / ry, -0.11) *
+      Math.pow(d / 533, -0.161) *
+      Math.pow(fy / 355, -0.32);
+    lambda = clamp(
+      585 *
+        Math.pow(h / tw, -1.14) *
+        Math.pow(bf / 2 / tf, -0.632) *
+        Math.pow(lb / ry, -0.205) *
+        Math.pow(fy / 355, -0.391),
+      3.0
+    );
+  }
+  const thetaUlt = 0.2;
+  const alpha = (mc - my) / thetaP / ke;
+  const alphaPc = -mc / (ke * thetaPc);
+  return {
+    my,
+    thetaY,
+    a,
+    mc,
+    thetaP,
+    thetaPc,
+    res,
+    mRes,
+    thetaUlt,
+    alpha,
+    alphaPc,
+    zx,
+    lambda,
+  };
+});
+const envelopeNonRbs = computed<Envelope>(() => {
+  const { bf, d, tf, tw, lb, fy } = variables;
+  const { h, ry, ke, le } = vars.value;
+  const { zx, my } = nonRbs.value;
+  const res = 0.3;
+  const mRes = res * my;
+  const thetaY = my / ke;
+
+  const thetaP =
+    0.5 *
+    Math.pow(h / tw, -0.9) *
+    Math.pow(bf / 2 / tf, -1.1) *
+    Math.pow(lb / ry, -0.2) *
+    Math.pow(le / d, 1.1) *
+    Math.pow(e / fy, 0.2);
+  const thetaPc = clamp(
+    6.4 *
+      Math.pow(h / tw, -0.9) *
+      Math.pow(bf / 2 / tf, -0.2) *
+      Math.pow(lb / ry, -0.5) *
+      Math.pow(e / fy, 0.1),
+    0.05
+  );
+  const thetaUlt = 0.08;
+  const alpha = 0.03;
+  const mc = my + alpha * ke * thetaP;
+  const alphaPc = (0.0 - mc) / (ke * thetaPc);
+  return {
+    my,
+    thetaY,
+    mc,
+    thetaP,
+    thetaPc,
+    res,
+    mRes,
+    thetaUlt,
+    alpha,
+    alphaPc,
+    zx,
+  };
+});
+const backboneWithRbs = computed<Result>(() => getResult(backboneRbs.value));
+const backboneWithoutRbs = computed<Result>(() =>
+  getResult(backboneNonRbs.value)
+);
+const envelopeWithRbs = computed<Result>(() => getResult(envelopeRbs.value));
+const envelopeWithoutRbs = computed<Result>(() =>
+  getResult(envelopeNonRbs.value)
+);
+
+function getZx(rbs: boolean): number {
+  const { bf, d, tf, tw, rbsReduction } = variables;
+
+  if (section.value) {
+    return section.value.zx;
+  }
+  const n = rbs ? rbsReduction : 1;
+  return (
+    2 * (n * bf * tf * ((d - tf) / 2) + (Math.pow(d - 2 * tf, 2) * tw) / 4)
+  );
+}
+
+function onSectionChanged(value?: Section): void {
+  section.value = value;
+  if (value) {
+    variables.bf = value.bf;
+    variables.d = value.d;
+    variables.tf = value.tf;
+    variables.tw = value.tw;
+  }
+}
+
+function getPoints(output: Envelope | Backbone): Point[] {
+  const { ke } = vars.value;
+
+  const p1: Point = [0, 0];
+  const p2: Point = [output.thetaY, output.my];
+  const p3: Point = [p2[0] + output.thetaP, output.mc];
+  const p4: Point = [
+    p3[0] + (output.mc - output.mRes) / (-output.alphaPc * ke),
+    output.mRes,
+  ];
+  if (p4[0] < output.thetaUlt) {
+    const p5: Point = [output.thetaUlt, output.mRes];
+    const p6: Point = [p5[0], 0];
+    return [p1, p2, p3, p4, p5, p6];
+  } else if (p3[0] < output.thetaUlt) {
+    // && output.thetaUlt <= p4[0]
+    const p5: Point = [
+      output.thetaUlt,
+      output.mc +
+        output.alphaPc * ke * Math.abs(output.thetaPc - output.thetaUlt),
+    ];
+    const p6: Point = [p5[0], 0];
+    return [p1, p2, p3, p5, p6];
+  } else if (p2[0] < output.thetaUlt) {
+    // && output.thetaUlt <= p3[0]
+    const p5: Point = [
+      output.thetaUlt,
+      output.my + output.alpha * ke * (output.thetaUlt - output.thetaY),
+    ];
+    const p6: Point = [p5[0], 0];
+    return [p1, p2, p5, p6];
+  } else {
+    const p5: Point = [output.thetaUlt, ke * output.thetaUlt];
+    const p6: Point = [p5[0], 0];
+    return [p1, p5, p6];
+  }
+}
+
+function getResult(output: Envelope | Backbone): Result {
+  const { ke } = vars.value;
+  return {
+    ke: ke,
+    lamdba: (output as Backbone).lambda,
+    ...output,
+    points: getPoints(output),
+  };
+}
+
+function option(backbone: Result, envelope: Result): EChartsOption {
+  return {
+    xAxis: {
+      name: "Chord Rotation, θ",
+    },
+    yAxis: {
+      name: "Moment, M",
+    },
+    series: [
+      {
+        type: "line",
+        name: "Monotonic Backbone",
+        data: backbone.points,
+        color: primaryColor.base,
+      },
+      {
+        type: "line",
+        name: "First-Cycle Envelope",
+        data: envelope.points,
+        color: secondaryColor.base,
+      },
+    ],
+  };
+}
+</script>
+
 <template>
   <v-row>
     <v-col cols="12">
@@ -33,7 +607,7 @@
                   v-bind="variableBind"
                 >
                   <unit-slider
-                    v-model="$data[item.key]"
+                    v-model="variables[item.key]"
                     :disabled="!!section"
                     :label="item.text"
                     :max="item.max"
@@ -69,7 +643,7 @@
                   v-bind="variableBind"
                 >
                   <unit-slider
-                    v-model="$data[item.key]"
+                    v-model="variables[item.key]"
                     :label="item.text"
                     :max="item.max"
                     :min="item.min"
@@ -170,594 +744,3 @@
     </v-col>
   </v-row>
 </template>
-
-<script lang="ts">
-import UnitChart from "@/components/commons/charts/UnitChart.vue";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SectionSelector from "@/components/commons/SectionSelector.vue";
-import UnitSlider, {
-  Variable,
-} from "@/components/commons/sliders/UnitSlider.vue";
-import Toggle, { unitItems } from "@/components/commons/Toggle.vue";
-import UnitTableRow, {
-  UnitTableRowData,
-} from "@/components/commons/UnitTableRow.vue";
-import { publicPath, Section } from "@/utils/common";
-import { chartBind, Point, variableBind } from "@/utils/model";
-import { primaryColor, secondaryColor } from "@/utils/vuetify";
-import { EChartsOption } from "echarts";
-import { clamp } from "lodash";
-import { Component, Vue } from "vue-property-decorator";
-
-/**
- * Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/steel_beams
- */
-@Component({
-  components: {
-    InfoTooltip,
-    SectionSelector,
-    Toggle,
-    UnitChart,
-    UnitSlider,
-    UnitTableRow,
-  },
-})
-export default class ConnectionModel extends Vue {
-  readonly unitItems = unitItems;
-  readonly publicPath = publicPath;
-  readonly variableBind = variableBind;
-  readonly chartBind = chartBind;
-
-  readonly steelShapeDimensions: Variable[] = [
-    {
-      key: "bf",
-      text: "b<sub>f</sub>",
-      unit: "mm",
-      min: 100,
-      max: 500,
-    },
-    { key: "d", text: "d", unit: "mm", min: 100, max: 2000 },
-    {
-      key: "tf",
-      text: "t<sub>f</sub>",
-      unit: "mm",
-      min: 5,
-      max: 100,
-    },
-    {
-      key: "tw",
-      text: "t<sub>w</sub>",
-      unit: "mm",
-      min: 5,
-      max: 100,
-    },
-  ];
-
-  readonly memberProperties: Variable[] = [
-    {
-      key: "rbsReduction",
-      text: "RBS flange reduction",
-      min: 0,
-      max: 0.5,
-    },
-    {
-      key: "l",
-      text: "L",
-      unit: "mm",
-      min: 1000,
-      max: 12000,
-    },
-    {
-      key: "lb",
-      text: "L<sub>b</sub>",
-      unit: "mm",
-      min: 1000,
-      max: 12000,
-    },
-    {
-      key: "fy",
-      text: "F<sub>y</sub>",
-      unit: "MPa",
-      min: 250,
-      max: 500,
-    },
-  ];
-
-  readonly rows: UnitTableRowData[] = [
-    {
-      key: "ke",
-      text: "K<sub>e</sub>",
-      unit: "<sup>kN⋅mm</sup>/<sub>rad</sub>",
-      fractionDigit: 0,
-    },
-    {
-      key: "my",
-      text: "M<sub>y</sub>",
-      unit: "kN⋅mm",
-      fractionDigit: 0,
-    },
-    {
-      key: "mc",
-      text: "M<sub>c</sub>",
-      unit: "kN⋅mm",
-      fractionDigit: 0,
-    },
-    {
-      key: "mRes",
-      text: "M<sub>r</sub>",
-      unit: "kN⋅mm",
-      fractionDigit: 0,
-    },
-    {
-      key: "thetaP",
-      text: "&theta;<sub>p</sub>",
-      unit: "rad",
-      fractionDigit: 3,
-    },
-    {
-      key: "thetaPc",
-      text: "&theta;<sub>pc</sub>",
-      unit: "rad",
-      fractionDigit: 3,
-    },
-    {
-      key: "thetaUlt",
-      text: "&theta;<sub>u</sub>",
-      unit: "rad",
-      fractionDigit: 3,
-    },
-    {
-      key: "lamdba",
-      text: "&Lambda;",
-      unit: "rad",
-      fractionDigit: 3,
-    },
-  ];
-
-  section: Section | null = null;
-
-  onSectionChanged(section: Section): void {
-    this.section = section ?? null;
-    if (section) {
-      this.bf = section.bf;
-      this.d = section.d;
-      this.tf = section.tf;
-      this.tw = section.tw;
-    }
-  }
-
-  readonly e = 205;
-
-  bf = 100;
-  d = 100;
-  tf = 5;
-  tw = 5;
-  rbsReduction = 0.5; // 0
-  l = 8000; // 1000
-  lb = 4000; // 1000
-  fy = 380; // 250
-
-  private get h(): number {
-    if (this.section) {
-      return this.section.h;
-    }
-    return this.d - 2 * this.tf;
-  }
-
-  private get ix(): number {
-    if (this.section) {
-      return this.section.ix;
-    }
-    return (
-      (Math.pow(this.d - 2 * this.tf, 3) * this.tw) / 12 +
-      2 *
-        this.bf *
-        this.tf *
-        (Math.pow(this.tf, 2) / 12 + Math.pow((this.d - this.tf) / 2, 2))
-    );
-  }
-
-  private get ry(): number {
-    if (this.section) {
-      return this.section.ry;
-    }
-    const a = 2 * this.tf * this.bf + (this.d - 2 * this.tf) * this.tw;
-    const iy =
-      (this.tf * Math.pow(this.bf, 3)) / 12 +
-      ((this.d - 2 * this.tf) * Math.pow(this.tw, 3)) / 12;
-    return Math.sqrt(iy / a);
-  }
-
-  get ke(): number {
-    return (6 * this.e * this.ix) / this.l;
-  }
-
-  private get le(): number {
-    return this.l / 2;
-  }
-
-  private zx(rbs: boolean): number {
-    if (this.section) {
-      return this.section.zx;
-    }
-    const n = rbs ? this.rbsReduction : 1;
-    return (
-      2 *
-      (n * this.bf * this.tf * ((this.d - this.tf) / 2) +
-        (Math.pow(this.d - 2 * this.tf, 2) * this.tw) / 4)
-    );
-  }
-
-  private rbs(): {
-    zx: number;
-    lRbs: number;
-    zRbs: number;
-    my: number;
-  } {
-    const _a = 0.625 * this.bf;
-    const _b = 0.75 * this.d;
-    const _c = this.rbsReduction * this.bf;
-    const zx = this.zx(true);
-    const lRbs = _a + 0.5 * _b;
-    const zRbs = zx - _c * this.tf * (this.d - this.tf);
-
-    const my = 1.06 * zRbs * (this.fy / 1000);
-    return {
-      zx,
-      lRbs,
-      zRbs,
-      my,
-    };
-  }
-
-  get backboneRbs(): Backbone {
-    const { zx, lRbs, zRbs, my } = this.rbs();
-
-    const a = 1.09;
-    const mc = a * my;
-    const res = 0.4;
-    const mRes = res * my;
-
-    const thetaY = my / this.ke;
-    const thetaP =
-      0.19 *
-      Math.pow(this.h / this.tw, -0.314) *
-      Math.pow(this.bf / 2 / this.tf, -0.1) *
-      Math.pow(this.lb / this.ry, -0.185) *
-      Math.pow((this.le - lRbs) / this.d, 0.113) *
-      Math.pow(this.d / 533, -0.76) *
-      Math.pow(this.fy / 355, -0.07);
-    const thetaPc =
-      9.52 *
-      Math.pow(this.h / this.tw, -0.513) *
-      Math.pow(this.bf / 2 / this.tf, -0.863) *
-      Math.pow(this.lb / this.ry, -0.108) *
-      Math.pow(this.fy / 355, -0.36);
-    const thetaUlt = 0.2;
-    const alpha = ((mc - my) / thetaP / this.ke) * (this.le / (this.le - lRbs));
-    const alphaPc = (-mc / (this.ke * thetaPc)) * (this.le / (this.le - lRbs));
-    const lambda = clamp(
-      585 *
-        Math.pow(this.h / this.tw, -1.14) *
-        Math.pow(this.bf / 2 / this.tf, -0.632) *
-        Math.pow(this.lb / this.ry, -0.205) *
-        Math.pow(this.fy / 355, -0.391),
-      3.0
-    );
-    return {
-      my,
-      thetaY,
-      a,
-      mc,
-      thetaP,
-      thetaPc,
-      res,
-      mRes,
-      thetaUlt,
-      alpha,
-      alphaPc,
-      zx,
-      lRbs,
-      lambda,
-      zRbs,
-    };
-  }
-
-  get envelopeRbs(): Envelope {
-    const { zx, lRbs, zRbs, my } = this.rbs();
-
-    const res = 0.3;
-    const mRes = res * my;
-
-    const thetaY = my / this.ke;
-    const thetaP =
-      0.25 *
-      Math.pow(this.h / this.tw, -0.5) *
-      Math.pow(this.bf / 2 / this.tf, -0.7) *
-      Math.pow(this.lb / this.ry, -0.5) *
-      Math.pow((this.le - lRbs) / this.d, 0.8) *
-      Math.pow(this.e / this.fy, 0.23);
-    const thetaPc = clamp(
-      2.5 *
-        Math.pow(this.h / this.tw, -1.1) *
-        Math.pow(this.bf / 2 / this.tf, -0.1) *
-        Math.pow(this.lb / this.ry, -0.1) *
-        Math.pow(this.e / this.fy, 0.09),
-      0.05
-    );
-    const thetaUlt = 0.08;
-    const alpha = 0.03;
-    const mc = my + alpha * this.ke * thetaP;
-
-    const alphaPc = (-mc / (this.ke * thetaPc)) * (this.le / (this.le - lRbs));
-    return {
-      my,
-      thetaY,
-      mc,
-      thetaP,
-      thetaPc,
-      res,
-      mRes,
-      thetaUlt,
-      alpha,
-      alphaPc,
-      zx,
-      lRbs,
-      zRbs,
-    };
-  }
-
-  private nonRbs(): {
-    zx: number;
-    my: number;
-  } {
-    const zx = this.zx(false);
-    const my = 1.17 * zx * (this.fy / 1000);
-    return {
-      zx,
-      my,
-    };
-  }
-
-  get backboneNonRbs(): Backbone {
-    const { zx, my } = this.nonRbs();
-
-    const a = 1.11;
-    const mc = a * my;
-    const res = 0.4;
-    const mRes = res * my;
-
-    const thetaY = my / this.ke;
-
-    let thetaP;
-    let thetaPc;
-    let lambda;
-    if (this.d <= 533) {
-      thetaP =
-        0.0865 *
-        Math.pow(this.h / this.tw, -0.365) *
-        Math.pow(this.bf / 2 / this.tf, -0.14) *
-        Math.pow(this.le / this.d, 0.34) *
-        Math.pow(this.d / 533, -0.721) *
-        Math.pow(this.fy / 355, -0.23);
-      thetaPc =
-        5.63 *
-        Math.pow(this.h / this.tw, -0.565) *
-        Math.pow(this.bf / 2 / this.tf, -0.8) *
-        Math.pow(this.d / 533, -0.28) *
-        Math.pow(this.fy / 355, -0.43);
-      lambda = clamp(
-        536 *
-          Math.pow(this.h / this.tw, -1.26) *
-          Math.pow(this.bf / 2 / this.tf, -0.525) *
-          Math.pow(this.lb / this.ry, -0.13) *
-          Math.pow(this.fy / 355, -0.291),
-        3.0
-      );
-    } else {
-      thetaP =
-        0.318 *
-        Math.pow(this.h / this.tw, -0.55) *
-        Math.pow(this.bf / 2 / this.tf, -0.345) *
-        Math.pow(this.lb / this.ry, -0.023) *
-        Math.pow(this.le / this.d, 0.09) *
-        Math.pow(this.d / 533, -0.33) *
-        Math.pow(this.fy / 355, -0.13);
-
-      thetaPc =
-        7.5 *
-        Math.pow(this.h / this.tw, -0.61) *
-        Math.pow(this.bf / 2 / this.tf, -0.71) *
-        Math.pow(this.lb / this.ry, -0.11) *
-        Math.pow(this.d / 533, -0.161) *
-        Math.pow(this.fy / 355, -0.32);
-      lambda = clamp(
-        585 *
-          Math.pow(this.h / this.tw, -1.14) *
-          Math.pow(this.bf / 2 / this.tf, -0.632) *
-          Math.pow(this.lb / this.ry, -0.205) *
-          Math.pow(this.fy / 355, -0.391),
-        3.0
-      );
-    }
-    const thetaUlt = 0.2;
-    const alpha = (mc - my) / thetaP / this.ke;
-    const alphaPc = -mc / (this.ke * thetaPc);
-    return {
-      my,
-      thetaY,
-      a,
-      mc,
-      thetaP,
-      thetaPc,
-      res,
-      mRes,
-      thetaUlt,
-      alpha,
-      alphaPc,
-      zx,
-      lambda,
-    };
-  }
-
-  get envelopeNonRbs(): Envelope {
-    const { zx, my } = this.nonRbs();
-    const res = 0.3;
-    const mRes = res * my;
-    const thetaY = my / this.ke;
-
-    const thetaP =
-      0.5 *
-      Math.pow(this.h / this.tw, -0.9) *
-      Math.pow(this.bf / 2 / this.tf, -1.1) *
-      Math.pow(this.lb / this.ry, -0.2) *
-      Math.pow(this.le / this.d, 1.1) *
-      Math.pow(this.e / this.fy, 0.2);
-    const thetaPc = clamp(
-      6.4 *
-        Math.pow(this.h / this.tw, -0.9) *
-        Math.pow(this.bf / 2 / this.tf, -0.2) *
-        Math.pow(this.lb / this.ry, -0.5) *
-        Math.pow(this.e / this.fy, 0.1),
-      0.05
-    );
-    const thetaUlt = 0.08;
-    const alpha = 0.03;
-    const mc = my + alpha * this.ke * thetaP;
-    const alphaPc = (0.0 - mc) / (this.ke * thetaPc);
-    return {
-      my,
-      thetaY,
-      mc,
-      thetaP,
-      thetaPc,
-      res,
-      mRes,
-      thetaUlt,
-      alpha,
-      alphaPc,
-      zx,
-    };
-  }
-
-  private getPoints(output: Envelope | Backbone): Point[] {
-    const p1: Point = [0, 0];
-    const p2: Point = [output.thetaY, output.my];
-    const p3: Point = [p2[0] + output.thetaP, output.mc];
-    const p4: Point = [
-      p3[0] + (output.mc - output.mRes) / (-output.alphaPc * this.ke),
-      output.mRes,
-    ];
-    if (p4[0] < output.thetaUlt) {
-      const p5: Point = [output.thetaUlt, output.mRes];
-      const p6: Point = [p5[0], 0];
-      return [p1, p2, p3, p4, p5, p6];
-    } else if (p3[0] < output.thetaUlt) {
-      // && output.thetaUlt <= p4[0]
-      const p5: Point = [
-        output.thetaUlt,
-        output.mc +
-          output.alphaPc * this.ke * Math.abs(output.thetaPc - output.thetaUlt),
-      ];
-      const p6: Point = [p5[0], 0];
-      return [p1, p2, p3, p5, p6];
-    } else if (p2[0] < output.thetaUlt) {
-      // && output.thetaUlt <= p3[0]
-      const p5: Point = [
-        output.thetaUlt,
-        output.my + output.alpha * this.ke * (output.thetaUlt - output.thetaY),
-      ];
-      const p6: Point = [p5[0], 0];
-      return [p1, p2, p5, p6];
-    } else {
-      const p5: Point = [output.thetaUlt, this.ke * output.thetaUlt];
-      const p6: Point = [p5[0], 0];
-      return [p1, p5, p6];
-    }
-  }
-
-  private getResult(output: Envelope | Backbone): Result {
-    return {
-      ke: this.ke,
-      lamdba: (output as Backbone).lambda,
-      ...output,
-      points: this.getPoints(output),
-    };
-  }
-
-  get backboneWithRbs(): Result {
-    return this.getResult(this.backboneRbs);
-  }
-
-  get backboneWithoutRbs(): Result {
-    return this.getResult(this.backboneNonRbs);
-  }
-
-  get envelopeWithRbs(): Result {
-    return this.getResult(this.envelopeRbs);
-  }
-
-  get envelopeWithoutRbs(): Result {
-    return this.getResult(this.envelopeNonRbs);
-  }
-
-  option(backbone: Result, envelope: Result): EChartsOption {
-    return {
-      xAxis: {
-        name: "Chord Rotation, θ",
-      },
-      yAxis: {
-        name: "Moment, M",
-      },
-      series: [
-        {
-          type: "line",
-          name: "Monotonic Backbone",
-          data: backbone.points,
-          color: primaryColor.base,
-        },
-        {
-          type: "line",
-          name: "First-Cycle Envelope",
-          data: envelope.points,
-          color: secondaryColor.base,
-        },
-      ],
-    };
-  }
-}
-
-interface Result {
-  ke: number;
-  my: number;
-  mc: number;
-  mRes: number;
-  thetaP: number;
-  thetaPc: number;
-  thetaUlt: number;
-  lamdba?: number;
-  points: Point[];
-}
-
-interface Envelope {
-  my: number;
-  thetaY: number;
-  mc: number;
-  thetaP: number;
-  thetaPc: number;
-  res: number;
-  mRes: number;
-  thetaUlt: number;
-  alpha: number;
-  alphaPc: number;
-  zx: number;
-  lRbs?: number;
-  // For debugging
-  zRbs?: number;
-}
-
-interface Backbone extends Envelope {
-  a: number;
-  lambda: number;
-}
-</script>

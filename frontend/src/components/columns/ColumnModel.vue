@@ -152,8 +152,8 @@ const rows: UnitTableRowData[] = [
 
 const section = ref<Section>();
 
+const e = 205;
 interface Variables {
-  e: number;
   bf: number;
   d: number;
   tf: number;
@@ -164,7 +164,6 @@ interface Variables {
   fy: number;
 }
 const variables = reactive<Variables>({
-  e: 205,
   bf: 100,
   d: 100,
   tf: 5,
@@ -176,33 +175,34 @@ const variables = reactive<Variables>({
 });
 
 const vars = computed(() => {
-  const h = section.value ? section.value.h : variables.d - 2 * variables.tf;
-  const ix = section.value
-    ? section.value.ix
-    : (Math.pow(variables.d - 2 * variables.tf, 3) * variables.tw) / 12 +
-      2 *
-        variables.bf *
-        variables.tf *
-        (Math.pow(variables.tf, 2) / 12 +
-          Math.pow((variables.d - variables.tf) / 2, 2));
-  const ry = section.value
-    ? section.value.ry
-    : Math.sqrt(
-        ((variables.tf * Math.pow(variables.bf, 3)) / 12 +
-          ((variables.d - 2 * variables.tf) * Math.pow(variables.tw, 3)) / 12) /
-          (2 * variables.tf * variables.bf +
-            (variables.d - 2 * variables.tf) * variables.tw)
-      );
-  const ke = (6 * variables.e * ix) / variables.l;
-  const zx = section.value
-    ? section.value.zx
-    : 2 *
-      (variables.bf * variables.tf * ((variables.d - variables.tf) / 2) +
-        (Math.pow(variables.d - 2 * variables.tf, 2) * variables.tw) / 4);
+  const { bf, d, tf, tw, pgPye, l, fy } = variables;
+
+  let h: number;
+  let ix: number;
+  let ry: number;
+  let zx: number;
+  if (section.value) {
+    h = section.value.h;
+    ix = section.value.ix;
+    ry = section.value.ry;
+    zx = section.value.zx;
+  } else {
+    h = d - 2 * tf;
+    ix =
+      (Math.pow(d - 2 * tf, 3) * tw) / 12 +
+      2 * bf * tf * (Math.pow(tf, 2) / 12 + Math.pow((d - tf) / 2, 2));
+    ry = Math.sqrt(
+      ((tf * Math.pow(bf, 3)) / 12 + ((d - 2 * tf) * Math.pow(tw, 3)) / 12) /
+        (2 * tf * bf + (d - 2 * tf) * tw)
+    );
+    zx = 2 * (bf * tf * ((d - tf) / 2) + (Math.pow(d - 2 * tf, 2) * tw) / 4);
+  }
+
+  const ke = (6 * e * ix) / l;
   const my =
-    variables.pgPye < 0.2
-      ? 1.15 * zx * (variables.fy / 1000) * (1 - variables.pgPye / 2)
-      : 1.15 * zx * (variables.fy / 1000) * (9 / 8) * (1 - variables.pgPye);
+    pgPye < 0.2
+      ? 1.15 * zx * (fy / 1000) * (1 - pgPye / 2)
+      : 1.15 * zx * (fy / 1000) * (9 / 8) * (1 - pgPye);
   return {
     h,
     ix,
@@ -214,50 +214,53 @@ const vars = computed(() => {
 });
 
 const backbone = computed<Backbone>(() => {
+  const { tw, pgPye, lb } = variables;
+  const { h, ry, ke, my } = vars.value;
+
   const a = clamp(
     12.5 *
-      Math.pow(vars.value.h / variables.tw, -0.2) *
-      Math.pow(variables.lb / vars.value.ry, -0.4) *
-      Math.pow(1 - variables.pgPye, 0.4),
+      Math.pow(h / tw, -0.2) *
+      Math.pow(lb / ry, -0.4) *
+      Math.pow(1 - pgPye, 0.4),
     1,
     1.3
   );
-  const mc = a * vars.value.my;
-  const res = 0.5 - 0.4 * variables.pgPye;
-  const mRes = res * vars.value.my;
-  const thetaY = vars.value.my / vars.value.ke;
+  const mc = a * my;
+  const res = 0.5 - 0.4 * pgPye;
+  const mRes = res * my;
+  const thetaY = my / ke;
   const thetaP = Math.min(
     0.2,
     294 *
-      Math.pow(vars.value.h / variables.tw, -1.7) *
-      Math.pow(variables.lb / vars.value.ry, -0.7) *
-      Math.pow(1 - variables.pgPye, 1.6)
+      Math.pow(h / tw, -1.7) *
+      Math.pow(lb / ry, -0.7) *
+      Math.pow(1 - pgPye, 1.6)
   );
   const thetaPc = Math.min(
     0.3,
     90 *
-      Math.pow(vars.value.h / variables.tw, -0.8) *
-      Math.pow(variables.lb / vars.value.ry, -0.8) *
-      Math.pow(1 - variables.pgPye, 2.5)
+      Math.pow(h / tw, -0.8) *
+      Math.pow(lb / ry, -0.8) *
+      Math.pow(1 - pgPye, 2.5)
   );
   const thetaUlt = 0.15;
-  const alpha = (mc - vars.value.my) / thetaP / vars.value.ke;
-  const alphaPc = -mc / (vars.value.ke * thetaPc);
+  const alpha = (mc - my) / thetaP / ke;
+  const alphaPc = -mc / (ke * thetaPc);
   const lambda =
-    variables.pgPye <= 0.35
+    pgPye <= 0.35
       ? Math.min(
           3.0,
           25000 *
-            Math.pow(vars.value.h / variables.tw, -2.14) *
-            Math.pow(variables.lb / vars.value.ry, -0.53) *
-            Math.pow(1 - variables.pgPye, 4.92)
+            Math.pow(h / tw, -2.14) *
+            Math.pow(lb / ry, -0.53) *
+            Math.pow(1 - pgPye, 4.92)
         )
       : Math.min(
           3.0,
           268000 *
-            Math.pow(vars.value.h / variables.tw, -2.3) *
-            Math.pow(variables.lb / vars.value.ry, -1.3) *
-            Math.pow(1 - variables.pgPye, 1.19)
+            Math.pow(h / tw, -2.3) *
+            Math.pow(lb / ry, -1.3) *
+            Math.pow(1 - pgPye, 1.19)
         );
   return {
     thetaY,
@@ -274,35 +277,38 @@ const backbone = computed<Backbone>(() => {
   };
 });
 const envelope = computed<Envelope>(() => {
+  const { tw, pgPye, lb } = variables;
+  const { h, ry, ke, my } = vars.value;
+
   const a = clamp(
     9.5 *
-      Math.pow(vars.value.h / variables.tw, -0.4) *
-      Math.pow(variables.lb / vars.value.ry, -0.16) *
-      Math.pow(1 - variables.pgPye, 0.2),
+      Math.pow(h / tw, -0.4) *
+      Math.pow(lb / ry, -0.16) *
+      Math.pow(1 - pgPye, 0.2),
     1,
     1.3
   );
-  const mc = a * vars.value.my;
-  const res = 0.4 - 0.4 * variables.pgPye;
-  const mRes = res * vars.value.my;
-  const thetaY = vars.value.my / vars.value.ke;
+  const mc = a * my;
+  const res = 0.4 - 0.4 * pgPye;
+  const mRes = res * my;
+  const thetaY = my / ke;
   const thetaP = Math.min(
     0.1,
     15 *
-      Math.pow(vars.value.h / variables.tw, -1.6) *
-      Math.pow(variables.lb / vars.value.ry, -0.3) *
-      Math.pow(1 - variables.pgPye, 2.3)
+      Math.pow(h / tw, -1.6) *
+      Math.pow(lb / ry, -0.3) *
+      Math.pow(1 - pgPye, 2.3)
   );
   const thetaPc = Math.min(
     0.1,
     14 *
-      Math.pow(vars.value.h / variables.tw, -0.8) *
-      Math.pow(variables.lb / vars.value.ry, -0.5) *
-      Math.pow(1 - variables.pgPye, 3.2)
+      Math.pow(h / tw, -0.8) *
+      Math.pow(lb / ry, -0.5) *
+      Math.pow(1 - pgPye, 3.2)
   );
-  const thetaUlt = 0.08 * (1 - 0.6 * variables.pgPye);
-  const alpha = (mc - vars.value.my) / thetaP / vars.value.ke;
-  const alphaPc = -mc / (vars.value.ke * thetaPc);
+  const thetaUlt = 0.08 * (1 - 0.6 * pgPye);
+  const alpha = (mc - my) / thetaP / ke;
+  const alphaPc = -mc / (ke * thetaPc);
   return {
     thetaY,
     mc,
@@ -329,11 +335,13 @@ function onSectionChanged(value?: Section): void {
 }
 
 function getPoints(output: Envelope | Backbone): Point[] {
+  const { ke, my } = vars.value;
+
   const p1: Point = [0, 0];
-  const p2: Point = [output.thetaY, vars.value.my];
+  const p2: Point = [output.thetaY, my];
   const p3: Point = [p2[0] + output.thetaP, output.mc];
   const p4: Point = [
-    p3[0] + (output.mc - output.mRes) / (-output.alphaPc * vars.value.ke),
+    p3[0] + (output.mc - output.mRes) / (-output.alphaPc * ke),
     output.mRes,
   ];
   if (p4[0] < output.thetaUlt) {
@@ -345,9 +353,7 @@ function getPoints(output: Envelope | Backbone): Point[] {
     const p5: Point = [
       output.thetaUlt,
       output.mc +
-        output.alphaPc *
-          vars.value.ke *
-          Math.abs(output.thetaPc - output.thetaUlt),
+        output.alphaPc * ke * Math.abs(output.thetaPc - output.thetaUlt),
     ];
     const p6: Point = [p5[0], 0];
     return [p1, p2, p3, p5, p6];
@@ -355,22 +361,22 @@ function getPoints(output: Envelope | Backbone): Point[] {
     // && output.thetaUlt <= p3[0]
     const p5: Point = [
       output.thetaUlt,
-      vars.value.my +
-        output.alpha * vars.value.ke * (output.thetaUlt - output.thetaY),
+      my + output.alpha * ke * (output.thetaUlt - output.thetaY),
     ];
     const p6: Point = [p5[0], 0];
     return [p1, p2, p5, p6];
   } else {
-    const p5: Point = [output.thetaUlt, vars.value.ke * output.thetaUlt];
+    const p5: Point = [output.thetaUlt, ke * output.thetaUlt];
     const p6: Point = [p5[0], 0];
     return [p1, p5, p6];
   }
 }
 
 function getResult(output: Envelope | Backbone): Result {
+  const { ke, my } = vars.value;
   return {
-    ke: vars.value.ke,
-    my: vars.value.my,
+    ke: ke,
+    my: my,
     lamdba: (output as Backbone).lambda,
     ...output,
     points: getPoints(output),

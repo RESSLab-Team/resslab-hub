@@ -52,6 +52,8 @@ const variables = reactive<Variables>({
 });
 
 const preNorthridgeOption = computed<EChartsOption>(() => {
+  const { l, db } = variables;
+
   let yieldingMedian: number;
   let yieldingSigma: number;
   let fractureMedian: number;
@@ -59,10 +61,10 @@ const preNorthridgeOption = computed<EChartsOption>(() => {
   if (infoAvailable.value) {
     yieldingMedian =
       material.value === "a36"
-        ? Math.exp(-1.83 + 0.16 * (variables.l / variables.db))
-        : Math.exp(-0.56 + 0.028 * (variables.l / variables.db));
+        ? Math.exp(-1.83 + 0.16 * (l / db))
+        : Math.exp(-0.56 + 0.028 * (l / db));
     yieldingSigma = material.value === "a36" ? 0.24 : 0.18;
-    fractureMedian = Math.exp(0.99 - 0.0074 * (variables.db / 10));
+    fractureMedian = Math.exp(0.99 - 0.0074 * (db / 10));
     fractureSigma = 0.44;
   } else {
     yieldingMedian = material.value === "a36" ? 0.77 : 0.76;

@@ -141,28 +141,20 @@ const strains = ref<Record<testId, number[]>>({
   LP5_S1_D: [],
 });
 const chartSeries = computed<Record<testId, LineSeriesOption>>(() => {
+  const { e, sigma, q, b, d, a, c1, gamma1, c2, gamma2 } = variables;
   return Object.fromEntries(
     Object.entries(strains.value).map(([id, strain]) => {
       try {
-        const stress = computeUvcStress(
-          strain,
-          variables.e,
-          variables.sigma,
-          variables.q,
-          variables.b,
-          variables.d,
-          variables.a,
-          [
-            {
-              c: variables.c1,
-              gamma: variables.gamma1,
-            },
-            {
-              c: variables.c2,
-              gamma: variables.gamma2,
-            },
-          ]
-        );
+        const stress = computeUvcStress(strain, e, sigma, q, b, d, a, [
+          {
+            c: c1,
+            gamma: gamma1,
+          },
+          {
+            c: c2,
+            gamma: gamma2,
+          },
+        ]);
         return [
           id,
           {

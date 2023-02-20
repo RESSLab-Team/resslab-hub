@@ -132,7 +132,7 @@ onMounted(() => {
               />
             </video>
             <v-overlay absolute value="true" z-index="0">
-              <h1>
+              <h1 class="pa-5 text-center">
                 RESSLab Hub: Open-access databases and models for design and
                 assessment of steel structures
               </h1>
@@ -257,7 +257,7 @@ onMounted(() => {
               :key="index"
               cover
             >
-              <v-img :src="image.src" dark height="100%" contain="true" />
+              <v-img :src="image.src" contain dark height="100%" />
             </v-carousel-item>
           </v-carousel>
           <v-card-text class="pa-0 pt-5 mb-0 text-right">
