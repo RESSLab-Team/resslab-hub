@@ -1,3 +1,29 @@
+<script setup lang="ts">
+import { SelectItem } from "@/utils/vuetify";
+import { withDefaults, defineProps, computed, defineEmits } from "vue";
+
+const props = withDefaults(
+  defineProps<{
+    value?: string;
+    items?: SelectItem[];
+    prefix?: string;
+  }>(),
+  {
+    value: "",
+    items: () => [],
+    prefix: "",
+  }
+);
+const emit = defineEmits<{
+  (e: "input", value: string): void;
+}>();
+
+const item = computed<string>({
+  get: () => props.value,
+  set: (value) => emit("input", value),
+});
+</script>
+
 <template>
   <v-select v-model="item" :items="items" hide-details>
     <template #selection="data">
@@ -8,18 +34,3 @@
     </template>
   </v-select>
 </template>
-
-<script lang="ts">
-import { SelectItem } from "@/utils/vuetify";
-import { Component, Prop, VModel, Vue } from "vue-property-decorator";
-
-@Component
-export default class LocaleSelect extends Vue {
-  @VModel({ type: String, default: "" })
-  item!: string;
-  @Prop({ type: Array as () => SelectItem[], default: [] })
-  readonly items!: SelectItem[];
-  @Prop({ type: String, default: "" })
-  readonly prefix!: string;
-}
-</script>

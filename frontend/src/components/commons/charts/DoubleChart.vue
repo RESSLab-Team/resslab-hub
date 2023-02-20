@@ -10,10 +10,11 @@
       />
     </v-responsive>
     <range-slider
-      v-if="isHistogram"
-      v-model="range"
+      v-if="numberMin && numberMax"
+      v-model="numberRange"
       :color="color"
-      :get-range="rangePromise"
+      :min="numberMin"
+      :max="numberMax"
     />
     <date-range-slider
       v-if="dateMin && dateMax"
@@ -82,8 +83,6 @@ export default class DoubleChart extends Vue {
   readonly color!: Color;
   @Prop({ type: String, default: "" })
   readonly labelPrefix!: string;
-  @Prop({ type: String })
-  readonly numberField: string | undefined;
   @Prop({ type: Promise })
   readonly promise!: Promise<AxiosResponse<CountModel[]>>;
   @Prop({ type: Promise })
@@ -92,7 +91,9 @@ export default class DoubleChart extends Vue {
   readonly dateRangePromise: Promise<DateRangeModel> | undefined;
 
   counts: CountModel[] = [];
-  range: [number, number] | null = null;
+  numberRange: [number, number] | null = null;
+  numberMin: number | null = null;
+  numberMax: number | null = null;
   dateRange: [string, string] | null = null;
   dateMin: string | null = null;
   dateMax: string | null = null;
@@ -104,6 +105,10 @@ export default class DoubleChart extends Vue {
       `fieldSearches.${this.fields[0]}`,
       this.onFirstFieldChanged
     );
+    this.rangePromise?.then((range) => {
+      this.numberMin = range.min;
+      this.numberMax = range.max;
+    });
     this.dateRangePromise?.then((range) => {
       this.dateMin = range.min;
       this.dateMax = range.max;
@@ -217,7 +222,7 @@ export default class DoubleChart extends Vue {
   }
 
   get isHistogram(): boolean {
-    return this.numberField !== undefined;
+    return this.numberRange !== undefined;
   }
 
   @Watch("fields")
@@ -230,7 +235,7 @@ export default class DoubleChart extends Vue {
       });
   }
 
-  @Watch("range")
+  @Watch("numberRange")
   onSliderChanged(value: [number, number] | null): void {
     if (value && !isNaN(value[0]) && !isNaN(value[1])) {
       this.$set(this.fieldSearches, this.fields[0], `${value[0]}<<${value[1]}`);
@@ -246,11 +251,11 @@ export default class DoubleChart extends Vue {
 
   onFirstFieldChanged(value: string): void {
     if (value === undefined) {
-      this.range = null;
+      this.numberRange = null;
     } else if (value.includes("<<")) {
       const [min, max] = value.split("<<", 2).map((v) => Number(v));
       if (min !== undefined && max !== undefined) {
-        this.range = [min, max];
+        this.numberRange = [min, max];
       }
     }
   }

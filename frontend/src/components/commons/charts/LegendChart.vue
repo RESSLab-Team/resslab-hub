@@ -7,23 +7,22 @@ interface LegendItem {
   color: string;
   icon: string;
 }
-
-interface LegendProps {
-  value: LegendItem[];
-  separatorsIndex: number[];
-}
-
 function getClass(index: number): string {
   return `legend-checkbox ${
     props.separatorsIndex.includes(index) ? "mt-4" : "mt-0"
   }`;
 }
 
-const props = withDefaults(defineProps<LegendProps>(), {
-  separatorsIndex: () => [],
-  value: () => [],
-});
-
+const props = withDefaults(
+  defineProps<{
+    value?: LegendItem[];
+    separatorsIndex?: number[];
+  }>(),
+  {
+    value: () => [],
+    separatorsIndex: () => [],
+  }
+);
 const emit = defineEmits(["update:value"]);
 
 const items = computed({

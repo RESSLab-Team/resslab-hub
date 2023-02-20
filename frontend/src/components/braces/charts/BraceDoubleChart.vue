@@ -7,9 +7,8 @@
     :type="type"
     :color="color"
     :promise="promise"
-    :number-field="numberField"
     :range-promise="rangePromise"
-  ></double-chart>
+  />
 </template>
 
 <script lang="ts">

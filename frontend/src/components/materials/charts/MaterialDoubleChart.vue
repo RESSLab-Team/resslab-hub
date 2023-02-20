@@ -7,7 +7,6 @@
     :type="type"
     :color="color"
     :promise="promise"
-    :number-field="numberField"
     :range-promise="rangePromise"
     :date-range-promise="dateRangePromise"
   />
