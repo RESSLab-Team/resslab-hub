@@ -2077,6 +2077,41 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
+         * Get filtered fields
+         * @summary Get Braces Fields
+         * @param {Array<BraceField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesFields: async (fields?: Array<BraceField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/braces/fields`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get occurences location of field values
          * @summary Get Braces Locations
          * @param {*} [options] Override http request option.
@@ -2268,6 +2303,17 @@ export const BracesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get filtered fields
+         * @summary Get Braces Fields
+         * @param {Array<BraceField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getBracesFields(fields?: Array<BraceField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesFields(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get occurences location of field values
          * @summary Get Braces Locations
          * @param {*} [options] Override http request option.
@@ -2375,6 +2421,16 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
          */
         getBracesDistinct(fields?: Array<BraceField>, options?: any): AxiosPromise<number> {
             return localVarFp.getBracesDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Braces Fields
+         * @param {Array<BraceField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getBracesFields(fields?: Array<BraceField>, options?: any): AxiosPromise<Array<object>> {
+            return localVarFp.getBracesFields(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences location of field values
@@ -2492,6 +2548,18 @@ export class BracesApi extends BaseAPI {
      */
     public getBracesDistinct(fields?: Array<BraceField>, options?: AxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get filtered fields
+     * @summary Get Braces Fields
+     * @param {Array<BraceField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BracesApi
+     */
+    public getBracesFields(fields?: Array<BraceField>, options?: AxiosRequestConfig) {
+        return BracesApiFp(this.configuration).getBracesFields(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2750,6 +2818,41 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          */
         getColumnsDistinct: async (fields?: Array<ColumnField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/columns/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Columns Fields
+         * @param {Array<ColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsFields: async (fields?: Array<ColumnField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/columns/fields`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -3114,6 +3217,17 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get filtered fields
+         * @summary Get Columns Fields
+         * @param {Array<ColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getColumnsFields(fields?: Array<ColumnField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsFields(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get occurences location of field values
          * @summary Get Columns Locations
          * @param {*} [options] Override http request option.
@@ -3267,6 +3381,16 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          */
         getColumnsDistinct(fields?: Array<ColumnField>, options?: any): AxiosPromise<number> {
             return localVarFp.getColumnsDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Columns Fields
+         * @param {Array<ColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getColumnsFields(fields?: Array<ColumnField>, options?: any): AxiosPromise<Array<object>> {
+            return localVarFp.getColumnsFields(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences location of field values
@@ -3426,6 +3550,18 @@ export class ColumnsApi extends BaseAPI {
      */
     public getColumnsDistinct(fields?: Array<ColumnField>, options?: AxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get filtered fields
+     * @summary Get Columns Fields
+     * @param {Array<ColumnField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ColumnsApi
+     */
+    public getColumnsFields(fields?: Array<ColumnField>, options?: AxiosRequestConfig) {
+        return ColumnsApiFp(this.configuration).getColumnsFields(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3807,6 +3943,41 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          */
         getConnectionsDistinct: async (fields?: Array<ConnectionField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/connections/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Connections Fields
+         * @param {Array<ConnectionField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsFields: async (fields?: Array<ConnectionField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/connections/fields`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -4267,6 +4438,17 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get filtered fields
+         * @summary Get Connections Fields
+         * @param {Array<ConnectionField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getConnectionsFields(fields?: Array<ConnectionField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsFields(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get global series from connection
          * @summary Get Connections Global
          * @param {string} connectionId 
@@ -4464,6 +4646,16 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          */
         getConnectionsDistinct(fields?: Array<ConnectionField>, options?: any): AxiosPromise<number> {
             return localVarFp.getConnectionsDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Connections Fields
+         * @param {Array<ConnectionField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getConnectionsFields(fields?: Array<ConnectionField>, options?: any): AxiosPromise<Array<object>> {
+            return localVarFp.getConnectionsFields(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * Get global series from connection
@@ -4669,6 +4861,18 @@ export class ConnectionsApi extends BaseAPI {
      */
     public getConnectionsDistinct(fields?: Array<ConnectionField>, options?: AxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get filtered fields
+     * @summary Get Connections Fields
+     * @param {Array<ConnectionField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ConnectionsApi
+     */
+    public getConnectionsFields(fields?: Array<ConnectionField>, options?: AxiosRequestConfig) {
+        return ConnectionsApiFp(this.configuration).getConnectionsFields(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5091,6 +5295,41 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
+         * Get filtered fields
+         * @summary Get Materials Fields
+         * @param {Array<MaterialField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsFields: async (fields?: Array<MaterialField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/materials/fields`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get occurences location of field values
          * @summary Get Materials Locations
          * @param {*} [options] Override http request option.
@@ -5343,6 +5582,17 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get filtered fields
+         * @summary Get Materials Fields
+         * @param {Array<MaterialField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMaterialsFields(fields?: Array<MaterialField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsFields(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get occurences location of field values
          * @summary Get Materials Locations
          * @param {*} [options] Override http request option.
@@ -5462,6 +5712,16 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          */
         getMaterialsDistinct(fields?: Array<MaterialField>, options?: any): AxiosPromise<number> {
             return localVarFp.getMaterialsDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Materials Fields
+         * @param {Array<MaterialField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMaterialsFields(fields?: Array<MaterialField>, options?: any): AxiosPromise<Array<object>> {
+            return localVarFp.getMaterialsFields(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences location of field values
@@ -5587,6 +5847,18 @@ export class MaterialsApi extends BaseAPI {
      */
     public getMaterialsDistinct(fields?: Array<MaterialField>, options?: AxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get filtered fields
+     * @summary Get Materials Fields
+     * @param {Array<MaterialField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MaterialsApi
+     */
+    public getMaterialsFields(fields?: Array<MaterialField>, options?: AxiosRequestConfig) {
+        return MaterialsApiFp(this.configuration).getMaterialsFields(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

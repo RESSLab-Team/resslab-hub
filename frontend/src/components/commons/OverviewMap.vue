@@ -31,36 +31,47 @@ import {
   connectionsApi,
   materialsApi,
 } from "@/plugins/axios";
-import { createMarkers } from "@/utils/overviewmap";
+
+import {
+  createMarkers,
+  locationCommonFields,
+  tooltipBracesFields,
+  tooltipColumnsFields,
+  tooltipConnectionsFields,
+  tooltipMaterialsFields,
+} from "@/utils/overviewmap";
+
 import { computed, onMounted, ref } from "vue";
 
 const connectionsLocations = ref<LocationConnectionsModel[]>([]);
 connectionsApi
-  .getConnectionsLocations()
-  .then((res: { data: LocationConnectionsModel[] }) => {
-    connectionsLocations.value = res.data;
+  .getConnectionsFields([...locationCommonFields, ...tooltipConnectionsFields])
+  .then((res) => {
+    connectionsLocations.value = res.data as LocationConnectionsModel[];
     updateMap();
   });
 
 const columnsLocations = ref<LocationColumnsModel[]>([]);
 columnsApi
-  .getColumnsLocations()
-  .then((res: { data: LocationColumnsModel[] }) => {
-    columnsLocations.value = res.data;
+  .getColumnsFields([...locationCommonFields, ...tooltipColumnsFields])
+  .then((res) => {
+    columnsLocations.value = res.data as LocationColumnsModel[];
     updateMap();
   });
 
 const bracesLocations = ref<LocationBracesModel[]>([]);
-bracesApi.getBracesLocations().then((res: { data: LocationBracesModel[] }) => {
-  bracesLocations.value = res.data;
-  updateMap();
-});
+bracesApi
+  .getBracesFields([...locationCommonFields, ...tooltipBracesFields])
+  .then((res) => {
+    bracesLocations.value = res.data as LocationBracesModel[];
+    updateMap();
+  });
 
 const materialsLocations = ref<LocationMaterialsModel[]>([]);
 materialsApi
-  .getMaterialsLocations()
-  .then((res: { data: LocationMaterialsModel[] }) => {
-    materialsLocations.value = res.data;
+  .getMaterialsFields([...locationCommonFields, ...tooltipMaterialsFields])
+  .then((res) => {
+    materialsLocations.value = res.data as LocationMaterialsModel[];
     updateMap();
   });
 

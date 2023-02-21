@@ -186,6 +186,56 @@
         }
       }
     },
+    "/braces/fields": {
+      "get": {
+        "tags": [
+          "braces"
+        ],
+        "summary": "Get Braces Fields",
+        "description": "Get filtered fields",
+        "operationId": "get_braces_fields",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/BraceField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Braces Fields Braces Fields Get",
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/braces/counts": {
       "get": {
         "tags": [
@@ -635,6 +685,56 @@
                   "items": {
                     "$ref": "#/components/schemas/LocationColumnsModel"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/columns/fields": {
+      "get": {
+        "tags": [
+          "columns"
+        ],
+        "summary": "Get Columns Fields",
+        "description": "Get filtered fields",
+        "operationId": "get_columns_fields",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ColumnField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Columns Fields Columns Fields Get",
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -1285,6 +1385,56 @@
                   "items": {
                     "$ref": "#/components/schemas/LocationConnectionsModel"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/fields": {
+      "get": {
+        "tags": [
+          "connections"
+        ],
+        "summary": "Get Connections Fields",
+        "description": "Get filtered fields",
+        "operationId": "get_connections_fields",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ConnectionField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Connections Fields Connections Fields Get",
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -2129,6 +2279,56 @@
                   "items": {
                     "$ref": "#/components/schemas/LocationMaterialsModel"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/materials/fields": {
+      "get": {
+        "tags": [
+          "materials"
+        ],
+        "summary": "Get Materials Fields",
+        "description": "Get filtered fields",
+        "operationId": "get_materials_fields",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/MaterialField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Materials Fields Materials Fields Get",
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
