@@ -85,7 +85,7 @@ async def get_braces_locations(
             Brace.boundary_condition,
         )
     )
-    return rows.all()
+    return [row._mapping for row in rows.all()]
 
 
 @router.get("/counts", response_model=List[CountModel])

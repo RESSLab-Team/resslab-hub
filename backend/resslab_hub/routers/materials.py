@@ -86,7 +86,7 @@ async def get_materials_locations(
             Material.profile_type,
         )
     )
-    return rows.all()
+    return [row._mapping for row in rows.all()]
 
 
 @router.get("/counts", response_model=List[CountModel])

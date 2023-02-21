@@ -2,27 +2,19 @@ from abc import ABC
 from datetime import date, datetime
 from decimal import Decimal
 from distutils.util import strtobool
+from functools import reduce
 from math import ceil, isnan
 from typing import Any, Dict, Generic, List, Optional, Set, TypeVar, Union
 
 from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
 from pydantic.main import BaseModel
-from sqlalchemy import and_, desc, distinct, func, not_, or_, select, tuple_
+from sqlalchemy import and_, desc, distinct, func, not_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import column_property
 from sqlalchemy.sql.elements import BooleanClauseList, ColumnElement
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.selectable import Select
-from sqlalchemy.sql.sqltypes import (
-    BigInteger,
-    Boolean,
-    Date,
-    Float,
-    Integer,
-    Numeric,
-    String,
-)
+from sqlalchemy.sql.sqltypes import Boolean, Date, Float, Integer, Numeric, String
 
 from resslab_hub.models.api import CountModel, DateRangeModel, MatrixModel, RangeModel
 from resslab_hub.utils.database import Base
@@ -37,8 +29,8 @@ class SubComponent:
     def __init__(
         self,
         name: str,
-        parent_id_column: Column[String],
-        id_column: Column[BigInteger],
+        parent_id_column: Column[str],
+        id_column: Column[int],
         columns: Dict[Column[Numeric], str],
     ) -> None:
         self.name = name
@@ -84,8 +76,8 @@ class Component(ABC, Generic[D, M]):
         name: str,
         database_type: type[D],
         model_type: type[M],
-        id_column: Column[String],
-        ignored_columns: Set[column_property],
+        id_column: Column[str],
+        ignored_columns: Set[Column],
     ) -> None:
         self.name = name
         self.database_type = database_type
@@ -136,7 +128,7 @@ class Component(ABC, Generic[D, M]):
         where_clauses = self.__get_where_clauses(query)
         columns = [self.database_type.__dict__[field] for field in fields]
         rows = await session.execute(
-            select([*columns, func.count()])
+            select(*columns, func.count())
             .select_from(self.database_type)
             .where(and_(*where_clauses))
             .group_by(*columns)
@@ -158,7 +150,7 @@ class Component(ABC, Generic[D, M]):
         Get range of field
         """
         column: Column[Union[Float, Integer, Numeric]] = self.__get_column(number_field)
-        rows = await session.execute(select([func.min(column), func.max(column)]))
+        rows = await session.execute(select(func.min(column), func.max(column)))
         row = next(rows)
         return RangeModel(min=row[0], max=row[1])
 
@@ -171,7 +163,7 @@ class Component(ABC, Generic[D, M]):
         Get range of field
         """
         column: Column[Date] = self.__get_column(date_field)
-        rows = await session.execute(select([func.min(column), func.max(column)]))
+        rows = await session.execute(select(func.min(column), func.max(column)))
         row = next(rows)
         return DateRangeModel(min=row[0], max=row[1])
 
@@ -184,7 +176,7 @@ class Component(ABC, Generic[D, M]):
         where_clauses = self.__get_where_clauses(query)
         columns = [self.__get_column(field) for field in fields]
         rows = await session.execute(
-            select([self.id_column, *columns]).where(and_(*where_clauses))
+            select(self.id_column, *columns).where(and_(*where_clauses))
         )
         rows = rows.all()
         ids = [row[0] for row in rows]
@@ -205,7 +197,9 @@ class Component(ABC, Generic[D, M]):
             filename,
         )
 
-    async def get_distinct(self, session: AsyncSession, fields: List[str]) -> int:
+    async def get_distinct(
+        self, session: AsyncSession, fields: List[str]
+    ) -> Optional[int]:
         columns = [self.database_type.__dict__[field] for field in fields]
         count = await session.scalar(
             select(
@@ -219,8 +213,8 @@ class Component(ABC, Generic[D, M]):
     def get_sub(
         self,
         name: str,
-        parent_id_column: Column[String],
-        id_column: Column[BigInteger],
+        parent_id_column: Column[str],
+        id_column: Column[int],
         columns: Dict[Column[Numeric], str],
     ) -> SubComponent:
         return SubComponent(
@@ -234,14 +228,14 @@ class Component(ABC, Generic[D, M]):
     async def get_series(
         session: AsyncSession,
         statement: Select,
-        id_column: Column[BigInteger],
+        id_column: Column[int],
         size: int,
     ) -> List[List[Decimal]]:
         if size > 0:
-            count: int = await session.scalar(
-                select(func.count()).select_from(statement)
+            count: Optional[int] = await session.scalar(
+                select(func.count()).select_from(statement.subquery())
             )
-            if count == 0:
+            if not count:
                 return []
             if count > size:
                 n = ceil(float(count) / float(size))
@@ -295,21 +289,21 @@ class Component(ABC, Generic[D, M]):
 
     def __get_global_predicate(self, expression: str) -> BooleanClauseList:
         if expression.startswith("!"):
-            return or_(
-                *[
-                    column.cast(String).not_ilike(expression[1:])
-                    for column in self.model_columns.values()
-                    if column not in self.ignored_columns
-                ]
-            )
+            predicates = [
+                column.cast(String).not_ilike(expression[1:])
+                for column in self.model_columns.values()
+                if column not in self.ignored_columns
+            ]
         else:
-            return or_(
-                *[
-                    column.cast(String).ilike(expression)
-                    for column in self.model_columns.values()
-                    if column not in self.ignored_columns
-                ]
-            )
+            predicates = [
+                column.cast(String).ilike(expression)
+                for column in self.model_columns.values()
+                if column not in self.ignored_columns
+            ]
+        return reduce(
+            lambda a, b: a + b,
+            predicates,
+        )
 
     @staticmethod
     def __get_predicate(
