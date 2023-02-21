@@ -133,7 +133,7 @@ async def get_connections_locations(
             Connection.specimen_type,
         )
     )
-    return rows.all()
+    return [row._mapping for row in rows.all()]
 
 
 @router.get("/counts", response_model=List[CountModel])

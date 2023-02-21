@@ -45,7 +45,7 @@ import {
 import { use } from "echarts/core";
 import { SVGRenderer } from "echarts/renderers";
 import { CallbackDataParams } from "echarts/types/dist/shared";
-import { chain, isEqual, range } from "lodash";
+import { chain, clone, isEqual, range } from "lodash";
 import VChart from "vue-echarts";
 import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
 import { Color } from "vuetify/lib/util/colors";
@@ -166,7 +166,7 @@ export default class DoubleChart extends Vue {
       )
       .map((item) => item.key)
       .value();
-    return {
+    const option: EChartsOption = {
       title: {
         text: this.$t(this.labelPrefix + this.secondField).toString(),
         textStyle: {
@@ -219,6 +219,7 @@ export default class DoubleChart extends Vue {
       })),
       color: getColorPalette(this.color, secondKeys.length),
     };
+    return option;
   }
 
   get isHistogram(): boolean {
@@ -267,15 +268,25 @@ export default class DoubleChart extends Vue {
           const firstKeyNumbers = this.firstKeys.map((firstKey) =>
             Number(firstKey)
           );
+          // generate all missing values
+          let allFirstKeys: (number | string)[];
+          if (firstKeyNumbers.some(isNaN)) {
+            // TODO create date range
+            allFirstKeys = clone(this.firstKeys).sort();
+          } else {
+            allFirstKeys = range(
+              Math.min(...firstKeyNumbers),
+              Math.max(...firstKeyNumbers) + 1
+            );
+          }
           let acc = 0;
-          const values: [number, number][] = range(
-            Math.min(...firstKeyNumbers),
-            Math.max(...firstKeyNumbers) + 1
-          ).map((firstKeyNumber) => {
-            const count = (acc +=
-              this.getCount(firstKeyNumber.toString(), secondKey) ?? 0);
-            return [firstKeyNumber, count];
-          });
+          const values: [number | string, number][] = allFirstKeys.map(
+            (firstKeyNumber) => {
+              const count = (acc +=
+                this.getCount(firstKeyNumber.toString(), secondKey) ?? 0);
+              return [firstKeyNumber, count];
+            }
+          );
           return {
             name: secondKey,
             data: values,

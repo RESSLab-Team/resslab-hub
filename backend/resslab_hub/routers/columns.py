@@ -113,7 +113,7 @@ async def get_columns_locations(
             ColumnEntity.direction_lp,
         )
     )
-    return rows.all()
+    return [row._mapping for row in rows.all()]
 
 
 @router.get("/counts", response_model=List[CountModel])

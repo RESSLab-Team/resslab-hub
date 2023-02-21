@@ -40,7 +40,7 @@ async def paginate(
     ]
 
     return ExtendedPage.create(
-        [type(**item) for item in mapped_items],
-        total,
-        params,
+        items=[type(**item) for item in mapped_items],
+        params=params,
+        total=total,
     )
