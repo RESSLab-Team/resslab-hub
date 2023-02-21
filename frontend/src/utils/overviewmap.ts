@@ -1,8 +1,12 @@
 import {
+  BraceField,
+  ColumnField,
+  ConnectionField,
   LocationBracesModel,
   LocationColumnsModel,
   LocationConnectionsModel,
   LocationMaterialsModel,
+  MaterialField,
 } from "@/backend";
 import {
   getBraceImage,
@@ -12,6 +16,33 @@ import {
 } from "@/utils/component";
 import { MarkerSVG, scaleColor, typesNames } from "@/utils/piechart";
 import { divIcon, Marker } from "leaflet";
+
+export const locationCommonFields: (MaterialField &
+  ColumnField &
+  ConnectionField &
+  BraceField)[] = ["id", "link", "date", "reference", "latitude", "longitude"];
+
+export const tooltipConnectionsFields: ConnectionField[] = [
+    "experimental_program",
+    "specimen_type",
+    "section_b",
+    "section_c",
+    "connection_type",
+  ],
+  tooltipBracesFields: BraceField[] = [
+    "cross_section_size",
+    "investigator",
+    "kl_r",
+    "boundary_condition",
+  ],
+  tooltipColumnsFields: ColumnField[] = [
+    "boundary_condition",
+    "axial_lp",
+    "p_g_over_p_ym",
+    "section_c",
+    "axis_of_bending",
+  ],
+  tooltipMaterialsFields: MaterialField[] = ["profile_type", "profile"];
 
 export function createTooltipConnections(d: LocationConnectionsModel) {
   return `<div class="tooltip">
