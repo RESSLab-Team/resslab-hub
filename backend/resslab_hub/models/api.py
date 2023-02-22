@@ -125,7 +125,7 @@ class LocationModel(BaseModel):
 
 class LocationMaterialsModel(LocationModel):
     # Materials DB uses "DD/MM/YY" instead of "YYYY" int format
-    date: str
+    date: date
     profile_type: str
     profile: str
     experimental_program: str

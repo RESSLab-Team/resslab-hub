@@ -3613,7 +3613,8 @@
           },
           "date": {
             "title": "Date",
-            "type": "string"
+            "type": "string",
+            "format": "date"
           },
           "profile_type": {
             "title": "Profile Type",
