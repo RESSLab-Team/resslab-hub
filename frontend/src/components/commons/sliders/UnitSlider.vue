@@ -1,3 +1,62 @@
+<script setup lang="ts">
+import { useColors } from "@/utils/slider";
+import { useUnits } from "@/utils/unit";
+import { withDefaults, defineProps, defineEmits, computed } from "vue";
+import { Color } from "vuetify/lib/util/colors";
+
+export interface UnitSliderItem<K = string> {
+  key: K;
+  label: string;
+  min: number;
+  max: number;
+  unit?: string;
+}
+
+export interface Variable<K extends string = string> {
+  key: K;
+  text: string;
+  unit?: string;
+  min: number;
+  max: number;
+}
+
+const props = withDefaults(
+  defineProps<{
+    value: number;
+    color?: Color;
+    unit?: string;
+    disabled?: boolean;
+    label: string;
+    min: number;
+    max: number;
+  }>(),
+  {
+    color: undefined,
+    unit: undefined,
+    disabled: false,
+  }
+);
+const emit = defineEmits<{
+  (e: "input", value: number): void;
+}>();
+
+const precision = 100;
+
+const { baseColor, darkenColor, lightenColor } = useColors(props.color);
+const { ratio, unitLabel } = useUnits(props.unit);
+
+const sliderModel = computed<number>({
+  get: () => props.value / ratio.value,
+  set: (value) => emit("input", value * ratio.value),
+});
+const textModel = computed<number>({
+  get: () => Math.round(sliderModel.value * precision) / precision,
+  set: (value) => (sliderModel.value = value),
+});
+const displayedMin = computed<number>(() => props.min / ratio.value);
+const displayedMax = computed<number>(() => props.max / ratio.value);
+</script>
+
 <template>
   <v-sheet class="pa-1" elevation="1" rounded>
     <v-slider
@@ -42,68 +101,6 @@
     </v-slider>
   </v-sheet>
 </template>
-
-<script lang="ts">
-import SliderMixin from "@/components/commons/sliders/SliderMixin.vue";
-import UnitMixin from "@/components/commons/UnitMixin.vue";
-import { Component, Mixins, Prop, VModel } from "vue-property-decorator";
-
-@Component
-export default class UnitSlider extends Mixins(SliderMixin, UnitMixin) {
-  readonly precision = 100;
-
-  @VModel({ type: Number })
-  model!: number;
-  @Prop({ type: Boolean })
-  readonly disabled: boolean | undefined;
-  @Prop({ type: String })
-  readonly label!: string;
-  @Prop({ type: Number })
-  readonly min!: number;
-  @Prop({ type: Number })
-  readonly max!: number;
-
-  get sliderModel(): number {
-    return this.model / this.ratio;
-  }
-
-  set sliderModel(value: number) {
-    this.model = value * this.ratio;
-  }
-
-  get textModel(): number {
-    return Math.round(this.sliderModel * this.precision) / this.precision;
-  }
-
-  set textModel(value: number) {
-    this.sliderModel = value;
-  }
-
-  get displayedMin(): number {
-    return this.min / this.ratio;
-  }
-
-  get displayedMax(): number {
-    return this.max / this.ratio;
-  }
-}
-
-export interface UnitSliderItem<K = string> {
-  key: K;
-  label: string;
-  min: number;
-  max: number;
-  unit?: string;
-}
-
-export interface Variable<K extends string = string> {
-  key: K;
-  text: string;
-  unit?: string;
-  min: number;
-  max: number;
-}
-</script>
 
 <style lang="scss" scoped>
 .v-input__slider {

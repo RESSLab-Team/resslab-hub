@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { initOptions, updateOptions } from "@/components/commons/charts/utils";
-import UnitMixin from "@/components/commons/UnitMixin.vue";
 import {
   EChartsOption,
   SeriesOption,
@@ -18,7 +17,7 @@ import { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
 import { cloneDeep, merge, round } from "lodash";
 import VChart from "vue-echarts";
 import { withDefaults, defineProps, computed } from "vue";
-import { useUnitStore } from "@/stores/unit";
+import { useUnits } from "@/utils/unit";
 
 use([SVGRenderer, LineChart, GridComponent, LegendComponent, TooltipComponent]);
 
@@ -40,30 +39,11 @@ const props = withDefaults(
   }
 );
 
-const unitStore = useUnitStore();
-
 const axisLabelMaxDigits = 2;
 
-const xUnitParent = computed<UnitMixin>(
-  () =>
-    new UnitMixin({
-      propsData: {
-        unit: props.xUnit,
-        unitSystem: unitStore.unitSystem,
-      },
-    })
-);
-const yUnitParent = computed<UnitMixin>(
-  () =>
-    new UnitMixin({
-      propsData: {
-        unit: props.yUnit,
-        unitSystem: unitStore.unitSystem,
-      },
-    })
-);
-const xRatio = computed(() => xUnitParent.value.ratio);
-const yRatio = computed(() => yUnitParent.value.ratio);
+const { ratio: xRatio, unitLabel: xUnitLabel } = useUnits(props.xUnit);
+const { ratio: yRatio, unitLabel: yUnitLabel } = useUnits(props.yUnit);
+
 const actualOption = computed<EChartsOption>(() => {
   const option = cloneDeep(props.option);
   const xAXisOption: XAXisOption = option.xAxis as XAXisOption;
@@ -114,10 +94,10 @@ const actualOption = computed<EChartsOption>(() => {
           return "";
         }
         const value = (params[0].value as number[])[0].toFixed(2);
-        const suffix = props.yUnit ? ` [${yUnitParent.value.unitLabel}]` : "";
+        const suffix = props.yUnit ? ` [${yUnitLabel.value}]` : "";
         return [
           `<b>${xAXisOption?.name?.split(", ")[0]}: ${value} [${
-            xUnitParent.value.unitLabel
+            xUnitLabel.value
           }]</b>`,
           ...params
             .map((param) => {
@@ -139,12 +119,12 @@ const actualOption = computed<EChartsOption>(() => {
   const overrideOption: EChartsOption = {
     xAxis: {
       name: props.xUnit
-        ? `${xAXisOption.name} [${xUnitParent.value.unitLabel}]`
+        ? `${xAXisOption.name} [${xUnitLabel.value}]`
         : xAXisOption.name,
     },
     yAxis: {
       name: props.yUnit
-        ? `${yAXisOption.name} [${yUnitParent.value.unitLabel}]`
+        ? `${yAXisOption.name} [${yUnitLabel.value}]`
         : yAXisOption.name,
     },
     series: (option.series as SeriesOption[]).map((serie) =>
