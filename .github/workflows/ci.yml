@@ -52,6 +52,7 @@ jobs:
       - run: |
           mkdir secrets
           touch secrets/.env
+          mkdir backend/secrets
       - run: docker-compose build --parallel --pull
       - uses: docker/login-action@v2
         with:
