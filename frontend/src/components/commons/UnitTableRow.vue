@@ -1,3 +1,46 @@
+<script setup lang="ts">
+import { useUnits } from "@/utils/unit";
+import { withDefaults, defineProps, computed } from "vue";
+
+export interface UnitTableRowData {
+  key: string;
+  text: string;
+  unit: string;
+  fractionDigit?: number;
+}
+
+const props = withDefaults(
+  defineProps<{
+    unit?: string;
+    field: string;
+    text: string;
+    columns?: Record<string, number | undefined>[];
+    fractionDigit?: number;
+  }>(),
+  {
+    unit: undefined,
+    columns: () => [],
+    fractionDigit: 2,
+  }
+);
+
+const { ratio, unitLabel } = useUnits(props.unit);
+
+const formatter = computed(() =>
+  Intl.NumberFormat(undefined, {
+    minimumFractionDigits: props.fractionDigit,
+    maximumFractionDigits: props.fractionDigit,
+  })
+);
+const values = computed(() =>
+  props.columns
+    .map((d) => d[props.field])
+    .map((v) =>
+      v !== undefined ? formatter.value.format(v / ratio.value) : ""
+    )
+);
+</script>
+
 <template>
   <tr>
     <!-- eslint-disable-next-line vue/no-v-html -->
@@ -9,45 +52,6 @@
     </td>
   </tr>
 </template>
-
-<script lang="ts">
-import UnitMixin from "@/components/commons/UnitMixin.vue";
-import { Component, Prop } from "vue-property-decorator";
-
-@Component
-export default class UnitTableRow extends UnitMixin {
-  @Prop({ type: String })
-  readonly field!: string;
-  @Prop({ type: String })
-  readonly text!: string;
-  @Prop({ type: Array as () => Record<string, number>[] })
-  readonly columns!: Record<string, number | undefined>[];
-  @Prop({ type: Number, default: 2 })
-  readonly fractionDigit!: number;
-
-  get formatter(): Intl.NumberFormat {
-    return Intl.NumberFormat(undefined, {
-      minimumFractionDigits: this.fractionDigit,
-      maximumFractionDigits: this.fractionDigit,
-    });
-  }
-
-  get values(): string[] {
-    return this.columns
-      .map((d) => d[this.field])
-      .map((v) =>
-        v !== undefined ? this.formatter.format(v / this.ratio) : ""
-      );
-  }
-}
-
-export interface UnitTableRowData {
-  key: string;
-  text: string;
-  unit: string;
-  fractionDigit?: number;
-}
-</script>
 
 <style lang="scss" scoped>
 td {
