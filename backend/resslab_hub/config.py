@@ -17,6 +17,8 @@ settings = Dynaconf(
         Validator("postgres_password", must_exist=True),
         Validator("postgres_db", default="postgres"),
         Validator("database_upgrade", default=True),
+        Validator("analytics_property_id", default=None),
+        Validator("google_application_credentials", default=None),
     ],
 )
 
