@@ -24,6 +24,51 @@
         }
       }
     },
+    "/analytics/users": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Get Users",
+        "description": "Get user count",
+        "operationId": "get_users",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Days",
+              "type": "integer",
+              "default": 30
+            },
+            "name": "days",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Users Analytics Users Get",
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/braces": {
       "get": {
         "tags": [
@@ -3246,6 +3291,11 @@
             "title": "Size",
             "minimum": 1.0,
             "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 0.0,
+            "type": "integer"
           }
         }
       },
@@ -3279,6 +3329,11 @@
           "size": {
             "title": "Size",
             "minimum": 1.0,
+            "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 0.0,
             "type": "integer"
           }
         }
@@ -3314,6 +3369,11 @@
             "title": "Size",
             "minimum": 1.0,
             "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 0.0,
+            "type": "integer"
           }
         }
       },
@@ -3347,6 +3407,11 @@
           "size": {
             "title": "Size",
             "minimum": 1.0,
+            "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 0.0,
             "type": "integer"
           }
         }

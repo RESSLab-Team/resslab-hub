@@ -23,6 +23,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./alembic.ini ./pyproject.toml ./README.md /app/
 COPY ./resslab_hub /app/resslab_hub
 COPY ./alembic /app/alembic
+COPY ./secrets /app/secrets
 
 RUN pip install --no-cache-dir .
 

@@ -939,6 +939,12 @@ export interface ExtendedPageBraceModel {
      * @memberof ExtendedPageBraceModel
      */
     'size': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageBraceModel
+     */
+    'pages'?: number;
 }
 /**
  * 
@@ -970,6 +976,12 @@ export interface ExtendedPageColumnModel {
      * @memberof ExtendedPageColumnModel
      */
     'size': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageColumnModel
+     */
+    'pages'?: number;
 }
 /**
  * 
@@ -1001,6 +1013,12 @@ export interface ExtendedPageConnectionModel {
      * @memberof ExtendedPageConnectionModel
      */
     'size': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageConnectionModel
+     */
+    'pages'?: number;
 }
 /**
  * 
@@ -1032,6 +1050,12 @@ export interface ExtendedPageMaterialModel {
      * @memberof ExtendedPageMaterialModel
      */
     'size': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageMaterialModel
+     */
+    'pages'?: number;
 }
 /**
  * 
@@ -1701,6 +1725,112 @@ export interface ValidationError {
      */
     'type': string;
 }
+
+/**
+ * AnalyticsApi - axios parameter creator
+ * @export
+ */
+export const AnalyticsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get user count
+         * @summary Get Users
+         * @param {number} [days] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUsers: async (days?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/analytics/users`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (days !== undefined) {
+                localVarQueryParameter['days'] = days;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AnalyticsApi - functional programming interface
+ * @export
+ */
+export const AnalyticsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AnalyticsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get user count
+         * @summary Get Users
+         * @param {number} [days] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getUsers(days?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getUsers(days, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * AnalyticsApi - factory interface
+ * @export
+ */
+export const AnalyticsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AnalyticsApiFp(configuration)
+    return {
+        /**
+         * Get user count
+         * @summary Get Users
+         * @param {number} [days] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUsers(days?: number, options?: any): AxiosPromise<number> {
+            return localVarFp.getUsers(days, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AnalyticsApi - object-oriented interface
+ * @export
+ * @class AnalyticsApi
+ * @extends {BaseAPI}
+ */
+export class AnalyticsApi extends BaseAPI {
+    /**
+     * Get user count
+     * @summary Get Users
+     * @param {number} [days] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AnalyticsApi
+     */
+    public getUsers(days?: number, options?: AxiosRequestConfig) {
+        return AnalyticsApiFp(this.configuration).getUsers(days, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
 
 /**
  * BracesApi - axios parameter creator

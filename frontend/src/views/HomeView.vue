@@ -8,6 +8,7 @@ import {
   columnsApi,
   connectionsApi,
   materialsApi,
+  analyticsApi,
 } from "@/plugins/axios";
 import {
   BraceField,
@@ -84,6 +85,7 @@ const imageIndex = ref(0);
 const indicatorCounts = reactive<IndicatorCount>({});
 
 onMounted(() => {
+  // Get test count
   Promise.all([
     bracesApi.getBracesDistinct(),
     columnsApi.getColumnsDistinct(),
@@ -98,6 +100,7 @@ onMounted(() => {
     )
     .then((count) => (indicatorCounts.test = count));
 
+  // Get university count
   const latLngFields: (BraceField &
     ColumnField &
     ConnectionField &
@@ -116,6 +119,12 @@ onMounted(() => {
         .value()
     )
     .then((count) => (indicatorCounts.university = count));
+
+  // Get user count
+  analyticsApi
+    .getUsers()
+    .then((response) => response.data)
+    .then((count) => (indicatorCounts.user = count));
 });
 </script>
 
@@ -228,7 +237,10 @@ onMounted(() => {
               :key="item.key"
               class="d-flex flex-column align-center"
             >
-              <h1>{{ indicatorCounts[item.key] ?? "?" }}</h1>
+              <h1 v-if="indicatorCounts[item.key] !== undefined">
+                {{ indicatorCounts[item.key] }}
+              </h1>
+              <v-progress-circular v-else indeterminate />
               <span>{{ item.text }}</span>
             </v-col>
           </v-row>
