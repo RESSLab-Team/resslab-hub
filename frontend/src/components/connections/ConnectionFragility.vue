@@ -4,7 +4,7 @@ import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import UnitSlider, {
   UnitSliderItem,
 } from "@/components/commons/sliders/UnitSlider.vue";
-import Toggle, { ToggleItem } from "@/components/commons/Toggle.vue";
+import Toggle, { ToggleItem } from "@/components/commons/SimpleToggle.vue";
 import { fragilityCurve } from "@/utils/fragility";
 import { getColorMap } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";

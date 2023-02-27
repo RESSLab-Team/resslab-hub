@@ -3,7 +3,7 @@
 import SurfaceGlChart from "@/components/commons/charts/SurfaceGlChart.vue";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import Toggle, { ToggleItem } from "@/components/commons/Toggle.vue";
+import Toggle, { ToggleItem } from "@/components/commons/SimpleToggle.vue";
 import { EChartsGlOption } from "@/utils/echarts-gl";
 import { DamageState, univariateOption } from "@/utils/fragility";
 import { getColorMap } from "@/utils/vuetify";

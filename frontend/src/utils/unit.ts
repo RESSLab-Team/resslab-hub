@@ -1,7 +1,19 @@
 import { useUnitStore } from "@/stores/unit";
+import { ToggleItem } from "@/utils/toggle";
 import { computed } from "vue";
 
 export type UnitSystem = "metric" | "imperial";
+
+export const unitItems: ToggleItem<UnitSystem>[] = [
+  {
+    value: "metric",
+    text: "Metric",
+  },
+  {
+    value: "imperial",
+    text: "Imperial",
+  },
+];
 
 export interface Unit {
   system: string;
