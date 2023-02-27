@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import AboutContent from "@/components/commons/AboutContent.vue";
-import { unitItems } from "@/components/commons/Toggle.vue";
 import { useUnitStore } from "@/stores/unit";
-import { UnitSystem } from "@/utils/unit";
-import Toggle from "@/components/commons/Toggle.vue";
+import { UnitSystem, unitItems } from "@/utils/unit";
+import SimpleToggle from "@/components/commons/SimpleToggle.vue";
 
 interface MenuItem {
   text: string;
@@ -107,7 +106,7 @@ const unitSystem = computed<UnitSystem>({
           </v-tab>
         </template>
         <v-spacer></v-spacer>
-        <toggle v-model="unitSystem" :items="unitItems" />
+        <simple-toggle v-model="unitSystem" :items="unitItems" />
         <v-dialog v-model="aboutDialog" max-width="800px">
           <template #activator="{ on, attrs }">
             <v-tab v-bind="attrs" v-on="on">
