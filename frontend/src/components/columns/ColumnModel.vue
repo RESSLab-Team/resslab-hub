@@ -12,7 +12,7 @@ import { publicPath, Section } from "@/utils/common";
 import { variableBind } from "@/utils/model";
 import { primaryColor, secondaryColor } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
-import { clamp } from "lodash";
+import { clamp, omit } from "lodash";
 import { computed, reactive, ref } from "vue";
 import { Point } from "@/utils/model";
 import SectionSelector from "@/components/commons/SectionSelector.vue";
@@ -383,7 +383,7 @@ function getResult(output: Envelope | Backbone): Result {
   };
 }
 
-function option(backbone: Result, envelope: Result): EChartsOption {
+function getOption(backbone: Result, envelope: Result): EChartsOption {
   return {
     xAxis: {
       name: "Chord Rotation, θ",
@@ -406,6 +406,12 @@ function option(backbone: Result, envelope: Result): EChartsOption {
       },
     ],
   };
+}
+
+function getTableColumns(
+  ...results: Result[]
+): Record<string, number | undefined>[] {
+  return results.map((result) => omit(result, "points"));
 }
 </script>
 
@@ -496,11 +502,11 @@ function option(backbone: Result, envelope: Result): EChartsOption {
     </v-col>
     <v-col cols="6">
       <v-row justify="center">
-        <v-col cols="6">
+        <v-col cols="12" lg="8" xl="6">
           <v-card>
             <v-card-text>
               <unit-chart
-                :option="option(backboneResult, envelopeResult)"
+                :option="getOption(backboneResult, envelopeResult)"
                 x-unit="rad"
                 y-unit="kN⋅mm"
               />
@@ -536,7 +542,7 @@ function option(backbone: Result, envelope: Result): EChartsOption {
                   :text="item.text"
                   :unit="item.unit"
                   :fraction-digit="item.fractionDigit"
-                  :columns="[backboneResult, envelopeResult]"
+                  :columns="getTableColumns(backboneResult, envelopeResult)"
                 />
               </tbody>
             </template>

@@ -1,7 +1,6 @@
 export const variableBind = {
   cols: "12",
-  md: "6",
-  xl: "3",
+  lg: "6",
 };
 
 export const chartBind = {
