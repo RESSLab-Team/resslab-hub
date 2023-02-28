@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+</script>
+
 <template>
   <v-card-title>
     Steel Material Type
@@ -22,15 +26,3 @@
     </info-tooltip>
   </v-card-title>
 </template>
-
-<script lang="ts">
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import { Component, Vue } from "vue-property-decorator";
-
-@Component({
-  components: {
-    InfoTooltip,
-  },
-})
-export default class SteelTypeCardTitle extends Vue {}
-</script>

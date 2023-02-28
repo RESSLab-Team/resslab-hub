@@ -7,7 +7,7 @@
             :search.sync="search"
             :searches.sync="searches"
             :query="query"
-            @click="click"
+            @click:row="click"
             @loadPage="loadPage"
           />
         </v-col>

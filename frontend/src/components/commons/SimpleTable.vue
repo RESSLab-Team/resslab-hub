@@ -1,3 +1,179 @@
+<script setup lang="ts">
+import CheckboxDialog, {
+  CheckBoxDialogItem,
+} from "@/components/commons/CheckboxDialog.vue";
+import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
+import { booleanOptions } from "@/utils/vuetify";
+import {
+  withDefaults,
+  defineProps,
+  defineEmits,
+  ref,
+  computed,
+  watch,
+} from "vue";
+import { DataOptions, DataTableHeader } from "vuetify";
+import { Column, ColumnType, DownloadType } from "@/utils/table";
+import i18n from "@/i18n";
+import { useRoute } from "vue-router/composables";
+import { useNotificationStore } from "@/stores/notification";
+
+interface TableHeader extends DataTableHeader {
+  type: ColumnType;
+  options?: string[];
+  multiple?: boolean;
+}
+
+// TODO add genericity https://github.com/vuejs/rfcs/discussions/436
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type T = any;
+const props = withDefaults(
+  defineProps<{
+    title?: string;
+    columns?: Column[];
+    totalCount?: number;
+    loading?: boolean;
+    items?: T[];
+    options?: DataOptions;
+    totalFilteredCount?: number;
+    prefix?: string;
+    query?: string;
+    searches?: Searches;
+    search?: string;
+  }>(),
+  {
+    title: undefined,
+    columns: () => [],
+    totalCount: undefined,
+    loading: false,
+    items: () => [],
+    options: undefined,
+    totalFilteredCount: undefined,
+    prefix: undefined,
+    query: undefined,
+    searches: () => ({}),
+    search: "",
+  }
+);
+const emit = defineEmits<{
+  (e: "update:options", value: DataOptions): void;
+  (e: "download", items: T[], types: DownloadType[]): void;
+  (e: "update:searches", value: Searches): void;
+  (e: "update:search", value: string): void;
+  (e: "click:row", value: T): void;
+}>();
+
+const maxDownloadCount = 5;
+const checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
+  {
+    key: DownloadType.Main,
+    text: "Master data",
+  },
+  {
+    key: DownloadType.Test,
+    text: "Test data",
+  },
+];
+
+const route = useRoute();
+const notificationStore = useNotificationStore();
+
+const downloadDialog = ref<InstanceType<typeof CheckboxDialog>>();
+const selectedItems = ref<T[]>([]);
+
+const options = computed<DataOptions>({
+  get: () => props.options,
+  set: (value) => emit("update:options", value),
+});
+const columnSearches = computed<Searches>({
+  get: () => props.searches,
+  set: (value) => emit("update:searches", value),
+});
+const globalSearch = computed<string>({
+  get: () => props.search,
+  set: (value) => emit("update:search", value),
+});
+const tableHeaders = computed<TableHeader[]>(() =>
+  props.columns.filter((column) => !column.filterOnly).map(getTableHeader)
+);
+const filterHeaders = computed<TableHeader[]>(() =>
+  props.columns.filter((column) => column.filterOnly).map(getTableHeader)
+);
+const hasFilters = computed<boolean>(
+  () =>
+    globalSearch.value.length > 0 ||
+    Object.values(columnSearches.value).filter(filterColumnValue).length > 0
+);
+
+watch(selectedItems, (value) => {
+  if (value.length > maxDownloadCount) {
+    notificationStore.notify(
+      `You cannot download more than ${maxDownloadCount} items.`
+    );
+  }
+});
+
+function resetFilters(): void {
+  globalSearch.value = "";
+  columnSearches.value = {};
+}
+
+function click(item: T): void {
+  emit("click:row", item);
+}
+
+function shareUrl(): void {
+  const url = new URL(window.location.origin + route.path);
+  Object.entries(columnSearches.value)
+    .filter(([, value]) => filterColumnValue(value))
+    .forEach(([key, value]) => {
+      url.searchParams.append(key, value.toString());
+    });
+  if (globalSearch.value.length > 0) {
+    url.searchParams.append(globalSearchKey, globalSearch.value);
+  }
+  const shareUrl = url.href;
+  if (navigator.share) {
+    navigator.share({
+      url: shareUrl,
+    });
+    return;
+  }
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(shareUrl);
+    notificationStore.notify("Copied to clipboard");
+    return;
+  }
+  if (shareUrl) {
+    notificationStore.notify(shareUrl, shareUrl);
+  }
+}
+
+function getTableHeader(column: Column): TableHeader {
+  return {
+    value: column.value,
+    text: i18n.t(props.prefix + column.value).toString(),
+    type: column.type,
+    options: column.options?.sort(),
+    multiple: column.options ? column.options.length > 2 : false,
+  };
+}
+
+/**
+ * Open download dialog for option selection, get files from backend, zip them and download the zip
+ */
+function downloadZip(): void {
+  downloadDialog.value
+    ?.open(`${selectedItems.value.length} selected`)
+    .then((types) =>
+      emit("download", selectedItems.value, types as DownloadType[])
+    )
+    .finally(() => {
+      downloadDialog.value?.close();
+    });
+}
+</script>
+
 <template>
   <v-card>
     <v-card-title>
@@ -28,12 +204,13 @@
       }"
       :loading="loading"
       must-sort
-      :options.sync="options"
+      :options="options"
       :search="search"
       :server-items-length="totalFilteredCount"
       show-select
       :sort-by="tableHeaders[0].value"
       @click:row="click"
+      @update:options="emit('update:options', $event)"
     >
       <template #top>
         <v-row class="px-4 pb-4">
@@ -101,7 +278,7 @@
                   :item="item"
                   :on="on"
                   :attrs="attrs"
-                ></slot>
+                />
               </template>
             </v-select>
             <div v-else v-switch="header.type">
@@ -113,7 +290,7 @@
                 hide-details
                 :label="header.text"
                 single-line
-              ></v-text-field>
+              />
               <v-select
                 v-model="columnSearches[header.value]"
                 v-case="'boolean'"
@@ -123,7 +300,7 @@
                 :label="header.text"
                 :items="booleanOptions"
                 single-line
-              ></v-select>
+              />
               <v-text-field
                 v-model="columnSearches[header.value]"
                 v-case="'number'"
@@ -134,7 +311,7 @@
                 :label="header.text"
                 single-line
                 type="number"
-              ></v-text-field>
+              />
             </div>
           </td>
         </tr>
@@ -160,263 +337,14 @@
         Share
       </v-btn>
     </v-card-actions>
-    <snackbar ref="snackbar"></snackbar>
     <checkbox-dialog
       ref="downloadDialog"
       title="Download"
       :items="checkboxDialogItems"
       loading-on-confirm
-    ></checkbox-dialog>
+    />
   </v-card>
 </template>
-
-<script lang="ts">
-import { CountModel } from "@/backend";
-import CheckboxDialog, {
-  CheckBoxDialogItem,
-} from "@/components/commons/CheckboxDialog.vue";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import Snackbar from "@/components/commons/Snackbar.vue";
-import { Page } from "@/utils/backend";
-import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
-import { booleanOptions } from "@/utils/vuetify";
-import { AxiosResponse } from "axios";
-import download from "downloadjs";
-import JSZip from "jszip";
-import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
-import { DataOptions, DataTableHeader } from "vuetify";
-
-@Component({
-  components: {
-    InfoTooltip,
-    Snackbar,
-    CheckboxDialog,
-  },
-})
-export default class SimpleTable<T, P extends Page<T>> extends Vue {
-  $refs!: {
-    downloadDialog: CheckboxDialog<DownloadType>;
-    snackbar: Snackbar;
-  };
-  readonly booleanOptions = booleanOptions;
-  readonly maxDownloadCount = 5;
-
-  @Prop({ type: String, default: "" })
-  readonly title!: string;
-  @Prop({ type: Array as () => Column[], default: () => [] })
-  readonly columns!: Column[];
-  @Prop({ type: Function })
-  readonly getCounts!: () => Promise<AxiosResponse<CountModel[]>>;
-  @Prop({ type: Function })
-  readonly getPage!: (
-    query?: string,
-    sortBy?: Array<string>,
-    sortDesc?: Array<boolean>,
-    page?: number,
-    size?: number
-  ) => Promise<AxiosResponse<P>>;
-  @Prop({ type: Function })
-  readonly getFiles!: (
-    selectedItems: T[],
-    types: DownloadType[]
-  ) => Promise<DownloadFile[]>;
-  @Prop({ type: String, default: "" })
-  readonly prefix!: string;
-  @Prop({ default: "" })
-  readonly query!: string;
-  @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
-  columnSearches!: Searches;
-  @PropSync("search", { type: String, default: () => "" })
-  globalSearch!: string;
-
-  readonly checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
-    {
-      key: DownloadType.Main,
-      text: "Master data",
-    },
-    {
-      key: DownloadType.Test,
-      text: "Test data",
-    },
-  ];
-
-  items: T[] = [];
-  totalFilteredCount = -1;
-  loading = true;
-  options: DataOptions | null = null;
-  selectedItems: T[] = [];
-  totalCount = -1;
-
-  get tableHeaders(): TableHeader[] {
-    return this.columns
-      .filter((column) => !column.filterOnly)
-      .map(this.getTableHeader);
-  }
-
-  get filterHeaders(): TableHeader[] {
-    return this.columns
-      .filter((column) => column.filterOnly)
-      .map(this.getTableHeader);
-  }
-
-  get hasFilters(): boolean {
-    return (
-      this.globalSearch.length > 0 ||
-      Object.values(this.columnSearches).filter(filterColumnValue).length > 0
-    );
-  }
-
-  get snackbar(): Snackbar {
-    return this.$refs.snackbar;
-  }
-
-  get downloadDialog(): CheckboxDialog<DownloadType> {
-    return this.$refs.downloadDialog;
-  }
-
-  created(): void {
-    this.getCounts()
-      .then((response) => response.data)
-      .then((counts) => {
-        this.totalCount = counts[0].value;
-      });
-  }
-
-  @Watch("options", { deep: true })
-  @Watch("query")
-  onTableChanged(): void {
-    if (this.options) {
-      this.loading = true;
-      this.getPage(
-        this.query,
-        this.options.sortBy,
-        this.options.sortDesc,
-        this.options.page,
-        this.options.itemsPerPage
-      )
-        .then((response) => response.data)
-        .then((page) => {
-          this.items = page.items;
-          this.totalFilteredCount = page.total;
-          this.$emit("loadPage", page);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    }
-  }
-
-  @Watch("selectedItems")
-  onSelectedItemsChanged(): void {
-    if (this.selectedItems.length > this.maxDownloadCount) {
-      this.snackbar.open(
-        `You cannot download more than ${this.maxDownloadCount} items.`
-      );
-    }
-  }
-
-  getTableHeader(column: Column): TableHeader {
-    return {
-      value: column.value,
-      text: this.$t(this.prefix + column.value).toString(),
-      type: column.type,
-      options: column.options?.sort(),
-      multiple: column.options ? column.options.length > 2 : false,
-    };
-  }
-
-  resetFilters(): void {
-    this.globalSearch = "";
-    this.columnSearches = {};
-  }
-
-  click(item: T): void {
-    this.$emit("click", item);
-  }
-
-  /**
-   * Open download dialog for option selection, get files from backend, zip them and download the zip
-   */
-  downloadZip(): void {
-    this.downloadDialog
-      .open(`${this.selectedItems.length} selected`)
-      .then((types) => this.getFiles(this.selectedItems, types))
-      .then((files) => {
-        if (files.length === 0) {
-          this.snackbar.open("Nothing to download");
-          return null;
-        }
-        const zip = new JSZip();
-        files.forEach((file) => {
-          zip.file(file.filename, file.content);
-        });
-        return zip.generateAsync({ type: "blob" });
-      })
-      .then((content) => {
-        if (content) {
-          download(
-            content,
-            `export-${new Date().getTime()}.zip`,
-            "application/zip"
-          );
-        }
-      })
-      .finally(() => {
-        this.downloadDialog.close();
-      });
-  }
-
-  shareUrl(): void {
-    const url = new URL(window.location.origin + this.$route.path);
-    Object.entries(this.columnSearches)
-      .filter(([, value]) => filterColumnValue(value))
-      .forEach(([key, value]) => {
-        url.searchParams.append(key, value.toString());
-      });
-    if (this.globalSearch.length > 0) {
-      url.searchParams.append(globalSearchKey, this.globalSearch);
-    }
-    const shareUrl = url.href;
-    if (navigator.share) {
-      navigator.share({
-        url: shareUrl,
-      });
-      return;
-    }
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(shareUrl);
-      this.snackbar.open("Copied to clipboard");
-      return;
-    }
-    this.snackbar.open(shareUrl, shareUrl);
-  }
-}
-
-export type ColumnType = "text" | "option" | "number" | "boolean";
-
-export interface Column {
-  value: string;
-  type: ColumnType;
-  options?: string[];
-  filterOnly?: boolean;
-}
-
-export enum DownloadType {
-  Main = "main",
-  Test = "test",
-}
-
-export interface DownloadFile {
-  filename: string;
-  content: string;
-}
-
-interface TableHeader extends DataTableHeader {
-  type: ColumnType;
-  options?: string[];
-  multiple?: boolean;
-}
-</script>
 
 <style lang="scss" scoped>
 :deep(.v-data-table__wrapper) > table > tbody > tr:hover {
