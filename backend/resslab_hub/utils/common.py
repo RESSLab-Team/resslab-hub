@@ -47,7 +47,7 @@ class SubComponent:
     ) -> List[List[Decimal]]:
         return await Component.get_series(
             session,
-            select(self.columns)
+            select(*self.columns)
             .where(self.parent_id_column == parent_id)
             .order_by(self.id_column),
             self.id_column,
@@ -62,7 +62,7 @@ class SubComponent:
         filename = f"{self.name}-{parent_id}.csv"
         return Component.get_csv_response(
             session,
-            select(self.columns)
+            select(*self.columns)
             .where(self.parent_id_column == parent_id)
             .order_by(self.id_column),
             self.column_names,
@@ -192,7 +192,7 @@ class Component(ABC, Generic[D, M]):
         filename = f"{self.name}-{time}.csv"
         return self.get_csv_response(
             session,
-            select(self.model_columns.values()).where(self.id_column.in_(ids)),
+            select(*self.model_columns.values()).where(self.id_column.in_(ids)),
             list(self.model_columns.keys()),
             filename,
         )
