@@ -150,8 +150,8 @@ onMounted(() => {
         </v-card>
       </v-col>
     </v-row>
-    <v-row>
-      <v-col cols="4">
+    <v-row class="">
+      <v-col>
         <v-card class="pa-5 fill-height">
           <p>
             Recent developments in Performance-Based Earthquake Engineering
@@ -222,9 +222,11 @@ onMounted(() => {
           </ul>
         </v-card>
       </v-col>
-      <v-col cols="8">
-        <v-card>
-          <overview-map />
+      <v-col lg="7" xl="8">
+        <v-card class="fill-height">
+          <v-responsive class="fill-height" :max-height="600">
+            <overview-map
+          /></v-responsive>
         </v-card>
       </v-col>
     </v-row>

@@ -36,12 +36,7 @@ import { createMarkers } from "@/utils/overviewmap";
 
 import { computed, defineProps, onMounted, ref } from "vue";
 
-const props = defineProps({
-  maxHeight: {
-    type: Number,
-    default: 500,
-  },
-});
+const props = defineProps({});
 
 const connectionsLocations = ref<LocationConnectionsModel[]>([]);
 connectionsApi
@@ -84,7 +79,15 @@ const dataLength = computed(
 const mapContainer = ref<HTMLDivElement>();
 
 const map = computed(() => {
-  const map = LMap(mapContainer.value as HTMLDivElement).setView([45, 0], 2);
+  const map = LMap(mapContainer.value as HTMLDivElement, {
+    minZoom: 1,
+    zoomSnap: 0.25,
+  })
+    .setView([45, 0], 2)
+    .setMaxBounds([
+      [-120, -200],
+      [120, 200],
+    ]);
   tileLayer(
     "https://cartodb-basemaps-1.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
   ).addTo(map);
@@ -136,7 +139,7 @@ const markers = computed<Marker[]>(() => {
 });
 
 const legend = computed(() => {
-  const legend = new Control({ position: "bottomright" });
+  const legend = new Control({ position: "bottomleft" });
 
   legend.onAdd = function () {
     const div = DomUtil.create("div", "legend");
@@ -182,6 +185,7 @@ function updateMap() {
   cluster.value.addLayers(markers.value);
   map.value.addLayer(cluster.value);
   prevCluster.value = cluster.value;
+  map.value.fitBounds(cluster.value.getBounds());
   setEventListenerLegend();
 }
 
@@ -195,14 +199,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-responsive aspect-ratio="1.2" :max-height="props.maxHeight">
-    <div ref="mapContainer" class="mapContainer"></div>
+  <v-responsive aspect-ratio="1.2" class="fill-height">
+    <div ref="mapContainer" class="fill-height mapContainer"></div>
   </v-responsive>
 </template>
 
 <style lang="scss" scoped>
 .mapContainer {
-  height: 500px;
   z-index: 1;
 }
 
