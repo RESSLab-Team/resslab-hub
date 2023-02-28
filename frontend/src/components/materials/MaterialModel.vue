@@ -11,9 +11,9 @@ import { materialsApi } from "@/plugins/axios";
 import { LineSeriesOption } from "echarts";
 import { computeUvcStress } from "@/utils/material";
 import { zip } from "lodash";
-import Snackbar from "@/components/commons/Snackbar.vue";
 import materialParameters from "@/assets/material/parameter-material-list.csv";
 import TitleRow from "@/components/commons/TitleRow.vue";
+import { useNotificationStore } from "@/stores/notification";
 
 interface Material {
   e: number;
@@ -121,7 +121,8 @@ const charts: { title: string; id: testId }[] = [
   { title: "Constant Amplitude", id: "LP5_S1_D" },
 ];
 
-const snackbar = ref<Snackbar>();
+const notificationStore = useNotificationStore();
+
 const selectedMaterial = ref<Material>(materialSelectItems[0].value);
 const variables = reactive<Material>({
   e: 0,
@@ -163,7 +164,7 @@ const chartSeries = computed<Record<testId, LineSeriesOption>>(() => {
           } as LineSeriesOption,
         ];
       } catch (error) {
-        snackbar.value?.open(error as string);
+        notificationStore.notify(error as string);
         return [
           id,
           {
@@ -275,6 +276,5 @@ watch(
         </v-col>
       </v-row>
     </v-col>
-    <snackbar ref="snackbar" />
   </v-row>
 </template>

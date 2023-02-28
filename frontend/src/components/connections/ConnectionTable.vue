@@ -1,15 +1,165 @@
+<script setup lang="ts">
+import { ConnectionField, ConnectionModel } from "@/backend";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import SimpleTable from "@/components/commons/SimpleTable.vue";
+import { connectionsApi } from "@/plugins/axios";
+import { publicPath, Searches } from "@/utils/common";
+import { Column, useTable } from "@/utils/table";
+import {
+  withDefaults,
+  defineProps,
+  defineEmits,
+  ref,
+  computed,
+  toRef,
+} from "vue";
+import { DataOptions } from "vuetify";
+import { useNotificationStore } from "@/stores/notification";
+
+const props = withDefaults(
+  defineProps<{
+    query?: string;
+    searches?: Searches;
+    search?: string;
+  }>(),
+  {
+    query: undefined,
+    searches: () => ({}),
+    search: "",
+  }
+);
+const emit = defineEmits<{
+  (e: "update:searches", value: Searches): void;
+  (e: "update:search", value: string): void;
+  (e: "click:row", value: ConnectionModel): void;
+}>();
+
+const columns: Column[] = [
+  {
+    value: ConnectionField.ExperimentalProgram,
+    type: "text",
+  },
+  {
+    value: ConnectionField.Date,
+    type: "number",
+    filterOnly: true,
+  },
+  {
+    value: ConnectionField.SpecimenDesignation,
+    type: "text",
+  },
+  {
+    value: ConnectionField.Northridge,
+    type: "option",
+    options: ["pre", "post"],
+    filterOnly: true,
+  },
+  {
+    value: ConnectionField.SpecimenType,
+    type: "text",
+    options: ["exterior%", "interior%"],
+    filterOnly: true,
+  },
+  {
+    value: ConnectionField.Slab,
+    type: "boolean",
+    filterOnly: true,
+  },
+  {
+    value: ConnectionField.ConnectionType,
+    type: "option",
+    options: ["WUF-W", "RBS", "WUF-B", "BFP", "WFP", "KBB", "BEEP"],
+  },
+  {
+    value: ConnectionField.SectionB,
+    type: "text",
+  },
+  {
+    value: ConnectionField.SectionC,
+    type: "text",
+  },
+  {
+    value: ConnectionField.NDp,
+    type: "number",
+    options: ["0", "> 0"],
+    filterOnly: true,
+  },
+  {
+    value: ConnectionField.TDpTot,
+    type: "number",
+  },
+];
+
+const options = ref<DataOptions>();
+
+const searches = computed<Searches>({
+  get: () => props.searches,
+  set: (value) => emit("update:searches", value),
+});
+const globalSearch = computed<string>({
+  get: () => props.search,
+  set: (value) => emit("update:search", value),
+});
+
+const notificationStore = useNotificationStore();
+const { downloadFiles, items, loading, totalCount, totalFilteredCount } =
+  useTable<ConnectionModel>(
+    "connection",
+    options,
+    toRef(props, "query"),
+    [
+      {
+        name: "beam",
+        countKey: "beam_count",
+        getCsv: (id) => connectionsApi.getConnectionsBeamCsv(id),
+      },
+      {
+        name: "beam-west",
+        countKey: "beam_west_count",
+        getCsv: (id) => connectionsApi.getConnectionsBeamWestCsv(id),
+      },
+      {
+        name: "global",
+        countKey: "global_count",
+        getCsv: (id) => connectionsApi.getConnectionsGlobalCsv(id),
+      },
+      {
+        name: "global-west",
+        countKey: "global_west_count",
+        getCsv: (id) => connectionsApi.getConnectionsGlobalWestCsv(id),
+      },
+      {
+        name: "panel-zone",
+        countKey: "panel_zone_count",
+        getCsv: (id) => connectionsApi.getConnectionsPanelZonesCsv(id),
+      },
+    ],
+    () => connectionsApi.getConnectionsCounts(),
+    (query, sortBy, sortDesc, page, size) =>
+      connectionsApi.getConnections(query, sortBy, sortDesc, page, size),
+    (ids) => connectionsApi.getConnectionsCsv(ids),
+    (message) => notificationStore.notify(message)
+  );
+
+function getImageSource(item: string): string {
+  return publicPath + "img/connection-type/" + item.toLowerCase() + ".svg";
+}
+</script>
+
 <template>
   <simple-table
     :columns="columns"
-    :get-counts="getCounts"
-    :get-files="getFiles"
-    :get-page="getPage"
+    :items="items"
+    :loading="loading"
+    :options.sync="options"
     prefix="connection."
     :query="query"
     :search.sync="globalSearch"
-    :searches.sync="columnSearches"
-    @click="click"
-    @loadPage="loadPage"
+    :searches.sync="searches"
+    :total-count="totalCount"
+    :total-filtered-count="totalFilteredCount"
+    @click:row="emit('click:row', $event)"
+    @download="downloadFiles"
   >
     <template #title>
       Connections
@@ -44,7 +194,7 @@
     <template #[`column.header.item.connection_type`]="{ item, on, attrs }">
       <v-list-item v-slot="{ active }" v-bind="attrs" v-on="on">
         <v-list-item-action>
-          <v-checkbox :input-value="active"></v-checkbox>
+          <v-checkbox :input-value="active" />
         </v-list-item-action>
         <v-img
           contain
@@ -57,149 +207,3 @@
     </template>
   </simple-table>
 </template>
-
-<script lang="ts">
-import {
-  ConnectionField,
-  ConnectionModel,
-  CountModel,
-  ExtendedPageConnectionModel,
-} from "@/backend";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SimpleTable, {
-  Column,
-  DownloadFile,
-  DownloadType,
-} from "@/components/commons/SimpleTable.vue";
-import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
-import { connectionsApi } from "@/plugins/axios";
-import { publicPath, Searches } from "@/utils/common";
-import { AxiosResponse } from "axios";
-import { Component, Prop, PropSync } from "vue-property-decorator";
-
-@Component({
-  components: {
-    InfoTooltip,
-    SimpleTable,
-  },
-})
-export default class ConnectionTable extends SimpleTableMixin<ConnectionModel> {
-  @Prop({ default: "" })
-  readonly query!: string;
-  @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
-  columnSearches!: Searches;
-  @PropSync("search", { type: String, default: () => "" })
-  globalSearch!: string;
-
-  readonly columns: Column[] = [
-    {
-      value: ConnectionField.ExperimentalProgram,
-      type: "text",
-    },
-    {
-      value: ConnectionField.Date,
-      type: "number",
-      filterOnly: true,
-    },
-    {
-      value: ConnectionField.SpecimenDesignation,
-      type: "text",
-    },
-    {
-      value: ConnectionField.Northridge,
-      type: "option",
-      options: ["pre", "post"],
-      filterOnly: true,
-    },
-    {
-      value: ConnectionField.SpecimenType,
-      type: "text",
-      options: ["exterior%", "interior%"],
-      filterOnly: true,
-    },
-    {
-      value: ConnectionField.Slab,
-      type: "boolean",
-      filterOnly: true,
-    },
-    {
-      value: ConnectionField.ConnectionType,
-      type: "option",
-      options: ["WUF-W", "RBS", "WUF-B", "BFP", "WFP", "KBB", "BEEP"],
-    },
-    {
-      value: ConnectionField.SectionB,
-      type: "text",
-    },
-    {
-      value: ConnectionField.SectionC,
-      type: "text",
-    },
-    {
-      value: ConnectionField.NDp,
-      type: "number",
-      options: ["0", "> 0"],
-      filterOnly: true,
-    },
-    {
-      value: ConnectionField.TDpTot,
-      type: "number",
-    },
-  ];
-
-  getCounts(): Promise<AxiosResponse<CountModel[]>> {
-    return connectionsApi.getConnectionsCounts();
-  }
-
-  getPage(
-    query?: string,
-    sortBy?: Array<string>,
-    sortDesc?: Array<boolean>,
-    page?: number,
-    size?: number
-  ): Promise<AxiosResponse<ExtendedPageConnectionModel>> {
-    return connectionsApi.getConnections(query, sortBy, sortDesc, page, size);
-  }
-
-  getFiles(
-    selectedItems: ConnectionModel[],
-    types: DownloadType[]
-  ): Promise<DownloadFile[]> {
-    return this.getDownloadFiles(
-      selectedItems,
-      types,
-      "connection",
-      (ids) => connectionsApi.getConnectionsCsv(ids),
-      {
-        name: "beam",
-        countKey: "beam_count",
-        getCsv: (id) => connectionsApi.getConnectionsBeamCsv(id),
-      },
-      {
-        name: "beam-west",
-        countKey: "beam_west_count",
-        getCsv: (id) => connectionsApi.getConnectionsBeamWestCsv(id),
-      },
-      {
-        name: "global",
-        countKey: "global_count",
-        getCsv: (id) => connectionsApi.getConnectionsGlobalCsv(id),
-      },
-      {
-        name: "global-west",
-        countKey: "global_west_count",
-        getCsv: (id) => connectionsApi.getConnectionsGlobalWestCsv(id),
-      },
-      {
-        name: "panel-zone",
-        countKey: "panel_zone_count",
-        getCsv: (id) => connectionsApi.getConnectionsPanelZonesCsv(id),
-      }
-    );
-  }
-
-  getImageSource(item: string): string {
-    return publicPath + "img/connection-type/" + item.toLowerCase() + ".svg";
-  }
-}
-</script>

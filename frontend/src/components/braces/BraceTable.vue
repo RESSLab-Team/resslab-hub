@@ -1,15 +1,108 @@
+<script setup lang="ts">
+import { BraceField, BraceModel } from "@/backend";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import SimpleTable from "@/components/commons/SimpleTable.vue";
+import { bracesApi } from "@/plugins/axios";
+import { useNotificationStore } from "@/stores/notification";
+import { Searches } from "@/utils/common";
+import { useTable, Column } from "@/utils/table";
+import {
+  withDefaults,
+  defineProps,
+  defineEmits,
+  ref,
+  computed,
+  toRef,
+} from "vue";
+import { DataOptions } from "vuetify";
+
+const props = withDefaults(
+  defineProps<{
+    query?: string;
+    searches?: Searches;
+    search?: string;
+  }>(),
+  {
+    query: undefined,
+    searches: () => ({}),
+    search: "",
+  }
+);
+const emit = defineEmits<{
+  (e: "update:searches", value: Searches): void;
+  (e: "update:search", value: string): void;
+  (e: "click:row", value: BraceModel): void;
+}>();
+
+const columns: Column[] = [
+  {
+    value: BraceField.Investigator,
+    type: "text",
+  },
+  {
+    value: BraceField.SpecimenId,
+    type: "text",
+  },
+  {
+    value: BraceField.CrossSectionSize,
+    type: "text",
+  },
+  {
+    value: BraceField.Steel,
+    type: "text",
+  },
+  {
+    value: BraceField.KlR,
+    type: "number",
+  },
+];
+
+const options = ref<DataOptions>();
+
+const searches = computed<Searches>({
+  get: () => props.searches,
+  set: (value) => emit("update:searches", value),
+});
+const globalSearch = computed<string>({
+  get: () => props.search,
+  set: (value) => emit("update:search", value),
+});
+
+const notificationStore = useNotificationStore();
+const { downloadFiles, items, loading, totalCount, totalFilteredCount } =
+  useTable<BraceModel>(
+    "brace",
+    options,
+    toRef(props, "query"),
+    [
+      {
+        name: "displacement",
+        countKey: "displacement_count",
+        getCsv: (id) => bracesApi.getBracesDisplacementCsv(id),
+      },
+    ],
+    () => bracesApi.getBracesCounts(),
+    (query, sortBy, sortDesc, page, size) =>
+      bracesApi.getBraces(query, sortBy, sortDesc, page, size),
+    (ids) => bracesApi.getBracesCsv(ids),
+    (message) => notificationStore.notify(message)
+  );
+</script>
+
 <template>
   <simple-table
     :columns="columns"
-    :get-counts="getCounts"
-    :get-files="getFiles"
-    :get-page="getPage"
+    :items="items"
+    :loading="loading"
+    :options.sync="options"
     prefix="brace."
     :query="query"
     :search.sync="globalSearch"
-    :searches.sync="braceSearches"
-    @click="click"
-    @loadPage="loadPage"
+    :searches.sync="searches"
+    :total-count="totalCount"
+    :total-filtered-count="totalFilteredCount"
+    @click:row="emit('click:row', $event)"
+    @download="downloadFiles"
   >
     <template #title>
       Braces
@@ -41,92 +134,3 @@
     </template>
   </simple-table>
 </template>
-
-<script lang="ts">
-import {
-  BraceField,
-  BraceModel,
-  CountModel,
-  ExtendedPageBraceModel,
-} from "@/backend";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SimpleTable, {
-  Column,
-  DownloadFile,
-  DownloadType,
-} from "@/components/commons/SimpleTable.vue";
-import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
-import { bracesApi } from "@/plugins/axios";
-import { Searches } from "@/utils/common";
-import { AxiosResponse } from "axios";
-import { Component, Prop, PropSync } from "vue-property-decorator";
-
-@Component({
-  components: {
-    SimpleTable,
-    InfoTooltip,
-  },
-})
-export default class BraceTable extends SimpleTableMixin<BraceModel> {
-  @Prop({ default: "" })
-  readonly query!: string;
-  @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
-  braceSearches!: Searches;
-  @PropSync("search", { type: String, default: () => "" })
-  globalSearch!: string;
-
-  readonly columns: Column[] = [
-    {
-      value: BraceField.Investigator,
-      type: "text",
-    },
-    {
-      value: BraceField.SpecimenId,
-      type: "text",
-    },
-    {
-      value: BraceField.CrossSectionSize,
-      type: "text",
-    },
-    {
-      value: BraceField.Steel,
-      type: "text",
-    },
-    {
-      value: BraceField.KlR,
-      type: "number",
-    },
-  ];
-
-  getCounts(): Promise<AxiosResponse<CountModel[]>> {
-    return bracesApi.getBracesCounts();
-  }
-
-  getPage(
-    query?: string,
-    sortBy?: Array<string>,
-    sortDesc?: Array<boolean>,
-    page?: number,
-    size?: number
-  ): Promise<AxiosResponse<ExtendedPageBraceModel>> {
-    return bracesApi.getBraces(query, sortBy, sortDesc, page, size);
-  }
-
-  getFiles(
-    selectedItems: BraceModel[],
-    types: DownloadType[]
-  ): Promise<DownloadFile[]> {
-    return this.getDownloadFiles(
-      selectedItems,
-      types,
-      "brace",
-      (ids) => bracesApi.getBracesCsv(ids),
-      {
-        name: "displacement",
-        countKey: "displacement_count",
-        getCsv: (id) => bracesApi.getBracesDisplacementCsv(id),
-      }
-    );
-  }
-}
-</script>

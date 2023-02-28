@@ -3,17 +3,18 @@ import { defineProps, withDefaults, defineEmits, computed } from "vue";
 import { ToggleItem } from "@/utils/toggle";
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
+type T = string;
 const props = withDefaults(
   defineProps<{
-    value: string;
-    items?: ToggleItem<string>[];
+    value: T;
+    items?: ToggleItem<T>[];
   }>(),
   {
     items: () => [],
   }
 );
 const emit = defineEmits<{
-  (e: "input", value: string): void;
+  (e: "input", value: T): void;
 }>();
 
 const index = computed<number>({

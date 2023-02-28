@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import AboutContent from "@/components/commons/AboutContent.vue";
+import { useNotificationStore } from "@/stores/notification";
+import SimpleSnackbar from "@/components/commons/SimpleSnackbar.vue";
 
 interface MenuItem {
   text: string;
@@ -8,6 +10,7 @@ interface MenuItem {
   children?: MenuItem[];
 }
 
+const notificationStore = useNotificationStore();
 const subMenuItems: MenuItem[] = [
   {
     text: "Database",
@@ -59,6 +62,13 @@ const menuItems: MenuItem[] = [
 ];
 
 const aboutDialog = ref<boolean>(false);
+const snackbar = ref<InstanceType<typeof SimpleSnackbar>>();
+
+notificationStore.$subscribe((_, state) => {
+  if (state.message) {
+    snackbar.value?.open(state.message, state.url ?? undefined);
+  }
+});
 </script>
 
 <template>
@@ -110,6 +120,7 @@ const aboutDialog = ref<boolean>(false);
     <v-main>
       <router-view />
     </v-main>
+    <simple-snackbar ref="snackbar" />
   </v-app>
 </template>
 

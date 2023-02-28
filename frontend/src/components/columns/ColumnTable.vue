@@ -1,15 +1,122 @@
+<script setup lang="ts">
+import { ColumnField, ColumnModel } from "@/backend";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import SimpleTable from "@/components/commons/SimpleTable.vue";
+import { columnsApi } from "@/plugins/axios";
+import { Searches } from "@/utils/common";
+import { Column, useTable } from "@/utils/table";
+import {
+  withDefaults,
+  defineProps,
+  defineEmits,
+  ref,
+  computed,
+  toRef,
+} from "vue";
+import { DataOptions } from "vuetify";
+import { useNotificationStore } from "@/stores/notification";
+
+const props = withDefaults(
+  defineProps<{
+    query?: string;
+    searches?: Searches;
+    search?: string;
+  }>(),
+  {
+    query: undefined,
+    searches: () => ({}),
+    search: "",
+  }
+);
+const emit = defineEmits<{
+  (e: "update:searches", value: Searches): void;
+  (e: "update:search", value: string): void;
+  (e: "click:row", value: ColumnModel): void;
+}>();
+
+const columns: Column[] = [
+  {
+    value: ColumnField.ExperimentalProgram,
+    type: "text",
+  },
+  {
+    value: ColumnField.SpecimenDesignation,
+    type: "text",
+  },
+  {
+    value: ColumnField.SectionC,
+    type: "text",
+  },
+  {
+    value: ColumnField.PGOverPYm,
+    type: "number",
+  },
+  {
+    value: ColumnField.LBOverRYc,
+    type: "number",
+  },
+  {
+    value: ColumnField.DirectionLp,
+    type: "text",
+  },
+];
+
+const options = ref<DataOptions>();
+
+const searches = computed<Searches>({
+  get: () => props.searches,
+  set: (value) => emit("update:searches", value),
+});
+const globalSearch = computed<string>({
+  get: () => props.search,
+  set: (value) => emit("update:search", value),
+});
+
+const notificationStore = useNotificationStore();
+const { downloadFiles, items, loading, totalCount, totalFilteredCount } =
+  useTable<ColumnModel>(
+    "column",
+    options,
+    toRef(props, "query"),
+    [
+      {
+        name: "axial-shortening",
+        countKey: "axial_shortening_count",
+        getCsv: (id) => columnsApi.getColumnsAxialShorteningCsv(id),
+      },
+      {
+        name: "moment-strong",
+        countKey: "moment_strong_count",
+        getCsv: (id) => columnsApi.getColumnsMomentStrongCsv(id),
+      },
+      {
+        name: "moment-weak",
+        countKey: "moment_weak_count",
+        getCsv: (id) => columnsApi.getColumnsMomentWeakCsv(id),
+      },
+    ],
+    () => columnsApi.getColumnsCounts(),
+    (query, sortBy, sortDesc, page, size) =>
+      columnsApi.getColumns(query, sortBy, sortDesc, page, size),
+    (ids) => columnsApi.getColumnsCsv(ids),
+    (message) => notificationStore.notify(message)
+  );
+</script>
+
 <template>
   <simple-table
     :columns="columns"
-    :get-counts="getCounts"
-    :get-files="getFiles"
-    :get-page="getPage"
+    :items="items"
+    :loading="loading"
+    :options.sync="options"
     prefix="column."
     :query="query"
     :search.sync="globalSearch"
-    :searches.sync="columnSearches"
-    @click="click"
-    @loadPage="loadPage"
+    :searches.sync="searches"
+    :total-count="totalCount"
+    :total-filtered-count="totalFilteredCount"
+    @click:row="emit('click:row', $event)"
+    @download="downloadFiles"
   >
     <template #title>
       Columns
@@ -41,106 +148,3 @@
     </template>
   </simple-table>
 </template>
-
-<script lang="ts">
-import {
-  ColumnField,
-  ColumnModel,
-  CountModel,
-  ExtendedPageColumnModel,
-} from "@/backend";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SimpleTable, {
-  Column,
-  DownloadFile,
-  DownloadType,
-} from "@/components/commons/SimpleTable.vue";
-import SimpleTableMixin from "@/components/commons/SimpleTableMixin.vue";
-import { columnsApi } from "@/plugins/axios";
-import { Searches } from "@/utils/common";
-import { AxiosResponse } from "axios";
-import { Component, Prop, PropSync } from "vue-property-decorator";
-
-@Component({
-  components: {
-    InfoTooltip,
-    SimpleTable,
-  },
-})
-export default class ColumnTable extends SimpleTableMixin<ColumnModel> {
-  @Prop({ default: "" })
-  readonly query!: string;
-  @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
-  columnSearches!: Searches;
-  @PropSync("search", { type: String, default: () => "" })
-  globalSearch!: string;
-
-  readonly columns: Column[] = [
-    {
-      value: ColumnField.ExperimentalProgram,
-      type: "text",
-    },
-    {
-      value: ColumnField.SpecimenDesignation,
-      type: "text",
-    },
-    {
-      value: ColumnField.SectionC,
-      type: "text",
-    },
-    {
-      value: ColumnField.PGOverPYm,
-      type: "number",
-    },
-    {
-      value: ColumnField.LBOverRYc,
-      type: "number",
-    },
-    {
-      value: ColumnField.DirectionLp,
-      type: "text",
-    },
-  ];
-
-  getCounts(): Promise<AxiosResponse<CountModel[]>> {
-    return columnsApi.getColumnsCounts();
-  }
-
-  getPage(
-    query?: string,
-    sortBy?: Array<string>,
-    sortDesc?: Array<boolean>,
-    page?: number,
-    size?: number
-  ): Promise<AxiosResponse<ExtendedPageColumnModel>> {
-    return columnsApi.getColumns(query, sortBy, sortDesc, page, size);
-  }
-
-  getFiles(
-    selectedItems: ColumnModel[],
-    types: DownloadType[]
-  ): Promise<DownloadFile[]> {
-    return this.getDownloadFiles(
-      selectedItems,
-      types,
-      "column",
-      (ids) => columnsApi.getColumnsCsv(ids),
-      {
-        name: "axial-shortening",
-        countKey: "axial_shortening_count",
-        getCsv: (id) => columnsApi.getColumnsAxialShorteningCsv(id),
-      },
-      {
-        name: "moment-strong",
-        countKey: "moment_strong_count",
-        getCsv: (id) => columnsApi.getColumnsMomentStrongCsv(id),
-      },
-      {
-        name: "moment-weak",
-        countKey: "moment_weak_count",
-        getCsv: (id) => columnsApi.getColumnsMomentWeakCsv(id),
-      }
-    );
-  }
-}
-</script>
