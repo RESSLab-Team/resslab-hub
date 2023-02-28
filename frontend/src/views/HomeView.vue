@@ -54,13 +54,14 @@ const logos: {
     src: publicPath + "logo/EPFL_Logo_184X53.svg",
     url: "https://www.epfl.ch",
   },
-  {
-    src: publicPath + "logo/SNF_logo_standard_web_color_pos_e.svg",
-    url: "https://www.snf.ch",
-  },
+
   {
     src: publicPath + "logo/logo_IT4R.svg",
     url: "https://enac-it4r.epfl.ch",
+  },
+  {
+    src: publicPath + "logo/SNF_logo_standard_web_color_pos_e.svg",
+    url: "https://www.snf.ch",
   },
 ];
 const indicators: {
@@ -232,7 +233,7 @@ onMounted(() => {
     </v-row>
     <v-row>
       <v-col cols="12">
-        <v-card class="pa-5">
+        <v-card class="pa-5 secondary white--text">
           <v-row>
             <v-col
               v-for="item in indicators"
