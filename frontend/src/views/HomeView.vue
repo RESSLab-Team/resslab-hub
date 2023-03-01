@@ -278,7 +278,7 @@ onMounted(() => {
         <v-card class="rounded pa-5">
           <v-carousel
             v-model="imageIndex"
-            class="grey darken-3 rounded"
+            class="secondary rounded"
             cycle
             height="500"
             hide-delimiter-background
