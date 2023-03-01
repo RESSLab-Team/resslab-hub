@@ -83,6 +83,15 @@ const indicators: {
 ];
 
 const imageIndex = ref(0);
+
+// Remember to change the date when the indicator counts are updated
+const indicatorStaticCounts = reactive<IndicatorCount>({
+  test: 580,
+  university: 30,
+  user: 160,
+});
+const indicatorStaticCountsLastUpdated = new Date(2023, 3, 1);
+
 const indicatorCounts = reactive<IndicatorCount>({});
 
 onMounted(() => {
@@ -243,7 +252,15 @@ onMounted(() => {
               <h1 v-if="indicatorCounts[item.key] !== undefined">
                 {{ indicatorCounts[item.key] }}
               </h1>
-              <v-progress-circular v-else indeterminate />
+              <h1 v-else>
+                {{ indicatorStaticCounts[item.key] }}
+                <v-progress-circular
+                  color="white"
+                  :width="3"
+                  :size="20"
+                  indeterminate
+                />
+              </h1>
               <span>{{ item.text }}</span>
             </v-col>
           </v-row>
