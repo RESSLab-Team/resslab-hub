@@ -106,7 +106,11 @@ const unitSystem = computed<UnitSystem>({
           </v-tab>
         </template>
         <v-spacer></v-spacer>
-        <simple-toggle v-model="unitSystem" :items="unitItems" />
+        <simple-toggle
+          v-if="unitStore.showUnitToggle"
+          v-model="unitSystem"
+          :items="unitItems"
+        />
         <v-dialog v-model="aboutDialog" max-width="800px">
           <template #activator="{ on, attrs }">
             <v-tab v-bind="attrs" v-on="on">

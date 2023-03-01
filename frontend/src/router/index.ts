@@ -1,3 +1,4 @@
+import { useUnitStore } from "@/stores/unit";
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 
@@ -8,6 +9,7 @@ const routes: Array<RouteConfig> = [
     path: "/",
     name: "Home",
     component: () => import("../views/HomeView.vue"),
+    meta: { showUnitToggle: false },
   },
   {
     path: "/connections",
@@ -19,6 +21,7 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: "database",
+        meta: { showUnitToggle: false },
         component: () => import("../views/ConnectionsDatabase.vue"),
       },
       {
@@ -41,10 +44,12 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: "database",
+        meta: { showUnitToggle: false },
         component: () => import("../views/ColumnsDatabase.vue"),
       },
       {
         path: "fragility-curve",
+        meta: { showUnitToggle: false },
         component: () => import("../views/ColumnsFragilityCurve.vue"),
       },
       {
@@ -63,6 +68,7 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: "database",
+        meta: { showUnitToggle: false },
         component: () => import("../views/BracesDatabase.vue"),
       },
       {
@@ -85,6 +91,7 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: "database",
+        meta: { showUnitToggle: false },
         component: () => import("../views/MaterialsDatabase.vue"),
       },
       {
@@ -99,6 +106,11 @@ const router = new VueRouter({
   mode: "history",
   base: process.env.BASE_URL,
   routes,
+});
+
+router.afterEach((to) => {
+  const unitStore = useUnitStore();
+  unitStore.setShowUnitToggle(to.meta?.showUnitToggle ?? true);
 });
 
 export default router;
