@@ -84,13 +84,11 @@ const indicators: {
 
 const imageIndex = ref(0);
 
-// Remember to change the date when the indicator counts are updated
 const indicatorStaticCounts = reactive<IndicatorCount>({
   test: 580,
   university: 30,
   user: 160,
 });
-const indicatorStaticCountsLastUpdated = new Date(2023, 3, 1);
 
 const indicatorCounts = reactive<IndicatorCount>({});
 
