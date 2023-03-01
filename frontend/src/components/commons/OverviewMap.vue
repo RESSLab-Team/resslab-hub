@@ -198,7 +198,7 @@ onMounted(() => {
 
 <template>
   <v-responsive aspect-ratio="1.2" class="fill-height">
-    <div ref="mapContainer" class="fill-height mapContainer"></div>
+    <div ref="mapContainer" class="fill-height mapContainer secondary"></div>
   </v-responsive>
 </template>
 
