@@ -34,9 +34,7 @@ import {
 
 import { createMarkers } from "@/utils/overviewmap";
 
-import { computed, defineProps, onMounted, ref } from "vue";
-
-const props = defineProps({});
+import { computed, onMounted, ref } from "vue";
 
 const connectionsLocations = ref<LocationConnectionsModel[]>([]);
 connectionsApi
