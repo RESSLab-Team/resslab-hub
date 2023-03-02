@@ -21,7 +21,7 @@ const unitSystem = computed<UnitSystem>({
 </script>
 
 <template>
-  <v-row align="center">
+  <v-row>
     <v-col>
       <slot></slot>
     </v-col>
