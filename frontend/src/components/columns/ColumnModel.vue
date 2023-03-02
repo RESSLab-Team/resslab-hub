@@ -16,6 +16,7 @@ import { clamp, omit } from "lodash";
 import { computed, reactive, ref } from "vue";
 import { Point } from "@/utils/model";
 import SectionSelector from "@/components/commons/SectionSelector.vue";
+import TitleRow from "@/components/commons/TitleRow.vue";
 
 interface Result {
   ke: number;
@@ -418,11 +419,13 @@ function getTableColumns(
 <template>
   <v-row>
     <v-col cols="12">
-      <h1>Predictive Model for Steel wide Flange Columns</h1>
-      <p>
-        For further information refer to
-        <a href="" target="_blank"> Lignos et al. (2019) </a>
-      </p>
+      <title-row>
+        <h1>Predictive Model for Steel wide Flange Columns</h1>
+        <p>
+          For further information refer to
+          <a href="" target="_blank"> Lignos et al. (2019) </a>
+        </p>
+      </title-row>
     </v-col>
     <v-col cols="6">
       <v-row>

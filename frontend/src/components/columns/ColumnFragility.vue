@@ -14,7 +14,7 @@ import { getColorMap } from "@/utils/vuetify";
 import { EChartsOption, SeriesOption } from "echarts";
 import { range } from "lodash";
 import { computed, reactive, ref } from "vue";
-
+import TitleRow from "@/components/commons/TitleRow.vue";
 const parameters: UnitSliderItem<keyof Variables>[] = [
   {
     key: "hTw",
@@ -263,16 +263,18 @@ function surface(
   <div>
     <v-row>
       <v-col cols="12">
-        <h1>Fragility Curve Plotter for Wide-Flange Steel Columns</h1>
-        <p>
-          This module plots univariate and multivariate fragility curves for
-          wide-flange steel columns depending on their primary loading and
-          geometric characteristics. For further information please refer to
-          <a
-            href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
-            >Elkady et al. (2018)</a
-          >.
-        </p>
+        <title-row :show-unit-toggle="false">
+          <h1>Fragility Curve Plotter for Wide-Flange Steel Columns</h1>
+          <p>
+            This module plots univariate and multivariate fragility curves for
+            wide-flange steel columns depending on their primary loading and
+            geometric characteristics. For further information please refer to
+            <a
+              href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
+              >Elkady et al. (2018)</a
+            >.
+          </p>
+        </title-row>
       </v-col>
     </v-row>
     <v-row>
