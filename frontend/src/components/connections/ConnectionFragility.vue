@@ -4,12 +4,16 @@ import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import UnitSlider, {
   UnitSliderItem,
 } from "@/components/commons/sliders/UnitSlider.vue";
-import Toggle, { ToggleItem } from "@/components/commons/SimpleToggle.vue";
+import Toggle from "@/components/commons/SimpleToggle.vue";
+import { ToggleItem } from "@/utils/toggle";
+
 import { fragilityCurve } from "@/utils/fragility";
 import { getColorMap } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import { computed, reactive, ref } from "vue";
 import { publicPath } from "@/utils/common";
+
+import TitleRow from "@/components/commons/TitleRow.vue";
 
 type Material = "a36" | "a572";
 interface Variables {
@@ -145,23 +149,25 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
 <template>
   <v-row>
     <v-col cols="12">
-      <h1>Fragility Curve Plotter for Steel Component</h1>
-      <p>
-        This tab introduces a web-based interactive module for visualizing
-        fragility curves of Pre- and Post-Northridge beam-to-column connections.
-        For further information refer to
-        <a
-          href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0000214"
-          target="_blank"
-          >Lignos et al. (2010)</a
-        >
-        and
-        <a
-          href="https://www.sciencedirect.com/science/article/abs/pii/S0141029612003689"
-          target="_blank"
-          >Ramirez et al. (2012)</a
-        >.
-      </p>
+      <title-row>
+        <h1>Fragility Curve Plotter for Steel Component</h1>
+        <p>
+          This tab introduces a web-based interactive module for visualizing
+          fragility curves of Pre- and Post-Northridge beam-to-column
+          connections. For further information refer to
+          <a
+            href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0000214"
+            target="_blank"
+            >Lignos et al. (2010)</a
+          >
+          and
+          <a
+            href="https://www.sciencedirect.com/science/article/abs/pii/S0141029612003689"
+            target="_blank"
+            >Ramirez et al. (2012)</a
+          >.
+        </p>
+      </title-row>
     </v-col>
     <v-col cols="4">
       <v-card>

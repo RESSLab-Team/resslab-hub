@@ -12,6 +12,7 @@ import { EChartsOption } from "echarts";
 import { range, zip } from "lodash";
 import { index, Matrix, matrix, max, sum } from "mathjs";
 import { computed, ref } from "vue";
+import TitleRow from "@/components/commons/TitleRow.vue";
 
 type Option = "square-hss" | "round-hss" | "w-shape" | "l-shape";
 
@@ -294,18 +295,20 @@ function correlatedBivariate(
 <template>
   <v-row>
     <v-col cols="12">
-      <h1>Fragility Curve Plotter for Steel Bracings</h1>
-      <p>
-        This interactive module plots univariate and multivariate fragility
-        curves for steel bracings of various types of cross sections. the
-        multivariate curves depict the dependence of the fragility curve on
-        member slenderness. For further information refer to
-        <a
-          href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
-          target="_blank"
-          >Lignos and Karamanci (2013)</a
-        >.
-      </p>
+      <title-row>
+        <h1>Fragility Curve Plotter for Steel Bracings</h1>
+        <p>
+          This interactive module plots univariate and multivariate fragility
+          curves for steel bracings of various types of cross sections. the
+          multivariate curves depict the dependence of the fragility curve on
+          member slenderness. For further information refer to
+          <a
+            href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
+            target="_blank"
+            >Lignos and Karamanci (2013)</a
+          >.
+        </p>
+      </title-row>
     </v-col>
     <v-col cols="12">
       <toggle v-model="option" :items="options"></toggle>

@@ -13,6 +13,7 @@ import { computeUvcStress } from "@/utils/material";
 import { zip } from "lodash";
 import Snackbar from "@/components/commons/Snackbar.vue";
 import materialParameters from "@/assets/material/parameter-material-list.csv";
+import TitleRow from "@/components/commons/TitleRow.vue";
 
 interface Material {
   e: number;
@@ -202,23 +203,25 @@ watch(
 <template>
   <v-row>
     <v-col cols="12">
-      <h1>Material Model</h1>
-      <p>
-        This web based interactive interface computes the hysteretic behavior of
-        typical steels under inelastic cyclic straining. For further information
-        refer to
-        <a
-          href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
-          target="_blank"
-          >Hartloper et al. (2021)</a
-        >
-        The uniaxial loading protocols are based on work by
-        <a
-          href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29EM.1943-7889.0001922"
-          target="_blank"
-          >de Castro e Sousa et al. (2020)</a
-        >
-      </p>
+      <title-row>
+        <h1>Material Model</h1>
+        <p>
+          This web based interactive interface computes the hysteretic behavior
+          of typical steels under inelastic cyclic straining. For further
+          information refer to
+          <a
+            href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
+            target="_blank"
+            >Hartloper et al. (2021)</a
+          >
+          The uniaxial loading protocols are based on work by
+          <a
+            href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29EM.1943-7889.0001922"
+            target="_blank"
+            >de Castro e Sousa et al. (2020)</a
+          >
+        </p>
+      </title-row>
     </v-col>
     <v-col cols="6">
       <v-card>

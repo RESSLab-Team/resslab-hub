@@ -10,6 +10,7 @@ import { EChartsOption } from "echarts";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import { computed, reactive, ref, watch } from "vue";
 import { variableBind } from "@/utils/model";
+import TitleRow from "@/components/commons/TitleRow.vue";
 
 type SteelType = "S235" | "S275" | "S355" | "S420" | "S460";
 type Option =
@@ -317,13 +318,15 @@ function getCompressionOption(result: Result): EChartsOption {
 <template>
   <v-row>
     <v-col cols="12">
-      <h1>Component Model for Steel Bracings</h1>
-      <p>
-        This web-based interactive interface computes the basic parameters for
-        predictive modeling of steel bracings based on their basic material and
-        geometric properties. For further information refer to Eurocode 8 Part
-        3.
-      </p>
+      <title-row>
+        <h1>Component Model for Steel Bracings</h1>
+        <p>
+          This web-based interactive interface computes the basic parameters for
+          predictive modeling of steel bracings based on their basic material
+          and geometric properties. For further information refer to Eurocode 8
+          Part 3.
+        </p>
+      </title-row>
     </v-col>
     <v-col cols="6">
       <v-card>
