@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { publicPath } from "@/utils/common";
-import { ref, onMounted, reactive } from "vue";
+import { ref, onMounted, shallowRef, triggerRef } from "vue";
 import OverviewMap from "@/components/commons/OverviewMap.vue";
 import { chain } from "lodash";
 import {
@@ -18,17 +18,10 @@ import {
 } from "@/backend";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 
-interface Image {
+const carouselImages: {
   src: string;
   credit: string;
-}
-interface IndicatorCount {
-  test?: number;
-  university?: number;
-  user?: number;
-}
-
-const carouselImages: Image[] = [
+}[] = [
   "El Jisr and Lignos (2022)",
   "Elkady and Lignos (2018)",
   "Prof. Dimitrios Lignos, EPFL",
@@ -64,33 +57,27 @@ const logos: {
     url: "https://www.snf.ch",
   },
 ];
-const indicators: {
-  key: keyof IndicatorCount;
-  text: string;
-}[] = [
-  {
-    key: "test",
-    text: "Tests",
-  },
-  {
-    key: "university",
-    text: "Universities contributed",
-  },
-  {
-    key: "user",
-    text: "Users worldwide",
-  },
-];
 
 const imageIndex = ref(0);
-
-const indicatorStaticCounts = reactive<IndicatorCount>({
-  test: 580,
-  university: 30,
-  user: 160,
+const indicators = shallowRef<
+  Record<
+    "test" | "university" | "user",
+    { text: string; count: number | string }
+  >
+>({
+  test: {
+    text: "Tests",
+    count: "~580",
+  },
+  university: {
+    text: "Universities contributed",
+    count: "~30",
+  },
+  user: {
+    text: "Users worldwide",
+    count: "~160",
+  },
 });
-
-const indicatorCounts = reactive<IndicatorCount>({});
 
 onMounted(() => {
   // Get test count
@@ -106,7 +93,10 @@ onMounted(() => {
         .sum()
         .value()
     )
-    .then((count) => (indicatorCounts.test = count));
+    .then((count) => {
+      indicators.value.test.count = count;
+      triggerRef(indicators);
+    });
 
   // Get university count
   const latLngFields: (BraceField &
@@ -126,13 +116,19 @@ onMounted(() => {
         .size()
         .value()
     )
-    .then((count) => (indicatorCounts.university = count));
+    .then((count) => {
+      indicators.value.university.count = count;
+      triggerRef(indicators);
+    });
 
   // Get user count
   analyticsApi
     .getUsers()
     .then((response) => response.data)
-    .then((count) => (indicatorCounts.user = count));
+    .then((count) => {
+      indicators.value.user.count = count;
+      triggerRef(indicators);
+    });
 });
 </script>
 
@@ -232,9 +228,7 @@ onMounted(() => {
       </v-col>
       <v-col lg="7" xl="8">
         <v-card class="fill-height">
-          <v-responsive class="fill-height" :max-height="600">
-            <overview-map
-          /></v-responsive>
+          <overview-map />
         </v-card>
       </v-col>
     </v-row>
@@ -243,21 +237,12 @@ onMounted(() => {
         <v-card class="pa-5 secondary white--text">
           <v-row>
             <v-col
-              v-for="item in indicators"
-              :key="item.key"
+              v-for="(item, index) in indicators"
+              :key="index"
               class="d-flex flex-column align-center"
             >
-              <h1 v-if="indicatorCounts[item.key] !== undefined">
-                {{ indicatorCounts[item.key] }}
-              </h1>
-              <h1 v-else>
-                {{ indicatorStaticCounts[item.key] }}
-                <v-progress-circular
-                  color="white"
-                  :width="3"
-                  :size="20"
-                  indeterminate
-                />
+              <h1>
+                {{ item.count }}
               </h1>
               <span>{{ item.text }}</span>
             </v-col>
