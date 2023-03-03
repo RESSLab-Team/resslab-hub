@@ -301,7 +301,7 @@ class Component(ABC, Generic[D, M]):
                 if column not in self.ignored_columns
             ]
         return reduce(
-            lambda a, b: a + b,
+            lambda a, b: a | b,
             predicates,
         )
 
