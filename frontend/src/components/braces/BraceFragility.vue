@@ -3,7 +3,7 @@
 import SurfaceGlChart from "@/components/commons/charts/SurfaceGlChart.vue";
 import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import Toggle, { ToggleItem } from "@/components/commons/SimpleToggle.vue";
+import SimpleToggle from "@/components/commons/SimpleToggle.vue";
 import { EChartsGlOption } from "@/utils/echarts-gl";
 import { DamageState, univariateOption } from "@/utils/fragility";
 import { getColorMap } from "@/utils/vuetify";
@@ -13,6 +13,7 @@ import { range, zip } from "lodash";
 import { index, Matrix, matrix, max, sum } from "mathjs";
 import { computed, ref } from "vue";
 import TitleRow from "@/components/commons/TitleRow.vue";
+import { ToggleItem } from "@/utils/toggle";
 
 type Option = "square-hss" | "round-hss" | "w-shape" | "l-shape";
 
@@ -311,7 +312,7 @@ function correlatedBivariate(
       </title-row>
     </v-col>
     <v-col cols="12">
-      <toggle v-model="option" :items="options"></toggle>
+      <simple-toggle v-model="option" :items="options" />
       <info-tooltip>
         Select the appropriate cross sectional shape of the bracing member to
         visualize the corresponding fragility curve.
@@ -323,13 +324,13 @@ function correlatedBivariate(
         :aspect-ratio="2"
         :option="univariateOptions[option]"
         x-unit="rad"
-      ></unit-chart>
+      />
     </v-col>
     <v-col cols="8">
       <h2>Multivariate Fragilities</h2>
       <v-row>
         <v-col v-for="(item, i) in multivariateOptions" :key="i" cols="4">
-          <surface-gl-chart :aspect-ratio="1" :option="item"></surface-gl-chart>
+          <surface-gl-chart :aspect-ratio="1" :option="item" />
         </v-col>
       </v-row>
     </v-col>

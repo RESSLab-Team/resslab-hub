@@ -263,7 +263,7 @@ function surface(
   <div>
     <v-row>
       <v-col cols="12">
-        <title-row :show-unit-toggle="false">
+        <title-row hide-unit>
           <h1>Fragility Curve Plotter for Wide-Flange Steel Columns</h1>
           <p>
             This module plots univariate and multivariate fragility curves for

@@ -4,7 +4,7 @@ import UnitChart from "@/components/commons/charts/UnitChart.vue";
 import UnitSlider, {
   UnitSliderItem,
 } from "@/components/commons/sliders/UnitSlider.vue";
-import Toggle from "@/components/commons/SimpleToggle.vue";
+import SimpleToggle from "@/components/commons/SimpleToggle.vue";
 import { ToggleItem } from "@/utils/toggle";
 
 import { fragilityCurve } from "@/utils/fragility";
@@ -173,7 +173,7 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
       <v-card>
         <v-card-title>Steel Type</v-card-title>
         <v-card-text>
-          <toggle v-model="material" class="my-4" :items="materials" />
+          <simple-toggle v-model="material" class="my-4" :items="materials" />
         </v-card-text>
         <v-card-title>Geometric Parameters</v-card-title>
         <v-card-text>
@@ -181,7 +181,7 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
             v-model="infoAvailable"
             color="primary"
             label="Geometric parameters available"
-          ></v-switch>
+          />
           <unit-slider
             v-for="item in parameters"
             :key="item.key"
