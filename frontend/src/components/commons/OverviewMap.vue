@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import "leaflet/dist/leaflet.css";
+
 import {
   LocationBracesModel,
   LocationColumnsModel,
   LocationConnectionsModel,
   LocationMaterialsModel,
 } from "@/backend";
-
 import {
   PieChart,
   scaleColor,
@@ -24,16 +25,13 @@ import {
   tileLayer,
 } from "leaflet";
 import "leaflet.markercluster";
-import "leaflet/dist/leaflet.css";
 import {
   bracesApi,
   columnsApi,
   connectionsApi,
   materialsApi,
 } from "@/plugins/axios";
-
 import { createMarkers } from "@/utils/overviewmap";
-
 import { computed, onMounted, ref } from "vue";
 
 const connectionsLocations = ref<LocationConnectionsModel[]>([]);
@@ -197,9 +195,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-responsive aspect-ratio="1.2" class="fill-height">
-    <div ref="mapContainer" class="fill-height mapContainer secondary"></div>
-  </v-responsive>
+  <div ref="mapContainer" class="fill-height mapContainer secondary"></div>
 </template>
 
 <style lang="scss" scoped>
