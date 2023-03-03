@@ -2,18 +2,19 @@
 import { defineProps, withDefaults, computed } from "vue";
 import { useUnitStore } from "@/stores/unit";
 import { UnitSystem, unitItems } from "@/utils/unit";
-import SimpleToggle from "./SimpleToggle.vue";
+import SimpleToggle from "@/components/commons/SimpleToggle.vue";
 
 const props = withDefaults(
   defineProps<{
-    showUnitToggle?: boolean;
+    hideUnit?: boolean;
   }>(),
   {
-    showUnitToggle: true,
+    hideUnit: false,
   }
 );
 
 const unitStore = useUnitStore();
+
 const unitSystem = computed<UnitSystem>({
   get: () => unitStore.unitSystem,
   set: (value) => unitStore.setUnitSystem(value),
@@ -23,10 +24,9 @@ const unitSystem = computed<UnitSystem>({
 <template>
   <v-row>
     <v-col>
-      <slot></slot>
+      <slot />
     </v-col>
-    <v-col v-if="props.showUnitToggle" cols="auto">
-      <v-spacer></v-spacer>
+    <v-col v-if="!props.hideUnit" cols="auto">
       <simple-toggle v-model="unitSystem" :items="unitItems" />
     </v-col>
   </v-row>

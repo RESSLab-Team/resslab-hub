@@ -227,14 +227,13 @@ watch(
       <v-card>
         <v-card-title>
           Select Steel Material
-          <info-tooltip
-            >Here you can select a steel material from the available list and
+          <info-tooltip>
+            Here you can select a steel material from the available list and
             with the sliders below you can check the sensitivity of the updated
             Voce and Chaboche constitutive model to the input material model
             parameters. The model is displayed based on four selected
-            strain-based protocols for the same set of input model
-            parameters.</info-tooltip
-          >
+            strain-based protocols for the same set of input model parameters.
+          </info-tooltip>
         </v-card-title>
         <v-card-text>
           <v-row>
