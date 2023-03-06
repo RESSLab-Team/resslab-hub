@@ -1,26 +1,38 @@
-<template>
-  <single-chart
-    label-prefix="brace."
-    :searches.sync="fieldSearches"
-    :field="field"
-    :query="query"
-    :color="color"
-    :promise="promise"
-  >
-  </single-chart>
-</template>
-
-<script lang="ts">
-import { BraceField, CountModel } from "@/backend";
-import SingleChartMixin from "@/components/commons/charts/SingleChartMixin.vue";
+<script setup lang="ts">
+import { BraceField } from "@/backend";
 import { bracesApi } from "@/plugins/axios";
-import { AxiosResponse } from "axios";
-import { Component } from "vue-property-decorator";
+import { defineProps, toRef, defineEmits } from "vue";
+import { useSingleChart } from "@/utils/chart";
+import { Color } from "vuetify/lib/util/colors";
+import { Value } from "@/utils/common";
+import SingleChart from "@/components/commons/charts/SingleChart.vue";
 
-@Component
-export default class BraceSingleChart extends SingleChartMixin<BraceField> {
-  get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return bracesApi.getBracesCounts([this.field], this.query);
-  }
+const props = defineProps<{
+  color?: Color;
+  field: BraceField;
+  query?: string;
+}>();
+const emit = defineEmits<{
+  (e: "change:searches", key: string, value: Value): void;
+}>();
+
+const { counts } = useSingleChart<BraceField>(
+  props.field,
+  toRef(props, "query"),
+  (fields, query) => bracesApi.getBracesCounts(fields, query)
+);
+
+function changeSearches(key: string, value: Value) {
+  emit("change:searches", key, value);
 }
 </script>
+
+<template>
+  <single-chart
+    :color="color"
+    :counts="counts"
+    :field="field"
+    label-prefix="brace."
+    @change:searches="changeSearches"
+  />
+</template>

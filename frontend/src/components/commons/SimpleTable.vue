@@ -56,11 +56,11 @@ const props = withDefaults(
   }
 );
 const emit = defineEmits<{
-  (e: "update:options", value: DataOptions): void;
-  (e: "download", items: T[], types: DownloadType[]): void;
-  (e: "update:searches", value: Searches): void;
-  (e: "update:search", value: string): void;
   (e: "click:row", value: T): void;
+  (e: "download", items: T[], types: DownloadType[]): void;
+  (e: "update:options", value: DataOptions): void;
+  (e: "update:search", value: string): void;
+  (e: "update:searches", value: Searches): void;
 }>();
 
 const maxDownloadCount = 5;
@@ -99,11 +99,7 @@ const tableHeaders = computed<TableHeader[]>(() =>
 const filterHeaders = computed<TableHeader[]>(() =>
   props.columns.filter((column) => column.filterOnly).map(getTableHeader)
 );
-const hasFilters = computed<boolean>(
-  () =>
-    globalSearch.value.length > 0 ||
-    Object.values(columnSearches.value).filter(filterColumnValue).length > 0
-);
+const hasFilters = computed<boolean>(() => props.query.length > 0);
 
 watch(selectedItems, (value) => {
   if (value.length > maxDownloadCount) {

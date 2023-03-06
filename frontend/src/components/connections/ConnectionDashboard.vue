@@ -21,6 +21,7 @@ const {
   query,
   search,
   searches,
+  changeSearches,
   updatePage,
 } = useDashboard<ConnectionModel>(route, ConnectionField);
 
@@ -130,7 +131,7 @@ const beamFields: DoubleFields<ConnectionField> = [
                   <connection-single-chart
                     :field="ConnectionField.ConnectionType"
                     :query="query"
-                    :searches.sync="searches"
+                    @change:searches="changeSearches"
                   />
                 </v-col>
                 <v-col cols="12" sm="6">
@@ -220,7 +221,7 @@ const beamFields: DoubleFields<ConnectionField> = [
                 :color="colors.deepPurple"
                 :field="ConnectionField.SteelB"
                 :query="query"
-                :searches.sync="searches"
+                @change:searches="changeSearches"
               />
             </v-card-text>
           </v-card>
