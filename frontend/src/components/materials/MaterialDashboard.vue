@@ -20,6 +20,7 @@ const {
   query,
   search,
   searches,
+  changeSearches,
   updatePage,
 } = useDashboard<MaterialModel>(route, MaterialField);
 
@@ -115,7 +116,7 @@ const steelField = MaterialField.Type;
                 :color="colors.deepPurple"
                 :field="steelField"
                 :query="query"
-                :searches.sync="searches"
+                @change:searches="changeSearches"
               />
             </v-card-text>
           </v-card>

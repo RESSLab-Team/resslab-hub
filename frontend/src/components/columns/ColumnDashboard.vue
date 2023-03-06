@@ -21,6 +21,7 @@ const {
   query,
   search,
   searches,
+  changeSearches,
   updatePage,
 } = useDashboard<ColumnModel>(route, ColumnField);
 
@@ -133,7 +134,7 @@ const steelField = ColumnField.SteelC;
                 :color="colors.deepPurple"
                 :field="steelField"
                 :query="query"
-                :searches.sync="searches"
+                @change:searches="changeSearches"
               />
             </v-card-text>
           </v-card>

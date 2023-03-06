@@ -21,6 +21,7 @@ const {
   query,
   search,
   searches,
+  changeSearches,
   updatePage,
 } = useDashboard<BraceModel>(route, BraceField);
 
@@ -117,8 +118,8 @@ const steelField = BraceField.Steel;
                 :color="colors.blue"
                 :field="loadingProtocolField"
                 :query="query"
-                :searches.sync="searches"
                 type="line"
+                @change:searches="changeSearches"
               />
             </v-card-text>
           </v-card>
@@ -131,7 +132,7 @@ const steelField = BraceField.Steel;
                 :color="colors.deepPurple"
                 :field="steelField"
                 :query="query"
-                :searches.sync="searches"
+                @change:searches="changeSearches"
               />
             </v-card-text>
           </v-card>

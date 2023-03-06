@@ -5,7 +5,7 @@ import {
   Searches,
   Value,
 } from "@/utils/common";
-import { computed, ref, unref } from "vue";
+import { computed, ref, triggerRef, unref } from "vue";
 import { Route } from "vue-router";
 
 export function useDashboard<M>(route: Route, field: object) {
@@ -27,6 +27,10 @@ export function useDashboard<M>(route: Route, field: object) {
       item.value = page.items[0];
       detail.value = false;
     }
+  }
+  function changeSearches(key: string, value: Value): void {
+    searches.value[key] = value;
+    triggerRef(searches);
   }
 
   const query = computed<string>(() => {
@@ -66,6 +70,7 @@ export function useDashboard<M>(route: Route, field: object) {
     clickTableRow,
     closeDetail,
     updatePage,
+    changeSearches,
   };
 }
 
