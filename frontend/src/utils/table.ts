@@ -20,13 +20,13 @@ export interface Column {
   filterOnly?: boolean;
 }
 
-export function useTable<T extends { id: string }, P extends Page<T> = Page<T>>(
+export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
   name: string,
   options: Ref<DataOptions | undefined>,
   query: Ref<string>,
   tests: {
     name: string;
-    countKey: keyof T;
+    countKey: keyof M;
     getCsv: (id: string) => Promise<AxiosResponse>;
   }[],
   getCounts: () => Promise<AxiosResponse<CountModel[]>>,
@@ -38,14 +38,15 @@ export function useTable<T extends { id: string }, P extends Page<T> = Page<T>>(
     size?: number
   ) => Promise<AxiosResponse<P>>,
   getMainCsv: (ids: string[]) => Promise<AxiosResponse>,
-  notify: (message: string) => void
+  notify: (message: string) => void,
+  updatePage: (page: P) => void
 ) {
   const totalCount = ref<number>();
   const loading = ref<boolean>(false);
-  const items = ref<T[]>([]) as Ref<T[]>;
+  const items = ref<M[]>([]) as Ref<M[]>;
   const totalFilteredCount = ref<number>();
 
-  function downloadFiles(items: T[], types: DownloadType[]): void {
+  function downloadFiles(items: M[], types: DownloadType[]): void {
     const filePromises = [
       types.includes(DownloadType.Main)
         ? [
@@ -116,8 +117,7 @@ export function useTable<T extends { id: string }, P extends Page<T> = Page<T>>(
         .then((page) => {
           items.value = page.items;
           totalFilteredCount.value = page.total;
-          // TODO remove ?
-          // this.$emit("loadPage", page);
+          updatePage(page);
         })
         .finally(() => {
           loading.value = false;

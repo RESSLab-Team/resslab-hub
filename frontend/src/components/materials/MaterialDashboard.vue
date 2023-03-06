@@ -1,3 +1,51 @@
+<script setup lang="ts">
+import { MaterialField, MaterialModel } from "@/backend";
+import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
+import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import MaterialDoubleChart from "@/components/materials/charts/MaterialDoubleChart.vue";
+import MaterialParallelChart from "@/components/materials/charts/MaterialParallelChart.vue";
+import MaterialSingleChart from "@/components/materials/charts/MaterialSingleChart.vue";
+import MaterialDetail from "@/components/materials/MaterialDetail.vue";
+import MaterialTable from "@/components/materials/MaterialTable.vue";
+import { useDashboard } from "@/utils/dashboard";
+import { useRoute } from "vue-router/composables";
+import colors from "vuetify/lib/util/colors";
+
+const route = useRoute();
+const {
+  clickTableRow,
+  closeDetail,
+  item,
+  query,
+  search,
+  searches,
+  updatePage,
+} = useDashboard<MaterialModel>(route, MaterialField);
+
+const parallelFields: ParallelField<MaterialField>[] = [
+  { id: MaterialField.Type },
+  { id: MaterialField.YieldStressMpa },
+  {
+    id: {
+      dividend: MaterialField.YieldStressMpa,
+      divisor: MaterialField.FyNMpa,
+    },
+  },
+  { id: MaterialField.FractureStrain },
+  { id: MaterialField.Thickness },
+];
+const profileFields: DoubleFields<MaterialField> = [
+  MaterialField.Date,
+  MaterialField.Profile,
+];
+const profileThicknessFields: DoubleFields<MaterialField> = [
+  MaterialField.Thickness,
+  MaterialField.Profile,
+];
+const steelField = MaterialField.Type;
+</script>
+
 <template>
   <v-row>
     <v-col md="6">
@@ -7,8 +55,8 @@
             :search.sync="search"
             :searches.sync="searches"
             :query="query"
-            @click:row="click"
-            @loadPage="loadPage"
+            @click:row="clickTableRow"
+            @update:page="updatePage"
           />
         </v-col>
       </v-row>
@@ -30,7 +78,7 @@
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <material-detail :material="item" @close="close" />
+          <material-detail :material="item" @close="closeDetail" />
         </v-col>
       </v-row>
       <v-row v-else>
@@ -76,57 +124,3 @@
     </v-col>
   </v-row>
 </template>
-
-<script lang="ts">
-import { MaterialField, MaterialModel } from "@/backend";
-import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
-import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
-import DashboardMixin from "@/components/commons/DashboardMixin.vue";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import MaterialDoubleChart from "@/components/materials/charts/MaterialDoubleChart.vue";
-import MaterialParallelChart from "@/components/materials/charts/MaterialParallelChart.vue";
-import MaterialSingleChart from "@/components/materials/charts/MaterialSingleChart.vue";
-import MaterialDetail from "@/components/materials/MaterialDetail.vue";
-import MaterialTable from "@/components/materials/MaterialTable.vue";
-import { Component } from "vue-property-decorator";
-import colors from "vuetify/lib/util/colors";
-
-@Component({
-  components: {
-    MaterialDetail,
-    MaterialDoubleChart,
-    MaterialParallelChart,
-    MaterialSingleChart,
-    MaterialTable,
-    InfoTooltip,
-  },
-})
-export default class MaterialDashboard extends DashboardMixin<MaterialModel> {
-  readonly colors = colors;
-  readonly parallelFields: ParallelField<MaterialField>[] = [
-    { id: MaterialField.Type },
-    { id: MaterialField.YieldStressMpa },
-    {
-      id: {
-        dividend: MaterialField.YieldStressMpa,
-        divisor: MaterialField.FyNMpa,
-      },
-    },
-    { id: MaterialField.FractureStrain },
-    { id: MaterialField.Thickness },
-  ];
-  readonly profileFields: DoubleFields<MaterialField> = [
-    MaterialField.Date,
-    MaterialField.Profile,
-  ];
-  readonly profileThicknessFields: DoubleFields<MaterialField> = [
-    MaterialField.Thickness,
-    MaterialField.Profile,
-  ];
-  readonly steelField = MaterialField.Type;
-
-  get fields(): string[] {
-    return Object.values(MaterialField);
-  }
-}
-</script>

@@ -4,6 +4,7 @@ import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SimpleTable from "@/components/commons/SimpleTable.vue";
 import { bracesApi } from "@/plugins/axios";
 import { useNotificationStore } from "@/stores/notification";
+import { Page } from "@/utils/backend";
 import { Searches } from "@/utils/common";
 import { useTable, Column } from "@/utils/table";
 import {
@@ -29,9 +30,10 @@ const props = withDefaults(
   }
 );
 const emit = defineEmits<{
-  (e: "update:searches", value: Searches): void;
-  (e: "update:search", value: string): void;
   (e: "click:row", value: BraceModel): void;
+  (e: "update:page", value: Page<BraceModel>): void;
+  (e: "update:search", value: string): void;
+  (e: "update:searches", value: Searches): void;
 }>();
 
 const columns: Column[] = [
@@ -85,7 +87,8 @@ const { downloadFiles, items, loading, totalCount, totalFilteredCount } =
     (query, sortBy, sortDesc, page, size) =>
       bracesApi.getBraces(query, sortBy, sortDesc, page, size),
     (ids) => bracesApi.getBracesCsv(ids),
-    (message) => notificationStore.notify(message)
+    (message) => notificationStore.notify(message),
+    (page) => emit("update:page", page)
   );
 </script>
 

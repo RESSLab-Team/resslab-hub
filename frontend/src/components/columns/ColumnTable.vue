@@ -15,6 +15,7 @@ import {
 } from "vue";
 import { DataOptions } from "vuetify";
 import { useNotificationStore } from "@/stores/notification";
+import { Page } from "@/utils/backend";
 
 const props = withDefaults(
   defineProps<{
@@ -29,9 +30,10 @@ const props = withDefaults(
   }
 );
 const emit = defineEmits<{
-  (e: "update:searches", value: Searches): void;
-  (e: "update:search", value: string): void;
   (e: "click:row", value: ColumnModel): void;
+  (e: "update:page", value: Page<ColumnModel>): void;
+  (e: "update:search", value: string): void;
+  (e: "update:searches", value: Searches): void;
 }>();
 
 const columns: Column[] = [
@@ -99,7 +101,8 @@ const { downloadFiles, items, loading, totalCount, totalFilteredCount } =
     (query, sortBy, sortDesc, page, size) =>
       columnsApi.getColumns(query, sortBy, sortDesc, page, size),
     (ids) => columnsApi.getColumnsCsv(ids),
-    (message) => notificationStore.notify(message)
+    (message) => notificationStore.notify(message),
+    (page) => emit("update:page", page)
   );
 </script>
 

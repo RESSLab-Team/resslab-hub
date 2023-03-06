@@ -1,3 +1,53 @@
+<script setup lang="ts">
+import { ColumnField, ColumnModel } from "@/backend";
+import ColumnDoubleChart from "@/components/columns/charts/ColumnDoubleChart.vue";
+import ColumnParallelChart from "@/components/columns/charts/ColumnParallelChart.vue";
+import ColumnSingleChart from "@/components/columns/charts/ColumnSingleChart.vue";
+import ColumnDetail from "@/components/columns/ColumnDetail.vue";
+import ColumnTable from "@/components/columns/ColumnTable.vue";
+import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
+import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
+import { useDashboard } from "@/utils/dashboard";
+import { useRoute } from "vue-router/composables";
+import colors from "vuetify/lib/util/colors";
+
+const route = useRoute();
+const {
+  clickTableRow,
+  closeDetail,
+  item,
+  query,
+  search,
+  searches,
+  updatePage,
+} = useDashboard<ColumnModel>(route, ColumnField);
+
+const parallelFields: ParallelField<ColumnField>[] = [
+  { id: ColumnField.Th80 },
+  { id: ColumnField.HOverTCw },
+  { id: ColumnField.BFOverTCf },
+  { id: ColumnField.LBOverRYc },
+  { id: ColumnField.PGOverPYm },
+];
+const boundaryConditionFields: DoubleFields<ColumnField> = [
+  ColumnField.Date,
+  ColumnField.BoundaryCondition,
+];
+const columnDepthFields: DoubleFields<ColumnField> = [
+  ColumnField.DC,
+  {
+    id: ColumnField.BuiltUp,
+    mapping: new Map([
+      ["False", "Hot Rolled"],
+      ["True", "Built Up"],
+    ]),
+  },
+];
+const steelField = ColumnField.SteelC;
+</script>
+
 <template>
   <v-row>
     <v-col md="6">
@@ -7,8 +57,8 @@
             :search.sync="search"
             :searches.sync="searches"
             :query="query"
-            @click:row="click"
-            @loadPage="loadPage"
+            @click:row="clickTableRow"
+            @update:page="updatePage"
           />
         </v-col>
       </v-row>
@@ -26,7 +76,7 @@
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <column-detail :column="item" @close="close" />
+          <column-detail :column="item" @close="closeDetail" />
         </v-col>
       </v-row>
       <v-row v-else>
@@ -92,60 +142,3 @@
     </v-col>
   </v-row>
 </template>
-
-<script lang="ts">
-import { ColumnField, ColumnModel } from "@/backend";
-import ColumnDoubleChart from "@/components/columns/charts/ColumnDoubleChart.vue";
-import ColumnParallelChart from "@/components/columns/charts/ColumnParallelChart.vue";
-import ColumnSingleChart from "@/components/columns/charts/ColumnSingleChart.vue";
-import ColumnDetail from "@/components/columns/ColumnDetail.vue";
-import ColumnTable from "@/components/columns/ColumnTable.vue";
-import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
-import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
-import DashboardMixin from "@/components/commons/DashboardMixin.vue";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
-import { Component } from "vue-property-decorator";
-import colors from "vuetify/lib/util/colors";
-
-@Component({
-  components: {
-    ColumnDetail,
-    ColumnDoubleChart,
-    ColumnParallelChart,
-    ColumnSingleChart,
-    ColumnTable,
-    InfoTooltip,
-    SteelTypeCardTitle,
-  },
-})
-export default class ColumnDashboard extends DashboardMixin<ColumnModel> {
-  readonly colors = colors;
-  readonly parallelFields: ParallelField<ColumnField>[] = [
-    { id: ColumnField.Th80 },
-    { id: ColumnField.HOverTCw },
-    { id: ColumnField.BFOverTCf },
-    { id: ColumnField.LBOverRYc },
-    { id: ColumnField.PGOverPYm },
-  ];
-  readonly boundaryConditionFields: DoubleFields<ColumnField> = [
-    ColumnField.Date,
-    ColumnField.BoundaryCondition,
-  ];
-  readonly columnDepthFields: DoubleFields<ColumnField> = [
-    ColumnField.DC,
-    {
-      id: ColumnField.BuiltUp,
-      mapping: new Map([
-        ["False", "Hot Rolled"],
-        ["True", "Built Up"],
-      ]),
-    },
-  ];
-  readonly steelField = ColumnField.SteelC;
-
-  get fields(): string[] {
-    return Object.values(ColumnField);
-  }
-}
-</script>

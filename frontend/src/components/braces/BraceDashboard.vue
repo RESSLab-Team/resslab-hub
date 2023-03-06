@@ -1,3 +1,48 @@
+<script setup lang="ts">
+import { BraceField, BraceModel } from "@/backend";
+import BraceDetail from "@/components/braces/BraceDetail.vue";
+import BraceTable from "@/components/braces/BraceTable.vue";
+import BraceDoubleChart from "@/components/braces/charts/BraceDoubleChart.vue";
+import BraceParallelChart from "@/components/braces/charts/BraceParallelChart.vue";
+import BraceSingleChart from "@/components/braces/charts/BraceSingleChart.vue";
+import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
+import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
+import { useRoute } from "vue-router/composables";
+import colors from "vuetify/lib/util/colors";
+import { useDashboard } from "@/utils/dashboard";
+
+const route = useRoute();
+const {
+  clickTableRow,
+  closeDetail,
+  item,
+  query,
+  search,
+  searches,
+  updatePage,
+} = useDashboard<BraceModel>(route, BraceField);
+
+const parallelFields: ParallelField<BraceField>[] = [
+  { id: BraceField.KlR },
+  {
+    id: {
+      dividend: BraceField.DBr,
+      divisor: BraceField.TBr,
+    },
+  },
+  { id: BraceField.CrossSectionShape },
+  { id: BraceField.BoundaryCondition },
+];
+const boundaryConditionFields: DoubleFields<BraceField> = [
+  BraceField.Date,
+  BraceField.BoundaryCondition,
+];
+const loadingProtocolField = BraceField.LoadingProtocol;
+const steelField = BraceField.Steel;
+</script>
+
 <template>
   <v-row>
     <v-col md="6">
@@ -7,8 +52,8 @@
             :search.sync="search"
             :searches.sync="searches"
             :query="query"
-            @click:row="click"
-            @loadPage="loadPage"
+            @click:row="clickTableRow"
+            @update:page="updatePage"
           />
         </v-col>
       </v-row>
@@ -30,7 +75,7 @@
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <brace-detail :brace="item" @close="close" />
+          <brace-detail :brace="item" @close="closeDetail" />
         </v-col>
       </v-row>
       <v-row v-else>
@@ -95,55 +140,3 @@
     </v-col>
   </v-row>
 </template>
-
-<script lang="ts">
-import { BraceField, BraceModel } from "@/backend";
-import BraceDetail from "@/components/braces/BraceDetail.vue";
-import BraceTable from "@/components/braces/BraceTable.vue";
-import BraceDoubleChart from "@/components/braces/charts/BraceDoubleChart.vue";
-import BraceParallelChart from "@/components/braces/charts/BraceParallelChart.vue";
-import BraceSingleChart from "@/components/braces/charts/BraceSingleChart.vue";
-import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
-import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
-import DashboardMixin from "@/components/commons/DashboardMixin.vue";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
-import { Component } from "vue-property-decorator";
-import colors from "vuetify/lib/util/colors";
-
-@Component({
-  components: {
-    BraceDetail,
-    BraceDoubleChart,
-    BraceParallelChart,
-    BraceSingleChart,
-    BraceTable,
-    InfoTooltip,
-    SteelTypeCardTitle,
-  },
-})
-export default class BraceDashboard extends DashboardMixin<BraceModel> {
-  readonly colors = colors;
-  readonly parallelFields: ParallelField<BraceField>[] = [
-    { id: BraceField.KlR },
-    {
-      id: {
-        dividend: BraceField.DBr,
-        divisor: BraceField.TBr,
-      },
-    },
-    { id: BraceField.CrossSectionShape },
-    { id: BraceField.BoundaryCondition },
-  ];
-  readonly boundaryConditionFields: DoubleFields<BraceField> = [
-    BraceField.Date,
-    BraceField.BoundaryCondition,
-  ];
-  readonly loadingProtocolField = BraceField.LoadingProtocol;
-  readonly steelField = BraceField.Steel;
-
-  get fields(): string[] {
-    return Object.values(BraceField);
-  }
-}
-</script>
