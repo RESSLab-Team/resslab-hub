@@ -1,4 +1,4 @@
-export type Value = string | boolean | number | string[];
+export type Value = boolean | number | string | (string | null)[];
 export type Searches = Record<string, Value>;
 
 export function sum(a: number, b: number): number {

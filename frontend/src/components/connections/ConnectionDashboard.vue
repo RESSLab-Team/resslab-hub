@@ -1,3 +1,72 @@
+<script setup lang="ts">
+import { ConnectionField, ConnectionModel } from "@/backend";
+import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
+import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
+import InfoTooltip from "@/components/commons/InfoTooltip.vue";
+import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
+import ConnectionDoubleChart from "@/components/connections/charts/ConnectionDoubleChart.vue";
+import ConnectionParallelChart from "@/components/connections/charts/ConnectionParallelChart.vue";
+import ConnectionSingleChart from "@/components/connections/charts/ConnectionSingleChart.vue";
+import ConnectionDetail from "@/components/connections/ConnectionDetail.vue";
+import ConnectionTable from "@/components/connections/ConnectionTable.vue";
+import { useDashboard } from "@/utils/dashboard";
+import { useRoute } from "vue-router/composables";
+import colors from "vuetify/lib/util/colors";
+
+const route = useRoute();
+const {
+  clickTableRow,
+  closeDetail,
+  item,
+  query,
+  search,
+  searches,
+  updatePage,
+} = useDashboard<ConnectionModel>(route, ConnectionField);
+
+const parallelFields: ParallelField<ConnectionField>[] = [
+  {
+    id: ConnectionField.DB,
+    name: "Beam Depth\ndb [mm]",
+  },
+  {
+    id: ConnectionField.DC,
+    name: "Column Depth\ndc [mm]",
+  },
+  {
+    id: ConnectionField.TCf,
+    name: "Column flange\nThickness [mm]",
+  },
+  {
+    id: {
+      dividend: ConnectionField.DB,
+      divisor: ConnectionField.DC,
+    },
+    name: "db / dc",
+  },
+  {
+    id: ConnectionField.GMaxGY,
+  },
+  {
+    id: ConnectionField.RuRnPlN,
+  },
+  {
+    id: ConnectionField.ConnectionType,
+    name: "Connection\nType",
+  },
+];
+const beamFields: DoubleFields<ConnectionField> = [
+  ConnectionField.DB,
+  {
+    id: ConnectionField.Slab,
+    mapping: new Map([
+      ["False", "Bare"],
+      ["True", "Composite"],
+    ]),
+  },
+];
+</script>
+
 <template>
   <v-row>
     <v-col md="6">
@@ -7,8 +76,8 @@
             :search.sync="search"
             :searches.sync="searches"
             :query="query"
-            @click:row="click"
-            @loadPage="loadPage"
+            @click:row="clickTableRow"
+            @update:page="updatePage"
           />
         </v-col>
       </v-row>
@@ -26,7 +95,7 @@
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <connection-detail :connection="item" @close="close" />
+          <connection-detail :connection="item" @close="closeDetail" />
         </v-col>
       </v-row>
       <v-row v-else>
@@ -160,80 +229,3 @@
     </v-col>
   </v-row>
 </template>
-
-<script lang="ts">
-import { ConnectionField, ConnectionModel } from "@/backend";
-import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
-import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
-import DashboardMixin from "@/components/commons/DashboardMixin.vue";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
-import ConnectionDoubleChart from "@/components/connections/charts/ConnectionDoubleChart.vue";
-import ConnectionParallelChart from "@/components/connections/charts/ConnectionParallelChart.vue";
-import ConnectionSingleChart from "@/components/connections/charts/ConnectionSingleChart.vue";
-import ConnectionDetail from "@/components/connections/ConnectionDetail.vue";
-import ConnectionTable from "@/components/connections/ConnectionTable.vue";
-import { Component } from "vue-property-decorator";
-import colors from "vuetify/lib/util/colors";
-
-@Component({
-  components: {
-    ConnectionTable,
-    ConnectionSingleChart,
-    ConnectionDoubleChart,
-    ConnectionParallelChart,
-    ConnectionDetail,
-    InfoTooltip,
-    SteelTypeCardTitle,
-  },
-})
-export default class ConnectionDashboard extends DashboardMixin<ConnectionModel> {
-  readonly ConnectionField = ConnectionField;
-  readonly colors = colors;
-  readonly parallelFields: ParallelField<ConnectionField>[] = [
-    {
-      id: ConnectionField.DB,
-      name: "Beam Depth\ndb [mm]",
-    },
-    {
-      id: ConnectionField.DC,
-      name: "Column Depth\ndc [mm]",
-    },
-    {
-      id: ConnectionField.TCf,
-      name: "Column flange\nThickness [mm]",
-    },
-    {
-      id: {
-        dividend: ConnectionField.DB,
-        divisor: ConnectionField.DC,
-      },
-      name: "db / dc",
-    },
-    {
-      id: ConnectionField.GMaxGY,
-    },
-    {
-      id: ConnectionField.RuRnPlN,
-    },
-    {
-      id: ConnectionField.ConnectionType,
-      name: "Connection\nType",
-    },
-  ];
-  readonly beamFields: DoubleFields<ConnectionField> = [
-    ConnectionField.DB,
-    {
-      id: ConnectionField.Slab,
-      mapping: new Map([
-        ["False", "Bare"],
-        ["True", "Composite"],
-      ]),
-    },
-  ];
-
-  get fields(): string[] {
-    return Object.values(ConnectionField);
-  }
-}
-</script>
