@@ -106,7 +106,7 @@ notificationStore.$subscribe((_, state) => {
             </template>
           </v-tab>
         </template>
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-dialog v-model="aboutDialog" max-width="800px">
           <template #activator="{ on, attrs }">
             <v-tab v-bind="attrs" v-on="on">

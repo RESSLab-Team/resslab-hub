@@ -211,7 +211,7 @@ const contributorGroups: {
       </a>
     </v-card-text>
     <v-card-actions>
-      <v-spacer></v-spacer>
+      <v-spacer />
       <v-btn color="primary" icon @click="emit(`click:close`)">
         <v-icon>mdi-close</v-icon>
       </v-btn>

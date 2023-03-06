@@ -9,7 +9,7 @@
     :get-matrix="getMatrix"
   >
     <template #title>
-      <slot name="title"></slot>
+      <slot name="title" />
     </template>
   </simple-parallel-chart>
 </template>

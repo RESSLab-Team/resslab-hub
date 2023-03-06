@@ -195,7 +195,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="mapContainer" class="fill-height mapContainer secondary"></div>
+  <div ref="mapContainer" class="fill-height mapContainer secondary" />
 </template>
 
 <style lang="scss" scoped>

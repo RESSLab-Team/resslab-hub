@@ -616,7 +616,7 @@ function option(backbone: Result, envelope: Result): EChartsOption {
                     :max="item.max"
                     :min="item.min"
                     :unit="item.unit"
-                  ></unit-slider>
+                  />
                 </v-col>
               </v-row>
             </v-card-text>
@@ -651,7 +651,7 @@ function option(backbone: Result, envelope: Result): EChartsOption {
                     :max="item.max"
                     :min="item.min"
                     :unit="item.unit"
-                  ></unit-slider>
+                  />
                 </v-col>
               </v-row>
             </v-card-text>
@@ -681,7 +681,7 @@ function option(backbone: Result, envelope: Result): EChartsOption {
                 :option="option(backboneWithRbs, envelopeWithRbs)"
                 x-unit="rad"
                 y-unit="kN⋅mm"
-              ></unit-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>
@@ -693,7 +693,7 @@ function option(backbone: Result, envelope: Result): EChartsOption {
                 :option="option(backboneWithoutRbs, envelopeWithoutRbs)"
                 x-unit="rad"
                 y-unit="kN⋅mm"
-              ></unit-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>

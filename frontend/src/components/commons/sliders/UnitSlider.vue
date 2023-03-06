@@ -76,12 +76,12 @@ const displayedMax = computed<number>(() => props.max / ratio.value);
           <template #activator="{ on, attrs }">
             <div class="mt-0 pt-0 label" v-bind="attrs" v-on="on">
               <!-- eslint-disable-next-line vue/no-v-html -->
-              <span v-html="label"></span>
+              <span v-html="label" />
               <template v-if="unitLabel"> [{{ unitLabel }}]</template>
             </div>
           </template>
           <!-- eslint-disable-next-line vue/no-v-html -->
-          <span v-html="label"></span>
+          <span v-html="label" />
           <template v-if="unitLabel"> [{{ unitLabel }}]</template>
         </v-tooltip>
       </template>
@@ -96,7 +96,7 @@ const displayedMax = computed<number>(() => props.max / ratio.value);
           :min="displayedMin"
           single-line
           type="number"
-        ></v-text-field>
+        />
       </template>
     </v-slider>
   </v-sheet>

@@ -68,8 +68,8 @@ watch(
 <template>
   <v-card>
     <v-card-title>
-      <slot name="title"></slot>
-      <v-spacer></v-spacer>
+      <slot name="title" />
+      <v-spacer />
       <v-btn color="primary" text @click="emit('close')">
         <v-icon>mdi-close</v-icon>
         Close
@@ -111,12 +111,12 @@ watch(
           </v-row>
         </v-carousel-item>
       </v-carousel>
-      <slot v-if="$slots.body" name="body"></slot>
+      <slot v-if="$slots.body" name="body" />
       <template v-else>
         <h2>Loading and Geometric Parameters</h2>
-        <slot name="parameters"></slot>
+        <slot name="parameters" />
         <h2>Steel Material Designation</h2>
-        <slot name="designation"></slot>
+        <slot name="designation" />
       </template>
     </v-card-text>
   </v-card>

@@ -1,6 +1,62 @@
+<script setup lang="ts">
+import { SelectItem } from "@/utils/vuetify";
+import {
+  withDefaults,
+  defineProps,
+  defineEmits,
+  ref,
+  computed,
+  unref,
+  watch,
+} from "vue";
+
+// TODO add genericity https://github.com/vuejs/rfcs/discussions/436
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type V = string | number | object;
+const props = withDefaults(
+  defineProps<{
+    value?: V;
+    items?: SelectItem<V>[];
+    label?: string;
+  }>(),
+  {
+    value: undefined,
+    items: () => [],
+    label: undefined,
+  }
+);
+const emit = defineEmits<{
+  (e: "input", value?: V): void;
+}>();
+
+const search = ref<string>();
+
+const value = computed<V>({
+  get: () => props.value,
+  set: (value) => emit("input", value),
+});
+const actualItems = computed<SelectItem[]>(() => {
+  const searchValue = unref(search);
+  if (!searchValue) {
+    return props.items;
+  }
+  const substring = searchValue.toLowerCase();
+  return props.items.filter((item) => {
+    const value = typeof item === "string" ? item : item.text.toString();
+    return value.toLowerCase().includes(substring);
+  });
+});
+const hint = computed<string>(() => `${actualItems.value.length} items`);
+
+watch(
+  () => props.items,
+  () => (search.value = undefined)
+);
+</script>
+
 <template>
   <v-select
-    v-model="model"
+    v-model="value"
     clearable
     hide-details
     :items="actualItems"
@@ -17,45 +73,8 @@
           persistent-hint
           single-line
           solo
-        ></v-text-field>
+        />
       </v-list-item>
     </template>
   </v-select>
 </template>
-
-<script lang="ts">
-import { SelectItem } from "@/utils/vuetify";
-import { Component, Prop, VModel, Vue, Watch } from "vue-property-decorator";
-
-@Component
-export default class SearchSelect extends Vue {
-  @VModel({ type: Object as () => SelectItem })
-  model!: string;
-  @Prop({ type: Array as () => SelectItem[], default: () => [] })
-  readonly items!: SelectItem[];
-  @Prop({ type: String })
-  readonly label: string | undefined;
-
-  search: string | null = null;
-
-  get actualItems(): SelectItem[] {
-    if (!this.search) {
-      return this.items;
-    }
-    const substring = this.search.toLowerCase();
-    return this.items.filter((item) => {
-      const value = typeof item === "string" ? item : item.text.toString();
-      return value.toLowerCase().includes(substring);
-    });
-  }
-
-  get hint(): string {
-    return `${this.actualItems.length} items`;
-  }
-
-  @Watch("items")
-  onItemsChanged(): void {
-    this.search = null;
-  }
-}
-</script>

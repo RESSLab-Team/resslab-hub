@@ -9,9 +9,9 @@
         @click="click"
         @mouseover="mouseover"
         @mouseout="mouseout"
-      ></v-chart>
+      />
     </v-responsive>
-    <slot></slot>
+    <slot />
   </div>
 </template>
 
