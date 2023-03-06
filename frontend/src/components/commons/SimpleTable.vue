@@ -180,7 +180,7 @@ function downloadZip(): void {
       <slot name="title">
         {{ title }}
       </slot>
-      <v-spacer></v-spacer>
+      <v-spacer />
       <v-text-field
         v-model="globalSearch"
         clearable
@@ -188,7 +188,7 @@ function downloadZip(): void {
         single-line
         append-icon="mdi-magnify"
         label="Search"
-      ></v-text-field>
+      />
       <v-btn color="primary" :disabled="!hasFilters" text @click="resetFilters">
         Reset filters
       </v-btn>
@@ -232,7 +232,7 @@ function downloadZip(): void {
                 clearable
                 hide-details
                 :label="header.text"
-              ></v-text-field>
+              />
               <v-select
                 v-model="columnSearches[header.value]"
                 v-case="'boolean'"
@@ -240,7 +240,7 @@ function downloadZip(): void {
                 hide-details
                 :label="header.text"
                 :items="booleanOptions"
-              ></v-select>
+              />
               <v-text-field
                 v-model="columnSearches[header.value]"
                 v-case="'number'"
@@ -249,7 +249,7 @@ function downloadZip(): void {
                 hide-spin-buttons
                 :label="header.text"
                 type="number"
-              ></v-text-field>
+              />
             </div>
           </v-col>
         </v-row>

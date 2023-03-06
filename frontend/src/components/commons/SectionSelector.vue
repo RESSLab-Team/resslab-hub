@@ -56,7 +56,7 @@ watch(section, (value) => {
         :items="databases"
         label="Select Database"
         single-line
-      ></v-select>
+      />
     </v-col>
     <v-col cols="6">
       <search-select

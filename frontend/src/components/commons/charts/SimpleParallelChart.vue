@@ -29,7 +29,7 @@
         :update-options="updateOptions"
         @click="onClick"
         @brushselected="onBrush"
-      ></v-chart>
+      />
     </v-responsive>
     <v-card-actions>
       <v-btn

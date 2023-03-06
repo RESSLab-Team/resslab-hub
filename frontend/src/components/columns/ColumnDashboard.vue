@@ -39,7 +39,7 @@
                 :query="query"
                 :searches.sync="searches"
                 type="line"
-              ></column-double-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>
@@ -84,7 +84,7 @@
                 :field="steelField"
                 :query="query"
                 :searches.sync="searches"
-              ></column-single-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>

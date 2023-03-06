@@ -30,7 +30,7 @@
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <brace-detail :brace="item" @close="close"></brace-detail>
+          <brace-detail :brace="item" @close="close" />
         </v-col>
       </v-row>
       <v-row v-else>
@@ -43,7 +43,7 @@
                 :query="query"
                 :searches.sync="searches"
                 type="line"
-              ></brace-double-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>
@@ -74,20 +74,20 @@
                 :query="query"
                 :searches.sync="searches"
                 type="line"
-              ></brace-single-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>
         <v-col cols="12">
           <v-card>
-            <steel-type-card-title></steel-type-card-title>
+            <steel-type-card-title />
             <v-card-text>
               <brace-single-chart
                 :color="colors.deepPurple"
                 :field="steelField"
                 :query="query"
                 :searches.sync="searches"
-              ></brace-single-chart>
+              />
             </v-card-text>
           </v-card>
         </v-col>

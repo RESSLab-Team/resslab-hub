@@ -44,9 +44,9 @@ const values = computed(() =>
 <template>
   <tr>
     <!-- eslint-disable-next-line vue/no-v-html -->
-    <td v-html="text"></td>
+    <td v-html="text" />
     <!-- eslint-disable-next-line vue/no-v-html -->
-    <td v-html="unitLabel"></td>
+    <td v-html="unitLabel" />
     <td v-for="(value, index) in values" :key="index" class="text-right">
       {{ value }}
     </td>

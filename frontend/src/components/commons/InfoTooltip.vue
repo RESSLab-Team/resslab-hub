@@ -5,6 +5,6 @@
         mdi-information-outline
       </v-icon>
     </template>
-    <slot></slot>
+    <slot />
   </v-tooltip>
 </template>

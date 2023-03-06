@@ -7,7 +7,7 @@
     :query="query"
     :color="color"
     :get-matrix="getMatrix"
-  ></simple-parallel-chart>
+  />
 </template>
 
 <script lang="ts">
