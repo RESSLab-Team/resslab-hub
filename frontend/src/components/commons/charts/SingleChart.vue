@@ -18,15 +18,15 @@ use([SVGRenderer, TreemapChart, TooltipComponent]);
 
 const props = withDefaults(
   defineProps<{
-    labelPrefix?: string;
-    field: string;
     color?: Color;
     counts?: Count[];
+    field: string;
+    labelPrefix?: string;
   }>(),
   {
-    labelPrefix: "",
     color: () => primaryColor,
     counts: () => [],
+    labelPrefix: "",
   }
 );
 const emit = defineEmits<{

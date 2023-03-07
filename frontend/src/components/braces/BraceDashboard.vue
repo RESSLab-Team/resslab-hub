@@ -6,12 +6,12 @@ import BraceDoubleChart from "@/components/braces/charts/BraceDoubleChart.vue";
 import BraceParallelChart from "@/components/braces/charts/BraceParallelChart.vue";
 import BraceSingleChart from "@/components/braces/charts/BraceSingleChart.vue";
 import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
-import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
 import { useRoute } from "vue-router/composables";
 import colors from "vuetify/lib/util/colors";
 import { useDashboard } from "@/composables/dashboard";
+import { ParallelField } from "@/composables/chart";
 
 const route = useRoute();
 const {
@@ -63,8 +63,8 @@ const steelField = BraceField.Steel;
           <brace-parallel-chart
             :color="colors.orange"
             :fields="parallelFields"
-            :searches.sync="searches"
             :query="query"
+            @change:searches="changeSearches"
           >
             <template #title>
               <info-tooltip>Parallel Axis</info-tooltip>

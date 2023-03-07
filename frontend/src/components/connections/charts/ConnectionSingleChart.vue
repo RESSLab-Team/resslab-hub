@@ -5,7 +5,7 @@ import { publicPath } from "@/utils/common";
 import { CallbackDataParams } from "echarts/types/dist/shared";
 import { defineProps, toRef, defineEmits, ref } from "vue";
 import {
-  SingleChartEmits,
+  ChartEmits,
   singleChartProps,
   useSingleChart,
 } from "@/composables/chart";
@@ -13,7 +13,7 @@ import SingleChart from "@/components/commons/charts/SingleChart.vue";
 
 const props = defineProps(singleChartProps<ConnectionField>());
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface Emits extends SingleChartEmits {}
+interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>();
 
 const { counts, changeSearches } = useSingleChart<ConnectionField>(

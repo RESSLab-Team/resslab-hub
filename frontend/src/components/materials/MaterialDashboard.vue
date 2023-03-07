@@ -66,8 +66,8 @@ const steelField = MaterialField.Type;
           <material-parallel-chart
             :color="colors.orange"
             :fields="parallelFields"
-            :searches.sync="searches"
             :query="query"
+            @change:searches="changeSearches"
           >
             <template #title>
               <info-tooltip>Parallel Axis</info-tooltip>
