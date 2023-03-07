@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { MaterialField, MaterialModel } from "@/backend";
-import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
-import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import MaterialDoubleChart from "@/components/materials/charts/MaterialDoubleChart.vue";
 import MaterialParallelChart from "@/components/materials/charts/MaterialParallelChart.vue";
 import MaterialSingleChart from "@/components/materials/charts/MaterialSingleChart.vue";
 import MaterialDetail from "@/components/materials/MaterialDetail.vue";
 import MaterialTable from "@/components/materials/MaterialTable.vue";
+import { DoubleFields, ParallelField } from "@/composables/chart";
 import { useDashboard } from "@/composables/dashboard";
 import { useRoute } from "vue-router/composables";
 import colors from "vuetify/lib/util/colors";
@@ -92,16 +91,16 @@ const steelField = MaterialField.Type;
                   <material-double-chart
                     :fields="profileFields"
                     :query="query"
-                    :searches.sync="searches"
                     type="line"
+                    @change:searches="changeSearches"
                   />
                 </v-col>
                 <v-col cols="12" md="6">
                   <material-double-chart
                     :fields="profileThicknessFields"
                     :query="query"
-                    :searches.sync="searches"
                     type="bar"
+                    @change:searches="changeSearches"
                   />
                 </v-col>
               </v-row>

@@ -1,69 +1,61 @@
-<template>
-  <double-chart
-    label-prefix="material."
-    :searches.sync="fieldSearches"
-    :fields="fields"
-    :query="query"
-    :type="type"
-    :color="color"
-    :promise="promise"
-    :range-promise="rangePromise"
-    :date-range-promise="dateRangePromise"
-  />
-</template>
-
-<script lang="ts">
+<script setup lang="ts">
 import {
-  CountModel,
-  DateRangeModel,
   MaterialDateField,
   MaterialField,
   MaterialNumberField,
-  RangeModel,
 } from "@/backend";
-import DoubleChartMixin from "@/components/commons/charts/DoubleChartMixin.vue";
 import { materialsApi } from "@/plugins/axios";
-import { AxiosResponse } from "axios";
-import { Component } from "vue-property-decorator";
+import { defineProps, defineEmits, toRef } from "vue";
+import DoubleChart from "@/components/commons/charts/DoubleChart.vue";
+import {
+  ChartEmits,
+  doubleChartProps,
+  useDoubleChart,
+} from "@/composables/chart";
 
-@Component
-export default class MaterialDoubleChart extends DoubleChartMixin<MaterialField> {
-  get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return materialsApi.getMaterialsCounts(this.requestFields, this.query);
-  }
+const props = defineProps(doubleChartProps<MaterialField>());
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface Emits extends ChartEmits {}
+const emit = defineEmits<Emits>();
 
-  get fieldString(): string {
-    return this.fields[0].toString();
+const {
+  counts,
+  changeSearches,
+  dateMax,
+  dateMin,
+  dateRange,
+  numberMax,
+  numberMin,
+  numberRange,
+} = useDoubleChart<MaterialField, MaterialNumberField, MaterialDateField>(
+  emit,
+  props.fields,
+  toRef(props, "query"),
+  (fields, query) => materialsApi.getMaterialsCounts(fields, query),
+  {
+    field: MaterialNumberField,
+    getRange: (field) => materialsApi.getMaterialsRange(field),
+  },
+  {
+    field: MaterialDateField,
+    getRange: (field) => materialsApi.getMaterialsDateRange(field),
   }
-
-  get numberField(): MaterialNumberField | undefined {
-    return Object.values(MaterialNumberField).find(
-      (numberField) => this.fieldString === numberField.toString()
-    );
-  }
-
-  get dateField(): MaterialDateField | undefined {
-    return Object.values(MaterialDateField).find(
-      (numberField) => this.fieldString === numberField.toString()
-    );
-  }
-
-  get rangePromise(): Promise<RangeModel> | undefined {
-    if (this.numberField) {
-      return materialsApi
-        .getMaterialsRange(this.numberField)
-        .then((response) => response.data);
-    }
-    return undefined;
-  }
-
-  get dateRangePromise(): Promise<DateRangeModel> | undefined {
-    if (this.dateField) {
-      return materialsApi
-        .getMaterialsDateRange(this.dateField)
-        .then((response) => response.data);
-    }
-    return undefined;
-  }
-}
+);
 </script>
+
+<template>
+  <double-chart
+    :color="color"
+    :counts="counts"
+    :date-max="dateMax"
+    :date-min="dateMin"
+    :date-range.sync="dateRange"
+    :fields="fields"
+    label-prefix="material."
+    :number-max="numberMax"
+    :number-min="numberMin"
+    :number-range.sync="numberRange"
+    :type="props.type"
+    @change:searches="changeSearches"
+  />
+</template>

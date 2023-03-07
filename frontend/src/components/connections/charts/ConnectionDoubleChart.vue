@@ -1,49 +1,53 @@
+<script setup lang="ts">
+import { ConnectionField, ConnectionNumberField } from "@/backend";
+import { connectionsApi } from "@/plugins/axios";
+import { defineProps, defineEmits, toRef } from "vue";
+import DoubleChart from "@/components/commons/charts/DoubleChart.vue";
+import {
+  ChartEmits,
+  doubleChartProps,
+  useDoubleChart,
+} from "@/composables/chart";
+
+const props = defineProps(doubleChartProps<ConnectionField>());
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface Emits extends ChartEmits {}
+const emit = defineEmits<Emits>();
+
+const {
+  counts,
+  changeSearches,
+  dateMax,
+  dateMin,
+  dateRange,
+  numberMax,
+  numberMin,
+  numberRange,
+} = useDoubleChart<ConnectionField, ConnectionNumberField>(
+  emit,
+  props.fields,
+  toRef(props, "query"),
+  (fields, query) => connectionsApi.getConnectionsCounts(fields, query),
+  {
+    field: ConnectionNumberField,
+    getRange: (field) => connectionsApi.getConnectionsRange(field),
+  }
+);
+</script>
+
 <template>
   <double-chart
-    label-prefix="connection."
-    :searches.sync="fieldSearches"
-    :fields="fields"
-    :query="query"
-    :type="type"
     :color="color"
-    :promise="promise"
-    :range-promise="rangePromise"
+    :counts="counts"
+    :date-max="dateMax"
+    :date-min="dateMin"
+    :date-range.sync="dateRange"
+    :fields="fields"
+    label-prefix="connection."
+    :number-max="numberMax"
+    :number-min="numberMin"
+    :number-range.sync="numberRange"
+    :type="props.type"
+    @change:searches="changeSearches"
   />
 </template>
-
-<script lang="ts">
-import {
-  ConnectionField,
-  ConnectionNumberField,
-  CountModel,
-  RangeModel,
-} from "@/backend";
-import DoubleChartMixin from "@/components/commons/charts/DoubleChartMixin.vue";
-import { connectionsApi } from "@/plugins/axios";
-import { AxiosResponse } from "axios";
-import { Component } from "vue-property-decorator";
-
-@Component
-export default class ConnectionDoubleChart extends DoubleChartMixin<ConnectionField> {
-  get promise(): Promise<AxiosResponse<CountModel[]>> {
-    return connectionsApi.getConnectionsCounts(this.requestFields, this.query);
-  }
-
-  get numberField(): ConnectionNumberField | undefined {
-    const fieldString = this.fields[0].toString();
-    return Object.values(ConnectionNumberField).find(
-      (numberField) => fieldString === numberField.toString()
-    );
-  }
-
-  get rangePromise(): Promise<RangeModel> | undefined {
-    if (this.numberField) {
-      return connectionsApi
-        .getConnectionsRange(this.numberField)
-        .then((response) => response.data);
-    } else {
-      return undefined;
-    }
-  }
-}
-</script>

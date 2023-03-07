@@ -8,6 +8,9 @@ import {
 import { computed, ref, triggerRef, unref } from "vue";
 import { Route } from "vue-router";
 
+export const queryFieldSeparator = ";";
+export const queryKeyValueSeparator = ":";
+
 export function useDashboard<M>(route: Route, field: object) {
   const fields: string[] = Object.values(field);
 
@@ -28,20 +31,24 @@ export function useDashboard<M>(route: Route, field: object) {
       detail.value = false;
     }
   }
-  function changeSearches(key: string, value: Value): void {
-    searches.value[key] = value;
+  function changeSearches(key: string, value?: Value): void {
+    if (value) {
+      searches.value[key] = value;
+    } else {
+      delete searches.value[key];
+    }
     triggerRef(searches);
   }
 
   const query = computed<string>(() => {
     const queries = Object.entries(searches.value)
       .filter(([, value]) => filterColumnValue(value))
-      .map(([key, value]) => `${key}:${value}`);
+      .map(([key, value]) => `${key}${queryKeyValueSeparator}${value}`);
     const searchValue = unref(search);
     if (searchValue && searchValue.length > 0) {
       queries.push(`%${searchValue}%`);
     }
-    return queries.join(";");
+    return queries.join(queryFieldSeparator);
   });
 
   Object.entries(route.query)

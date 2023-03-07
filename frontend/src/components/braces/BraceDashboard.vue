@@ -5,13 +5,12 @@ import BraceTable from "@/components/braces/BraceTable.vue";
 import BraceDoubleChart from "@/components/braces/charts/BraceDoubleChart.vue";
 import BraceParallelChart from "@/components/braces/charts/BraceParallelChart.vue";
 import BraceSingleChart from "@/components/braces/charts/BraceSingleChart.vue";
-import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
 import { useRoute } from "vue-router/composables";
 import colors from "vuetify/lib/util/colors";
 import { useDashboard } from "@/composables/dashboard";
-import { ParallelField } from "@/composables/chart";
+import { DoubleFields, ParallelField } from "@/composables/chart";
 
 const route = useRoute();
 const {
@@ -87,8 +86,8 @@ const steelField = BraceField.Steel;
               <brace-double-chart
                 :fields="boundaryConditionFields"
                 :query="query"
-                :searches.sync="searches"
                 type="line"
+                @change:searches="changeSearches"
               />
             </v-card-text>
           </v-card>
@@ -118,7 +117,6 @@ const steelField = BraceField.Steel;
                 :color="colors.blue"
                 :field="loadingProtocolField"
                 :query="query"
-                type="line"
                 @change:searches="changeSearches"
               />
             </v-card-text>
