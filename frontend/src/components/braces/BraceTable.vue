@@ -4,37 +4,8 @@ import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SimpleTable from "@/components/commons/SimpleTable.vue";
 import { bracesApi } from "@/plugins/axios";
 import { useNotificationStore } from "@/stores/notification";
-import { Page } from "@/utils/backend";
-import { Searches } from "@/utils/common";
-import { useTable, Column } from "@/utils/table";
-import {
-  withDefaults,
-  defineProps,
-  defineEmits,
-  ref,
-  computed,
-  toRef,
-} from "vue";
-import { DataOptions } from "vuetify";
-
-const props = withDefaults(
-  defineProps<{
-    query?: string;
-    searches?: Searches;
-    search?: string;
-  }>(),
-  {
-    query: undefined,
-    searches: () => ({}),
-    search: "",
-  }
-);
-const emit = defineEmits<{
-  (e: "click:row", value: BraceModel): void;
-  (e: "update:page", value: Page<BraceModel>): void;
-  (e: "update:search", value: string): void;
-  (e: "update:searches", value: Searches): void;
-}>();
+import { useTable, Column, tableProps, TableEmits } from "@/composables/table";
+import { defineProps, defineEmits, toRef } from "vue";
 
 const columns: Column[] = [
   {
@@ -59,37 +30,41 @@ const columns: Column[] = [
   },
 ];
 
-const options = ref<DataOptions>();
-
-const searches = computed<Searches>({
-  get: () => props.searches,
-  set: (value) => emit("update:searches", value),
-});
-const globalSearch = computed<string>({
-  get: () => props.search,
-  set: (value) => emit("update:search", value),
-});
+const props = defineProps(tableProps);
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface Emits extends TableEmits<BraceModel> {}
+const emit = defineEmits<Emits>();
 
 const notificationStore = useNotificationStore();
-const { downloadFiles, items, loading, totalCount, totalFilteredCount } =
-  useTable<BraceModel>(
-    "brace",
-    options,
-    toRef(props, "query"),
-    [
-      {
-        name: "displacement",
-        countKey: "displacement_count",
-        getCsv: (id) => bracesApi.getBracesDisplacementCsv(id),
-      },
-    ],
-    () => bracesApi.getBracesCounts(),
-    (query, sortBy, sortDesc, page, size) =>
-      bracesApi.getBraces(query, sortBy, sortDesc, page, size),
-    (ids) => bracesApi.getBracesCsv(ids),
-    (message) => notificationStore.notify(message),
-    (page) => emit("update:page", page)
-  );
+const {
+  clickRow,
+  downloadFiles,
+  items,
+  loading,
+  options,
+  search,
+  searches,
+  totalCount,
+  totalFilteredCount,
+} = useTable<BraceModel>(
+  emit,
+  "brace",
+  toRef(props, "query"),
+  toRef(props, "search"),
+  toRef(props, "searches"),
+  [
+    {
+      name: "displacement",
+      countKey: "displacement_count",
+      getCsv: (id) => bracesApi.getBracesDisplacementCsv(id),
+    },
+  ],
+  () => bracesApi.getBracesCounts(),
+  (query, sortBy, sortDesc, page, size) =>
+    bracesApi.getBraces(query, sortBy, sortDesc, page, size),
+  (ids) => bracesApi.getBracesCsv(ids),
+  (message) => notificationStore.notify(message)
+);
 </script>
 
 <template>
@@ -100,11 +75,11 @@ const { downloadFiles, items, loading, totalCount, totalFilteredCount } =
     :options.sync="options"
     prefix="brace."
     :query="query"
-    :search.sync="globalSearch"
+    :search.sync="search"
     :searches.sync="searches"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
-    @click:row="emit('click:row', $event)"
+    @click:row="clickRow"
     @download="downloadFiles"
   >
     <template #title>

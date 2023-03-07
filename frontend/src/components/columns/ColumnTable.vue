@@ -3,38 +3,9 @@ import { ColumnField, ColumnModel } from "@/backend";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SimpleTable from "@/components/commons/SimpleTable.vue";
 import { columnsApi } from "@/plugins/axios";
-import { Searches } from "@/utils/common";
-import { Column, useTable } from "@/utils/table";
-import {
-  withDefaults,
-  defineProps,
-  defineEmits,
-  ref,
-  computed,
-  toRef,
-} from "vue";
-import { DataOptions } from "vuetify";
+import { Column, TableEmits, tableProps, useTable } from "@/composables/table";
+import { defineProps, defineEmits, toRef } from "vue";
 import { useNotificationStore } from "@/stores/notification";
-import { Page } from "@/utils/backend";
-
-const props = withDefaults(
-  defineProps<{
-    query?: string;
-    searches?: Searches;
-    search?: string;
-  }>(),
-  {
-    query: undefined,
-    searches: () => ({}),
-    search: "",
-  }
-);
-const emit = defineEmits<{
-  (e: "click:row", value: ColumnModel): void;
-  (e: "update:page", value: Page<ColumnModel>): void;
-  (e: "update:search", value: string): void;
-  (e: "update:searches", value: Searches): void;
-}>();
 
 const columns: Column[] = [
   {
@@ -63,47 +34,51 @@ const columns: Column[] = [
   },
 ];
 
-const options = ref<DataOptions>();
-
-const searches = computed<Searches>({
-  get: () => props.searches,
-  set: (value) => emit("update:searches", value),
-});
-const globalSearch = computed<string>({
-  get: () => props.search,
-  set: (value) => emit("update:search", value),
-});
+const props = defineProps(tableProps);
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface Emits extends TableEmits<ColumnModel> {}
+const emit = defineEmits<Emits>();
 
 const notificationStore = useNotificationStore();
-const { downloadFiles, items, loading, totalCount, totalFilteredCount } =
-  useTable<ColumnModel>(
-    "column",
-    options,
-    toRef(props, "query"),
-    [
-      {
-        name: "axial-shortening",
-        countKey: "axial_shortening_count",
-        getCsv: (id) => columnsApi.getColumnsAxialShorteningCsv(id),
-      },
-      {
-        name: "moment-strong",
-        countKey: "moment_strong_count",
-        getCsv: (id) => columnsApi.getColumnsMomentStrongCsv(id),
-      },
-      {
-        name: "moment-weak",
-        countKey: "moment_weak_count",
-        getCsv: (id) => columnsApi.getColumnsMomentWeakCsv(id),
-      },
-    ],
-    () => columnsApi.getColumnsCounts(),
-    (query, sortBy, sortDesc, page, size) =>
-      columnsApi.getColumns(query, sortBy, sortDesc, page, size),
-    (ids) => columnsApi.getColumnsCsv(ids),
-    (message) => notificationStore.notify(message),
-    (page) => emit("update:page", page)
-  );
+const {
+  clickRow,
+  downloadFiles,
+  items,
+  loading,
+  options,
+  search,
+  searches,
+  totalCount,
+  totalFilteredCount,
+} = useTable<ColumnModel>(
+  emit,
+  "column",
+  toRef(props, "query"),
+  toRef(props, "search"),
+  toRef(props, "searches"),
+  [
+    {
+      name: "axial-shortening",
+      countKey: "axial_shortening_count",
+      getCsv: (id) => columnsApi.getColumnsAxialShorteningCsv(id),
+    },
+    {
+      name: "moment-strong",
+      countKey: "moment_strong_count",
+      getCsv: (id) => columnsApi.getColumnsMomentStrongCsv(id),
+    },
+    {
+      name: "moment-weak",
+      countKey: "moment_weak_count",
+      getCsv: (id) => columnsApi.getColumnsMomentWeakCsv(id),
+    },
+  ],
+  () => columnsApi.getColumnsCounts(),
+  (query, sortBy, sortDesc, page, size) =>
+    columnsApi.getColumns(query, sortBy, sortDesc, page, size),
+  (ids) => columnsApi.getColumnsCsv(ids),
+  (message) => notificationStore.notify(message)
+);
 </script>
 
 <template>
@@ -114,11 +89,11 @@ const { downloadFiles, items, loading, totalCount, totalFilteredCount } =
     :options.sync="options"
     prefix="column."
     :query="query"
-    :search.sync="globalSearch"
+    :search.sync="search"
     :searches.sync="searches"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
-    @click:row="emit('click:row', $event)"
+    @click:row="clickRow"
     @download="downloadFiles"
   >
     <template #title>

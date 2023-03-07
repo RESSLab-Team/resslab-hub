@@ -13,7 +13,7 @@ import {
   watch,
 } from "vue";
 import { DataOptions, DataTableHeader } from "vuetify";
-import { Column, ColumnType, DownloadType } from "@/utils/table";
+import { Column, ColumnType, DownloadType } from "@/composables/table";
 import i18n from "@/i18n";
 import { useRoute } from "vue-router/composables";
 import { useNotificationStore } from "@/stores/notification";
@@ -26,14 +26,14 @@ interface TableHeader extends DataTableHeader {
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type T = any;
+type M = any;
 const props = withDefaults(
   defineProps<{
     title?: string;
     columns?: Column[];
     totalCount?: number;
     loading?: boolean;
-    items?: T[];
+    items?: M[];
     options?: DataOptions;
     totalFilteredCount?: number;
     prefix?: string;
@@ -56,8 +56,8 @@ const props = withDefaults(
   }
 );
 const emit = defineEmits<{
-  (e: "click:row", value: T): void;
-  (e: "download", items: T[], types: DownloadType[]): void;
+  (e: "click:row", value: M): void;
+  (e: "download", items: M[], types: DownloadType[]): void;
   (e: "update:options", value: DataOptions): void;
   (e: "update:search", value: string): void;
   (e: "update:searches", value: Searches): void;
@@ -79,7 +79,7 @@ const route = useRoute();
 const notificationStore = useNotificationStore();
 
 const downloadDialog = ref<InstanceType<typeof CheckboxDialog>>();
-const selectedItems = ref<T[]>([]);
+const selectedItems = ref<M[]>([]);
 
 const options = computed<DataOptions>({
   get: () => props.options,
@@ -114,7 +114,7 @@ function resetFilters(): void {
   columnSearches.value = {};
 }
 
-function click(item: T): void {
+function click(item: M): void {
   emit("click:row", item);
 }
 

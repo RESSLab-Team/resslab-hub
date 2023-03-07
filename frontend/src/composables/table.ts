@@ -1,9 +1,10 @@
 import { CountModel } from "@/backend";
 import { Page } from "@/utils/backend";
+import { Searches } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import download from "downloadjs";
 import JSZip from "jszip";
-import { Ref, ref, unref, watchEffect } from "vue";
+import { computed, Ref, ref, unref, watchEffect } from "vue";
 import { DataOptions } from "vuetify";
 
 export enum DownloadType {
@@ -20,10 +21,26 @@ export interface Column {
   filterOnly?: boolean;
 }
 
+export const tableProps = {
+  query: String,
+  search: String,
+  searches: {
+    type: Object as () => Searches,
+    default: () => ({}),
+  },
+};
+export interface TableEmits<M> {
+  (e: "click:row", value: M): void;
+  (e: "update:page", value: Page<M>): void;
+  (e: "update:search", value: string | undefined): void;
+  (e: "update:searches", value: Searches): void;
+}
 export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
+  emit: TableEmits<M>,
   name: string,
-  options: Ref<DataOptions | undefined>,
-  query: Ref<string>,
+  query: Ref<string | undefined>,
+  searchRef: Ref<string | undefined>,
+  searchesRef: Ref<Searches>,
   tests: {
     name: string;
     countKey: keyof M;
@@ -38,14 +55,26 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
     size?: number
   ) => Promise<AxiosResponse<P>>,
   getMainCsv: (ids: string[]) => Promise<AxiosResponse>,
-  notify: (message: string) => void,
-  updatePage: (page: P) => void
+  notify: (message: string) => void
 ) {
-  const totalCount = ref<number>();
   const loading = ref<boolean>(false);
   const items = ref<M[]>([]) as Ref<M[]>;
+  const options = ref<DataOptions>();
+  const totalCount = ref<number>();
   const totalFilteredCount = ref<number>();
 
+  const search = computed<string | undefined>({
+    get: () => searchRef.value,
+    set: (value) => emit("update:search", value),
+  });
+  const searches = computed<Searches>({
+    get: () => searchesRef.value,
+    set: (value) => emit("update:searches", value),
+  });
+
+  function clickRow(item: M) {
+    emit("click:row", item);
+  }
   function downloadFiles(items: M[], types: DownloadType[]): void {
     const filePromises = [
       types.includes(DownloadType.Main)
@@ -117,7 +146,7 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
         .then((page) => {
           items.value = page.items;
           totalFilteredCount.value = page.total;
-          updatePage(page);
+          emit("update:page", page);
         })
         .finally(() => {
           loading.value = false;
@@ -125,10 +154,14 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
     }
   });
   return {
-    totalCount,
-    loading,
     items,
+    loading,
+    options,
+    totalCount,
     totalFilteredCount,
+    search,
+    searches,
+    clickRow,
     downloadFiles,
   };
 }

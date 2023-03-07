@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useColors } from "@/utils/slider";
-import { useUnits } from "@/utils/unit";
+import { useColor } from "@/composables/color";
+import { useUnits } from "@/composables/unit";
 import { withDefaults, defineProps, defineEmits, computed } from "vue";
 import { Color } from "vuetify/lib/util/colors";
 
@@ -42,7 +42,7 @@ const emit = defineEmits<{
 
 const precision = 100;
 
-const { baseColor, darkenColor, lightenColor } = useColors(props.color);
+const { baseColor, darkenColor, lightenColor } = useColor(props.color);
 const { ratio, unitLabel } = useUnits(props.unit);
 
 const sliderModel = computed<number>({

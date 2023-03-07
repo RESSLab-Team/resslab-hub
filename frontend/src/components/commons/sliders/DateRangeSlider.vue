@@ -9,7 +9,7 @@ import {
   watch,
 } from "vue";
 import { Color } from "vuetify/lib/util/colors";
-import { useColors } from "@/utils/slider";
+import { useColor } from "@/composables/color";
 import { mapDateToNumber, mapNumberToDate } from "@/utils/date";
 
 const props = withDefaults(
@@ -28,7 +28,7 @@ const emit = defineEmits<{
   (e: "input", value: [string, string]): void;
 }>();
 
-const { baseColor, darkenColor, lightenColor } = useColors(props.color);
+const { baseColor, darkenColor, lightenColor } = useColor(props.color);
 
 const pickerdialog = ref(false);
 const pickerRange = ref<[string, string] | [string]>();

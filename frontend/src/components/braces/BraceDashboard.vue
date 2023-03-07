@@ -11,7 +11,7 @@ import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
 import { useRoute } from "vue-router/composables";
 import colors from "vuetify/lib/util/colors";
-import { useDashboard } from "@/utils/dashboard";
+import { useDashboard } from "@/composables/dashboard";
 
 const route = useRoute();
 const {

@@ -9,7 +9,7 @@ import ConnectionParallelChart from "@/components/connections/charts/ConnectionP
 import ConnectionSingleChart from "@/components/connections/charts/ConnectionSingleChart.vue";
 import ConnectionDetail from "@/components/connections/ConnectionDetail.vue";
 import ConnectionTable from "@/components/connections/ConnectionTable.vue";
-import { useDashboard } from "@/utils/dashboard";
+import { useDashboard } from "@/composables/dashboard";
 import { useRoute } from "vue-router/composables";
 import colors from "vuetify/lib/util/colors";
 

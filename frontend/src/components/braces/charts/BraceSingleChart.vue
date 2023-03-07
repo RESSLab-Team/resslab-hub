@@ -2,29 +2,24 @@
 import { BraceField } from "@/backend";
 import { bracesApi } from "@/plugins/axios";
 import { defineProps, toRef, defineEmits } from "vue";
-import { useSingleChart } from "@/utils/chart";
-import { Color } from "vuetify/lib/util/colors";
-import { Value } from "@/utils/common";
+import {
+  useSingleChart,
+  SingleChartEmits,
+  singleChartProps,
+} from "@/composables/chart";
 import SingleChart from "@/components/commons/charts/SingleChart.vue";
 
-const props = defineProps<{
-  color?: Color;
-  field: BraceField;
-  query?: string;
-}>();
-const emit = defineEmits<{
-  (e: "change:searches", key: string, value: Value): void;
-}>();
+const props = defineProps(singleChartProps<BraceField>());
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface Emits extends SingleChartEmits {}
+const emit = defineEmits<Emits>();
 
-const { counts } = useSingleChart<BraceField>(
+const { counts, changeSearches } = useSingleChart<BraceField>(
+  emit,
   props.field,
   toRef(props, "query"),
   (fields, query) => bracesApi.getBracesCounts(fields, query)
 );
-
-function changeSearches(key: string, value: Value) {
-  emit("change:searches", key, value);
-}
 </script>
 
 <template>

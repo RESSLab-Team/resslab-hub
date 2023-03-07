@@ -1,6 +1,4 @@
-import { useUnitStore } from "@/stores/unit";
 import { ToggleItem } from "@/utils/toggle";
-import { computed } from "vue";
 
 export type UnitSystem = "metric" | "imperial";
 
@@ -60,19 +58,3 @@ export const units: Unit[] = [
     ratio: 4.44822 * 25.4, // https://en.wikipedia.org/wiki/Kip_(unit)
   },
 ];
-
-export function useUnits(unit = "") {
-  const unitStore = useUnitStore();
-
-  const filteredUnits = computed(() =>
-    units.filter((u) => u.referenceUnit === unit)
-  );
-  const selectedUnit = computed(() => {
-    const unitSystem = unitStore.unitSystem;
-    return filteredUnits.value.find((u) => u.system === unitSystem);
-  });
-  return {
-    unitLabel: computed(() => selectedUnit.value?.unit ?? unit),
-    ratio: computed(() => selectedUnit.value?.ratio ?? 1),
-  };
-}
