@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ConnectionField, ConnectionModel } from "@/backend";
-import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
-import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
 import ConnectionDoubleChart from "@/components/connections/charts/ConnectionDoubleChart.vue";
@@ -9,6 +7,7 @@ import ConnectionParallelChart from "@/components/connections/charts/ConnectionP
 import ConnectionSingleChart from "@/components/connections/charts/ConnectionSingleChart.vue";
 import ConnectionDetail from "@/components/connections/ConnectionDetail.vue";
 import ConnectionTable from "@/components/connections/ConnectionTable.vue";
+import { DoubleFields, ParallelField } from "@/composables/chart";
 import { useDashboard } from "@/composables/dashboard";
 import { useRoute } from "vue-router/composables";
 import colors from "vuetify/lib/util/colors";
@@ -141,8 +140,8 @@ const beamFields: DoubleFields<ConnectionField> = [
                       ConnectionField.ConnectionType,
                     ]"
                     :query="query"
-                    :searches.sync="searches"
                     type="line"
+                    @change:searches="changeSearches"
                   />
                 </v-col>
               </v-row>
@@ -176,7 +175,7 @@ const beamFields: DoubleFields<ConnectionField> = [
                 :color="colors.blue"
                 :fields="beamFields"
                 :query="query"
-                :searches.sync="searches"
+                @change:searches="changeSearches"
               />
             </v-card-text>
           </v-card>
@@ -208,7 +207,7 @@ const beamFields: DoubleFields<ConnectionField> = [
                 :color="colors.green"
                 :fields="[ConnectionField.DC, ConnectionField.NDp]"
                 :query="query"
-                :searches.sync="searches"
+                @change:searches="changeSearches"
               />
             </v-card-text>
           </v-card>

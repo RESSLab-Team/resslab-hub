@@ -1,3 +1,279 @@
+<script setup lang="ts">
+import { CountModel } from "@/backend";
+import { initOptions, updateOptions } from "@/components/commons/charts/utils";
+import DateRangeSlider from "@/components/commons/sliders/DateRangeSlider.vue";
+import RangeSlider from "@/components/commons/sliders/RangeSlider.vue";
+import { DoubleField, DoubleFields } from "@/composables/chart";
+import i18n from "@/i18n";
+import { sum, Value } from "@/utils/common";
+import { BinData, toBins } from "@/utils/statistics";
+import { getColorPalette, primaryColor } from "@/utils/vuetify";
+import { EChartsOption } from "echarts";
+import { BarChart, LineChart } from "echarts/charts";
+import {
+  GridComponent,
+  LegendComponent,
+  TitleComponent,
+  TooltipComponent,
+} from "echarts/components";
+import { use } from "echarts/core";
+import { SVGRenderer } from "echarts/renderers";
+import { CallbackDataParams } from "echarts/types/dist/shared";
+import { chain, clone, isEqual, range } from "lodash";
+import { computed, unref, watch } from "vue";
+import VChart from "vue-echarts";
+import { withDefaults, defineProps, defineEmits } from "vue";
+import { Color } from "vuetify/lib/util/colors";
+
+use([
+  SVGRenderer,
+  BarChart,
+  LineChart,
+  GridComponent,
+  LegendComponent,
+  TitleComponent,
+  TooltipComponent,
+]);
+
+const props = withDefaults(
+  defineProps<{
+    color?: Color;
+    counts?: CountModel[];
+    dateMin?: string;
+    dateMax?: string;
+    dateRange?: [string, string];
+    fields: DoubleFields;
+    labelPrefix?: string;
+    numberMin?: number;
+    numberMax?: number;
+    numberRange?: [number, number];
+    type?: "bar" | "line";
+  }>(),
+  {
+    color: () => primaryColor,
+    counts: () => [],
+    dateMin: undefined,
+    dateMax: undefined,
+    dateRange: undefined,
+    labelPrefix: "",
+    numberMin: undefined,
+    numberMax: undefined,
+    numberRange: undefined,
+    type: "bar",
+  }
+);
+const emit = defineEmits<{
+  (e: "change:searches", key: string, value?: Value): void;
+  (e: "update:dateRange", value?: [string, string]): void;
+  (e: "update:numberRange", value?: [number, number]): void;
+}>();
+
+const numberRange = computed({
+  get: () => props.numberRange,
+  set: (value) => {
+    if (value[0] === props.numberMin && value[1] === props.numberMax) {
+      emit("update:numberRange", undefined);
+    } else {
+      emit("update:numberRange", value);
+    }
+  },
+});
+const dateRange = computed({
+  get: () => props.dateRange,
+  set: (value) => {
+    if (value[0] === props.dateMin && value[1] === props.dateMax) {
+      emit("update:dateRange", undefined);
+    } else {
+      emit("update:dateRange", value);
+    }
+  },
+});
+const defaultValue = computed(() => (props.type === "line" ? 0 : ""));
+const secondField = computed<string>(() => {
+  const secondField: DoubleField = props.fields[1];
+  if (typeof secondField === "string") {
+    return secondField;
+  } else {
+    return secondField.id;
+  }
+});
+const mapSecondName = computed<(name: string) => string>(() => {
+  const secondField: DoubleField = props.fields[1];
+  if (typeof secondField === "string") {
+    return (name) => name;
+  } else {
+    return (name) => secondField.mapping.get(name) ?? name;
+  }
+});
+const firstKeys = computed<string[]>(() =>
+  chain(props.counts)
+    .map((count) => count.names[0])
+    .uniq()
+    .sort()
+    .value()
+);
+const isHistogram = computed<boolean>(() => numberRange !== undefined);
+const option = computed<EChartsOption>(() => {
+  const secondKeys: string[] = chain(props.counts)
+    .groupBy((count) => count.names[1])
+    .map((values, key) => ({
+      key: key,
+      value: values.map((count) => count.value).reduce(sum),
+    }))
+    .sortBy(
+      (item) => -item.value,
+      (item) => item.key
+    )
+    .map((item) => item.key)
+    .value();
+  const mapSecondNameValue = unref(mapSecondName);
+  const option: EChartsOption = {
+    title: {
+      text: i18n.t(props.labelPrefix + secondField.value).toString(),
+      textStyle: {
+        fontSize: 12,
+      },
+      left: "center",
+    },
+    legend: {
+      type: "scroll",
+      top: 20,
+    },
+    grid: {
+      bottom: 42,
+    },
+    xAxis: {
+      type: "category",
+      name: i18n.t(props.labelPrefix + props.fields[0]).toString(),
+      nameLocation: "middle",
+      nameTextStyle: {
+        fontWeight: "bold",
+      },
+      nameGap: 28,
+      boundaryGap: props.type === "bar",
+      axisTick: {
+        alignWithLabel: true,
+      },
+    },
+    yAxis: {
+      type: "value",
+      minInterval: 1,
+    },
+    tooltip: {
+      trigger: "axis",
+      axisPointer: {
+        type: props.type === "bar" ? "shadow" : undefined,
+      },
+      confine: true,
+    },
+    series: getSerie(secondKeys).map((serie) => ({
+      id: serie.name,
+      name: mapSecondNameValue(serie.name),
+      type: props.type,
+      showSymbol: false,
+      stack: secondField.value,
+      areaStyle: {},
+      emphasis: {
+        focus: "series",
+      },
+      data: serie.data,
+    })),
+    color: getColorPalette(props.color, secondKeys.length),
+  };
+  return option;
+});
+
+watch(numberRange, (value) => {
+  let searchValue: string | undefined;
+  if (value && !isNaN(value[0]) && !isNaN(value[1])) {
+    searchValue = `${value[0]}<<${value[1]}`;
+  } else {
+    searchValue = undefined;
+  }
+  emit("change:searches", props.fields[0], searchValue);
+});
+watch(dateRange, (value) => {
+  let searchValue: string | undefined;
+  if (value) {
+    searchValue = `${value[0]}<<${value[1]}`;
+  } else {
+    searchValue = undefined;
+  }
+  emit("change:searches", props.fields[0], searchValue);
+});
+
+function getSerie(secondKeys: string[]): {
+  name: string;
+  data: (string | number)[][];
+}[] {
+  const firstKeysValue = unref(firstKeys);
+  if (isHistogram.value) {
+    if (props.type === "line") {
+      return secondKeys.map((secondKey) => {
+        const firstKeyNumbers = firstKeysValue.map((firstKey) =>
+          Number(firstKey)
+        );
+        // generate all missing values
+        let allFirstKeys: (number | string)[];
+        if (firstKeyNumbers.some(isNaN)) {
+          // TODO create date range
+          allFirstKeys = clone(firstKeysValue).sort();
+        } else {
+          allFirstKeys = range(
+            Math.min(...firstKeyNumbers),
+            Math.max(...firstKeyNumbers) + 1
+          );
+        }
+        let acc = 0;
+        const values: [number | string, number][] = allFirstKeys.map(
+          (firstKeyNumber) => {
+            const count = (acc +=
+              getCount(firstKeyNumber.toString(), secondKey) ?? 0);
+            return [firstKeyNumber, count];
+          }
+        );
+        return {
+          name: secondKey,
+          data: values,
+        };
+      });
+    } else {
+      const binData = firstKeysValue.flatMap((firstKey) =>
+        secondKeys.map((secondKey) => ({
+          name: secondKey,
+          value: Number(firstKey),
+          count: getCount(firstKey, secondKey) ?? 0,
+        }))
+      );
+      return toBins(secondKeys, binData);
+    }
+  } else {
+    return secondKeys.map((secondKey) => ({
+      name: secondKey,
+      data: firstKeysValue.map((firstKey) => [
+        firstKey,
+        getCount(firstKey, secondKey) ?? defaultValue.value,
+      ]),
+    }));
+  }
+}
+function getCount(firstKey: string, secondKey: string): number | undefined {
+  return props.counts.find((c) => isEqual(c.names, [firstKey, secondKey]))
+    ?.value;
+}
+function click(params: CallbackDataParams): void {
+  if (props.type === "bar") {
+    if (isHistogram.value) {
+      const data = params.data as BinData;
+      emit("change:searches", props.fields[0], `${data[2]}<<${data[3]}`);
+    } else {
+      emit("change:searches", props.fields[0], params.name);
+    }
+  }
+  emit("change:searches", secondField.value, params.seriesId);
+}
+</script>
+
 <template>
   <div>
     <v-responsive aspect-ratio="2.5" min-height="200">
@@ -19,329 +295,9 @@
     <date-range-slider
       v-if="dateMin && dateMax"
       v-model="dateRange"
+      :color="color"
       :min="dateMin"
       :max="dateMax"
     />
   </div>
 </template>
-
-<script lang="ts">
-import { CountModel, DateRangeModel, RangeModel } from "@/backend";
-import { initOptions, updateOptions } from "@/components/commons/charts/utils";
-import DateRangeSlider from "@/components/commons/sliders/DateRangeSlider.vue";
-import RangeSlider from "@/components/commons/sliders/RangeSlider.vue";
-import { Searches, sum } from "@/utils/common";
-import { BinData, toBins } from "@/utils/statistics";
-import { getColorPalette, primaryColor } from "@/utils/vuetify";
-import { AxiosResponse } from "axios";
-import { EChartsOption } from "echarts";
-import { BarChart, LineChart } from "echarts/charts";
-import {
-  GridComponent,
-  LegendComponent,
-  TitleComponent,
-  TooltipComponent,
-} from "echarts/components";
-import { use } from "echarts/core";
-import { SVGRenderer } from "echarts/renderers";
-import { CallbackDataParams } from "echarts/types/dist/shared";
-import { chain, clone, isEqual, range } from "lodash";
-import VChart from "vue-echarts";
-import { Component, Prop, PropSync, Vue, Watch } from "vue-property-decorator";
-import { Color } from "vuetify/lib/util/colors";
-
-use([
-  SVGRenderer,
-  BarChart,
-  LineChart,
-  GridComponent,
-  LegendComponent,
-  TitleComponent,
-  TooltipComponent,
-]);
-
-@Component({
-  components: {
-    VChart,
-    DateRangeSlider,
-    RangeSlider,
-  },
-})
-export default class DoubleChart extends Vue {
-  readonly initOptions = initOptions;
-  readonly updateOptions = updateOptions;
-
-  @PropSync("searches", { type: Object as () => Searches, default: () => ({}) })
-  fieldSearches!: Searches;
-  @Prop({ type: Array as () => (string | DoubleField)[] })
-  readonly fields!: [string, DoubleField];
-  @Prop({ type: String, default: "" })
-  readonly query!: string;
-  @Prop({ type: String, default: "bar" })
-  readonly type!: "bar" | "line";
-  @Prop({ type: Object as () => Color, default: () => primaryColor })
-  readonly color!: Color;
-  @Prop({ type: String, default: "" })
-  readonly labelPrefix!: string;
-  @Prop({ type: Promise })
-  readonly promise!: Promise<AxiosResponse<CountModel[]>>;
-  @Prop({ type: Promise })
-  readonly rangePromise: Promise<RangeModel> | undefined;
-  @Prop({ type: Promise })
-  readonly dateRangePromise: Promise<DateRangeModel> | undefined;
-
-  counts: CountModel[] = [];
-  numberRange: [number, number] | null = null;
-  numberMin: number | null = null;
-  numberMax: number | null = null;
-  dateRange: [string, string] | null = null;
-  dateMin: string | null = null;
-  dateMax: string | null = null;
-  private unwatch: () => void = () => null;
-
-  created(): void {
-    this.onChanged();
-    this.unwatch = this.$watch(
-      `fieldSearches.${this.fields[0]}`,
-      this.onFirstFieldChanged
-    );
-    this.rangePromise?.then((range) => {
-      this.numberMin = range.min;
-      this.numberMax = range.max;
-    });
-    this.dateRangePromise?.then((range) => {
-      this.dateMin = range.min;
-      this.dateMax = range.max;
-    });
-  }
-
-  beforeDestroy(): void {
-    this.unwatch();
-  }
-
-  get defaultValue(): string | number {
-    if (this.type === "line") {
-      return 0;
-    } else {
-      return "";
-    }
-  }
-
-  get secondField(): string {
-    const secondField: DoubleField = this.fields[1];
-    if (typeof secondField === "string") {
-      return secondField;
-    } else {
-      return secondField.id;
-    }
-  }
-
-  get mapSecondName(): (name: string) => string {
-    const secondField: DoubleField = this.fields[1];
-    if (typeof secondField === "string") {
-      return (name) => name;
-    } else {
-      return (name) => secondField.mapping.get(name) ?? name;
-    }
-  }
-
-  get firstKeys(): string[] {
-    return chain(this.counts)
-      .map((count) => count.names[0])
-      .uniq()
-      .sort()
-      .value();
-  }
-
-  get option(): EChartsOption {
-    const secondKeys: string[] = chain(this.counts)
-      .groupBy((count) => count.names[1])
-      .map((values, key) => ({
-        key: key,
-        value: values.map((count) => count.value).reduce(sum),
-      }))
-      .sortBy(
-        (item) => -item.value,
-        (item) => item.key
-      )
-      .map((item) => item.key)
-      .value();
-    const option: EChartsOption = {
-      title: {
-        text: this.$t(this.labelPrefix + this.secondField).toString(),
-        textStyle: {
-          fontSize: 12,
-        },
-        left: "center",
-      },
-      legend: {
-        type: "scroll",
-        top: 20,
-      },
-      grid: {
-        bottom: 42,
-      },
-      xAxis: {
-        type: "category",
-        name: this.$t(this.labelPrefix + this.fields[0]).toString(),
-        nameLocation: "middle",
-        nameTextStyle: {
-          fontWeight: "bold",
-        },
-        nameGap: 28,
-        boundaryGap: this.type === "bar",
-        axisTick: {
-          alignWithLabel: true,
-        },
-      },
-      yAxis: {
-        type: "value",
-        minInterval: 1,
-      },
-      tooltip: {
-        trigger: "axis",
-        axisPointer: {
-          type: this.type === "bar" ? "shadow" : undefined,
-        },
-        confine: true,
-      },
-      series: this.getSerie(secondKeys).map((serie) => ({
-        id: serie.name,
-        name: this.mapSecondName(serie.name),
-        type: this.type,
-        showSymbol: false,
-        stack: this.secondField,
-        areaStyle: {},
-        emphasis: {
-          focus: "series",
-        },
-        data: serie.data,
-      })),
-      color: getColorPalette(this.color, secondKeys.length),
-    };
-    return option;
-  }
-
-  get isHistogram(): boolean {
-    return this.numberRange !== undefined;
-  }
-
-  @Watch("fields")
-  @Watch("query")
-  onChanged(): void {
-    this.promise
-      .then((response) => response.data)
-      .then((counts) => {
-        this.counts = counts;
-      });
-  }
-
-  @Watch("numberRange")
-  onSliderChanged(value: [number, number] | null): void {
-    if (value && !isNaN(value[0]) && !isNaN(value[1])) {
-      this.$set(this.fieldSearches, this.fields[0], `${value[0]}<<${value[1]}`);
-    }
-  }
-
-  @Watch("dateRange")
-  onDateRangeChanged(value: [string, string] | null): void {
-    if (value) {
-      this.$set(this.fieldSearches, this.fields[0], `${value[0]}<<${value[1]}`);
-    }
-  }
-
-  onFirstFieldChanged(value: string): void {
-    if (value === undefined) {
-      this.numberRange = null;
-    } else if (value.includes("<<")) {
-      const [min, max] = value.split("<<", 2).map((v) => Number(v));
-      if (min !== undefined && max !== undefined) {
-        this.numberRange = [min, max];
-      }
-    }
-  }
-
-  private getSerie(secondKeys: string[]): Serie[] {
-    if (this.isHistogram) {
-      if (this.type === "line") {
-        return secondKeys.map((secondKey) => {
-          const firstKeyNumbers = this.firstKeys.map((firstKey) =>
-            Number(firstKey)
-          );
-          // generate all missing values
-          let allFirstKeys: (number | string)[];
-          if (firstKeyNumbers.some(isNaN)) {
-            // TODO create date range
-            allFirstKeys = clone(this.firstKeys).sort();
-          } else {
-            allFirstKeys = range(
-              Math.min(...firstKeyNumbers),
-              Math.max(...firstKeyNumbers) + 1
-            );
-          }
-          let acc = 0;
-          const values: [number | string, number][] = allFirstKeys.map(
-            (firstKeyNumber) => {
-              const count = (acc +=
-                this.getCount(firstKeyNumber.toString(), secondKey) ?? 0);
-              return [firstKeyNumber, count];
-            }
-          );
-          return {
-            name: secondKey,
-            data: values,
-          };
-        });
-      } else {
-        const binData = this.firstKeys.flatMap((firstKey) =>
-          secondKeys.map((secondKey) => ({
-            name: secondKey,
-            value: Number(firstKey),
-            count: this.getCount(firstKey, secondKey) ?? 0,
-          }))
-        );
-        return toBins(secondKeys, binData);
-      }
-    } else {
-      return secondKeys.map((secondKey) => ({
-        name: secondKey,
-        data: this.firstKeys.map((firstKey) => [
-          firstKey,
-          this.getCount(firstKey, secondKey) ?? this.defaultValue,
-        ]),
-      }));
-    }
-  }
-
-  private getCount(firstKey: string, secondKey: string): number | undefined {
-    return this.counts.find((c) => isEqual(c.names, [firstKey, secondKey]))
-      ?.value;
-  }
-
-  click(params: CallbackDataParams): void {
-    if (this.type === "bar") {
-      if (this.isHistogram) {
-        const data = params.data as BinData;
-        this.$set(this.fieldSearches, this.fields[0], `${data[2]}<<${data[3]}`);
-      } else {
-        this.$set(this.fieldSearches, this.fields[0], params.name);
-      }
-    }
-    this.$set(this.fieldSearches, this.secondField, params.seriesId);
-  }
-}
-
-export type DoubleFields<T = string> = [T, DoubleField<T>];
-
-export type DoubleField<T = string> = T | MappingField<T>;
-
-export interface MappingField<T> {
-  id: T;
-  mapping: Map<string, string>;
-}
-
-interface Serie {
-  name: string;
-  data: (string | number)[][];
-}
-</script>

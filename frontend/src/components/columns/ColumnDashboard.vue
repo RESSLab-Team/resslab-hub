@@ -5,10 +5,9 @@ import ColumnParallelChart from "@/components/columns/charts/ColumnParallelChart
 import ColumnSingleChart from "@/components/columns/charts/ColumnSingleChart.vue";
 import ColumnDetail from "@/components/columns/ColumnDetail.vue";
 import ColumnTable from "@/components/columns/ColumnTable.vue";
-import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
-import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
+import { DoubleFields, ParallelField } from "@/composables/chart";
 import { useDashboard } from "@/composables/dashboard";
 import { useRoute } from "vue-router/composables";
 import colors from "vuetify/lib/util/colors";
@@ -88,8 +87,8 @@ const steelField = ColumnField.SteelC;
               <column-double-chart
                 :fields="boundaryConditionFields"
                 :query="query"
-                :searches.sync="searches"
                 type="line"
+                @change:searches="changeSearches"
               />
             </v-card-text>
           </v-card>
@@ -121,7 +120,7 @@ const steelField = ColumnField.SteelC;
                 :color="colors.green"
                 :fields="columnDepthFields"
                 :query="query"
-                :searches.sync="searches"
+                @change:searches="changeSearches"
               />
             </v-card-text>
           </v-card>
