@@ -1,7 +1,8 @@
-import { CountModel } from "@/backend";
+import { CountModel, MatrixModel } from "@/backend";
 import { Value } from "@/utils/common";
 import { AxiosResponse } from "axios";
-import { Ref, ref, watchEffect } from "vue";
+import { chain } from "lodash";
+import { computed, Ref, ref, watchEffect } from "vue";
 import { Color } from "vuetify/lib/util/colors";
 
 export interface Count {
@@ -9,21 +10,36 @@ export interface Count {
   value: number;
 }
 
+export interface ParallelField<T = string> {
+  id: T | Division<T>;
+  name?: string;
+}
+
+export interface Division<T> {
+  dividend: T;
+  divisor: T;
+}
+
+const chartProps = {
+  color: Object as () => Color,
+  query: String,
+};
+export interface ChartEmits {
+  (e: "change:searches", key: string, value: Value): void;
+}
+
 export function singleChartProps<F extends string>() {
   return {
-    color: Object as () => Color,
+    ...chartProps,
     field: {
       type: String as unknown as () => F,
       required: true,
     },
-    query: String,
   };
 }
-export interface SingleChartEmits {
-  (e: "change:searches", key: string, value: Value): void;
-}
+
 export function useSingleChart<F>(
-  emit: SingleChartEmits,
+  emit: ChartEmits,
   field: F,
   query: Ref<string | undefined>,
   getBracesCounts: (
@@ -53,4 +69,55 @@ export function useSingleChart<F>(
   });
 
   return { counts, changeSearches };
+}
+
+export function parallelChartProps<F extends string>() {
+  return {
+    ...chartProps,
+    fields: {
+      type: Array as () => ParallelField<F>[],
+      required: true,
+    },
+  };
+}
+export function useParallelChart<F extends string>(
+  emit: ChartEmits,
+  idField: F,
+  fields: ParallelField<F>[],
+  query: Ref<string | undefined>,
+  getMatrix: (
+    fields: F[],
+    query?: string
+  ) => Promise<AxiosResponse<MatrixModel>>
+) {
+  const ids = ref<string[]>([]);
+  const data = ref<(string | number)[][]>([]);
+
+  const requestFields = computed<F[]>(() =>
+    chain(fields)
+      .flatMap((f) => {
+        if (typeof f.id === "string") {
+          return [f.id];
+        } else {
+          return [f.id.dividend, f.id.divisor];
+        }
+      })
+      .uniq()
+      .value()
+  );
+
+  function changeSearches(value: Value) {
+    emit("change:searches", idField, value);
+  }
+
+  watchEffect(() => {
+    getMatrix(requestFields.value, query.value)
+      .then((response) => response.data)
+      .then((matrixModel) => {
+        ids.value = matrixModel.ids;
+        data.value = matrixModel.data as (string | number)[][];
+      });
+  });
+
+  return { ids, data, requestFields, changeSearches };
 }

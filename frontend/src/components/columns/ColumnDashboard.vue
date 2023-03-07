@@ -68,8 +68,8 @@ const steelField = ColumnField.SteelC;
           <column-parallel-chart
             :color="colors.orange"
             :fields="parallelFields"
-            :searches.sync="searches"
             :query="query"
+            @change:searches="changeSearches"
           />
         </v-col>
       </v-row>

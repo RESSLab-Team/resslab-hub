@@ -3,7 +3,7 @@ import { ColumnField } from "@/backend";
 import { columnsApi } from "@/plugins/axios";
 import { defineProps, toRef, defineEmits } from "vue";
 import {
-  SingleChartEmits,
+  ChartEmits,
   singleChartProps,
   useSingleChart,
 } from "@/composables/chart";
@@ -11,7 +11,7 @@ import SingleChart from "@/components/commons/charts/SingleChart.vue";
 
 const props = defineProps(singleChartProps<ColumnField>());
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface Emits extends SingleChartEmits {}
+interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>();
 
 const { counts, changeSearches } = useSingleChart<ColumnField>(

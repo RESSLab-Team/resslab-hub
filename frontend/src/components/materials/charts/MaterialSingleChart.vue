@@ -4,14 +4,14 @@ import { materialsApi } from "@/plugins/axios";
 import SingleChart from "@/components/commons/charts/SingleChart.vue";
 import { defineProps, toRef, defineEmits } from "vue";
 import {
-  SingleChartEmits,
+  ChartEmits,
   singleChartProps,
   useSingleChart,
 } from "@/composables/chart";
 
 const props = defineProps(singleChartProps<MaterialField>());
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface Emits extends SingleChartEmits {}
+interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>();
 
 const { counts, changeSearches } = useSingleChart<MaterialField>(
