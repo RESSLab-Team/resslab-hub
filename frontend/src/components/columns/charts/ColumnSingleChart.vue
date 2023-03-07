@@ -2,29 +2,24 @@
 import { ColumnField } from "@/backend";
 import { columnsApi } from "@/plugins/axios";
 import { defineProps, toRef, defineEmits } from "vue";
-import { Color } from "vuetify/lib/util/colors";
-import { Value } from "@/utils/common";
-import { useSingleChart } from "@/utils/chart";
+import {
+  SingleChartEmits,
+  singleChartProps,
+  useSingleChart,
+} from "@/composables/chart";
 import SingleChart from "@/components/commons/charts/SingleChart.vue";
 
-const props = defineProps<{
-  color?: Color;
-  field: ColumnField;
-  query?: string;
-}>();
-const emit = defineEmits<{
-  (e: "change:searches", key: string, value: Value): void;
-}>();
+const props = defineProps(singleChartProps<ColumnField>());
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface Emits extends SingleChartEmits {}
+const emit = defineEmits<Emits>();
 
-const { counts } = useSingleChart<ColumnField>(
+const { counts, changeSearches } = useSingleChart<ColumnField>(
+  emit,
   props.field,
   toRef(props, "query"),
   (fields, query) => columnsApi.getColumnsCounts(fields, query)
 );
-
-function changeSearches(key: string, value: Value) {
-  emit("change:searches", key, value);
-}
 </script>
 
 <template>

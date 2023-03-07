@@ -9,7 +9,7 @@ import { DoubleFields } from "@/components/commons/charts/DoubleChart.vue";
 import { ParallelField } from "@/components/commons/charts/SimpleParallelChart.vue";
 import InfoTooltip from "@/components/commons/InfoTooltip.vue";
 import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
-import { useDashboard } from "@/utils/dashboard";
+import { useDashboard } from "@/composables/dashboard";
 import { useRoute } from "vue-router/composables";
 import colors from "vuetify/lib/util/colors";
 

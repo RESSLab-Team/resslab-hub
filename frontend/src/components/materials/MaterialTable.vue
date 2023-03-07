@@ -2,38 +2,9 @@
 import { MaterialField, MaterialModel } from "@/backend";
 import SimpleTable from "@/components/commons/SimpleTable.vue";
 import { materialsApi } from "@/plugins/axios";
-import { Searches } from "@/utils/common";
-import { Column, useTable } from "@/utils/table";
-import {
-  withDefaults,
-  defineProps,
-  defineEmits,
-  ref,
-  computed,
-  toRef,
-} from "vue";
-import { DataOptions } from "vuetify";
+import { Column, TableEmits, tableProps, useTable } from "@/composables/table";
+import { defineProps, defineEmits, toRef } from "vue";
 import { useNotificationStore } from "@/stores/notification";
-import { Page } from "@/utils/backend";
-
-const props = withDefaults(
-  defineProps<{
-    query?: string;
-    searches?: Searches;
-    search?: string;
-  }>(),
-  {
-    query: undefined,
-    searches: () => ({}),
-    search: "",
-  }
-);
-const emit = defineEmits<{
-  (e: "click:row", value: MaterialModel): void;
-  (e: "update:page", value: Page<MaterialModel>): void;
-  (e: "update:search", value: string): void;
-  (e: "update:searches", value: Searches): void;
-}>();
 
 const columns: Column[] = [
   {
@@ -58,37 +29,41 @@ const columns: Column[] = [
   },
 ];
 
-const options = ref<DataOptions>();
-
-const searches = computed<Searches>({
-  get: () => props.searches,
-  set: (value) => emit("update:searches", value),
-});
-const globalSearch = computed<string>({
-  get: () => props.search,
-  set: (value) => emit("update:search", value),
-});
+const props = defineProps(tableProps);
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface Emits extends TableEmits<MaterialModel> {}
+const emit = defineEmits<Emits>();
 
 const notificationStore = useNotificationStore();
-const { downloadFiles, items, loading, totalCount, totalFilteredCount } =
-  useTable<MaterialModel>(
-    "material",
-    options,
-    toRef(props, "query"),
-    [
-      {
-        name: "stress-strain",
-        countKey: "stress_strain_count",
-        getCsv: (id) => materialsApi.getMaterialsStressStrainCsv(id),
-      },
-    ],
-    () => materialsApi.getMaterialsCounts(),
-    (query, sortBy, sortDesc, page, size) =>
-      materialsApi.getMaterials(query, sortBy, sortDesc, page, size),
-    (ids) => materialsApi.getMaterialsCsv(ids),
-    (message) => notificationStore.notify(message),
-    (page) => emit("update:page", page)
-  );
+const {
+  clickRow,
+  downloadFiles,
+  items,
+  loading,
+  options,
+  search,
+  searches,
+  totalCount,
+  totalFilteredCount,
+} = useTable<MaterialModel>(
+  emit,
+  "material",
+  toRef(props, "query"),
+  toRef(props, "search"),
+  toRef(props, "searches"),
+  [
+    {
+      name: "stress-strain",
+      countKey: "stress_strain_count",
+      getCsv: (id) => materialsApi.getMaterialsStressStrainCsv(id),
+    },
+  ],
+  () => materialsApi.getMaterialsCounts(),
+  (query, sortBy, sortDesc, page, size) =>
+    materialsApi.getMaterials(query, sortBy, sortDesc, page, size),
+  (ids) => materialsApi.getMaterialsCsv(ids),
+  (message) => notificationStore.notify(message)
+);
 </script>
 
 <template>
@@ -99,12 +74,12 @@ const { downloadFiles, items, loading, totalCount, totalFilteredCount } =
     :options.sync="options"
     prefix="material."
     :query="query"
-    :search.sync="globalSearch"
+    :search.sync="search"
     :searches.sync="searches"
     title="Materials"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
-    @click:row="emit('click:row', $event)"
+    @click:row="clickRow"
     @download="downloadFiles"
   />
 </template>

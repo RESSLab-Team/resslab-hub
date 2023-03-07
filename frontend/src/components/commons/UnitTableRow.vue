@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useUnits } from "@/utils/unit";
+import { useUnits } from "@/composables/unit";
 import { withDefaults, defineProps, computed } from "vue";
 
 export interface UnitTableRowData {

@@ -1,5 +1,5 @@
 import { CountModel } from "@/backend";
-import { Searches } from "@/utils/common";
+import { Value } from "@/utils/common";
 import { AxiosResponse } from "axios";
 import { Ref, ref, watchEffect } from "vue";
 import { Color } from "vuetify/lib/util/colors";
@@ -9,17 +9,21 @@ export interface Count {
   value: number;
 }
 
-export interface SingleChartProps<F> {
-  color?: Color;
-  field: F;
-  query?: string;
-  searches?: Searches;
+export function singleChartProps<F extends string>() {
+  return {
+    color: Object as () => Color,
+    field: {
+      type: String as unknown as () => F,
+      required: true,
+    },
+    query: String,
+  };
 }
 export interface SingleChartEmits {
-  (e: "change:searches", key: string, value: string): void;
+  (e: "change:searches", key: string, value: Value): void;
 }
-
 export function useSingleChart<F>(
+  emit: SingleChartEmits,
   field: F,
   query: Ref<string | undefined>,
   getBracesCounts: (
@@ -28,6 +32,10 @@ export function useSingleChart<F>(
   ) => Promise<AxiosResponse<CountModel[]>>
 ) {
   const counts = ref<Count[]>([]);
+
+  function changeSearches(key: string, value: Value) {
+    emit("change:searches", key, value);
+  }
 
   watchEffect(() => {
     getBracesCounts([field], query.value)
@@ -44,5 +52,5 @@ export function useSingleChart<F>(
       });
   });
 
-  return { counts };
+  return { counts, changeSearches };
 }

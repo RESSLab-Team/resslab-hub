@@ -17,7 +17,7 @@ import { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
 import { cloneDeep, merge, round } from "lodash";
 import VChart from "vue-echarts";
 import { withDefaults, defineProps, computed } from "vue";
-import { useUnits } from "@/utils/unit";
+import { useUnits } from "@/composables/unit";
 
 use([SVGRenderer, LineChart, GridComponent, LegendComponent, TooltipComponent]);
 

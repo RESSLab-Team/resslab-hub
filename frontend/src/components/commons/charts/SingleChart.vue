@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { initOptions, updateOptions } from "@/components/commons/charts/utils";
-import { Count } from "@/utils/chart";
+import { Count } from "@/composables/chart";
 import { getColorPalette, primaryColor } from "@/utils/vuetify";
 import { EChartsOption } from "echarts";
 import { TreemapChart } from "echarts/charts";

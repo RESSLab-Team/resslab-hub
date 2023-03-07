@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useColors } from "@/utils/slider";
+import { useColor } from "@/composables/color";
 import { withDefaults, defineProps, defineEmits, computed } from "vue";
 import { Color } from "vuetify/lib/util/colors";
 
@@ -21,7 +21,7 @@ const emit = defineEmits<{
   (e: "input", value: [number, number]): void;
 }>();
 
-const { baseColor, darkenColor, lightenColor } = useColors(props.color);
+const { baseColor, darkenColor, lightenColor } = useColor(props.color);
 
 const actualMin = computed<number>(() => props.min - (props.min % props.step));
 const actualMax = computed<number>(

@@ -8,7 +8,7 @@ import MaterialParallelChart from "@/components/materials/charts/MaterialParalle
 import MaterialSingleChart from "@/components/materials/charts/MaterialSingleChart.vue";
 import MaterialDetail from "@/components/materials/MaterialDetail.vue";
 import MaterialTable from "@/components/materials/MaterialTable.vue";
-import { useDashboard } from "@/utils/dashboard";
+import { useDashboard } from "@/composables/dashboard";
 import { useRoute } from "vue-router/composables";
 import colors from "vuetify/lib/util/colors";
 
