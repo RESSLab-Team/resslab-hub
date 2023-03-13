@@ -298,14 +298,14 @@ class MaterialModel(BaseModel):
     grade: str
     spec: str
     size: str
-    t_a__deg_c_: Decimal
+    t_a__deg_c_: Optional[Decimal]
     date: date
     fy_n__mpa_: int
     fu_n__mpa_: int
-    yield_stress__mpa_: Decimal
+    yield_stress__mpa_: Optional[Decimal]
     fracture_strain: Optional[Decimal]
     reference: str
-    link: str
+    link: Optional[str]
     latitude: Decimal
     longitude: Decimal
 

@@ -37,8 +37,7 @@
             "required": false,
             "schema": {
               "title": "Days",
-              "type": "integer",
-              "default": 30
+              "type": "integer"
             },
             "name": "days",
             "in": "query"
@@ -3754,13 +3753,10 @@
           "grade",
           "spec",
           "size",
-          "t_a__deg_c_",
           "date",
           "fy_n__mpa_",
           "fu_n__mpa_",
-          "yield_stress__mpa_",
           "reference",
-          "link",
           "latitude",
           "longitude",
           "uvc_e__mpa_",

@@ -1503,7 +1503,7 @@ export interface MaterialModel {
      * @type {number}
      * @memberof MaterialModel
      */
-    't_a__deg_c_': number;
+    't_a__deg_c_'?: number;
     /**
      * 
      * @type {string}
@@ -1527,7 +1527,7 @@ export interface MaterialModel {
      * @type {number}
      * @memberof MaterialModel
      */
-    'yield_stress__mpa_': number;
+    'yield_stress__mpa_'?: number;
     /**
      * 
      * @type {number}
@@ -1545,7 +1545,7 @@ export interface MaterialModel {
      * @type {string}
      * @memberof MaterialModel
      */
-    'link': string;
+    'link'?: string;
     /**
      * 
      * @type {number}
