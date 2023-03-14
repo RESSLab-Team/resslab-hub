@@ -1,70 +1,62 @@
 <script setup lang="ts">
-import { ConnectionField, ConnectionModel } from "@/backend";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
-import ConnectionDoubleChart from "@/components/connections/charts/ConnectionDoubleChart.vue";
-import ConnectionParallelChart from "@/components/connections/charts/ConnectionParallelChart.vue";
-import ConnectionSingleChart from "@/components/connections/charts/ConnectionSingleChart.vue";
-import ConnectionDetail from "@/components/connections/ConnectionDetail.vue";
-import ConnectionTable from "@/components/connections/ConnectionTable.vue";
-import { DoubleFields, ParallelField } from "@/composables/chart";
-import { useDashboard } from "@/composables/dashboard";
-import { useRoute } from "vue-router/composables";
-import colors from "vuetify/lib/util/colors";
+import { ConnectionField, type ConnectionModel } from '@/backend'
+import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
+import ConnectionDoubleChart from '@/components/connections/charts/ConnectionDoubleChart.vue'
+import ConnectionParallelChart from '@/components/connections/charts/ConnectionParallelChart.vue'
+import ConnectionSingleChart from '@/components/connections/charts/ConnectionSingleChart.vue'
+import ConnectionDetail from '@/components/connections/ConnectionDetail.vue'
+import ConnectionTable from '@/components/connections/ConnectionTable.vue'
+import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { useDashboard } from '@/composables/dashboard'
+import { useRoute } from 'vue-router'
+import colors from 'vuetify/lib/util/colors'
 
-const route = useRoute();
-const {
-  clickTableRow,
-  closeDetail,
-  item,
-  query,
-  search,
-  searches,
-  changeSearches,
-  updatePage,
-} = useDashboard<ConnectionModel>(route, ConnectionField);
+const route = useRoute()
+const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
+  useDashboard<ConnectionModel>(route, ConnectionField)
 
 const parallelFields: ParallelField<ConnectionField>[] = [
   {
     id: ConnectionField.DB,
-    name: "Beam Depth\ndb [mm]",
+    name: 'Beam Depth\ndb [mm]'
   },
   {
     id: ConnectionField.DC,
-    name: "Column Depth\ndc [mm]",
+    name: 'Column Depth\ndc [mm]'
   },
   {
     id: ConnectionField.TCf,
-    name: "Column flange\nThickness [mm]",
+    name: 'Column flange\nThickness [mm]'
   },
   {
     id: {
       dividend: ConnectionField.DB,
-      divisor: ConnectionField.DC,
+      divisor: ConnectionField.DC
     },
-    name: "db / dc",
+    name: 'db / dc'
   },
   {
-    id: ConnectionField.GMaxGY,
+    id: ConnectionField.GMaxGY
   },
   {
-    id: ConnectionField.RuRnPlN,
+    id: ConnectionField.RuRnPlN
   },
   {
     id: ConnectionField.ConnectionType,
-    name: "Connection\nType",
-  },
-];
+    name: 'Connection\nType'
+  }
+]
 const beamFields: DoubleFields<ConnectionField> = [
   ConnectionField.DB,
   {
     id: ConnectionField.Slab,
     mapping: new Map([
-      ["False", "Bare"],
-      ["True", "Composite"],
-    ]),
-  },
-];
+      ['False', 'Bare'],
+      ['True', 'Composite']
+    ])
+  }
+]
 </script>
 
 <template>
@@ -73,8 +65,8 @@ const beamFields: DoubleFields<ConnectionField> = [
       <v-row>
         <v-col cols="12">
           <connection-table
-            :search.sync="search"
-            :searches.sync="searches"
+            v-model:search="search"
+            v-model:searches="searches"
             :query="query"
             @click:row="clickTableRow"
             @update:page="updatePage"
@@ -105,21 +97,20 @@ const beamFields: DoubleFields<ConnectionField> = [
               Connection Type
               <info-tooltip>
                 <p>
-                  This rectangle below displays the proportion of each
-                  connection type in the database. Connection types are
-                  categorised according to AISC-358-16 Prequalified connections.
-                  See also the evolution of connection types studied over the
-                  years on the right.
+                  This rectangle below displays the proportion of each connection type in the
+                  database. Connection types are categorised according to AISC-358-16 Prequalified
+                  connections. See also the evolution of connection types studied over the years on
+                  the right.
                 </p>
                 How to use?
                 <ul>
                   <li>
-                    See the connection type drawing by hovering over the
-                    corresponding type in the rectangle
+                    See the connection type drawing by hovering over the corresponding type in the
+                    rectangle
                   </li>
                   <li>
-                    Filter the Database for a specific connection type or dates
-                    by clicking on the rectangle of using the dates sliders
+                    Filter the Database for a specific connection type or dates by clicking on the
+                    rectangle of using the dates sliders
                   </li>
                 </ul>
               </info-tooltip>
@@ -135,10 +126,7 @@ const beamFields: DoubleFields<ConnectionField> = [
                 </v-col>
                 <v-col cols="12" sm="6">
                   <connection-double-chart
-                    :fields="[
-                      ConnectionField.Date,
-                      ConnectionField.ConnectionType,
-                    ]"
+                    :fields="[ConnectionField.Date, ConnectionField.ConnectionType]"
                     :query="query"
                     type="line"
                     @change:searches="changeSearches"
@@ -153,19 +141,16 @@ const beamFields: DoubleFields<ConnectionField> = [
             <v-card-title>
               Beam Depth [mm]
               <info-tooltip>
-                <p>
-                  This histogram displays the distribution of column depths in
-                  the Database.
-                </p>
+                <p>This histogram displays the distribution of column depths in the Database.</p>
                 How to use?
                 <ul>
                   <li>
-                    Filter database for specific column depths, by clicking on a
-                    bar or using the slider below
+                    Filter database for specific column depths, by clicking on a bar or using the
+                    slider below
                   </li>
                   <li>
-                    Filter database depending on the presence of doubler plates
-                    welded in the panel zone (0/1/2) by clicking on the legend.
+                    Filter database depending on the presence of doubler plates welded in the panel
+                    zone (0/1/2) by clicking on the legend.
                   </li>
                 </ul>
               </info-tooltip>
@@ -185,19 +170,16 @@ const beamFields: DoubleFields<ConnectionField> = [
             <v-card-title>
               Column Depth [mm]
               <info-tooltip>
-                <p>
-                  This histogram displays the distribution of column depths in
-                  the Database.
-                </p>
+                <p>This histogram displays the distribution of column depths in the Database.</p>
                 How to use?
                 <ul>
                   <li>
-                    Filter database for specific column depths, by clicking on a
-                    bar or using the slider below
+                    Filter database for specific column depths, by clicking on a bar or using the
+                    slider below
                   </li>
                   <li>
-                    Filter database depending on the presence of doubler plates
-                    welded in the panel zone (0/1/2) by clicking on the legend.
+                    Filter database depending on the presence of doubler plates welded in the panel
+                    zone (0/1/2) by clicking on the legend.
                   </li>
                 </ul>
               </info-tooltip>

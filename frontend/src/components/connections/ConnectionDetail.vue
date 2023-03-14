@@ -1,33 +1,31 @@
 <script setup lang="ts">
-import { ConnectionModel } from "@/backend";
-import CommonDetail, {
-  DetailCarouselItem,
-} from "@/components/commons/CommonDetail.vue";
-import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { connectionsApi } from "@/plugins/axios";
-import { getConnectionSpecimenImage } from "@/utils/component";
-import { formatString, formatNumber } from "@/utils/formatter";
-import { defineProps, defineEmits, ref, watch, computed } from "vue";
+import type { ConnectionModel } from '@/backend'
+import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
+import PropertyItem from '@/components/commons/PropertyItem.vue'
+import { connectionsApi } from '@/plugins/axios'
+import { getConnectionSpecimenImage } from '@/utils/component'
+import { formatNumber, formatString } from '@/utils/formatter'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
-  connection: ConnectionModel;
-}>();
+  connection: ConnectionModel
+}>()
 const emit = defineEmits<{
-  (e: "close"): void;
-}>();
+  (e: 'close'): void
+}>()
 
-const carouselItems = ref<DetailCarouselItem[][]>([]);
+const carouselItems = ref<DetailCarouselItem[][]>([])
 
 const backingBar = computed<string>(() => {
   if (props.connection.backing_bar === null) {
-    return "";
+    return ''
   }
-  return props.connection.backing_bar ? "kept in place" : "removed";
-});
+  return props.connection.backing_bar ? 'kept in place' : 'removed'
+})
 
 const specimenTypeImageSrc = computed<string>(() =>
   getConnectionSpecimenImage(props.connection.specimen_type)
-);
+)
 
 watch(
   () => props.connection,
@@ -37,49 +35,49 @@ watch(
         {
           count: connection.global_count,
           promise: connectionsApi.getConnectionsGlobal(connection.id),
-          title: "Subassembly Response",
-          xAxisName: "Total story drift angle [rad]",
-          yAxisName: "Lateral load [kN]",
+          title: 'Subassembly Response',
+          xAxisName: 'Total story drift angle [rad]',
+          yAxisName: 'Lateral load [kN]'
         },
         {
           count: connection.global_west_count,
           promise: connectionsApi.getConnectionsGlobalWest(connection.id),
-          title: "Global West",
-          xAxisName: "Total story drift angle [rad]",
-          yAxisName: "Lateral load [kN]",
-        },
+          title: 'Global West',
+          xAxisName: 'Total story drift angle [rad]',
+          yAxisName: 'Lateral load [kN]'
+        }
       ],
       [
         {
           count: connection.panel_zone_count,
           promise: connectionsApi.getConnectionsPanelZones(connection.id),
-          title: "Panel Zone Response",
-          xAxisName: "Panel zone shear distortion [rad]",
-          yAxisName: "Panel zone shear force [kN]",
-        },
+          title: 'Panel Zone Response',
+          xAxisName: 'Panel zone shear distortion [rad]',
+          yAxisName: 'Panel zone shear force [kN]'
+        }
       ],
       [
         {
           count: connection.beam_count,
           promise: connectionsApi.getConnectionsBeam(connection.id),
-          title: connection.beam_west_count > 0 ? "East Beam" : "Beam",
-          xAxisName: "Chord Rotation [rads]",
-          yAxisName: "Moment [kN-mm]",
+          title: connection.beam_west_count > 0 ? 'East Beam' : 'Beam',
+          xAxisName: 'Chord Rotation [rads]',
+          yAxisName: 'Moment [kN-mm]'
         },
         {
           count: connection.beam_west_count,
           promise: connectionsApi.getConnectionsBeamWest(connection.id),
-          title: "West Beam",
-          xAxisName: "Chord Rotation [rads]",
-          yAxisName: "Moment [kN-mm]",
-        },
-      ],
-    ];
+          title: 'West Beam',
+          xAxisName: 'Chord Rotation [rads]',
+          yAxisName: 'Moment [kN-mm]'
+        }
+      ]
+    ]
   },
   {
-    immediate: true,
+    immediate: true
   }
-);
+)
 </script>
 
 <template>
@@ -112,11 +110,7 @@ watch(
             <property-item name="Column cross section">
               {{ connection.section_c }}
             </property-item>
-            <property-item
-              v-if="connection.t_dp_tot"
-              name="Doubler plate thickness"
-              unit="mm"
-            >
+            <property-item v-if="connection.t_dp_tot" name="Doubler plate thickness" unit="mm">
               {{ connection.t_dp_tot }}
             </property-item>
             <property-item name="Beam flange-to-column flange weld electrode">

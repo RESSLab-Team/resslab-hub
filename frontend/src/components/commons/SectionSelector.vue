@@ -1,50 +1,50 @@
 <script setup lang="ts">
-import aiscSections from "@/assets/connection/aisc-sections.csv";
-import europeanSections from "@/assets/connection/european-sections.csv";
-import japaneseSections from "@/assets/connection/japanese-sections.csv";
-import { Section } from "@/utils/common";
-import { computed, defineEmits, ref, watch } from "vue";
-import SearchSelect from "@/components/commons/SearchSelect.vue";
-import { SelectItem } from "@/utils/vuetify";
+import aiscSections from '@/assets/connection/aisc-sections.csv'
+import europeanSections from '@/assets/connection/european-sections.csv'
+import japaneseSections from '@/assets/connection/japanese-sections.csv'
+import SearchSelect from '@/components/commons/SearchSelect.vue'
+import type { Section } from '@/utils/common'
+import type { SelectItem } from '@/utils/vuetify'
+import { computed, ref, watch } from 'vue'
 
 const emit = defineEmits<{
-  (e: "update:section", value: Section | undefined): void;
-}>();
+  (e: 'update:section', value: Section | undefined): void
+}>()
 
-type Database = "aisc" | "european" | "japanese";
-const databases: Database[] = ["aisc", "european", "japanese"];
+type Database = 'aisc' | 'european' | 'japanese'
+const databases: Database[] = ['aisc', 'european', 'japanese']
 
-const database = ref<Database>("aisc");
-const section = ref<Section>();
+const database = ref<Database>('aisc')
+const section = ref<Section>()
 
 const sections = computed<SelectItem<Section>[]>(() => {
-  let sections: Section[];
+  let sections: Section[]
   switch (database.value) {
-    case "aisc":
-      sections = aiscSections;
-      break;
-    case "european":
-      sections = europeanSections;
-      break;
-    case "japanese":
-      sections = japaneseSections;
-      break;
+    case 'aisc':
+      sections = aiscSections
+      break
+    case 'european':
+      sections = europeanSections
+      break
+    case 'japanese':
+      sections = japaneseSections
+      break
     default:
-      return [];
+      return []
   }
   return sections.map((section) => ({
-    text: section.id,
-    value: section,
-  }));
-});
+    title: section.id,
+    value: section
+  }))
+})
 
 watch(database, () => {
-  section.value = undefined;
-});
+  section.value = undefined
+})
 
 watch(section, (value) => {
-  emit("update:section", value);
-});
+  emit('update:section', value)
+})
 </script>
 
 <template>
@@ -55,15 +55,11 @@ watch(section, (value) => {
         hide-details
         :items="databases"
         label="Select Database"
-        single-line
+        variant="outlined"
       />
     </v-col>
     <v-col cols="6">
-      <search-select
-        v-model="section"
-        :items="sections"
-        label="Select Section"
-      />
+      <search-select v-model="section" :items="sections" label="Select Section" />
     </v-col>
   </v-row>
 </template>

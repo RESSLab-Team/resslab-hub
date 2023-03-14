@@ -1,38 +1,39 @@
 <script setup lang="ts">
-import UnitLineChart from "@/components/commons/charts/UnitLineChart.vue";
-import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { primaryColor, secondaryColor } from "@/utils/vuetify";
-import { withDefaults, defineProps, defineEmits, ref, watch } from "vue";
-import { LineSeriesOption } from "echarts";
-import { AxiosResponse } from "axios";
+import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
+import PropertyItem from '@/components/commons/PropertyItem.vue'
+import { primaryColor, secondaryColor } from '@/utils/vuetify'
+import { mdiClose } from '@mdi/js'
+import type { AxiosResponse } from 'axios'
+import type { LineSeriesOption } from 'echarts'
+import { ref, watch, withDefaults } from 'vue'
 
 export interface DetailCarouselItem {
-  count: number;
-  promise?: Promise<AxiosResponse<number[][]> | LineSeriesOption[]>;
-  title: string;
-  xAxisName: string;
-  yAxisName: string;
+  count: number
+  promise?: Promise<AxiosResponse<number[][]> | LineSeriesOption[]>
+  title: string
+  xAxisName: string
+  yAxisName: string
 }
 
 export interface Props {
-  reference: string;
-  link: string | undefined;
-  carouselItems?: DetailCarouselItem[][];
-  carouselHeight?: number;
+  reference: string
+  link: string | undefined
+  carouselItems?: DetailCarouselItem[][]
+  carouselHeight?: number
 }
 const props = withDefaults(defineProps<Props>(), {
   carouselItems: () => [],
-  carouselHeight: 300,
-});
+  carouselHeight: 300
+})
 const emit = defineEmits<{
-  (e: "close"): void;
-}>();
+  (e: 'close'): void
+}>()
 
-type SeriesCarouselItem = Omit<DetailCarouselItem, "promise"> & {
-  series: LineSeriesOption[];
-};
+type SeriesCarouselItem = Omit<DetailCarouselItem, 'promise'> & {
+  series: LineSeriesOption[]
+}
 
-const seriesCarouselItems = ref<SeriesCarouselItem[][]>([]);
+const seriesCarouselItems = ref<SeriesCarouselItem[][]>([])
 
 watch(
   () => props.carouselItems,
@@ -44,34 +45,33 @@ watch(
             carouselItem
               .filter((item) => item.count > 0)
               .map(async (item) => {
-                const response = await item.promise;
+                const response = await item.promise
                 const series: LineSeriesOption[] = Array.isArray(response)
                   ? response
-                  : [{ data: response?.data }];
+                  : [{ data: response?.data }]
                 const carouselItem: SeriesCarouselItem = {
                   series: series,
-                  ...item,
-                };
-                return carouselItem;
+                  ...item
+                }
+                return carouselItem
               })
           )
         )
       )
-    ).filter((row) => row.length > 0);
+    ).filter((row) => row.length > 0)
   },
   {
-    immediate: true,
+    immediate: true
   }
-);
+)
 </script>
 
 <template>
   <v-card>
-    <v-card-title>
+    <v-card-title class="d-flex">
       <slot name="title" />
       <v-spacer />
-      <v-btn color="primary" text @click="emit('close')">
-        <v-icon>mdi-close</v-icon>
+      <v-btn color="primary" :prepend-icon="mdiClose" variant="text" @click="emit('close')">
         Close
       </v-btn>
     </v-card-title>
@@ -95,12 +95,8 @@ watch(
           :key="carouselIndex"
         >
           <v-row>
-            <template v-for="(item, index) in carouselItem">
-              <v-col
-                :key="index"
-                class="d-flex justify-center"
-                :cols="12 / carouselItem.length"
-              >
+            <template v-for="(item, index) in carouselItem" :key="index">
+              <v-col class="d-flex justify-center" :cols="12 / carouselItem.length">
                 <unit-line-chart
                   :colors="[primaryColor, secondaryColor]"
                   :max-width="carouselHeight"

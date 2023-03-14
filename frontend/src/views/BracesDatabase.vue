@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import BraceDashboard from "@/components/braces/BraceDashboard.vue";
+import BraceDashboard from '@/components/braces/BraceDashboard.vue'
+import { mdiAlert } from '@mdi/js'
 </script>
 
 <template>
   <div>
     <p class="text-center">
-      <v-icon>mdi-alert</v-icon>
+      <v-icon :icon="mdiAlert" />
       Section under construction
-      <v-icon>mdi-alert</v-icon>
+      <v-icon :icon="mdiAlert" />
     </p>
     <brace-dashboard />
   </div>

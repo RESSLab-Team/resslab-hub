@@ -1,73 +1,54 @@
 <script setup lang="ts">
-import {
-  withDefaults,
-  defineProps,
-  computed,
-  defineEmits,
-  ref,
-  onMounted,
-  watch,
-} from "vue";
-import { Color } from "vuetify/lib/util/colors";
-import { useColor } from "@/composables/color";
-import { mapDateToNumber, mapNumberToDate } from "@/utils/date";
+import { useColor } from '@/composables/color'
+import { mapDateToNumber, mapNumberToDate } from '@/utils/date'
+import type { Color } from '@/utils/vuetify'
+import { computed, withDefaults } from 'vue'
 
 const props = withDefaults(
   defineProps<{
-    value?: [string, string];
-    min: string;
-    max: string;
-    color?: Color;
+    modelValue?: [string, string]
+    min: string
+    max: string
+    color?: Color
   }>(),
   {
+    modelValue: undefined,
     value: undefined,
-    color: undefined,
+    color: undefined
   }
-);
+)
 const emit = defineEmits<{
-  (e: "input", value: [string, string]): void;
-}>();
+  (e: 'update:modelValue', value: [string, string]): void
+}>()
 
-const { baseColor, darkenColor, lightenColor } = useColor(props.color);
+const vTextBind = {
+  class: 'mt-0 pt-0',
+  density: 'compact' as 'compact',
+  hideDetails: true,
+  readonly: true,
+  singleLine: true,
+  style: 'width: 82px',
+  variant: 'underlined' as 'underlined'
+}
 
-const pickerdialog = ref(false);
-const pickerRange = ref<[string, string] | [string]>();
+const { baseColor, darkenColor, lightenColor } = useColor(props.color)
 
 const range = computed<[string, string]>({
-  get: () => props.value ?? [props.min, props.max],
-  set: (value) => emit("input", value),
-});
+  get: () => props.modelValue ?? [props.min, props.max],
+  set: (value) => emit('update:modelValue', value)
+})
 const rangeNumber = computed<[number, number]>({
   get: () => range.value.map(mapDateToNumber) as [number, number],
-  set: (value) =>
-    (range.value = value.map(mapNumberToDate) as [string, string]),
-});
-const maxNumber = computed(() => mapDateToNumber(props.max));
-const minNumber = computed(() => mapDateToNumber(props.min));
-
-onMounted(() => {
-  pickerRange.value = range.value;
-});
-
-watch(pickerRange, (value) => {
-  if (value) {
-    range.value = value.length === 1 ? [value[0], value[0]] : value;
-  }
-});
-
-function onRangeNumberChange(value: [number, number]) {
-  rangeNumber.value = value;
-}
-
-function onTextClick() {
-  pickerdialog.value = true;
-}
+  set: (value) => (range.value = value.map(mapNumberToDate) as [string, string])
+})
+const maxNumber = computed(() => mapDateToNumber(props.max))
+const minNumber = computed(() => mapDateToNumber(props.min))
 </script>
 
 <template>
   <div>
     <v-range-slider
-      :value="rangeNumber"
+      v-model="rangeNumber"
       class="align-center"
       :color="baseColor"
       hide-details
@@ -75,33 +56,13 @@ function onTextClick() {
       :max="maxNumber"
       :thumb-color="darkenColor"
       :track-color="lightenColor"
-      @end="onRangeNumberChange"
     >
       <template #prepend>
-        <v-text-field
-          :value="range[0]"
-          class="mt-0 pt-0"
-          hide-details
-          readonly
-          single-line
-          style="width: 82px"
-          @click="onTextClick"
-        />
+        <v-text-field v-bind="vTextBind" :model-value="range[0]" />
       </template>
       <template #append>
-        <v-text-field
-          :value="range[1]"
-          class="mt-0 pt-0"
-          hide-details
-          readonly
-          single-line
-          style="width: 82px"
-          @click="onTextClick"
-        />
+        <v-text-field v-bind="vTextBind" :model-value="range[1]" />
       </template>
     </v-range-slider>
-    <v-dialog v-model="pickerdialog" max-width="300">
-      <v-date-picker v-model="pickerRange" :min="min" :max="max" range />
-    </v-dialog>
   </div>
 </template>

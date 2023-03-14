@@ -1,84 +1,85 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import AboutContent from "@/components/commons/AboutContent.vue";
-import { useNotificationStore } from "@/stores/notification";
-import SimpleSnackbar from "@/components/commons/SimpleSnackbar.vue";
+import AboutContent from '@/components/commons/AboutContent.vue'
+import SimpleSnackbar from '@/components/commons/SimpleSnackbar.vue'
+import { useNotificationStore } from '@/stores/notification'
+import { mdiInformationOutline } from '@mdi/js'
+import { ref } from 'vue'
 
 interface MenuItem {
-  text: string;
-  to: string;
-  children?: MenuItem[];
+  text: string
+  to: string
+  children?: MenuItem[]
 }
 
-const notificationStore = useNotificationStore();
+const notificationStore = useNotificationStore()
 const subMenuItems: MenuItem[] = [
   {
-    text: "Database",
-    to: "/database",
+    text: 'Database',
+    to: '/database'
   },
   {
-    text: "Component Model",
-    to: "/model",
+    text: 'Component Model',
+    to: '/model'
   },
   {
-    text: "Fragility Curve",
-    to: "/fragility-curve",
-  },
-];
+    text: 'Fragility Curve',
+    to: '/fragility-curve'
+  }
+]
 const menuItems: MenuItem[] = [
   {
-    text: "RESSLab Hub",
-    to: "/",
+    text: 'RESSLab Hub',
+    to: '/'
   },
   {
-    text: "Connections",
-    to: "/connections",
-    children: subMenuItems,
+    text: 'Connections',
+    to: '/connections',
+    children: subMenuItems
   },
   {
-    text: "Columns",
-    to: "/columns",
-    children: subMenuItems,
+    text: 'Columns',
+    to: '/columns',
+    children: subMenuItems
   },
   {
-    text: "Braces",
-    to: "/braces",
-    children: subMenuItems,
+    text: 'Braces',
+    to: '/braces',
+    children: subMenuItems
   },
   {
-    text: "Materials",
-    to: "/materials",
+    text: 'Materials',
+    to: '/materials',
     children: [
       {
-        text: "Database",
-        to: "/database",
+        text: 'Database',
+        to: '/database'
       },
       {
-        text: "Material Model",
-        to: "/model",
-      },
-    ],
-  },
-];
+        text: 'Material Model',
+        to: '/model'
+      }
+    ]
+  }
+]
 
-const aboutDialog = ref<boolean>(false);
-const snackbar = ref<InstanceType<typeof SimpleSnackbar>>();
+const aboutDialog = ref<boolean>(false)
+const snackbar = ref<InstanceType<typeof SimpleSnackbar>>()
 
 notificationStore.$subscribe((_, state) => {
   if (state.message) {
-    snackbar.value?.open(state.message, state.url ?? undefined);
+    snackbar.value?.open(state.message, state.url ?? undefined)
   }
-});
+})
 </script>
 
 <template>
   <v-app>
-    <v-app-bar app dense>
-      <v-tabs hide-slider>
+    <v-app-bar app density="compact">
+      <v-tabs color="primary" hide-slider>
         <template v-for="item in menuItems">
-          <v-menu v-if="item.children" :key="item.to" offset-y open-on-hover>
-            <template #activator="{ on, attrs }">
-              <v-tab :to="item.to" v-bind="attrs" v-on="on">
+          <v-menu v-if="item.children" :key="`${item.to}/`" offset-y open-on-hover>
+            <template #activator="{ props }">
+              <v-tab :to="item.to" v-bind="props">
                 {{ item.text }}
               </v-tab>
             </template>
@@ -86,11 +87,8 @@ notificationStore.$subscribe((_, state) => {
               <v-list-item v-for="subItem in item.children" :key="subItem.to">
                 <v-tab
                   :to="item.to + subItem.to"
-                  :class="
-                    item.to + subItem.to == $route.path
-                      ? 'primary--text'
-                      : undefined
-                  "
+                  :class="item.to + subItem.to == $route.path ? 'text-primary' : undefined"
+                  hide-slider
                 >
                   {{ subItem.text }}
                 </v-tab>
@@ -106,16 +104,15 @@ notificationStore.$subscribe((_, state) => {
             </template>
           </v-tab>
         </template>
-        <v-spacer />
+      </v-tabs>
+      <template #append>
         <v-dialog v-model="aboutDialog" max-width="800px">
-          <template #activator="{ on, attrs }">
-            <v-tab v-bind="attrs" v-on="on">
-              <v-icon>mdi-information-outline</v-icon>
-            </v-tab>
+          <template #activator="{ props }">
+            <v-btn v-bind="props" :icon="mdiInformationOutline" />
           </template>
           <about-content @click:close="aboutDialog = false" />
         </v-dialog>
-      </v-tabs>
+      </template>
     </v-app-bar>
     <v-main>
       <router-view />

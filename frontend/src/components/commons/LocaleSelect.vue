@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { SelectItem } from "@/utils/vuetify";
-import { withDefaults, defineProps, computed, defineEmits } from "vue";
+import type { SelectItem } from '@/utils/vuetify'
+import { computed, withDefaults } from 'vue'
 
 const props = withDefaults(
   defineProps<{
-    value?: string;
-    items?: SelectItem[];
-    prefix?: string;
+    modelValue?: string
+    items?: SelectItem[]
+    prefix?: string
   }>(),
   {
-    value: "",
+    modelValue: '',
     items: () => [],
-    prefix: "",
+    prefix: ''
   }
-);
+)
 const emit = defineEmits<{
-  (e: "input", value: string): void;
-}>();
+  (e: 'update:modelValue', value: string): void
+}>()
 
 const item = computed<string>({
-  get: () => props.value,
-  set: (value) => emit("input", value),
-});
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
+})
 </script>
 
 <template>

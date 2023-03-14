@@ -1,0 +1,41 @@
+import ColumnComponent from '@/components/columns/ColumnModel.vue'
+import { shallowMount } from '@vue/test-utils'
+import { describe, expect, it } from 'vitest'
+
+describe('ColumnComponent.vue', () => {
+  it('aisc - W4x13', async () => {
+    const radPrecision = 1
+    const mmPrecision = -1
+
+    const wrapper = shallowMount<InstanceType<typeof ColumnComponent>>(ColumnComponent)
+    await wrapper.setData({
+      section: {
+        id: 'W4x13',
+        bf: 103.124,
+        h: 75.438,
+        tf: 8.763,
+        tw: 7.112,
+        ix: 4703415.10928,
+        zx: 102255.27936,
+        ry: 25.4,
+        d: 105.664
+      },
+      pgPye: 0.2,
+      l: 5000,
+      lb: 5000,
+      fy: 379.225
+    })
+
+    expect(wrapper.ke).toBeCloseTo(1157040, mmPrecision)
+    expect(wrapper.my).toBeCloseTo(40134, mmPrecision)
+
+    expect(wrapper.backbone.mc).toBeCloseTo(40134, mmPrecision)
+    expect(wrapper.backbone.alpha).toBeCloseTo(0, radPrecision)
+    expect(wrapper.backbone.alphaPc).toBeCloseTo(-0.301909128782995, radPrecision)
+    expect(wrapper.backbone.lambda).toBeCloseTo(3, radPrecision)
+
+    expect(wrapper.envelope.mc).toBeCloseTo(52175, mmPrecision)
+    expect(wrapper.envelope.alpha).toBeCloseTo(0.242693789510631, radPrecision)
+    expect(wrapper.envelope.alphaPc).toBeCloseTo(-0.604686389947832, radPrecision)
+  })
+})

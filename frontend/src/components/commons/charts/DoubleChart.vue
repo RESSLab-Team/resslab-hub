@@ -1,29 +1,28 @@
 <script setup lang="ts">
-import { CountModel } from "@/backend";
-import { initOptions, updateOptions } from "@/components/commons/charts/utils";
-import DateRangeSlider from "@/components/commons/sliders/DateRangeSlider.vue";
-import RangeSlider from "@/components/commons/sliders/RangeSlider.vue";
-import { DoubleField, DoubleFields } from "@/composables/chart";
-import i18n from "@/i18n";
-import { sum, Value } from "@/utils/common";
-import { BinData, toBins } from "@/utils/statistics";
-import { getColorPalette, primaryColor } from "@/utils/vuetify";
-import { EChartsOption } from "echarts";
-import { BarChart, LineChart } from "echarts/charts";
+import type { CountModel } from '@/backend'
+import { initOptions, updateOptions } from '@/components/commons/charts/utils'
+import DateRangeSlider from '@/components/commons/sliders/DateRangeSlider.vue'
+import RangeSlider from '@/components/commons/sliders/RangeSlider.vue'
+import type { DoubleField, DoubleFields } from '@/composables/chart'
+import i18n from '@/plugins/i18n'
+import { sum, type Value } from '@/utils/common'
+import { toBins, type BinData } from '@/utils/statistics'
+import type { Color } from '@/utils/vuetify'
+import { getColorPalette, primaryColor } from '@/utils/vuetify'
+import type { EChartsOption } from 'echarts'
+import { BarChart, LineChart } from 'echarts/charts'
 import {
   GridComponent,
   LegendComponent,
   TitleComponent,
-  TooltipComponent,
-} from "echarts/components";
-import { use } from "echarts/core";
-import { SVGRenderer } from "echarts/renderers";
-import { CallbackDataParams } from "echarts/types/dist/shared";
-import { chain, clone, isEqual, range } from "lodash";
-import { computed, unref, watch } from "vue";
-import VChart from "vue-echarts";
-import { withDefaults, defineProps, defineEmits } from "vue";
-import { Color } from "vuetify/lib/util/colors";
+  TooltipComponent
+} from 'echarts/components'
+import { use } from 'echarts/core'
+import { SVGRenderer } from 'echarts/renderers'
+import type { CallbackDataParams } from 'echarts/types/dist/shared'
+import { chain, clone, isEqual, range } from 'lodash'
+import { computed, unref, watch, withDefaults } from 'vue'
+import VChart from 'vue-echarts'
 
 use([
   SVGRenderer,
@@ -32,22 +31,22 @@ use([
   GridComponent,
   LegendComponent,
   TitleComponent,
-  TooltipComponent,
-]);
+  TooltipComponent
+])
 
 const props = withDefaults(
   defineProps<{
-    color?: Color;
-    counts?: CountModel[];
-    dateMin?: string;
-    dateMax?: string;
-    dateRange?: [string, string];
-    fields: DoubleFields;
-    labelPrefix?: string;
-    numberMin?: number;
-    numberMax?: number;
-    numberRange?: [number, number];
-    type?: "bar" | "line";
+    color?: Color
+    counts?: CountModel[]
+    dateMin?: string
+    dateMax?: string
+    dateRange?: [string, string]
+    fields: DoubleFields
+    labelPrefix?: string
+    numberMin?: number
+    numberMax?: number
+    numberRange?: [number, number]
+    type?: 'bar' | 'line'
   }>(),
   {
     color: () => primaryColor,
@@ -55,116 +54,116 @@ const props = withDefaults(
     dateMin: undefined,
     dateMax: undefined,
     dateRange: undefined,
-    labelPrefix: "",
+    labelPrefix: '',
     numberMin: undefined,
     numberMax: undefined,
     numberRange: undefined,
-    type: "bar",
+    type: 'bar'
   }
-);
+)
 const emit = defineEmits<{
-  (e: "change:searches", key: string, value?: Value): void;
-  (e: "update:dateRange", value?: [string, string]): void;
-  (e: "update:numberRange", value?: [number, number]): void;
-}>();
+  (e: 'change:searches', key: string, value?: Value): void
+  (e: 'update:dateRange', value?: [string, string]): void
+  (e: 'update:numberRange', value?: [number, number]): void
+}>()
 
 const numberRange = computed({
   get: () => props.numberRange,
   set: (value) => {
-    if (value[0] === props.numberMin && value[1] === props.numberMax) {
-      emit("update:numberRange", undefined);
+    if (value && value[0] === props.numberMin && value[1] === props.numberMax) {
+      emit('update:numberRange', undefined)
     } else {
-      emit("update:numberRange", value);
+      emit('update:numberRange', value)
     }
-  },
-});
+  }
+})
 const dateRange = computed({
   get: () => props.dateRange,
   set: (value) => {
-    if (value[0] === props.dateMin && value[1] === props.dateMax) {
-      emit("update:dateRange", undefined);
+    if (value && value[0] === props.dateMin && value[1] === props.dateMax) {
+      emit('update:dateRange', undefined)
     } else {
-      emit("update:dateRange", value);
+      emit('update:dateRange', value)
     }
-  },
-});
-const defaultValue = computed(() => (props.type === "line" ? 0 : ""));
+  }
+})
+const defaultValue = computed(() => (props.type === 'line' ? 0 : ''))
 const secondField = computed<string>(() => {
-  const secondField: DoubleField = props.fields[1];
-  if (typeof secondField === "string") {
-    return secondField;
+  const secondField: DoubleField = props.fields[1]
+  if (typeof secondField === 'string') {
+    return secondField
   } else {
-    return secondField.id;
+    return secondField.id
   }
-});
+})
 const mapSecondName = computed<(name: string) => string>(() => {
-  const secondField: DoubleField = props.fields[1];
-  if (typeof secondField === "string") {
-    return (name) => name;
+  const secondField: DoubleField = props.fields[1]
+  if (typeof secondField === 'string') {
+    return (name) => name
   } else {
-    return (name) => secondField.mapping.get(name) ?? name;
+    return (name) => secondField.mapping.get(name) ?? name
   }
-});
+})
 const firstKeys = computed<string[]>(() =>
   chain(props.counts)
     .map((count) => count.names[0])
     .uniq()
     .sort()
     .value()
-);
-const isHistogram = computed<boolean>(() => numberRange !== undefined);
+)
+const isHistogram = computed<boolean>(() => numberRange.value !== undefined)
 const option = computed<EChartsOption>(() => {
   const secondKeys: string[] = chain(props.counts)
     .groupBy((count) => count.names[1])
     .map((values, key) => ({
       key: key,
-      value: values.map((count) => count.value).reduce(sum),
+      value: values.map((count) => count.value).reduce(sum)
     }))
     .sortBy(
       (item) => -item.value,
       (item) => item.key
     )
     .map((item) => item.key)
-    .value();
-  const mapSecondNameValue = unref(mapSecondName);
+    .value()
+  const mapSecondNameValue = unref(mapSecondName)
   const option: EChartsOption = {
     title: {
-      text: i18n.t(props.labelPrefix + secondField.value).toString(),
+      text: i18n.global.t(props.labelPrefix + secondField.value).toString(),
       textStyle: {
-        fontSize: 12,
+        fontSize: 12
       },
-      left: "center",
+      left: 'center'
     },
     legend: {
-      type: "scroll",
-      top: 20,
+      type: 'scroll',
+      top: 20
     },
     grid: {
-      bottom: 42,
+      bottom: 42
     },
     xAxis: {
-      type: "category",
-      name: i18n.t(props.labelPrefix + props.fields[0]).toString(),
-      nameLocation: "middle",
+      type: 'category',
+      name: i18n.global.t(props.labelPrefix + props.fields[0]).toString(),
+      nameLocation: 'middle',
       nameTextStyle: {
-        fontWeight: "bold",
+        fontWeight: 'bold'
       },
       nameGap: 28,
-      boundaryGap: props.type === "bar",
+      boundaryGap: props.type === 'bar',
       axisTick: {
-        alignWithLabel: true,
-      },
+        alignWithLabel: true
+      }
     },
     yAxis: {
-      type: "value",
-      minInterval: 1,
+      type: 'value',
+      minInterval: 1
     },
     tooltip: {
-      trigger: "axis",
+      trigger: 'axis',
       axisPointer: {
-        type: props.type === "bar" ? "shadow" : undefined,
+        type: props.type === 'bar' ? 'shadow' : undefined
       },
-      confine: true,
+      confine: true
     },
     series: getSerie(secondKeys).map((serie) => ({
       id: serie.name,
@@ -174,103 +173,94 @@ const option = computed<EChartsOption>(() => {
       stack: secondField.value,
       areaStyle: {},
       emphasis: {
-        focus: "series",
+        focus: 'series'
       },
-      data: serie.data,
+      data: serie.data
     })),
-    color: getColorPalette(props.color, secondKeys.length),
-  };
-  return option;
-});
+    color: getColorPalette(props.color, secondKeys.length)
+  }
+  return option
+})
 
 watch(numberRange, (value) => {
-  let searchValue: string | undefined;
+  let searchValue: string | undefined
   if (value && !isNaN(value[0]) && !isNaN(value[1])) {
-    searchValue = `${value[0]}<<${value[1]}`;
+    searchValue = `${value[0]}<<${value[1]}`
   } else {
-    searchValue = undefined;
+    searchValue = undefined
   }
-  emit("change:searches", props.fields[0], searchValue);
-});
+  emit('change:searches', props.fields[0], searchValue)
+})
 watch(dateRange, (value) => {
-  let searchValue: string | undefined;
+  let searchValue: string | undefined
   if (value) {
-    searchValue = `${value[0]}<<${value[1]}`;
+    searchValue = `${value[0]}<<${value[1]}`
   } else {
-    searchValue = undefined;
+    searchValue = undefined
   }
-  emit("change:searches", props.fields[0], searchValue);
-});
+  emit('change:searches', props.fields[0], searchValue)
+})
 
 function getSerie(secondKeys: string[]): {
-  name: string;
-  data: (string | number)[][];
+  name: string
+  data: (string | number)[][]
 }[] {
-  const firstKeysValue = unref(firstKeys);
+  const firstKeysValue = unref(firstKeys)
   if (isHistogram.value) {
-    if (props.type === "line") {
+    if (props.type === 'line') {
       return secondKeys.map((secondKey) => {
-        const firstKeyNumbers = firstKeysValue.map((firstKey) =>
-          Number(firstKey)
-        );
+        const firstKeyNumbers = firstKeysValue.map((firstKey) => Number(firstKey))
         // generate all missing values
-        let allFirstKeys: (number | string)[];
+        let allFirstKeys: (number | string)[]
         if (firstKeyNumbers.some(isNaN)) {
           // TODO create date range
-          allFirstKeys = clone(firstKeysValue).sort();
+          allFirstKeys = clone(firstKeysValue).sort()
         } else {
-          allFirstKeys = range(
-            Math.min(...firstKeyNumbers),
-            Math.max(...firstKeyNumbers) + 1
-          );
+          allFirstKeys = range(Math.min(...firstKeyNumbers), Math.max(...firstKeyNumbers) + 1)
         }
-        let acc = 0;
-        const values: [number | string, number][] = allFirstKeys.map(
-          (firstKeyNumber) => {
-            const count = (acc +=
-              getCount(firstKeyNumber.toString(), secondKey) ?? 0);
-            return [firstKeyNumber, count];
-          }
-        );
+        let acc = 0
+        const values: [number | string, number][] = allFirstKeys.map((firstKeyNumber) => {
+          const count = (acc += getCount(firstKeyNumber.toString(), secondKey) ?? 0)
+          return [firstKeyNumber, count]
+        })
         return {
           name: secondKey,
-          data: values,
-        };
-      });
+          data: values
+        }
+      })
     } else {
       const binData = firstKeysValue.flatMap((firstKey) =>
         secondKeys.map((secondKey) => ({
           name: secondKey,
           value: Number(firstKey),
-          count: getCount(firstKey, secondKey) ?? 0,
+          count: getCount(firstKey, secondKey) ?? 0
         }))
-      );
-      return toBins(secondKeys, binData);
+      )
+      return toBins(secondKeys, binData)
     }
   } else {
     return secondKeys.map((secondKey) => ({
       name: secondKey,
       data: firstKeysValue.map((firstKey) => [
         firstKey,
-        getCount(firstKey, secondKey) ?? defaultValue.value,
-      ]),
-    }));
+        getCount(firstKey, secondKey) ?? defaultValue.value
+      ])
+    }))
   }
 }
 function getCount(firstKey: string, secondKey: string): number | undefined {
-  return props.counts.find((c) => isEqual(c.names, [firstKey, secondKey]))
-    ?.value;
+  return props.counts.find((c) => isEqual(c.names, [firstKey, secondKey]))?.value
 }
 function click(params: CallbackDataParams): void {
-  if (props.type === "bar") {
+  if (props.type === 'bar') {
     if (isHistogram.value) {
-      const data = params.data as BinData;
-      emit("change:searches", props.fields[0], `${data[2]}<<${data[3]}`);
+      const data = params.data as BinData
+      emit('change:searches', props.fields[0], `${data[2]}<<${data[3]}`)
     } else {
-      emit("change:searches", props.fields[0], params.name);
+      emit('change:searches', props.fields[0], params.name)
     }
   }
-  emit("change:searches", secondField.value, params.seriesId);
+  emit('change:searches', secondField.value, params.seriesId)
 }
 </script>
 

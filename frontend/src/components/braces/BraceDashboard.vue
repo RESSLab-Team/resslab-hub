@@ -1,46 +1,38 @@
 <script setup lang="ts">
-import { BraceField, BraceModel } from "@/backend";
-import BraceDetail from "@/components/braces/BraceDetail.vue";
-import BraceTable from "@/components/braces/BraceTable.vue";
-import BraceDoubleChart from "@/components/braces/charts/BraceDoubleChart.vue";
-import BraceParallelChart from "@/components/braces/charts/BraceParallelChart.vue";
-import BraceSingleChart from "@/components/braces/charts/BraceSingleChart.vue";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
-import { useRoute } from "vue-router/composables";
-import colors from "vuetify/lib/util/colors";
-import { useDashboard } from "@/composables/dashboard";
-import { DoubleFields, ParallelField } from "@/composables/chart";
+import { BraceField, type BraceModel } from '@/backend'
+import BraceDetail from '@/components/braces/BraceDetail.vue'
+import BraceTable from '@/components/braces/BraceTable.vue'
+import BraceDoubleChart from '@/components/braces/charts/BraceDoubleChart.vue'
+import BraceParallelChart from '@/components/braces/charts/BraceParallelChart.vue'
+import BraceSingleChart from '@/components/braces/charts/BraceSingleChart.vue'
+import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
+import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { useDashboard } from '@/composables/dashboard'
+import { useRoute } from 'vue-router'
+import colors from 'vuetify/lib/util/colors'
 
-const route = useRoute();
-const {
-  clickTableRow,
-  closeDetail,
-  item,
-  query,
-  search,
-  searches,
-  changeSearches,
-  updatePage,
-} = useDashboard<BraceModel>(route, BraceField);
+const route = useRoute()
+const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
+  useDashboard<BraceModel>(route, BraceField)
 
 const parallelFields: ParallelField<BraceField>[] = [
   { id: BraceField.KlR },
   {
     id: {
       dividend: BraceField.DBr,
-      divisor: BraceField.TBr,
-    },
+      divisor: BraceField.TBr
+    }
   },
   { id: BraceField.CrossSectionShape },
-  { id: BraceField.BoundaryCondition },
-];
+  { id: BraceField.BoundaryCondition }
+]
 const boundaryConditionFields: DoubleFields<BraceField> = [
   BraceField.Date,
-  BraceField.BoundaryCondition,
-];
-const loadingProtocolField = BraceField.LoadingProtocol;
-const steelField = BraceField.Steel;
+  BraceField.BoundaryCondition
+]
+const loadingProtocolField = BraceField.LoadingProtocol
+const steelField = BraceField.Steel
 </script>
 
 <template>
@@ -49,8 +41,8 @@ const steelField = BraceField.Steel;
       <v-row>
         <v-col cols="12">
           <brace-table
-            :search.sync="search"
-            :searches.sync="searches"
+            v-model:search="search"
+            v-model:searches="searches"
             :query="query"
             @click:row="clickTableRow"
             @update:page="updatePage"
@@ -98,16 +90,14 @@ const steelField = BraceField.Steel;
               Loading Protocol
               <info-tooltip>
                 <p>
-                  This rectangle below displays the proportion of each loading
-                  protocol in the database. See also the evolution of test data
-                  over the years on the right.
+                  This rectangle below displays the proportion of each loading protocol in the
+                  database. See also the evolution of test data over the years on the right.
                 </p>
                 How to use?
                 <ul>
                   <li>
-                    Filter the Database for a specific loading protocol type or
-                    dates by clicking on the rectangle of using the dates
-                    sliders.
+                    Filter the Database for a specific loading protocol type or dates by clicking on
+                    the rectangle of using the dates sliders.
                   </li>
                 </ul>
               </info-tooltip>

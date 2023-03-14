@@ -1,21 +1,19 @@
 <script setup lang="ts">
-import { ColumnModel } from "@/backend";
-import CommonDetail, {
-  DetailCarouselItem,
-} from "@/components/commons/CommonDetail.vue";
-import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { columnsApi } from "@/plugins/axios";
-import { getColumnImage } from "@/utils/component";
-import { defineProps, defineEmits, ref, watch, computed } from "vue";
+import type { ColumnModel } from '@/backend'
+import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
+import PropertyItem from '@/components/commons/PropertyItem.vue'
+import { columnsApi } from '@/plugins/axios'
+import { getColumnImage } from '@/utils/component'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
-  column: ColumnModel;
-}>();
+  column: ColumnModel
+}>()
 const emit = defineEmits<{
-  (e: "close"): void;
-}>();
+  (e: 'close'): void
+}>()
 
-const carouselItems = ref<DetailCarouselItem[][]>([]);
+const carouselItems = ref<DetailCarouselItem[][]>([])
 
 const imageSrc = computed<string | undefined>(() =>
   getColumnImage(
@@ -23,7 +21,7 @@ const imageSrc = computed<string | undefined>(() =>
     props.column.boundary_condition,
     props.column.direction_lp
   )
-);
+)
 
 watch(
   () => props.column,
@@ -33,33 +31,33 @@ watch(
         {
           count: column.axial_shortening_count,
           promise: columnsApi.getColumnsAxialShortening(column.id),
-          title: "Axial Shortening",
-          xAxisName: "Chord Rotation [rads]",
-          yAxisName: "Axial Shortening [mm]",
-        },
+          title: 'Axial Shortening',
+          xAxisName: 'Chord Rotation [rads]',
+          yAxisName: 'Axial Shortening [mm]'
+        }
       ],
       [
         {
           count: column.moment_strong_count,
           promise: columnsApi.getColumnsMomentStrong(column.id),
-          title: "Moment Rotation",
-          xAxisName: "Chord Rotation [rads]",
-          yAxisName: "Moment [kN-mm]",
+          title: 'Moment Rotation',
+          xAxisName: 'Chord Rotation [rads]',
+          yAxisName: 'Moment [kN-mm]'
         },
         {
           count: column.moment_weak_count,
           promise: columnsApi.getColumnsMomentWeak(column.id),
-          title: "Moment Weak",
-          xAxisName: "Chord Rotation [rads]",
-          yAxisName: "Moment [kN-mm]",
-        },
-      ],
-    ];
+          title: 'Moment Weak',
+          xAxisName: 'Chord Rotation [rads]',
+          yAxisName: 'Moment [kN-mm]'
+        }
+      ]
+    ]
   },
   {
-    immediate: true,
+    immediate: true
   }
-);
+)
 </script>
 
 <template>

@@ -1,72 +1,66 @@
-import { Page } from "@/utils/backend";
-import {
-  filterColumnValue,
-  globalSearchKey,
-  Searches,
-  Value,
-} from "@/utils/common";
-import { computed, ref, triggerRef, unref } from "vue";
-import { Route } from "vue-router";
+import type { Page } from '@/utils/backend'
+import { filterColumnValue, globalSearchKey, type Searches, type Value } from '@/utils/common'
+import { computed, ref, triggerRef, unref } from 'vue'
+import type { RouteLocationNormalizedLoaded } from 'vue-router'
 
-export const queryFieldSeparator = ";";
-export const queryKeyValueSeparator = ":";
+export const queryFieldSeparator = ';'
+export const queryKeyValueSeparator = ':'
 
-export function useDashboard<M>(route: Route, field: object) {
-  const fields: string[] = Object.values(field);
+export function useDashboard<M>(route: RouteLocationNormalizedLoaded, field: object) {
+  const fields: string[] = Object.values(field)
 
-  const search = ref<string>("");
-  const searches = ref<Searches>({});
-  const item = ref<M>();
-  const detail = ref<boolean>(false);
+  const search = ref<string>('')
+  const searches = ref<Searches>({})
+  const item = ref<M>()
+  const detail = ref<boolean>(false)
 
   function clickTableRow(value: M): void {
-    item.value = value;
+    item.value = value
   }
   function closeDetail(): void {
-    item.value = undefined;
+    item.value = undefined
   }
   function updatePage(page: Page<M>): void {
     if (detail.value && page.total === 1) {
-      item.value = page.items[0];
-      detail.value = false;
+      item.value = page.items[0]
+      detail.value = false
     }
   }
   function changeSearches(key: string, value?: Value): void {
     if (value) {
-      searches.value[key] = value;
+      searches.value[key] = value
     } else {
-      delete searches.value[key];
+      delete searches.value[key]
     }
-    triggerRef(searches);
+    triggerRef(searches)
   }
 
   const query = computed<string>(() => {
     const queries = Object.entries(searches.value)
       .filter(([, value]) => filterColumnValue(value))
-      .map(([key, value]) => `${key}${queryKeyValueSeparator}${value}`);
-    const searchValue = unref(search);
+      .map(([key, value]) => `${key}${queryKeyValueSeparator}${value}`)
+    const searchValue = unref(search)
     if (searchValue && searchValue.length > 0) {
-      queries.push(`%${searchValue}%`);
+      queries.push(`%${searchValue}%`)
     }
-    return queries.join(queryFieldSeparator);
-  });
+    return queries.join(queryFieldSeparator)
+  })
 
   Object.entries(route.query)
-    .filter(([key, value]) => fields.includes(key) && value.length > 0)
+    .filter(([key, value]) => fields.includes(key) && value)
     .forEach(([key, value]) => {
-      searches.value[key] = parseValue(value);
-    });
-  const globalSearchValue = route.query[globalSearchKey];
-  if (typeof globalSearchValue === "string") {
-    search.value = globalSearchValue;
+      const newValue = parseValue(value)
+      if (newValue) {
+        searches.value[key] = newValue
+      }
+    })
+  const globalSearchValue = route.query[globalSearchKey]
+  if (typeof globalSearchValue === 'string') {
+    search.value = globalSearchValue
   }
-  const detailValue = route.query["detail"];
-  if (
-    detailValue &&
-    typeof detailValue === "string" &&
-    detailValue.toLowerCase() === "true"
-  ) {
-    detail.value = true;
+  const detailValue = route.query['detail']
+  if (detailValue && typeof detailValue === 'string' && detailValue.toLowerCase() === 'true') {
+    detail.value = true
   }
 
   return {
@@ -77,27 +71,30 @@ export function useDashboard<M>(route: Route, field: object) {
     clickTableRow,
     closeDetail,
     updatePage,
-    changeSearches,
-  };
+    changeSearches
+  }
 }
 
-function parseValue(value: string | (string | null)[]): Value {
-  if (typeof value === "string") {
-    if (value.includes(",")) {
-      return value.split(",");
+function parseValue(value: string | null | (string | null)[]): Value | undefined {
+  if (value === null) {
+    return undefined
+  }
+  if (typeof value === 'string') {
+    if (value.includes(',')) {
+      return value.split(',')
     }
-    if (value === "true") {
-      return true;
+    if (value === 'true') {
+      return true
     }
-    if (value === "false") {
-      return false;
+    if (value === 'false') {
+      return false
     }
-    const numberValue = Number(value);
+    const numberValue = Number(value)
     if (!isNaN(numberValue)) {
-      return numberValue;
+      return numberValue
     }
-    return value;
+    return value
   } else {
-    return value.filter((v) => v !== null);
+    return value.filter((v) => v !== null)
   }
 }

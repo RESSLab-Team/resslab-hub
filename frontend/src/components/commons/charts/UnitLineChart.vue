@@ -1,24 +1,23 @@
 <script setup lang="ts">
-import { primaryColor, secondaryColor } from "@/utils/vuetify";
-import { EChartsOption, LineSeriesOption } from "echarts";
-import { computed, withDefaults, defineProps } from "vue";
-import { Color } from "vuetify/lib/util/colors";
-import { merge } from "lodash";
-import UnitChart from "@/components/commons/charts/UnitChart.vue";
-import { TitleComponent } from "echarts/components";
-import { use } from "echarts/core";
+import UnitChart from '@/components/commons/charts/UnitChart.vue'
+import { primaryColor, secondaryColor, type Color } from '@/utils/vuetify'
+import type { EChartsOption, LineSeriesOption } from 'echarts'
+import { TitleComponent } from 'echarts/components'
+import { use } from 'echarts/core'
+import { merge } from 'lodash'
+import { computed, withDefaults } from 'vue'
 
 const props = withDefaults(
   defineProps<{
-    colors?: Color[];
-    series?: LineSeriesOption[];
-    aspectRatio?: number;
-    maxWidth?: number;
-    title: string;
-    xAxisName: string;
-    yAxisName: string;
-    xUnit?: string;
-    yUnit?: string;
+    colors?: Color[]
+    series?: LineSeriesOption[]
+    aspectRatio?: number
+    maxWidth?: number
+    title: string
+    xAxisName: string
+    yAxisName: string
+    xUnit?: string
+    yUnit?: string
   }>(),
   {
     colors: () => [primaryColor, secondaryColor],
@@ -29,50 +28,50 @@ const props = withDefaults(
     xAxisName: undefined,
     yAxisName: undefined,
     xUnit: undefined,
-    yUnit: undefined,
+    yUnit: undefined
   }
-);
+)
 
-use([TitleComponent]);
+use([TitleComponent])
 
 const option = computed<EChartsOption>(
   () =>
     ({
       title: {
         text: props.title,
-        left: "center",
+        left: 'center'
       },
       grid: {
-        top: 60,
+        top: 60
       },
       legend: {
         top: 30,
-        show: props.series.length > 1,
+        show: props.series.length > 1
       },
       xAxis: {
-        name: props.xAxisName,
+        name: props.xAxisName
       },
       yAxis: {
-        name: props.yAxisName,
+        name: props.yAxisName
       },
       tooltip: {
-        formatter: null as unknown as undefined,
+        formatter: null as unknown as undefined
       },
       series: props.series.map((serie) =>
         merge<LineSeriesOption, LineSeriesOption>(
           {
-            type: "line",
+            type: 'line',
             showSymbol: false,
             lineStyle: {
-              width: 1,
-            },
+              width: 1
+            }
           },
           serie
         )
       ),
-      color: props.colors.map((color) => color.base),
+      color: props.colors.map((color) => color.base)
     } as EChartsOption)
-);
+)
 </script>
 
 <template>

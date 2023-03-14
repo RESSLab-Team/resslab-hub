@@ -1,51 +1,43 @@
 <script setup lang="ts">
-import { ColumnField, ColumnModel } from "@/backend";
-import ColumnDoubleChart from "@/components/columns/charts/ColumnDoubleChart.vue";
-import ColumnParallelChart from "@/components/columns/charts/ColumnParallelChart.vue";
-import ColumnSingleChart from "@/components/columns/charts/ColumnSingleChart.vue";
-import ColumnDetail from "@/components/columns/ColumnDetail.vue";
-import ColumnTable from "@/components/columns/ColumnTable.vue";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SteelTypeCardTitle from "@/components/commons/SteelTypeCardTitle.vue";
-import { DoubleFields, ParallelField } from "@/composables/chart";
-import { useDashboard } from "@/composables/dashboard";
-import { useRoute } from "vue-router/composables";
-import colors from "vuetify/lib/util/colors";
+import { ColumnField, type ColumnModel } from '@/backend'
+import ColumnDoubleChart from '@/components/columns/charts/ColumnDoubleChart.vue'
+import ColumnParallelChart from '@/components/columns/charts/ColumnParallelChart.vue'
+import ColumnSingleChart from '@/components/columns/charts/ColumnSingleChart.vue'
+import ColumnDetail from '@/components/columns/ColumnDetail.vue'
+import ColumnTable from '@/components/columns/ColumnTable.vue'
+import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
+import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { useDashboard } from '@/composables/dashboard'
+import { useRoute } from 'vue-router'
+import colors from 'vuetify/lib/util/colors'
 
-const route = useRoute();
-const {
-  clickTableRow,
-  closeDetail,
-  item,
-  query,
-  search,
-  searches,
-  changeSearches,
-  updatePage,
-} = useDashboard<ColumnModel>(route, ColumnField);
+const route = useRoute()
+const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
+  useDashboard<ColumnModel>(route, ColumnField)
 
 const parallelFields: ParallelField<ColumnField>[] = [
   { id: ColumnField.Th80 },
   { id: ColumnField.HOverTCw },
   { id: ColumnField.BFOverTCf },
   { id: ColumnField.LBOverRYc },
-  { id: ColumnField.PGOverPYm },
-];
+  { id: ColumnField.PGOverPYm }
+]
 const boundaryConditionFields: DoubleFields<ColumnField> = [
   ColumnField.Date,
-  ColumnField.BoundaryCondition,
-];
+  ColumnField.BoundaryCondition
+]
 const columnDepthFields: DoubleFields<ColumnField> = [
   ColumnField.DC,
   {
     id: ColumnField.BuiltUp,
     mapping: new Map([
-      ["False", "Hot Rolled"],
-      ["True", "Built Up"],
-    ]),
-  },
-];
-const steelField = ColumnField.SteelC;
+      ['False', 'Hot Rolled'],
+      ['True', 'Built Up']
+    ])
+  }
+]
+const steelField = ColumnField.SteelC
 </script>
 
 <template>
@@ -54,8 +46,8 @@ const steelField = ColumnField.SteelC;
       <v-row>
         <v-col cols="12">
           <column-table
-            :search.sync="search"
-            :searches.sync="searches"
+            v-model:search="search"
+            v-model:searches="searches"
             :query="query"
             @click:row="clickTableRow"
             @update:page="updatePage"
@@ -98,19 +90,16 @@ const steelField = ColumnField.SteelC;
             <v-card-title>
               Column Depth [mm]
               <info-tooltip>
-                <p>
-                  This histogram displays the distribution of column depths in
-                  the Database.
-                </p>
+                <p>This histogram displays the distribution of column depths in the Database.</p>
                 How to use?
                 <ul>
                   <li>
-                    Filter database for specific column depths, by clicking on a
-                    bar or using the slider below
+                    Filter database for specific column depths, by clicking on a bar or using the
+                    slider below
                   </li>
                   <li>
-                    Filter database for built-up or hot-rolled cross sections by
-                    clicking on the appropriate legend
+                    Filter database for built-up or hot-rolled cross sections by clicking on the
+                    appropriate legend
                   </li>
                 </ul>
               </info-tooltip>

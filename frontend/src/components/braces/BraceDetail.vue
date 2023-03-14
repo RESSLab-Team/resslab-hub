@@ -1,39 +1,35 @@
 <script setup lang="ts">
-import { BraceModel } from "@/backend";
-import CommonDetail, {
-  DetailCarouselItem,
-} from "@/components/commons/CommonDetail.vue";
-import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { bracesApi } from "@/plugins/axios";
-import { publicPath } from "@/utils/common";
-import { defineProps, defineEmits, ref, watch, computed } from "vue";
+import type { BraceModel } from '@/backend'
+import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
+import PropertyItem from '@/components/commons/PropertyItem.vue'
+import { bracesApi } from '@/plugins/axios'
+import { publicPath } from '@/utils/common'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
-  brace: BraceModel;
-}>();
+  brace: BraceModel
+}>()
 const emit = defineEmits<{
-  (e: "close"): void;
-}>();
+  (e: 'close'): void
+}>()
 
-const carouselItems = ref<DetailCarouselItem[][]>([]);
+const carouselItems = ref<DetailCarouselItem[][]>([])
 
-const isGussetPlate = computed<boolean>(
-  () => props.brace.boundary_condition === "Gusset plate"
-);
+const isGussetPlate = computed<boolean>(() => props.brace.boundary_condition === 'Gusset plate')
 
 const imageTypeSrc = computed<string | undefined>(() => {
   switch (props.brace.boundary_condition) {
-    case "Gusset plate":
-      return publicPath + "img/brace/type/gusset-plate.png";
-    case "Pin-Pin end":
-      return publicPath + "img/brace/type/pinned-end.png";
-    case "Fixed-fixed end":
-      return publicPath + "img/brace/type/fixed-end.png";
-    case "Fixed_pinned end":
-      return publicPath + "img/brace/type/fixed-pinned.png";
+    case 'Gusset plate':
+      return publicPath + 'img/brace/type/gusset-plate.png'
+    case 'Pin-Pin end':
+      return publicPath + 'img/brace/type/pinned-end.png'
+    case 'Fixed-fixed end':
+      return publicPath + 'img/brace/type/fixed-end.png'
+    case 'Fixed_pinned end':
+      return publicPath + 'img/brace/type/fixed-pinned.png'
   }
-  return undefined;
-});
+  return undefined
+})
 
 watch(
   () => props.brace,
@@ -43,28 +39,28 @@ watch(
         {
           count: brace.displacement_count,
           promise: bracesApi.getBracesDisplacement(brace.id),
-          title: "Force Displacement",
-          xAxisName: "Displacement [mm]",
-          yAxisName: "Force [kN]",
-        },
-      ],
-    ];
+          title: 'Force Displacement',
+          xAxisName: 'Displacement [mm]',
+          yAxisName: 'Force [kN]'
+        }
+      ]
+    ]
   },
   {
-    immediate: true,
+    immediate: true
   }
-);
+)
 
 function formatNumber(value?: number) {
-  return value ?? "Not Reported";
+  return value ?? 'Not Reported'
 }
 function formatString(value?: string): string {
   if (value === undefined) {
-    return "No";
-  } else if (value === "NR") {
-    return "Not Reported";
+    return 'No'
+  } else if (value === 'NR') {
+    return 'Not Reported'
   } else {
-    return value;
+    return value
   }
 }
 </script>
@@ -142,9 +138,7 @@ function formatString(value?: string): string {
                   {{ formatNumber(brace.f_um_gp) }}
                 </property-item>
               </template>
-              <template v-else>
-                The configuration does not include gusset plates
-              </template>
+              <template v-else> The configuration does not include gusset plates </template>
             </v-col>
           </v-row>
         </v-col>

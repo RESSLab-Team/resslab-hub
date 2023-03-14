@@ -1,25 +1,23 @@
 <script setup lang="ts">
-import { MaterialModel } from "@/backend";
-import CommonDetail, {
-  DetailCarouselItem,
-} from "@/components/commons/CommonDetail.vue";
-import PropertyItem from "@/components/commons/PropertyItem.vue";
-import { materialsApi } from "@/plugins/axios";
-import { publicPath } from "@/utils/common";
-import { computeUvcStress } from "@/utils/material";
-import { zip } from "lodash";
-import { defineProps, defineEmits, watch, ref } from "vue";
-import { formatNumber } from "@/utils/formatter";
-import { LineSeriesOption } from "echarts";
+import type { MaterialModel } from '@/backend'
+import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
+import PropertyItem from '@/components/commons/PropertyItem.vue'
+import { materialsApi } from '@/plugins/axios'
+import { publicPath } from '@/utils/common'
+import { formatNumber } from '@/utils/formatter'
+import { computeUvcStress } from '@/utils/material'
+import type { LineSeriesOption } from 'echarts'
+import { zip } from 'lodash'
+import { ref, watch } from 'vue'
 
 const props = defineProps<{
-  material: MaterialModel;
-}>();
+  material: MaterialModel
+}>()
 const emit = defineEmits<{
-  (e: "close"): void;
-}>();
+  (e: 'close'): void
+}>()
 
-const carouselItems = ref<DetailCarouselItem[][]>([]);
+const carouselItems = ref<DetailCarouselItem[][]>([])
 
 watch(
   () => props.material,
@@ -32,8 +30,8 @@ watch(
             .getMaterialsStressStrain(material.id)
             .then((response) => response.data)
             .then((series) => {
-              const stressStrain = series.map((serie) => [serie[1], serie[0]]);
-              const strain = series.map((serie) => serie[1]);
+              const stressStrain = series.map((serie) => [serie[1], serie[0]])
+              const strain = series.map((serie) => serie[1])
               const uvcStress = computeUvcStress(
                 strain,
                 material.uvc_e__mpa_ * 1000,
@@ -45,40 +43,39 @@ watch(
                 [
                   {
                     c: material.uvc_c1__mpa_,
-                    gamma: material.uvc_g1,
+                    gamma: material.uvc_g1
                   },
                   {
                     c: material.uvc_c2__mpa_,
-                    gamma: material.uvc_g2,
-                  },
+                    gamma: material.uvc_g2
+                  }
                 ]
-              );
+              )
               const uvc = zip(strain, uvcStress).filter(
-                (v): v is [number, number] =>
-                  v[0] !== undefined && v[1] !== undefined
-              );
+                (v): v is [number, number] => v[0] !== undefined && v[1] !== undefined
+              )
               return [
                 {
-                  name: "Test Data",
-                  data: stressStrain,
+                  name: 'Test Data',
+                  data: stressStrain
                 },
                 {
-                  name: "Simulation",
-                  data: uvc,
-                },
-              ] as LineSeriesOption[];
+                  name: 'Simulation',
+                  data: uvc
+                }
+              ] as LineSeriesOption[]
             }),
-          title: "True Stress Strain",
-          xAxisName: "ε",
-          yAxisName: "σ [MPa]",
-        },
-      ],
-    ];
+          title: 'True Stress Strain',
+          xAxisName: 'ε',
+          yAxisName: 'σ [MPa]'
+        }
+      ]
+    ]
   },
   {
-    immediate: true,
+    immediate: true
   }
-);
+)
 </script>
 
 <template>
@@ -134,10 +131,7 @@ watch(
             <property-item name="Initial yield stress, σyo" unit="MPa">
               {{ formatNumber(material.uvc_sigma__mpa_, 1) }}
             </property-item>
-            <property-item
-              name="Parameter for magnitude of isotropic hardening, Q"
-              unit="MPa"
-            >
+            <property-item name="Parameter for magnitude of isotropic hardening, Q" unit="MPa">
               {{ formatNumber(material.uvc_q__mpa_, 1) }}
             </property-item>
             <property-item name="Rate of isotropic hardening, b">

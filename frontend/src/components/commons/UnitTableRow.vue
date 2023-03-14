@@ -1,44 +1,42 @@
 <script setup lang="ts">
-import { useUnits } from "@/composables/unit";
-import { withDefaults, defineProps, computed } from "vue";
+import { useUnits } from '@/composables/unit'
+import { computed, withDefaults } from 'vue'
 
 export interface UnitTableRowData {
-  key: string;
-  text: string;
-  unit: string;
-  fractionDigit?: number;
+  key: string
+  text: string
+  unit: string
+  fractionDigit?: number
 }
 
 const props = withDefaults(
   defineProps<{
-    unit?: string;
-    field: string;
-    text: string;
-    columns?: Record<string, number | undefined>[];
-    fractionDigit?: number;
+    unit?: string
+    field: string
+    text: string
+    columns?: Record<string, number | undefined>[]
+    fractionDigit?: number
   }>(),
   {
     unit: undefined,
     columns: () => [],
-    fractionDigit: 2,
+    fractionDigit: 2
   }
-);
+)
 
-const { ratio, unitLabel } = useUnits(props.unit);
+const { ratio, unitLabel } = useUnits(props.unit)
 
 const formatter = computed(() =>
   Intl.NumberFormat(undefined, {
     minimumFractionDigits: props.fractionDigit,
-    maximumFractionDigits: props.fractionDigit,
+    maximumFractionDigits: props.fractionDigit
   })
-);
+)
 const values = computed(() =>
   props.columns
     .map((d) => d[props.field])
-    .map((v) =>
-      v !== undefined ? formatter.value.format(v / ratio.value) : ""
-    )
-);
+    .map((v) => (v !== undefined ? formatter.value.format(v / ratio.value) : ''))
+)
 </script>
 
 <template>
