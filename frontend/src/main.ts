@@ -1,30 +1,18 @@
-import { formatNumber, formatString } from "@/utils/formatter";
-import { createPinia, PiniaVuePlugin } from "pinia";
-import VSwitch from "v-switch-case";
-import Vue from "vue";
-import App from "./App.vue";
-import i18n from "./i18n";
-import "./plugins/axios";
-import "./plugins/gtag";
-import vuetify from "./plugins/vuetify";
-import "./registerServiceWorker";
-import router from "./router";
-import "./styles/main.scss";
+import App from '@/App.vue'
+import '@/assets/main.scss'
+import { options } from '@/plugins/gtag'
+import vuetify from '@/plugins/vuetify'
+import router from '@/router'
+import '@fontsource/roboto'
+import { createPinia } from 'pinia'
+import { createApp } from 'vue'
+import VueGtag from 'vue-gtag'
 
-Vue.use(PiniaVuePlugin);
-const pinia = createPinia();
+const app = createApp(App)
 
-Vue.config.productionTip = false;
+app.use(createPinia())
+app.use(router)
+app.use(vuetify)
+app.use(VueGtag, options, router)
 
-Vue.use(VSwitch);
-
-Vue.filter("formatNumber", formatNumber);
-Vue.filter("formatString", formatString);
-
-new Vue({
-  router,
-  vuetify,
-  i18n,
-  pinia,
-  render: (h) => h(App),
-}).$mount("#app");
+app.mount('#app')

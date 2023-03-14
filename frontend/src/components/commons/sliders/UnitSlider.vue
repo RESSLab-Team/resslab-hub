@@ -1,60 +1,60 @@
 <script setup lang="ts">
-import { useColor } from "@/composables/color";
-import { useUnits } from "@/composables/unit";
-import { withDefaults, defineProps, defineEmits, computed } from "vue";
-import { Color } from "vuetify/lib/util/colors";
+import { useColor } from '@/composables/color'
+import { useUnits } from '@/composables/unit'
+import type { Color } from '@/utils/vuetify'
+import { computed, withDefaults } from 'vue'
 
 export interface UnitSliderItem<K = string> {
-  key: K;
-  label: string;
-  min: number;
-  max: number;
-  unit?: string;
+  key: K
+  label: string
+  min: number
+  max: number
+  unit?: string
 }
 
 export interface Variable<K extends string = string> {
-  key: K;
-  text: string;
-  unit?: string;
-  min: number;
-  max: number;
+  key: K
+  text: string
+  unit?: string
+  min: number
+  max: number
 }
 
 const props = withDefaults(
   defineProps<{
-    value: number;
-    color?: Color;
-    unit?: string;
-    disabled?: boolean;
-    label: string;
-    min: number;
-    max: number;
+    modelValue: number
+    color?: Color
+    unit?: string
+    disabled?: boolean
+    label: string
+    min: number
+    max: number
   }>(),
   {
     color: undefined,
     unit: undefined,
-    disabled: false,
+    disabled: false
   }
-);
+)
 const emit = defineEmits<{
-  (e: "input", value: number): void;
-}>();
+  (e: 'update:modelValue', value: number): void
+}>()
 
-const precision = 100;
+const precision = 100
 
-const { baseColor, darkenColor, lightenColor } = useColor(props.color);
-const { ratio, unitLabel } = useUnits(props.unit);
+const { baseColor, darkenColor, lightenColor } = useColor(props.color)
+const { ratio, unitLabel } = useUnits(props.unit)
 
 const sliderModel = computed<number>({
-  get: () => props.value / ratio.value,
-  set: (value) => emit("input", value * ratio.value),
-});
-const textModel = computed<number>({
-  get: () => Math.round(sliderModel.value * precision) / precision,
-  set: (value) => (sliderModel.value = value),
-});
-const displayedMin = computed<number>(() => props.min / ratio.value);
-const displayedMax = computed<number>(() => props.max / ratio.value);
+  get: () => props.modelValue / ratio.value,
+  set: (value) => emit('update:modelValue', value * ratio.value)
+})
+const textModel = computed<string>({
+  get: () => (Math.round(sliderModel.value * precision) / precision).toString(),
+  set: (value) => (sliderModel.value = Number(value))
+})
+const displayedMin = computed<number>(() => props.min / ratio.value)
+const displayedMax = computed<number>(() => props.max / ratio.value)
 </script>
 
 <template>
@@ -62,7 +62,7 @@ const displayedMax = computed<number>(() => props.max / ratio.value);
     <v-slider
       v-model="sliderModel"
       :color="baseColor"
-      dense
+      density="compact"
       :disabled="disabled"
       hide-details
       :max="displayedMax"
@@ -73,8 +73,8 @@ const displayedMax = computed<number>(() => props.max / ratio.value);
     >
       <template #prepend>
         <v-tooltip bottom>
-          <template #activator="{ on, attrs }">
-            <div class="mt-0 pt-0 label" v-bind="attrs" v-on="on">
+          <template #activator="{ props }">
+            <div class="mt-0 pt-0 label" v-bind="props">
               <!-- eslint-disable-next-line vue/no-v-html -->
               <span v-html="label" />
               <template v-if="unitLabel"> [{{ unitLabel }}]</template>
@@ -89,13 +89,13 @@ const displayedMax = computed<number>(() => props.max / ratio.value);
         <v-text-field
           v-model="textModel"
           class="mt-0 pt-0"
-          dense
+          density="compact"
           hide-details
-          hide-spin-buttons
           :max="displayedMax"
           :min="displayedMin"
           single-line
           type="number"
+          variant="underlined"
         />
       </template>
     </v-slider>
@@ -112,8 +112,8 @@ div.label {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.v-input__append-outer,
-.v-input__prepend-outer {
+.v-input__append,
+.v-input__prepend {
   & > div {
     width: 84px;
   }

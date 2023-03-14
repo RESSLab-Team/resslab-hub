@@ -1,27 +1,22 @@
 <script setup lang="ts">
-import { ColumnField } from "@/backend";
-import {
-  ChartEmits,
-  parallelChartProps,
-  useParallelChart,
-} from "@/composables/chart";
-import { columnsApi } from "@/plugins/axios";
-import { defineProps, defineEmits, toRef } from "vue";
-import SimpleParallelChart from "@/components/commons/charts/SimpleParallelChart.vue";
+import { ColumnField } from '@/backend'
+import SimpleParallelChart from '@/components/commons/charts/SimpleParallelChart.vue'
+import { parallelChartProps, useParallelChart, type ChartEmits } from '@/composables/chart'
+import { columnsApi } from '@/plugins/axios'
+import { toRef } from 'vue'
 
-const props = defineProps(parallelChartProps<ColumnField>());
+const props = defineProps(parallelChartProps<ColumnField>())
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Emits extends ChartEmits {}
-const emit = defineEmits<Emits>();
+const emit = defineEmits<Emits>()
 
-const { changeSearches, data, ids, requestFields } =
-  useParallelChart<ColumnField>(
-    emit,
-    ColumnField.Id,
-    props.fields,
-    toRef(props, "query"),
-    (fields, query) => columnsApi.getColumnsMatrix(fields, query)
-  );
+const { changeSearches, data, ids, requestFields } = useParallelChart<ColumnField>(
+  emit,
+  ColumnField.Id,
+  props.fields,
+  toRef(props, 'query'),
+  (fields, query) => columnsApi.getColumnsMatrix(fields, query)
+)
 </script>
 
 <template>

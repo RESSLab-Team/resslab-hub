@@ -1,25 +1,21 @@
 <script setup lang="ts">
-import { ColumnField } from "@/backend";
-import { columnsApi } from "@/plugins/axios";
-import { defineProps, toRef, defineEmits } from "vue";
-import {
-  ChartEmits,
-  singleChartProps,
-  useSingleChart,
-} from "@/composables/chart";
-import SingleChart from "@/components/commons/charts/SingleChart.vue";
+import type { ColumnField } from '@/backend'
+import SingleChart from '@/components/commons/charts/SingleChart.vue'
+import { singleChartProps, useSingleChart, type ChartEmits } from '@/composables/chart'
+import { columnsApi } from '@/plugins/axios'
+import { toRef } from 'vue'
 
-const props = defineProps(singleChartProps<ColumnField>());
+const props = defineProps(singleChartProps<ColumnField>())
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Emits extends ChartEmits {}
-const emit = defineEmits<Emits>();
+const emit = defineEmits<Emits>()
 
 const { counts, changeSearches } = useSingleChart<ColumnField>(
   emit,
   props.field,
-  toRef(props, "query"),
+  toRef(props, 'query'),
   (fields, query) => columnsApi.getColumnsCounts(fields, query)
-);
+)
 </script>
 
 <template>

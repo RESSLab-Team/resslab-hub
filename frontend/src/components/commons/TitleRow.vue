@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { defineProps, withDefaults, computed } from "vue";
-import { useUnitStore } from "@/stores/unit";
-import { UnitSystem, unitItems } from "@/utils/unit";
-import SimpleToggle from "@/components/commons/SimpleToggle.vue";
+import SimpleToggle from '@/components/commons/SimpleToggle.vue'
+import { useUnitStore } from '@/stores/unit'
+import { unitItems, type UnitSystem } from '@/utils/unit'
+import { computed, withDefaults } from 'vue'
 
 const props = withDefaults(
   defineProps<{
-    hideUnit?: boolean;
+    hideUnit?: boolean
   }>(),
   {
-    hideUnit: false,
+    hideUnit: false
   }
-);
+)
 
-const unitStore = useUnitStore();
+const unitStore = useUnitStore()
 
 const unitSystem = computed<UnitSystem>({
   get: () => unitStore.unitSystem,
-  set: (value) => unitStore.setUnitSystem(value),
-});
+  set: (value) => unitStore.setUnitSystem(value)
+})
 </script>
 
 <template>

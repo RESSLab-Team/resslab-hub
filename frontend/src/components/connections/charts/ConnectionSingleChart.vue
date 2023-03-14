@@ -1,39 +1,35 @@
 <script setup lang="ts">
-import { ConnectionField } from "@/backend";
-import { connectionsApi } from "@/plugins/axios";
-import { publicPath } from "@/utils/common";
-import { CallbackDataParams } from "echarts/types/dist/shared";
-import { defineProps, toRef, defineEmits, ref } from "vue";
-import {
-  ChartEmits,
-  singleChartProps,
-  useSingleChart,
-} from "@/composables/chart";
-import SingleChart from "@/components/commons/charts/SingleChart.vue";
+import { ConnectionField } from '@/backend'
+import SingleChart from '@/components/commons/charts/SingleChart.vue'
+import { singleChartProps, useSingleChart, type ChartEmits } from '@/composables/chart'
+import { connectionsApi } from '@/plugins/axios'
+import { publicPath } from '@/utils/common'
+import type { CallbackDataParams } from 'echarts/types/dist/shared'
+import { ref, toRef } from 'vue'
 
-const props = defineProps(singleChartProps<ConnectionField>());
+const props = defineProps(singleChartProps<ConnectionField>())
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Emits extends ChartEmits {}
-const emit = defineEmits<Emits>();
+const emit = defineEmits<Emits>()
 
 const { counts, changeSearches } = useSingleChart<ConnectionField>(
   emit,
   props.field,
-  toRef(props, "query"),
+  toRef(props, 'query'),
   (fields, query) => connectionsApi.getConnectionsCounts(fields, query)
-);
+)
 
-const imageUrl = ref<string>();
+const imageUrl = ref<string>()
 
 function mouseover(params: CallbackDataParams): void {
   if (props.field === ConnectionField.ConnectionType) {
-    const name: string = params.name.toLowerCase();
-    imageUrl.value = publicPath + "img/connection-type/" + name + ".svg";
+    const name: string = params.name.toLowerCase()
+    imageUrl.value = publicPath + 'img/connection-type/' + name + '.svg'
   }
 }
 
 function mouseout(): void {
-  imageUrl.value = undefined;
+  imageUrl.value = undefined
 }
 </script>
 
@@ -48,13 +44,7 @@ function mouseout(): void {
     @mouseout="mouseout"
   >
     <template #default>
-      <v-img
-        v-if="imageUrl"
-        aspect-ratio="3"
-        contain
-        :src="imageUrl"
-        min-height="120"
-      />
+      <v-img v-if="imageUrl" aspect-ratio="3" contain :src="imageUrl" min-height="120" />
     </template>
   </single-chart>
 </template>

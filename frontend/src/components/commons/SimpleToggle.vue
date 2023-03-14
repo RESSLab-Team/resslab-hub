@@ -1,36 +1,30 @@
 <script setup lang="ts">
-import { defineProps, withDefaults, defineEmits, computed } from "vue";
-import { ToggleItem } from "@/utils/toggle";
+import type { ToggleItem } from '@/utils/toggle'
+import { computed, withDefaults } from 'vue'
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
-type T = string;
+type T = string
 const props = withDefaults(
   defineProps<{
-    value: T;
-    items?: ToggleItem<T>[];
+    modelValue: T
+    items?: ToggleItem<T>[]
   }>(),
   {
-    items: () => [],
+    items: () => []
   }
-);
+)
 const emit = defineEmits<{
-  (e: "input", value: T): void;
-}>();
+  (e: 'update:modelValue', value: T): void
+}>()
 
 const index = computed<number>({
-  get: () => props.items.findIndex((item) => item.value === props.value) ?? 0,
-  set: (value) => emit("input", props.items[value].value),
-});
+  get: () => props.items.findIndex((item) => item.value === props.modelValue) ?? 0,
+  set: (value) => emit('update:modelValue', props.items[value].value)
+})
 </script>
 
 <template>
-  <v-btn-toggle
-    v-model="index"
-    class="align-center"
-    background-color="transparent"
-    dense
-    mandatory
-  >
+  <v-btn-toggle v-model="index" density="compact" mandatory variant="outlined">
     <v-btn v-for="item in items" :key="item.value">{{ item.text }}</v-btn>
   </v-btn-toggle>
 </template>

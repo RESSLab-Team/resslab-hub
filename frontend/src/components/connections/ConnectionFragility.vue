@@ -1,149 +1,147 @@
 <script setup lang="ts">
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_connections
-import UnitChart from "@/components/commons/charts/UnitChart.vue";
-import UnitSlider, {
-  UnitSliderItem,
-} from "@/components/commons/sliders/UnitSlider.vue";
-import SimpleToggle from "@/components/commons/SimpleToggle.vue";
-import { ToggleItem } from "@/utils/toggle";
+import UnitChart from '@/components/commons/charts/UnitChart.vue'
+import SimpleToggle from '@/components/commons/SimpleToggle.vue'
+import UnitSlider, { type UnitSliderItem } from '@/components/commons/sliders/UnitSlider.vue'
+import type { ToggleItem } from '@/utils/toggle'
 
-import { fragilityCurve } from "@/utils/fragility";
-import { getColorMap } from "@/utils/vuetify";
-import { EChartsOption } from "echarts";
-import { computed, reactive, ref } from "vue";
-import { publicPath } from "@/utils/common";
+import { publicPath } from '@/utils/common'
+import { fragilityCurve } from '@/utils/fragility'
+import { getColorMap } from '@/utils/vuetify'
+import type { EChartsOption } from 'echarts'
+import { computed, reactive, ref } from 'vue'
 
-import TitleRow from "@/components/commons/TitleRow.vue";
+import TitleRow from '@/components/commons/TitleRow.vue'
 
-type Material = "a36" | "a572";
+type Material = 'a36' | 'a572'
 interface Variables {
-  l: number;
-  db: number;
+  l: number
+  db: number
 }
 
 const parameters: UnitSliderItem<keyof Variables>[] = [
   {
-    key: "l",
-    label: "L",
+    key: 'l',
+    label: 'L',
     min: 1000,
     max: 12000,
-    unit: "mm",
+    unit: 'mm'
   },
   {
-    key: "db",
-    label: "d<sub>b</sub>",
+    key: 'db',
+    label: 'd<sub>b</sub>',
     min: 100,
     max: 2000,
-    unit: "mm",
-  },
-];
+    unit: 'mm'
+  }
+]
 const materials: ToggleItem<Material>[] = [
   {
-    value: "a36",
-    text: "ASTM A36",
+    value: 'a36',
+    text: 'ASTM A36'
   },
   {
-    value: "a572",
-    text: "ASTM A572",
-  },
-];
+    value: 'a572',
+    text: 'ASTM A572'
+  }
+]
 
-const infoAvailable = ref(true);
-const material = ref<Material>("a36");
+const infoAvailable = ref(true)
+const material = ref<Material>('a36')
 const variables = reactive<Variables>({
   l: 4000,
-  db: 600,
-});
+  db: 600
+})
 
 const preNorthridgeOption = computed<EChartsOption>(() => {
-  const { l, db } = variables;
+  const { l, db } = variables
 
-  let yieldingMedian: number;
-  let yieldingSigma: number;
-  let fractureMedian: number;
-  let fractureSigma: number;
+  let yieldingMedian: number
+  let yieldingSigma: number
+  let fractureMedian: number
+  let fractureSigma: number
   if (infoAvailable.value) {
     yieldingMedian =
-      material.value === "a36"
+      material.value === 'a36'
         ? Math.exp(-1.83 + 0.16 * (l / db))
-        : Math.exp(-0.56 + 0.028 * (l / db));
-    yieldingSigma = material.value === "a36" ? 0.24 : 0.18;
-    fractureMedian = Math.exp(0.99 - 0.0074 * (db / 10));
-    fractureSigma = 0.44;
+        : Math.exp(-0.56 + 0.028 * (l / db))
+    yieldingSigma = material.value === 'a36' ? 0.24 : 0.18
+    fractureMedian = Math.exp(0.99 - 0.0074 * (db / 10))
+    fractureSigma = 0.44
   } else {
-    yieldingMedian = material.value === "a36" ? 0.77 : 0.76;
-    yieldingSigma = material.value === "a36" ? 0.32 : 0.19;
-    fractureMedian = 1.85;
-    fractureSigma = 0.47;
+    yieldingMedian = material.value === 'a36' ? 0.77 : 0.76
+    yieldingSigma = material.value === 'a36' ? 0.32 : 0.19
+    fractureMedian = 1.85
+    fractureSigma = 0.47
   }
   return {
     xAxis: {
-      name: "SDR",
+      name: 'SDR'
     },
     yAxis: {
-      name: "P(DS)",
+      name: 'P(DS)'
     },
     color: getColorMap(2),
     series: [
       {
-        type: "line",
-        name: "Yielding",
+        type: 'line',
+        name: 'Yielding',
         showSymbol: false,
-        data: fragilityCurve(yieldingMedian, yieldingSigma),
+        data: fragilityCurve(yieldingMedian, yieldingSigma)
       },
       {
-        type: "line",
-        name: "Brittle Fracture",
+        type: 'line',
+        name: 'Brittle Fracture',
         showSymbol: false,
-        data: fragilityCurve(fractureMedian, fractureSigma),
-      },
-    ],
-  };
-});
+        data: fragilityCurve(fractureMedian, fractureSigma)
+      }
+    ]
+  }
+})
 
 const postNorthridgeOption = computed<EChartsOption>(() => {
   return {
     xAxis: {
-      name: "SDR",
+      name: 'SDR'
     },
     yAxis: {
-      name: "P(DS)",
+      name: 'P(DS)'
     },
     color: getColorMap(5),
     series: [
       {
-        type: "line",
-        name: "Yielding Anywhere",
+        type: 'line',
+        name: 'Yielding Anywhere',
         showSymbol: false,
-        data: fragilityCurve(1, 0.17),
+        data: fragilityCurve(1, 0.17)
       },
       {
-        type: "line",
-        name: "Yielding @ Panel Zone",
+        type: 'line',
+        name: 'Yielding @ Panel Zone',
         showSymbol: false,
-        data: fragilityCurve(1, 0.15),
+        data: fragilityCurve(1, 0.15)
       },
       {
-        type: "line",
-        name: "Yielding @ Flanges",
+        type: 'line',
+        name: 'Yielding @ Flanges',
         showSymbol: false,
-        data: fragilityCurve(0.96, 0.1),
+        data: fragilityCurve(0.96, 0.1)
       },
       {
-        type: "line",
-        name: "Local Buckling",
+        type: 'line',
+        name: 'Local Buckling',
         showSymbol: false,
-        data: fragilityCurve(2.16, 0.3),
+        data: fragilityCurve(2.16, 0.3)
       },
       {
-        type: "line",
-        name: "Ductile Tearing",
+        type: 'line',
+        name: 'Ductile Tearing',
         showSymbol: false,
-        data: fragilityCurve(5, 0.31),
-      },
-    ],
-  };
-});
+        data: fragilityCurve(5, 0.31)
+      }
+    ]
+  }
+})
 </script>
 
 <template>
@@ -152,9 +150,8 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
       <title-row>
         <h1>Fragility Curve Plotter for Steel Component</h1>
         <p>
-          This tab introduces a web-based interactive module for visualizing
-          fragility curves of Pre- and Post-Northridge beam-to-column
-          connections. For further information refer to
+          This tab introduces a web-based interactive module for visualizing fragility curves of
+          Pre- and Post-Northridge beam-to-column connections. For further information refer to
           <a
             href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0000214"
             target="_blank"

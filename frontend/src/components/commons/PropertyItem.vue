@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { defineProps } from "vue";
-
 const props = defineProps<{
-  name: string;
-  unit?: string;
-}>();
+  name: string
+  unit?: string
+}>()
 </script>
 
 <template>

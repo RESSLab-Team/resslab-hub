@@ -1,41 +1,34 @@
 <script setup lang="ts">
-import { initOptions, updateOptions } from "@/components/commons/charts/utils";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import { Value } from "@/utils/common";
-import { VerticalAlign, ZRFontWeight } from "@/utils/echarts";
-import { primaryColor } from "@/utils/vuetify";
-import { EChartsOption, Payload } from "echarts";
-import { ParallelChart } from "echarts/charts";
-import { BrushComponent, ToolboxComponent } from "echarts/components";
-import { ECharts, use } from "echarts/core";
-import { SVGRenderer } from "echarts/renderers";
-import { CallbackDataParams } from "echarts/types/dist/shared";
-import { chain, merge, zip } from "lodash";
-import VChart from "vue-echarts";
-import {
-  defineEmits,
-  withDefaults,
-  defineProps,
-  ref,
-  computed,
-  unref,
-} from "vue";
-import { Color } from "vuetify/lib/util/colors";
-import i18n from "@/i18n";
-import { ParallelField } from "@/composables/chart";
+import { initOptions, updateOptions } from '@/components/commons/charts/utils'
+import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import type { ParallelField } from '@/composables/chart'
+import i18n from '@/plugins/i18n'
+import type { Value } from '@/utils/common'
+import type { VerticalAlign, ZRFontWeight } from '@/utils/echarts'
+import { primaryColor, type Color } from '@/utils/vuetify'
+import { mdiFilterVariant } from '@mdi/js'
+import type { EChartsOption, Payload } from 'echarts'
+import { ParallelChart } from 'echarts/charts'
+import { BrushComponent, ToolboxComponent } from 'echarts/components'
+import { use, type ECharts } from 'echarts/core'
+import { SVGRenderer } from 'echarts/renderers'
+import type { CallbackDataParams } from 'echarts/types/dist/shared'
+import { chain, merge, zip } from 'lodash'
+import { computed, ref, unref, withDefaults } from 'vue'
+import VChart from 'vue-echarts'
 
-use([SVGRenderer, ParallelChart, BrushComponent, ToolboxComponent]);
+use([SVGRenderer, ParallelChart, BrushComponent, ToolboxComponent])
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
-type F = string;
+type F = string
 const props = withDefaults(
   defineProps<{
-    color?: Color;
-    data: (number | string)[][];
-    fields?: ParallelField<F>[];
-    ids: string[];
-    labelPrefix?: string;
-    requestFields: F[];
+    color?: Color
+    data: (number | string)[][]
+    fields?: ParallelField<F>[]
+    ids: string[]
+    labelPrefix?: string
+    requestFields: F[]
   }>(),
   {
     color: () => primaryColor,
@@ -43,127 +36,124 @@ const props = withDefaults(
     fields: () => [],
     counts: () => [],
     ids: () => [],
-    labelPrefix: "",
-    requestFields: () => [],
+    labelPrefix: '',
+    requestFields: () => []
   }
-);
+)
 const emit = defineEmits<{
-  (e: "change:searches", value: Value): void;
-}>();
+  (e: 'change:searches', value: Value): void
+}>()
 
-const chart = ref<ECharts>();
-const selectedIds = ref<string[]>([]);
+const chart = ref<ECharts>()
+const selectedIds = ref<string[]>([])
 
 const transposedData = computed<(string | number)[][]>(
   () => zip(...props.data) as (string | number)[][]
-);
+)
 const option = computed<EChartsOption>(() => ({
   brush: {
-    brushLink: "all",
-    toolbox: ["clear"],
+    brushLink: 'all',
+    toolbox: ['clear']
   },
   parallel: {
     left: 60,
     top: 40,
     right: 120,
-    bottom: 8,
+    bottom: 8
   },
   parallelAxis: props.fields.map((field, index) => {
     const id: string =
-      typeof field.id === "string"
-        ? field.id
-        : `${field.id.dividend}/${field.id.divisor}`;
-    const name = field.name ?? i18n.t(props.labelPrefix + id).toString();
-    const values = getValues(field);
+      typeof field.id === 'string' ? field.id : `${field.id.dividend}/${field.id.divisor}`
+    const name = field.name ?? i18n.global.t(props.labelPrefix + id).toString()
+    const values = getValues(field)
     const option = {
       id: id,
       dim: index,
       name: name,
       nameTextStyle: {
-        fontWeight: "bold" as ZRFontWeight,
-        verticalAlign: "middle" as VerticalAlign,
+        fontWeight: 'bold' as ZRFontWeight,
+        verticalAlign: 'middle' as VerticalAlign
       },
-      nameGap: 20,
-    };
+      nameGap: 20
+    }
     if (values) {
-      const type = typeof values.find((v) => v != null);
-      if (type === "number") {
+      const type = typeof values.find((v) => v != null)
+      if (type === 'number') {
         return merge(option, {
-          type: "value",
-          scale: true,
-        });
+          type: 'value',
+          scale: true
+        })
       } else {
-        const sortedValues = chain(values).uniq().sort().value();
+        const sortedValues = chain(values).uniq().sort().value()
         return merge(option, {
-          nameLocation: "start",
+          nameLocation: 'start',
           inverse: true,
-          type: "category",
+          type: 'category',
           axisTick: {
-            alignWithLabel: true,
+            alignWithLabel: true
           },
-          data: sortedValues,
-        });
+          data: sortedValues
+        })
       }
     } else {
-      return option;
+      return option
     }
   }),
   series: {
-    type: "parallel",
+    type: 'parallel',
     data: props.data.map((d) =>
       props.fields.map((f) => {
-        const requestFieldsValue = props.requestFields;
-        if (typeof f.id === "string") {
-          return d[requestFieldsValue.indexOf(f.id)];
+        const requestFieldsValue = props.requestFields
+        if (typeof f.id === 'string') {
+          return d[requestFieldsValue.indexOf(f.id)]
         } else {
           return (
             (d[requestFieldsValue.indexOf(f.id.dividend)] as number) /
             (d[requestFieldsValue.indexOf(f.id.divisor)] as number)
-          );
+          )
         }
       })
     ),
     emphasis: {
-      focus: "series",
+      focus: 'series',
       lineStyle: {
-        width: 6,
-      },
-    },
+        width: 6
+      }
+    }
   },
-  color: props.color.base,
-}));
+  color: props.color.base
+}))
 
 function getValues(field: ParallelField): (string | number)[] {
-  const transposedDataValue = unref(transposedData);
-  const requestFieldsValue = props.requestFields;
-  if (typeof field.id === "string") {
-    return transposedDataValue[requestFieldsValue.indexOf(field.id)];
+  const transposedDataValue = unref(transposedData)
+  const requestFieldsValue = props.requestFields
+  if (typeof field.id === 'string') {
+    return transposedDataValue[requestFieldsValue.indexOf(field.id)]
   } else {
     return zip(
       transposedDataValue[requestFieldsValue.indexOf(field.id.dividend)],
       transposedDataValue[requestFieldsValue.indexOf(field.id.divisor)]
     )
       .map((v) => v as [number, number])
-      .map((v) => v[0] / v[1]);
+      .map((v) => v[0] / v[1])
   }
 }
 function onClick(params: CallbackDataParams): void {
-  emit("change:searches", props.ids[params.dataIndex]);
+  emit('change:searches', props.ids[params.dataIndex])
 }
 function onBrush(payload: Payload): void {
-  const selectedIndexes: number[] =
-    payload.batch?.pop()?.selected?.pop()?.dataIndex ?? [];
+  const selectedIndexes: number[] = payload.batch?.pop()?.selected?.pop()?.dataIndex ?? []
   if (selectedIndexes.length > 0) {
-    selectedIds.value = selectedIndexes.map((index) => props.ids[index]);
+    selectedIds.value = selectedIndexes.map((index) => props.ids[index])
   }
 }
 function onApply(): void {
-  emit("change:searches", selectedIds.value.join(","));
-  clear();
+  emit('change:searches', selectedIds.value.join(','))
+  clear()
 }
 function clear(): void {
-  chart.value?.clear();
-  selectedIds.value = [];
+  chart.value?.clear()
+  selectedIds.value = []
 }
 </script>
 
@@ -174,16 +164,12 @@ function clear(): void {
         Parallel View of all Tests
         <info-tooltip>
           <p>
-            In this parallel coordinate plots, you can view all available tests
-            in the database, ordered according to key variables. Each line
-            represents a single test.
+            In this parallel coordinate plots, you can view all available tests in the database,
+            ordered according to key variables. Each line represents a single test.
           </p>
           How to use?
           <ul>
-            <li>
-              Filter a subset of the data by selecting values on the vertical
-              axis directly
-            </li>
+            <li>Filter a subset of the data by selecting values on the vertical axis directly</li>
             <li>Select a specific test by clicking on the respective line.</li>
           </ul>
         </info-tooltip>
@@ -204,10 +190,9 @@ function clear(): void {
       <v-btn
         color="primary"
         :disabled="selectedIds.length === 0"
-        text
+        :prepend-icon="mdiFilterVariant"
         @click="onApply"
       >
-        <v-icon left>mdi-filter-variant</v-icon>
         Apply selection ({{ selectedIds.length }})
       </v-btn>
     </v-card-actions>

@@ -1,57 +1,50 @@
 <script setup lang="ts">
-import { SelectItem } from "@/utils/vuetify";
-import {
-  withDefaults,
-  defineProps,
-  defineEmits,
-  ref,
-  computed,
-  unref,
-  watch,
-} from "vue";
+import type { SelectItem } from '@/utils/vuetify'
+import { mdiMagnify } from '@mdi/js'
+import { computed, ref, unref, watch, withDefaults } from 'vue'
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type V = string | number | object;
+type V = string | number | object
 const props = withDefaults(
   defineProps<{
-    value?: V;
-    items?: SelectItem<V>[];
-    label?: string;
+    modelValue?: V
+    items?: SelectItem<V>[]
+    label?: string
   }>(),
   {
-    value: undefined,
+    modelValue: undefined,
     items: () => [],
-    label: undefined,
+    label: undefined
   }
-);
+)
 const emit = defineEmits<{
-  (e: "input", value?: V): void;
-}>();
+  (e: 'update:modelValue', value?: V): void
+}>()
 
-const search = ref<string>();
+const search = ref<string>()
 
-const value = computed<V>({
-  get: () => props.value,
-  set: (value) => emit("input", value),
-});
+const value = computed<V | undefined>({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
+})
 const actualItems = computed<SelectItem[]>(() => {
-  const searchValue = unref(search);
+  const searchValue = unref(search)
   if (!searchValue) {
-    return props.items;
+    return props.items
   }
-  const substring = searchValue.toLowerCase();
+  const substring = searchValue.toLowerCase()
   return props.items.filter((item) => {
-    const value = typeof item === "string" ? item : item.text.toString();
-    return value.toLowerCase().includes(substring);
-  });
-});
-const hint = computed<string>(() => `${actualItems.value.length} items`);
+    const value = typeof item === 'string' ? item : item.title.toString()
+    return value.toLowerCase().includes(substring)
+  })
+})
+const hint = computed<string>(() => `${actualItems.value.length} items`)
 
 watch(
   () => props.items,
   () => (search.value = undefined)
-);
+)
 </script>
 
 <template>
@@ -61,18 +54,17 @@ watch(
     hide-details
     :items="actualItems"
     :label="label"
-    single-line
+    variant="outlined"
   >
     <template #prepend-item>
       <v-list-item>
         <v-text-field
           v-model="search"
-          prepend-inner-icon="mdi-magnify"
+          :prepend-inner-icon="mdiMagnify"
           clearable
           :hint="hint"
           persistent-hint
-          single-line
-          solo
+          variant="outlined"
         />
       </v-list-item>
     </template>

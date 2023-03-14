@@ -1,26 +1,21 @@
 <script setup lang="ts">
-import "leaflet/dist/leaflet.css";
+import 'leaflet/dist/leaflet.css'
 
-import {
-  bracesApi,
-  columnsApi,
-  connectionsApi,
-  materialsApi,
-} from "@/plugins/axios";
-import { typesNames } from "@/utils/backend";
+import { bracesApi, columnsApi, connectionsApi, materialsApi } from '@/plugins/axios'
+import { typesNames } from '@/utils/backend'
 import {
   createMarkers,
-  LocationBrace,
   locationBraceFields,
-  LocationColumn,
   locationColumnFields,
-  LocationConnection,
   locationConnectionFields,
-  LocationMaterial,
   locationMaterialFields,
-} from "@/utils/overviewmap";
-import { PieChart, scaleColor, scaleRadius } from "@/utils/piechart";
-import { rollups, select } from "d3";
+  type LocationBrace,
+  type LocationColumn,
+  type LocationConnection,
+  type LocationMaterial
+} from '@/utils/overviewmap'
+import { PieChart, scaleColor, scaleRadius } from '@/utils/piechart'
+import { rollups, select } from 'd3'
 import {
   Control,
   DivIcon,
@@ -29,37 +24,35 @@ import {
   Marker,
   MarkerClusterGroup,
   Point,
-  tileLayer,
-} from "leaflet";
-import "leaflet.markercluster";
-import { computed, onMounted, ref } from "vue";
+  tileLayer
+} from 'leaflet'
+import 'leaflet.markercluster'
+import { computed, onMounted, ref } from 'vue'
 
-const connectionsLocations = ref<LocationConnection[]>([]);
+const connectionsLocations = ref<LocationConnection[]>([])
 
-connectionsApi
-  .getConnectionsFields([...locationConnectionFields])
-  .then((res) => {
-    connectionsLocations.value = res.data as LocationConnection[];
-    updateMap();
-  });
+connectionsApi.getConnectionsFields([...locationConnectionFields]).then((res) => {
+  connectionsLocations.value = res.data as LocationConnection[]
+  updateMap()
+})
 
-const columnsLocations = ref<LocationColumn[]>([]);
+const columnsLocations = ref<LocationColumn[]>([])
 columnsApi.getColumnsFields(locationColumnFields).then((res) => {
-  columnsLocations.value = res.data as LocationColumn[];
-  updateMap();
-});
+  columnsLocations.value = res.data as LocationColumn[]
+  updateMap()
+})
 
-const bracesLocations = ref<LocationBrace[]>([]);
+const bracesLocations = ref<LocationBrace[]>([])
 bracesApi.getBracesFields(locationBraceFields).then((res) => {
-  bracesLocations.value = res.data as LocationBrace[];
-  updateMap();
-});
+  bracesLocations.value = res.data as LocationBrace[]
+  updateMap()
+})
 
-const materialsLocations = ref<LocationMaterial[]>([]);
+const materialsLocations = ref<LocationMaterial[]>([])
 materialsApi.getMaterialsFields(locationMaterialFields).then((res) => {
-  materialsLocations.value = res.data as LocationMaterial[];
-  updateMap();
-});
+  materialsLocations.value = res.data as LocationMaterial[]
+  updateMap()
+})
 
 const dataLength = computed(
   () =>
@@ -67,42 +60,40 @@ const dataLength = computed(
     columnsLocations.value.length +
     bracesLocations.value.length +
     materialsLocations.value.length
-);
+)
 
-const mapContainer = ref<HTMLDivElement>();
+const mapContainer = ref<HTMLDivElement>()
 
 const map = computed(() => {
   const map = LMap(mapContainer.value as HTMLDivElement, {
     minZoom: 1,
-    zoomSnap: 0.25,
+    zoomSnap: 0.25
   })
     .setView([45, 0], 2)
     .setMaxBounds([
       [-120, -200],
-      [120, 200],
-    ]);
-  tileLayer(
-    "https://cartodb-basemaps-1.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
-  ).addTo(map);
-  return map;
-});
+      [120, 200]
+    ])
+  tileLayer('https://cartodb-basemaps-1.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png').addTo(map)
+  return map
+})
 
-const prevCluster = ref<null | MarkerClusterGroup>(null);
+const prevCluster = ref<null | MarkerClusterGroup>(null)
 
 const cluster = computed(() => {
   return new MarkerClusterGroup({
     showCoverageOnHover: false,
     iconCreateFunction: function (cluster) {
-      const childCount = cluster.getChildCount();
-      const radius = scaleRadius.domain([0, dataLength.value])(childCount);
+      const childCount = cluster.getChildCount()
+      const radius = scaleRadius.domain([0, dataLength.value])(childCount)
 
-      const allChilds = cluster.getAllChildMarkers();
+      const allChilds = cluster.getAllChildMarkers()
 
       const counts = rollups(
         allChilds,
         (v) => v.length,
         (d) => (d.feature ? d.feature.properties.type : null)
-      );
+      )
 
       return new DivIcon({
         html: PieChart(
@@ -112,87 +103,84 @@ const cluster = computed(() => {
             value: (d) => d.value,
             innerRadius: Math.max(7, radius / 4),
             width: radius,
-            height: radius,
+            height: radius
           }
         ) as unknown as HTMLElement,
-        className: "",
-        iconSize: new Point(radius, radius),
-      });
-    },
-  });
-});
+        className: '',
+        iconSize: new Point(radius, radius)
+      })
+    }
+  })
+})
 
 const markers = computed<Marker[]>(() => {
   return [
-    createMarkers(connectionsLocations.value, "Connections"),
-    createMarkers(columnsLocations.value, "Columns"),
-    createMarkers(bracesLocations.value, "Braces"),
-    createMarkers(materialsLocations.value, "Materials"),
-  ].flat();
-});
+    createMarkers(connectionsLocations.value, 'Connections'),
+    createMarkers(columnsLocations.value, 'Columns'),
+    createMarkers(bracesLocations.value, 'Braces'),
+    createMarkers(materialsLocations.value, 'Materials')
+  ].flat()
+})
 
 const legend = computed(() => {
-  const legend = new Control({ position: "bottomleft" });
+  const legend = new Control({ position: 'bottomleft' })
 
   legend.onAdd = function () {
-    const div = DomUtil.create("div", "legend");
+    const div = DomUtil.create('div', 'legend')
 
     for (const type of typesNames) {
       div.innerHTML += `<input id="checkbox_${type.replace(
         /\s/g,
-        ""
-      )}" type='checkbox' checked /> <i style='background: ${scaleColor(
-        type
-      )}'> </i> ${type} <br>`;
+        ''
+      )}" type='checkbox' checked /> <i style='background: ${scaleColor(type)}'> </i> ${type} <br>`
     }
 
-    return div;
-  };
-  return legend;
-});
+    return div
+  }
+  return legend
+})
 
 function setEventListenerLegend() {
-  const div = ".legend";
+  const div = '.legend'
 
   for (const type of typesNames) {
     select(div)
-      .select(`#checkbox_${type.replace(/\s/g, "")}`)
-      .on("change", (e) => {
-        e.stopPropagation();
+      .select(`#checkbox_${type.replace(/\s/g, '')}`)
+      .on('change', (e) => {
+        e.stopPropagation()
 
         const layers = markers.value.filter(({ feature }) =>
           feature ? feature.properties.type === type : false
-        );
-        if (e.target.checked) cluster.value.addLayers(layers);
-        else cluster.value.removeLayers(layers);
-      });
+        )
+        if (e.target.checked) cluster.value.addLayers(layers)
+        else cluster.value.removeLayers(layers)
+      })
   }
 
-  select(div).on("dblclick", (e) => e.stopPropagation());
+  select(div).on('dblclick', (e) => e.stopPropagation())
 }
 
 function updateMap() {
-  if (prevCluster.value)
-    map.value.removeLayer(prevCluster.value as MarkerClusterGroup);
-  cluster.value.clearLayers();
-  cluster.value.addLayers(markers.value);
-  map.value.addLayer(cluster.value);
-  prevCluster.value = cluster.value;
-  map.value.fitBounds(cluster.value.getBounds());
-  setEventListenerLegend();
+  if (prevCluster.value) map.value.removeLayer(prevCluster.value as MarkerClusterGroup)
+  cluster.value.clearLayers()
+  cluster.value.addLayers(markers.value)
+  map.value.addLayer(cluster.value)
+  prevCluster.value = cluster.value
+  map.value.fitBounds(cluster.value.getBounds())
+  setEventListenerLegend()
 }
 
 onMounted(() => {
-  cluster.value.addLayers(markers.value);
-  map.value.addLayer(cluster.value);
-  prevCluster.value = cluster.value;
-  legend.value.addTo(map.value);
-  setEventListenerLegend();
-});
+  cluster.value.addLayers(markers.value)
+  map.value.addLayer(cluster.value)
+  prevCluster.value = cluster.value
+  legend.value.addTo(map.value)
+  setEventListenerLegend()
+})
 </script>
 
 <template>
-  <div ref="mapContainer" class="fill-height mapContainer secondary" />
+  <div ref="mapContainer" class="fill-height mapContainer" color="secondary" />
 </template>
 
 <style lang="scss" scoped>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ConnectionModel from "@/components/connections/ConnectionModel.vue";
+import ConnectionModel from '@/components/connections/ConnectionModel.vue'
 </script>
 
 <template>

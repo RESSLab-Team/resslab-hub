@@ -1,162 +1,153 @@
 <script setup lang="ts">
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_columns
-import LegendChart from "@/components/commons/charts/LegendChart.vue";
-import SurfaceGlChart from "@/components/commons/charts/SurfaceGlChart.vue";
-import UnitChart from "@/components/commons/charts/UnitChart.vue";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import UnitSlider, {
-  UnitSliderItem,
-} from "@/components/commons/sliders/UnitSlider.vue";
-import { EChartsGlOption } from "@/utils/echarts-gl";
-import { univariateOption } from "@/utils/fragility";
-import { subscripts } from "@/utils/unicode";
-import { getColorMap } from "@/utils/vuetify";
-import { EChartsOption, SeriesOption } from "echarts";
-import { range } from "lodash";
-import { computed, reactive, ref } from "vue";
-import TitleRow from "@/components/commons/TitleRow.vue";
+import LegendChart from '@/components/commons/charts/LegendChart.vue'
+import SurfaceGlChart from '@/components/commons/charts/SurfaceGlChart.vue'
+import UnitChart from '@/components/commons/charts/UnitChart.vue'
+import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import UnitSlider, { type UnitSliderItem } from '@/components/commons/sliders/UnitSlider.vue'
+import TitleRow from '@/components/commons/TitleRow.vue'
+import type { EChartsGlOption } from '@/utils/echarts-gl'
+import { univariateOption } from '@/utils/fragility'
+import { subscripts } from '@/utils/unicode'
+import { getColorMap } from '@/utils/vuetify'
+import type { EChartsOption, SeriesOption } from 'echarts'
+import { range } from 'lodash'
+import { computed, reactive, ref } from 'vue'
 const parameters: UnitSliderItem<keyof Variables>[] = [
   {
-    key: "hTw",
-    label: "h / tw",
+    key: 'hTw',
+    label: 'h / tw',
     min: 5,
-    max: 60,
+    max: 60
   },
   {
-    key: "pPyn",
-    label: "Pg / Pyn",
+    key: 'pPyn',
+    label: 'Pg / Pyn',
     min: 0,
-    max: 1,
-  },
-];
-const alphas: number[] = [5.515, 10.753, 14.664, 16.659];
-const maxSdr = 11.01;
-const sdr = range(0, maxSdr, 0.01);
+    max: 1
+  }
+]
+const alphas: number[] = [5.515, 10.753, 14.664, 16.659]
+const maxSdr = 11.01
+const sdr = range(0, maxSdr, 0.01)
 
 interface Variables {
-  hTw: number;
-  pPyn: number;
+  hTw: number
+  pPyn: number
 }
 const variables = reactive<Variables>({
   hTw: 40,
-  pPyn: 0.2,
-});
+  pPyn: 0.2
+})
 
-const alphaColorPalette = getColorMap(alphas.length);
+const alphaColorPalette = getColorMap(alphas.length)
 const legendItems = ref([
   ...alphas.map((_, index) => ({
     label: `DS${index + 1}`,
     indexToFilter: index,
     color: alphaColorPalette[index],
-    icon: "mdi-rectangle",
-    selected: true,
+    icon: 'mdi-rectangle',
+    selected: true
   })),
   {
-    label: "Univariate",
-    color: "black",
-    icon: "mdi-rectangle",
+    label: 'Univariate',
+    color: 'black',
+    icon: 'mdi-rectangle',
     selected: true,
-    indexToFilter: -1,
+    indexToFilter: -1
   },
   {
-    label: "Multivariate",
-    color: "black",
-    icon: "mdi-dots-horizontal",
+    label: 'Multivariate',
+    color: 'black',
+    icon: 'mdi-dots-horizontal',
     selected: true,
-    indexToFilter: -1,
-  },
-]);
+    indexToFilter: -1
+  }
+])
 const indexSelected = computed<number[]>(() =>
-  legendItems.value
-    .filter((d) => d.indexToFilter >= 0 && d.selected)
-    .map((d) => d.indexToFilter)
-);
+  legendItems.value.filter((d) => d.indexToFilter >= 0 && d.selected).map((d) => d.indexToFilter)
+)
 const univariateSelected = computed<boolean>(
-  () =>
-    legendItems.value.find((d) => d.label === "Univariate")?.selected || false
-);
+  () => legendItems.value.find((d) => d.label === 'Univariate')?.selected || false
+)
 const multivariateSelected = computed<boolean>(
-  () =>
-    legendItems.value.find((d) => d.label === "Multivariate")?.selected || false
-);
+  () => legendItems.value.find((d) => d.label === 'Multivariate')?.selected || false
+)
 const variateOption = computed<EChartsOption>(() => {
-  const series: SeriesOption[] = [];
+  const series: SeriesOption[] = []
   if (univariateSelected.value) {
     const option = univariateOption(
       [
         {
           median: 0.507,
-          beta: 0.425,
+          beta: 0.425
         },
         {
           median: 1.368,
-          beta: 0.552,
+          beta: 0.552
         },
         {
           median: 2.292,
-          beta: 0.491,
+          beta: 0.491
         },
         {
           median: 3.502,
-          beta: 0.321,
-        },
+          beta: 0.321
+        }
       ],
       maxSdr,
-      "Univariate "
-    );
-    const selectedUnivariateSeries: SeriesOption[] = (
-      option.series as SeriesOption[]
-    ).filter((_, index) => indexSelected.value.includes(index));
+      'Univariate '
+    )
+    const selectedUnivariateSeries: SeriesOption[] = (option.series as SeriesOption[]).filter(
+      (_, index) => indexSelected.value.includes(index)
+    )
     if (selectedUnivariateSeries.length > 0) {
-      series.push(...selectedUnivariateSeries);
+      series.push(...selectedUnivariateSeries)
     }
   }
   if (multivariateSelected.value) {
     const option = {
       xAxis: {
-        name: "SDR",
+        name: 'SDR'
       },
       yAxis: {
-        name: "P(DS≥ds)",
+        name: 'P(DS≥ds)'
       },
       series: alphas.map((alpha, index) => ({
-        type: "line",
+        type: 'line',
         name: `Multivariate P(DS≥ds${subscripts[(index + 1).toString()]})`,
         showSymbol: false,
         animation: false,
         itemStyle: {
-          color: alphaColorPalette[index],
+          color: alphaColorPalette[index]
         },
         lineStyle: {
           color: alphaColorPalette[index],
-          type: "dotted",
+          type: 'dotted'
         },
-        data: sdr.map((item) => [
-          item,
-          surface(variables.hTw, item, alpha, variables.pPyn),
-        ]),
-      })),
-    };
-    const selectedMultivariateSeries: SeriesOption[] = (
-      option.series as SeriesOption[]
-    ).filter((_, index) => indexSelected.value.includes(index));
+        data: sdr.map((item) => [item, surface(variables.hTw, item, alpha, variables.pPyn)])
+      }))
+    }
+    const selectedMultivariateSeries: SeriesOption[] = (option.series as SeriesOption[]).filter(
+      (_, index) => indexSelected.value.includes(index)
+    )
     if (selectedMultivariateSeries.length > 0) {
-      series.push(...selectedMultivariateSeries);
+      series.push(...selectedMultivariateSeries)
     }
   }
   return {
     xAxis: {
-      name: "SDR",
+      name: 'SDR'
     },
     yAxis: {
-      name: "P(DS)",
+      name: 'P(DS)'
     },
     legend: {
-      show: false,
+      show: false
     },
-    series,
-  } as EChartsOption;
-});
+    series
+  } as EChartsOption
+})
 const surfaceOptions = computed<EChartsGlOption[]>(() =>
   alphas.map((alpha, index) =>
     getSurfaceOption(
@@ -167,7 +158,7 @@ const surfaceOptions = computed<EChartsGlOption[]>(() =>
       alphaColorPalette[index]
     )
   )
-);
+)
 
 function getSurfaceOption(
   name: string,
@@ -176,86 +167,81 @@ function getSurfaceOption(
   pPyn: number,
   color: string
 ): EChartsGlOption {
-  const yMin = 0;
-  const yMax = 7;
-  const zMin = 0;
-  const zMax = 1;
+  const yMin = 0
+  const yMax = 7
+  const zMin = 0
+  const zMax = 1
   return {
     xAxis3D: {
-      name: "h/tw",
+      name: 'h/tw',
       nameTextStyle: {
-        fontSize: 14,
-      },
+        fontSize: 14
+      }
     },
     yAxis3D: {
-      name: "SDR [% rad]",
+      name: 'SDR [% rad]',
       nameTextStyle: {
-        fontSize: 14,
-      },
+        fontSize: 14
+      }
     },
     zAxis3D: {
       name: `P(DS${name})`,
       nameTextStyle: {
-        fontSize: 14,
-      },
+        fontSize: 14
+      }
     },
     series: [
       {
-        type: "surface",
-        name: "",
+        type: 'surface',
+        name: '',
         wireframe: {
-          show: false,
+          show: false
         },
         equation: {
           x: {
             min: 0,
             max: 60,
-            step: 1,
+            step: 1
           },
           y: {
             min: yMin,
             max: yMax,
-            step: 0.1,
+            step: 0.1
           },
           z: (x: number, y: number) => {
-            return surface(x, y, alpha, pPyn);
-          },
+            return surface(x, y, alpha, pPyn)
+          }
         },
         itemStyle: {
-          color,
-        },
+          color
+        }
       },
       {
-        type: "surface",
-        name: "",
+        type: 'surface',
+        name: '',
         itemStyle: {
-          color: "black",
-          opacity: 0.5,
+          color: 'black',
+          opacity: 0.5
         },
         data: [
           [hTw, yMin, zMin],
           [hTw, yMin, zMax],
           [hTw, yMax, zMin],
-          [hTw, yMax, zMax],
+          [hTw, yMax, zMax]
         ],
         silent: true,
-        dataShape: [2, 2],
-      },
-    ],
-  };
+        dataShape: [2, 2]
+      }
+    ]
+  }
 }
 
-function surface(
-  hTw: number,
-  sdr: number,
-  alpha: number,
-  pPyn: number
-): number {
-  const betaHtw = -0.15;
-  const betaPpy = -11.081;
-  const betaSdr = -5.708;
-  const y = alpha + betaHtw * hTw + betaPpy * pPyn + betaSdr * Math.log(sdr);
-  return 1 - Math.exp(y) / (1 + Math.exp(y));
+function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number {
+  const betaHtw = -0.15
+  const betaPpy = -11.081
+  const betaSdr = -5.708
+  const y = alpha + betaHtw * hTw + betaPpy * pPyn + betaSdr * Math.log(sdr)
+  return 1 - Math.exp(y) / (1 + Math.exp(y))
 }
 </script>
 
@@ -266,11 +252,10 @@ function surface(
         <title-row hide-unit>
           <h1>Fragility Curve Plotter for Wide-Flange Steel Columns</h1>
           <p>
-            This module plots univariate and multivariate fragility curves for
-            wide-flange steel columns depending on their primary loading and
-            geometric characteristics. For further information please refer to
-            <a
-              href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
+            This module plots univariate and multivariate fragility curves for wide-flange steel
+            columns depending on their primary loading and geometric characteristics. For further
+            information please refer to
+            <a href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
               >Elkady et al. (2018)</a
             >.
           </p>
@@ -285,9 +270,8 @@ function surface(
               <v-card-title>
                 Parameters
                 <info-tooltip>
-                  Please provide the imposed gravity-induced axial load ratio,
-                  Pg/Pyn and the web slenderness ratio, h/tw of the wide-flange
-                  cross section of the steel column.
+                  Please provide the imposed gravity-induced axial load ratio, Pg/Pyn and the web
+                  slenderness ratio, h/tw of the wide-flange cross section of the steel column.
                 </info-tooltip>
               </v-card-title>
               <v-card-text>
@@ -311,11 +295,7 @@ function surface(
             <h2>Fragility Curves</h2>
             <v-row>
               <v-col cols="9">
-                <unit-chart
-                  :aspect-ratio="2"
-                  :option="variateOption"
-                  x-unit="rad"
-                />
+                <unit-chart :aspect-ratio="2" :option="variateOption" x-unit="rad" />
               </v-col>
               <v-col cols="3">
                 <legend-chart v-model="legendItems" :separators-index="[4]" />

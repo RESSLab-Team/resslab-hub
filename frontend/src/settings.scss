@@ -1,0 +1,4 @@
+// https://vuetifyjs.com/en/features/sass-variables/
+@use 'vuetify/_settings' with (
+  $overlay-opacity: 50%
+);

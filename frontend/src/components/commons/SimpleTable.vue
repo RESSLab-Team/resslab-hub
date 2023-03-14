@@ -1,45 +1,38 @@
 <script setup lang="ts">
-import CheckboxDialog, {
-  CheckBoxDialogItem,
-} from "@/components/commons/CheckboxDialog.vue";
-import { filterColumnValue, globalSearchKey, Searches } from "@/utils/common";
-import { booleanOptions } from "@/utils/vuetify";
-import {
-  withDefaults,
-  defineProps,
-  defineEmits,
-  ref,
-  computed,
-  watch,
-} from "vue";
-import { DataOptions, DataTableHeader } from "vuetify";
-import { Column, ColumnType, DownloadType } from "@/composables/table";
-import i18n from "@/i18n";
-import { useRoute } from "vue-router/composables";
-import { useNotificationStore } from "@/stores/notification";
+import CheckboxDialog, { type CheckBoxDialogItem } from '@/components/commons/CheckboxDialog.vue'
+import { DownloadType, type Column, type ColumnType } from '@/composables/table'
+import i18n from '@/plugins/i18n'
+import { useNotificationStore } from '@/stores/notification'
+import { filterColumnValue, globalSearchKey, type Searches } from '@/utils/common'
+import { booleanOptions, type DataOptions } from '@/utils/vuetify'
+import { mdiDownload, mdiMagnify, mdiShare } from '@mdi/js'
+import { computed, ref, watch, withDefaults } from 'vue'
+import { useRoute } from 'vue-router'
 
-interface TableHeader extends DataTableHeader {
-  type: ColumnType;
-  options?: string[];
-  multiple?: boolean;
+interface TableHeader {
+  type: ColumnType
+  multiple?: boolean
+  options?: string[]
+  // https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/labs/VDataTable/types.ts
+  key: string
+  title: string
 }
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type M = any;
+type M = any
 const props = withDefaults(
   defineProps<{
-    title?: string;
-    columns?: Column[];
-    totalCount?: number;
-    loading?: boolean;
-    items?: M[];
-    options?: DataOptions;
-    totalFilteredCount?: number;
-    prefix?: string;
-    query?: string;
-    searches?: Searches;
-    search?: string;
+    title?: string
+    columns?: Column[]
+    totalCount?: number
+    loading?: boolean
+    items?: M[]
+    totalFilteredCount?: number
+    prefix?: string
+    query?: string
+    searches?: Searches
+    search?: string
   }>(),
   {
     title: undefined,
@@ -47,112 +40,113 @@ const props = withDefaults(
     totalCount: undefined,
     loading: false,
     items: () => [],
-    options: undefined,
     totalFilteredCount: undefined,
     prefix: undefined,
     query: undefined,
     searches: () => ({}),
-    search: "",
+    search: ''
   }
-);
+)
 const emit = defineEmits<{
-  (e: "click:row", value: M): void;
-  (e: "download", items: M[], types: DownloadType[]): void;
-  (e: "update:options", value: DataOptions): void;
-  (e: "update:search", value: string): void;
-  (e: "update:searches", value: Searches): void;
-}>();
+  (e: 'click:row', value: M): void
+  (e: 'download', items: M[], types: DownloadType[]): void
+  (e: 'update:options', value?: DataOptions): void
+  (e: 'update:search', value: string): void
+  (e: 'update:searches', value: Searches): void
+}>()
 
-const maxDownloadCount = 5;
+const maxDownloadCount = 5
+const vInputBind = {
+  class: 'table-input',
+  clearable: true,
+  density: 'compact' as 'compact',
+  hideDetails: true,
+  variant: 'underlined' as 'underlined'
+}
 const checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
   {
     key: DownloadType.Main,
-    text: "Master data",
+    text: 'Master data'
   },
   {
     key: DownloadType.Test,
-    text: "Test data",
-  },
-];
+    text: 'Test data'
+  }
+]
 
-const route = useRoute();
-const notificationStore = useNotificationStore();
+const route = useRoute()
+const notificationStore = useNotificationStore()
 
-const downloadDialog = ref<InstanceType<typeof CheckboxDialog>>();
-const selectedItems = ref<M[]>([]);
+const downloadDialog = ref<InstanceType<typeof CheckboxDialog>>()
+const selectedItems = ref<M[]>([])
 
-const options = computed<DataOptions>({
-  get: () => props.options,
-  set: (value) => emit("update:options", value),
-});
 const columnSearches = computed<Searches>({
   get: () => props.searches,
-  set: (value) => emit("update:searches", value),
-});
+  set: (value) => emit('update:searches', value)
+})
 const globalSearch = computed<string>({
   get: () => props.search,
-  set: (value) => emit("update:search", value),
-});
+  set: (value) => emit('update:search', value)
+})
 const tableHeaders = computed<TableHeader[]>(() =>
   props.columns.filter((column) => !column.filterOnly).map(getTableHeader)
-);
+)
 const filterHeaders = computed<TableHeader[]>(() =>
   props.columns.filter((column) => column.filterOnly).map(getTableHeader)
-);
-const hasFilters = computed<boolean>(() => props.query.length > 0);
+)
+const hasFilters = computed<boolean>(() => !!props.query)
 
 watch(selectedItems, (value) => {
   if (value.length > maxDownloadCount) {
-    notificationStore.notify(
-      `You cannot download more than ${maxDownloadCount} items.`
-    );
+    notificationStore.notify(`You cannot download more than ${maxDownloadCount} items.`)
   }
-});
+})
 
 function resetFilters(): void {
-  globalSearch.value = "";
-  columnSearches.value = {};
+  globalSearch.value = ''
+  columnSearches.value = {}
 }
 
-function click(item: M): void {
-  emit("click:row", item);
+// https://vuetifyjs.com/en/api/v-data-table-server/#events-click:row
+function click(_: Event, value: { item: { raw: M } }): void {
+  emit('click:row', value.item.raw)
 }
 
 function shareUrl(): void {
-  const url = new URL(window.location.origin + route.path);
+  const url = new URL(window.location.origin + route.path)
   Object.entries(columnSearches.value)
     .filter(([, value]) => filterColumnValue(value))
     .forEach(([key, value]) => {
-      url.searchParams.append(key, value.toString());
-    });
+      url.searchParams.append(key, value.toString())
+    })
   if (globalSearch.value.length > 0) {
-    url.searchParams.append(globalSearchKey, globalSearch.value);
+    url.searchParams.append(globalSearchKey, globalSearch.value)
   }
-  const shareUrl = url.href;
+  const shareUrl = url.href
   if (navigator.share) {
     navigator.share({
-      url: shareUrl,
-    });
-    return;
+      url: shareUrl
+    })
+    return
   }
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(shareUrl);
-    notificationStore.notify("Copied to clipboard");
-    return;
+    navigator.clipboard.writeText(shareUrl)
+    notificationStore.notify('Copied to clipboard')
+    return
   }
   if (shareUrl) {
-    notificationStore.notify(shareUrl, shareUrl);
+    notificationStore.notify(shareUrl, shareUrl)
   }
 }
 
 function getTableHeader(column: Column): TableHeader {
   return {
-    value: column.value,
-    text: i18n.t(props.prefix + column.value).toString(),
+    key: column.value,
+    title: i18n.global.t(props.prefix + column.value).toString(),
     type: column.type,
     options: column.options?.sort(),
-    multiple: column.options ? column.options.length > 2 : false,
-  };
+    multiple: column.options ? column.options.length > 2 : false
+  }
 }
 
 /**
@@ -161,175 +155,145 @@ function getTableHeader(column: Column): TableHeader {
 function downloadZip(): void {
   downloadDialog.value
     ?.open(`${selectedItems.value.length} selected`)
-    .then((types) =>
-      emit("download", selectedItems.value, types as DownloadType[])
-    )
+    .then((types) => emit('download', selectedItems.value, types as DownloadType[]))
     .finally(() => {
-      downloadDialog.value?.close();
-    });
+      downloadDialog.value?.close()
+    })
 }
 </script>
 
 <template>
   <v-card>
-    <v-card-title>
+    <v-card-title class="d-flex">
       <slot name="title">
         {{ title }}
       </slot>
       <v-spacer />
-      <v-text-field
-        v-model="globalSearch"
-        clearable
-        hide-details
-        single-line
-        append-icon="mdi-magnify"
-        label="Search"
-      />
-      <v-btn color="primary" :disabled="!hasFilters" text @click="resetFilters">
+      <v-responsive class="mx-1" max-width="256">
+        <v-text-field
+          v-model="globalSearch"
+          clearable
+          density="compact"
+          hide-details
+          single-line
+          :prepend-inner-icon="mdiMagnify"
+          label="Search"
+          variant="outlined"
+        />
+      </v-responsive>
+      <v-btn color="primary" :disabled="!hasFilters" variant="text" @click="resetFilters">
         Reset filters
       </v-btn>
     </v-card-title>
-    <v-data-table
+    <v-data-table-server
       v-model="selectedItems"
-      dense
+      density="compact"
+      fixed-header
       :headers="tableHeaders"
       :items="items"
+      :items-length="totalFilteredCount"
       :items-per-page="5"
       :footer-props="{
-        itemsPerPageOptions: [5, 10, 20, 100, 1000],
+        itemsPerPageOptions: [5, 10, 20, 100, 1000]
       }"
       :loading="loading"
       must-sort
-      :options="options"
       :search="search"
-      :server-items-length="totalFilteredCount"
       show-select
-      :sort-by="tableHeaders[0].value"
       @click:row="click"
       @update:options="emit('update:options', $event)"
     >
       <template #top>
         <v-row class="px-4 pb-4">
-          <v-col v-for="header in filterHeaders" :key="header.value">
+          <v-col v-for="header in filterHeaders" :key="header.key">
             <v-select
               v-if="header.options"
-              v-model="columnSearches[header.value]"
-              clearable
-              hide-details
-              :label="header.text"
+              v-bind="vInputBind"
+              v-model="columnSearches[header.key]"
+              :label="header.title"
               :multiple="header.multiple"
               :items="header.options"
             >
             </v-select>
-            <div v-else v-switch="header.type">
-              <v-text-field
-                v-model="columnSearches[header.value]"
-                v-case="'text'"
-                clearable
-                hide-details
-                :label="header.text"
-              />
-              <v-select
-                v-model="columnSearches[header.value]"
-                v-case="'boolean'"
-                clearable
-                hide-details
-                :label="header.text"
-                :items="booleanOptions"
-              />
-              <v-text-field
-                v-model="columnSearches[header.value]"
-                v-case="'number'"
-                clearable
-                hide-details
-                hide-spin-buttons
-                :label="header.text"
-                type="number"
-              />
-            </div>
+            <v-text-field
+              v-else-if="header.type === 'text'"
+              v-bind="vInputBind"
+              v-model="columnSearches[header.key]"
+              :label="header.title"
+            />
+            <v-select
+              v-else-if="header.type === 'boolean'"
+              v-bind="vInputBind"
+              v-model="columnSearches[header.key]"
+              :label="header.title"
+              :items="booleanOptions"
+            />
+            <v-text-field
+              v-else-if="header.type === 'number'"
+              v-bind="vInputBind"
+              v-model="columnSearches[header.key]"
+              :label="header.title"
+              type="number"
+            />
           </v-col>
         </v-row>
       </template>
-      <template #[`body.prepend`]>
+      <template #thead>
         <tr>
           <td>
             <!-- select -->
-            <v-icon>mdi-magnify</v-icon>
+            <v-icon :icon="mdiMagnify" />
           </td>
-          <td v-for="header in tableHeaders" :key="header.value">
+          <td v-for="header in tableHeaders" :key="header.key">
             <v-select
               v-if="header.options"
-              v-model="columnSearches[header.value]"
-              class="mt-0 pt-0"
-              clearable
-              hide-details
-              :label="header.text"
+              v-bind="vInputBind"
+              v-model="columnSearches[header.key]"
+              :label="header.title"
               :multiple="header.multiple"
               :items="header.options"
-              single-line
             >
-              <template #item="{ item, on, attrs }">
-                <slot
-                  :name="`column.header.item.${header.value}`"
-                  :item="item"
-                  :on="on"
-                  :attrs="attrs"
-                />
+              <template v-if="$slots[`header-select-item.${header.key}`]" #item="{ item }">
+                <slot :name="`header-select-item.${header.key}`" :item="item" />
               </template>
             </v-select>
-            <div v-else v-switch="header.type">
-              <v-text-field
-                v-model="columnSearches[header.value]"
-                v-case="'text'"
-                class="mt-0 pt-0"
-                clearable
-                hide-details
-                :label="header.text"
-                single-line
-              />
-              <v-select
-                v-model="columnSearches[header.value]"
-                v-case="'boolean'"
-                class="mt-0 pt-0"
-                clearable
-                hide-details
-                :label="header.text"
-                :items="booleanOptions"
-                single-line
-              />
-              <v-text-field
-                v-model="columnSearches[header.value]"
-                v-case="'number'"
-                class="mt-0 pt-0"
-                clearable
-                hide-details
-                hide-spin-buttons
-                :label="header.text"
-                single-line
-                type="number"
-              />
-            </div>
+            <v-text-field
+              v-else-if="header.type === 'text'"
+              v-bind="vInputBind"
+              v-model="columnSearches[header.key]"
+              :label="header.title"
+            />
+            <v-select
+              v-else-if="header.type === 'boolean'"
+              v-bind="vInputBind"
+              v-model="columnSearches[header.key]"
+              :label="header.title"
+              :items="booleanOptions"
+            />
+            <v-text-field
+              v-else-if="header.type === 'number'"
+              v-bind="vInputBind"
+              v-model="columnSearches[header.key]"
+              :label="header.title"
+              type="number"
+            />
           </td>
         </tr>
       </template>
       <template #[`item.t_dp_tot`]="{ item }">
         <template v-if="item.t_dp_tot">{{ item.t_dp_tot }}</template>
       </template>
-    </v-data-table>
+    </v-data-table-server>
     <v-card-actions>
       <v-btn
         color="primary"
-        :disabled="
-          selectedItems.length === 0 || selectedItems.length > maxDownloadCount
-        "
-        text
+        :disabled="selectedItems.length === 0 || selectedItems.length > maxDownloadCount"
+        :prepend-icon="mdiDownload"
         @click="downloadZip"
       >
-        <v-icon left>mdi-download</v-icon>
         Download ({{ selectedItems.length }}/{{ totalCount }})
       </v-btn>
-      <v-btn color="primary" :disabled="!hasFilters" text @click="shareUrl">
-        <v-icon left>mdi-share</v-icon>
+      <v-btn color="primary" :disabled="!hasFilters" :prepend-icon="mdiShare" @click="shareUrl">
         Share
       </v-btn>
     </v-card-actions>
@@ -343,7 +307,20 @@ function downloadZip(): void {
 </template>
 
 <style lang="scss" scoped>
-:deep(.v-data-table__wrapper) > table > tbody > tr:hover {
+:deep(.v-table__wrapper) > table > tbody > tr:hover {
   cursor: pointer;
+}
+
+.table-input.v-select {
+  height: 48px;
+}
+
+table > tr > td {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+:deep(.v-list-item-title) {
+  min-width: 200px;
 }
 </style>

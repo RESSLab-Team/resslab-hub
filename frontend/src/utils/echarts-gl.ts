@@ -1,87 +1,78 @@
-import { TitleComponentOption, TooltipComponentOption } from "echarts";
-import { ECBasicOption } from "echarts/types/dist/shared";
-
-declare module "echarts-gl/charts" {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface SurfaceChart {}
-}
-declare module "echarts-gl/components" {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface Grid3DComponent {}
-}
+import type { TitleComponentOption, TooltipComponentOption } from 'echarts'
+import type { ECBasicOption } from 'echarts/types/dist/shared'
 
 /**
  * https://echarts.apache.org/en/option-gl.html
  */
 export interface EChartsGlOption extends ECBasicOption {
-  title?: TitleComponentOption;
-  tooltip?: TooltipComponentOption;
+  title?: TitleComponentOption
+  tooltip?: TooltipComponentOption
   grid3D?: {
     viewControl?: {
-      zoomSensitivity?: number;
-      distance?: number;
-    };
-  };
-  xAxis3D?: Axis3D;
-  yAxis3D?: Axis3D;
-  zAxis3D?: Axis3D;
-  series?: SurfaceSeries[];
+      zoomSensitivity?: number
+      distance?: number
+    }
+  }
+  xAxis3D?: Axis3D
+  yAxis3D?: Axis3D
+  zAxis3D?: Axis3D
+  series?: SurfaceSeries[]
 }
 
 interface Axis3D {
-  show?: boolean;
-  name?: string;
+  show?: boolean
+  name?: string
   nameTextStyle?: {
-    fontSize?: number;
-  };
-  min?: number | "dataMin";
-  max?: number | "dataMax";
+    fontSize?: number
+  }
+  min?: number | 'dataMin'
+  max?: number | 'dataMax'
   axisLabel?: {
-    show?: boolean;
-    margin?: number;
-    formatter?: string | ((value: number) => string);
-  };
+    show?: boolean
+    margin?: number
+    formatter?: string | ((value: number) => string)
+  }
 }
 
 interface SurfaceSeries {
-  type: "surface";
-  name?: string;
-  parametric?: boolean;
+  type: 'surface'
+  name?: string
+  parametric?: boolean
   wireframe?: {
-    show?: boolean;
+    show?: boolean
     lineStyle?: {
-      color?: string;
-      opacity?: number;
-      width?: number;
-    };
-  };
+      color?: string
+      opacity?: number
+      width?: number
+    }
+  }
   equation?: {
-    x?: EquationValue;
-    y?: EquationValue;
-    z?: (x: number, y: number) => number;
-  };
+    x?: EquationValue
+    y?: EquationValue
+    z?: (x: number, y: number) => number
+  }
   parametricEquation?: {
-    u: EquationValue;
-    v: EquationValue;
-    x: ParametricEquationValue;
-    y: ParametricEquationValue;
-    z: ParametricEquationValue;
-  };
+    u: EquationValue
+    v: EquationValue
+    x: ParametricEquationValue
+    y: ParametricEquationValue
+    z: ParametricEquationValue
+  }
   itemStyle?: {
-    color?: string;
-    opacity?: number;
-  };
-  data?: [number, number, number][];
-  shading?: "color" | "lambert" | "realistic";
-  silent?: boolean;
+    color?: string
+    opacity?: number
+  }
+  data?: [number, number, number][]
+  shading?: 'color' | 'lambert' | 'realistic'
+  silent?: boolean
   // not in docs
-  dataShape?: [number, number];
+  dataShape?: [number, number]
 }
 
 interface EquationValue {
-  step?: number;
-  min?: number;
-  max?: number;
+  step?: number
+  min?: number
+  max?: number
 }
 
-type ParametricEquationValue = (u: number, v: number) => number;
+type ParametricEquationValue = (u: number, v: number) => number

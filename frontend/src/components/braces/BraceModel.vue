@@ -1,138 +1,130 @@
 <script setup lang="ts">
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import SectionSelector from "@/components/commons/SectionSelector.vue";
-import UnitSlider, {
-  Variable,
-} from "@/components/commons/sliders/UnitSlider.vue";
-import { publicPath, Section } from "@/utils/common";
-import { primaryColor, SelectItem } from "@/utils/vuetify";
-import { EChartsOption } from "echarts";
-import UnitChart from "@/components/commons/charts/UnitChart.vue";
-import { computed, reactive, ref, watch } from "vue";
-import { variableBind } from "@/utils/model";
-import TitleRow from "@/components/commons/TitleRow.vue";
+import UnitChart from '@/components/commons/charts/UnitChart.vue'
+import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import SectionSelector from '@/components/commons/SectionSelector.vue'
+import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
+import TitleRow from '@/components/commons/TitleRow.vue'
+import { publicPath, type Section } from '@/utils/common'
+import { variableBind } from '@/utils/model'
+import { primaryColor, type SelectItem } from '@/utils/vuetify'
+import type { EChartsOption } from 'echarts'
+import { computed, reactive, ref, watch } from 'vue'
 
-type SteelType = "S235" | "S275" | "S355" | "S420" | "S460";
-type Option =
-  | "wide-flange"
-  | "double-c"
-  | "double-l"
-  | "round"
-  | "square"
-  | "l-shape";
+type SteelType = 'S235' | 'S275' | 'S355' | 'S420' | 'S460'
+type Option = 'wide-flange' | 'double-c' | 'double-l' | 'round' | 'square' | 'l-shape'
 interface Result {
-  delta_y: number;
-  delta_ut: number;
-  Nple: number;
-  delta_c: number;
-  delta_ub: number;
-  Nbe: number;
-  Nu_c: number;
+  delta_y: number
+  delta_ut: number
+  Nple: number
+  delta_c: number
+  delta_ub: number
+  Nbe: number
+  Nu_c: number
 }
 
-const steelTypes: SteelType[] = ["S235", "S275", "S355", "S420", "S460"];
+const steelTypes: SteelType[] = ['S235', 'S275', 'S355', 'S420', 'S460']
 const options: SelectItem<Option>[] = [
   {
-    text: "Wide-Flange",
-    value: "wide-flange",
+    title: 'Wide-Flange',
+    value: 'wide-flange'
   },
   {
-    text: "Double C-shape",
-    value: "double-c",
-    disabled: true,
+    title: 'Double C-shape',
+    value: 'double-c',
+    disabled: true
   },
   {
-    text: "Double L-shape",
-    value: "double-l",
-    disabled: true,
+    title: 'Double L-shape',
+    value: 'double-l',
+    disabled: true
   },
   {
-    text: "Round",
-    value: "round",
-    disabled: true,
+    title: 'Round',
+    value: 'round',
+    disabled: true
   },
   {
-    text: "Square or Rectangular",
-    value: "square",
-    disabled: true,
+    title: 'Square or Rectangular',
+    value: 'square',
+    disabled: true
   },
   {
-    text: "L-shape",
-    value: "l-shape",
-    disabled: true,
-  },
-];
+    title: 'L-shape',
+    value: 'l-shape',
+    disabled: true
+  }
+]
 const steelShapeDimensions: Variable<keyof Variables>[] = [
   {
-    key: "bf",
-    text: "b<sub>f</sub>",
-    unit: "mm",
+    key: 'bf',
+    text: 'b<sub>f</sub>',
+    unit: 'mm',
     min: 100,
-    max: 500,
+    max: 500
   },
-  { key: "d", text: "d", unit: "mm", min: 100, max: 2000 },
+  { key: 'd', text: 'd', unit: 'mm', min: 100, max: 2000 },
   {
-    key: "tf",
-    text: "t<sub>f</sub>",
-    unit: "mm",
+    key: 'tf',
+    text: 't<sub>f</sub>',
+    unit: 'mm',
     min: 5,
-    max: 100,
+    max: 100
   },
   {
-    key: "tw",
-    text: "t<sub>w</sub>",
-    unit: "mm",
+    key: 'tw',
+    text: 't<sub>w</sub>',
+    unit: 'mm',
     min: 5,
-    max: 100,
-  },
-];
+    max: 100
+  }
+]
 const steelTypeVariables: Variable<keyof Variables>[] = [
   {
-    key: "omega",
-    text: "Ω",
+    key: 'omega',
+    text: 'Ω',
     min: 1,
-    max: 2,
+    max: 2
   },
   {
-    key: "fy",
-    text: "fy",
-    unit: "MPa",
+    key: 'fy',
+    text: 'fy',
+    unit: 'MPa',
     min: 250,
-    max: 500,
-  },
-];
+    max: 500
+  }
+]
 const additionalParameterVariables: Variable<keyof Variables>[] = [
   {
-    key: "lee",
-    text: "Lee",
+    key: 'lee',
+    text: 'Lee',
     min: 1000,
-    max: 12000,
+    max: 12000
   },
   {
-    key: "lcr",
-    text: "Lcr",
+    key: 'lcr',
+    text: 'Lcr',
     min: 1000,
-    max: 12000,
-  },
-];
+    max: 12000
+  }
+]
 
-const section = ref<Section>();
-const steelType = ref<SteelType>();
-const option = ref<Option>("wide-flange");
+const section = ref<Section>()
+const steelType = ref<SteelType>()
+const option = ref<Option>('wide-flange')
 
-const e = 210000;
-const a = 10000;
-const iz = 10000;
-const iy = 1000000;
+const e = 210000
+const a = 10000
+const iz = 10000
+const iy = 1000000
 interface Variables {
-  bf: number;
-  d: number;
-  tf: number;
-  tw: number;
-  omega: number;
-  fy: number;
-  lee: number;
-  lcr: number;
+  bf: number
+  d: number
+  tf: number
+  tw: number
+  omega: number
+  fy: number
+  lee: number
+  lcr: number
 }
 const variables = reactive<Variables>({
   bf: 100,
@@ -142,85 +134,85 @@ const variables = reactive<Variables>({
   omega: 1,
   fy: 250,
   lee: 8000,
-  lcr: 8000,
-});
+  lcr: 8000
+})
 
 watch(
   steelType,
   (value) => {
     switch (value) {
-      case "S235":
-        variables.omega = 1.45;
-        variables.fy = 235;
-        return;
-      case "S275":
-        variables.omega = 1.35;
-        variables.fy = 275;
-        return;
-      case "S355":
-        variables.omega = 1.25;
-        variables.fy = 255;
-        return;
-      case "S420":
-        variables.omega = 1.25;
-        variables.fy = 420;
-        return;
-      case "S460":
-        variables.omega = 1.2;
-        variables.fy = 460;
-        return;
+      case 'S235':
+        variables.omega = 1.45
+        variables.fy = 235
+        return
+      case 'S275':
+        variables.omega = 1.35
+        variables.fy = 275
+        return
+      case 'S355':
+        variables.omega = 1.25
+        variables.fy = 255
+        return
+      case 'S420':
+        variables.omega = 1.25
+        variables.fy = 420
+        return
+      case 'S460':
+        variables.omega = 1.2
+        variables.fy = 460
+        return
     }
   },
   {
-    immediate: true,
+    immediate: true
   }
-);
+)
 
 const result = computed<Result>(() => {
-  const { omega, fy, lcr } = variables;
+  const { omega, fy, lcr } = variables
 
-  const Imin = Math.min(iz, iy);
-  const i = Math.sqrt(Imin / a);
+  const Imin = Math.min(iz, iy)
+  const i = Math.sqrt(Imin / a)
 
-  let lamda_f: number;
-  let lamda_CL1: number;
+  let lamda_f: number
+  let lamda_CL1: number
   switch (option.value) {
-    case "wide-flange": {
-      const c = 10;
-      const t = 2;
-      lamda_f = c / t;
-      lamda_CL1 = 9 * Math.sqrt(235 / fy);
-      break;
+    case 'wide-flange': {
+      const c = 10
+      const t = 2
+      lamda_f = c / t
+      lamda_CL1 = 9 * Math.sqrt(235 / fy)
+      break
     }
     default:
-      throw new Error(`Unhandled ${option.value}`);
+      throw new Error(`Unhandled ${option.value}`)
   }
-  const NbRd = 1;
-  const NplRd = 1;
-  const Nple = omega * NplRd;
-  const Nbe = omega * NbRd;
-  const Nu_c = 0.2 * omega * NbRd;
-  const delta_y = 1;
-  const delta_c = 1;
+  const NbRd = 1
+  const NplRd = 1
+  const Nple = omega * NplRd
+  const Nbe = omega * NbRd
+  const Nu_c = 0.2 * omega * NbRd
+  const delta_y = 1
+  const delta_c = 1
 
-  let delta_ub: number;
-  let delta_ut: number;
+  let delta_ub: number
+  let delta_ut: number
   switch (option.value) {
-    case "wide-flange": {
+    case 'wide-flange': {
       delta_ub =
         5.6 *
         Math.pow(lamda_f / lamda_CL1, -1.7) *
         Math.pow((lcr / i) * Math.sqrt((omega * fy) / e), 0.4) *
-        delta_c;
+        delta_c
       delta_ut =
         3.4 *
         Math.pow(lamda_f / lamda_CL1, -1.7) *
         Math.pow((lcr / i) * Math.sqrt((omega * fy) / e), 0.4) *
-        delta_y;
-      break;
+        delta_y
+      break
     }
     default:
-      throw new Error(`Unhandled ${option.value}`);
+      throw new Error(`Unhandled ${option.value}`)
   }
 
   return {
@@ -230,88 +222,88 @@ const result = computed<Result>(() => {
     delta_c: delta_c,
     delta_ub: delta_ub,
     Nbe: Nbe,
-    Nu_c: Nu_c,
-  };
-});
+    Nu_c: Nu_c
+  }
+})
 
 function onSectionChanged(value?: Section): void {
-  section.value = value;
+  section.value = value
   if (value) {
-    variables.bf = value.bf;
-    variables.d = value.d;
-    variables.tf = value.tf;
-    variables.tw = value.tw;
+    variables.bf = value.bf
+    variables.d = value.d
+    variables.tf = value.tf
+    variables.tw = value.tw
   }
 }
 
 function getTensionOption(result: Result): EChartsOption {
   return {
     xAxis: {
-      name: "Normalized Axial Displacement, δ / δy",
-      max: 1.2 * result.delta_ut,
+      name: 'Normalized Axial Displacement, δ / δy',
+      max: 1.2 * result.delta_ut
     },
     yAxis: {
-      name: "Normalized Axial Resistance, Nt / N",
-      max: 1.2 * result.Nple,
+      name: 'Normalized Axial Resistance, Nt / N',
+      max: 1.2 * result.Nple
     },
     series: [
       {
-        type: "line",
+        type: 'line',
         data: [
           [0, 0],
           [result.delta_y, result.Nple],
-          [result.delta_ut, result.Nple],
+          [result.delta_ut, result.Nple]
         ],
-        color: primaryColor.base,
+        color: primaryColor.base
       },
       {
-        type: "line",
+        type: 'line',
         data: [
           [result.delta_ut, result.Nple],
-          [result.delta_ut, 0],
+          [result.delta_ut, 0]
         ],
         color: primaryColor.base,
         lineStyle: {
-          type: "dashed",
-        },
-      },
-    ],
-  };
+          type: 'dashed'
+        }
+      }
+    ]
+  }
 }
 
 function getCompressionOption(result: Result): EChartsOption {
   return {
     xAxis: {
-      name: "Normalized Axial Displacement, δ / δb",
-      max: 1.2 * result.delta_ub,
+      name: 'Normalized Axial Displacement, δ / δb',
+      max: 1.2 * result.delta_ub
     },
     yAxis: {
-      name: "Normalized Axial Resistance, Nc / N",
-      max: 1.2 * result.Nbe,
+      name: 'Normalized Axial Resistance, Nc / N',
+      max: 1.2 * result.Nbe
     },
     series: [
       {
-        type: "line",
+        type: 'line',
         data: [
           [0, 0],
           [result.delta_c, result.Nbe],
-          [result.delta_ub, result.Nu_c],
+          [result.delta_ub, result.Nu_c]
         ],
-        color: primaryColor.base,
+        color: primaryColor.base
       },
       {
-        type: "line",
+        type: 'line',
         data: [
           [result.delta_ub, result.Nu_c],
-          [result.delta_ub, 0],
+          [result.delta_ub, 0]
         ],
         color: primaryColor.base,
         lineStyle: {
-          type: "dashed",
-        },
-      },
-    ],
-  };
+          type: 'dashed'
+        }
+      }
+    ]
+  }
 }
 </script>
 
@@ -321,10 +313,9 @@ function getCompressionOption(result: Result): EChartsOption {
       <title-row>
         <h1>Component Model for Steel Bracings</h1>
         <p>
-          This web-based interactive interface computes the basic parameters for
-          predictive modeling of steel bracings based on their basic material
-          and geometric properties. For further information refer to Eurocode 8
-          Part 3.
+          This web-based interactive interface computes the basic parameters for predictive modeling
+          of steel bracings based on their basic material and geometric properties. For further
+          information refer to Eurocode 8 Part 3.
         </p>
       </title-row>
     </v-col>
@@ -332,9 +323,7 @@ function getCompressionOption(result: Result): EChartsOption {
       <v-card>
         <v-card-title>
           Select Cross Section Type
-          <info-tooltip>
-            Select the cross-sectional shape of the bracing member
-          </info-tooltip>
+          <info-tooltip> Select the cross-sectional shape of the bracing member </info-tooltip>
         </v-card-title>
         <v-card-text>
           <v-row>
@@ -353,18 +342,14 @@ function getCompressionOption(result: Result): EChartsOption {
         <v-card-title>
           Select Steel Profile
           <info-tooltip>
-            Here, you may choose to either select a W-Shape from the AISC
-            database or input your own dimensions using the sliders below
+            Here, you may choose to either select a W-Shape from the AISC database or input your own
+            dimensions using the sliders below
           </info-tooltip>
         </v-card-title>
         <v-card-text>
           <section-selector @update:section="onSectionChanged($event)" />
           <v-row>
-            <v-col
-              v-for="item in steelShapeDimensions"
-              :key="item.key"
-              v-bind="variableBind"
-            >
+            <v-col v-for="item in steelShapeDimensions" :key="item.key" v-bind="variableBind">
               <unit-slider
                 v-model="variables[item.key]"
                 :disabled="!!section"
@@ -379,8 +364,8 @@ function getCompressionOption(result: Result): EChartsOption {
         <v-card-title>
           Steel Type
           <info-tooltip>
-            Select a standard steel grade or specify manually the material
-            overstrength (Omega) and the nominal yield strength, fy)
+            Select a standard steel grade or specify manually the material overstrength (Omega) and
+            the nominal yield strength, fy)
           </info-tooltip>
         </v-card-title>
         <v-card-text>
@@ -397,11 +382,7 @@ function getCompressionOption(result: Result): EChartsOption {
             </v-col>
           </v-row>
           <v-row>
-            <v-col
-              v-for="item in steelTypeVariables"
-              :key="item.key"
-              v-bind="variableBind"
-            >
+            <v-col v-for="item in steelTypeVariables" :key="item.key" v-bind="variableBind">
               <unit-slider
                 v-model="variables[item.key]"
                 :disabled="!!steelType"
@@ -416,8 +397,8 @@ function getCompressionOption(result: Result): EChartsOption {
         <v-card-title>
           Associated Member Lengths
           <info-tooltip>
-            Specify the associated member lengths as defined in the definition
-            in the upper left corner
+            Specify the associated member lengths as defined in the definition in the upper left
+            corner
           </info-tooltip>
         </v-card-title>
         <v-card-text>

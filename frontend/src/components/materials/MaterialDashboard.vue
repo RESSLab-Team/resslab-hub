@@ -1,27 +1,19 @@
 <script setup lang="ts">
-import { MaterialField, MaterialModel } from "@/backend";
-import InfoTooltip from "@/components/commons/InfoTooltip.vue";
-import MaterialDoubleChart from "@/components/materials/charts/MaterialDoubleChart.vue";
-import MaterialParallelChart from "@/components/materials/charts/MaterialParallelChart.vue";
-import MaterialSingleChart from "@/components/materials/charts/MaterialSingleChart.vue";
-import MaterialDetail from "@/components/materials/MaterialDetail.vue";
-import MaterialTable from "@/components/materials/MaterialTable.vue";
-import { DoubleFields, ParallelField } from "@/composables/chart";
-import { useDashboard } from "@/composables/dashboard";
-import { useRoute } from "vue-router/composables";
-import colors from "vuetify/lib/util/colors";
+import { MaterialField, type MaterialModel } from '@/backend'
+import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import MaterialDoubleChart from '@/components/materials/charts/MaterialDoubleChart.vue'
+import MaterialParallelChart from '@/components/materials/charts/MaterialParallelChart.vue'
+import MaterialSingleChart from '@/components/materials/charts/MaterialSingleChart.vue'
+import MaterialDetail from '@/components/materials/MaterialDetail.vue'
+import MaterialTable from '@/components/materials/MaterialTable.vue'
+import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { useDashboard } from '@/composables/dashboard'
+import { useRoute } from 'vue-router'
+import colors from 'vuetify/lib/util/colors'
 
-const route = useRoute();
-const {
-  clickTableRow,
-  closeDetail,
-  item,
-  query,
-  search,
-  searches,
-  changeSearches,
-  updatePage,
-} = useDashboard<MaterialModel>(route, MaterialField);
+const route = useRoute()
+const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
+  useDashboard<MaterialModel>(route, MaterialField)
 
 const parallelFields: ParallelField<MaterialField>[] = [
   { id: MaterialField.Type },
@@ -29,21 +21,18 @@ const parallelFields: ParallelField<MaterialField>[] = [
   {
     id: {
       dividend: MaterialField.YieldStressMpa,
-      divisor: MaterialField.FyNMpa,
-    },
+      divisor: MaterialField.FyNMpa
+    }
   },
   { id: MaterialField.FractureStrain },
-  { id: MaterialField.Thickness },
-];
-const profileFields: DoubleFields<MaterialField> = [
-  MaterialField.Date,
-  MaterialField.Profile,
-];
+  { id: MaterialField.Thickness }
+]
+const profileFields: DoubleFields<MaterialField> = [MaterialField.Date, MaterialField.Profile]
 const profileThicknessFields: DoubleFields<MaterialField> = [
   MaterialField.Thickness,
-  MaterialField.Profile,
-];
-const steelField = MaterialField.Type;
+  MaterialField.Profile
+]
+const steelField = MaterialField.Type
 </script>
 
 <template>
@@ -52,8 +41,8 @@ const steelField = MaterialField.Type;
       <v-row>
         <v-col cols="12">
           <material-table
-            :search.sync="search"
-            :searches.sync="searches"
+            v-model:search="search"
+            v-model:searches="searches"
             :query="query"
             @click:row="clickTableRow"
             @update:page="updatePage"

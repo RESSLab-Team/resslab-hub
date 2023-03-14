@@ -1,38 +1,36 @@
 <script setup lang="ts">
-import { defineProps, defineEmits, computed, withDefaults } from "vue";
+import { computed, withDefaults } from 'vue'
 
-interface LegendItem {
-  selected: boolean;
-  label: string;
-  color: string;
-  icon: string;
+export interface LegendItem {
+  selected: boolean
+  label: string
+  color: string
+  icon: string
 }
 function getClass(index: number): string {
-  return `legend-checkbox ${
-    props.separatorsIndex.includes(index) ? "mt-4" : "mt-0"
-  }`;
+  return `legend-checkbox ${props.separatorsIndex.includes(index) ? 'mt-4' : 'mt-0'}`
 }
 
 const props = withDefaults(
   defineProps<{
-    value?: LegendItem[];
-    separatorsIndex?: number[];
+    modelValue?: LegendItem[]
+    separatorsIndex?: number[]
   }>(),
   {
-    value: () => [],
-    separatorsIndex: () => [],
+    modelValue: () => [],
+    separatorsIndex: () => []
   }
-);
-const emit = defineEmits(["update:value"]);
+)
+const emit = defineEmits(['update:modelValue'])
 
 const items = computed({
   get() {
-    return props.value;
+    return props.modelValue
   },
   set(items) {
-    emit("update:value", items);
-  },
-});
+    emit('update:modelValue', items)
+  }
+})
 </script>
 
 <template>
