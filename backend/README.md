@@ -28,8 +28,8 @@ make database-revision name="TODO revision name"
 # Manually upgrade database (automatically run at startup)
 make database-upgrade
 
-# Downgrade https://alembic.sqlalchemy.org/en/latest/tutorial.html#downgrading
-make database-downgrade revision=
+# Downgrade to last revision (runs downgrade -1)
+make database-downgrade
 ```
 
 ## Upload data

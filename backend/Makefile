@@ -20,7 +20,7 @@ database-upgrade-prod:
 	ENV_FOR_DYNACONF=production $(MAKE) database-upgrade
 
 database-downgrade:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic downgrade $(revision)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic downgrade -1
 
 database-revision:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic revision --autogenerate -m "$(name)"
