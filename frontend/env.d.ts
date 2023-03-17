@@ -15,6 +15,7 @@ declare module 'echarts-gl/components' {
   declare function Grid3DComponent(registers: EChartsExtensionInstallRegisters): void
 }
 
+// https://vuetifyjs.com/en/styles/colors/#javascript-color-pack
 declare module 'vuetify/lib/util/colors'
 
 declare module '@/assets/connection/*-sections.csv' {

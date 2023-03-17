@@ -423,7 +423,7 @@ function getCompressionOption(result: Result): EChartsOption {
     <v-col cols="6">
       <v-row class="justify-center">
         <v-col cols="8">
-          <v-img contain :src="publicPath + 'img/brace/I_shaped_Bracing.png'" />
+          <v-img :src="publicPath + 'img/brace/I_shaped_Bracing.png'" />
         </v-col>
         <v-col cols="6">
           <v-card>

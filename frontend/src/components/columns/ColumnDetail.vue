@@ -94,7 +94,7 @@ watch(
           </property-item>
         </v-col>
         <v-col cols="6">
-          <v-img contain max-height="256" :src="imageSrc" />
+          <v-img max-height="256" :src="imageSrc" />
         </v-col>
       </v-row>
     </template>

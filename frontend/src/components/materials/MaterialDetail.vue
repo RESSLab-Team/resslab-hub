@@ -158,7 +158,7 @@ watch(
           </p>
         </v-col>
         <v-col cols="6">
-          <v-img contain :src="publicPath + 'img/material/detail.png'" />
+          <v-img :src="publicPath + 'img/material/detail.png'" />
         </v-col>
       </v-row>
       <v-row>

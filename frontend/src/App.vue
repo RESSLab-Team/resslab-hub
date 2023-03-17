@@ -83,7 +83,7 @@ notificationStore.$subscribe((_, state) => {
                 {{ item.text }}
               </v-tab>
             </template>
-            <v-list>
+            <v-list density="compact" nav>
               <v-list-item v-for="subItem in item.children" :key="subItem.to">
                 <v-tab
                   :to="item.to + subItem.to"
@@ -125,5 +125,17 @@ notificationStore.$subscribe((_, state) => {
 .v-toolbar__title {
   overflow: unset;
   text-transform: none;
+}
+
+.v-list {
+  padding: 0;
+  > .v-list-item {
+    padding: 0;
+    > .v-list-item__content > .v-tab {
+      height: 40px;
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
 }
 </style>

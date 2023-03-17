@@ -167,14 +167,14 @@ function getImageSource(item: string): string {
         </ul>
       </info-tooltip>
     </template>
-    <!-- FIXME <template #[`header-select-item.connection_type`]="{ item }">
-      <v-list-item v-slot="{ isActive }">
-        <v-list-item-action>
-          <v-checkbox :value="isActive" />
-        </v-list-item-action>
-        <v-img contain max-height="128" max-width="128" :src="getImageSource(item.value)" />
-        <span class="ma-2">{{ item.value }}</span>
+    <!-- eslint-disable-next-line vue/no-template-shadow -->
+    <template #[`header-select-item.connection_type`]="{ props }">
+      <v-list-item v-bind="props" @click="props.onClick">
+        <template #prepend="{ isSelected }">
+          <v-checkbox hide-details :model-value="isSelected" :ripple="false" />
+          <v-img max-height="128" width="128" :src="getImageSource(props.value)" />
+        </template>
       </v-list-item>
-    </template> -->
+    </template>
   </simple-table>
 </template>

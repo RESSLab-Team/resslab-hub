@@ -637,8 +637,8 @@ function option(backbone: Result, envelope: Result): EChartsOption {
       </v-row>
     </v-col>
     <v-col cols="6">
-      <v-img contain height="200px" :src="publicPath + 'img/connection/component-1.png'" />
-      <v-img contain height="200px" :src="publicPath + 'img/connection/component-2.png'" />
+      <v-img height="200px" :src="publicPath + 'img/connection/component-1.png'" />
+      <v-img height="200px" :src="publicPath + 'img/connection/component-2.png'" />
     </v-col>
     <v-col cols="6">
       <v-row>

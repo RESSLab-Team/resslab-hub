@@ -61,6 +61,7 @@ const vInputBind = {
   clearable: true,
   density: 'compact' as 'compact',
   hideDetails: true,
+  singleLine: true,
   variant: 'underlined' as 'underlined'
 }
 const checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
@@ -253,8 +254,16 @@ function downloadZip(): void {
               :multiple="header.multiple"
               :items="header.options"
             >
-              <template v-if="$slots[`header-select-item.${header.key}`]" #item="{ item }">
-                <slot :name="`header-select-item.${header.key}`" :item="item" />
+              <template
+                v-if="$slots[`header-select-item.${header.key}`]"
+                #item="{ item, index, props }"
+              >
+                <slot
+                  :name="`header-select-item.${header.key}`"
+                  :item="item"
+                  :index="index"
+                  :props="props"
+                />
               </template>
             </v-select>
             <v-text-field
@@ -309,10 +318,6 @@ function downloadZip(): void {
 <style lang="scss" scoped>
 :deep(.v-table__wrapper) > table > tbody > tr:hover {
   cursor: pointer;
-}
-
-.table-input.v-select {
-  height: 48px;
 }
 
 table > tr > td {

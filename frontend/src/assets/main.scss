@@ -1,14 +1,20 @@
-.v-list-item__content {
-  > .v-tab {
-    height: 48px;
-    width: 100%;
-    justify-content: flex-start;
-    padding: 0;
+.v-card {
+  a {
+    color: black;
   }
 }
 
-.v-list-item-title {
-  min-width: 128px;
+.v-list-item__content {
+  overflow: unset;
+}
+
+.v-input__control {
+  height: 40px;
+}
+
+// Firefox scrolling issue
+.v-list-item {
+  margin-right: 1px;
 }
 
 // https://www.w3schools.com/howto/howto_css_hide_arrow_number.asp
