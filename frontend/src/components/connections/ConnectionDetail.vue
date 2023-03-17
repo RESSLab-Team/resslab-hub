@@ -122,7 +122,7 @@ watch(
           </p>
         </v-col>
         <v-col v-if="specimenTypeImageSrc" cols="6">
-          <v-img contain :src="specimenTypeImageSrc" max-height="160" />
+          <v-img :src="specimenTypeImageSrc" max-height="160" />
         </v-col>
       </v-row>
       <template v-if="connection.slab">

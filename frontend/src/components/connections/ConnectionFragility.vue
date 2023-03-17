@@ -193,11 +193,7 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
         </v-card-text>
       </v-card>
       <v-col cols="12">
-        <v-img
-          contain
-          height="300px"
-          :src="publicPath + 'img/connection/connection_fragility.png'"
-        />
+        <v-img height="300px" :src="publicPath + 'img/connection/connection_fragility.png'" />
       </v-col>
     </v-col>
     <v-col cols="4">

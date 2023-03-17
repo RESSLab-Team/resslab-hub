@@ -214,7 +214,7 @@ onMounted(() => {
     </v-row>
     <v-row>
       <v-col cols="12">
-        <v-card class="pa-5 white--text" color="secondary">
+        <v-card class="pa-5" color="secondary">
           <v-row>
             <v-col
               v-for="(item, index) in indicators"
@@ -259,7 +259,7 @@ onMounted(() => {
     <v-row class="my-10">
       <v-col v-for="(logo, index) in logos" :key="index">
         <a :href="logo.url" target="_blank">
-          <v-img contain :src="logo.src" max-height="64" />
+          <v-img :src="logo.src" max-height="64" />
         </a>
       </v-col>
     </v-row>

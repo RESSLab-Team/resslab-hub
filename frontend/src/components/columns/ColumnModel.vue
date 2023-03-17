@@ -450,7 +450,7 @@ function getTableColumns(...results: Result[]): Record<string, number | undefine
       </v-row>
     </v-col>
     <v-col cols="6">
-      <v-img contain height="400px" :src="publicPath + 'img/column/component.png'" />
+      <v-img height="400px" :src="publicPath + 'img/column/component.png'" />
     </v-col>
     <v-col cols="6">
       <v-row justify="center">
