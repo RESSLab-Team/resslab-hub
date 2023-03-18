@@ -7,7 +7,6 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from resslab_hub.models.api import (
@@ -16,7 +15,6 @@ from resslab_hub.models.api import (
     ConnectionNumberField,
     CountModel,
     FieldsModel,
-    LocationConnectionsModel,
     MatrixModel,
     RangeModel,
 )
@@ -109,32 +107,6 @@ async def get_connections(
     Get paginated Connections
     """
     return await component.get_page(session, query, sort_by, sort_desc)
-
-
-@router.get("/locations", response_model=List[LocationConnectionsModel])
-async def get_connections_locations(
-    session: AsyncSession = Depends(get_session),
-):
-    """
-    Get occurences location of field values
-    """
-
-    rows = await session.execute(
-        select(
-            Connection.id,
-            Connection.latitude,
-            Connection.longitude,
-            Connection.date,
-            Connection.experimental_program,
-            Connection.section_b,
-            Connection.section_c,
-            Connection.link,
-            Connection.reference,
-            Connection.connection_type,
-            Connection.specimen_type,
-        )
-    )
-    return [row._mapping for row in rows.all()]
 
 
 @router.get("/fields", response_model=List[FieldsModel])

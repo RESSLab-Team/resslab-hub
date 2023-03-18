@@ -1,12 +1,8 @@
 import {
-  BraceField,
-  ColumnField,
-  ConnectionField,
-  LocationBracesModel,
-  LocationColumnsModel,
-  LocationConnectionsModel,
-  LocationMaterialsModel,
-  MaterialField,
+  BraceModel,
+  ColumnModel,
+  ConnectionModel,
+  MaterialModel,
 } from "@/backend";
 import {
   getBraceImage,
@@ -17,34 +13,86 @@ import {
 import { MarkerSVG, scaleColor, typesNames } from "@/utils/piechart";
 import { divIcon, Marker } from "leaflet";
 
-export const locationCommonFields: (MaterialField &
-  ColumnField &
-  ConnectionField &
-  BraceField)[] = ["id", "link", "date", "reference", "latitude", "longitude"];
-
-export const tooltipConnectionsFields: ConnectionField[] = [
+// First we list all the fields that we want to use in the tooltip
+// We will use these fields as argument fot get_fields api
+export const locationCommonFields = [
+    "id",
+    "link",
+    "date",
+    "reference",
+    "latitude",
+    "longitude",
+  ] as const,
+  locationConnectionFields = [
+    ...locationCommonFields,
     "experimental_program",
     "specimen_type",
     "section_b",
     "section_c",
     "connection_type",
-  ],
-  tooltipBracesFields: BraceField[] = [
+  ] as const,
+  locationBraceFields = [
+    ...locationCommonFields,
     "cross_section_size",
     "investigator",
     "kl_r",
     "boundary_condition",
-  ],
-  tooltipColumnsFields: ColumnField[] = [
+  ] as const,
+  locationColumnFields = [
+    ...locationCommonFields,
     "boundary_condition",
+    "experimental_program",
     "axial_lp",
     "p_g_over_p_ym",
     "section_c",
     "axis_of_bending",
-  ],
-  tooltipMaterialsFields: MaterialField[] = ["profile_type", "profile"];
+  ] as const,
+  locationMaterialFields = [
+    ...locationCommonFields,
+    "profile_type",
+    "profile",
+    "experimental_program",
+  ] as const;
 
-export function createTooltipConnections(d: LocationConnectionsModel) {
+// Then we use the fields list to create fields types for each model
+
+type LocationCommonFields = (typeof locationCommonFields)[number];
+
+type LocationConnectionFields = (typeof locationConnectionFields)[number];
+
+type LocationBraceFields = (typeof locationBraceFields)[number];
+
+type LocationColumnFields = (typeof locationColumnFields)[number];
+
+type LocationMaterialFields = (typeof locationMaterialFields)[number];
+
+// Finally we use Pick to extract type from bigger model type using only the fields we want
+
+export type LocationCommon = Pick<
+  ConnectionModel & BraceModel & MaterialModel & ColumnModel,
+  LocationCommonFields
+>;
+
+export type LocationConnection = Pick<
+  ConnectionModel,
+  LocationConnectionFields
+>;
+
+export type LocationBrace = Pick<BraceModel, LocationBraceFields>;
+
+export type LocationColumn = Pick<ColumnModel, LocationColumnFields>;
+
+export type LocationMaterial = Pick<MaterialModel, LocationMaterialFields>;
+
+export type LocationGlobal =
+  | LocationConnection
+  | LocationBrace
+  | LocationColumn
+  | LocationMaterial;
+
+// Now we use the newly created types for our specific tooltip functions
+
+export function createTooltipConnections(d: LocationConnection) {
   return `<div class="tooltip">
         <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${
     d.date
@@ -67,7 +115,7 @@ export function createTooltipConnections(d: LocationConnectionsModel) {
         </div>`;
 }
 
-export function createTooltipBraces(d: LocationBracesModel) {
+export function createTooltipBraces(d: LocationBrace) {
   return `<div class="tooltip">
         <h3><a target="_blank" href="${d.link}">${d.investigator} (${
     d.date
@@ -88,7 +136,7 @@ export function createTooltipBraces(d: LocationBracesModel) {
         </div>`;
 }
 
-export function createTooltipColumns(d: LocationColumnsModel) {
+export function createTooltipColumns(d: LocationColumn) {
   return `<div class="tooltip">
         <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${
     d.date
@@ -112,7 +160,7 @@ export function createTooltipColumns(d: LocationColumnsModel) {
         </div>`;
 }
 
-export function createTooltipMaterials(d: LocationMaterialsModel) {
+export function createTooltipMaterials(d: LocationMaterial) {
   return `<div class="tooltip">
         <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${
     d.date
@@ -131,23 +179,16 @@ export function createTooltipMaterials(d: LocationMaterialsModel) {
         </div>`;
 }
 
-export function createTooltip(
-  d:
-    | LocationBracesModel
-    | LocationConnectionsModel
-    | LocationColumnsModel
-    | LocationMaterialsModel,
-  type: string
-) {
+export function createTooltip(d: LocationGlobal, type: string) {
   switch (type) {
     case "Connections":
-      return createTooltipConnections(d as LocationConnectionsModel);
+      return createTooltipConnections(d as LocationConnection);
     case "Columns":
-      return createTooltipColumns(d as LocationColumnsModel);
+      return createTooltipColumns(d as LocationColumn);
     case "Braces":
-      return createTooltipBraces(d as LocationBracesModel);
+      return createTooltipBraces(d as LocationBrace);
     case "Materials":
-      return createTooltipMaterials(d as LocationMaterialsModel);
+      return createTooltipMaterials(d as LocationMaterial);
     default:
       return `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`;
   }
@@ -164,15 +205,7 @@ export const icons = new Map(
   ])
 );
 
-export function createMarkers(
-  data: (
-    | LocationBracesModel
-    | LocationConnectionsModel
-    | LocationColumnsModel
-    | LocationMaterialsModel
-  )[],
-  type: string
-) {
+export function createMarkers(data: LocationGlobal[], type: string) {
   return data.map((d) => {
     const marker = new Marker([d.latitude, d.longitude], {
       icon: icons.get(type),

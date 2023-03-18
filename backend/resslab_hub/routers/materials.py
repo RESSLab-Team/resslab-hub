@@ -7,14 +7,12 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from resslab_hub.models.api import (
     CountModel,
     DateRangeModel,
     FieldsModel,
-    LocationMaterialsModel,
     MaterialDateField,
     MaterialField,
     MaterialModel,
@@ -64,30 +62,6 @@ async def get_materials(
     Get paginated Materials
     """
     return await component.get_page(session, query, sort_by, sort_desc)
-
-
-@router.get("/locations", response_model=List[LocationMaterialsModel])
-async def get_materials_locations(
-    session: AsyncSession = Depends(get_session),
-):
-    """
-    Get occurences location of field values
-    """
-
-    rows = await session.execute(
-        select(
-            Material.id,
-            Material.latitude,
-            Material.longitude,
-            Material.date,
-            Material.link,
-            Material.reference,
-            Material.experimental_program,
-            Material.profile,
-            Material.profile_type,
-        )
-    )
-    return [row._mapping for row in rows.all()]
 
 
 @router.get("/fields", response_model=List[FieldsModel])
