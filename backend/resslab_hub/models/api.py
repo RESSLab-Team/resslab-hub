@@ -111,54 +111,6 @@ class DateRangeModel(BaseModel):
     max: date
 
 
-class LocationModel(BaseModel):
-    """
-    Location
-    """
-
-    id: str
-    latitude: Decimal
-    longitude: Decimal
-    reference: str
-    link: Optional[str]
-
-
-class LocationMaterialsModel(LocationModel):
-    # Materials DB uses "DD/MM/YY" instead of "YYYY" int format
-    date: date
-    profile_type: str
-    profile: str
-    experimental_program: str
-
-
-class LocationConnectionsModel(LocationModel):
-    experimental_program: str
-    section_b: str
-    section_c: str
-    connection_type: str
-    specimen_type: str
-    date: int
-
-
-class LocationColumnsModel(LocationModel):
-    experimental_program: str
-    boundary_condition: str
-    axial_lp: str
-    p_g_over_p_ym: Decimal
-    section_c: str
-    axis_of_bending: str
-    direction_lp: str
-    date: int
-
-
-class LocationBracesModel(LocationModel):
-    investigator: str
-    cross_section_size: str
-    kl_r: Decimal
-    boundary_condition: str
-    date: int
-
-
 FieldsModel = Dict[str, Any]
 
 

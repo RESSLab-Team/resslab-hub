@@ -1090,297 +1090,11 @@ export interface Info {
     'version': string;
 }
 /**
- * Location
- * @export
- * @interface LocationBracesModel
- */
-export interface LocationBracesModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationBracesModel
-     */
-    'id': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationBracesModel
-     */
-    'latitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationBracesModel
-     */
-    'longitude': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationBracesModel
-     */
-    'reference': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationBracesModel
-     */
-    'link'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationBracesModel
-     */
-    'investigator': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationBracesModel
-     */
-    'cross_section_size': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationBracesModel
-     */
-    'kl_r': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationBracesModel
-     */
-    'boundary_condition': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationBracesModel
-     */
-    'date': number;
-}
-/**
- * Location
- * @export
- * @interface LocationColumnsModel
- */
-export interface LocationColumnsModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationColumnsModel
-     */
-    'id': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationColumnsModel
-     */
-    'latitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationColumnsModel
-     */
-    'longitude': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationColumnsModel
-     */
-    'reference': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationColumnsModel
-     */
-    'link'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationColumnsModel
-     */
-    'experimental_program': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationColumnsModel
-     */
-    'boundary_condition': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationColumnsModel
-     */
-    'axial_lp': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationColumnsModel
-     */
-    'p_g_over_p_ym': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationColumnsModel
-     */
-    'section_c': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationColumnsModel
-     */
-    'axis_of_bending': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationColumnsModel
-     */
-    'direction_lp': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationColumnsModel
-     */
-    'date': number;
-}
-/**
- * Location
- * @export
- * @interface LocationConnectionsModel
- */
-export interface LocationConnectionsModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationConnectionsModel
-     */
-    'id': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationConnectionsModel
-     */
-    'latitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationConnectionsModel
-     */
-    'longitude': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationConnectionsModel
-     */
-    'reference': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationConnectionsModel
-     */
-    'link'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationConnectionsModel
-     */
-    'experimental_program': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationConnectionsModel
-     */
-    'section_b': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationConnectionsModel
-     */
-    'section_c': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationConnectionsModel
-     */
-    'connection_type': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationConnectionsModel
-     */
-    'specimen_type': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationConnectionsModel
-     */
-    'date': number;
-}
-/**
  * 
  * @export
  * @interface LocationInner
  */
 export interface LocationInner {
-}
-/**
- * Location
- * @export
- * @interface LocationMaterialsModel
- */
-export interface LocationMaterialsModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationMaterialsModel
-     */
-    'id': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationMaterialsModel
-     */
-    'latitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof LocationMaterialsModel
-     */
-    'longitude': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationMaterialsModel
-     */
-    'reference': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationMaterialsModel
-     */
-    'link'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationMaterialsModel
-     */
-    'date': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationMaterialsModel
-     */
-    'profile_type': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationMaterialsModel
-     */
-    'profile': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LocationMaterialsModel
-     */
-    'experimental_program': string;
 }
 /**
  * An enumeration.
@@ -2112,36 +1826,6 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * Get occurences location of field values
-         * @summary Get Braces Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getBracesLocations: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/braces/locations`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * 
          * @summary Get Braces Matrix
          * @param {Array<BraceField>} fields 
@@ -2314,16 +1998,6 @@ export const BracesApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Get occurences location of field values
-         * @summary Get Braces Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getBracesLocations(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<LocationBracesModel>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesLocations(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * 
          * @summary Get Braces Matrix
          * @param {Array<BraceField>} fields 
@@ -2431,15 +2105,6 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
          */
         getBracesFields(fields?: Array<BraceField>, options?: any): AxiosPromise<Array<object>> {
             return localVarFp.getBracesFields(fields, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Get occurences location of field values
-         * @summary Get Braces Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getBracesLocations(options?: any): AxiosPromise<Array<LocationBracesModel>> {
-            return localVarFp.getBracesLocations(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2560,17 +2225,6 @@ export class BracesApi extends BaseAPI {
      */
     public getBracesFields(fields?: Array<BraceField>, options?: AxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesFields(fields, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Get occurences location of field values
-     * @summary Get Braces Locations
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof BracesApi
-     */
-    public getBracesLocations(options?: AxiosRequestConfig) {
-        return BracesApiFp(this.configuration).getBracesLocations(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2867,36 +2521,6 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
             if (fields) {
                 localVarQueryParameter['fields'] = fields;
             }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Get occurences location of field values
-         * @summary Get Columns Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getColumnsLocations: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/columns/locations`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
 
 
     
@@ -3228,16 +2852,6 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Get occurences location of field values
-         * @summary Get Columns Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getColumnsLocations(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<LocationColumnsModel>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsLocations(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * 
          * @summary Get Columns Matrix
          * @param {Array<ColumnField>} fields 
@@ -3391,15 +3005,6 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          */
         getColumnsFields(fields?: Array<ColumnField>, options?: any): AxiosPromise<Array<object>> {
             return localVarFp.getColumnsFields(fields, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Get occurences location of field values
-         * @summary Get Columns Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getColumnsLocations(options?: any): AxiosPromise<Array<LocationColumnsModel>> {
-            return localVarFp.getColumnsLocations(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -3562,17 +3167,6 @@ export class ColumnsApi extends BaseAPI {
      */
     public getColumnsFields(fields?: Array<ColumnField>, options?: AxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsFields(fields, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Get occurences location of field values
-     * @summary Get Columns Locations
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ColumnsApi
-     */
-    public getColumnsLocations(options?: AxiosRequestConfig) {
-        return ColumnsApiFp(this.configuration).getColumnsLocations(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4151,36 +3745,6 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
-         * Get occurences location of field values
-         * @summary Get Connections Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getConnectionsLocations: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/connections/locations`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * 
          * @summary Get Connections Matrix
          * @param {Array<ConnectionField>} fields 
@@ -4495,16 +4059,6 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Get occurences location of field values
-         * @summary Get Connections Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getConnectionsLocations(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<LocationConnectionsModel>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsLocations(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * 
          * @summary Get Connections Matrix
          * @param {Array<ConnectionField>} fields 
@@ -4698,15 +4252,6 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          */
         getConnectionsGlobalWestCsv(connectionId: string, options?: any): AxiosPromise<void> {
             return localVarFp.getConnectionsGlobalWestCsv(connectionId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Get occurences location of field values
-         * @summary Get Connections Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getConnectionsLocations(options?: any): AxiosPromise<Array<LocationConnectionsModel>> {
-            return localVarFp.getConnectionsLocations(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -4923,17 +4468,6 @@ export class ConnectionsApi extends BaseAPI {
      */
     public getConnectionsGlobalWestCsv(connectionId: string, options?: AxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsGlobalWestCsv(connectionId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Get occurences location of field values
-     * @summary Get Connections Locations
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ConnectionsApi
-     */
-    public getConnectionsLocations(options?: AxiosRequestConfig) {
-        return ConnectionsApiFp(this.configuration).getConnectionsLocations(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5330,36 +4864,6 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
-         * Get occurences location of field values
-         * @summary Get Materials Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getMaterialsLocations: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/materials/locations`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
@@ -5593,16 +5097,6 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Get occurences location of field values
-         * @summary Get Materials Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getMaterialsLocations(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<LocationMaterialsModel>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsLocations(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
@@ -5722,15 +5216,6 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          */
         getMaterialsFields(fields?: Array<MaterialField>, options?: any): AxiosPromise<Array<object>> {
             return localVarFp.getMaterialsFields(fields, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Get occurences location of field values
-         * @summary Get Materials Locations
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getMaterialsLocations(options?: any): AxiosPromise<Array<LocationMaterialsModel>> {
-            return localVarFp.getMaterialsLocations(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -5859,17 +5344,6 @@ export class MaterialsApi extends BaseAPI {
      */
     public getMaterialsFields(fields?: Array<MaterialField>, options?: AxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsFields(fields, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Get occurences location of field values
-     * @summary Get Materials Locations
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof MaterialsApi
-     */
-    public getMaterialsLocations(options?: AxiosRequestConfig) {
-        return MaterialsApiFp(this.configuration).getMaterialsLocations(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -2,12 +2,6 @@
 import "leaflet/dist/leaflet.css";
 
 import {
-  LocationBracesModel,
-  LocationColumnsModel,
-  LocationConnectionsModel,
-  LocationMaterialsModel,
-} from "@/backend";
-import {
   PieChart,
   scaleColor,
   scaleRadius,
@@ -34,46 +28,44 @@ import {
 
 import {
   createMarkers,
-  locationCommonFields,
-  tooltipBracesFields,
-  tooltipColumnsFields,
-  tooltipConnectionsFields,
-  tooltipMaterialsFields,
+  locationBraceFields,
+  locationColumnFields,
+  locationConnectionFields,
+  LocationConnection,
+  locationMaterialFields,
+  LocationColumn,
+  LocationBrace,
+  LocationMaterial,
 } from "@/utils/overviewmap";
 
 import { computed, onMounted, ref } from "vue";
 
-const connectionsLocations = ref<LocationConnectionsModel[]>([]);
+const connectionsLocations = ref<LocationConnection[]>([]);
+
 connectionsApi
-  .getConnectionsFields([...locationCommonFields, ...tooltipConnectionsFields])
+  .getConnectionsFields([...locationConnectionFields])
   .then((res) => {
-    connectionsLocations.value = res.data as LocationConnectionsModel[];
+    connectionsLocations.value = res.data as LocationConnection[];
     updateMap();
   });
 
-const columnsLocations = ref<LocationColumnsModel[]>([]);
-columnsApi
-  .getColumnsFields([...locationCommonFields, ...tooltipColumnsFields])
-  .then((res) => {
-    columnsLocations.value = res.data as LocationColumnsModel[];
-    updateMap();
-  });
+const columnsLocations = ref<LocationColumn[]>([]);
+columnsApi.getColumnsFields([...locationColumnFields]).then((res) => {
+  columnsLocations.value = res.data as LocationColumn[];
+  updateMap();
+});
 
-const bracesLocations = ref<LocationBracesModel[]>([]);
-bracesApi
-  .getBracesFields([...locationCommonFields, ...tooltipBracesFields])
-  .then((res) => {
-    bracesLocations.value = res.data as LocationBracesModel[];
-    updateMap();
-  });
+const bracesLocations = ref<LocationBrace[]>([]);
+bracesApi.getBracesFields([...locationBraceFields]).then((res) => {
+  bracesLocations.value = res.data as LocationBrace[];
+  updateMap();
+});
 
-const materialsLocations = ref<LocationMaterialsModel[]>([]);
-materialsApi
-  .getMaterialsFields([...locationCommonFields, ...tooltipMaterialsFields])
-  .then((res) => {
-    materialsLocations.value = res.data as LocationMaterialsModel[];
-    updateMap();
-  });
+const materialsLocations = ref<LocationMaterial[]>([]);
+materialsApi.getMaterialsFields([...locationMaterialFields]).then((res) => {
+  materialsLocations.value = res.data as LocationMaterial[];
+  updateMap();
+});
 
 const dataLength = computed(
   () =>
