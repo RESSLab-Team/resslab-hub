@@ -308,3 +308,52 @@ MaterialDateField = Enum(
     module=__name__,
     type=str,
 )
+
+
+class ResidualStressModel(BaseModel):
+    id: str
+    experimental_program: str
+    date: int
+    profile: str
+    spec_var: Optional[str]
+    steel: str
+    fy_n: Decimal
+    fy_e: Decimal
+    fy_mf: Decimal
+    fy_mw: Decimal
+    h: Decimal
+    b: Decimal
+    tw: Decimal
+    tf: Decimal
+    r: Decimal
+    flange_nr_data = Decimal
+    plot_sf: Decimal
+    reference: str
+    link: Optional[str]
+    latitude: Decimal
+    longitude: Decimal
+
+    qp_coefficient_count: int
+
+    distribution_F1_count: int
+    distribution_F2_count: int
+    distribution_W1_count: int
+
+
+ResidualStressField = Enum(
+    "ResidualStressField",
+    {key: key for key in ResidualStressModel.__fields__},
+    module=__name__,
+    type=str,
+)
+
+ResidualStressNumberField = Enum(
+    "ResidualStressNumberField",
+    {
+        key: key
+        for key, field in ResidualStressModel.__fields__.items()
+        if field.type_ in [Decimal, int]
+    },
+    module=__name__,
+    type=str,
+)

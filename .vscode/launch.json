@@ -71,7 +71,8 @@
         "../../resslab-hub-data/connections/connections.csv",
         "../../resslab-hub-data/columns/steel_columns.csv",
         "../../resslab-hub-data/braces/steel_braces.csv",
-        "../../resslab-hub-data/material/steel_material.csv"
+        "../../resslab-hub-data/material/steel_material.csv",
+        "../../resslab-hub-data/residual_stresses/residual_stresses.csv"
       ],
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env"
