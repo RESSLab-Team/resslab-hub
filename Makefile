@@ -3,13 +3,13 @@ install:
 	$(MAKE) -C backend install
 	$(MAKE) -C frontend install
 
-run-backend:
-	$(MAKE) -C backend run
+dev-backend:
+	$(MAKE) -C backend dev
 
-run-frontend:
-	$(MAKE) -C frontend run
+dev-frontend:
+	$(MAKE) -C frontend dev
 
-run-database:
+dev-database:
 	docker-compose up -d database
 
 test:
@@ -23,7 +23,7 @@ lint:
 update:
 	$(MAKE) -C backend update
 
-deploy:
+run:
 	docker-compose build --parallel --pull
 	docker-compose up --remove-orphans
 

@@ -13,6 +13,16 @@ import type { EChartsOption } from 'echarts'
 import { clamp, omit } from 'lodash'
 import { computed, reactive, ref } from 'vue'
 
+interface Variables {
+  bf: number
+  d: number
+  tf: number
+  tw: number
+  rbsReduction: number
+  l: number
+  lb: number
+  fy: number
+}
 interface Result {
   ke: number
   my: number
@@ -24,7 +34,6 @@ interface Result {
   lamdba?: number
   points: Point[]
 }
-
 interface Envelope {
   my: number
   thetaY: number
@@ -41,7 +50,6 @@ interface Envelope {
   // For debugging
   zRbs?: number
 }
-
 interface Backbone extends Envelope {
   a: number
   lambda: number
@@ -154,16 +162,7 @@ const rows: UnitTableRowData[] = [
 const section = ref<Section>()
 
 const e = 205
-interface Variables {
-  bf: number
-  d: number
-  tf: number
-  tw: number
-  rbsReduction: number
-  l: number
-  lb: number
-  fy: number
-}
+
 const variables = reactive<Variables>({
   bf: 100,
   d: 100,

@@ -1,4 +1,4 @@
-import ColumnComponent from '@/components/columns/ColumnModel.vue'
+import ColumnModel from '@/components/columns/ColumnModel.vue'
 import { shallowMount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
@@ -7,7 +7,7 @@ describe('ColumnComponent.vue', () => {
     const radPrecision = 1
     const mmPrecision = -1
 
-    const wrapper = shallowMount<InstanceType<typeof ColumnComponent>>(ColumnComponent)
+    const wrapper = shallowMount<InstanceType<typeof ColumnModel>>(ColumnModel)
     await wrapper.setData({
       section: {
         id: 'W4x13',
