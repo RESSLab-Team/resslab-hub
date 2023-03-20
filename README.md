@@ -61,14 +61,14 @@ For pkg-config to find openssl@1.1 you may need to set:
 #### CLI
 
 ```bash
-make run-database
+make dev-database
 # postgresql://127.0.0.1:5432
 
-make run-backend
+make dev-backend
 # http://127.0.0.1:8000
 
-make run-frontend
-# http://127.0.0.1:8080
+make dev-frontend
+# http://127.0.0.1:5173
 ```
 
 #### Visual Studio Code
@@ -101,5 +101,5 @@ make api
 ### Locally with Docker Compose
 
 ```bash
-make deploy-local
+make run
 ```

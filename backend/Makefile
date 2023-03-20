@@ -1,7 +1,7 @@
 install:
 	poetry install
 
-run:
+dev:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run uvicorn resslab_hub.main:app --reload
 
 test:

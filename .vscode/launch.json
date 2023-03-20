@@ -5,21 +5,15 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "frontend: run",
+      "name": "frontend-dev-firefox",
       "type": "firefox",
       "request": "launch",
-      "url": "http://localhost:8080",
-      "webRoot": "${workspaceFolder}/frontend/src",
-      "pathMappings": [
-        {
-          "url": "webpack://resslab-hub/src/",
-          "path": "${webRoot}/"
-        }
-      ],
-      "preLaunchTask": "serve-frontend"
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "frontend-dev"
     },
     {
-      "name": "backend: run",
+      "name": "backend-dev",
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
@@ -30,10 +24,10 @@
       "jinja": true,
       "cwd": "${workspaceFolder}/backend",
       "envFile": "${workspaceFolder}/secrets/.env",
-      "preLaunchTask": "run-database"
+      "preLaunchTask": "database-up"
     },
     {
-      "name": "backend: data-uploader-table",
+      "name": "backend-data-uploader-table",
       "type": "python",
       "request": "launch",
       "module": "data.uploader",
@@ -45,7 +39,7 @@
       "envFile": "${workspaceFolder}/secrets/.env"
     },
     {
-      "name": "backend: data-uploader-csv",
+      "name": "backend-data-uploader-csv",
       "type": "python",
       "request": "launch",
       "module": "data.uploader",
@@ -57,7 +51,7 @@
       "envFile": "${workspaceFolder}/secrets/.env"
     },
     {
-      "name": "backend: data-uploader-all",
+      "name": "backend-data-uploader-all",
       "type": "python",
       "request": "launch",
       "module": "data.uploader",
@@ -69,7 +63,7 @@
       "envFile": "${workspaceFolder}/secrets/.env"
     },
     {
-      "name": "backend: data-analyzer",
+      "name": "backend-data-analyzer",
       "type": "python",
       "request": "launch",
       "module": "data.analyzer",
@@ -83,7 +77,7 @@
       "envFile": "${workspaceFolder}/secrets/.env"
     },
     {
-      "name": "backend: data-csv-transformer",
+      "name": "backend-data-csv-transformer",
       "type": "python",
       "request": "launch",
       "module": "data.csv_transformer",

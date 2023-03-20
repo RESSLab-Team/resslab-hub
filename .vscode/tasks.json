@@ -2,17 +2,17 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "serve-frontend",
+      "label": "frontend-dev",
       "type": "npm",
-      "script": "serve",
+      "script": "dev",
       "isBackground": true,
       "problemMatcher": [
         {
           "base": "$tsc-watch",
           "background": {
             "activeOnStart": true,
-            "beginsPattern": "Starting development server",
-            "endsPattern": "App running at:"
+            "beginsPattern": "VITE v",
+            "endsPattern": "press h to show help"
           }
         }
       ],
@@ -25,15 +25,19 @@
       }
     },
     {
-      "label": "run-database",
+      "label": "database-up",
       "type": "docker-compose",
       "dockerCompose": {
         "up": {
           "detached": true,
           "build": true,
-          "services": ["database"]
+          "services": [
+            "database"
+          ]
         },
-        "files": ["${workspaceFolder}/docker-compose.yml"]
+        "files": [
+          "${workspaceFolder}/docker-compose.yml"
+        ]
       }
     }
   ]
