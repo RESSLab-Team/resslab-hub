@@ -46,6 +46,9 @@ upload-connection:
 upload-material:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-material ../../resslab-hub-data
 
+upload-residual-stress:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-residual-stress ../../resslab-hub-data
+
 upload-data:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all ../../resslab-hub-data
 
@@ -61,4 +64,4 @@ transform-data:
 	poetry run python data/csv_transformer.py japanese ../../resslab-hub-data/connections/component/japanese.csv ../frontend/src/assets/connection/japanese-sections.csv
 
 analyze-data:
-	poetry run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv
+	poetry run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv ../../resslab-hub-data/residual_stresses/residual_stresses.csv
