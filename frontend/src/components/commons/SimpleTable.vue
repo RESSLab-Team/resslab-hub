@@ -254,10 +254,12 @@ function downloadZip(): void {
               :multiple="header.multiple"
               :items="header.options"
             >
+              <!-- eslint-disable vue/no-template-shadow -->
               <template
                 v-if="$slots[`header-select-item.${header.key}`]"
                 #item="{ item, index, props }"
               >
+                <!-- eslint-enable vue/no-template-shadow -->
                 <slot
                   :name="`header-select-item.${header.key}`"
                   :item="item"

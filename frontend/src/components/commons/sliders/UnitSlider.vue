@@ -73,6 +73,7 @@ const displayedMax = computed<number>(() => props.max / ratio.value)
     >
       <template #prepend>
         <v-tooltip bottom>
+          <!-- eslint-disable-next-line vue/no-template-shadow -->
           <template #activator="{ props }">
             <div class="mt-0 pt-0 label" v-bind="props">
               <!-- eslint-disable-next-line vue/no-v-html -->
