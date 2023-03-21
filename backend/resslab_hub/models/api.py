@@ -319,8 +319,8 @@ class ResidualStressModel(BaseModel):
     steel: str
     fy_n: Decimal
     fy_e: Decimal
-    fy_mf: Decimal
-    fy_mw: Decimal
+    fy_mf: Optional[Decimal]
+    fy_mw: Optional[Decimal]
     h: Decimal
     b: Decimal
     tw: Decimal

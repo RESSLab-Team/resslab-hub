@@ -91,6 +91,20 @@ const router = createRouter({
           component: () => import('@/views/MaterialsModelView.vue')
         }
       ]
+    },
+    {
+      path: '/residuals',
+      component: () => import('@/views/ResidualsView.vue'),
+      children: [
+        {
+          path: '',
+          redirect: '/residuals/database'
+        },
+        {
+          path: 'database',
+          component: () => import('@/views/ResidualsDatabase.vue')
+        }
+      ]
     }
   ]
 })
