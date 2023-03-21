@@ -160,22 +160,16 @@ const contributorGroups: {
               <a :href="group.url" target="_blank">{{ group.name }}</a>
             </v-card-title>
             <v-card-text>
-              <v-list
-                :items="
-                  group.contributors.map((contributor) => ({
-                    title: contributor.name,
-                    props: {
-                      prependAvatar: contributor.image,
-                      prependIcon: contributor.image ? undefined : mdiAccountCircle
-                    },
-                    url: contributor.url
-                  }))
-                "
-              >
-                <template #title="{ item, title }">
-                  <a v-if="item.url" :href="item.url" target="_blank">{{ title }}</a>
-                  <template v-else>{{ title }}</template>
-                </template>
+              <v-list density="compact">
+                <v-list-item
+                  v-for="contributor in group.contributors"
+                  :key="contributor.name"
+                  :href="contributor.url"
+                  :prepend-avatar="contributor.image"
+                  :prepend-icon="contributor.image ? undefined : mdiAccountCircle"
+                  target="_blank"
+                  :title="contributor.name"
+                />
               </v-list>
             </v-card-text>
           </v-card>
@@ -201,13 +195,9 @@ const contributorGroups: {
 </template>
 
 <style lang="scss" scoped>
-:deep(.v-avatar) > img {
-  height: unset;
-}
-
 :deep(.v-list-item__prepend) > .v-icon {
-  height: 40px;
-  width: 40px;
+  height: 32px;
+  width: 32px;
   margin-inline-end: 16px;
 }
 </style>
