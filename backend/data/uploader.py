@@ -44,6 +44,13 @@ from resslab_hub.models.database.connection import (
     ConnectionPanelZone,
 )
 from resslab_hub.models.database.material import Material, MaterialStressStrain
+from resslab_hub.models.database.residual_stress import (
+    ResidualStress,
+    ResidualStressDistributionF1,
+    ResidualStressDistributionF2,
+    ResidualStressDistributionW1,
+    ResidualStressQPCoefficient,
+)
 from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
@@ -63,6 +70,7 @@ class Type(Enum):
     ALL_BRACE = "all-brace"
     ALL_CONNECTION = "all-connection"
     ALL_MATERIAL = "all-material"
+    ALL_RESIDUAL_STRESS = "all-residual-stress"
     BRACE = "brace"
     BRACE_DISPLACEMENT = "brace-displacement"
     COLUMN = "column"
@@ -77,6 +85,11 @@ class Type(Enum):
     CONNECTION_PANEL_ZONE = "connection-panel-zone"
     MATERIAL = "material"
     MATERIAL_STRESS_STRAIN = "material-stress-strain"
+    RESIDUAL_STRESS = "residual-stress"
+    RESIDUAL_STRESS_DISTRIBUTION_F1 = "residual-stress-distribution-f1"
+    RESIDUAL_STRESS_DISTRIBUTION_F2 = "residual-stress-distribution-f2"
+    RESIDUAL_STRESS_DISTRIBUTION_W1 = "residual-stress-distribution-w1"
+    RESIDUAL_STRESS_QP_COEFFICIENT = "residual-stress-qp-coefficient"
 
 
 class Uploader(ABC):
@@ -104,7 +117,7 @@ class TableUploader(Uploader):
     def upload_one(self, file_path: str) -> None:
         file_path = get_abs_path(file_path)
         try:
-            with (engine.connect() as connection, Session(bind=connection) as session):
+            with engine.connect() as connection, Session(bind=connection) as session:
                 encoding = get_file_encoding(file_path)
                 with open(file_path, encoding=encoding) as file:
                     reader = csv.reader(file, strict=True)
@@ -186,7 +199,7 @@ class CsvFileUploader(Uploader):
                 self.filename_suffix
             )
             encoding = get_file_encoding(file_path)
-            with (engine.connect() as connection, Session(bind=connection) as session):
+            with engine.connect() as connection, Session(bind=connection) as session:
                 with open(file_path, encoding=encoding) as file:
                     reader = csv.DictReader(file, strict=True)
                     session.execute(self.get_delete(id))
@@ -216,6 +229,8 @@ def upload_one(input_type: Type, filename: str):
             uploader = TableUploader(Connection)
         case Type.MATERIAL:
             uploader = TableUploader(Material)
+        case Type.RESIDUAL_STRESS:
+            uploader = TableUploader(ResidualStress)
         case Type.BRACE_DISPLACEMENT:
             uploader = CsvFileUploader(
                 lambda id: delete(BraceDisplacement).where(
@@ -337,6 +352,53 @@ def upload_one(input_type: Type, filename: str):
                     strain=value.get("e_true"),
                 ),
             )
+        case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
+            uploader = CsvFileUploader(
+                lambda id: delete(ResidualStressDistributionF1).where(
+                    ResidualStressDistributionF1.residual_stress_id == id
+                ),
+                lambda id, index, value: ResidualStressDistributionF1(
+                    residual_stress_id=id,
+                    id=index,
+                    coordinate=value.get("coordinate"),
+                    residual_stress=value.get("residual_stress"),
+                ),
+            )
+        case Type.RESIDUAL_STRESS_DISTRIBUTION_F2:
+            uploader = CsvFileUploader(
+                lambda id: delete(ResidualStressDistributionF2).where(
+                    ResidualStressDistributionF2.residual_stress_id == id
+                ),
+                lambda id, index, value: ResidualStressDistributionF2(
+                    residual_stress_id=id,
+                    id=index,
+                    coordinate=value.get("coordinate"),
+                    residual_stress=value.get("residual_stress"),
+                ),
+            )
+        case Type.RESIDUAL_STRESS_DISTRIBUTION_W1:
+            uploader = CsvFileUploader(
+                lambda id: delete(ResidualStressDistributionW1).where(
+                    ResidualStressDistributionW1.residual_stress_id == id
+                ),
+                lambda id, index, value: ResidualStressDistributionW1(
+                    residual_stress_id=id,
+                    id=index,
+                    coordinate=value.get("coordinate"),
+                    residual_stress=value.get("residual_stress"),
+                ),
+            )
+        case Type.RESIDUAL_STRESS_QP_COEFFICIENT:
+            uploader = CsvFileUploader(
+                lambda id: delete(ResidualStressQPCoefficient).where(
+                    ResidualStressQPCoefficient.residual_stress_id == id
+                ),
+                lambda id, index, value: ResidualStressQPCoefficient(
+                    residual_stress_id=id,
+                    id=index,
+                    qp_coefficient=value.get("qp_coefficient"),
+                ),
+            )
         case _:
             raise NotImplementedError(f"unknown type {input_type}")
 
@@ -351,6 +413,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 + get_args_all(Type.ALL_COLUMN, filename)
                 + get_args_all(Type.ALL_CONNECTION, filename)
                 + get_args_all(Type.ALL_MATERIAL, filename)
+                + get_args_all(Type.ALL_RESIDUAL_STRESS, filename)
             )
         case Type.ALL_BRACE:
             root_folder = os.path.join(filename, "braces")
@@ -410,6 +473,36 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 (
                     Type.MATERIAL_STRESS_STRAIN,
                     os.path.join(root_folder, "stress_strain", "*.csv"),
+                ),
+            ]
+        case Type.ALL_RESIDUAL_STRESS:
+            root_folder = os.path.join(filename, "residual_stresses")
+            return [
+                (
+                    Type.RESIDUAL_STRESS,
+                    os.path.join(root_folder, "residual_stresses.csv"),
+                ),
+                (
+                    Type.RESIDUAL_STRESS_DISTRIBUTION_F1,
+                    os.path.join(
+                        root_folder, "Distributions/Distributions_F1", "*.csv"
+                    ),
+                ),
+                (
+                    Type.RESIDUAL_STRESS_DISTRIBUTION_F2,
+                    os.path.join(
+                        root_folder, "Distributions/Distributions_F2", "*.csv"
+                    ),
+                ),
+                (
+                    Type.RESIDUAL_STRESS_DISTRIBUTION_W1,
+                    os.path.join(
+                        root_folder, "Distributions/Distributions_W1", "*.csv"
+                    ),
+                ),
+                (
+                    Type.RESIDUAL_STRESS_QP_COEFFICIENT,
+                    os.path.join(root_folder, "QP_Coefficients", "*.csv"),
                 ),
             ]
         case _:
