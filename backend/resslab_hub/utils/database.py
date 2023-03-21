@@ -5,9 +5,8 @@ from typing import AsyncIterator
 from urllib.parse import quote_plus
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
-
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 from alembic.command import upgrade
 from alembic.config import Config

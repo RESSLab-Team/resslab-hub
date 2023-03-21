@@ -59,6 +59,16 @@ const menuItems: MenuItem[] = [
         to: '/model'
       }
     ]
+  },
+  {
+    text: 'Residual Stress',
+    to: '/residuals',
+    children: [
+      {
+        text: 'Database',
+        to: '/database'
+      }
+    ]
   }
 ]
 

@@ -1548,13 +1548,13 @@ export interface ResidualStressModel {
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'fy_mf': number;
+    'fy_mf'?: number;
     /**
      * 
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'fy_mw': number;
+    'fy_mw'?: number;
     /**
      * 
      * @type {number}

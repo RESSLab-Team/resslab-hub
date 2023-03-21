@@ -1,4 +1,11 @@
-import { AnalyticsApi, BracesApi, ColumnsApi, ConnectionsApi, MaterialsApi } from '@/backend'
+import {
+  AnalyticsApi,
+  BracesApi,
+  ColumnsApi,
+  ConnectionsApi,
+  MaterialsApi,
+  ResidualStressApi
+} from '@/backend'
 import axios from 'axios'
 
 const axiosInstance = axios.create()
@@ -9,3 +16,4 @@ export const bracesApi = new BracesApi(undefined, baseUrl, axiosInstance)
 export const columnsApi = new ColumnsApi(undefined, baseUrl, axiosInstance)
 export const connectionsApi = new ConnectionsApi(undefined, baseUrl, axiosInstance)
 export const materialsApi = new MaterialsApi(undefined, baseUrl, axiosInstance)
+export const residualsApi = new ResidualStressApi(undefined, baseUrl, axiosInstance)
