@@ -4,3 +4,11 @@ export interface Page<T> {
   page: number;
   size: number;
 }
+
+export type Type = "Braces" | "Columns" | "Connections" | "Materials";
+export const typesNames: Type[] = [
+  "Braces",
+  "Columns",
+  "Connections",
+  "Materials",
+];
