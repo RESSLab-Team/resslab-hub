@@ -7,12 +7,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from resslab_hub.models.api import (
     CountModel,
-    LocationModel,
     MatrixModel,
     RangeModel,
     ResidualStressField,
@@ -99,26 +97,6 @@ async def get_ResidualStresses(
     Get paginated Residual Stresses
     """
     return await component.get_page(session, query, sort_by, sort_desc)
-
-
-@router.get("/locations", response_model=List[LocationModel])
-async def get_connections_locations(
-    session: AsyncSession = Depends(get_session),
-):
-    """
-    Get occurences location of field values
-    """
-
-    rows = await session.execute(
-        select(
-            ResidualStress.id,
-            ResidualStress.latitude,
-            ResidualStress.longitude,
-            ResidualStress.link,
-            ResidualStress.reference,
-        )
-    )
-    return [row._mapping for row in rows.all()]
 
 
 @router.get("/counts", response_model=List[CountModel])

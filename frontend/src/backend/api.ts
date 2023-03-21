@@ -1062,6 +1062,43 @@ export interface ExtendedPageMaterialModel {
 /**
  * 
  * @export
+ * @interface ExtendedPageResidualStressModel
+ */
+export interface ExtendedPageResidualStressModel {
+    /**
+     * 
+     * @type {Array<ResidualStressModel>}
+     * @memberof ExtendedPageResidualStressModel
+     */
+    'items': Array<ResidualStressModel>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageResidualStressModel
+     */
+    'total': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageResidualStressModel
+     */
+    'page': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageResidualStressModel
+     */
+    'size': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageResidualStressModel
+     */
+    'pages'?: number;
+}
+/**
+ * 
+ * @export
  * @interface HTTPValidationError
  */
 export interface HTTPValidationError {
@@ -1416,6 +1453,222 @@ export interface RangeModel {
      */
     'max': number;
 }
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const ResidualStressField = {
+    Id: 'id',
+    ExperimentalProgram: 'experimental_program',
+    Date: 'date',
+    Profile: 'profile',
+    SpecVar: 'spec_var',
+    Steel: 'steel',
+    FyN: 'fy_n',
+    FyE: 'fy_e',
+    FyMf: 'fy_mf',
+    FyMw: 'fy_mw',
+    H: 'h',
+    B: 'b',
+    Tw: 'tw',
+    Tf: 'tf',
+    R: 'r',
+    PlotSf: 'plot_sf',
+    Reference: 'reference',
+    Link: 'link',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    QpCoefficientCount: 'qp_coefficient_count',
+    DistributionF1Count: 'distribution_F1_count',
+    DistributionF2Count: 'distribution_F2_count',
+    DistributionW1Count: 'distribution_W1_count'
+} as const;
+
+export type ResidualStressField = typeof ResidualStressField[keyof typeof ResidualStressField];
+
+
+/**
+ * 
+ * @export
+ * @interface ResidualStressModel
+ */
+export interface ResidualStressModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof ResidualStressModel
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ResidualStressModel
+     */
+    'experimental_program': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'date': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ResidualStressModel
+     */
+    'profile': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ResidualStressModel
+     */
+    'spec_var'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ResidualStressModel
+     */
+    'steel': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'fy_n': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'fy_e': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'fy_mf': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'fy_mw': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'h': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'b': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'tw': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'tf': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'r': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'plot_sf': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ResidualStressModel
+     */
+    'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ResidualStressModel
+     */
+    'link'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'longitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'qp_coefficient_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'distribution_F1_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'distribution_F2_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'distribution_W1_count': number;
+}
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const ResidualStressNumberField = {
+    Date: 'date',
+    FyN: 'fy_n',
+    FyE: 'fy_e',
+    FyMf: 'fy_mf',
+    FyMw: 'fy_mw',
+    H: 'h',
+    B: 'b',
+    Tw: 'tw',
+    Tf: 'tf',
+    R: 'r',
+    PlotSf: 'plot_sf',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    QpCoefficientCount: 'qp_coefficient_count',
+    DistributionF1Count: 'distribution_F1_count',
+    DistributionF2Count: 'distribution_F2_count',
+    DistributionW1Count: 'distribution_W1_count'
+} as const;
+
+export type ResidualStressNumberField = typeof ResidualStressNumberField[keyof typeof ResidualStressNumberField];
+
+
 /**
  * 
  * @export
@@ -5396,6 +5649,1072 @@ export class MaterialsApi extends BaseAPI {
      */
     public getMaterialsStressStrainCsv(materialId: string, options?: AxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsStressStrainCsv(materialId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
+ * ResidualStressApi - axios parameter creator
+ * @export
+ */
+export const ResidualStressApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get paginated Residual Stresses
+         * @summary Get Residualstresses
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStresses: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/residual-stress`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            if (sortBy) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+            if (sortDesc) {
+                localVarQueryParameter['sort_desc'] = sortDesc;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Residualstresses Counts
+         * @param {Array<ResidualStressField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesCounts: async (fields?: Array<ResidualStressField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/residual-stress/counts`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get master csv
+         * @summary Get Residualstresses Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/residual-stress/csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (ids) {
+                localVarQueryParameter['ids'] = ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distinct count
+         * @summary Get Residualstresses Distinct
+         * @param {Array<ResidualStressField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistinct: async (fields?: Array<ResidualStressField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/residual-stress/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distribution-f1 series from ResidualStress
+         * @summary Get Residualstresses Distribution F1
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionF1: async (residualStressId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'residualStressId' is not null or undefined
+            assertParamExists('getResidualStressesDistributionF1', 'residualStressId', residualStressId)
+            const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-f1`
+                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distribution-f1 csv
+         * @summary Get Residualstresses Distribution F1 Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionF1Csv: async (residualStressId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'residualStressId' is not null or undefined
+            assertParamExists('getResidualStressesDistributionF1Csv', 'residualStressId', residualStressId)
+            const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-f1/csv`
+                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distribution-f2 series from ResidualStress
+         * @summary Get Residualstresses Distribution F2
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionF2: async (residualStressId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'residualStressId' is not null or undefined
+            assertParamExists('getResidualStressesDistributionF2', 'residualStressId', residualStressId)
+            const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-f2`
+                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distribution-f2 csv
+         * @summary Get Residualstresses Distribution F2 Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionF2Csv: async (residualStressId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'residualStressId' is not null or undefined
+            assertParamExists('getResidualStressesDistributionF2Csv', 'residualStressId', residualStressId)
+            const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-f2/csv`
+                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distribution-w1 series from ResidualStress
+         * @summary Get Residualstresses Distribution W1
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionW1: async (residualStressId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'residualStressId' is not null or undefined
+            assertParamExists('getResidualStressesDistributionW1', 'residualStressId', residualStressId)
+            const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-w1`
+                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distribution-w1 csv
+         * @summary Get Residualstresses Distribution W1 Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionW1Csv: async (residualStressId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'residualStressId' is not null or undefined
+            assertParamExists('getResidualStressesDistributionW1Csv', 'residualStressId', residualStressId)
+            const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-w1/csv`
+                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Residualstresses Matrix
+         * @param {Array<ResidualStressField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesMatrix: async (fields: Array<ResidualStressField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getResidualStressesMatrix', 'fields', fields)
+            const localVarPath = `/residual-stress/matrix`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get qp-coefficient series from ResidualStress
+         * @summary Get Residualstresses Qp Coefficient
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesQpCoefficient: async (residualStressId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'residualStressId' is not null or undefined
+            assertParamExists('getResidualStressesQpCoefficient', 'residualStressId', residualStressId)
+            const localVarPath = `/residual-stress/{ResidualStress_id}/qp-coefficient`
+                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get qp-coefficient csv
+         * @summary Get Residualstresses Qp Coefficient Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesQpCoefficientCsv: async (residualStressId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'residualStressId' is not null or undefined
+            assertParamExists('getResidualStressesQpCoefficientCsv', 'residualStressId', residualStressId)
+            const localVarPath = `/residual-stress/{ResidualStress_id}/qp-coefficient/csv`
+                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get range of field
+         * @summary Get Residualstresses Range
+         * @param {ResidualStressNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesRange: async (field: ResidualStressNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getResidualStressesRange', 'field', field)
+            const localVarPath = `/residual-stress/range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ResidualStressApi - functional programming interface
+ * @export
+ */
+export const ResidualStressApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ResidualStressApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get paginated Residual Stresses
+         * @summary Get Residualstresses
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStresses(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageResidualStressModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStresses(query, sortBy, sortDesc, page, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Residualstresses Counts
+         * @param {Array<ResidualStressField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesCounts(fields?: Array<ResidualStressField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesCounts(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get master csv
+         * @summary Get Residualstresses Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesCsv(ids, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distinct count
+         * @summary Get Residualstresses Distinct
+         * @param {Array<ResidualStressField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesDistinct(fields?: Array<ResidualStressField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistinct(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distribution-f1 series from ResidualStress
+         * @summary Get Residualstresses Distribution F1
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesDistributionF1(residualStressId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionF1(residualStressId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distribution-f1 csv
+         * @summary Get Residualstresses Distribution F1 Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesDistributionF1Csv(residualStressId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionF1Csv(residualStressId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distribution-f2 series from ResidualStress
+         * @summary Get Residualstresses Distribution F2
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesDistributionF2(residualStressId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionF2(residualStressId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distribution-f2 csv
+         * @summary Get Residualstresses Distribution F2 Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesDistributionF2Csv(residualStressId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionF2Csv(residualStressId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distribution-w1 series from ResidualStress
+         * @summary Get Residualstresses Distribution W1
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesDistributionW1(residualStressId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionW1(residualStressId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distribution-w1 csv
+         * @summary Get Residualstresses Distribution W1 Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesDistributionW1Csv(residualStressId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionW1Csv(residualStressId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Residualstresses Matrix
+         * @param {Array<ResidualStressField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesMatrix(fields: Array<ResidualStressField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesMatrix(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get qp-coefficient series from ResidualStress
+         * @summary Get Residualstresses Qp Coefficient
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesQpCoefficient(residualStressId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesQpCoefficient(residualStressId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get qp-coefficient csv
+         * @summary Get Residualstresses Qp Coefficient Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesQpCoefficientCsv(residualStressId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesQpCoefficientCsv(residualStressId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get range of field
+         * @summary Get Residualstresses Range
+         * @param {ResidualStressNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesRange(field: ResidualStressNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesRange(field, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * ResidualStressApi - factory interface
+ * @export
+ */
+export const ResidualStressApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ResidualStressApiFp(configuration)
+    return {
+        /**
+         * Get paginated Residual Stresses
+         * @summary Get Residualstresses
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStresses(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageResidualStressModel> {
+            return localVarFp.getResidualStresses(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Residualstresses Counts
+         * @param {Array<ResidualStressField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesCounts(fields?: Array<ResidualStressField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getResidualStressesCounts(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get master csv
+         * @summary Get Residualstresses Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+            return localVarFp.getResidualStressesCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Residualstresses Distinct
+         * @param {Array<ResidualStressField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistinct(fields?: Array<ResidualStressField>, options?: any): AxiosPromise<number> {
+            return localVarFp.getResidualStressesDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distribution-f1 series from ResidualStress
+         * @summary Get Residualstresses Distribution F1
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionF1(residualStressId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getResidualStressesDistributionF1(residualStressId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distribution-f1 csv
+         * @summary Get Residualstresses Distribution F1 Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionF1Csv(residualStressId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getResidualStressesDistributionF1Csv(residualStressId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distribution-f2 series from ResidualStress
+         * @summary Get Residualstresses Distribution F2
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionF2(residualStressId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getResidualStressesDistributionF2(residualStressId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distribution-f2 csv
+         * @summary Get Residualstresses Distribution F2 Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionF2Csv(residualStressId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getResidualStressesDistributionF2Csv(residualStressId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distribution-w1 series from ResidualStress
+         * @summary Get Residualstresses Distribution W1
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionW1(residualStressId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getResidualStressesDistributionW1(residualStressId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distribution-w1 csv
+         * @summary Get Residualstresses Distribution W1 Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesDistributionW1Csv(residualStressId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getResidualStressesDistributionW1Csv(residualStressId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Residualstresses Matrix
+         * @param {Array<ResidualStressField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesMatrix(fields: Array<ResidualStressField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+            return localVarFp.getResidualStressesMatrix(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get qp-coefficient series from ResidualStress
+         * @summary Get Residualstresses Qp Coefficient
+         * @param {string} residualStressId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesQpCoefficient(residualStressId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getResidualStressesQpCoefficient(residualStressId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get qp-coefficient csv
+         * @summary Get Residualstresses Qp Coefficient Csv
+         * @param {string} residualStressId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesQpCoefficientCsv(residualStressId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getResidualStressesQpCoefficientCsv(residualStressId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get range of field
+         * @summary Get Residualstresses Range
+         * @param {ResidualStressNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesRange(field: ResidualStressNumberField, options?: any): AxiosPromise<RangeModel> {
+            return localVarFp.getResidualStressesRange(field, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ResidualStressApi - object-oriented interface
+ * @export
+ * @class ResidualStressApi
+ * @extends {BaseAPI}
+ */
+export class ResidualStressApi extends BaseAPI {
+    /**
+     * Get paginated Residual Stresses
+     * @summary Get Residualstresses
+     * @param {string} [query] 
+     * @param {Array<string>} [sortBy] 
+     * @param {Array<boolean>} [sortDesc] 
+     * @param {number} [page] 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStresses(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStresses(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurences count of field values
+     * @summary Get Residualstresses Counts
+     * @param {Array<ResidualStressField>} [fields] 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesCounts(fields?: Array<ResidualStressField>, query?: string, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get master csv
+     * @summary Get Residualstresses Csv
+     * @param {Array<string>} [ids] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Residualstresses Distinct
+     * @param {Array<ResidualStressField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesDistinct(fields?: Array<ResidualStressField>, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distribution-f1 series from ResidualStress
+     * @summary Get Residualstresses Distribution F1
+     * @param {string} residualStressId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesDistributionF1(residualStressId: string, size?: number, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesDistributionF1(residualStressId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distribution-f1 csv
+     * @summary Get Residualstresses Distribution F1 Csv
+     * @param {string} residualStressId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesDistributionF1Csv(residualStressId: string, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesDistributionF1Csv(residualStressId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distribution-f2 series from ResidualStress
+     * @summary Get Residualstresses Distribution F2
+     * @param {string} residualStressId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesDistributionF2(residualStressId: string, size?: number, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesDistributionF2(residualStressId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distribution-f2 csv
+     * @summary Get Residualstresses Distribution F2 Csv
+     * @param {string} residualStressId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesDistributionF2Csv(residualStressId: string, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesDistributionF2Csv(residualStressId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distribution-w1 series from ResidualStress
+     * @summary Get Residualstresses Distribution W1
+     * @param {string} residualStressId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesDistributionW1(residualStressId: string, size?: number, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesDistributionW1(residualStressId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distribution-w1 csv
+     * @summary Get Residualstresses Distribution W1 Csv
+     * @param {string} residualStressId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesDistributionW1Csv(residualStressId: string, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesDistributionW1Csv(residualStressId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Residualstresses Matrix
+     * @param {Array<ResidualStressField>} fields 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesMatrix(fields: Array<ResidualStressField>, query?: string, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get qp-coefficient series from ResidualStress
+     * @summary Get Residualstresses Qp Coefficient
+     * @param {string} residualStressId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesQpCoefficient(residualStressId: string, size?: number, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesQpCoefficient(residualStressId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get qp-coefficient csv
+     * @summary Get Residualstresses Qp Coefficient Csv
+     * @param {string} residualStressId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesQpCoefficientCsv(residualStressId: string, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesQpCoefficientCsv(residualStressId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get range of field
+     * @summary Get Residualstresses Range
+     * @param {ResidualStressNumberField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesRange(field: ResidualStressNumberField, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
