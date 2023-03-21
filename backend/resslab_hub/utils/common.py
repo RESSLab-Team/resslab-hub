@@ -82,7 +82,7 @@ class Component(ABC, Generic[D, M]):
         name: str,
         database_type: type[D],
         model_type: type[M],
-        id_column: Column[String],
+        id_column: Column[str],
         ignored_columns: Set[Column],
     ) -> None:
         self.name = name

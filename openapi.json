@@ -2611,6 +2611,727 @@
           }
         }
       }
+    },
+    "/residual-stress": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses",
+        "description": "Get paginated Residual Stresses",
+        "operationId": "get_ResidualStresses",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort By",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "sort_by",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort Desc",
+              "type": "array",
+              "items": {
+                "type": "boolean"
+              },
+              "default": []
+            },
+            "name": "sort_desc",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page",
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 1
+            },
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "maximum": 1000.0,
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 10
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedPage_ResidualStressModel_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/counts": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Counts",
+        "description": "Get occurences count of field values",
+        "operationId": "get_ResidualStresses_counts",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ResidualStressField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Residualstresses Counts Residual Stress Counts Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountModel"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/range": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Range",
+        "description": "Get range of field",
+        "operationId": "get_ResidualStresses_range",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ResidualStressNumberField"
+            },
+            "name": "field",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/matrix": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Matrix",
+        "operationId": "get_ResidualStresses_matrix",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ResidualStressField"
+              }
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/csv": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Csv",
+        "description": "Get master csv",
+        "operationId": "get_ResidualStresses_csv",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Ids",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "ids",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/distinct": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Distinct",
+        "description": "Get distinct count",
+        "operationId": "get_ResidualStresses_distinct",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ResidualStressField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Residualstresses Distinct Residual Stress Distinct Get",
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/{ResidualStress_id}/distribution-f1": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Distribution F1",
+        "description": "Get distribution-f1 series from ResidualStress",
+        "operationId": "get_ResidualStresses_distribution_f1",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Residualstress Id",
+              "type": "string"
+            },
+            "name": "ResidualStress_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Residualstresses Distribution F1 Residual Stress  Residualstress Id  Distribution F1 Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/{ResidualStress_id}/distribution-f1/csv": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Distribution F1 Csv",
+        "description": "Get distribution-f1 csv",
+        "operationId": "get_ResidualStresses_distribution_f1_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Residualstress Id",
+              "type": "string"
+            },
+            "name": "ResidualStress_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/{ResidualStress_id}/distribution-f2": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Distribution F2",
+        "description": "Get distribution-f2 series from ResidualStress",
+        "operationId": "get_ResidualStresses_distribution_f2",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Residualstress Id",
+              "type": "string"
+            },
+            "name": "ResidualStress_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Residualstresses Distribution F2 Residual Stress  Residualstress Id  Distribution F2 Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/{ResidualStress_id}/distribution-f2/csv": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Distribution F2 Csv",
+        "description": "Get distribution-f2 csv",
+        "operationId": "get_ResidualStresses_distribution_f2_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Residualstress Id",
+              "type": "string"
+            },
+            "name": "ResidualStress_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/{ResidualStress_id}/distribution-w1": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Distribution W1",
+        "description": "Get distribution-w1 series from ResidualStress",
+        "operationId": "get_ResidualStresses_distribution_w1",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Residualstress Id",
+              "type": "string"
+            },
+            "name": "ResidualStress_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Residualstresses Distribution W1 Residual Stress  Residualstress Id  Distribution W1 Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/{ResidualStress_id}/distribution-w1/csv": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Distribution W1 Csv",
+        "description": "Get distribution-w1 csv",
+        "operationId": "get_ResidualStresses_distribution_w1_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Residualstress Id",
+              "type": "string"
+            },
+            "name": "ResidualStress_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/{ResidualStress_id}/qp-coefficient": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Qp Coefficient",
+        "description": "Get qp-coefficient series from ResidualStress",
+        "operationId": "get_ResidualStresses_qp_coefficient",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Residualstress Id",
+              "type": "string"
+            },
+            "name": "ResidualStress_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Residualstresses Qp Coefficient Residual Stress  Residualstress Id  Qp Coefficient Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/residual-stress/{ResidualStress_id}/qp-coefficient/csv": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residualstresses Qp Coefficient Csv",
+        "description": "Get qp-coefficient csv",
+        "operationId": "get_ResidualStresses_qp_coefficient_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Residualstress Id",
+              "type": "string"
+            },
+            "name": "ResidualStress_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3511,6 +4232,45 @@
           }
         }
       },
+      "ExtendedPage_ResidualStressModel_": {
+        "title": "ExtendedPage[ResidualStressModel]",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResidualStressModel"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "page": {
+            "title": "Page",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 0.0,
+            "type": "integer"
+          }
+        }
+      },
       "HTTPValidationError": {
         "title": "HTTPValidationError",
         "type": "object",
@@ -3827,6 +4587,187 @@
           }
         },
         "description": "Range"
+      },
+      "ResidualStressField": {
+        "title": "ResidualStressField",
+        "enum": [
+          "id",
+          "experimental_program",
+          "date",
+          "profile",
+          "spec_var",
+          "steel",
+          "fy_n",
+          "fy_e",
+          "fy_mf",
+          "fy_mw",
+          "h",
+          "b",
+          "tw",
+          "tf",
+          "r",
+          "plot_sf",
+          "reference",
+          "link",
+          "latitude",
+          "longitude",
+          "qp_coefficient_count",
+          "distribution_F1_count",
+          "distribution_F2_count",
+          "distribution_W1_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "ResidualStressModel": {
+        "title": "ResidualStressModel",
+        "required": [
+          "id",
+          "experimental_program",
+          "date",
+          "profile",
+          "steel",
+          "fy_n",
+          "fy_e",
+          "fy_mf",
+          "fy_mw",
+          "h",
+          "b",
+          "tw",
+          "tf",
+          "r",
+          "plot_sf",
+          "reference",
+          "latitude",
+          "longitude",
+          "qp_coefficient_count",
+          "distribution_F1_count",
+          "distribution_F2_count",
+          "distribution_W1_count"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "experimental_program": {
+            "title": "Experimental Program",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "integer"
+          },
+          "profile": {
+            "title": "Profile",
+            "type": "string"
+          },
+          "spec_var": {
+            "title": "Spec Var",
+            "type": "string"
+          },
+          "steel": {
+            "title": "Steel",
+            "type": "string"
+          },
+          "fy_n": {
+            "title": "Fy N",
+            "type": "number"
+          },
+          "fy_e": {
+            "title": "Fy E",
+            "type": "number"
+          },
+          "fy_mf": {
+            "title": "Fy Mf",
+            "type": "number"
+          },
+          "fy_mw": {
+            "title": "Fy Mw",
+            "type": "number"
+          },
+          "h": {
+            "title": "H",
+            "type": "number"
+          },
+          "b": {
+            "title": "B",
+            "type": "number"
+          },
+          "tw": {
+            "title": "Tw",
+            "type": "number"
+          },
+          "tf": {
+            "title": "Tf",
+            "type": "number"
+          },
+          "r": {
+            "title": "R",
+            "type": "number"
+          },
+          "plot_sf": {
+            "title": "Plot Sf",
+            "type": "number"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "qp_coefficient_count": {
+            "title": "Qp Coefficient Count",
+            "type": "integer"
+          },
+          "distribution_F1_count": {
+            "title": "Distribution F1 Count",
+            "type": "integer"
+          },
+          "distribution_F2_count": {
+            "title": "Distribution F2 Count",
+            "type": "integer"
+          },
+          "distribution_W1_count": {
+            "title": "Distribution W1 Count",
+            "type": "integer"
+          }
+        }
+      },
+      "ResidualStressNumberField": {
+        "title": "ResidualStressNumberField",
+        "enum": [
+          "date",
+          "fy_n",
+          "fy_e",
+          "fy_mf",
+          "fy_mw",
+          "h",
+          "b",
+          "tw",
+          "tf",
+          "r",
+          "plot_sf",
+          "latitude",
+          "longitude",
+          "qp_coefficient_count",
+          "distribution_F1_count",
+          "distribution_F2_count",
+          "distribution_W1_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
       },
       "ValidationError": {
         "title": "ValidationError",
