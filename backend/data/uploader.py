@@ -517,9 +517,38 @@ def upload_all(input_type: Type, filenames: List[str]):
         (arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])
     ]
     cpu = cpu_count()
+
+    primary_types = list(
+        filter(
+            lambda arg: arg[0]
+            in [
+                Type.BRACE,
+                Type.COLUMN,
+                Type.CONNECTION,
+                Type.MATERIAL,
+                Type.RESIDUAL_STRESS,
+            ],
+            args,
+        )
+    )
+
+    subsidiary_types = list(
+        filter(
+            lambda arg: arg not in primary_types,
+            args,
+        )
+    )
+
     logging.info(f"using {cpu} processes")
+    logging.info(f"uploading {len(primary_types)} primary types")
+
     with Pool(cpu, initializer=initializer) as pool:
-        pool.starmap(upload_one, args)
+        pool.starmap(upload_one, primary_types)
+
+    logging.info(f"uploading {len(subsidiary_types)} subsidiary types")
+
+    with Pool(cpu, initializer=initializer) as pool:
+        pool.starmap(upload_one, subsidiary_types)
 
 
 def main():
