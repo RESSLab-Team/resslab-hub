@@ -1,93 +1,94 @@
 import {
+  BraceField,
   BraceModel,
+  ColumnField,
   ColumnModel,
+  ConnectionField,
   ConnectionModel,
+  MaterialField,
   MaterialModel,
 } from "@/backend";
+import { Type, typesNames } from "@/utils/backend";
 import {
   getBraceImage,
   getColumnMapImage,
   getConnectionSpecimenImage,
   getSteelMaterialImage,
 } from "@/utils/component";
-import { MarkerSVG, scaleColor, typesNames } from "@/utils/piechart";
+import { MarkerSVG, scaleColor } from "@/utils/piechart";
 import { divIcon, Marker } from "leaflet";
 
 // First we list all the fields that we want to use in the tooltip
 // We will use these fields as argument fot get_fields api
-export const locationCommonFields = [
-    "id",
-    "link",
-    "date",
-    "reference",
-    "latitude",
-    "longitude",
-  ] as const,
-  locationConnectionFields = [
-    ...locationCommonFields,
-    "experimental_program",
-    "specimen_type",
-    "section_b",
-    "section_c",
-    "connection_type",
-  ] as const,
-  locationBraceFields = [
-    ...locationCommonFields,
-    "cross_section_size",
-    "investigator",
-    "kl_r",
-    "boundary_condition",
-  ] as const,
-  locationColumnFields = [
-    ...locationCommonFields,
-    "boundary_condition",
-    "experimental_program",
-    "axial_lp",
-    "p_g_over_p_ym",
-    "section_c",
-    "axis_of_bending",
-  ] as const,
-  locationMaterialFields = [
-    ...locationCommonFields,
-    "profile_type",
-    "profile",
-    "experimental_program",
-  ] as const;
+const locationCommonFields = [
+  "id",
+  "link",
+  "date",
+  "reference",
+  "latitude",
+  "longitude",
+] as const;
+const _locationBraceFields = [
+  ...locationCommonFields,
+  "cross_section_size",
+  "investigator",
+  "kl_r",
+  "boundary_condition",
+] as const;
+export const locationBraceFields: BraceField[] = [..._locationBraceFields];
+const _locationColumnFields = [
+  ...locationCommonFields,
+  "boundary_condition",
+  "experimental_program",
+  "axial_lp",
+  "p_g_over_p_ym",
+  "section_c",
+  "axis_of_bending",
+] as const;
+export const locationColumnFields: ColumnField[] = [..._locationColumnFields];
+const _locationConnectionFields = [
+  ...locationCommonFields,
+  "experimental_program",
+  "specimen_type",
+  "section_b",
+  "section_c",
+  "connection_type",
+] as const;
+export const locationConnectionFields: ConnectionField[] = [
+  ..._locationConnectionFields,
+];
+const _locationMaterialFields = [
+  ...locationCommonFields,
+  "profile_type",
+  "profile",
+  "experimental_program",
+] as const;
+export const locationMaterialFields: MaterialField[] = [
+  ..._locationMaterialFields,
+];
 
 // Then we use the fields list to create fields types for each model
-
-type LocationCommonFields = (typeof locationCommonFields)[number];
-
-type LocationConnectionFields = (typeof locationConnectionFields)[number];
-
-type LocationBraceFields = (typeof locationBraceFields)[number];
-
-type LocationColumnFields = (typeof locationColumnFields)[number];
-
-type LocationMaterialFields = (typeof locationMaterialFields)[number];
-
 // Finally we use Pick to extract type from bigger model type using only the fields we want
-
-export type LocationCommon = Pick<
-  ConnectionModel & BraceModel & MaterialModel & ColumnModel,
-  LocationCommonFields
+export type LocationBrace = Pick<
+  BraceModel,
+  (typeof _locationBraceFields)[number]
 >;
-
+export type LocationColumn = Pick<
+  ColumnModel,
+  (typeof _locationColumnFields)[number]
+>;
 export type LocationConnection = Pick<
   ConnectionModel,
-  LocationConnectionFields
+  (typeof _locationConnectionFields)[number]
 >;
-
-export type LocationBrace = Pick<BraceModel, LocationBraceFields>;
-
-export type LocationColumn = Pick<ColumnModel, LocationColumnFields>;
-
-export type LocationMaterial = Pick<MaterialModel, LocationMaterialFields>;
-
-export type LocationGlobal =
-  | LocationConnection
+export type LocationMaterial = Pick<
+  MaterialModel,
+  (typeof _locationMaterialFields)[number]
+>;
+type LocationGlobal =
   | LocationBrace
   | LocationColumn
+  | LocationConnection
   | LocationMaterial;
 
 // Now we use the newly created types for our specific tooltip functions
@@ -179,7 +180,7 @@ export function createTooltipMaterials(d: LocationMaterial) {
         </div>`;
 }
 
-export function createTooltip(d: LocationGlobal, type: string) {
+export function createTooltip(d: LocationGlobal, type: Type) {
   switch (type) {
     case "Connections":
       return createTooltipConnections(d as LocationConnection);
@@ -205,7 +206,7 @@ export const icons = new Map(
   ])
 );
 
-export function createMarkers(data: LocationGlobal[], type: string) {
+export function createMarkers(data: LocationGlobal[], type: Type) {
   return data.map((d) => {
     const marker = new Marker([d.latitude, d.longitude], {
       icon: icons.get(type),

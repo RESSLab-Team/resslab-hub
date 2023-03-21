@@ -2,11 +2,24 @@
 import "leaflet/dist/leaflet.css";
 
 import {
-  PieChart,
-  scaleColor,
-  scaleRadius,
-  typesNames,
-} from "@/utils/piechart";
+  bracesApi,
+  columnsApi,
+  connectionsApi,
+  materialsApi,
+} from "@/plugins/axios";
+import { typesNames } from "@/utils/backend";
+import {
+  createMarkers,
+  LocationBrace,
+  locationBraceFields,
+  LocationColumn,
+  locationColumnFields,
+  LocationConnection,
+  locationConnectionFields,
+  LocationMaterial,
+  locationMaterialFields,
+} from "@/utils/overviewmap";
+import { PieChart, scaleColor, scaleRadius } from "@/utils/piechart";
 import { rollups, select } from "d3";
 import {
   Control,
@@ -19,25 +32,6 @@ import {
   tileLayer,
 } from "leaflet";
 import "leaflet.markercluster";
-import {
-  bracesApi,
-  columnsApi,
-  connectionsApi,
-  materialsApi,
-} from "@/plugins/axios";
-
-import {
-  createMarkers,
-  locationBraceFields,
-  locationColumnFields,
-  locationConnectionFields,
-  LocationConnection,
-  locationMaterialFields,
-  LocationColumn,
-  LocationBrace,
-  LocationMaterial,
-} from "@/utils/overviewmap";
-
 import { computed, onMounted, ref } from "vue";
 
 const connectionsLocations = ref<LocationConnection[]>([]);
@@ -50,19 +44,19 @@ connectionsApi
   });
 
 const columnsLocations = ref<LocationColumn[]>([]);
-columnsApi.getColumnsFields([...locationColumnFields]).then((res) => {
+columnsApi.getColumnsFields(locationColumnFields).then((res) => {
   columnsLocations.value = res.data as LocationColumn[];
   updateMap();
 });
 
 const bracesLocations = ref<LocationBrace[]>([]);
-bracesApi.getBracesFields([...locationBraceFields]).then((res) => {
+bracesApi.getBracesFields(locationBraceFields).then((res) => {
   bracesLocations.value = res.data as LocationBrace[];
   updateMap();
 });
 
 const materialsLocations = ref<LocationMaterial[]>([]);
-materialsApi.getMaterialsFields([...locationMaterialFields]).then((res) => {
+materialsApi.getMaterialsFields(locationMaterialFields).then((res) => {
   materialsLocations.value = res.data as LocationMaterial[];
   updateMap();
 });
@@ -99,7 +93,7 @@ const cluster = computed(() => {
   return new MarkerClusterGroup({
     showCoverageOnHover: false,
     iconCreateFunction: function (cluster) {
-      var childCount = cluster.getChildCount();
+      const childCount = cluster.getChildCount();
       const radius = scaleRadius.domain([0, dataLength.value])(childCount);
 
       const allChilds = cluster.getAllChildMarkers();

@@ -1,3 +1,4 @@
+import { Type, typesNames } from "@/utils/backend";
 import { colorPalette } from "@/utils/vuetify";
 import { arc, create, pie, range, scaleLinear, scaleOrdinal, sum } from "d3";
 
@@ -5,9 +6,6 @@ export interface Datum {
   name: string;
   value: number;
 }
-
-export const typesNames = ["Materials", "Columns", "Connections", "Braces"];
-
 export interface OverviewMapOptions {
   name?: (arg0: Datum) => string;
   value?: (arg0: Datum) => number;
@@ -88,7 +86,7 @@ export function PieChart(
     .selectAll("path")
     .data(arcs)
     .join("path")
-    .attr("fill", (d) => scaleColor(N[d.index]))
+    .attr("fill", (d) => scaleColor(N[d.index] as Type))
     .attr("d", (d) => arcFn({ ...d, innerRadius, outerRadius }))
     .append("title")
     .text((d) => title(d.index));
