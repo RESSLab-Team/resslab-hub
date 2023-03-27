@@ -40,6 +40,13 @@ After migrating the database or if you just need to update the new data without 
 # Upload data to local database
 make upload-data
 
+# Upload data to test database
+make upload-data-test
+
 # Upload data to prod database
-make upload-data-prod
+# You firstly need to setup the port forwarding
+ssh -NL 5432:localhost:5432 root@resslab-hub.epfl.ch
+
+#Then upload locally (forwarded to prod) (with the correct database credential)
+make upload-data
 ```

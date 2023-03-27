@@ -80,14 +80,6 @@ Run configurations are in `.vscode`: https://code.visualstudio.com/docs/editor/d
 Upload data to database.
 See [backend](./backend/README.md)
 
-```bash
-# To local database
-make upload-data
-
-# To prod database
-make upload-data-prod
-```
-
 ## Generate API for frontend
 
 Folder `frontend/src/backend` is generated from backend API. It should be updated when the backend api changes.
