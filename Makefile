@@ -34,8 +34,5 @@ api:
 upload-data:
 	$(MAKE) -C backend upload-data
 
-upload-data-prod:
-	$(MAKE) -C backend upload-data-prod
-
 upload-data-test:
 	$(MAKE) -C backend upload-data-test
