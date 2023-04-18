@@ -19,6 +19,8 @@ settings = Dynaconf(
         Validator("database_upgrade", default=True),
         Validator("analytics_property_id", default=None),
         Validator("google_application_credentials", default=None),
+        Validator("api_username", default="user"),
+        Validator("api_password", must_exist=True),
     ],
 )
 
