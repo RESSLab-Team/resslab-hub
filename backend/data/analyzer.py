@@ -10,7 +10,12 @@ from typing import List, Set
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from data.common import CSV_READ_MODE, UTF8_ENCODING, get_abs_path, is_empty_row
+from resslab_hub.data.common import (
+    CSV_READ_MODE,
+    UTF8_ENCODING,
+    get_abs_path,
+    is_empty_row,
+)
 from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)

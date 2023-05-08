@@ -4,7 +4,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any, Callable, Dict, List, Union
 
-from data.common import CSV_READ_MODE, UTF8_ENCODING
+from resslab_hub.data.common import CSV_READ_MODE, UTF8_ENCODING
 
 INCH = Decimal(25.4)
 

@@ -26,7 +26,7 @@ from sqlalchemy import (
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
-from data.common import get_abs_path, get_file_encoding, is_empty_row
+from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
 from resslab_hub.models.database.column import (
     ColumnAxialShortening,
