@@ -53,11 +53,10 @@ async def create_upload_file(
         with TemporaryDirectory() as tmpdir:
             with open(fileobj=file.file, mode="r:gz") as tar_file:
                 tar_file.extractall(tmpdir)
-            upload_all(type, [tmpdir])
+            return upload_all(type, [tmpdir])
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
     finally:
         await file.close()
-    return {"message": f"Successfuly uploaded {file.filename}"}

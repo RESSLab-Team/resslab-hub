@@ -97,7 +97,7 @@ class Uploader(ABC):
     """
 
     @abstractmethod
-    def upload_one(self, file_path: str) -> None:
+    def upload_one(self, file_path: str) -> str:
         """
         Upload one file
         """
@@ -113,7 +113,7 @@ class TableUploader(Uploader):
         self.id_column_key = id_column_key
         self.id_column = base_model.__dict__[id_column_key]
 
-    def upload_one(self, file_path: str) -> None:
+    def upload_one(self, file_path: str) -> str:
         file_path = get_abs_path(file_path)
         try:
             encoding = get_file_encoding(file_path)
@@ -146,8 +146,11 @@ class TableUploader(Uploader):
                     )
                     warning(f"deleted {removed_ids}")
                 session.commit()
+                return ""
         except Exception as e:
-            error(f"skiping {file_path} due to error {e}")
+            error_message = f"skiping {file_path} due to error {e}"
+            error(error_message)
+            return error_message
 
     @staticmethod
     def __get_value(column: Column, headers: List[str], row: List[str]) -> Any:
@@ -189,7 +192,7 @@ class CsvFileUploader(Uploader):
         self.filename_prefix = filename_prefix
         self.filename_suffix = filename_suffix
 
-    def upload_one(self, file_path: str) -> None:
+    def upload_one(self, file_path: str) -> str:
         file_path = get_abs_path(file_path)
         try:
             filename = self.__get_filename(file_path)
@@ -208,11 +211,14 @@ class CsvFileUploader(Uploader):
                     session.add(self.get_instance(id, index, value))
                 try:
                     session.commit()
+                    return ""
                 except IntegrityError as e:
                     session.rollback()
-                    error(f"error: {e.orig}")
+                    raise Exception(e.orig)
         except Exception as e:
-            error(f"skiping {file_path} due to error {e}")
+            error_message = f"skiping {file_path} due to error {e}"
+            error(error_message)
+            return error_message
 
     @staticmethod
     def __get_filename(file_path: str) -> str:
@@ -220,7 +226,7 @@ class CsvFileUploader(Uploader):
         return path.splitext(basename)[0]
 
 
-def upload_one(input_type: Type, filename: str):
+def upload_one(input_type: Type, filename: str) -> str:
     match input_type:
         case Type.BRACE:
             uploader = TableUploader(Brace)
@@ -403,7 +409,7 @@ def upload_one(input_type: Type, filename: str):
         case _:
             raise NotImplementedError(f"unknown type {input_type}")
 
-    uploader.upload_one(filename)
+    return uploader.upload_one(filename)
 
 
 def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
@@ -538,9 +544,11 @@ def upload_all(input_type: Type, filenames: List[str]):
     info(f"uploading {len(primary_types)} primary types")
 
     with Pool(cpu, initializer=initializer) as pool:
-        pool.starmap(upload_one, primary_types)
+        primary_results = pool.starmap(upload_one, primary_types)
 
     info(f"uploading {len(subsidiary_types)} subsidiary types")
 
     with Pool(cpu, initializer=initializer) as pool:
-        pool.starmap(upload_one, subsidiary_types)
+        subsidiary_results = pool.starmap(upload_one, subsidiary_types)
+
+    return [result for result in (primary_results + subsidiary_results) if result]
