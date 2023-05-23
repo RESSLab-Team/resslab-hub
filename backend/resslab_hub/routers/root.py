@@ -53,10 +53,15 @@ async def create_upload_file(
         with TemporaryDirectory() as tmpdir:
             with open(fileobj=file.file, mode="r:gz") as tar_file:
                 tar_file.extractall(tmpdir)
-            return upload_all(type, [tmpdir])
+            return upload_all(type, [tmpdir], 1)
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
     finally:
         await file.close()
+
+
+@router.get("/user")
+async def get_user(username: str = Depends(get_current_username)):
+    return {"username": username}

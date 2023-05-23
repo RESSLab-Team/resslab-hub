@@ -1,8 +1,8 @@
 export interface Page<T> {
   items: T[]
   total: number
-  page: number
-  size: number
+  page?: number
+  size?: number
 }
 
 export type Type = 'Braces' | 'Columns' | 'Connections' | 'Materials'

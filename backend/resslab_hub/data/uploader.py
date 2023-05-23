@@ -510,14 +510,13 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             return [(input_type, filename)]
 
 
-def upload_all(input_type: Type, filenames: List[str]):
+def upload_all(input_type: Type, filenames: List[str], cpu=cpu_count()):
     wildcard_args: List[Tuple[Type, str]] = [
         arg for filename in filenames for arg in get_args_all(input_type, filename)
     ]
     args: List[Tuple[Type, str]] = [
         (arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])
     ]
-    cpu = cpu_count()
 
     primary_types = list(
         filter(
@@ -540,7 +539,7 @@ def upload_all(input_type: Type, filenames: List[str]):
         )
     )
 
-    info(f"using {cpu} processes")
+    warning(f"using {cpu} processes")
     info(f"uploading {len(primary_types)} primary types")
 
     with Pool(cpu, initializer=initializer) as pool:

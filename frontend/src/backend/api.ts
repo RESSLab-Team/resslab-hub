@@ -934,13 +934,13 @@ export interface ExtendedPageBraceModel {
      * @type {number}
      * @memberof ExtendedPageBraceModel
      */
-    'page': number;
+    'page'?: number;
     /**
      * 
      * @type {number}
      * @memberof ExtendedPageBraceModel
      */
-    'size': number;
+    'size'?: number;
     /**
      * 
      * @type {number}
@@ -971,13 +971,13 @@ export interface ExtendedPageColumnModel {
      * @type {number}
      * @memberof ExtendedPageColumnModel
      */
-    'page': number;
+    'page'?: number;
     /**
      * 
      * @type {number}
      * @memberof ExtendedPageColumnModel
      */
-    'size': number;
+    'size'?: number;
     /**
      * 
      * @type {number}
@@ -1008,13 +1008,13 @@ export interface ExtendedPageConnectionModel {
      * @type {number}
      * @memberof ExtendedPageConnectionModel
      */
-    'page': number;
+    'page'?: number;
     /**
      * 
      * @type {number}
      * @memberof ExtendedPageConnectionModel
      */
-    'size': number;
+    'size'?: number;
     /**
      * 
      * @type {number}
@@ -1045,13 +1045,13 @@ export interface ExtendedPageMaterialModel {
      * @type {number}
      * @memberof ExtendedPageMaterialModel
      */
-    'page': number;
+    'page'?: number;
     /**
      * 
      * @type {number}
      * @memberof ExtendedPageMaterialModel
      */
-    'size': number;
+    'size'?: number;
     /**
      * 
      * @type {number}
@@ -1082,13 +1082,13 @@ export interface ExtendedPageResidualStressModel {
      * @type {number}
      * @memberof ExtendedPageResidualStressModel
      */
-    'page': number;
+    'page'?: number;
     /**
      * 
      * @type {number}
      * @memberof ExtendedPageResidualStressModel
      */
-    'size': number;
+    'size'?: number;
     /**
      * 
      * @type {number}
@@ -1667,6 +1667,43 @@ export const ResidualStressNumberField = {
 } as const;
 
 export type ResidualStressNumberField = typeof ResidualStressNumberField[keyof typeof ResidualStressNumberField];
+
+
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const Type = {
+    All: 'all',
+    AllColumn: 'all-column',
+    AllBrace: 'all-brace',
+    AllConnection: 'all-connection',
+    AllMaterial: 'all-material',
+    AllResidualStress: 'all-residual-stress',
+    Brace: 'brace',
+    BraceDisplacement: 'brace-displacement',
+    Column: 'column',
+    ColumnAxialShortening: 'column-axial-shortening',
+    ColumnMomentStrong: 'column-moment-strong',
+    ColumnMomentWeak: 'column-moment-weak',
+    Connection: 'connection',
+    ConnectionBeam: 'connection-beam',
+    ConnectionBeamWest: 'connection-beam-west',
+    ConnectionGlobal: 'connection-global',
+    ConnectionGlobalWest: 'connection-global-west',
+    ConnectionPanelZone: 'connection-panel-zone',
+    Material: 'material',
+    MaterialStressStrain: 'material-stress-strain',
+    ResidualStress: 'residual-stress',
+    ResidualStressDistributionF1: 'residual-stress-distribution-f1',
+    ResidualStressDistributionF2: 'residual-stress-distribution-f2',
+    ResidualStressDistributionW1: 'residual-stress-distribution-w1',
+    ResidualStressQpCoefficient: 'residual-stress-qp-coefficient'
+} as const;
+
+export type Type = typeof Type[keyof typeof Type];
 
 
 /**
@@ -4784,6 +4821,92 @@ export class ConnectionsApi extends BaseAPI {
 export const DefaultApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * 
+         * @summary Create Upload File
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUploadFile: async (type: Type, file: File, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'type' is not null or undefined
+            assertParamExists('createUploadFile', 'type', type)
+            // verify required parameter 'file' is not null or undefined
+            assertParamExists('createUploadFile', 'file', file)
+            const localVarPath = `/upload`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
+
+            // authentication HTTPBasic required
+            // http basic authentication required
+            setBasicAuthToObject(localVarRequestOptions, configuration)
+
+            if (type !== undefined) {
+                localVarQueryParameter['type'] = type;
+            }
+
+
+            if (file !== undefined) { 
+                localVarFormParams.append('file', file as any);
+            }
+    
+    
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = localVarFormParams;
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get User
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUser: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/user`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication HTTPBasic required
+            // http basic authentication required
+            setBasicAuthToObject(localVarRequestOptions, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get Info
          * @summary Root
          * @param {*} [options] Override http request option.
@@ -4824,6 +4947,28 @@ export const DefaultApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = DefaultApiAxiosParamCreator(configuration)
     return {
         /**
+         * 
+         * @summary Create Upload File
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createUploadFile(type: Type, file: File, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createUploadFile(type, file, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get User
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getUser(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getUser(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get Info
          * @summary Root
          * @param {*} [options] Override http request option.
@@ -4844,6 +4989,26 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = DefaultApiFp(configuration)
     return {
         /**
+         * 
+         * @summary Create Upload File
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUploadFile(type: Type, file: File, options?: any): AxiosPromise<any> {
+            return localVarFp.createUploadFile(type, file, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get User
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUser(options?: any): AxiosPromise<any> {
+            return localVarFp.getUser(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get Info
          * @summary Root
          * @param {*} [options] Override http request option.
@@ -4862,6 +5027,30 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
  * @extends {BaseAPI}
  */
 export class DefaultApi extends BaseAPI {
+    /**
+     * 
+     * @summary Create Upload File
+     * @param {Type} type 
+     * @param {File} file 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DefaultApi
+     */
+    public createUploadFile(type: Type, file: File, options?: AxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).createUploadFile(type, file, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get User
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DefaultApi
+     */
+    public getUser(options?: AxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getUser(options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Get Info
      * @summary Root

@@ -24,6 +24,78 @@
         }
       }
     },
+    "/upload": {
+      "post": {
+        "summary": "Create Upload File",
+        "operationId": "create_upload_file",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Type"
+            },
+            "name": "type",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_upload_file_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
+    "/user": {
+      "post": {
+        "summary": "Get User",
+        "operationId": "get_user",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
     "/analytics/users": {
       "get": {
         "tags": [
@@ -3336,6 +3408,20 @@
   },
   "components": {
     "schemas": {
+      "Body_create_upload_file_upload_post": {
+        "title": "Body_create_upload_file_upload_post",
+        "required": [
+          "file"
+        ],
+        "type": "object",
+        "properties": {
+          "file": {
+            "title": "File",
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      },
       "BraceField": {
         "title": "BraceField",
         "enum": [
@@ -4080,9 +4166,7 @@
         "title": "ExtendedPage[BraceModel]",
         "required": [
           "items",
-          "total",
-          "page",
-          "size"
+          "total"
         ],
         "type": "object",
         "properties": {
@@ -4119,9 +4203,7 @@
         "title": "ExtendedPage[ColumnModel]",
         "required": [
           "items",
-          "total",
-          "page",
-          "size"
+          "total"
         ],
         "type": "object",
         "properties": {
@@ -4158,9 +4240,7 @@
         "title": "ExtendedPage[ConnectionModel]",
         "required": [
           "items",
-          "total",
-          "page",
-          "size"
+          "total"
         ],
         "type": "object",
         "properties": {
@@ -4197,9 +4277,7 @@
         "title": "ExtendedPage[MaterialModel]",
         "required": [
           "items",
-          "total",
-          "page",
-          "size"
+          "total"
         ],
         "type": "object",
         "properties": {
@@ -4236,9 +4314,7 @@
         "title": "ExtendedPage[ResidualStressModel]",
         "required": [
           "items",
-          "total",
-          "page",
-          "size"
+          "total"
         ],
         "type": "object",
         "properties": {
@@ -4767,6 +4843,37 @@
         "type": "string",
         "description": "An enumeration."
       },
+      "Type": {
+        "title": "Type",
+        "enum": [
+          "all",
+          "all-column",
+          "all-brace",
+          "all-connection",
+          "all-material",
+          "all-residual-stress",
+          "brace",
+          "brace-displacement",
+          "column",
+          "column-axial-shortening",
+          "column-moment-strong",
+          "column-moment-weak",
+          "connection",
+          "connection-beam",
+          "connection-beam-west",
+          "connection-global",
+          "connection-global-west",
+          "connection-panel-zone",
+          "material",
+          "material-stress-strain",
+          "residual-stress",
+          "residual-stress-distribution-f1",
+          "residual-stress-distribution-f2",
+          "residual-stress-distribution-w1",
+          "residual-stress-qp-coefficient"
+        ],
+        "description": "An enumeration."
+      },
       "ValidationError": {
         "title": "ValidationError",
         "required": [
@@ -4799,6 +4906,12 @@
             "type": "string"
           }
         }
+      }
+    },
+    "securitySchemes": {
+      "HTTPBasic": {
+        "type": "http",
+        "scheme": "basic"
       }
     }
   }
