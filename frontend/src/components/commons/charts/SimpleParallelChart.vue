@@ -14,7 +14,7 @@ import { use, type ECharts } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { chain, merge, zip } from 'lodash'
-import { computed, ref, unref, withDefaults } from 'vue'
+import { computed, ref, unref } from 'vue'
 import VChart from 'vue-echarts'
 
 use([SVGRenderer, ParallelChart, BrushComponent, ToolboxComponent])

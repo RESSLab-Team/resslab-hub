@@ -8,7 +8,7 @@ import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import type { XAXisOption, YAXisOption } from 'echarts/types/dist/shared'
 import { cloneDeep, merge, round } from 'lodash'
-import { computed, withDefaults } from 'vue'
+import { computed } from 'vue'
 import VChart from 'vue-echarts'
 
 use([SVGRenderer, LineChart, GridComponent, LegendComponent, TooltipComponent])

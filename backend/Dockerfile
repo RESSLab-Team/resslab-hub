@@ -5,7 +5,7 @@ RUN apk add --no-cache \
     musl-dev
 RUN pip install poetry
 COPY ./pyproject.toml ./poetry.lock* /app/
-RUN poetry export --output requirements.txt
+RUN poetry export --output requirements.txt --without-hashes
 
 
 FROM python:3.10-alpine as production-stage

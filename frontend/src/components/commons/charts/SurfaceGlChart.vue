@@ -7,7 +7,7 @@ import { TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { merge, round } from 'lodash'
-import { computed, withDefaults } from 'vue'
+import { computed } from 'vue'
 import VChart from 'vue-echarts'
 
 use([CanvasRenderer, SurfaceChart, Grid3DComponent, TooltipComponent])

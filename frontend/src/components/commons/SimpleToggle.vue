@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ToggleItem } from '@/utils/toggle'
-import { computed, withDefaults } from 'vue'
+import { computed } from 'vue'
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
 type T = string

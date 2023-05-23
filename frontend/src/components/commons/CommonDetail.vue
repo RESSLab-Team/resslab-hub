@@ -5,7 +5,7 @@ import { primaryColor, secondaryColor } from '@/utils/vuetify'
 import { mdiClose } from '@mdi/js'
 import type { AxiosResponse } from 'axios'
 import type { LineSeriesOption } from 'echarts'
-import { ref, watch, withDefaults } from 'vue'
+import { ref, watch } from 'vue'
 
 export interface DetailCarouselItem {
   count: number

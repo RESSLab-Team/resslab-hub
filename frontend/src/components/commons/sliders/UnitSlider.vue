@@ -2,7 +2,7 @@
 import { useColor } from '@/composables/color'
 import { useUnits } from '@/composables/unit'
 import type { Color } from '@/utils/vuetify'
-import { computed, withDefaults } from 'vue'
+import { computed } from 'vue'
 
 export interface UnitSliderItem<K = string> {
   key: K

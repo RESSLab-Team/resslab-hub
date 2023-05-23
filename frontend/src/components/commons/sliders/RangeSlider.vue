@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useColor } from '@/composables/color'
 import type { Color } from '@/utils/vuetify'
-import { computed, withDefaults } from 'vue'
+import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{

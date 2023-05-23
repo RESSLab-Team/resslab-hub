@@ -21,7 +21,7 @@ import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { chain, clone, isEqual, range } from 'lodash'
-import { computed, unref, watch, withDefaults } from 'vue'
+import { computed, unref, watch } from 'vue'
 import VChart from 'vue-echarts'
 
 use([

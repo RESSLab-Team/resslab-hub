@@ -25,8 +25,8 @@ function open(message: string, url?: string): void {
     <span v-else>
       {{ messageRef }}
     </span>
-    <template #action="{ attrs }">
-      <v-btn v-bind="attrs" color="primary" :icon="mdiClose" @click="snackbar = false" />
+    <template #actions>
+      <v-btn color="primary" :icon="mdiClose" @click="snackbar = false" />
     </template>
   </v-snackbar>
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useUnits } from '@/composables/unit'
-import { computed, withDefaults } from 'vue'
+import { computed } from 'vue'
 
 export interface UnitTableRowData {
   key: string

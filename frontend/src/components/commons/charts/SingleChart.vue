@@ -10,7 +10,7 @@ import { TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
-import { computed, withDefaults } from 'vue'
+import { computed } from 'vue'
 import VChart from 'vue-echarts'
 
 use([SVGRenderer, TreemapChart, TooltipComponent])

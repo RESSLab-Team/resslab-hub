@@ -2,7 +2,7 @@
 import SimpleToggle from '@/components/commons/SimpleToggle.vue'
 import { useUnitStore } from '@/stores/unit'
 import { unitItems, type UnitSystem } from '@/utils/unit'
-import { computed, withDefaults } from 'vue'
+import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{

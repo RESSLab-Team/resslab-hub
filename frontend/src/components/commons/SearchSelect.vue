@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SelectItem } from '@/utils/vuetify'
 import { mdiMagnify } from '@mdi/js'
-import { computed, ref, unref, watch, withDefaults } from 'vue'
+import { computed, ref, unref, watch } from 'vue'
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

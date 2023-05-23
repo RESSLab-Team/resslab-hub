@@ -2,7 +2,7 @@
 import { useColor } from '@/composables/color'
 import { mapDateToNumber, mapNumberToDate } from '@/utils/date'
 import type { Color } from '@/utils/vuetify'
-import { computed, withDefaults } from 'vue'
+import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{

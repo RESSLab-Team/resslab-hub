@@ -172,7 +172,7 @@ function getImageSource(item: string): string {
       <v-list-item v-bind="props" @click="props.onClick">
         <template #prepend="{ isSelected }">
           <v-checkbox hide-details :model-value="isSelected" :ripple="false" />
-          <v-img max-height="128" width="128" :src="getImageSource(props.value)" />
+          <v-img max-height="128" width="128" :src="getImageSource(props.value as string)" />
         </template>
       </v-list-item>
     </template>

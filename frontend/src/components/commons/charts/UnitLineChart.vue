@@ -5,7 +5,7 @@ import type { EChartsOption, LineSeriesOption } from 'echarts'
 import { TitleComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { merge } from 'lodash'
-import { computed, withDefaults } from 'vue'
+import { computed } from 'vue'
 
 const props = withDefaults(
   defineProps<{

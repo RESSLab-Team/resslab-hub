@@ -6,7 +6,7 @@ import { useNotificationStore } from '@/stores/notification'
 import { filterColumnValue, globalSearchKey, type Searches } from '@/utils/common'
 import { booleanOptions, type DataOptions } from '@/utils/vuetify'
 import { mdiDownload, mdiMagnify, mdiShare } from '@mdi/js'
-import { computed, ref, watch, withDefaults } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 interface TableHeader {
@@ -40,7 +40,7 @@ const props = withDefaults(
     totalCount: undefined,
     loading: false,
     items: () => [],
-    totalFilteredCount: undefined,
+    totalFilteredCount: 0,
     prefix: undefined,
     query: undefined,
     searches: () => ({}),
@@ -210,12 +210,12 @@ function downloadZip(): void {
             <v-select
               v-if="header.options"
               v-bind="vInputBind"
-              v-model="columnSearches[header.key]"
+              :model-value="(columnSearches[header.key] as string)"
               :label="header.title"
               :multiple="header.multiple"
               :items="header.options"
-            >
-            </v-select>
+              @update:model-value="columnSearches[header.key] = $event"
+            />
             <v-text-field
               v-else-if="header.type === 'text'"
               v-bind="vInputBind"
@@ -249,10 +249,11 @@ function downloadZip(): void {
             <v-select
               v-if="header.options"
               v-bind="vInputBind"
-              v-model="columnSearches[header.key]"
+              :model-value="(columnSearches[header.key] as string)"
               :label="header.title"
               :multiple="header.multiple"
               :items="header.options"
+              @update:model-value="columnSearches[header.key] = $event"
             >
               <!-- eslint-disable vue/no-template-shadow -->
               <template
@@ -292,7 +293,16 @@ function downloadZip(): void {
         </tr>
       </template>
       <template #[`item.t_dp_tot`]="{ item }">
-        <template v-if="item.t_dp_tot">{{ item.t_dp_tot }}</template>
+        <template
+          v-if="
+            //@ts-ignore
+            item.t_dp_tot
+          "
+          >{{
+            //@ts-ignore
+            item.t_dp_tot
+          }}</template
+        >
       </template>
     </v-data-table-server>
     <v-card-actions>

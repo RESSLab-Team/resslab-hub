@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { mdiCheck, mdiClose } from '@mdi/js'
-import { computed, ref, withDefaults } from 'vue'
+import { computed, ref } from 'vue'
 
 export interface CheckBoxDialogItem<K> {
   key: K
