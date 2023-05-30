@@ -67,7 +67,7 @@ const emit = defineEmits<{
   (e: 'update:numberRange', value?: [number, number]): void
 }>()
 
-const numberRange = computed({
+const actualnNumberRange = computed({
   get: () => props.numberRange,
   set: (value) => {
     if (value && value[0] === props.numberMin && value[1] === props.numberMax) {
@@ -77,7 +77,7 @@ const numberRange = computed({
     }
   }
 })
-const dateRange = computed({
+const actualDateRange = computed({
   get: () => props.dateRange,
   set: (value) => {
     if (value && value[0] === props.dateMin && value[1] === props.dateMax) {
@@ -111,7 +111,7 @@ const firstKeys = computed<string[]>(() =>
     .sort()
     .value()
 )
-const isHistogram = computed<boolean>(() => numberRange.value !== undefined)
+const isHistogram = computed<boolean>(() => actualnNumberRange.value !== undefined)
 const option = computed<EChartsOption>(() => {
   const secondKeys: string[] = chain(props.counts)
     .groupBy((count) => count.names[1])
@@ -182,7 +182,7 @@ const option = computed<EChartsOption>(() => {
   return option
 })
 
-watch(numberRange, (value) => {
+watch(actualnNumberRange, (value) => {
   let searchValue: string | undefined
   if (value && !isNaN(value[0]) && !isNaN(value[1])) {
     searchValue = `${value[0]}<<${value[1]}`
@@ -191,7 +191,7 @@ watch(numberRange, (value) => {
   }
   emit('change:searches', props.fields[0], searchValue)
 })
-watch(dateRange, (value) => {
+watch(actualDateRange, (value) => {
   let searchValue: string | undefined
   if (value) {
     searchValue = `${value[0]}<<${value[1]}`
@@ -277,14 +277,14 @@ function click(params: CallbackDataParams): void {
     </v-responsive>
     <range-slider
       v-if="numberMin && numberMax"
-      v-model="numberRange"
+      v-model="actualnNumberRange"
       :color="color"
       :min="numberMin"
       :max="numberMax"
     />
     <date-range-slider
       v-if="dateMin && dateMax"
-      v-model="dateRange"
+      v-model="actualDateRange"
       :color="color"
       :min="dateMin"
       :max="dateMax"
