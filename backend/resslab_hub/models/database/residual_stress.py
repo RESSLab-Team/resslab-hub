@@ -5,6 +5,7 @@ from sqlalchemy import (
     BigInteger,
     Column,
     ForeignKey,
+    Integer,
     Numeric,
     SmallInteger,
     String,
@@ -74,6 +75,7 @@ class ResidualStress(Base):  # type: ignore
     id = Column(String, primary_key=True)
     experimental_program = Column(String, nullable=False)
     date = Column(SmallInteger, nullable=False)
+    profile_type = Column(String, nullable=False)
     profile = Column(String, nullable=False)
     spec_var = Column(String)
     steel = Column(String, nullable=False)
@@ -86,6 +88,9 @@ class ResidualStress(Base):  # type: ignore
     tw = Column(Numeric, nullable=False)
     tf = Column(Numeric, nullable=False)
     r = Column(Numeric, nullable=False)
+    A = Column(Integer, nullable=False)
+    sigma_0_f = Column(Numeric, nullable=False)
+    sigma_0_w = Column(Numeric, nullable=False)
     flange_nr_data = Column(SmallInteger, nullable=False)
     plot_sf = Column(Numeric, nullable=False)
     reference = Column(String, nullable=False)
