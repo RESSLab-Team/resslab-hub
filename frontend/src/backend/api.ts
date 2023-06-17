@@ -1463,6 +1463,7 @@ export const ResidualStressField = {
     Id: 'id',
     ExperimentalProgram: 'experimental_program',
     Date: 'date',
+    ProfileType: 'profile_type',
     Profile: 'profile',
     SpecVar: 'spec_var',
     Steel: 'steel',
@@ -1475,6 +1476,10 @@ export const ResidualStressField = {
     Tw: 'tw',
     Tf: 'tf',
     R: 'r',
+    A: 'A',
+    Sigma0F: 'sigma_0_f',
+    Sigma0W: 'sigma_0_w',
+    FlangeNrData: 'flange_nr_data',
     PlotSf: 'plot_sf',
     Reference: 'reference',
     Link: 'link',
@@ -1513,6 +1518,12 @@ export interface ResidualStressModel {
      * @memberof ResidualStressModel
      */
     'date': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ResidualStressModel
+     */
+    'profile_type': string;
     /**
      * 
      * @type {string}
@@ -1590,6 +1601,30 @@ export interface ResidualStressModel {
      * @type {number}
      * @memberof ResidualStressModel
      */
+    'A': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'sigma_0_f': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'sigma_0_w': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'flange_nr_data': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
     'plot_sf': number;
     /**
      * 
@@ -1657,6 +1692,10 @@ export const ResidualStressNumberField = {
     Tw: 'tw',
     Tf: 'tf',
     R: 'r',
+    A: 'A',
+    Sigma0F: 'sigma_0_f',
+    Sigma0W: 'sigma_0_w',
+    FlangeNrData: 'flange_nr_data',
     PlotSf: 'plot_sf',
     Latitude: 'latitude',
     Longitude: 'longitude',
@@ -4887,7 +4926,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 

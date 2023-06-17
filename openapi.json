@@ -76,7 +76,7 @@
       }
     },
     "/user": {
-      "post": {
+      "get": {
         "summary": "Get User",
         "operationId": "get_user",
         "responses": {
@@ -4670,6 +4670,7 @@
           "id",
           "experimental_program",
           "date",
+          "profile_type",
           "profile",
           "spec_var",
           "steel",
@@ -4682,6 +4683,10 @@
           "tw",
           "tf",
           "r",
+          "A",
+          "sigma_0_f",
+          "sigma_0_w",
+          "flange_nr_data",
           "plot_sf",
           "reference",
           "link",
@@ -4701,6 +4706,7 @@
           "id",
           "experimental_program",
           "date",
+          "profile_type",
           "profile",
           "steel",
           "fy_n",
@@ -4710,6 +4716,10 @@
           "tw",
           "tf",
           "r",
+          "A",
+          "sigma_0_f",
+          "sigma_0_w",
+          "flange_nr_data",
           "plot_sf",
           "reference",
           "latitude",
@@ -4732,6 +4742,10 @@
           "date": {
             "title": "Date",
             "type": "integer"
+          },
+          "profile_type": {
+            "title": "Profile Type",
+            "type": "string"
           },
           "profile": {
             "title": "Profile",
@@ -4780,6 +4794,22 @@
           "r": {
             "title": "R",
             "type": "number"
+          },
+          "A": {
+            "title": "A",
+            "type": "integer"
+          },
+          "sigma_0_f": {
+            "title": "Sigma 0 F",
+            "type": "number"
+          },
+          "sigma_0_w": {
+            "title": "Sigma 0 W",
+            "type": "number"
+          },
+          "flange_nr_data": {
+            "title": "Flange Nr Data",
+            "type": "integer"
           },
           "plot_sf": {
             "title": "Plot Sf",
@@ -4832,6 +4862,10 @@
           "tw",
           "tf",
           "r",
+          "A",
+          "sigma_0_f",
+          "sigma_0_w",
+          "flange_nr_data",
           "plot_sf",
           "latitude",
           "longitude",
