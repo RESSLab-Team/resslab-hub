@@ -314,6 +314,7 @@ class ResidualStressModel(BaseModel):
     id: str
     experimental_program: str
     date: int
+    profile_type: str
     profile: str
     spec_var: Optional[str]
     steel: str
@@ -326,7 +327,10 @@ class ResidualStressModel(BaseModel):
     tw: Decimal
     tf: Decimal
     r: Decimal
-    flange_nr_data = Decimal
+    A: int
+    sigma_0_f: Decimal
+    sigma_0_w: Decimal
+    flange_nr_data: int
     plot_sf: Decimal
     reference: str
     link: Optional[str]
