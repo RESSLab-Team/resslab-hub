@@ -63,7 +63,9 @@
   "residual": {
     "experimental_program": "Experimental Program",
     "id": "Specimen Designation",
-    "profile": "Profile",
+    "profile": "Cross Section",
+    "steel": "Steel Grade",
+    "tf": "tf [mm]",
     "date": "Date"
   }
 }
