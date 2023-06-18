@@ -1488,7 +1488,8 @@ export const ResidualStressField = {
     QpCoefficientCount: 'qp_coefficient_count',
     DistributionF1Count: 'distribution_F1_count',
     DistributionF2Count: 'distribution_F2_count',
-    DistributionW1Count: 'distribution_W1_count'
+    DistributionW1Count: 'distribution_W1_count',
+    HOverB: 'h_over_b'
 } as const;
 
 export type ResidualStressField = typeof ResidualStressField[keyof typeof ResidualStressField];
@@ -1674,6 +1675,12 @@ export interface ResidualStressModel {
      * @memberof ResidualStressModel
      */
     'distribution_W1_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ResidualStressModel
+     */
+    'h_over_b': number;
 }
 /**
  * An enumeration.
@@ -1702,7 +1709,8 @@ export const ResidualStressNumberField = {
     QpCoefficientCount: 'qp_coefficient_count',
     DistributionF1Count: 'distribution_F1_count',
     DistributionF2Count: 'distribution_F2_count',
-    DistributionW1Count: 'distribution_W1_count'
+    DistributionW1Count: 'distribution_W1_count',
+    HOverB: 'h_over_b'
 } as const;
 
 export type ResidualStressNumberField = typeof ResidualStressNumberField[keyof typeof ResidualStressNumberField];
