@@ -4,11 +4,13 @@ Material Database Models
 from sqlalchemy import (
     BigInteger,
     Column,
+    Float,
     ForeignKey,
     Integer,
     Numeric,
     SmallInteger,
     String,
+    cast,
     func,
     select,
 )
@@ -123,3 +125,4 @@ class ResidualStress(Base):  # type: ignore
         .correlate_except(ResidualStressDistributionW1)
         .scalar_subquery()  # type: ignore
     )
+    h_over_b = column_property(cast(h, Float) / cast(b, Float))

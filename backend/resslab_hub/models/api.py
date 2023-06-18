@@ -343,6 +343,8 @@ class ResidualStressModel(BaseModel):
     distribution_F2_count: int
     distribution_W1_count: int
 
+    h_over_b: Decimal
+
 
 ResidualStressField = Enum(
     "ResidualStressField",
