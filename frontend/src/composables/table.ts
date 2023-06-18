@@ -17,6 +17,7 @@ export type ColumnType = 'text' | 'option' | 'number' | 'boolean'
 export interface Column {
   value: string
   type: ColumnType
+  title?: string
   options?: string[]
   filterOnly?: boolean
 }

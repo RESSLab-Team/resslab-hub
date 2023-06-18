@@ -18,6 +18,20 @@ const columns: Column[] = [
   {
     value: ResidualStressField.Profile,
     type: 'text'
+  },
+  {
+    value: ResidualStressField.Steel,
+    type: 'text'
+  },
+  {
+    value: ResidualStressField.Tf,
+    type: 'number',
+    title: 't<sub>f</sub> [mm]'
+  },
+  {
+    value: ResidualStressField.HOverB,
+    title: 'h/b<sub>f</sub>',
+    type: 'number'
   }
 ]
 

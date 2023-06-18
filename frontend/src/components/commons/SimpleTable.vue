@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-v-html -->
 <script setup lang="ts">
 import CheckboxDialog, { type CheckBoxDialogItem } from '@/components/commons/CheckboxDialog.vue'
 import { DownloadType, type Column, type ColumnType } from '@/composables/table'
@@ -6,6 +7,7 @@ import { useNotificationStore } from '@/stores/notification'
 import { filterColumnValue, globalSearchKey, type Searches } from '@/utils/common'
 import { booleanOptions, type DataOptions } from '@/utils/vuetify'
 import { mdiDownload, mdiMagnify, mdiShare } from '@mdi/js'
+import DOMPurify from 'dompurify'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -143,7 +145,9 @@ function shareUrl(): void {
 function getTableHeader(column: Column): TableHeader {
   return {
     key: column.value,
-    title: i18n.global.t(props.prefix + column.value).toString(),
+    title: DOMPurify.sanitize(
+      column.title ?? i18n.global.t(props.prefix + column.value).toString()
+    ),
     type: column.type,
     options: column.options?.sort(),
     multiple: column.options ? column.options.length > 2 : false
@@ -204,6 +208,10 @@ function downloadZip(): void {
       @click:row="click"
       @update:options="emit('update:options', $event)"
     >
+      <template v-for="header in tableHeaders" :key="header.key" #[`column.${header.key}`]>
+        <span v-html="header.title" />
+      </template>
+
       <template #top>
         <v-row class="px-4 pb-4">
           <v-col v-for="header in filterHeaders" :key="header.key">
@@ -211,31 +219,35 @@ function downloadZip(): void {
               v-if="header.options"
               v-bind="vInputBind"
               :model-value="(columnSearches[header.key] as string)"
-              :label="header.title"
               :multiple="header.multiple"
               :items="header.options"
               @update:model-value="columnSearches[header.key] = $event"
-            />
+            >
+              <template #label> <span v-html="header.title"></span> </template>
+            </v-select>
             <v-text-field
               v-else-if="header.type === 'text'"
               v-bind="vInputBind"
               v-model="columnSearches[header.key]"
-              :label="header.title"
-            />
+            >
+              <template #label> <span v-html="header.title"></span> </template>
+            </v-text-field>
             <v-select
               v-else-if="header.type === 'boolean'"
               v-bind="vInputBind"
               v-model="columnSearches[header.key]"
-              :label="header.title"
               :items="booleanOptions"
-            />
+            >
+              <template #label> <span v-html="header.title"></span> </template>
+            </v-select>
             <v-text-field
               v-else-if="header.type === 'number'"
               v-bind="vInputBind"
               v-model="columnSearches[header.key]"
-              :label="header.title"
               type="number"
-            />
+            >
+              <template #label> <span v-html="header.title"></span> </template>
+            </v-text-field>
           </v-col>
         </v-row>
       </template>
@@ -266,6 +278,7 @@ function downloadZip(): void {
                   :item="item"
                   :index="index"
                   :props="props"
+                  style="color: blue"
                 />
               </template>
             </v-select>
@@ -274,21 +287,27 @@ function downloadZip(): void {
               v-bind="vInputBind"
               v-model="columnSearches[header.key]"
               :label="header.title"
-            />
+            >
+              <template #label> <span v-html="header.title"></span> </template>
+            </v-text-field>
             <v-select
               v-else-if="header.type === 'boolean'"
               v-bind="vInputBind"
               v-model="columnSearches[header.key]"
               :label="header.title"
               :items="booleanOptions"
-            />
+            >
+              <template #label> <span v-html="header.title"></span> </template>
+            </v-select>
             <v-text-field
               v-else-if="header.type === 'number'"
               v-bind="vInputBind"
               v-model="columnSearches[header.key]"
               :label="header.title"
               type="number"
-            />
+            >
+              <template #label> <span v-html="header.title"></span> </template>
+            </v-text-field>
           </td>
         </tr>
       </template>
