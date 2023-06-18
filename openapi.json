@@ -4695,7 +4695,8 @@
           "qp_coefficient_count",
           "distribution_F1_count",
           "distribution_F2_count",
-          "distribution_W1_count"
+          "distribution_W1_count",
+          "h_over_b"
         ],
         "type": "string",
         "description": "An enumeration."
@@ -4727,7 +4728,8 @@
           "qp_coefficient_count",
           "distribution_F1_count",
           "distribution_F2_count",
-          "distribution_W1_count"
+          "distribution_W1_count",
+          "h_over_b"
         ],
         "type": "object",
         "properties": {
@@ -4846,6 +4848,10 @@
           "distribution_W1_count": {
             "title": "Distribution W1 Count",
             "type": "integer"
+          },
+          "h_over_b": {
+            "title": "H Over B",
+            "type": "number"
           }
         }
       },
@@ -4872,7 +4878,8 @@
           "qp_coefficient_count",
           "distribution_F1_count",
           "distribution_F2_count",
-          "distribution_W1_count"
+          "distribution_W1_count",
+          "h_over_b"
         ],
         "type": "string",
         "description": "An enumeration."
