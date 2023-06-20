@@ -4,6 +4,7 @@ import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import ResidualDoubleChart from '@/components/residuals/charts/ResidualDoubleChart.vue'
 import ResidualParallelChart from '@/components/residuals/charts/ResidualParallelChart.vue'
 import ResidualSingleChart from '@/components/residuals/charts/ResidualSingleChart.vue'
+import ResidualDetail from '@/components/residuals/ResidualDetail.vue'
 import ResidualTable from '@/components/residuals/ResidualTable.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
@@ -11,7 +12,7 @@ import { useRoute } from 'vue-router'
 import colors from 'vuetify/lib/util/colors'
 
 const route = useRoute()
-const { item, query, search, searches, changeSearches, updatePage } =
+const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
   useDashboard<ResidualStressModel>(route, ResidualStressField)
 
 const parallelFields: ParallelField<ResidualStressField>[] = [
@@ -38,6 +39,7 @@ const steelField = ResidualStressField.Steel
             v-model:search="search"
             v-model:searches="searches"
             :query="query"
+            @click:row="clickTableRow"
             @update:page="updatePage"
           />
         </v-col>
@@ -60,7 +62,7 @@ const steelField = ResidualStressField.Steel
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <!-- TODO detail -->
+          <residual-detail :residual="item" @close="closeDetail" />
         </v-col>
       </v-row>
       <v-row v-else>
