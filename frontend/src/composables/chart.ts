@@ -116,7 +116,7 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
   const numberMax = ref<number>()
   const numberRange = ref<[number, number]>()
 
-  watch(query, (query) => {
+  function fetchQuery(query: string | undefined) {
     const value = getSearchValueFromQuery(query, fields[0])
     if (!value) {
       numberRange.value = undefined
@@ -130,7 +130,9 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
         dateRange.value = minMax
       }
     }
-  })
+  }
+
+  watch(query, fetchQuery)
 
   function changeSearches(key: string, value?: Value) {
     emit('change:searches', key, value)
@@ -152,6 +154,7 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
       .then((range) => {
         numberMin.value = range.min
         numberMax.value = range.max
+        numberRange.value = [range.min, range.max]
       })
   }
   if (dateRangeOption) {
