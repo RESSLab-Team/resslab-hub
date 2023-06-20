@@ -81,7 +81,6 @@ const steelField = ResidualStressField.Steel
                   <residual-double-chart
                     :fields="[ResidualStressField.H, ResidualStressField.ProfileType]"
                     :query="query"
-                    bin="100"
                     type="bar"
                     @change:searches="changeSearches"
                   />

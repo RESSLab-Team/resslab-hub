@@ -70,11 +70,7 @@ const emit = defineEmits<{
 const actualnNumberRange = computed({
   get: () => props.numberRange,
   set: (value) => {
-    if (value && value[0] === props.numberMin && value[1] === props.numberMax) {
-      emit('update:numberRange', undefined)
-    } else {
-      emit('update:numberRange', value)
-    }
+    emit('update:numberRange', value)
   }
 })
 const actualDateRange = computed({
