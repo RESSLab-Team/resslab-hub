@@ -3,9 +3,12 @@ import { ResidualStressNumberField, type ResidualStressField } from '@/backend'
 import DoubleChart from '@/components/commons/charts/DoubleChart.vue'
 import { doubleChartProps, useDoubleChart, type ChartEmits } from '@/composables/chart'
 import { residualsApi } from '@/plugins/axios'
-import { toRef } from 'vue'
+import { computed, toRef } from 'vue'
 
-const props = defineProps(doubleChartProps<ResidualStressField>())
+const props = defineProps({
+  ...doubleChartProps<ResidualStressField>(),
+  bin: { type: Number, required: false, default: null }
+})
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
@@ -21,6 +24,29 @@ const { counts, changeSearches, dateMax, dateMin, dateRange, numberMax, numberMi
       getRange: (field) => residualsApi.getResidualStressesRange(field)
     }
   )
+
+const binnedCounts = computed(() => {
+  if (props.bin === null) {
+    return counts.value
+  }
+  const bins = new Map<[string, string], number>()
+
+  for (const count of counts.value) {
+    // Calculate the bin that this count belongs to
+
+    const bin = Math.floor(Number(count.names[0]) / 100) * 100,
+      type = count.names[1]
+    console.log('Count', count, bin)
+
+    // Get the current count for this bin, defaulting to 0 if it doesn't exist
+    const currentCount = bins.get([bin.toString(), type]) || 0
+
+    // Add this count to the bin
+    bins.set([bin.toString(), type], currentCount + count.value)
+  }
+
+  return Array.from(bins.entries()).map(([names, count]) => ({ names, value: count }))
+})
 </script>
 
 <template>
@@ -28,7 +54,7 @@ const { counts, changeSearches, dateMax, dateMin, dateRange, numberMax, numberMi
     v-model:date-range="dateRange"
     v-model:number-range="numberRange"
     :color="color"
-    :counts="counts"
+    :counts="binnedCounts"
     :date-max="dateMax"
     :date-min="dateMin"
     :fields="fields"

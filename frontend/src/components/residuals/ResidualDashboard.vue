@@ -15,14 +15,18 @@ const { item, query, search, searches, changeSearches, updatePage } =
   useDashboard<ResidualStressModel>(route, ResidualStressField)
 
 const parallelFields: ParallelField<ResidualStressField>[] = [
-  { id: ResidualStressField.Date },
-  { id: ResidualStressField.Profile }
+  { id: ResidualStressField.Steel, name: 'Steel Grade' },
+  { id: ResidualStressField.HOverB, name: 'h/bf' },
+  { id: ResidualStressField.Tf, name: 'tf [mm]' },
+  { id: ResidualStressField.A, name: 'A [mm²]' },
+  { id: ResidualStressField.Sigma0F, name: 'σ0,f [MPa]' },
+  { id: ResidualStressField.Sigma0W, name: 'σ0,w [MPa] ' }
 ]
 const profileFields: DoubleFields<ResidualStressField> = [
   ResidualStressField.Date,
-  ResidualStressField.Profile
+  ResidualStressField.ProfileType
 ]
-const steelField = ResidualStressField.Profile
+const steelField = ResidualStressField.Steel
 </script>
 
 <template>
@@ -62,7 +66,7 @@ const steelField = ResidualStressField.Profile
       <v-row v-else>
         <v-col cols="12">
           <v-card>
-            <v-card-title>Profile Type</v-card-title>
+            <v-card-title>Profile</v-card-title>
             <v-card-text>
               <v-row>
                 <v-col cols="12" md="6">
@@ -73,13 +77,22 @@ const steelField = ResidualStressField.Profile
                     @change:searches="changeSearches"
                   />
                 </v-col>
+                <v-col cols="12" md="6">
+                  <residual-double-chart
+                    :fields="[ResidualStressField.H, ResidualStressField.ProfileType]"
+                    :query="query"
+                    bin="100"
+                    type="bar"
+                    @change:searches="changeSearches"
+                  />
+                </v-col>
               </v-row>
             </v-card-text>
           </v-card>
         </v-col>
         <v-col cols="12">
           <v-card>
-            <v-card-title>Profile Type</v-card-title>
+            <v-card-title>Steel Material</v-card-title>
             <v-card-text>
               <residual-single-chart
                 :color="colors.deepPurple"
