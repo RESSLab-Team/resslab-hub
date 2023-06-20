@@ -64,8 +64,10 @@
     "experimental_program": "Experimental Program",
     "id": "Specimen Designation",
     "profile": "Cross Section",
+    "profile_type": "Profile type",
     "steel": "Steel Grade",
     "tf": "tf [mm]",
+    "h": "h",
     "date": "Date"
   }
 }
