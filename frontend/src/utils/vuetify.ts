@@ -76,15 +76,19 @@ export function getColorPalette(color: Color, count: number): string[] {
 export const primaryColor = colors.red
 export const secondaryColor = colors.blue
 
-export const colorPalette: string[] = [
+export const primaryColors = [
   primaryColor,
   secondaryColor,
   colors.orange,
   colors.indigo,
   colors.pink,
   colors.teal,
-  colors.cyan
-].map((color) => color.base)
+  colors.cyan,
+  colors.brown,
+  colors.purple
+]
+
+export const colorPalette: string[] = primaryColors.map((color) => color.base)
 
 export function getColorMap(count: number): string[] {
   return colormap<'hex'>({
