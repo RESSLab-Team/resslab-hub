@@ -258,7 +258,12 @@ class Component(ABC, Generic[D, M]):
                 n = ceil(float(count) / float(size))
                 statement = statement.where(func.mod(id_column, n) == 0)
         rows = await session.execute(statement)
-        return [[row[0], row[1]] for row in rows]
+        rows = list(rows)
+
+        if rows and len(rows[0]) == 1:
+            return [[row[0]] for row in rows]
+        else:
+            return [[row[0], row[1]] for row in rows]
 
     @staticmethod
     def get_csv_response(
