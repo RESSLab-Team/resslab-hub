@@ -43,13 +43,13 @@ const actualOption = computed<EChartsOption>(() => {
   const defaultOption: EChartsOption = {
     grid: {
       left: 60,
-      top: 40,
-      right: props.legendSide ? 180 : 20,
+      top: props.legendSide ? 10 : 40,
+      right: props.legendSide ? 200 : 20,
       bottom: 40
     },
     legend: {
       type: 'scroll',
-      top: 0,
+      top: props.legendSide ? 80 : 0,
       right: props.legendSide ? 0 : undefined,
       orient: props.legendSide ? 'vertical' : 'horizontal'
     },
@@ -59,7 +59,7 @@ const actualOption = computed<EChartsOption>(() => {
         fontWeight: 'bold'
       },
       nameGap: 26,
-      max: xAXisOption?.max ?? 'dataMax',
+      max: xAXisOption?.max ?? undefined,
       axisLabel: {
         formatter: (value: number) => `${round(value, axisLabelMaxDigits)}`,
         hideOverlap: true
@@ -71,7 +71,7 @@ const actualOption = computed<EChartsOption>(() => {
         fontWeight: 'bold'
       },
       nameGap: 50,
-      max: yAXisOption?.max ?? 'dataMax',
+      max: yAXisOption?.max ?? undefined,
       axisLabel: {
         formatter: (value: number) => `${round(value, axisLabelMaxDigits)}`,
         hideOverlap: true
@@ -105,6 +105,7 @@ const actualOption = computed<EChartsOption>(() => {
       }
     }
   }
+
   const overrideOption: EChartsOption = {
     xAxis: {
       name: props.xUnit ? `${xAXisOption.name} [${xUnitLabel.value}]` : xAXisOption.name

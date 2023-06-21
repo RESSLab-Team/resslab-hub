@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
-import { primaryColor, secondaryColor, type Color } from '@/utils/vuetify'
+import { primaryColors, type Color } from '@/utils/vuetify'
 import type { EChartsOption, LineSeriesOption } from 'echarts'
 import { TitleComponent } from 'echarts/components'
 import { use } from 'echarts/core'
@@ -12,6 +12,7 @@ const props = withDefaults(
     colors?: Color[]
     series?: LineSeriesOption[]
     aspectRatio?: number
+    axisPointerType?: string
     maxWidth?: number
     title: string
     xAxisName: string
@@ -20,9 +21,10 @@ const props = withDefaults(
     yUnit?: string
   }>(),
   {
-    colors: () => [primaryColor, secondaryColor],
+    colors: () => primaryColors,
     series: () => [],
     aspectRatio: 1,
+    axisPointerType: 'x',
     maxWidth: undefined,
     title: undefined,
     xAxisName: undefined,
@@ -42,7 +44,7 @@ const option = computed<EChartsOption>(
         left: 'center'
       },
       grid: {
-        top: 60
+        top: props.series.length > 2 ? 40 : 60
       },
       legend: {
         top: 30,
@@ -55,7 +57,10 @@ const option = computed<EChartsOption>(
         name: props.yAxisName
       },
       tooltip: {
-        formatter: null as unknown as undefined
+        formatter: null as unknown as undefined,
+        axisPointer: {
+          axis: props.axisPointerType
+        }
       },
       series: props.series.map((serie) =>
         merge<LineSeriesOption, LineSeriesOption>(
@@ -77,6 +82,7 @@ const option = computed<EChartsOption>(
 <template>
   <unit-chart
     :aspect-ratio="aspectRatio"
+    :legend-side="props.series.length > 2"
     :max-width="maxWidth"
     :option="option"
     :x-unit="xUnit"
