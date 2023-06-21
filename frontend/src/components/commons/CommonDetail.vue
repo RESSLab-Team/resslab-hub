@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
-import { primaryColor, secondaryColor } from '@/utils/vuetify'
 import { mdiClose } from '@mdi/js'
 import type { AxiosResponse } from 'axios'
 import type { LineSeriesOption } from 'echarts'
 import { ref, watch } from 'vue'
 
 export interface DetailCarouselItem {
-  count: number
+  count?: number
+  noCount?: boolean
   promise?: Promise<AxiosResponse<number[][]> | LineSeriesOption[]>
   title: string
+  axisPointerType?: string
   xAxisName: string
   yAxisName: string
 }
@@ -43,7 +44,7 @@ watch(
         carouselItems.map((carouselItem) =>
           Promise.all(
             carouselItem
-              .filter((item) => item.count > 0)
+              .filter((item) => item.noCount || (item.count && item.count > 0))
               .map(async (item) => {
                 const response = await item.promise
                 const series: LineSeriesOption[] = Array.isArray(response)
@@ -98,8 +99,8 @@ watch(
             <template v-for="(item, index) in carouselItem" :key="index">
               <v-col class="d-flex justify-center" :cols="12 / carouselItem.length">
                 <unit-line-chart
-                  :colors="[primaryColor, secondaryColor]"
-                  :max-width="carouselHeight"
+                  :aspect-ratio="1.5"
+                  :max-width="carouselHeight * 1.5"
                   v-bind="item"
                 />
               </v-col>
