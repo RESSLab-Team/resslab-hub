@@ -1,13 +1,12 @@
-<!-- eslint-disable vue/no-v-html -->
 <script setup lang="ts">
 import CheckboxDialog, { type CheckBoxDialogItem } from '@/components/commons/CheckboxDialog.vue'
+import TextSubscript from '@/components/commons/TextSubscript.vue'
 import { DownloadType, type Column, type ColumnType } from '@/composables/table'
 import i18n from '@/plugins/i18n'
 import { useNotificationStore } from '@/stores/notification'
 import { filterColumnValue, globalSearchKey, type Searches } from '@/utils/common'
 import { booleanOptions, type DataOptions } from '@/utils/vuetify'
 import { mdiDownload, mdiMagnify, mdiShare } from '@mdi/js'
-import DOMPurify from 'dompurify'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -145,9 +144,7 @@ function shareUrl(): void {
 function getTableHeader(column: Column): TableHeader {
   return {
     key: column.value,
-    title: DOMPurify.sanitize(
-      column.title ?? i18n.global.t(props.prefix + column.value).toString()
-    ),
+    title: column.title ?? i18n.global.t(props.prefix + column.value).toString(),
     type: column.type,
     options: column.options?.sort(),
     multiple: column.options ? column.options.length > 2 : false
@@ -209,7 +206,7 @@ function downloadZip(): void {
       @update:options="emit('update:options', $event)"
     >
       <template v-for="header in tableHeaders" :key="header.key" #[`column.${header.key}`]>
-        <span v-html="header.title" />
+        <text-subscript :text="header.title" />
       </template>
 
       <template #top>
@@ -223,14 +220,14 @@ function downloadZip(): void {
               :items="header.options"
               @update:model-value="columnSearches[header.key] = $event"
             >
-              <template #label> <span v-html="header.title"></span> </template>
+              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
             </v-select>
             <v-text-field
               v-else-if="header.type === 'text'"
               v-bind="vInputBind"
               v-model="columnSearches[header.key]"
             >
-              <template #label> <span v-html="header.title"></span> </template>
+              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
             </v-text-field>
             <v-select
               v-else-if="header.type === 'boolean'"
@@ -238,7 +235,7 @@ function downloadZip(): void {
               v-model="columnSearches[header.key]"
               :items="booleanOptions"
             >
-              <template #label> <span v-html="header.title"></span> </template>
+              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
             </v-select>
             <v-text-field
               v-else-if="header.type === 'number'"
@@ -246,7 +243,7 @@ function downloadZip(): void {
               v-model="columnSearches[header.key]"
               type="number"
             >
-              <template #label> <span v-html="header.title"></span> </template>
+              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
             </v-text-field>
           </v-col>
         </v-row>
@@ -288,7 +285,7 @@ function downloadZip(): void {
               v-model="columnSearches[header.key]"
               :label="header.title"
             >
-              <template #label> <span v-html="header.title"></span> </template>
+              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
             </v-text-field>
             <v-select
               v-else-if="header.type === 'boolean'"
@@ -297,7 +294,7 @@ function downloadZip(): void {
               :label="header.title"
               :items="booleanOptions"
             >
-              <template #label> <span v-html="header.title"></span> </template>
+              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
             </v-select>
             <v-text-field
               v-else-if="header.type === 'number'"
@@ -306,7 +303,7 @@ function downloadZip(): void {
               :label="header.title"
               type="number"
             >
-              <template #label> <span v-html="header.title"></span> </template>
+              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
             </v-text-field>
           </td>
         </tr>

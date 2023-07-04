@@ -22,10 +22,14 @@ const columns: Column[] = [
   },
   {
     value: ColumnField.PGOverPYm,
+    title: 'P<sub>g</sub>/P<sub>y</sub>',
+
     type: 'number'
   },
   {
     value: ColumnField.LBOverRYc,
+    title: 'L<sub>b</sub>/r<sub>y</sub>',
+
     type: 'number'
   },
   {
