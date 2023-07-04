@@ -26,6 +26,8 @@ const columns: Column[] = [
   },
   {
     value: BraceField.KlR,
+    title: 'kL/r<sub>y</sub>',
+
     type: 'number'
   }
 ]
