@@ -60,8 +60,8 @@ watch(
         {
           noCount: true,
           promise: newPromise.then(({ flangeSeries }) => flangeSeries),
-          title: 'Stress Strain bf',
-          xAxisName: 'bf',
+          title: 'Flange distribution',
+          xAxisName: 'bf [mm]',
           yAxisName: 'σ 0,f [MPa]'
         }
       ],
@@ -69,10 +69,10 @@ watch(
         {
           noCount: true,
           promise: newPromise.then(({ webSeries }) => webSeries),
-          title: 'Stress Strain h',
+          title: 'Web distribution',
           axisPointerType: 'y',
           xAxisName: 'σ 0,w [MPa]',
-          yAxisName: 'h'
+          yAxisName: 'h [mm]'
         }
       ]
     ]
