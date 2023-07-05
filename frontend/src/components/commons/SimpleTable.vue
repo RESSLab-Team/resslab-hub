@@ -14,6 +14,7 @@ interface TableHeader {
   type: ColumnType
   multiple?: boolean
   options?: string[]
+  format?: (value: unknown) => string
   // https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/labs/VDataTable/types.ts
   key: string
   title: string
@@ -146,6 +147,7 @@ function getTableHeader(column: Column): TableHeader {
     key: column.value,
     title: column.title ?? i18n.global.t(props.prefix + column.value).toString(),
     type: column.type,
+    format: column.format,
     options: column.options?.sort(),
     multiple: column.options ? column.options.length > 2 : false
   }
@@ -207,6 +209,9 @@ function downloadZip(): void {
     >
       <template v-for="header in tableHeaders" :key="header.key" #[`column.${header.key}`]>
         <text-subscript :text="header.title" />
+      </template>
+      <template v-for="header in tableHeaders" #[`item.${header.key}`]="{ item }">
+        {{ header.format ? header.format(item.columns[header.key]) : item.columns[header.key] }}
       </template>
 
       <template #top>
