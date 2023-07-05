@@ -5897,7 +5897,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
     return {
         /**
          * Get paginated Residual Stresses
-         * @summary Get Residualstresses
+         * @summary Get Residual Stresses
          * @param {string} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
@@ -5952,7 +5952,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get occurences count of field values
-         * @summary Get Residualstresses Counts
+         * @summary Get Residual Stresses Counts
          * @param {Array<ResidualStressField>} [fields] 
          * @param {string} [query] 
          * @param {*} [options] Override http request option.
@@ -5992,7 +5992,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get master csv
-         * @summary Get Residualstresses Csv
+         * @summary Get Residual Stresses Csv
          * @param {Array<string>} [ids] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6027,7 +6027,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get distinct count
-         * @summary Get Residualstresses Distinct
+         * @summary Get Residual Stresses Distinct
          * @param {Array<ResidualStressField>} [fields] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6062,7 +6062,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get distribution-f1 series from ResidualStress
-         * @summary Get Residualstresses Distribution F1
+         * @summary Get Residual Stresses Distribution F1
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6101,7 +6101,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get distribution-f1 csv
-         * @summary Get Residualstresses Distribution F1 Csv
+         * @summary Get Residual Stresses Distribution F1 Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6135,7 +6135,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get distribution-f2 series from ResidualStress
-         * @summary Get Residualstresses Distribution F2
+         * @summary Get Residual Stresses Distribution F2
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6174,7 +6174,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get distribution-f2 csv
-         * @summary Get Residualstresses Distribution F2 Csv
+         * @summary Get Residual Stresses Distribution F2 Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6208,7 +6208,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get distribution-w1 series from ResidualStress
-         * @summary Get Residualstresses Distribution W1
+         * @summary Get Residual Stresses Distribution W1
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6247,7 +6247,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get distribution-w1 csv
-         * @summary Get Residualstresses Distribution W1 Csv
+         * @summary Get Residual Stresses Distribution W1 Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6280,8 +6280,43 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
             };
         },
         /**
+         * Get filtered fields
+         * @summary Get Residual Stresses Fields
+         * @param {Array<ResidualStressField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesFields: async (fields?: Array<ResidualStressField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/residual-stress/fields`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
-         * @summary Get Residualstresses Matrix
+         * @summary Get Residual Stresses Matrix
          * @param {Array<ResidualStressField>} fields 
          * @param {string} [query] 
          * @param {*} [options] Override http request option.
@@ -6323,7 +6358,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get qp-coefficient series from ResidualStress
-         * @summary Get Residualstresses Qp Coefficient
+         * @summary Get Residual Stresses Qp Coefficient
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6362,7 +6397,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get qp-coefficient csv
-         * @summary Get Residualstresses Qp Coefficient Csv
+         * @summary Get Residual Stresses Qp Coefficient Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6396,7 +6431,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * Get range of field
-         * @summary Get Residualstresses Range
+         * @summary Get Residual Stresses Range
          * @param {ResidualStressNumberField} field 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6443,7 +6478,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
     return {
         /**
          * Get paginated Residual Stresses
-         * @summary Get Residualstresses
+         * @summary Get Residual Stresses
          * @param {string} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
@@ -6458,7 +6493,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get occurences count of field values
-         * @summary Get Residualstresses Counts
+         * @summary Get Residual Stresses Counts
          * @param {Array<ResidualStressField>} [fields] 
          * @param {string} [query] 
          * @param {*} [options] Override http request option.
@@ -6470,7 +6505,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get master csv
-         * @summary Get Residualstresses Csv
+         * @summary Get Residual Stresses Csv
          * @param {Array<string>} [ids] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6481,7 +6516,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get distinct count
-         * @summary Get Residualstresses Distinct
+         * @summary Get Residual Stresses Distinct
          * @param {Array<ResidualStressField>} [fields] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6492,7 +6527,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get distribution-f1 series from ResidualStress
-         * @summary Get Residualstresses Distribution F1
+         * @summary Get Residual Stresses Distribution F1
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6504,7 +6539,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get distribution-f1 csv
-         * @summary Get Residualstresses Distribution F1 Csv
+         * @summary Get Residual Stresses Distribution F1 Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6515,7 +6550,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get distribution-f2 series from ResidualStress
-         * @summary Get Residualstresses Distribution F2
+         * @summary Get Residual Stresses Distribution F2
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6527,7 +6562,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get distribution-f2 csv
-         * @summary Get Residualstresses Distribution F2 Csv
+         * @summary Get Residual Stresses Distribution F2 Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6538,7 +6573,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get distribution-w1 series from ResidualStress
-         * @summary Get Residualstresses Distribution W1
+         * @summary Get Residual Stresses Distribution W1
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6550,7 +6585,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get distribution-w1 csv
-         * @summary Get Residualstresses Distribution W1 Csv
+         * @summary Get Residual Stresses Distribution W1 Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6560,8 +6595,19 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Get filtered fields
+         * @summary Get Residual Stresses Fields
+         * @param {Array<ResidualStressField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getResidualStressesFields(fields?: Array<ResidualStressField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesFields(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * 
-         * @summary Get Residualstresses Matrix
+         * @summary Get Residual Stresses Matrix
          * @param {Array<ResidualStressField>} fields 
          * @param {string} [query] 
          * @param {*} [options] Override http request option.
@@ -6573,7 +6619,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get qp-coefficient series from ResidualStress
-         * @summary Get Residualstresses Qp Coefficient
+         * @summary Get Residual Stresses Qp Coefficient
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6585,7 +6631,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get qp-coefficient csv
-         * @summary Get Residualstresses Qp Coefficient Csv
+         * @summary Get Residual Stresses Qp Coefficient Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6596,7 +6642,7 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         },
         /**
          * Get range of field
-         * @summary Get Residualstresses Range
+         * @summary Get Residual Stresses Range
          * @param {ResidualStressNumberField} field 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6617,7 +6663,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
     return {
         /**
          * Get paginated Residual Stresses
-         * @summary Get Residualstresses
+         * @summary Get Residual Stresses
          * @param {string} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
@@ -6631,7 +6677,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get occurences count of field values
-         * @summary Get Residualstresses Counts
+         * @summary Get Residual Stresses Counts
          * @param {Array<ResidualStressField>} [fields] 
          * @param {string} [query] 
          * @param {*} [options] Override http request option.
@@ -6642,7 +6688,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get master csv
-         * @summary Get Residualstresses Csv
+         * @summary Get Residual Stresses Csv
          * @param {Array<string>} [ids] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6652,7 +6698,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get distinct count
-         * @summary Get Residualstresses Distinct
+         * @summary Get Residual Stresses Distinct
          * @param {Array<ResidualStressField>} [fields] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6662,7 +6708,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get distribution-f1 series from ResidualStress
-         * @summary Get Residualstresses Distribution F1
+         * @summary Get Residual Stresses Distribution F1
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6673,7 +6719,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get distribution-f1 csv
-         * @summary Get Residualstresses Distribution F1 Csv
+         * @summary Get Residual Stresses Distribution F1 Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6683,7 +6729,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get distribution-f2 series from ResidualStress
-         * @summary Get Residualstresses Distribution F2
+         * @summary Get Residual Stresses Distribution F2
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6694,7 +6740,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get distribution-f2 csv
-         * @summary Get Residualstresses Distribution F2 Csv
+         * @summary Get Residual Stresses Distribution F2 Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6704,7 +6750,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get distribution-w1 series from ResidualStress
-         * @summary Get Residualstresses Distribution W1
+         * @summary Get Residual Stresses Distribution W1
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6715,7 +6761,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get distribution-w1 csv
-         * @summary Get Residualstresses Distribution W1 Csv
+         * @summary Get Residual Stresses Distribution W1 Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6724,8 +6770,18 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
             return localVarFp.getResidualStressesDistributionW1Csv(residualStressId, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get filtered fields
+         * @summary Get Residual Stresses Fields
+         * @param {Array<ResidualStressField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getResidualStressesFields(fields?: Array<ResidualStressField>, options?: any): AxiosPromise<Array<object>> {
+            return localVarFp.getResidualStressesFields(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
-         * @summary Get Residualstresses Matrix
+         * @summary Get Residual Stresses Matrix
          * @param {Array<ResidualStressField>} fields 
          * @param {string} [query] 
          * @param {*} [options] Override http request option.
@@ -6736,7 +6792,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get qp-coefficient series from ResidualStress
-         * @summary Get Residualstresses Qp Coefficient
+         * @summary Get Residual Stresses Qp Coefficient
          * @param {string} residualStressId 
          * @param {number} [size] 
          * @param {*} [options] Override http request option.
@@ -6747,7 +6803,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get qp-coefficient csv
-         * @summary Get Residualstresses Qp Coefficient Csv
+         * @summary Get Residual Stresses Qp Coefficient Csv
          * @param {string} residualStressId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6757,7 +6813,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         },
         /**
          * Get range of field
-         * @summary Get Residualstresses Range
+         * @summary Get Residual Stresses Range
          * @param {ResidualStressNumberField} field 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -6777,7 +6833,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
 export class ResidualStressApi extends BaseAPI {
     /**
      * Get paginated Residual Stresses
-     * @summary Get Residualstresses
+     * @summary Get Residual Stresses
      * @param {string} [query] 
      * @param {Array<string>} [sortBy] 
      * @param {Array<boolean>} [sortDesc] 
@@ -6793,7 +6849,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get occurences count of field values
-     * @summary Get Residualstresses Counts
+     * @summary Get Residual Stresses Counts
      * @param {Array<ResidualStressField>} [fields] 
      * @param {string} [query] 
      * @param {*} [options] Override http request option.
@@ -6806,7 +6862,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get master csv
-     * @summary Get Residualstresses Csv
+     * @summary Get Residual Stresses Csv
      * @param {Array<string>} [ids] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -6818,7 +6874,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get distinct count
-     * @summary Get Residualstresses Distinct
+     * @summary Get Residual Stresses Distinct
      * @param {Array<ResidualStressField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -6830,7 +6886,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get distribution-f1 series from ResidualStress
-     * @summary Get Residualstresses Distribution F1
+     * @summary Get Residual Stresses Distribution F1
      * @param {string} residualStressId 
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
@@ -6843,7 +6899,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get distribution-f1 csv
-     * @summary Get Residualstresses Distribution F1 Csv
+     * @summary Get Residual Stresses Distribution F1 Csv
      * @param {string} residualStressId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -6855,7 +6911,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get distribution-f2 series from ResidualStress
-     * @summary Get Residualstresses Distribution F2
+     * @summary Get Residual Stresses Distribution F2
      * @param {string} residualStressId 
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
@@ -6868,7 +6924,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get distribution-f2 csv
-     * @summary Get Residualstresses Distribution F2 Csv
+     * @summary Get Residual Stresses Distribution F2 Csv
      * @param {string} residualStressId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -6880,7 +6936,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get distribution-w1 series from ResidualStress
-     * @summary Get Residualstresses Distribution W1
+     * @summary Get Residual Stresses Distribution W1
      * @param {string} residualStressId 
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
@@ -6893,7 +6949,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get distribution-w1 csv
-     * @summary Get Residualstresses Distribution W1 Csv
+     * @summary Get Residual Stresses Distribution W1 Csv
      * @param {string} residualStressId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -6904,8 +6960,20 @@ export class ResidualStressApi extends BaseAPI {
     }
 
     /**
+     * Get filtered fields
+     * @summary Get Residual Stresses Fields
+     * @param {Array<ResidualStressField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ResidualStressApi
+     */
+    public getResidualStressesFields(fields?: Array<ResidualStressField>, options?: AxiosRequestConfig) {
+        return ResidualStressApiFp(this.configuration).getResidualStressesFields(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * 
-     * @summary Get Residualstresses Matrix
+     * @summary Get Residual Stresses Matrix
      * @param {Array<ResidualStressField>} fields 
      * @param {string} [query] 
      * @param {*} [options] Override http request option.
@@ -6918,7 +6986,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get qp-coefficient series from ResidualStress
-     * @summary Get Residualstresses Qp Coefficient
+     * @summary Get Residual Stresses Qp Coefficient
      * @param {string} residualStressId 
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
@@ -6931,7 +6999,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get qp-coefficient csv
-     * @summary Get Residualstresses Qp Coefficient Csv
+     * @summary Get Residual Stresses Qp Coefficient Csv
      * @param {string} residualStressId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -6943,7 +7011,7 @@ export class ResidualStressApi extends BaseAPI {
 
     /**
      * Get range of field
-     * @summary Get Residualstresses Range
+     * @summary Get Residual Stresses Range
      * @param {ResidualStressNumberField} field 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

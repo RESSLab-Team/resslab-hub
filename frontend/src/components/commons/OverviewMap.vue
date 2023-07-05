@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import 'leaflet/dist/leaflet.css'
 
-import { bracesApi, columnsApi, connectionsApi, materialsApi } from '@/plugins/axios'
+import { bracesApi, columnsApi, connectionsApi, materialsApi, residualsApi } from '@/plugins/axios'
 import { typesNames } from '@/utils/backend'
 import {
   createMarkers,
@@ -9,10 +9,12 @@ import {
   locationColumnFields,
   locationConnectionFields,
   locationMaterialFields,
+  locationResidualStressFields,
   type LocationBrace,
   type LocationColumn,
   type LocationConnection,
-  type LocationMaterial
+  type LocationMaterial,
+  type LocationResidualStress
 } from '@/utils/overviewmap'
 import { PieChart, scaleColor, scaleRadius } from '@/utils/piechart'
 import { rollups, select } from 'd3'
@@ -54,12 +56,19 @@ materialsApi.getMaterialsFields(locationMaterialFields).then((res) => {
   updateMap()
 })
 
+const residualStressesLocations = ref<LocationResidualStress[]>([])
+residualsApi.getResidualStressesFields(locationResidualStressFields).then((res) => {
+  residualStressesLocations.value = res.data as LocationResidualStress[]
+  updateMap()
+})
+
 const dataLength = computed(
   () =>
     connectionsLocations.value.length +
     columnsLocations.value.length +
     bracesLocations.value.length +
-    materialsLocations.value.length
+    materialsLocations.value.length +
+    residualStressesLocations.value.length
 )
 
 const mapContainer = ref<HTMLDivElement>()
@@ -118,7 +127,8 @@ const markers = computed<Marker[]>(() => {
     createMarkers(connectionsLocations.value, 'Connections'),
     createMarkers(columnsLocations.value, 'Columns'),
     createMarkers(bracesLocations.value, 'Braces'),
-    createMarkers(materialsLocations.value, 'Materials')
+    createMarkers(materialsLocations.value, 'Materials'),
+    createMarkers(residualStressesLocations.value, 'ResidualStresses')
   ].flat()
 })
 
