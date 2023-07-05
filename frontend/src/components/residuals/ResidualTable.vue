@@ -4,6 +4,7 @@ import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
 import { residualsApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
+import { formatNumber } from '@/utils/formatter'
 import { toRef } from 'vue'
 
 const columns: Column[] = [
@@ -12,7 +13,7 @@ const columns: Column[] = [
     type: 'text'
   },
   {
-    value: ResidualStressField.Id,
+    value: ResidualStressField.Date,
     type: 'text'
   },
   {
@@ -31,7 +32,8 @@ const columns: Column[] = [
   {
     value: ResidualStressField.HOverB,
     title: 'h/b<sub>f</sub>',
-    type: 'number'
+    type: 'number',
+    format: (value) => formatNumber(value, 2)
   }
 ]
 
@@ -53,7 +55,7 @@ const {
   totalFilteredCount
 } = useTable<ResidualStressModel>(
   emit,
-  'material',
+  'residual',
   toRef(props, 'query'),
   toRef(props, 'search'),
   toRef(props, 'searches'),

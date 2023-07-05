@@ -20,6 +20,7 @@ export interface Column {
   title?: string
   options?: string[]
   filterOnly?: boolean
+  format?: (value: any) => string
 }
 
 export const tableProps = {
