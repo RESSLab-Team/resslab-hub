@@ -6,13 +6,16 @@ import type {
   ConnectionField,
   ConnectionModel,
   MaterialField,
-  MaterialModel
+  MaterialModel,
+  ResidualStressField,
+  ResidualStressModel
 } from '@/backend'
 import { typesNames, type Type } from '@/utils/backend'
 import {
   getBraceImage,
   getColumnMapImage,
   getConnectionSpecimenImage,
+  getResidualStressImage,
   getSteelMaterialImage
 } from '@/utils/component'
 import { MarkerSVG, scaleColor } from '@/utils/piechart'
@@ -55,6 +58,15 @@ const _locationMaterialFields = [
   'experimental_program'
 ] as const
 export const locationMaterialFields: MaterialField[] = [..._locationMaterialFields]
+const _locationResidualStressFields = [
+  ...locationCommonFields,
+  'profile_type',
+  'profile',
+  'experimental_program'
+] as const
+export const locationResidualStressFields: ResidualStressField[] = [
+  ..._locationResidualStressFields
+]
 
 // Then we use the fields list to create fields types for each model
 // Finally we use Pick to extract type from bigger model type using only the fields we want
@@ -62,7 +74,16 @@ export type LocationBrace = Pick<BraceModel, (typeof _locationBraceFields)[numbe
 export type LocationColumn = Pick<ColumnModel, (typeof _locationColumnFields)[number]>
 export type LocationConnection = Pick<ConnectionModel, (typeof _locationConnectionFields)[number]>
 export type LocationMaterial = Pick<MaterialModel, (typeof _locationMaterialFields)[number]>
-type LocationGlobal = LocationBrace | LocationColumn | LocationConnection | LocationMaterial
+export type LocationResidualStress = Pick<
+  ResidualStressModel,
+  (typeof _locationResidualStressFields)[number]
+>
+type LocationGlobal =
+  | LocationBrace
+  | LocationColumn
+  | LocationConnection
+  | LocationMaterial
+  | LocationResidualStress
 
 // Now we use the newly created types for our specific tooltip functions
 
@@ -131,6 +152,21 @@ export function createTooltipMaterials(d: LocationMaterial) {
         </div>`
 }
 
+export function createTooltipResidualStresses(d: LocationResidualStress) {
+  return `<div class="tooltip">
+        <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${d.date})</a></h3>
+        <br>
+        <ul>
+          <li>Profile type: ${d.profile_type}</li>
+          <li>Cross section: ${d.profile}</li>
+          <li>
+            <img alt="ResidualStresss placeholder image" src="${getResidualStressImage()}"></img>
+          </li>
+          <li><a href='/residuals/database?id=${d.id}&detail=true'>View experimental data</a></li>
+        </ul>
+        </div>`
+}
+
 export function createTooltip(d: LocationGlobal, type: Type) {
   switch (type) {
     case 'Connections':
@@ -141,6 +177,8 @@ export function createTooltip(d: LocationGlobal, type: Type) {
       return createTooltipBraces(d as LocationBrace)
     case 'Materials':
       return createTooltipMaterials(d as LocationMaterial)
+    case 'ResidualStresses':
+      return createTooltipResidualStresses(d as LocationResidualStress)
     default:
       return `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`
   }

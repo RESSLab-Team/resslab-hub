@@ -5,5 +5,11 @@ export interface Page<T> {
   size?: number
 }
 
-export type Type = 'Braces' | 'Columns' | 'Connections' | 'Materials'
-export const typesNames: Type[] = ['Braces', 'Columns', 'Connections', 'Materials']
+export type Type = 'Braces' | 'Columns' | 'Connections' | 'Materials' | 'ResidualStresses'
+export const typesNames: Type[] = [
+  'Braces',
+  'Columns',
+  'Connections',
+  'Materials',
+  'ResidualStresses'
+]
