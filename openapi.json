@@ -2689,9 +2689,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses",
+        "summary": "Get Residual Stresses",
         "description": "Get paginated Residual Stresses",
-        "operationId": "get_ResidualStresses",
+        "operationId": "get_residual_stresses",
         "parameters": [
           {
             "required": false,
@@ -2776,14 +2776,64 @@
         }
       }
     },
+    "/residual-stress/fields": {
+      "get": {
+        "tags": [
+          "residual-stress"
+        ],
+        "summary": "Get Residual Stresses Fields",
+        "description": "Get filtered fields",
+        "operationId": "get_residual_stresses_fields",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ResidualStressField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Residual Stresses Fields Residual Stress Fields Get",
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/residual-stress/counts": {
       "get": {
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Counts",
+        "summary": "Get Residual Stresses Counts",
         "description": "Get occurences count of field values",
-        "operationId": "get_ResidualStresses_counts",
+        "operationId": "get_residual_stresses_counts",
         "parameters": [
           {
             "required": false,
@@ -2813,7 +2863,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Residualstresses Counts Residual Stress Counts Get",
+                  "title": "Response Get Residual Stresses Counts Residual Stress Counts Get",
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
@@ -2840,9 +2890,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Range",
+        "summary": "Get Residual Stresses Range",
         "description": "Get range of field",
-        "operationId": "get_ResidualStresses_range",
+        "operationId": "get_residual_stresses_range",
         "parameters": [
           {
             "required": true,
@@ -2882,8 +2932,8 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Matrix",
-        "operationId": "get_ResidualStresses_matrix",
+        "summary": "Get Residual Stresses Matrix",
+        "operationId": "get_residual_stresses_matrix",
         "parameters": [
           {
             "required": true,
@@ -2935,9 +2985,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Csv",
+        "summary": "Get Residual Stresses Csv",
         "description": "Get master csv",
-        "operationId": "get_ResidualStresses_csv",
+        "operationId": "get_residual_stresses_csv",
         "parameters": [
           {
             "required": false,
@@ -2975,9 +3025,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Distinct",
+        "summary": "Get Residual Stresses Distinct",
         "description": "Get distinct count",
-        "operationId": "get_ResidualStresses_distinct",
+        "operationId": "get_residual_stresses_distinct",
         "parameters": [
           {
             "required": false,
@@ -2998,7 +3048,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Residualstresses Distinct Residual Stress Distinct Get",
+                  "title": "Response Get Residual Stresses Distinct Residual Stress Distinct Get",
                   "type": "integer"
                 }
               }
@@ -3022,9 +3072,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Distribution F1",
+        "summary": "Get Residual Stresses Distribution F1",
         "description": "Get distribution-f1 series from ResidualStress",
-        "operationId": "get_ResidualStresses_distribution_f1",
+        "operationId": "get_residual_stresses_distribution_f1",
         "parameters": [
           {
             "required": true,
@@ -3053,7 +3103,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Residualstresses Distribution F1 Residual Stress  Residualstress Id  Distribution F1 Get",
+                  "title": "Response Get Residual Stresses Distribution F1 Residual Stress  Residualstress Id  Distribution F1 Get",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -3083,9 +3133,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Distribution F1 Csv",
+        "summary": "Get Residual Stresses Distribution F1 Csv",
         "description": "Get distribution-f1 csv",
-        "operationId": "get_ResidualStresses_distribution_f1_csv",
+        "operationId": "get_residual_stresses_distribution_f1_csv",
         "parameters": [
           {
             "required": true,
@@ -3119,9 +3169,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Distribution F2",
+        "summary": "Get Residual Stresses Distribution F2",
         "description": "Get distribution-f2 series from ResidualStress",
-        "operationId": "get_ResidualStresses_distribution_f2",
+        "operationId": "get_residual_stresses_distribution_f2",
         "parameters": [
           {
             "required": true,
@@ -3150,7 +3200,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Residualstresses Distribution F2 Residual Stress  Residualstress Id  Distribution F2 Get",
+                  "title": "Response Get Residual Stresses Distribution F2 Residual Stress  Residualstress Id  Distribution F2 Get",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -3180,9 +3230,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Distribution F2 Csv",
+        "summary": "Get Residual Stresses Distribution F2 Csv",
         "description": "Get distribution-f2 csv",
-        "operationId": "get_ResidualStresses_distribution_f2_csv",
+        "operationId": "get_residual_stresses_distribution_f2_csv",
         "parameters": [
           {
             "required": true,
@@ -3216,9 +3266,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Distribution W1",
+        "summary": "Get Residual Stresses Distribution W1",
         "description": "Get distribution-w1 series from ResidualStress",
-        "operationId": "get_ResidualStresses_distribution_w1",
+        "operationId": "get_residual_stresses_distribution_w1",
         "parameters": [
           {
             "required": true,
@@ -3247,7 +3297,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Residualstresses Distribution W1 Residual Stress  Residualstress Id  Distribution W1 Get",
+                  "title": "Response Get Residual Stresses Distribution W1 Residual Stress  Residualstress Id  Distribution W1 Get",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -3277,9 +3327,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Distribution W1 Csv",
+        "summary": "Get Residual Stresses Distribution W1 Csv",
         "description": "Get distribution-w1 csv",
-        "operationId": "get_ResidualStresses_distribution_w1_csv",
+        "operationId": "get_residual_stresses_distribution_w1_csv",
         "parameters": [
           {
             "required": true,
@@ -3313,9 +3363,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Qp Coefficient",
+        "summary": "Get Residual Stresses Qp Coefficient",
         "description": "Get qp-coefficient series from ResidualStress",
-        "operationId": "get_ResidualStresses_qp_coefficient",
+        "operationId": "get_residual_stresses_qp_coefficient",
         "parameters": [
           {
             "required": true,
@@ -3344,7 +3394,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "Response Get Residualstresses Qp Coefficient Residual Stress  Residualstress Id  Qp Coefficient Get",
+                  "title": "Response Get Residual Stresses Qp Coefficient Residual Stress  Residualstress Id  Qp Coefficient Get",
                   "type": "array",
                   "items": {
                     "type": "array",
@@ -3374,9 +3424,9 @@
         "tags": [
           "residual-stress"
         ],
-        "summary": "Get Residualstresses Qp Coefficient Csv",
+        "summary": "Get Residual Stresses Qp Coefficient Csv",
         "description": "Get qp-coefficient csv",
-        "operationId": "get_ResidualStresses_qp_coefficient_csv",
+        "operationId": "get_residual_stresses_qp_coefficient_csv",
         "parameters": [
           {
             "required": true,

@@ -81,8 +81,8 @@ export const primaryColors = [
   secondaryColor,
   colors.orange,
   colors.indigo,
-  colors.pink,
   colors.teal,
+  colors.pink,
   colors.cyan,
   colors.brown,
   colors.purple

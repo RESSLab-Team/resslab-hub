@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from resslab_hub.models.api import (
     CountModel,
+    FieldsModel,
     MatrixModel,
     RangeModel,
     ResidualStressField,
@@ -87,7 +88,7 @@ distribution_w1_component = component.get_sub(
 
 
 @router.get("", response_model=ExtendedPage[ResidualStressModel])
-async def get_ResidualStresses(
+async def get_residual_stresses(
     session: AsyncSession = Depends(get_session),
     query: Optional[str] = Query(None),
     sort_by: List[str] = Query([]),
@@ -99,8 +100,19 @@ async def get_ResidualStresses(
     return await component.get_page(session, query, sort_by, sort_desc)
 
 
+@router.get("/fields", response_model=List[FieldsModel])
+async def get_residual_stresses_fields(
+    session: AsyncSession = Depends(get_session),
+    fields: List[ResidualStressField] = Query([]),
+) -> List[FieldsModel]:
+    """
+    Get filtered fields
+    """
+    return await component.get_fields(session, [field.value for field in fields])
+
+
 @router.get("/counts", response_model=List[CountModel])
-async def get_ResidualStresses_counts(
+async def get_residual_stresses_counts(
     session: AsyncSession = Depends(get_session),
     fields: List[ResidualStressField] = Query([]),
     query: Optional[str] = Query(None),
@@ -112,7 +124,7 @@ async def get_ResidualStresses_counts(
 
 
 @router.get("/range", response_model=RangeModel)
-async def get_ResidualStresses_range(
+async def get_residual_stresses_range(
     session: AsyncSession = Depends(get_session),
     field: ResidualStressNumberField = Query(...),
 ) -> RangeModel:
@@ -123,7 +135,7 @@ async def get_ResidualStresses_range(
 
 
 @router.get("/matrix", response_model=MatrixModel)
-async def get_ResidualStresses_matrix(
+async def get_residual_stresses_matrix(
     session: AsyncSession = Depends(get_session),
     fields: List[ResidualStressField] = Query(...),
     query: Optional[str] = Query(None),
@@ -132,7 +144,7 @@ async def get_ResidualStresses_matrix(
 
 
 @router.get("/csv", response_class=StreamingResponse)
-async def get_ResidualStresses_csv(
+async def get_residual_stresses_csv(
     session: AsyncSession = Depends(get_session),
     ids: List[str] = Query([]),
 ) -> StreamingResponse:
@@ -143,7 +155,7 @@ async def get_ResidualStresses_csv(
 
 
 @router.get("/distinct", response_model=int)
-async def get_ResidualStresses_distinct(
+async def get_residual_stresses_distinct(
     session: AsyncSession = Depends(get_session),
     fields: List[ResidualStressField] = Query([]),
 ) -> int:
@@ -154,7 +166,7 @@ async def get_ResidualStresses_distinct(
 
 
 @router.get("/{ResidualStress_id}/distribution-f1", response_model=List[List[Decimal]])
-async def get_ResidualStresses_distribution_f1(
+async def get_residual_stresses_distribution_f1(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
     size: int = Query(1024, ge=0),
@@ -168,7 +180,7 @@ async def get_ResidualStresses_distribution_f1(
 @router.get(
     "/{ResidualStress_id}/distribution-f1/csv", response_class=StreamingResponse
 )
-async def get_ResidualStresses_distribution_f1_csv(
+async def get_residual_stresses_distribution_f1_csv(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
 ) -> StreamingResponse:
@@ -179,7 +191,7 @@ async def get_ResidualStresses_distribution_f1_csv(
 
 
 @router.get("/{ResidualStress_id}/distribution-f2", response_model=List[List[Decimal]])
-async def get_ResidualStresses_distribution_f2(
+async def get_residual_stresses_distribution_f2(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
     size: int = Query(1024, ge=0),
@@ -193,7 +205,7 @@ async def get_ResidualStresses_distribution_f2(
 @router.get(
     "/{ResidualStress_id}/distribution-f2/csv", response_class=StreamingResponse
 )
-async def get_ResidualStresses_distribution_f2_csv(
+async def get_residual_stresses_distribution_f2_csv(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
 ) -> StreamingResponse:
@@ -204,7 +216,7 @@ async def get_ResidualStresses_distribution_f2_csv(
 
 
 @router.get("/{ResidualStress_id}/distribution-w1", response_model=List[List[Decimal]])
-async def get_ResidualStresses_distribution_w1(
+async def get_residual_stresses_distribution_w1(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
     size: int = Query(1024, ge=0),
@@ -218,7 +230,7 @@ async def get_ResidualStresses_distribution_w1(
 @router.get(
     "/{ResidualStress_id}/distribution-w1/csv", response_class=StreamingResponse
 )
-async def get_ResidualStresses_distribution_w1_csv(
+async def get_residual_stresses_distribution_w1_csv(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
 ) -> StreamingResponse:
@@ -229,7 +241,7 @@ async def get_ResidualStresses_distribution_w1_csv(
 
 
 @router.get("/{ResidualStress_id}/qp-coefficient", response_model=List[List[Decimal]])
-async def get_ResidualStresses_qp_coefficient(
+async def get_residual_stresses_qp_coefficient(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
     size: int = Query(1024, ge=0),
@@ -241,7 +253,7 @@ async def get_ResidualStresses_qp_coefficient(
 
 
 @router.get("/{ResidualStress_id}/qp-coefficient/csv", response_class=StreamingResponse)
-async def get_ResidualStresses_qp_coefficient_csv(
+async def get_residual_stresses_qp_coefficient_csv(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
 ) -> StreamingResponse:
