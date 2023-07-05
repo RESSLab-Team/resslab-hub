@@ -204,6 +204,7 @@ function downloadZip(): void {
       must-sort
       :search="search"
       show-select
+      return-object
       @click:row="click"
       @update:options="emit('update:options', $event)"
     >
