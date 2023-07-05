@@ -81,7 +81,18 @@ const route = useRoute()
 const notificationStore = useNotificationStore()
 
 const downloadDialog = ref<InstanceType<typeof CheckboxDialog>>()
+const selectedItemsIds = ref<string[]>([])
 const selectedItems = ref<M[]>([])
+
+watch(selectedItemsIds, (newIdList, oldIdList) => {
+  const oldList = selectedItems.value
+  const newIds = newIdList.filter((id) => !oldIdList.includes(id)),
+    removedIds = oldIdList.filter((id) => !newIdList.includes(id))
+  const newList = oldList
+    .filter((item) => !removedIds.includes(item.id))
+    .concat(newIds.map((id) => props.items.find((item) => item.id === id)))
+  selectedItems.value = newList
+})
 
 const columnSearches = computed<Searches>({
   get: () => props.searches,
@@ -190,7 +201,7 @@ function downloadZip(): void {
       </v-btn>
     </v-card-title>
     <v-data-table-server
-      v-model="selectedItems"
+      v-model="selectedItemsIds"
       density="compact"
       fixed-header
       :headers="tableHeaders"
@@ -204,7 +215,7 @@ function downloadZip(): void {
       must-sort
       :search="search"
       show-select
-      return-object
+      :item-value="(item) => item.id"
       @click:row="click"
       @update:options="emit('update:options', $event)"
     >
