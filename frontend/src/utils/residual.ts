@@ -1,4 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+//Removing warning for unused variables as they might be used in the future
+//They exist in the matlab code and might be used in the future
 import type { ResidualStressModel } from '@/backend'
+import { colorPalette } from '@/utils/vuetify'
 import type { LineSeriesOption } from 'echarts'
 
 import { inv, matrix, multiply } from 'mathjs'
@@ -8,7 +12,11 @@ function linspace(start: number, end: number, n: number): number[] {
   const step = diff / (n - 1)
   return Array(n)
     .fill(0)
-    .map((_, i) => start + i * step)
+    .map((_, i) => start + ~~(i * step))
+}
+
+function incorpatePointsFromDistribution(linspace: number[], distribution: number[]) {
+  return [...new Set(linspace.concat(distribution).sort((a, b) => a - b))]
 }
 
 export function createLineSeries(
@@ -52,20 +60,26 @@ export function createLineSeries(
   const QP_web_RS = (y: number) => coeff[2] + coeff[3] * Math.pow(y - h / 2, 2)
 
   // Define evenly spaced vectors x, y and their variants
-  const x = linspace(0, b, 100)
+  const N_POINTS = 100
+
+  const x = incorpatePointsFromDistribution(
+    linspace(0, b, N_POINTS),
+    distributionF1.map((serie) => serie[0])
+  )
   const x_mod = linspace(0, b, 3)
   const x1 = linspace(0, b / 2, 2)
   const x2 = linspace(b / 2, b, 2)
-  const x3 = linspace(-b / 2, b / 2, 100)
+  const x3 = linspace(-b / 2, b / 2, N_POINTS)
   const x3_scatter = linspace(-b / 2, b / 2, 3)
 
-  const y = linspace(0, h, 100)
+  const y = linspace(0, h, N_POINTS)
+
   const y_mod = linspace(0, h, 3)
   const y1 = linspace(tf / 2, h / 2, 2)
   const y2 = linspace(h / 2, h - tf / 2, 2)
-  const y3 = linspace(-(h - tf) / 2, (h - tf) / 2, 100)
+  const y3 = linspace(-(h - tf) / 2, (h - tf) / 2, N_POINTS)
   const y3_scatter = linspace(-(h - tf) / 2, (h - tf) / 2, 3)
-  const y4 = linspace(tf / 2, h - tf / 2, 100)
+  const y4 = linspace(tf / 2, h - tf / 2, N_POINTS)
   const y4_mod = linspace(tf / 2, h - tf / 2, 3)
 
   // Galambos and Ketter 1959
@@ -180,6 +194,24 @@ export function createLineSeries(
 
   const flangeSeries = [
     {
+      name: 'Measured residual stresses' + (flange_nr_data == 2 ? ' F1' : ''),
+      showSymbol: true,
+      lineStyle: {
+        width: 3
+      },
+      data: distributionF1.map((x) => [x[0] - b / 2, x[1]])
+    },
+    {
+      name: 'Measured residual stresses F2',
+      showSymbol: true,
+      lineStyle: {
+        width: 3
+      },
+      color: colorPalette.at(-1),
+      data:
+        flange_nr_data > 1 && distributionF2 ? distributionF2.map((x) => [x[0] - b / 2, x[1]]) : []
+    },
+    {
       name: 'Skiadopoulos et al., 2023',
 
       lineStyle: {
@@ -190,14 +222,7 @@ export function createLineSeries(
       },
       data: x.map((x) => [x - b / 2, QP_Model_full_flange_RS(x)])
     },
-    {
-      name: 'Measured residual stresses' + (flange_nr_data == 2 ? ' F1' : ''),
-      showSymbol: true,
-      lineStyle: {
-        width: 3
-      },
-      data: distributionF1.map((x) => [x[0] - b / 2, x[1]])
-    },
+
     {
       name: 'Galambos and Ketter 1959',
 
@@ -233,27 +258,12 @@ export function createLineSeries(
 
       lineStyle: { type: 'dashed' },
       data: x3.map((x) => [x, BT_flange_RS(x)])
-    },
-    {
-      name: 'Measured residual stresses F2',
-      showSymbol: true,
-      lineStyle: {
-        width: 3
-      },
-      data:
-        flange_nr_data > 1 && distributionF2 ? distributionF2.map((x) => [x[0] - b / 2, x[1]]) : []
     }
-  ].map((d) => ({ ...d, smooth: true })) as LineSeriesOption[]
+  ]
+    .filter((d) => (d.name == 'Measured residual stresses F2' ? flange_nr_data == 2 : true))
+    .map((d) => ({ ...d })) as LineSeriesOption[]
 
   const webSeries = [
-    {
-      name: 'Skiadopoulos et al., 2023',
-
-      lineStyle: {
-        width: 3
-      },
-      data: y4.map((y) => [QP_Model_full_web_RS(y), y])
-    },
     {
       name: 'Measured residual stresses',
       showSymbol: true,
@@ -262,6 +272,15 @@ export function createLineSeries(
       },
       data: distributionW1.map((y) => y.reverse())
     },
+    {
+      name: 'Skiadopoulos et al., 2023',
+
+      lineStyle: {
+        width: 3
+      },
+      data: y4.map((y) => [QP_Model_full_web_RS(y), y])
+    },
+
     {
       name: 'Galambos and Ketter 1959',
 
@@ -295,7 +314,7 @@ export function createLineSeries(
       lineStyle: { type: 'dashed' },
       data: y3.map((y, i) => [BT_web_RS(y), y4[i]])
     }
-  ].map((d) => ({ ...d, smooth: true })) as LineSeriesOption[]
+  ].map((d) => ({ ...d })) as LineSeriesOption[]
 
   return { flangeSeries, webSeries }
 }
