@@ -59,7 +59,7 @@ const actualOption = computed<EChartsOption>(() => {
         fontWeight: 'bold'
       },
       nameGap: 26,
-      max: xAXisOption?.max ?? undefined,
+      max: xAXisOption?.max,
       axisLabel: {
         formatter: (value: number) => `${round(value, axisLabelMaxDigits)}`,
         hideOverlap: true
@@ -71,7 +71,7 @@ const actualOption = computed<EChartsOption>(() => {
         fontWeight: 'bold'
       },
       nameGap: 50,
-      max: yAXisOption?.max ?? undefined,
+      max: yAXisOption?.max,
       axisLabel: {
         formatter: (value: number) => `${round(value, axisLabelMaxDigits)}`,
         hideOverlap: true

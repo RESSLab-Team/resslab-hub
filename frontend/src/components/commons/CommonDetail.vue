@@ -21,10 +21,12 @@ export interface Props {
   link: string | undefined
   carouselItems?: DetailCarouselItem[][]
   carouselHeight?: number
+  aspectRatio?: number
 }
 const props = withDefaults(defineProps<Props>(), {
   carouselItems: () => [],
-  carouselHeight: 300
+  carouselHeight: 300,
+  aspectRatio: 1.5
 })
 const emit = defineEmits<{
   (e: 'close'): void
@@ -99,8 +101,8 @@ watch(
             <template v-for="(item, index) in carouselItem" :key="index">
               <v-col class="d-flex justify-center" :cols="12 / carouselItem.length">
                 <unit-line-chart
-                  :aspect-ratio="1.5"
-                  :max-width="carouselHeight * 1.5"
+                  :aspect-ratio="aspectRatio"
+                  :max-width="carouselHeight * aspectRatio"
                   v-bind="item"
                 />
               </v-col>

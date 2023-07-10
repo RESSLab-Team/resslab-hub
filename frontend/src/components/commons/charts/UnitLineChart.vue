@@ -44,6 +44,7 @@ const option = computed<EChartsOption>(
         left: 'center'
       },
       grid: {
+        //If there are more than 2 series, the legend will be on the right so we don't need to leave more space for it
         top: props.series.length > 2 ? 40 : 60
       },
       legend: {
