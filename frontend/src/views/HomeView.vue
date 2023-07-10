@@ -124,11 +124,11 @@ onMounted(() => {
       <v-col>
         <v-card>
           <v-responsive content-class="d-flex align-center" height="256px">
-            <video autoplay loop muted preload="auto">
+            <video class="w-100" autoplay loop muted preload="auto">
               <source :src="publicPath + 'video/steel-mrf-front-page.mp4'" type="video/mp4" />
             </video>
             <v-overlay
-              class="align-center"
+              class="align-center justify-center"
               contained
               :model-value="true"
               persistent
