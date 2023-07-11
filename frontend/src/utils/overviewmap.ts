@@ -199,7 +199,8 @@ export function createMarkers(data: LocationGlobal[], type: Type) {
   return data.map((d) => {
     const marker = new Marker([d.latitude, d.longitude], {
       icon: icons.get(type)
-    }).bindPopup(createTooltip(d, type))
+    }).bindPopup(createTooltip(d, type), { autoPanPadding: [50, 150] })
+
     marker.feature = {
       type: 'Feature',
       properties: Object.assign(d, { type }),
