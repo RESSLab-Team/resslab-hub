@@ -45,12 +45,14 @@ const vTextBind = computed(() => ({
   variant: 'underlined' as 'underlined'
 }))
 
-function onMinChanged(min: string): void {
-  range.value = [Number(min), range.value[1]]
+function onMinChanged(event: InputEvent): void {
+  const target = event.target as HTMLInputElement
+  range.value = [Number(target.value), range.value[1]]
 }
 
-function onMaxChanged(max: string): void {
-  range.value = [range.value[0], Number(max)]
+function onMaxChanged(event: InputEvent): void {
+  const target = event.target as HTMLInputElement
+  range.value = [range.value[0], Number(target.value)]
 }
 </script>
 
