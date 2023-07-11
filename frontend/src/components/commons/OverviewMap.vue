@@ -92,6 +92,7 @@ const prevCluster = ref<null | MarkerClusterGroup>(null)
 const cluster = computed(() => {
   return new MarkerClusterGroup({
     showCoverageOnHover: false,
+    zoomToBoundsOnClick: false,
     iconCreateFunction: function (cluster) {
       const childCount = cluster.getChildCount()
       const radius = scaleRadius.domain([0, dataLength.value])(childCount)
@@ -174,17 +175,24 @@ function updateMap() {
   if (prevCluster.value) map.value.removeLayer(prevCluster.value as MarkerClusterGroup)
   cluster.value.clearLayers()
   cluster.value.addLayers(markers.value)
+
   map.value.addLayer(cluster.value)
   prevCluster.value = cluster.value
   map.value.fitBounds(cluster.value.getBounds())
   setEventListenerLegend()
 }
 
+const mapWidth = computed(() => mapContainer.value?.clientWidth || 0)
+const mapHeight = computed(() => mapContainer.value?.clientHeight || 0)
+
 onMounted(() => {
   cluster.value.addLayers(markers.value)
   map.value.addLayer(cluster.value)
   prevCluster.value = cluster.value
   legend.value.addTo(map.value)
+  cluster.value.on('clusterclick', function (a) {
+    a.layer.zoomToBounds({ padding: [mapWidth.value * 0.2, mapHeight.value * 0.1] })
+  })
   setEventListenerLegend()
 })
 </script>
