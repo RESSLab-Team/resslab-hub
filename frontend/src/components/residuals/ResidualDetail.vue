@@ -55,27 +55,29 @@ watch(
 watch(
   () => promise.value,
   (newPromise) => {
-    carouselItems.value = [
-      [
-        {
-          noCount: true,
-          promise: newPromise.then(({ flangeSeries }) => flangeSeries),
-          title: 'Flange distribution',
-          xAxisName: 'bf [mm]',
-          yAxisName: 'σ 0,f [MPa]'
-        }
-      ],
-      [
-        {
-          noCount: true,
-          promise: newPromise.then(({ webSeries }) => webSeries),
-          title: 'Web distribution',
-          axisPointerType: 'y',
-          xAxisName: 'σ 0,w [MPa]',
-          yAxisName: 'h [mm]'
-        }
+    newPromise.then(({ flangeSeries, webSeries }) => {
+      carouselItems.value = [
+        [
+          {
+            noCount: true,
+            series: flangeSeries,
+            title: 'Flange distribution',
+            xAxisName: 'bf [mm]',
+            yAxisName: 'σ 0,f [MPa]'
+          }
+        ],
+        [
+          {
+            noCount: true,
+            series: webSeries,
+            title: 'Web distribution',
+            axisPointerType: 'y',
+            xAxisName: 'σ 0,w [MPa]',
+            yAxisName: 'h [mm]'
+          }
+        ]
       ]
-    ]
+    })
   },
   {
     immediate: true
