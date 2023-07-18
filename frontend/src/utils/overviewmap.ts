@@ -160,7 +160,7 @@ export function createTooltipResidualStresses(d: LocationResidualStress) {
           <li>Profile type: ${d.profile_type}</li>
           <li>Cross section: ${d.profile}</li>
           <li>
-            <img alt="ResidualStresss placeholder image" src="${getResidualStressImage()}"></img>
+            <img alt="Residual Stresses placeholder image" src="${getResidualStressImage()}"></img>
           </li>
           <li><a href='/residuals/database?id=${d.id}&detail=true'>View experimental data</a></li>
         </ul>
@@ -177,7 +177,7 @@ export function createTooltip(d: LocationGlobal, type: Type) {
       return createTooltipBraces(d as LocationBrace)
     case 'Materials':
       return createTooltipMaterials(d as LocationMaterial)
-    case 'ResidualStresses':
+    case 'Residual Stresses':
       return createTooltipResidualStresses(d as LocationResidualStress)
     default:
       return `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`

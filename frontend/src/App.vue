@@ -61,7 +61,7 @@ const menuItems: MenuItem[] = [
     ]
   },
   {
-    text: 'Residual Stress',
+    text: 'Residual Stresses',
     to: '/residuals',
     children: [
       {
