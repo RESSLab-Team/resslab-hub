@@ -13,10 +13,6 @@ const columns: Column[] = [
     type: 'text'
   },
   {
-    value: ResidualStressField.Date,
-    type: 'text'
-  },
-  {
     value: ResidualStressField.Profile,
     type: 'text'
   },
