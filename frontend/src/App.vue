@@ -59,17 +59,17 @@ const menuItems: MenuItem[] = [
         to: '/model'
       }
     ]
+  },
+  {
+    text: 'Residual Stresses',
+    to: '/residuals',
+    children: [
+      {
+        text: 'Database',
+        to: '/database'
+      }
+    ]
   }
-  // {
-  //   text: 'Residual Stress',
-  //   to: '/residuals',
-  //   children: [
-  //     {
-  //       text: 'Database',
-  //       to: '/database'
-  //     }
-  //   ]
-  // }
 ]
 
 const aboutDialog = ref<boolean>(false)

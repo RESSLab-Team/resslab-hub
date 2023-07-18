@@ -129,7 +129,7 @@ const markers = computed<Marker[]>(() => {
     createMarkers(columnsLocations.value, 'Columns'),
     createMarkers(bracesLocations.value, 'Braces'),
     createMarkers(materialsLocations.value, 'Materials'),
-    createMarkers(residualStressesLocations.value, 'ResidualStresses')
+    createMarkers(residualStressesLocations.value, 'Residual Stresses')
   ].flat()
 })
 
