@@ -16,20 +16,23 @@ function linspace(start: number, end: number, n: number): number[] {
 }
 
 function incorpatePointsFromDistribution(linspace: number[], distribution: number[]) {
-  return [...new Set(linspace.concat(distribution).sort((a, b) => a - b))]
+  const step = linspace[1] - linspace[0]
+  const filteredLinspace = linspace.filter(
+    (x) => !distribution.some((x_measured) => Math.abs(x - x_measured) < step * 2) // this way tooltip is triggered for measurements points easily because they are not too close to each other
+  )
+  return [...new Set(filteredLinspace.concat(distribution).sort((a, b) => a - b))]
 }
 
-export function createLineSeries(
+export function createResidualModels(
   residual: ResidualStressModel,
   qpCoefficient: number[][],
   distributionF1: number[][],
   distributionW1: number[][],
-
   distributionF2?: number[][]
-): { flangeSeries: LineSeriesOption[]; webSeries: LineSeriesOption[] } {
+) {
   const coeff = qpCoefficient.map((serie) => serie[0])
 
-  const { h_over_b, h, A, b, tf, tw, fy_n, flange_nr_data } = residual
+  const { h_over_b, h, A, b, tf, tw, fy_n } = residual
 
   const h0 = h - 2 * tf
 
@@ -62,24 +65,37 @@ export function createLineSeries(
   // Define evenly spaced vectors x, y and their variants
   const N_POINTS = 100
 
-  const x = incorpatePointsFromDistribution(
-    linspace(0, b, N_POINTS),
-    distributionF1.map((serie) => serie[0])
-  )
+  const x_measured = distributionF1
+    .map((x) => x[0])
+    .concat(distributionF2?.map((x) => x[0]) ?? [])
+    .concat([0])
+
+  const x = incorpatePointsFromDistribution(linspace(0, b, N_POINTS), x_measured)
   const x_mod = linspace(0, b, 3)
   const x1 = linspace(0, b / 2, 2)
   const x2 = linspace(b / 2, b, 2)
-  const x3 = linspace(-b / 2, b / 2, N_POINTS)
+  const x3 = incorpatePointsFromDistribution(
+    linspace(-b / 2, b / 2, N_POINTS),
+    x_measured.map((x) => x - b / 2)
+  )
+
   const x3_scatter = linspace(-b / 2, b / 2, 3)
 
-  const y = linspace(0, h, N_POINTS)
+  const y_measured = distributionW1.map((y) => y[0])
+
+  const y = incorpatePointsFromDistribution(linspace(0, h, N_POINTS), y_measured)
 
   const y_mod = linspace(0, h, 3)
   const y1 = linspace(tf / 2, h / 2, 2)
   const y2 = linspace(h / 2, h - tf / 2, 2)
-  const y3 = linspace(-(h - tf) / 2, (h - tf) / 2, N_POINTS)
+  const y3 = incorpatePointsFromDistribution(
+    linspace(-(h - tf) / 2, (h - tf) / 2, N_POINTS),
+    y_measured.map((y) => y - h / 2)
+  )
+
   const y3_scatter = linspace(-(h - tf) / 2, (h - tf) / 2, 3)
-  const y4 = linspace(tf / 2, h - tf / 2, N_POINTS)
+  const y4 = incorpatePointsFromDistribution(linspace(tf / 2, h - tf / 2, N_POINTS), y_measured)
+
   const y4_mod = linspace(tf / 2, h - tf / 2, 3)
 
   // Galambos and Ketter 1959
@@ -90,6 +106,8 @@ export function createLineSeries(
   const GK_flange_RS1 = (x1: number) => (2 / b) * (sigma_t_GK - sigma_c_GK) * x1 + sigma_c_GK
   const GK_flange_RS2 = (x2: number) =>
     (2 / b) * (sigma_c_GK - sigma_t_GK) * x2 + 2 * sigma_t_GK - sigma_c_GK
+  const GK_flange = (x: number) => (x < b / 2 ? GK_flange_RS1(x) : GK_flange_RS2(x))
+
   const GK_web_RS = sigma_t_GK
 
   // ECCS 1984
@@ -106,13 +124,15 @@ export function createLineSeries(
   const sigma_c_ECCS = -fy_n * alpha
 
   // Define the stress functions for ECCS model
-  const ECCS_flange_RS1 = (x1: number) =>
-    (2 / b) * (sigma_t_ECCS - sigma_c_ECCS) * x1 + sigma_c_ECCS
-  const ECCS_flange_RS2 = (x2: number) =>
-    (2 / b) * (sigma_c_ECCS - sigma_t_ECCS) * x2 + 2 * sigma_t_ECCS - sigma_c_ECCS
-  const ECCS_web_RS1 = (y1: number) => (2 / h) * (sigma_c_ECCS - sigma_t_ECCS) * y1 + sigma_t_ECCS
-  const ECCS_web_RS2 = (y2: number) =>
-    (2 / h) * (sigma_t_ECCS - sigma_c_ECCS) * y2 + 2 * sigma_c_ECCS - sigma_t_ECCS
+  const ECCS_flange_RS1 = (x: number) => (2 / b) * (sigma_t_ECCS - sigma_c_ECCS) * x + sigma_c_ECCS
+  const ECCS_flange_RS2 = (x: number) =>
+    (2 / b) * (sigma_c_ECCS - sigma_t_ECCS) * x + 2 * sigma_t_ECCS - sigma_c_ECCS
+  const ECCS_flange = (x: number) => (x < b / 2 ? ECCS_flange_RS1(x) : ECCS_flange_RS2(x))
+
+  const ECCS_web_RS1 = (y: number) => (2 / h) * (sigma_c_ECCS - sigma_t_ECCS) * y + sigma_t_ECCS
+  const ECCS_web_RS2 = (y: number) =>
+    (2 / h) * (sigma_t_ECCS - sigma_c_ECCS) * y + 2 * sigma_c_ECCS - sigma_t_ECCS
+  const ECCS_web = (x: number) => (x < h / 2 ? ECCS_web_RS1(x) : ECCS_web_RS2(x))
 
   // Young 1975
 
@@ -192,6 +212,57 @@ export function createLineSeries(
       coeff_BT.get([3, 0]) * Math.pow((2 * y3) / (h - tf), 2) +
       coeff_BT.get([4, 0]) * Math.pow((2 * y3) / (h - tf), 4))
 
+  return {
+    x,
+    x3,
+    y,
+    y3,
+    y4,
+    QP_Model_full_flange_RS,
+    GK_flange,
+    ECCS_flange,
+    YOUNG_flange_RS,
+    SP_flange_RS,
+    BT_flange_RS,
+    QP_Model_full_web_RS,
+    GK_web_RS,
+    ECCS_web,
+    YOUNG_web_RS,
+    SP_web_RS,
+    BT_web_RS
+  }
+}
+
+export function createLineSeries(
+  residual: ResidualStressModel,
+  qpCoefficient: number[][],
+  distributionF1: number[][],
+  distributionW1: number[][],
+
+  distributionF2?: number[][]
+): { flangeSeries: LineSeriesOption[]; webSeries: LineSeriesOption[] } {
+  const { h_over_b, h, A, b, tf, tw, fy_n, flange_nr_data } = residual
+
+  const {
+    x,
+    x3,
+    y,
+    y3,
+    y4,
+    QP_Model_full_flange_RS,
+    GK_flange,
+    ECCS_flange,
+    YOUNG_flange_RS,
+    SP_flange_RS,
+    BT_flange_RS,
+    QP_Model_full_web_RS,
+    GK_web_RS,
+    ECCS_web,
+    YOUNG_web_RS,
+    SP_web_RS,
+    BT_web_RS
+  } = createResidualModels(residual, qpCoefficient, distributionF1, distributionW1, distributionF2)
+
   const flangeSeries = [
     {
       name: 'Measured residual stresses' + (flange_nr_data == 2 ? ' F1' : ''),
@@ -199,6 +270,7 @@ export function createLineSeries(
       lineStyle: {
         width: 3
       },
+
       data: distributionF1.map((x) => [x[0] - b / 2, x[1]])
     },
     {
@@ -227,19 +299,13 @@ export function createLineSeries(
       name: 'Galambos and Ketter 1959',
 
       lineStyle: { type: 'dashed' },
-      data: x
-        .slice(0, ~~(x.length / 2))
-        .map((x) => [x - b / 2, GK_flange_RS1(x)])
-        .concat(x.slice(~~(x.length / 2), x.length).map((x) => [x - b / 2, GK_flange_RS2(x)]))
+      data: x.map((x) => [x - b / 2, GK_flange(x)])
     },
     {
       name: 'ECCS 1984',
 
       lineStyle: { type: 'dashed' },
-      data: x
-        .slice(0, ~~(x.length / 2))
-        .map((x) => [x - b / 2, ECCS_flange_RS1(x)])
-        .concat(x.slice(~~(x.length / 2), x.length).map((x) => [x - b / 2, ECCS_flange_RS2(x)]))
+      data: x.map((x) => [x - b / 2, ECCS_flange(x)])
     },
     {
       name: 'Young 1975',
@@ -270,6 +336,7 @@ export function createLineSeries(
       lineStyle: {
         width: 3
       },
+      triggerLineEvent: true,
       data: distributionW1.map((y) => y.reverse())
     },
     {
@@ -285,36 +352,33 @@ export function createLineSeries(
       name: 'Galambos and Ketter 1959',
 
       lineStyle: { type: 'dashed' },
-      data: [tf / 2, h / 2, h - tf / 2].map((y) => [GK_web_RS, y])
+      data: y4.map((y) => [GK_web_RS, y])
     },
     {
       name: 'ECCS 1984',
 
       lineStyle: { type: 'dashed' },
-      data: y
-        .slice(0, ~~(y.length / 2))
-        .map((y) => [ECCS_web_RS1(y), y])
-        .concat(y.slice(~~(y.length / 2), y.length).map((y) => [ECCS_web_RS2(y), y]))
+      data: y4.map((y) => [ECCS_web(y), y])
     },
     {
       name: 'Young 1975',
 
       lineStyle: { type: 'dashed' },
-      data: y3.map((y, i) => [YOUNG_web_RS(y), y4[i]])
+      data: y3.map((y, i) => [YOUNG_web_RS(y), y + h / 2])
     },
     {
       name: 'Salazai and Papp 2005',
 
       lineStyle: { type: 'dashed' },
-      data: y3.map((y, i) => [SP_web_RS(y), y4[i]])
+      data: y3.map((y, i) => [SP_web_RS(y), y + h / 2])
     },
     {
       name: 'Bradford and Trahair 1985',
 
       lineStyle: { type: 'dashed' },
-      data: y3.map((y, i) => [BT_web_RS(y), y4[i]])
+      data: y3.map((y, i) => [BT_web_RS(y), y + h / 2])
     }
-  ].map((d) => ({ ...d })) as LineSeriesOption[]
+  ].map((d) => ({ ...d, encode: { tooltip: [0] } })) as LineSeriesOption[]
 
   return { flangeSeries, webSeries }
 }

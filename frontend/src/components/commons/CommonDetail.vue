@@ -9,6 +9,7 @@ import { ref, watch } from 'vue'
 export interface DetailCarouselItem {
   count?: number
   noCount?: boolean
+  series?: LineSeriesOption[]
   promise?: Promise<AxiosResponse<number[][]> | LineSeriesOption[]>
   title: string
   axisPointerType?: string
