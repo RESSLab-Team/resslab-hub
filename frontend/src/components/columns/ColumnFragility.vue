@@ -255,7 +255,9 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
             This module plots univariate and multivariate fragility curves for wide-flange steel
             columns depending on their primary loading and geometric characteristics. For further
             information please refer to
-            <a href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
+            <a
+              target="_blank"
+              href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
               >Elkady et al. (2018)</a
             >.
           </p>
