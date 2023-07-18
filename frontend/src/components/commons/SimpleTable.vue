@@ -370,6 +370,10 @@ table > tr > td {
   padding-right: 16px;
 }
 
+::v-deep input[type='number'] {
+  width: 3em;
+}
+
 :deep(.v-list-item-title) {
   min-width: 200px;
 }
