@@ -31,7 +31,7 @@ const dialog = ref<boolean>(false)
 const loading = ref<boolean>(false)
 const resolveRef = ref<(value: T[] | PromiseLike<T[]>) => void>(() => null)
 
-const values = computed<boolean[]>(() => new Array(props.items.length).fill(true))
+const values = ref(new Array(props.items.length).fill(true))
 const hasSelected = computed<boolean>(() => values.value.some((value) => value))
 
 function open(message?: string): Promise<T[]> {
