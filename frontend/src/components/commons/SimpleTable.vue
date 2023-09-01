@@ -111,10 +111,14 @@ const filterHeaders = computed<TableHeader[]>(() =>
 const hasFilters = computed<boolean>(() => !!props.query)
 
 watch(selectedItems, (value) => {
-  if (value.length > maxDownloadCount) {
+  if (value.length >= maxDownloadCount) {
     notificationStore.notify(`You cannot download more than ${maxDownloadCount} items.`)
   }
 })
+
+function isItemSelectable(item: M): boolean {
+  return selectedItems.value.length < maxDownloadCount || selectedItemsIds.value.includes(item.id)
+}
 
 function resetFilters(): void {
   globalSearch.value = ''
@@ -214,6 +218,7 @@ function downloadZip(): void {
       :loading="loading"
       must-sort
       :search="search"
+      :item-selectable="isItemSelectable"
       show-select
       :item-value="(item) => item.id"
       @click:row="click"
@@ -370,7 +375,7 @@ table > tr > td {
   padding-right: 16px;
 }
 
-::v-deep input[type='number'] {
+:deep(input[type='number']) {
   width: 3em;
 }
 
