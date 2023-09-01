@@ -132,7 +132,7 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
     }
   }
 
-  watch(query, fetchQuery)
+  watch(query, fetchQuery, { immediate: true })
 
   function changeSearches(key: string, value?: Value) {
     emit('change:searches', key, value)
@@ -154,7 +154,6 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
       .then((range) => {
         numberMin.value = range.min
         numberMax.value = range.max
-        numberRange.value = [range.min, range.max]
       })
   }
   if (dateRangeOption) {
