@@ -257,7 +257,7 @@ function correlatedBivariate(
       const jRange = range(0, j + 1)
       const sum3 = sum(pdfMatrix.subset(index(iRange, jRange)))
       const sum1 = sum(pdfMatrix.subset(index(allIRange, jRange)))
-      cdfMatrix.set([i, j], sum1 + sum2 - sum3)
+      cdfMatrix.set([i, j], (sum1 as number) + (sum2 as number) - (sum3 as number))
     }
   }
 
@@ -267,7 +267,7 @@ function correlatedBivariate(
   })
 
   const maxValue = max(cdfMatrix)
-  cdfMatrix = cdfMatrix.map((v) => v / maxValue)
+  cdfMatrix = cdfMatrix.map((v) => v / (maxValue as number))
 
   const data: [number, number, number][] = []
   for (let i = 0; i < xs.length; i++) {
