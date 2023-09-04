@@ -7,7 +7,7 @@ describe('ColumnComponent.vue', () => {
     const radPrecision = 1
     const mmPrecision = -1
 
-    const wrapper = shallowMount<InstanceType<typeof ColumnModel>>(ColumnModel)
+    const wrapper = shallowMount(ColumnModel)
     await wrapper.setData({
       section: {
         id: 'W4x13',
@@ -26,16 +26,16 @@ describe('ColumnComponent.vue', () => {
       fy: 379.225
     })
 
-    expect(wrapper.ke).toBeCloseTo(1157040, mmPrecision)
-    expect(wrapper.my).toBeCloseTo(40134, mmPrecision)
+    expect(wrapper.vm.vars.ke).toBeCloseTo(1157040, mmPrecision)
+    expect(wrapper.vm.vars.my).toBeCloseTo(40134, mmPrecision)
 
-    expect(wrapper.backbone.mc).toBeCloseTo(40134, mmPrecision)
-    expect(wrapper.backbone.alpha).toBeCloseTo(0, radPrecision)
-    expect(wrapper.backbone.alphaPc).toBeCloseTo(-0.301909128782995, radPrecision)
-    expect(wrapper.backbone.lambda).toBeCloseTo(3, radPrecision)
+    expect(wrapper.vm.backbone.mc).toBeCloseTo(40134, mmPrecision)
+    expect(wrapper.vm.backbone.alpha).toBeCloseTo(0, radPrecision)
+    expect(wrapper.vm.backbone.alphaPc).toBeCloseTo(-0.301909128782995, radPrecision)
+    expect(wrapper.vm.backbone.lambda).toBeCloseTo(3, radPrecision)
 
-    expect(wrapper.envelope.mc).toBeCloseTo(52175, mmPrecision)
-    expect(wrapper.envelope.alpha).toBeCloseTo(0.242693789510631, radPrecision)
-    expect(wrapper.envelope.alphaPc).toBeCloseTo(-0.604686389947832, radPrecision)
+    expect(wrapper.vm.envelope.mc).toBeCloseTo(52175, mmPrecision)
+    expect(wrapper.vm.envelope.alpha).toBeCloseTo(0.242693789510631, radPrecision)
+    expect(wrapper.vm.envelope.alphaPc).toBeCloseTo(-0.604686389947832, radPrecision)
   })
 })
