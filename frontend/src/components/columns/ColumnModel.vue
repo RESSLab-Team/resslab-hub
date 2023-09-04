@@ -376,6 +376,8 @@ function getOption(backbone: Result, envelope: Result): EChartsOption {
 function getTableColumns(...results: Result[]): Record<string, number | undefined>[] {
   return results.map((result) => omit(result, 'points'))
 }
+
+defineExpose({ vars, backbone, envelope })
 </script>
 
 <template>

@@ -7,7 +7,7 @@ describe('ConnectionModel.vue', () => {
     const radPrecision = 4
     const mmPrecision = 0
 
-    const wrapper = shallowMount<InstanceType<typeof ConnectionModel>>(ConnectionModel)
+    const wrapper = shallowMount(ConnectionModel)
     await wrapper.setData({
       section: {
         id: 'W36X150',
@@ -26,22 +26,22 @@ describe('ConnectionModel.vue', () => {
       fy: 379.211635
     })
 
-    expect(wrapper.ke).toBeCloseTo(578520058, mmPrecision)
+    expect(wrapper.vm.vars.ke).toBeCloseTo(578520058, mmPrecision)
 
-    expect(wrapper.backboneRbs.my).toBeCloseTo(2528265, mmPrecision)
-    expect(wrapper.backboneRbs.thetaY).toBeCloseTo(0.004370228904778947, radPrecision)
-    expect(wrapper.backboneRbs.thetaP).toBeCloseTo(0.0162860835082784, radPrecision)
+    expect(wrapper.vm.backboneRbs.my).toBeCloseTo(2528265, mmPrecision)
+    expect(wrapper.vm.backboneRbs.thetaY).toBeCloseTo(0.004370228904778947, radPrecision)
+    expect(wrapper.vm.backboneRbs.thetaP).toBeCloseTo(0.0162860835082784, radPrecision)
 
-    expect(wrapper.backboneNonRbs.my).toBeCloseTo(4224203, mmPrecision)
-    expect(wrapper.backboneNonRbs.thetaY).toBeCloseTo(0.007301740201213988, radPrecision)
-    expect(wrapper.backboneNonRbs.thetaP).toBeCloseTo(0.01645703935241783, radPrecision)
+    expect(wrapper.vm.backboneNonRbs.my).toBeCloseTo(4224203, mmPrecision)
+    expect(wrapper.vm.backboneNonRbs.thetaY).toBeCloseTo(0.007301740201213988, radPrecision)
+    expect(wrapper.vm.backboneNonRbs.thetaP).toBeCloseTo(0.01645703935241783, radPrecision)
 
-    expect(wrapper.envelopeRbs.my).toBeCloseTo(2528265, mmPrecision)
-    expect(wrapper.envelopeRbs.thetaY).toBeCloseTo(0.004370228904778947, radPrecision)
-    expect(wrapper.envelopeRbs.thetaP).toBeCloseTo(0.002996816988778066, radPrecision)
+    expect(wrapper.vm.envelopeRbs.my).toBeCloseTo(2528265, mmPrecision)
+    expect(wrapper.vm.envelopeRbs.thetaY).toBeCloseTo(0.004370228904778947, radPrecision)
+    expect(wrapper.vm.envelopeRbs.thetaP).toBeCloseTo(0.002996816988778066, radPrecision)
 
-    expect(wrapper.envelopeNonRbs.my).toBeCloseTo(4224203, mmPrecision)
-    expect(wrapper.envelopeNonRbs.thetaY).toBeCloseTo(0.007301740201213988, radPrecision)
-    expect(wrapper.envelopeNonRbs.thetaP).toBeCloseTo(0.00363759535084585, radPrecision)
+    expect(wrapper.vm.envelopeNonRbs.my).toBeCloseTo(4224203, mmPrecision)
+    expect(wrapper.vm.envelopeNonRbs.thetaY).toBeCloseTo(0.007301740201213988, radPrecision)
+    expect(wrapper.vm.envelopeNonRbs.thetaP).toBeCloseTo(0.00363759535084585, radPrecision)
   })
 })
