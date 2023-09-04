@@ -68,6 +68,7 @@
     "steel": "Steel Grade",
     "tf": "tf [mm]",
     "h": "h",
-    "date": "Date"
+    "date": "Date",
+    "thickness": "t [mm]"
   }
 }
