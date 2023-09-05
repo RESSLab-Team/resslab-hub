@@ -8,6 +8,7 @@ import type { ToggleItem } from '@/utils/toggle'
 import { publicPath } from '@/utils/common'
 import { fragilityCurve } from '@/utils/fragility'
 import { getColorMap } from '@/utils/vuetify'
+import { MAX_ECHARTS_POINTS, sampleArray } from '@/utils/echarts'
 import type { EChartsOption } from 'echarts'
 import { computed, reactive, ref } from 'vue'
 
@@ -87,13 +88,13 @@ const preNorthridgeOption = computed<EChartsOption>(() => {
         type: 'line',
         name: 'Yielding',
         showSymbol: false,
-        data: fragilityCurve(yieldingMedian, yieldingSigma)
+        data: sampleArray(fragilityCurve(yieldingMedian, yieldingSigma), MAX_ECHARTS_POINTS)
       },
       {
         type: 'line',
         name: 'Brittle Fracture',
         showSymbol: false,
-        data: fragilityCurve(fractureMedian, fractureSigma)
+        data: sampleArray(fragilityCurve(fractureMedian, fractureSigma), MAX_ECHARTS_POINTS)
       }
     ]
   }
