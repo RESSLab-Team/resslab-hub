@@ -3,8 +3,10 @@ import type { EChartsOption } from 'echarts'
 import { range } from 'lodash'
 import { getColorMap } from './vuetify'
 
+const RANGE_NUMBER_LIMIT = 1e5
+
 function storyDriftRatio(median: number): number[] {
-  return range(0, median * 2.5, 0.01)
+  return range(0, median * 2.5, Math.max((median * 2.5) / RANGE_NUMBER_LIMIT, 0.01))
 }
 
 export function fragilityCurve(
