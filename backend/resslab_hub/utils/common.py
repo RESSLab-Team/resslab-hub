@@ -348,7 +348,7 @@ class Component(ABC, Generic[D, M]):
         if expression.startswith(">"):
             return column > int(expression[1:])
         if isinstance(column.type, String):
-            return column.ilike(expression)
+            return column.ilike(f"%{expression}%")
         if isinstance(column.type, Integer):
             return column == int(expression)
         if isinstance(column.type, Numeric):
