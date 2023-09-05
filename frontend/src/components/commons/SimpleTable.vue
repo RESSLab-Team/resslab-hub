@@ -366,6 +366,11 @@ function downloadZip(): void {
 </template>
 
 <style lang="scss" scoped>
+:deep(.v-table__wrapper) {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
 :deep(.v-table__wrapper) > table > tbody > tr:hover {
   cursor: pointer;
 }
