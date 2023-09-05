@@ -195,6 +195,12 @@ watch(actualnNumberRange, (value) => {
   } else {
     searchValue = undefined
   }
+  //if search value equals to min/max value, then there's no search value
+  if (props.numberMin !== undefined && props.numberMax !== undefined) {
+    if (value && value[0] === props.numberMin && value[1] === props.numberMax) {
+      searchValue = undefined
+    }
+  }
   emit('change:searches', props.fields[0], searchValue)
 })
 watch(actualDateRange, (value) => {
@@ -204,6 +210,14 @@ watch(actualDateRange, (value) => {
   } else {
     searchValue = undefined
   }
+
+  //if search value equals to min/max value, then there's no search value
+  if (props.dateMin !== undefined && props.dateMax !== undefined) {
+    if (value && value[0] === props.dateMin && value[1] === props.dateMax) {
+      searchValue = undefined
+    }
+  }
+
   emit('change:searches', props.fields[0], searchValue)
 })
 
