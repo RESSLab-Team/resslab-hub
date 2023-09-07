@@ -120,6 +120,8 @@ class Material(Base):  # type: ignore
 
     type = column_property(grade + text("'-'") + spec)
 
+    year = column_property(func.extract("year", date))
+
     stress_strain_count = column_property(
         select(func.count(MaterialStressStrain.id))
         .where(MaterialStressStrain.material_id == id)

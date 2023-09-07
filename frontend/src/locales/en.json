@@ -58,7 +58,8 @@
     "yield_stress__mpa_": "fy,m [MPa]",
     "yield_stress__mpa_/fy_n__mpa_": "Ry",
     "fracture_strain": "En",
-    "thickness": "Thickness [mm]"
+    "thickness": "Thickness [mm]",
+    "year": "Year"
   },
   "residual": {
     "experimental_program": "Experimental Program",
