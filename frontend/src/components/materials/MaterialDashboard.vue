@@ -27,7 +27,7 @@ const parallelFields: ParallelField<MaterialField>[] = [
   { id: MaterialField.FractureStrain },
   { id: MaterialField.Thickness }
 ]
-const profileFields: DoubleFields<MaterialField> = [MaterialField.Date, MaterialField.Profile]
+const profileFields: DoubleFields<MaterialField> = [MaterialField.Year, MaterialField.Profile]
 const profileThicknessFields: DoubleFields<MaterialField> = [
   MaterialField.Thickness,
   MaterialField.Profile

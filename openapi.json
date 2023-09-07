@@ -4470,6 +4470,7 @@
           "uvc_c2__mpa_",
           "uvc_g2",
           "type",
+          "year",
           "stress_strain_count"
         ],
         "type": "string",
@@ -4504,6 +4505,7 @@
           "uvc_c2__mpa_",
           "uvc_g2",
           "type",
+          "year",
           "stress_strain_count"
         ],
         "type": "object",
@@ -4629,6 +4631,10 @@
             "title": "Type",
             "type": "string"
           },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          },
           "stress_strain_count": {
             "title": "Stress Strain Count",
             "type": "integer"
@@ -4656,6 +4662,7 @@
           "uvc_g1",
           "uvc_c2__mpa_",
           "uvc_g2",
+          "year",
           "stress_strain_count"
         ],
         "type": "string",
