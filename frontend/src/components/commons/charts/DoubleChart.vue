@@ -67,11 +67,14 @@ const emit = defineEmits<{
   (e: 'update:numberRange', value?: [number, number]): void
 }>()
 
+const roundedMin = computed<number>(() => Math.floor(props.numberMin ?? 0))
+const roundedMax = computed<number>(() => Math.ceil(props.numberMax ?? 0))
+
 const actualnNumberRange = computed({
   get: () => {
     if (props.numberRange !== undefined) return props.numberRange
     else if (props.numberMin !== undefined && props.numberMax !== undefined)
-      return [props.numberMin, props.numberMax] as [number, number]
+      return [roundedMin.value, roundedMax.value] as [number, number]
     else return undefined
   },
   set: (value) => {
@@ -299,8 +302,9 @@ function click(params: CallbackDataParams): void {
       v-if="numberMin && numberMax"
       v-model="actualnNumberRange"
       :color="color"
-      :min="numberMin"
-      :max="numberMax"
+      :step="1"
+      :min="roundedMin"
+      :max="roundedMax"
     />
     <date-range-slider
       v-if="dateMin && dateMax"
