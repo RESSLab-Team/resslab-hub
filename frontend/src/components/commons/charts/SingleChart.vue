@@ -12,6 +12,7 @@ import { SVGRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { computed } from 'vue'
 import VChart from 'vue-echarts'
+import ResetSingleChartButton from '@/components/commons/ResetSingleChartButton.vue'
 
 use([SVGRenderer, TreemapChart, TooltipComponent])
 
@@ -68,6 +69,10 @@ function click(params: CallbackDataParams): void {
     emit('change:searches', params.seriesId, params.name)
   }
 }
+
+function changeSearches(key: string, value?: Value) {
+  emit('change:searches', key, value)
+}
 </script>
 
 <template>
@@ -84,5 +89,10 @@ function click(params: CallbackDataParams): void {
       />
     </v-responsive>
     <slot />
+    <reset-single-chart-button
+      :field="field"
+      :is-filtered="counts.length === 1"
+      @change:searches="changeSearches"
+    />
   </div>
 </template>
