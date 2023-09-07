@@ -58,7 +58,7 @@
     "yield_stress__mpa_": "fy,m [MPa]",
     "yield_stress__mpa_/fy_n__mpa_": "Ry",
     "fracture_strain": "En",
-    "thickness": "t [mm]"
+    "thickness": "Thickness [mm]"
   },
   "residual": {
     "experimental_program": "Experimental Program",
@@ -67,8 +67,8 @@
     "profile_type": "Profile type",
     "steel": "Steel Grade",
     "tf": "tf [mm]",
-    "h": "h",
+    "h": "Height of the cross section [mm]",
     "date": "Date",
-    "thickness": "t [mm]"
+    "thickness": "Thickness [mm]"
   }
 }
