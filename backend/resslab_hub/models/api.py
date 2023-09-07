@@ -276,6 +276,7 @@ class MaterialModel(BaseModel):
     uvc_g2: Decimal
 
     type: str
+    year: int
 
     stress_strain_count: int
 

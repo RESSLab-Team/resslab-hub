@@ -1185,6 +1185,7 @@ export const MaterialField = {
     UvcC2Mpa: 'uvc_c2__mpa_',
     UvcG2: 'uvc_g2',
     Type: 'type',
+    Year: 'year',
     StressStrainCount: 'stress_strain_count'
 } as const;
 
@@ -1382,6 +1383,12 @@ export interface MaterialModel {
      * @type {number}
      * @memberof MaterialModel
      */
+    'year': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
     'stress_strain_count': number;
 }
 /**
@@ -1409,6 +1416,7 @@ export const MaterialNumberField = {
     UvcG1: 'uvc_g1',
     UvcC2Mpa: 'uvc_c2__mpa_',
     UvcG2: 'uvc_g2',
+    Year: 'year',
     StressStrainCount: 'stress_strain_count'
 } as const;
 
