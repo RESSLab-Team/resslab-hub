@@ -178,7 +178,7 @@ const option = computed<EChartsOption>(() => {
       id: serie.name,
       name: mapSecondNameValue(serie.name),
       type: props.type,
-      showSymbol: false,
+      showSymbol: serie.data.length === 1, // show symbol to avoid empty chart
       stack: secondField.value,
       areaStyle: {},
       emphasis: {
