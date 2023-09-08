@@ -10,13 +10,14 @@ const props = defineProps(parallelChartProps<ResidualStressField>())
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { changeSearches, data, ids, requestFields } = useParallelChart<ResidualStressField>(
-  emit,
-  ResidualStressField.Id,
-  props.fields,
-  toRef(props, 'query'),
-  (fields, query) => residualsApi.getResidualStressesMatrix(fields, query)
-)
+const { changeSearches, data, ids, requestFields, isFiltered } =
+  useParallelChart<ResidualStressField>(
+    emit,
+    ResidualStressField.Id,
+    props.fields,
+    toRef(props, 'query'),
+    (fields, query) => residualsApi.getResidualStressesMatrix(fields, query)
+  )
 </script>
 
 <template>
@@ -25,6 +26,7 @@ const { changeSearches, data, ids, requestFields } = useParallelChart<ResidualSt
     :data="data"
     :fields="fields"
     :ids="ids"
+    :is-filtered="isFiltered"
     label-prefix="residual."
     :request-fields="requestFields"
     @change:searches="changeSearches"

@@ -10,7 +10,7 @@ const props = defineProps(parallelChartProps<ConnectionField>())
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { changeSearches, data, ids, requestFields } = useParallelChart<ConnectionField>(
+const { changeSearches, data, ids, requestFields, isFiltered } = useParallelChart<ConnectionField>(
   emit,
   ConnectionField.Id,
   props.fields,
@@ -25,6 +25,7 @@ const { changeSearches, data, ids, requestFields } = useParallelChart<Connection
     :data="data"
     :fields="fields"
     :ids="ids"
+    :is-filtered="isFiltered"
     label-prefix="connection."
     :request-fields="requestFields"
     @change:searches="changeSearches"

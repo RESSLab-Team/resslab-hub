@@ -53,7 +53,7 @@ export function useSingleChart<F>(
 ) {
   const counts = ref<Count[]>([])
 
-  function changeSearches(key: string, value: Value) {
+  function changeSearches(key: string, value?: Value) {
     emit('change:searches', key, value)
   }
 
@@ -236,7 +236,7 @@ export function useParallelChart<F extends string>(
       .value()
   )
 
-  function changeSearches(value: Value) {
+  function changeSearches(value?: Value) {
     emit('change:searches', idField, value)
   }
 
@@ -249,5 +249,7 @@ export function useParallelChart<F extends string>(
       })
   })
 
-  return { ids, data, requestFields, changeSearches }
+  const isFiltered = computed(() => query.value?.includes(idField) ?? false)
+
+  return { ids, data, requestFields, isFiltered, changeSearches }
 }
