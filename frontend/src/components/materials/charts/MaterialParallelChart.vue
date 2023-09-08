@@ -10,7 +10,7 @@ const props = defineProps(parallelChartProps<MaterialField>())
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { changeSearches, data, ids, requestFields } = useParallelChart<MaterialField>(
+const { changeSearches, data, ids, requestFields, isFiltered } = useParallelChart<MaterialField>(
   emit,
   MaterialField.Id,
   props.fields,
@@ -25,6 +25,7 @@ const { changeSearches, data, ids, requestFields } = useParallelChart<MaterialFi
     :data="data"
     :fields="fields"
     :ids="ids"
+    :is-filtered="isFiltered"
     label-prefix="material."
     :request-fields="requestFields"
     @change:searches="changeSearches"

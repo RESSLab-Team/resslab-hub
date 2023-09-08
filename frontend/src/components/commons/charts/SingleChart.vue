@@ -30,7 +30,7 @@ const props = withDefaults(
   }
 )
 const emit = defineEmits<{
-  (e: 'change:searches', key: string, value: Value): void
+  (e: 'change:searches', key: string, value?: Value): void
   (e: 'mouseover', value: CallbackDataParams): void
   (e: 'mouseout'): void
 }>()

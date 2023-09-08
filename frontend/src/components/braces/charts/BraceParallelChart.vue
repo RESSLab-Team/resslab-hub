@@ -10,7 +10,7 @@ const props = defineProps(parallelChartProps<BraceField>())
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { changeSearches, data, ids, requestFields } = useParallelChart<BraceField>(
+const { changeSearches, data, ids, requestFields, isFiltered } = useParallelChart<BraceField>(
   emit,
   BraceField.Id,
   props.fields,
@@ -25,6 +25,7 @@ const { changeSearches, data, ids, requestFields } = useParallelChart<BraceField
     :data="data"
     :fields="fields"
     :ids="ids"
+    :is-filtered="isFiltered"
     label-prefix="brace."
     :request-fields="requestFields"
     @change:searches="changeSearches"
