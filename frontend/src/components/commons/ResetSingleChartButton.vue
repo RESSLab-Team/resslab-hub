@@ -25,6 +25,7 @@ function resetFilters(): void {
 .v-btn {
   padding: 0.5rem;
   min-height: 52px;
+  margin-bottom: -18px;
   margin-left: -0.5rem;
 }
 </style>

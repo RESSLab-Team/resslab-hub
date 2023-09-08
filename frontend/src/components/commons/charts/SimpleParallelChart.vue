@@ -6,7 +6,7 @@ import i18n from '@/plugins/i18n'
 import type { Value } from '@/utils/common'
 import type { VerticalAlign, ZRFontWeight } from '@/utils/echarts'
 import { primaryColor, type Color } from '@/utils/vuetify'
-import { mdiFilterVariant } from '@mdi/js'
+import { mdiFilterVariant, mdiCancel } from '@mdi/js'
 import type { EChartsOption, Payload } from 'echarts'
 import { ParallelChart } from 'echarts/charts'
 import { BrushComponent, ToolboxComponent } from 'echarts/components'
@@ -29,6 +29,7 @@ const props = withDefaults(
     ids: string[]
     labelPrefix?: string
     requestFields: F[]
+    isFiltered: boolean
   }>(),
   {
     color: () => primaryColor,
@@ -41,7 +42,7 @@ const props = withDefaults(
   }
 )
 const emit = defineEmits<{
-  (e: 'change:searches', value: Value): void
+  (e: 'change:searches', value?: Value): void
 }>()
 
 const chart = ref<ECharts>()
@@ -148,12 +149,18 @@ function onBrush(payload: Payload): void {
   }
 }
 function onApply(): void {
+  console.log(props, selectedIds.value)
   emit('change:searches', selectedIds.value.join(','))
   clear()
 }
 function clear(): void {
   chart.value?.clear()
   selectedIds.value = []
+}
+
+function reset(): void {
+  emit('change:searches', undefined)
+  clear()
 }
 </script>
 
@@ -194,6 +201,9 @@ function clear(): void {
         @click="onApply"
       >
         Apply selection ({{ selectedIds.length }})
+      </v-btn>
+      <v-btn color="primary" :disabled="!isFiltered" :prepend-icon="mdiCancel" @click="reset">
+        Reset selection
       </v-btn>
     </v-card-actions>
   </v-card>
