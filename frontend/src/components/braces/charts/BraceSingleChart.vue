@@ -25,5 +25,7 @@ const { counts, changeSearches } = useSingleChart<BraceField>(
     :field="field"
     label-prefix="brace."
     @change:searches="changeSearches"
-  />
+  >
+    <template #title> <slot name="title" /> </template>
+  </single-chart>
 </template>
