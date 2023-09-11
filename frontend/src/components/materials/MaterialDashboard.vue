@@ -6,6 +6,7 @@ import MaterialParallelChart from '@/components/materials/charts/MaterialParalle
 import MaterialSingleChart from '@/components/materials/charts/MaterialSingleChart.vue'
 import MaterialDetail from '@/components/materials/MaterialDetail.vue'
 import MaterialTable from '@/components/materials/MaterialTable.vue'
+import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useRoute } from 'vue-router'
@@ -97,17 +98,16 @@ const steelField = MaterialField.Type
           </v-card>
         </v-col>
         <v-col cols="12">
-          <v-card>
-            <v-card-title>Steel Material Type</v-card-title>
-            <v-card-text>
-              <material-single-chart
-                :color="colors.deepPurple"
-                :field="steelField"
-                :query="query"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
+          <material-single-chart
+            :color="colors.deepPurple"
+            :field="steelField"
+            :query="query"
+            @change:searches="changeSearches"
+          >
+            <template #title>
+              <steel-type-card-title />
+            </template>
+          </material-single-chart>
         </v-col>
       </v-row>
     </v-col>

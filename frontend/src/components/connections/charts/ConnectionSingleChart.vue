@@ -46,5 +46,6 @@ function mouseout(): void {
     <template #default>
       <v-img v-if="imageUrl" aspect-ratio="3" :src="imageUrl" min-height="120" />
     </template>
+    <template #title> <slot name="title"></slot> </template>
   </single-chart>
 </template>

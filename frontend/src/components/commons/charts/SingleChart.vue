@@ -76,23 +76,30 @@ function changeSearches(key: string, value?: Value) {
 </script>
 
 <template>
-  <div>
-    <v-responsive min-height="100">
-      <v-chart
-        autoresize
-        :init-options="initOptions"
-        :option="option"
-        :update-options="updateOptions"
-        @click="click"
-        @mouseover="emit('mouseover', $event)"
-        @mouseout="emit('mouseout')"
+  <v-card>
+    <v-card-title>
+      <slot name="title"> </slot>
+    </v-card-title>
+    <v-card-text>
+      <v-responsive min-height="100">
+        <v-chart
+          autoresize
+          :init-options="initOptions"
+          :option="option"
+          :update-options="updateOptions"
+          @click="click"
+          @mouseover="emit('mouseover', $event)"
+          @mouseout="emit('mouseout')"
+        />
+      </v-responsive>
+    </v-card-text>
+
+    <v-card-actions>
+      <reset-single-chart-button
+        :field="field"
+        :is-filtered="counts.length === 1"
+        @change:searches="changeSearches"
       />
-    </v-responsive>
-    <slot />
-    <reset-single-chart-button
-      :field="field"
-      :is-filtered="counts.length === 1"
-      @change:searches="changeSearches"
-    />
-  </div>
+    </v-card-actions>
+  </v-card>
 </template>
