@@ -25,5 +25,7 @@ const { counts, changeSearches } = useSingleChart<MaterialField>(
     :field="field"
     label-prefix="material."
     @change:searches="changeSearches"
-  />
+  >
+    <template #title><slot name="title"></slot></template>
+  </single-chart>
 </template>

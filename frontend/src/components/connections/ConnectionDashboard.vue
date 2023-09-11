@@ -195,17 +195,14 @@ const beamFields: DoubleFields<ConnectionField> = [
           </v-card>
         </v-col>
         <v-col cols="12">
-          <v-card>
-            <steel-type-card-title />
-            <v-card-text>
-              <connection-single-chart
-                :color="colors.deepPurple"
-                :field="ConnectionField.SteelB"
-                :query="query"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
+          <connection-single-chart
+            :color="colors.deepPurple"
+            :field="ConnectionField.SteelB"
+            :query="query"
+            @change:searches="changeSearches"
+          >
+            <template #title> <steel-type-card-title /> </template>
+          </connection-single-chart>
         </v-col>
       </v-row>
     </v-col>

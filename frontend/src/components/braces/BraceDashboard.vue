@@ -113,17 +113,16 @@ const steelField = BraceField.Steel
           </v-card>
         </v-col>
         <v-col cols="12">
-          <v-card>
-            <steel-type-card-title />
-            <v-card-text>
-              <brace-single-chart
-                :color="colors.deepPurple"
-                :field="steelField"
-                :query="query"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
+          <brace-single-chart
+            :color="colors.deepPurple"
+            :field="steelField"
+            :query="query"
+            @change:searches="changeSearches"
+          >
+            <template #title>
+              <steel-type-card-title />
+            </template>
+          </brace-single-chart>
         </v-col>
       </v-row>
     </v-col>

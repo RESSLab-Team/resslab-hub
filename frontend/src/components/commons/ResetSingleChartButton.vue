@@ -22,10 +22,10 @@ function resetFilters(): void {
 </template>
 
 <style scoped>
-.v-btn {
+/* .v-btn {
   padding: 0.5rem;
   min-height: 52px;
   margin-bottom: -18px;
   margin-left: -0.5rem;
-}
+} */
 </style>
