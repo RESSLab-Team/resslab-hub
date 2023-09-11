@@ -108,7 +108,7 @@ const tableHeaders = computed<TableHeader[]>(() =>
 const filterHeaders = computed<TableHeader[]>(() =>
   props.columns.filter((column) => column.filterOnly).map(getTableHeader)
 )
-const hasFilters = computed<boolean>(() => !!props.query)
+const hasFilters = computed<boolean>(() => !!props.query && props.query?.length != 0)
 
 watch(selectedItems, (value) => {
   if (value.length >= maxDownloadCount) {

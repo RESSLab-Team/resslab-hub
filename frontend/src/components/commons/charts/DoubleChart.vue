@@ -200,7 +200,7 @@ watch(actualnNumberRange, (value) => {
   }
   //if search value equals to min/max value, then there's no search value
   if (props.numberMin !== undefined && props.numberMax !== undefined) {
-    if (value && value[0] === props.numberMin && value[1] === props.numberMax) {
+    if (value && value[0] === roundedMin.value && value[1] === roundedMax.value) {
       searchValue = undefined
     }
   }
