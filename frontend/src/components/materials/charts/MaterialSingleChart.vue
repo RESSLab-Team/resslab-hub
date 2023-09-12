@@ -22,6 +22,7 @@ const { counts, changeSearches } = useSingleChart<MaterialField>(
   <single-chart
     :color="color"
     :counts="counts"
+    :flat="flat"
     :field="field"
     label-prefix="material."
     @change:searches="changeSearches"

@@ -85,8 +85,13 @@ const steelField = BraceField.Steel
           </v-card>
         </v-col>
         <v-col cols="12" md="6">
-          <v-card>
-            <v-card-title>
+          <brace-single-chart
+            :color="colors.blue"
+            :field="loadingProtocolField"
+            :query="query"
+            @change:searches="changeSearches"
+          >
+            <template #title>
               Loading Protocol
               <info-tooltip>
                 <p>
@@ -101,16 +106,8 @@ const steelField = BraceField.Steel
                   </li>
                 </ul>
               </info-tooltip>
-            </v-card-title>
-            <v-card-text>
-              <brace-single-chart
-                :color="colors.blue"
-                :field="loadingProtocolField"
-                :query="query"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
+            </template>
+          </brace-single-chart>
         </v-col>
         <v-col cols="12">
           <brace-single-chart
