@@ -37,6 +37,7 @@ function mouseout(): void {
   <single-chart
     :color="color"
     :counts="counts"
+    :flat="flat"
     :field="field"
     label-prefix="connection."
     @change:searches="changeSearches"

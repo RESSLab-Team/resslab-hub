@@ -22,6 +22,7 @@ const { counts, changeSearches } = useSingleChart<ResidualStressField>(
   <single-chart
     :color="color"
     :counts="counts"
+    :flat="flat"
     :field="field"
     label-prefix="residual."
     @change:searches="changeSearches"

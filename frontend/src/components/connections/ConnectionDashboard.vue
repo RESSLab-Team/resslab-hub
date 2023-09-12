@@ -121,6 +121,7 @@ const beamFields: DoubleFields<ConnectionField> = [
                   <connection-single-chart
                     :field="ConnectionField.ConnectionType"
                     :query="query"
+                    flat
                     @change:searches="changeSearches"
                   />
                 </v-col>

@@ -42,6 +42,10 @@ export function singleChartProps<F extends string>() {
     field: {
       type: String as unknown as () => F,
       required: true as true
+    },
+    flat: {
+      type: Boolean as unknown as () => boolean,
+      required: false as false
     }
   }
 }

@@ -22,10 +22,12 @@ const props = withDefaults(
     counts?: Count[]
     field: string
     labelPrefix?: string
+    flat?: boolean
   }>(),
   {
     color: () => primaryColor,
     counts: () => [],
+    flat: false,
     labelPrefix: ''
   }
 )
@@ -76,11 +78,11 @@ function changeSearches(key: string, value?: Value) {
 </script>
 
 <template>
-  <v-card>
+  <v-card :flat="flat">
     <v-card-title>
       <slot name="title"> </slot>
     </v-card-title>
-    <v-card-text>
+    <v-card-text :class="[flat ? 'pa-0' : '']">
       <v-responsive min-height="100">
         <v-chart
           autoresize
@@ -92,9 +94,10 @@ function changeSearches(key: string, value?: Value) {
           @mouseout="emit('mouseout')"
         />
       </v-responsive>
+      <slot></slot>
     </v-card-text>
 
-    <v-card-actions>
+    <v-card-actions :class="[flat ? 'pa-0' : '']">
       <reset-single-chart-button
         :field="field"
         :is-filtered="counts.length === 1"
