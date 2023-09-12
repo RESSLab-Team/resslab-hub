@@ -3,6 +3,11 @@ install:
 	$(MAKE) -C backend install
 	$(MAKE) -C frontend install
 
+dev-all:
+	docker-compose up -d database
+	gnome-terminal --tab -- bash -c '$(MAKE) -C frontend dev'
+	$(MAKE) -C backend dev
+
 dev-backend:
 	$(MAKE) -C backend dev
 
