@@ -147,7 +147,7 @@ export function createResidualModels(
   const YOUNG_web_RS = (y3: number) =>
     (4 / Math.pow(h - tf, 2)) * (sigma_t_YOUNG - sigma_c2_YOUNG) * Math.pow(y3, 2) + sigma_c2_YOUNG
 
-  // Salazai and Papp 2005
+  // Szalai and Papp 2005
 
   // Define alpha_SP and calculate parameters af, aw, cf, and cw
   const alpha_SP = 0.35
@@ -178,7 +178,7 @@ export function createResidualModels(
       (8 * Math.pow(b, 3) * tf + 3 * Math.pow(b, 2) * h0 * tw + 2 * Math.pow(h0, 3) * tw)) /
     (2 * h0 * tw * (2 * Math.pow(b, 3) * tf + 8 * b * Math.pow(h0, 2) * tf + Math.pow(h0, 3) * tw))
 
-  // Define the stress functions for Salazai and Papp model
+  // Define the stress functions for Szalai and Papp model
   const SP_flange_RS = (x3: number) => cf + af * Math.pow(x3, 2)
   const SP_web_RS = (y3: number) => cw + aw * Math.pow(y3, 2)
 
@@ -314,7 +314,7 @@ export function createLineSeries(
       data: x3.map((x) => [x, YOUNG_flange_RS(x)])
     },
     {
-      name: 'Salazai and Papp 2005',
+      name: 'Szalai and Papp 2005',
 
       lineStyle: { type: 'dashed' },
       data: x3.map((x) => [x, SP_flange_RS(x)])
@@ -367,7 +367,7 @@ export function createLineSeries(
       data: y3.map((y, i) => [YOUNG_web_RS(y), y + h / 2])
     },
     {
-      name: 'Salazai and Papp 2005',
+      name: 'Szalai and Papp 2005',
 
       lineStyle: { type: 'dashed' },
       data: y3.map((y, i) => [SP_web_RS(y), y + h / 2])
