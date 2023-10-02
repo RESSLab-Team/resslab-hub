@@ -7,6 +7,8 @@ import ColumnDetail from '@/components/columns/ColumnDetail.vue'
 import ColumnTable from '@/components/columns/ColumnTable.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
+import ResetChartButton from '@/components/commons/ResetChartButton.vue'
+
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useRoute } from 'vue-router'
@@ -74,7 +76,13 @@ const steelField = ColumnField.SteelC
       <v-row v-else>
         <v-col cols="12" md="6">
           <v-card>
-            <v-card-title>Boundary Condition</v-card-title>
+            <v-card-title class="d-flex justify-space-between">
+              Boundary Condition
+              <reset-chart-button
+                :field="boundaryConditionFields"
+                :is-filtered="boundaryConditionFields.some(field => query.includes(field as string))"
+                @change:searches="changeSearches"
+            /></v-card-title>
             <v-card-text>
               <column-double-chart
                 :fields="boundaryConditionFields"
@@ -87,22 +95,29 @@ const steelField = ColumnField.SteelC
         </v-col>
         <v-col cols="12" md="6">
           <v-card>
-            <v-card-title>
-              Column Depth [mm]
-              <info-tooltip>
-                <p>This histogram displays the distribution of column depths in the Database.</p>
-                How to use?
-                <ul>
-                  <li>
-                    Filter database for specific column depths, by clicking on a bar or using the
-                    slider below
-                  </li>
-                  <li>
-                    Filter database for built-up or hot-rolled cross sections by clicking on the
-                    appropriate legend
-                  </li>
-                </ul>
-              </info-tooltip>
+            <v-card-title class="d-flex justify-space-between">
+              <div>
+                Column Depth [mm]
+                <info-tooltip>
+                  <p>This histogram displays the distribution of column depths in the Database.</p>
+                  How to use?
+                  <ul>
+                    <li>
+                      Filter database for specific column depths, by clicking on a bar or using the
+                      slider below
+                    </li>
+                    <li>
+                      Filter database for built-up or hot-rolled cross sections by clicking on the
+                      appropriate legend
+                    </li>
+                  </ul>
+                </info-tooltip>
+              </div>
+              <reset-chart-button
+                :field="columnDepthFields"
+                :is-filtered="columnDepthFields.some(field => query.includes(field as string))"
+                @change:searches="changeSearches"
+              />
             </v-card-title>
             <v-card-text>
               <column-double-chart
