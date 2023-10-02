@@ -101,20 +101,22 @@ const steelField = BraceField.Steel
             @change:searches="changeSearches"
           >
             <template #title>
-              Loading Protocol
-              <info-tooltip>
-                <p>
-                  This rectangle below displays the proportion of each loading protocol in the
-                  database. See also the evolution of test data over the years on the right.
-                </p>
-                How to use?
-                <ul>
-                  <li>
-                    Filter the Database for a specific loading protocol type or dates by clicking on
-                    the rectangle of using the dates sliders.
-                  </li>
-                </ul>
-              </info-tooltip>
+              <div>
+                Loading Protocol
+                <info-tooltip>
+                  <p>
+                    This rectangle below displays the proportion of each loading protocol in the
+                    database. See also the evolution of test data over the years on the right.
+                  </p>
+                  How to use?
+                  <ul>
+                    <li>
+                      Filter the Database for a specific loading protocol type or dates by clicking
+                      on the rectangle of using the dates sliders.
+                    </li>
+                  </ul>
+                </info-tooltip>
+              </div>
             </template>
           </brace-single-chart>
         </v-col>
