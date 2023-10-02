@@ -20,6 +20,7 @@ from sqlalchemy import (
     Float,
     Integer,
     Numeric,
+    String,
     create_engine,
     delete,
 )
@@ -156,9 +157,14 @@ class TableUploader(Uploader):
     def __get_value(column: Column, headers: List[str], row: List[str]) -> Any:
         index = headers.index(column.key or "")
         value = row[index]
+
         if value.upper() == "NA":
+            if isinstance(column.type, String):
+                return "Not applicable"
             return None
         if value.upper() == "NR":
+            if isinstance(column.type, String):
+                return "Not reported"
             return nan
         if isinstance(column.type, Boolean):
             if value.lower() == "yes":
@@ -172,6 +178,7 @@ class TableUploader(Uploader):
             return Decimal(value)
         if isinstance(column.type, Date):
             return datetime.strptime(value, "%d.%m.%y").date()
+
         return str(value)
 
 
