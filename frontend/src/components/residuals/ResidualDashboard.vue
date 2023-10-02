@@ -7,6 +7,8 @@ import ResidualSingleChart from '@/components/residuals/charts/ResidualSingleCha
 import ResidualDetail from '@/components/residuals/ResidualDetail.vue'
 import ResidualTable from '@/components/residuals/ResidualTable.vue'
 import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
+import ResetChartButton from '@/components/commons/ResetChartButton.vue'
+
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useRoute } from 'vue-router'
@@ -28,6 +30,14 @@ const profileFields: DoubleFields<ResidualStressField> = [
   ResidualStressField.Date,
   ResidualStressField.ProfileType
 ]
+
+const profileFieldsReset: ResidualStressField[] = [
+  ResidualStressField.Date,
+  ResidualStressField.ProfileType,
+  ResidualStressField.H,
+  ResidualStressField.ProfileType
+]
+
 const steelField = ResidualStressField.Steel
 </script>
 
@@ -69,7 +79,14 @@ const steelField = ResidualStressField.Steel
       <v-row v-else>
         <v-col cols="12">
           <v-card>
-            <v-card-title>Profile</v-card-title>
+            <v-card-title class="d-flex justify-space-between">
+              Profile
+              <reset-chart-button
+                :field="profileFieldsReset"
+                :is-filtered="profileFieldsReset.some(field => query.includes((field as string)))"
+                @change:searches="changeSearches"
+              />
+            </v-card-title>
             <v-card-text>
               <v-row>
                 <v-col cols="12" md="6">

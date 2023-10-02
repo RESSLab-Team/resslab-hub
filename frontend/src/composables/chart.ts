@@ -39,6 +39,10 @@ export interface Count {
 export function singleChartProps<F extends string>() {
   return {
     ...chartProps,
+    showReset: {
+      type: Boolean as unknown as () => boolean,
+      required: false as false
+    },
     field: {
       type: String as unknown as () => F,
       required: true as true

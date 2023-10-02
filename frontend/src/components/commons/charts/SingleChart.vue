@@ -12,7 +12,7 @@ import { SVGRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { computed } from 'vue'
 import VChart from 'vue-echarts'
-import ResetSingleChartButton from '@/components/commons/ResetSingleChartButton.vue'
+import ResetChartButton from '@/components/commons/ResetChartButton.vue'
 
 use([SVGRenderer, TreemapChart, TooltipComponent])
 
@@ -23,11 +23,13 @@ const props = withDefaults(
     field: string
     labelPrefix?: string
     flat?: boolean
+    showReset?: boolean
   }>(),
   {
     color: () => primaryColor,
     counts: () => [],
     flat: false,
+    showReset: true,
     labelPrefix: ''
   }
 )
@@ -79,8 +81,14 @@ function changeSearches(key: string, value?: Value) {
 
 <template>
   <v-card :flat="flat">
-    <v-card-title>
+    <v-card-title class="d-flex justify-space-between">
       <slot name="title"> </slot>
+      <reset-chart-button
+        v-if="showReset"
+        :field="field"
+        :is-filtered="counts.length === 1"
+        @change:searches="changeSearches"
+      />
     </v-card-title>
     <v-card-text :class="[flat ? 'pa-0' : '']">
       <v-responsive min-height="100">
@@ -96,13 +104,5 @@ function changeSearches(key: string, value?: Value) {
       </v-responsive>
       <slot></slot>
     </v-card-text>
-
-    <v-card-actions :class="[flat ? 'pa-0' : '']">
-      <reset-single-chart-button
-        :field="field"
-        :is-filtered="counts.length === 1"
-        @change:searches="changeSearches"
-      />
-    </v-card-actions>
   </v-card>
 </template>
