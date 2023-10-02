@@ -16,6 +16,7 @@ import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { chain, merge, zip } from 'lodash'
 import { computed, ref, unref } from 'vue'
 import VChart from 'vue-echarts'
+import ResetChartButton from '@/components/commons/ResetChartButton.vue'
 
 use([SVGRenderer, ParallelChart, BrushComponent, ToolboxComponent])
 
@@ -52,10 +53,6 @@ const transposedData = computed<(string | number)[][]>(
   () => zip(...props.data) as (string | number)[][]
 )
 const option = computed<EChartsOption>(() => ({
-  brush: {
-    brushLink: 'all',
-    toolbox: ['clear']
-  },
   parallel: {
     left: 60,
     top: 40,
@@ -143,18 +140,30 @@ function onClick(params: CallbackDataParams): void {
   emit('change:searches', props.ids[params.dataIndex])
 }
 function onBrush(payload: Payload): void {
-  const selectedIndexes: number[] = payload.batch?.pop()?.selected?.pop()?.dataIndex ?? []
+  // @ts-ignore need to ignore because now the only way to retrieve selected indexes from parallel chart is to use private API
+  // see https://github.com/apache/echarts/blob/d08664fffe9e6cb4851519e50cf8c7c42f0427ae/src/chart/parallel/ParallelSeries.ts#L105
+  // or https://echarts.apache.org/en/api.html#events.axisareaselected
+  const selectedIndexes: number[] = chart.value?.chart
+    .getModel()
+    .getSeries()[0]
+    .getRawIndicesByActiveState('active')
+
   if (selectedIndexes.length > 0) {
     selectedIds.value = selectedIndexes.map((index) => props.ids[index])
   }
 }
+
 function onApply(): void {
-  console.log(props, selectedIds.value)
   emit('change:searches', selectedIds.value.join(','))
   clear()
 }
 function clear(): void {
+  selectedIds.value = []
   chart.value?.clear()
+}
+
+function restore(): void {
+  chart.value?.dispatchAction({ type: 'restore' })
   selectedIds.value = []
 }
 
@@ -166,21 +175,29 @@ function reset(): void {
 
 <template>
   <v-card>
-    <v-card-title>
-      <slot name="title">
-        Parallel View of all Tests
-        <info-tooltip>
-          <p>
-            In this parallel coordinate plots, you can view all available tests in the database,
-            ordered according to key variables. Each line represents a single test.
-          </p>
-          How to use?
-          <ul>
-            <li>Filter a subset of the data by selecting values on the vertical axis directly</li>
-            <li>Select a specific test by clicking on the respective line.</li>
-          </ul>
-        </info-tooltip>
-      </slot>
+    <v-card-title class="d-flex justify-space-between">
+      <div>
+        <slot name="title">
+          Parallel View of all Tests
+          <info-tooltip>
+            <p>
+              In this parallel coordinate plots, you can view all available tests in the database,
+              ordered according to key variables. Each line represents a single test.
+            </p>
+            How to use?
+            <ul>
+              <li>Filter a subset of the data by selecting values on the vertical axis directly</li>
+              <li>Select a specific test by clicking on the respective line.</li>
+            </ul>
+          </info-tooltip>
+        </slot>
+      </div>
+
+      <reset-chart-button
+        :field="requestFields"
+        :is-filtered="isFiltered"
+        @change:searches="reset"
+      />
     </v-card-title>
     <v-responsive aspect-ratio="4" min-height="100">
       <v-chart
@@ -190,7 +207,7 @@ function reset(): void {
         :option="option"
         :update-options="updateOptions"
         @click="onClick"
-        @brushselected="onBrush"
+        @axisareaselected="onBrush"
       />
     </v-responsive>
     <v-card-actions>
@@ -202,8 +219,13 @@ function reset(): void {
       >
         Apply selection ({{ selectedIds.length }})
       </v-btn>
-      <v-btn color="primary" :disabled="!isFiltered" :prepend-icon="mdiCancel" @click="reset">
-        Reset selection
+      <v-btn
+        color="primary"
+        :disabled="selectedIds.length === 0"
+        :prepend-icon="mdiCancel"
+        @click="restore"
+      >
+        Clear selection
       </v-btn>
     </v-card-actions>
   </v-card>
