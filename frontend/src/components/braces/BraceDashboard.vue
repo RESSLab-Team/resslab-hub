@@ -5,6 +5,7 @@ import BraceTable from '@/components/braces/BraceTable.vue'
 import BraceDoubleChart from '@/components/braces/charts/BraceDoubleChart.vue'
 import BraceParallelChart from '@/components/braces/charts/BraceParallelChart.vue'
 import BraceSingleChart from '@/components/braces/charts/BraceSingleChart.vue'
+import ResetChartButton from '@/components/commons/ResetChartButton.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
@@ -73,7 +74,14 @@ const steelField = BraceField.Steel
       <v-row v-else>
         <v-col cols="12" md="6">
           <v-card>
-            <v-card-title>Boundary Condition</v-card-title>
+            <v-card-title class="d-flex justify-space-between">
+              Boundary Condition
+              <reset-chart-button
+                :field="boundaryConditionFields"
+                :is-filtered="boundaryConditionFields.some(field => query.includes(field as string))"
+                @change:searches="changeSearches"
+              />
+            </v-card-title>
             <v-card-text>
               <brace-double-chart
                 :fields="boundaryConditionFields"
@@ -86,6 +94,7 @@ const steelField = BraceField.Steel
         </v-col>
         <v-col cols="12" md="6">
           <brace-single-chart
+            :show-reset="true"
             :color="colors.blue"
             :field="loadingProtocolField"
             :query="query"
@@ -111,6 +120,7 @@ const steelField = BraceField.Steel
         </v-col>
         <v-col cols="12">
           <brace-single-chart
+            :show-reset="true"
             :color="colors.deepPurple"
             :field="steelField"
             :query="query"

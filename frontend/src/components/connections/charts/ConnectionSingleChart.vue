@@ -38,6 +38,7 @@ function mouseout(): void {
     :color="color"
     :counts="counts"
     :flat="flat"
+    :show-reset="showReset"
     :field="field"
     label-prefix="connection."
     @change:searches="changeSearches"
