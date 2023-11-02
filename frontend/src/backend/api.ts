@@ -1141,6 +1141,7 @@ export interface ExtendedPageResidualStressModel {
 
 export const HSSColumnField = {
     Id: 'id',
+    Date: 'date',
     Investigator: 'investigator',
     Reference: 'reference',
     Url: 'url',
@@ -1196,7 +1197,8 @@ export const HSSColumnField = {
     MuMcNeg80fit: 'mu_mc_neg_80fit',
     LambdaS: 'lambda_s',
     LambdaC: 'lambda_c',
-    FlexuralBuckling: 'flexural_buckling'
+    FlexuralBuckling: 'flexural_buckling',
+    MomentRotationCount: 'moment_rotation_count'
 } as const;
 
 export type HSSColumnField = typeof HSSColumnField[keyof typeof HSSColumnField];
@@ -1214,6 +1216,12 @@ export interface HSSColumnModel {
      * @memberof HSSColumnModel
      */
     'id': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'date': number;
     /**
      * 
      * @type {string}
@@ -1550,6 +1558,12 @@ export interface HSSColumnModel {
      * @memberof HSSColumnModel
      */
     'flexural_buckling': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'moment_rotation_count': number;
 }
 /**
  * An enumeration.
@@ -1558,6 +1572,7 @@ export interface HSSColumnModel {
  */
 
 export const HSSColumnNumberField = {
+    Date: 'date',
     StiffnessCoefficient: 'stiffness_coefficient',
     Seams: 'seams',
     WidthMm: 'width__mm',
@@ -1602,7 +1617,8 @@ export const HSSColumnNumberField = {
     McMyNeg80fit: 'mc_my_neg_80fit',
     MuMcNeg80fit: 'mu_mc_neg_80fit',
     LambdaS: 'lambda_s',
-    LambdaC: 'lambda_c'
+    LambdaC: 'lambda_c',
+    MomentRotationCount: 'moment_rotation_count'
 } as const;
 
 export type HSSColumnNumberField = typeof HSSColumnNumberField[keyof typeof HSSColumnNumberField];

@@ -38,6 +38,7 @@ class HSSColumn(Base):  # type: ignore
     __tablename__ = "hss_column"
 
     id = Column(String, primary_key=True)
+    date = Column(SmallInteger, nullable=False)
     investigator = Column(String, nullable=False)
     reference = Column(String, nullable=False)
     url = Column(String)
