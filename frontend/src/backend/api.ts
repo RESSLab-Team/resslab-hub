@@ -1025,6 +1025,43 @@ export interface ExtendedPageConnectionModel {
 /**
  * 
  * @export
+ * @interface ExtendedPageHSSColumnModel
+ */
+export interface ExtendedPageHSSColumnModel {
+    /**
+     * 
+     * @type {Array<HSSColumnModel>}
+     * @memberof ExtendedPageHSSColumnModel
+     */
+    'items': Array<HSSColumnModel>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageHSSColumnModel
+     */
+    'total': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageHSSColumnModel
+     */
+    'page'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageHSSColumnModel
+     */
+    'size'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageHSSColumnModel
+     */
+    'pages'?: number;
+}
+/**
+ * 
+ * @export
  * @interface ExtendedPageMaterialModel
  */
 export interface ExtendedPageMaterialModel {
@@ -1096,6 +1133,481 @@ export interface ExtendedPageResidualStressModel {
      */
     'pages'?: number;
 }
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const HSSColumnField = {
+    Id: 'id',
+    Investigator: 'investigator',
+    Reference: 'reference',
+    Url: 'url',
+    TestConfiguration: 'test_configuration',
+    StiffnessCoefficient: 'stiffness_coefficient',
+    TestType: 'test_type',
+    LoadingProtocol: 'loading_protocol',
+    FormingProcess: 'forming_process',
+    Seams: 'seams',
+    TubeSection: 'tube_section',
+    WidthMm: 'width__mm',
+    DepthMm: 'depth__mm',
+    FlangeThicknessMm: 'flange_thickness__mm',
+    WebThicknessMm: 'web_thickness__mm',
+    AreaMm2: 'area__mm2',
+    MomentOfInertiaMm4: 'moment_of_inertia__mm4',
+    RadiusMm: 'radius__mm',
+    DepthOverT: 'depth_over_t',
+    PlasticSectionModulusMm3: 'plastic_section_modulus__mm3',
+    AxialLoadRatio: 'axial_load_ratio',
+    AxialLoadSequence: 'axial_load_sequence',
+    LoadingAngle: 'loading_angle',
+    SteelType: 'steel_type',
+    FyNominalNMm2: 'fy_nominal__n_mm2',
+    FyMeasuredNMm2: 'fy_measured__n_mm2',
+    FUltimateNMm2: 'f_ultimate__n_mm2',
+    MpMeasuredKnmm: 'mp_measured__knmm',
+    LengthMm: 'length__mm',
+    KeMeasuredKnmmRad: 'ke_measured__knmm_rad',
+    MyPos100fitKnmm: 'my_pos_100fit__knmm',
+    MyNeg100fitKnmm: 'my_neg_100fit__knmm',
+    ThetaPPos100fitRad: 'theta_p_pos_100fit__rad',
+    ThetaPcPos100fitRad: 'theta_pc_pos_100fit__rad',
+    ThetaUPos100fitRad: 'theta_u_pos_100fit__rad',
+    ThetaPNeg100fitRad: 'theta_p_neg_100fit__rad',
+    ThetaPcNeg100fitRad: 'theta_pc_neg_100fit__rad',
+    ThetaUNeg100fitRad: 'theta_u_neg_100fit__rad',
+    McMyPos100fit: 'mc_my_pos_100fit',
+    MuMcPos100fit: 'mu_mc_pos_100fit',
+    McMyNeg100fit: 'mc_my_neg_100fit',
+    MuMcNeg100fit: 'mu_mc_neg_100fit',
+    MyPos80fitKnmm: 'my_pos_80fit__knmm',
+    MyNeg80fitKnmm: 'my_neg_80fit__knmm',
+    ThetaPPos80fitRad: 'theta_p_pos_80fit__rad',
+    ThetaPcPos80fitRad: 'theta_pc_pos_80fit__rad',
+    ThetaUPos80fitRad: 'theta_u_pos_80fit__rad',
+    ThetaPNeg80fitRad: 'theta_p_neg_80fit__rad',
+    ThetaPcNeg80fitRad: 'theta_pc_neg_80fit__rad',
+    ThetaUNeg80fitRad: 'theta_u_neg_80fit__rad',
+    McMyPos80fit: 'mc_my_pos_80fit',
+    MuMcPos80fit: 'mu_mc_pos_80fit',
+    McMyNeg80fit: 'mc_my_neg_80fit',
+    MuMcNeg80fit: 'mu_mc_neg_80fit',
+    LambdaS: 'lambda_s',
+    LambdaC: 'lambda_c',
+    FlexuralBuckling: 'flexural_buckling'
+} as const;
+
+export type HSSColumnField = typeof HSSColumnField[keyof typeof HSSColumnField];
+
+
+/**
+ * 
+ * @export
+ * @interface HSSColumnModel
+ */
+export interface HSSColumnModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'investigator': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'url'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'test_configuration': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'stiffness_coefficient': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'test_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'loading_protocol': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'forming_process': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'seams': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'tube_section': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'width__mm': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'depth__mm': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'flange_thickness__mm': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'web_thickness__mm': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'area__mm2': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'moment_of_inertia__mm4': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'radius__mm': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'depth_over_t': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'plastic_section_modulus__mm3': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'axial_load_ratio': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'axial_load_sequence': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'loading_angle': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'steel_type': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'fy_nominal__n_mm2': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'fy_measured__n_mm2': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'f_ultimate__n_mm2': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'mp_measured__knmm': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'length__mm': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'ke_measured__knmm_rad': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'my_pos_100fit__knmm': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'my_neg_100fit__knmm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_p_pos_100fit__rad': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_pc_pos_100fit__rad'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_u_pos_100fit__rad'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_p_neg_100fit__rad'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_pc_neg_100fit__rad'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_u_neg_100fit__rad'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'mc_my_pos_100fit': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'mu_mc_pos_100fit'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'mc_my_neg_100fit'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'mu_mc_neg_100fit'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'my_pos_80fit__knmm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'my_neg_80fit__knmm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_p_pos_80fit__rad'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_pc_pos_80fit__rad'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_u_pos_80fit__rad'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_p_neg_80fit__rad'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_pc_neg_80fit__rad'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'theta_u_neg_80fit__rad'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'mc_my_pos_80fit'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'mu_mc_pos_80fit'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'mc_my_neg_80fit'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'mu_mc_neg_80fit'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'lambda_s'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'lambda_c'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof HSSColumnModel
+     */
+    'flexural_buckling': string;
+}
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const HSSColumnNumberField = {
+    StiffnessCoefficient: 'stiffness_coefficient',
+    Seams: 'seams',
+    WidthMm: 'width__mm',
+    DepthMm: 'depth__mm',
+    FlangeThicknessMm: 'flange_thickness__mm',
+    WebThicknessMm: 'web_thickness__mm',
+    AreaMm2: 'area__mm2',
+    MomentOfInertiaMm4: 'moment_of_inertia__mm4',
+    RadiusMm: 'radius__mm',
+    DepthOverT: 'depth_over_t',
+    PlasticSectionModulusMm3: 'plastic_section_modulus__mm3',
+    AxialLoadRatio: 'axial_load_ratio',
+    LoadingAngle: 'loading_angle',
+    FyNominalNMm2: 'fy_nominal__n_mm2',
+    FyMeasuredNMm2: 'fy_measured__n_mm2',
+    FUltimateNMm2: 'f_ultimate__n_mm2',
+    MpMeasuredKnmm: 'mp_measured__knmm',
+    LengthMm: 'length__mm',
+    KeMeasuredKnmmRad: 'ke_measured__knmm_rad',
+    MyPos100fitKnmm: 'my_pos_100fit__knmm',
+    MyNeg100fitKnmm: 'my_neg_100fit__knmm',
+    ThetaPPos100fitRad: 'theta_p_pos_100fit__rad',
+    ThetaPcPos100fitRad: 'theta_pc_pos_100fit__rad',
+    ThetaUPos100fitRad: 'theta_u_pos_100fit__rad',
+    ThetaPNeg100fitRad: 'theta_p_neg_100fit__rad',
+    ThetaPcNeg100fitRad: 'theta_pc_neg_100fit__rad',
+    ThetaUNeg100fitRad: 'theta_u_neg_100fit__rad',
+    McMyPos100fit: 'mc_my_pos_100fit',
+    MuMcPos100fit: 'mu_mc_pos_100fit',
+    McMyNeg100fit: 'mc_my_neg_100fit',
+    MuMcNeg100fit: 'mu_mc_neg_100fit',
+    MyPos80fitKnmm: 'my_pos_80fit__knmm',
+    MyNeg80fitKnmm: 'my_neg_80fit__knmm',
+    ThetaPPos80fitRad: 'theta_p_pos_80fit__rad',
+    ThetaPcPos80fitRad: 'theta_pc_pos_80fit__rad',
+    ThetaUPos80fitRad: 'theta_u_pos_80fit__rad',
+    ThetaPNeg80fitRad: 'theta_p_neg_80fit__rad',
+    ThetaPcNeg80fitRad: 'theta_pc_neg_80fit__rad',
+    ThetaUNeg80fitRad: 'theta_u_neg_80fit__rad',
+    McMyPos80fit: 'mc_my_pos_80fit',
+    MuMcPos80fit: 'mu_mc_pos_80fit',
+    McMyNeg80fit: 'mc_my_neg_80fit',
+    MuMcNeg80fit: 'mu_mc_neg_80fit',
+    LambdaS: 'lambda_s',
+    LambdaC: 'lambda_c'
+} as const;
+
+export type HSSColumnNumberField = typeof HSSColumnNumberField[keyof typeof HSSColumnNumberField];
+
+
 /**
  * 
  * @export
@@ -1737,6 +2249,7 @@ export const Type = {
     AllConnection: 'all-connection',
     AllMaterial: 'all-material',
     AllResidualStress: 'all-residual-stress',
+    AllHssColumn: 'all-hss-column',
     Brace: 'brace',
     BraceDisplacement: 'brace-displacement',
     Column: 'column',
@@ -1755,7 +2268,9 @@ export const Type = {
     ResidualStressDistributionF1: 'residual-stress-distribution-f1',
     ResidualStressDistributionF2: 'residual-stress-distribution-f2',
     ResidualStressDistributionW1: 'residual-stress-distribution-w1',
-    ResidualStressQpCoefficient: 'residual-stress-qp-coefficient'
+    ResidualStressQpCoefficient: 'residual-stress-qp-coefficient',
+    HssColumn: 'hss-column',
+    HssColumnMomentRotation: 'hss-column-moment-rotation'
 } as const;
 
 export type Type = typeof Type[keyof typeof Type];
@@ -5115,6 +5630,714 @@ export class DefaultApi extends BaseAPI {
      */
     public root(options?: AxiosRequestConfig) {
         return DefaultApiFp(this.configuration).root(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
+ * HssColumnApi - axios parameter creator
+ * @export
+ */
+export const HssColumnApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get paginated HSS Columns
+         * @summary Get Hss Columns
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumns: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/hss-column`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            if (sortBy) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+            if (sortDesc) {
+                localVarQueryParameter['sort_desc'] = sortDesc;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Hss Columns Counts
+         * @param {Array<HSSColumnField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsCounts: async (fields?: Array<HSSColumnField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/hss-column/counts`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get master csv
+         * @summary Get Hss Columns Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/hss-column/csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (ids) {
+                localVarQueryParameter['ids'] = ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distinct count
+         * @summary Get Hss Columns Distinct
+         * @param {Array<HSSColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsDistinct: async (fields?: Array<HSSColumnField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/hss-column/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Hss Columns Fields
+         * @param {Array<HSSColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsFields: async (fields?: Array<HSSColumnField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/hss-column/fields`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Hss Columns Matrix
+         * @param {Array<HSSColumnField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsMatrix: async (fields: Array<HSSColumnField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getHssColumnsMatrix', 'fields', fields)
+            const localVarPath = `/hss-column/matrix`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get moment-rotation series from HSSColumn
+         * @summary Get Hss Columns Moment Rotation
+         * @param {string} hSSColumnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsMomentRotation: async (hSSColumnId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'hSSColumnId' is not null or undefined
+            assertParamExists('getHssColumnsMomentRotation', 'hSSColumnId', hSSColumnId)
+            const localVarPath = `/hss-column/{HSSColumn_id}/moment-rotation`
+                .replace(`{${"HSSColumn_id"}}`, encodeURIComponent(String(hSSColumnId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get moment-rotation csv
+         * @summary Get Hss Columns Moment Rotation Csv
+         * @param {string} hSSColumnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsMomentRotationCsv: async (hSSColumnId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'hSSColumnId' is not null or undefined
+            assertParamExists('getHssColumnsMomentRotationCsv', 'hSSColumnId', hSSColumnId)
+            const localVarPath = `/hss-column/{HSSColumn_id}/moment-rotation/csv`
+                .replace(`{${"HSSColumn_id"}}`, encodeURIComponent(String(hSSColumnId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get range of field
+         * @summary Get Hss Columns Range
+         * @param {HSSColumnNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsRange: async (field: HSSColumnNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getHssColumnsRange', 'field', field)
+            const localVarPath = `/hss-column/range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * HssColumnApi - functional programming interface
+ * @export
+ */
+export const HssColumnApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = HssColumnApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get paginated HSS Columns
+         * @summary Get Hss Columns
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getHssColumns(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageHSSColumnModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumns(query, sortBy, sortDesc, page, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Hss Columns Counts
+         * @param {Array<HSSColumnField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getHssColumnsCounts(fields?: Array<HSSColumnField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsCounts(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get master csv
+         * @summary Get Hss Columns Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getHssColumnsCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsCsv(ids, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distinct count
+         * @summary Get Hss Columns Distinct
+         * @param {Array<HSSColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getHssColumnsDistinct(fields?: Array<HSSColumnField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsDistinct(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Hss Columns Fields
+         * @param {Array<HSSColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getHssColumnsFields(fields?: Array<HSSColumnField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsFields(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Hss Columns Matrix
+         * @param {Array<HSSColumnField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getHssColumnsMatrix(fields: Array<HSSColumnField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsMatrix(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get moment-rotation series from HSSColumn
+         * @summary Get Hss Columns Moment Rotation
+         * @param {string} hSSColumnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getHssColumnsMomentRotation(hSSColumnId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsMomentRotation(hSSColumnId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get moment-rotation csv
+         * @summary Get Hss Columns Moment Rotation Csv
+         * @param {string} hSSColumnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getHssColumnsMomentRotationCsv(hSSColumnId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsMomentRotationCsv(hSSColumnId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get range of field
+         * @summary Get Hss Columns Range
+         * @param {HSSColumnNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getHssColumnsRange(field: HSSColumnNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsRange(field, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * HssColumnApi - factory interface
+ * @export
+ */
+export const HssColumnApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = HssColumnApiFp(configuration)
+    return {
+        /**
+         * Get paginated HSS Columns
+         * @summary Get Hss Columns
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumns(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageHSSColumnModel> {
+            return localVarFp.getHssColumns(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Hss Columns Counts
+         * @param {Array<HSSColumnField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsCounts(fields?: Array<HSSColumnField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getHssColumnsCounts(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get master csv
+         * @summary Get Hss Columns Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+            return localVarFp.getHssColumnsCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Hss Columns Distinct
+         * @param {Array<HSSColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsDistinct(fields?: Array<HSSColumnField>, options?: any): AxiosPromise<number> {
+            return localVarFp.getHssColumnsDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Hss Columns Fields
+         * @param {Array<HSSColumnField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsFields(fields?: Array<HSSColumnField>, options?: any): AxiosPromise<Array<object>> {
+            return localVarFp.getHssColumnsFields(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Hss Columns Matrix
+         * @param {Array<HSSColumnField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsMatrix(fields: Array<HSSColumnField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+            return localVarFp.getHssColumnsMatrix(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get moment-rotation series from HSSColumn
+         * @summary Get Hss Columns Moment Rotation
+         * @param {string} hSSColumnId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsMomentRotation(hSSColumnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getHssColumnsMomentRotation(hSSColumnId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get moment-rotation csv
+         * @summary Get Hss Columns Moment Rotation Csv
+         * @param {string} hSSColumnId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsMomentRotationCsv(hSSColumnId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getHssColumnsMomentRotationCsv(hSSColumnId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get range of field
+         * @summary Get Hss Columns Range
+         * @param {HSSColumnNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getHssColumnsRange(field: HSSColumnNumberField, options?: any): AxiosPromise<RangeModel> {
+            return localVarFp.getHssColumnsRange(field, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * HssColumnApi - object-oriented interface
+ * @export
+ * @class HssColumnApi
+ * @extends {BaseAPI}
+ */
+export class HssColumnApi extends BaseAPI {
+    /**
+     * Get paginated HSS Columns
+     * @summary Get Hss Columns
+     * @param {string} [query] 
+     * @param {Array<string>} [sortBy] 
+     * @param {Array<boolean>} [sortDesc] 
+     * @param {number} [page] 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof HssColumnApi
+     */
+    public getHssColumns(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+        return HssColumnApiFp(this.configuration).getHssColumns(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurences count of field values
+     * @summary Get Hss Columns Counts
+     * @param {Array<HSSColumnField>} [fields] 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof HssColumnApi
+     */
+    public getHssColumnsCounts(fields?: Array<HSSColumnField>, query?: string, options?: AxiosRequestConfig) {
+        return HssColumnApiFp(this.configuration).getHssColumnsCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get master csv
+     * @summary Get Hss Columns Csv
+     * @param {Array<string>} [ids] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof HssColumnApi
+     */
+    public getHssColumnsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+        return HssColumnApiFp(this.configuration).getHssColumnsCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Hss Columns Distinct
+     * @param {Array<HSSColumnField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof HssColumnApi
+     */
+    public getHssColumnsDistinct(fields?: Array<HSSColumnField>, options?: AxiosRequestConfig) {
+        return HssColumnApiFp(this.configuration).getHssColumnsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get filtered fields
+     * @summary Get Hss Columns Fields
+     * @param {Array<HSSColumnField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof HssColumnApi
+     */
+    public getHssColumnsFields(fields?: Array<HSSColumnField>, options?: AxiosRequestConfig) {
+        return HssColumnApiFp(this.configuration).getHssColumnsFields(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Hss Columns Matrix
+     * @param {Array<HSSColumnField>} fields 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof HssColumnApi
+     */
+    public getHssColumnsMatrix(fields: Array<HSSColumnField>, query?: string, options?: AxiosRequestConfig) {
+        return HssColumnApiFp(this.configuration).getHssColumnsMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get moment-rotation series from HSSColumn
+     * @summary Get Hss Columns Moment Rotation
+     * @param {string} hSSColumnId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof HssColumnApi
+     */
+    public getHssColumnsMomentRotation(hSSColumnId: string, size?: number, options?: AxiosRequestConfig) {
+        return HssColumnApiFp(this.configuration).getHssColumnsMomentRotation(hSSColumnId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get moment-rotation csv
+     * @summary Get Hss Columns Moment Rotation Csv
+     * @param {string} hSSColumnId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof HssColumnApi
+     */
+    public getHssColumnsMomentRotationCsv(hSSColumnId: string, options?: AxiosRequestConfig) {
+        return HssColumnApiFp(this.configuration).getHssColumnsMomentRotationCsv(hSSColumnId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get range of field
+     * @summary Get Hss Columns Range
+     * @param {HSSColumnNumberField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof HssColumnApi
+     */
+    public getHssColumnsRange(field: HSSColumnNumberField, options?: AxiosRequestConfig) {
+        return HssColumnApiFp(this.configuration).getHssColumnsRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
