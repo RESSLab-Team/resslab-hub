@@ -16,6 +16,7 @@ from resslab_hub.routers import (
     braces,
     columns,
     connections,
+    hss_columns,
     materials,
     residual_stress,
     root,
@@ -50,6 +51,7 @@ app.include_router(columns.router)
 app.include_router(connections.router)
 app.include_router(materials.router)
 app.include_router(residual_stress.router)
+app.include_router(hss_columns.router)
 add_pagination(app)
 use_route_names_as_operation_ids(app)
 

@@ -364,3 +364,82 @@ ResidualStressNumberField = Enum(
     module=__name__,
     type=str,
 )
+
+
+class HSSColumnModel(BaseModel):
+    id: str
+    investigator: str
+    reference: str
+    url: Optional[str]
+    test_configuration: str
+    stiffness_coefficient: int
+    test_type: str
+    loading_protocol: str
+    forming_process: str
+    seams: Decimal
+    tube_section: str
+    width__mm: Decimal
+    depth__mm: Decimal
+    flange_thickness__mm: Decimal
+    web_thickness__mm: Decimal
+    area__mm2: Decimal
+    moment_of_inertia__mm4: Decimal
+    radius__mm: Decimal
+    depth_over_t: Decimal
+    plastic_section_modulus__mm3: Decimal
+    axial_load_ratio: Decimal
+    axial_load_sequence: str
+    loading_angle: int
+    steel_type: str
+    fy_nominal__n_mm2: Decimal
+    fy_measured__n_mm2: Decimal
+    f_ultimate__n_mm2: Decimal
+    mp_measured__knmm: Decimal
+    length__mm: Decimal
+    ke_measured__knmm_rad: Decimal
+    my_pos_100fit__knmm: Decimal
+    my_neg_100fit__knmm: Optional[Decimal]
+    theta_p_pos_100fit__rad: Decimal
+    theta_pc_pos_100fit__rad: Optional[Decimal]
+    theta_u_pos_100fit__rad: Optional[Decimal]
+    theta_p_neg_100fit__rad: Optional[Decimal]
+    theta_pc_neg_100fit__rad: Optional[Decimal]
+    theta_u_neg_100fit__rad: Optional[Decimal]
+    mc_my_pos_100fit: Decimal
+    mu_mc_pos_100fit: Optional[Decimal]
+    mc_my_neg_100fit: Optional[Decimal]
+    mu_mc_neg_100fit: Optional[Decimal]
+    my_pos_80fit__knmm: Optional[Decimal]
+    my_neg_80fit__knmm: Optional[Decimal]
+    theta_p_pos_80fit__rad: Optional[Decimal]
+    theta_pc_pos_80fit__rad: Optional[Decimal]
+    theta_u_pos_80fit__rad: Optional[Decimal]
+    theta_p_neg_80fit__rad: Optional[Decimal]
+    theta_pc_neg_80fit__rad: Optional[Decimal]
+    theta_u_neg_80fit__rad: Optional[Decimal]
+    mc_my_pos_80fit: Optional[Decimal]
+    mu_mc_pos_80fit: Optional[Decimal]
+    mc_my_neg_80fit: Optional[Decimal]
+    mu_mc_neg_80fit: Optional[Decimal]
+    lambda_s: Optional[Decimal]
+    lambda_c: Optional[Decimal]
+    flexural_buckling: str
+
+
+HSSColumnField = Enum(
+    "HSSColumnField",
+    {key: key for key in HSSColumnModel.__fields__},
+    module=__name__,
+    type=str,
+)
+
+HSSColumnNumberField = Enum(
+    "HSSColumnNumberField",
+    {
+        key: key
+        for key, field in HSSColumnModel.__fields__.items()
+        if field.type_ in [Decimal, int]
+    },
+    module=__name__,
+    type=str,
+)
