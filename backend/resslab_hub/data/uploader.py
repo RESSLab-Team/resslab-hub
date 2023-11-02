@@ -43,6 +43,7 @@ from resslab_hub.models.database.connection import (
     ConnectionGlobalWest,
     ConnectionPanelZone,
 )
+from resslab_hub.models.database.hss_column import HSSColumn, HSSColumnMomentRotation
 from resslab_hub.models.database.material import Material, MaterialStressStrain
 from resslab_hub.models.database.residual_stress import (
     ResidualStress,
@@ -71,6 +72,7 @@ class Type(Enum):
     ALL_CONNECTION = "all-connection"
     ALL_MATERIAL = "all-material"
     ALL_RESIDUAL_STRESS = "all-residual-stress"
+    ALL_HSS_COLUMN = "all-hss-column"
     BRACE = "brace"
     BRACE_DISPLACEMENT = "brace-displacement"
     COLUMN = "column"
@@ -90,6 +92,8 @@ class Type(Enum):
     RESIDUAL_STRESS_DISTRIBUTION_F2 = "residual-stress-distribution-f2"
     RESIDUAL_STRESS_DISTRIBUTION_W1 = "residual-stress-distribution-w1"
     RESIDUAL_STRESS_QP_COEFFICIENT = "residual-stress-qp-coefficient"
+    HSS_COLUMN = "hss-column"
+    HSS_COLUMN_MOMENT_ROTATION = "hss-column-moment-rotation"
 
 
 class Uploader(ABC):
@@ -245,6 +249,8 @@ def upload_one(input_type: Type, filename: str) -> str:
             uploader = TableUploader(Material)
         case Type.RESIDUAL_STRESS:
             uploader = TableUploader(ResidualStress)
+        case Type.HSS_COLUMN:
+            uploader = TableUploader(HSSColumn)
         case Type.BRACE_DISPLACEMENT:
             uploader = CsvFileUploader(
                 lambda id: delete(BraceDisplacement).where(
@@ -413,6 +419,18 @@ def upload_one(input_type: Type, filename: str) -> str:
                     qp_coefficient=value.get("qp_coefficient"),
                 ),
             )
+        case Type.HSS_COLUMN_MOMENT_ROTATION:
+            uploader = CsvFileUploader(
+                lambda id: delete(HSSColumnMomentRotation).where(
+                    HSSColumnMomentRotation.hss_column_id == id
+                ),
+                lambda id, index, value: HSSColumnMomentRotation(
+                    hss_column_id=id,
+                    id=index,
+                    rotation=value.get("rotation (rad)"),
+                    moment=value.get("moment (kN.m)"),
+                ),
+            )
         case _:
             raise NotImplementedError(f"unknown type {input_type}")
 
@@ -428,6 +446,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 + get_args_all(Type.ALL_CONNECTION, filename)
                 + get_args_all(Type.ALL_MATERIAL, filename)
                 + get_args_all(Type.ALL_RESIDUAL_STRESS, filename)
+                + get_args_all(Type.ALL_HSS_COLUMN, filename)
             )
         case Type.ALL_BRACE:
             root_folder = path.join(filename, "braces")
@@ -513,6 +532,18 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     path.join(root_folder, "QP_Coefficients", "*.csv"),
                 ),
             ]
+        case Type.ALL_HSS_COLUMN:
+            root_folder = path.join(filename, "hss_columns")
+            return [
+                (
+                    Type.HSS_COLUMN,
+                    path.join(root_folder, "hss_columns.csv"),
+                ),
+                (
+                    Type.HSS_COLUMN_MOMENT_ROTATION,
+                    path.join(root_folder, "Moment_Rotation", "*.csv"),
+                ),
+            ]
         case _:
             return [(input_type, filename)]
 
@@ -534,6 +565,7 @@ def upload_all(input_type: Type, filenames: List[str], cpu=cpu_count()):
                 Type.CONNECTION,
                 Type.MATERIAL,
                 Type.RESIDUAL_STRESS,
+                Type.HSS_COLUMN,
             ],
             args,
         )

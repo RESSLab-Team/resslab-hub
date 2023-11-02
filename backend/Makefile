@@ -49,6 +49,9 @@ upload-material:
 upload-residual-stress:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-residual-stress ../../resslab-hub-data
 
+upload-hss-column:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-hss-column ../../resslab-hub-data
+
 upload-data:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all ../../resslab-hub-data
 
