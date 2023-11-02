@@ -368,6 +368,7 @@ ResidualStressNumberField = Enum(
 
 class HSSColumnModel(BaseModel):
     id: str
+    date: int
     investigator: str
     reference: str
     url: Optional[str]
@@ -424,6 +425,8 @@ class HSSColumnModel(BaseModel):
     lambda_s: Optional[Decimal]
     lambda_c: Optional[Decimal]
     flexural_buckling: str
+
+    moment_rotation_count: int
 
 
 HSSColumnField = Enum(
