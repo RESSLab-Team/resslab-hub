@@ -1,9 +1,10 @@
 """
-Material Database Models
+HSS Columns Database Models
 """
 from sqlalchemy import (
     BigInteger,
     Column,
+    Double,
     ForeignKey,
     Numeric,
     SmallInteger,
@@ -25,8 +26,8 @@ class HSSColumnMomentRotation(Base):  # type: ignore
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
-    rotation = Column(Numeric, nullable=False)
-    moment = Column(Numeric, nullable=False)
+    rotation = Column(Double, nullable=False)
+    moment = Column(Double, nullable=False)
 
 
 class HSSColumn(Base):  # type: ignore
