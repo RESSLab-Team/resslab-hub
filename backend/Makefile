@@ -61,4 +61,4 @@ transform-data:
 	poetry run python data/csv_transformer.py japanese ../../resslab-hub-data/connections/component/japanese.csv ../frontend/src/assets/connection/japanese-sections.csv
 
 analyze-data:
-	poetry run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv ../../resslab-hub-data/residual_stresses/residual_stresses.csv
+	poetry run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv ../../resslab-hub-data/residual_stresses/residual_stresses.csv ../../resslab-hub-data/hss_columns/hss_columns.csv
