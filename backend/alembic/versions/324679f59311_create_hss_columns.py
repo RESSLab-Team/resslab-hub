@@ -83,8 +83,8 @@ def upgrade():
         "hss_column_moment_rotation",
         sa.Column("hss_column_id", sa.String(), nullable=False),
         sa.Column("id", sa.BigInteger(), autoincrement=True, nullable=False),
-        sa.Column("rotation", sa.Numeric(), nullable=False),
-        sa.Column("moment", sa.Numeric(), nullable=False),
+        sa.Column("rotation", sa.Double(), nullable=False),
+        sa.Column("moment", sa.Double(), nullable=False),
         sa.ForeignKeyConstraint(
             ["hss_column_id"],
             ["hss_column.id"],
