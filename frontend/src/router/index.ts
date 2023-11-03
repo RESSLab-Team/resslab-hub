@@ -105,6 +105,20 @@ const router = createRouter({
           component: () => import('@/views/ResidualsDatabase.vue')
         }
       ]
+    },
+    {
+      path: '/hss-columns',
+      component: () => import('@/views/HSSView.vue'),
+      children: [
+        {
+          path: '',
+          redirect: '/hss-columns/database'
+        },
+        {
+          path: 'database',
+          component: () => import('@/views/HSSDatabase.vue')
+        }
+      ]
     }
   ]
 })

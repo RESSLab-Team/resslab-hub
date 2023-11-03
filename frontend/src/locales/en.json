@@ -71,5 +71,12 @@
     "h": "Height of the cross section [mm]",
     "date": "Date",
     "thickness": "Thickness [mm]"
+  },
+  "hss": {
+    "tube_section": "Column Cross Section",
+    "investigator": "Experimental Program",
+    "axial_load_ratio": "Pg/Py",
+    "depth_over_t": "D/t",
+    "loading_angle": "Load Angle"
   }
 }
