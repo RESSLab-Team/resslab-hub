@@ -3,9 +3,10 @@ import {
   BracesApi,
   ColumnsApi,
   ConnectionsApi,
+  HssColumnApi,
   MaterialsApi,
   ResidualStressApi
-} from '@/backend'
+} from '@/backend/api'
 import axios from 'axios'
 
 const axiosInstance = axios.create()
@@ -17,3 +18,4 @@ export const columnsApi = new ColumnsApi(undefined, baseUrl, axiosInstance)
 export const connectionsApi = new ConnectionsApi(undefined, baseUrl, axiosInstance)
 export const materialsApi = new MaterialsApi(undefined, baseUrl, axiosInstance)
 export const residualsApi = new ResidualStressApi(undefined, baseUrl, axiosInstance)
+export const hssApi = new HssColumnApi(undefined, baseUrl, axiosInstance)

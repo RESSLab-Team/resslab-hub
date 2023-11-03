@@ -69,6 +69,16 @@ const menuItems: MenuItem[] = [
         to: '/database'
       }
     ]
+  },
+  {
+    text: 'HSS Columns',
+    to: '/hss-columns',
+    children: [
+      {
+        text: 'Database',
+        to: '/database'
+      }
+    ]
   }
 ]
 
