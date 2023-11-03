@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { ConnectionField } from '@/backend'
+import { HSSColumnField } from '@/backend'
 import SimpleParallelChart from '@/components/commons/charts/SimpleParallelChart.vue'
 import { parallelChartProps, useParallelChart, type ChartEmits } from '@/composables/chart'
-import { connectionsApi } from '@/plugins/axios'
+import { hssApi } from '@/plugins/axios'
 import { toRef } from 'vue'
 
-const props = defineProps(parallelChartProps<ConnectionField>())
+const props = defineProps(parallelChartProps<HSSColumnField>())
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { changeSearches, data, ids, requestFields, isFiltered } = useParallelChart<ConnectionField>(
+const { changeSearches, data, ids, requestFields, isFiltered } = useParallelChart<HSSColumnField>(
   emit,
-  ConnectionField.Id,
+  HSSColumnField.Id,
   props.fields,
   toRef(props, 'query'),
-  (fields, query) => connectionsApi.getConnectionsMatrix(fields, query)
+  (fields, query) => hssApi.getHssColumnsMatrix(fields, query)
 )
 </script>
 
@@ -26,7 +26,7 @@ const { changeSearches, data, ids, requestFields, isFiltered } = useParallelChar
     :fields="fields"
     :ids="ids"
     :is-filtered="isFiltered"
-    label-prefix="connection."
+    label-prefix="hss."
     :request-fields="requestFields"
     @change:searches="changeSearches"
   >
