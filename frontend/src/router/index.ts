@@ -108,7 +108,7 @@ const router = createRouter({
     },
     {
       path: '/hss-columns',
-      component: () => import('@/views/HSSView.vue'),
+      component: () => import('@/views/HssView.vue'),
       children: [
         {
           path: '',
@@ -116,7 +116,7 @@ const router = createRouter({
         },
         {
           path: 'database',
-          component: () => import('@/views/HSSDatabase.vue')
+          component: () => import('@/views/HssDatabase.vue')
         }
       ]
     }
