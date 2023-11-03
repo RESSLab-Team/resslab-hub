@@ -3,6 +3,7 @@ import { HSSColumnField, type HSSColumnModel } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 
 import HssTable from '@/components/hss/HssTable.vue'
+import HssDetail from '@/components/hss/HssDetail.vue'
 import HssParallelChart from '@/components/hss/charts/HssParallelChart.vue'
 import HssDoubleChart from '@/components/hss/charts/HssDoubleChart.vue'
 import HssSingleChart from '@/components/hss/charts/HssSingleChart.vue'
@@ -61,7 +62,7 @@ const steelField = HSSColumnField.SteelType
     </v-col>
     <v-col md="6">
       <v-row v-if="item">
-        <v-col cols="12"> hss detail </v-col>
+        <v-col cols="12"> <hss-detail :hss-column="item" @close="closeDetail" /> </v-col>
       </v-row>
       <v-row v-else>
         <v-col cols="12" md="6">
