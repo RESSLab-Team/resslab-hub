@@ -2,7 +2,7 @@
 import { HSSColumnField, type HSSColumnModel } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 
-import HSSTable from '@/components/hss/HSSTable.vue'
+import HssTable from '@/components/hss/HssTable.vue'
 import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
 import ResetChartButton from '@/components/commons/ResetChartButton.vue'
 
@@ -29,7 +29,7 @@ const parallelFields: ParallelField<HSSColumnField>[] = [
     <v-col md="6">
       <v-row>
         <v-col cols="12">
-          <HSSTable
+          <hss-table
             v-model:search="search"
             v-model:searches="searches"
             :query="query"
