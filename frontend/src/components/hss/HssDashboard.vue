@@ -24,12 +24,26 @@ const parallelFields: ParallelField<HSSColumnField>[] = [
   { id: HSSColumnField.DepthOverT, name: 'D/t' },
   { id: HSSColumnField.AxialLoadRatio, name: 'Pg/Py' },
   { id: HSSColumnField.LoadingAngle, name: 'Load Angle [degrees]' },
-  { id: HSSColumnField.TestConfiguration, name: 'Boundary Condition' }
+  {
+    id: HSSColumnField.TestConfiguration,
+    name: 'Boundary Condition',
+    mapping: new Map([
+      ['3PB', '3 Point Bending'],
+      ['CF', 'Cantilever'],
+      ['DC', 'Double curvature']
+    ])
+  }
 ]
 
 const failureModeFields: DoubleFields<HSSColumnField> = [
   HSSColumnField.Date,
-  HSSColumnField.FlexuralBuckling
+  {
+    id: HSSColumnField.FlexuralBuckling,
+    mapping: new Map([
+      ['FALSE', 'Local Buckling'],
+      ['TRUE', 'Flexural Buckling']
+    ])
+  }
 ]
 const loadingProtocolField = HSSColumnField.LoadingProtocol
 const steelField = HSSColumnField.SteelType
