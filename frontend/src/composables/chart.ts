@@ -206,6 +206,7 @@ function getRequestFields<F>(fields: DoubleFields<F>): [F, F] {
 export interface ParallelField<T = string> {
   id: T | Division<T>
   name?: string
+  mapping?: Map<string, string>
 }
 export interface Division<T> {
   dividend: T

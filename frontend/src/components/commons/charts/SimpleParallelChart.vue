@@ -103,7 +103,9 @@ const option = computed<EChartsOption>(() => ({
       props.fields.map((f) => {
         const requestFieldsValue = props.requestFields
         if (typeof f.id === 'string') {
-          return d[requestFieldsValue.indexOf(f.id)]
+          const value = d[requestFieldsValue.indexOf(f.id)]
+          if (f.mapping && typeof value === 'string') return f.mapping.get(value) || value
+          else return value
         } else {
           return (
             (d[requestFieldsValue.indexOf(f.id.dividend)] as number) /
@@ -126,7 +128,12 @@ function getValues(field: ParallelField): (string | number)[] {
   const transposedDataValue = unref(transposedData)
   const requestFieldsValue = props.requestFields
   if (typeof field.id === 'string') {
-    return transposedDataValue[requestFieldsValue.indexOf(field.id)]
+    const values = transposedDataValue[requestFieldsValue.indexOf(field.id)]
+    if (field.mapping && values)
+      return values.map((d) =>
+        typeof d == 'string' ? (field.mapping as Map<string, string>).get(d) || d : d
+      )
+    else return values
   } else {
     return zip(
       transposedDataValue[requestFieldsValue.indexOf(field.id.dividend)],

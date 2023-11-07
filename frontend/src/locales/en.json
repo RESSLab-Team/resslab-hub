@@ -78,6 +78,7 @@
     "axial_load_ratio": "Pg/Py",
     "depth_over_t": "D/t",
     "loading_angle": "Load Angle",
-    "flexural_buckling": "Buckling"
+    "flexural_buckling": "Buckling",
+    "date": "Date"
   }
 }
