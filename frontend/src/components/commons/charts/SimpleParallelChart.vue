@@ -7,7 +7,7 @@ import type { Value } from '@/utils/common'
 import type { VerticalAlign, ZRFontWeight } from '@/utils/echarts'
 import { primaryColor, type Color } from '@/utils/vuetify'
 import { mdiFilterVariant, mdiCancel } from '@mdi/js'
-import type { EChartsOption, Payload } from 'echarts'
+import type { EChartsOption } from 'echarts'
 import { ParallelChart } from 'echarts/charts'
 import { BrushComponent, ToolboxComponent } from 'echarts/components'
 import { use, type ECharts } from 'echarts/core'
@@ -146,7 +146,7 @@ function getValues(field: ParallelField): (string | number)[] {
 function onClick(params: CallbackDataParams): void {
   emit('change:searches', props.ids[params.dataIndex])
 }
-function onBrush(payload: Payload): void {
+function onBrush(): void {
   // @ts-ignore need to ignore because now the only way to retrieve selected indexes from parallel chart is to use private API
   // see https://github.com/apache/echarts/blob/d08664fffe9e6cb4851519e50cf8c7c42f0427ae/src/chart/parallel/ParallelSeries.ts#L105
   // or https://echarts.apache.org/en/api.html#events.axisareaselected

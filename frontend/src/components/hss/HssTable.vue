@@ -4,7 +4,6 @@ import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
 import { hssApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
-import { formatNumber } from '@/utils/formatter'
 import { toRef } from 'vue'
 
 const columns: Column[] = [
