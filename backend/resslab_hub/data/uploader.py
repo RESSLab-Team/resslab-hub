@@ -9,8 +9,8 @@ from enum import Enum
 from glob import iglob
 from logging import error, info, warning
 from math import nan
-from multiprocessing import Pool, cpu_count
-from os import path
+from multiprocessing import get_context
+from os import path, sched_getaffinity
 from typing import Any, Callable, List, Tuple
 
 from sqlalchemy import (
@@ -67,12 +67,12 @@ def initializer():
 
 class Type(Enum):
     ALL = "all"
-    ALL_COLUMN = "all-column"
-    ALL_BRACE = "all-brace"
-    ALL_CONNECTION = "all-connection"
-    ALL_MATERIAL = "all-material"
-    ALL_RESIDUAL_STRESS = "all-residual-stress"
-    ALL_HSS_COLUMN = "all-hss-column"
+    ALL_COLUMN = "all-columns"
+    ALL_BRACE = "all-braces"
+    ALL_CONNECTION = "all-connections"
+    ALL_MATERIAL = "all-materials"
+    ALL_RESIDUAL_STRESS = "all-residual-stresses"
+    ALL_HSS_COLUMN = "all-hss-columns"
     BRACE = "brace"
     BRACE_DISPLACEMENT = "brace-displacement"
     COLUMN = "column"
@@ -120,6 +120,7 @@ class TableUploader(Uploader):
 
     def upload_one(self, file_path: str) -> str:
         file_path = get_abs_path(file_path)
+        info("Path to upload", file_path)
         try:
             encoding = get_file_encoding(file_path)
             with (
@@ -131,6 +132,16 @@ class TableUploader(Uploader):
                 headers = next(csv_reader)
                 id_index = headers.index(self.id_column_key)
                 ids = []
+                added_count, modified_count = 0, 0
+
+                existing_ids = {row[0] for row in session.query(self.id_column).all()}
+                info(
+                    "Opened file",
+                    path.basename(file_path),
+                    csv_reader,
+                    encoding,
+                    id_index,
+                )
                 # add new rows
                 for row in csv_reader:
                     if is_empty_row(row):
@@ -141,17 +152,25 @@ class TableUploader(Uploader):
                             column.key: self.__get_value(column, headers, row)
                             for column in self.base_model.__table__.c
                         }
+                        if row[id_index] in existing_ids:
+                            modified_count += 1
+                        else:
+                            added_count += 1
                         session.merge(self.base_model(**data))
                 # remove outdated rows
-                database_ids = [row[0] for row in session.query(self.id_column).all()]
-                removed_ids = set(database_ids) - set(ids)
+                removed_ids = existing_ids - set(ids)
                 if removed_ids:
                     session.execute(
                         delete(self.base_model).where(self.id_column.in_(removed_ids)),
                     )
                     warning(f"deleted {removed_ids}")
                 session.commit()
-                return ""
+                info("Session commited")
+                return (
+                    f"{path.basename(file_path)}: {added_count}++|"
+                    f"{modified_count}**|{len(removed_ids)}--"
+                )
+
         except Exception as e:
             error_message = f"skiping {file_path} due to error {e}"
             error(error_message)
@@ -222,7 +241,7 @@ class CsvFileUploader(Uploader):
                     session.add(self.get_instance(id, index, value))
                 try:
                     session.commit()
-                    return ""
+                    return path.basename(file_path)
                 except IntegrityError as e:
                     session.rollback()
                     raise Exception(e.orig)
@@ -238,6 +257,7 @@ class CsvFileUploader(Uploader):
 
 
 def upload_one(input_type: Type, filename: str) -> str:
+    info("Upload one", input_type, filename)
     match input_type:
         case Type.BRACE:
             uploader = TableUploader(Brace)
@@ -548,45 +568,45 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             return [(input_type, filename)]
 
 
-def upload_all(input_type: Type, filenames: List[str], cpu=cpu_count()):
-    wildcard_args: List[Tuple[Type, str]] = [
+def upload_parallel(upload_args, cpu):
+    # see https://pythonspeed.com/articles/python-multiprocessing/ it resolved #135
+    with get_context("spawn").Pool(cpu, initializer=initializer) as pool:
+        return pool.starmap(upload_one, upload_args)
+
+
+def upload_all(input_type: Type, filenames: List[str], cpu=len(sched_getaffinity(0))):
+    # os sched_getaffinity(0) returns the number of CPUs the process CAN use
+    # instead of total number of CPUs with cpu_count()
+    # see https://docs.python.org/3/library/os.html#os.cpu_count
+    wildcard_args = [
         arg for filename in filenames for arg in get_args_all(input_type, filename)
     ]
-    args: List[Tuple[Type, str]] = [
-        (arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])
+    args = [(arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])]
+
+    info("Number of CPUs available:", len(sched_getaffinity(0)))
+
+    primary_types = [
+        arg
+        for arg in args
+        if arg[0]
+        in [
+            Type.BRACE,
+            Type.COLUMN,
+            Type.CONNECTION,
+            Type.MATERIAL,
+            Type.RESIDUAL_STRESS,
+            Type.HSS_COLUMN,
+        ]
     ]
+    subsidiary_types = [arg for arg in args if arg not in primary_types]
 
-    primary_types = list(
-        filter(
-            lambda arg: arg[0]
-            in [
-                Type.BRACE,
-                Type.COLUMN,
-                Type.CONNECTION,
-                Type.MATERIAL,
-                Type.RESIDUAL_STRESS,
-                Type.HSS_COLUMN,
-            ],
-            args,
-        )
+    primary_results = upload_parallel(primary_types, cpu) if primary_types else []
+    subsidiary_results = (
+        upload_parallel(subsidiary_types, cpu) if subsidiary_types else []
     )
 
-    subsidiary_types = list(
-        filter(
-            lambda arg: arg not in primary_types,
-            args,
-        )
-    )
-
-    warning(f"using {cpu} processes")
-    info(f"uploading {len(primary_types)} primary types")
-
-    with Pool(cpu, initializer=initializer) as pool:
-        primary_results = pool.starmap(upload_one, primary_types)
-
-    info(f"uploading {len(subsidiary_types)} subsidiary types")
-
-    with Pool(cpu, initializer=initializer) as pool:
-        subsidiary_results = pool.starmap(upload_one, subsidiary_types)
-
-    return [result for result in (primary_results + subsidiary_results) if result]
+    all_results = [
+        result for result in (primary_results + subsidiary_results) if result
+    ]
+    info("Uploaded all:", all_results)
+    return [primary_results, subsidiary_results]
