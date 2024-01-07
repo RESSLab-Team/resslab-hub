@@ -2260,12 +2260,12 @@ export type ResidualStressNumberField = typeof ResidualStressNumberField[keyof t
 
 export const Type = {
     All: 'all',
-    AllColumn: 'all-column',
-    AllBrace: 'all-brace',
-    AllConnection: 'all-connection',
-    AllMaterial: 'all-material',
-    AllResidualStress: 'all-residual-stress',
-    AllHssColumn: 'all-hss-column',
+    AllColumns: 'all-columns',
+    AllBraces: 'all-braces',
+    AllConnections: 'all-connections',
+    AllMaterials: 'all-materials',
+    AllResidualStresses: 'all-residual-stresses',
+    AllHssColumns: 'all-hss-columns',
     Brace: 'brace',
     BraceDisplacement: 'brace-displacement',
     Column: 'column',

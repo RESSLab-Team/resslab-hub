@@ -6,6 +6,7 @@ from tarfile import open
 from tempfile import TemporaryDirectory
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from resslab_hub import __name__ as name
@@ -53,10 +54,19 @@ async def create_upload_file(
         with TemporaryDirectory() as tmpdir:
             with open(fileobj=file.file, mode="r:gz") as tar_file:
                 tar_file.extractall(tmpdir)
-            return upload_all(type, [tmpdir], 1)
+            [primary_uploads, secondary_uploads] = upload_all(type, [tmpdir])
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={
+                    "message": "Upload successful",
+                    "primary_uploads": primary_uploads,
+                    "secondary_uploads": secondary_uploads,
+                },
+            )
     except Exception:
+        print("HTTP 500", Exception)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(Exception)
         )
     finally:
         await file.close()
