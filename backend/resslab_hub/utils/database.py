@@ -28,11 +28,11 @@ async_session = sessionmaker(engine, class_=AsyncSession)  # type: ignore
 
 
 # qualify the base with __allow_unmapped__.
-class Base:
+class BaseUnmapped:
     __allow_unmapped__ = True
 
 
-Base = declarative_base(cls=Base)
+Base = declarative_base(cls=BaseUnmapped)
 
 
 def upgrade_database():
