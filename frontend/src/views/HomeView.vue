@@ -233,7 +233,29 @@ onMounted(() => {
     <v-row>
       <v-col cols="7">
         <v-card class="fill-height pa-5">
-          <span>Tutorial video will be available here</span>
+          <h1>Video introduction & tutorial</h1>
+          <v-carousel class="rounded pb-10" height="500">
+            <v-carousel-item class="pa-10">
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/5TkO07T16z4"
+                frameborder="10"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </v-carousel-item>
+            <v-carousel-item>
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/JLWvJ_K3bAs"
+                frameborder="0"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </v-carousel-item>
+          </v-carousel>
         </v-card>
       </v-col>
       <v-col cols="5">
