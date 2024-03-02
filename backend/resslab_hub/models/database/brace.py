@@ -12,7 +12,7 @@ from sqlalchemy import (
     func,
     select,
 )
-from sqlalchemy.orm import column_property
+from sqlalchemy.orm import column_property, relationship
 
 from resslab_hub.models.database.common import DecimalFloat
 from resslab_hub.utils.database import Base
@@ -34,6 +34,10 @@ class Brace(Base):  # type: ignore
     """
 
     __tablename__ = "brace"
+
+    displacements = relationship(
+        "BraceDisplacement", backref="brace", cascade="all, delete, delete-orphan"
+    )
 
     id = Column(String, primary_key=True)
     investigator = Column(String, nullable=False)
