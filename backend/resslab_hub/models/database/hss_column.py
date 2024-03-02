@@ -47,7 +47,7 @@ class HSSColumn(Base):  # type: ignore
     test_type = Column(String, nullable=False)
     loading_protocol = Column(String, nullable=False)
     forming_process = Column(String, nullable=False)
-    seams = Column(DecimalFloat, nullable=False)
+    seams = Column(DecimalFloat)
     tube_section = Column(String, nullable=False)
     width__mm = Column(Numeric, nullable=False)
     depth__mm = Column(Numeric, nullable=False)

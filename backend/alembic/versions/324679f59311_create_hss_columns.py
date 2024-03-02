@@ -29,7 +29,7 @@ def upgrade():
         sa.Column("test_type", sa.String(), nullable=False),
         sa.Column("loading_protocol", sa.String(), nullable=False),
         sa.Column("forming_process", sa.String(), nullable=False),
-        sa.Column("seams", sa.Float(asdecimal=True), nullable=False),
+        sa.Column("seams", sa.Float(asdecimal=True), nullable=True),
         sa.Column("tube_section", sa.String(), nullable=False),
         sa.Column("width__mm", sa.Numeric(), nullable=False),
         sa.Column("depth__mm", sa.Numeric(), nullable=False),
