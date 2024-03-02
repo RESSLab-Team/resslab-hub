@@ -377,7 +377,7 @@ class HSSColumnModel(BaseModel):
     test_type: str
     loading_protocol: str
     forming_process: str
-    seams: Decimal
+    seams: Optional[Decimal]
     tube_section: str
     width__mm: Decimal
     depth__mm: Decimal

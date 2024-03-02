@@ -583,7 +583,7 @@ def upload_all(input_type: Type, filenames: List[str], cpu=len(sched_getaffinity
     ]
     args = [(arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])]
 
-    info("Number of CPUs available:", len(sched_getaffinity(0)))
+    info(f"Number of CPUs available: {len(sched_getaffinity(0))}")
 
     primary_types = [
         arg
@@ -608,5 +608,5 @@ def upload_all(input_type: Type, filenames: List[str], cpu=len(sched_getaffinity
     all_results = [
         result for result in (primary_results + subsidiary_results) if result
     ]
-    info("Uploaded all:", all_results)
+    info(f"Uploaded all: {all_results}")
     return [primary_results, subsidiary_results]

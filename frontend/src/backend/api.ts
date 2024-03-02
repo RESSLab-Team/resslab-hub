@@ -1275,7 +1275,7 @@ export interface HSSColumnModel {
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'seams': number;
+    'seams'?: number;
     /**
      * 
      * @type {string}
