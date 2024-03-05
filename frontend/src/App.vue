@@ -77,6 +77,10 @@ const menuItems: MenuItem[] = [
       {
         text: 'Database',
         to: '/database'
+      },
+      {
+        text: 'Component Model',
+        to: '/model'
       }
     ]
   }
