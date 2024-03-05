@@ -29,8 +29,8 @@ update:
 	$(MAKE) -C backend update
 
 run:
-	docker-compose build --parallel --pull
-	docker-compose up --remove-orphans
+	docker compose build --parallel --pull
+	docker compose up --remove-orphans
 
 api:
 	cd backend; DATABASE_UPGRADE=false poetry run python api.py ../openapi.json
