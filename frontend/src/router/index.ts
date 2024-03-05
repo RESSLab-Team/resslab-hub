@@ -117,6 +117,10 @@ const router = createRouter({
         {
           path: 'database',
           component: () => import('@/views/HssDatabase.vue')
+        },
+        {
+          path: 'model',
+          component: () => import('@/views/HssModelView.vue')
         }
       ]
     }
