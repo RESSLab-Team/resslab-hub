@@ -12,7 +12,7 @@ router = APIRouter(
     tags=["analytics"],
 )
 
-MIN_DATE = "2000-01-01"
+MIN_DATE = "2022-07-01"
 client = BetaAnalyticsDataClient() if settings.google_application_credentials else None
 property_id = settings.analytics_property_id
 
