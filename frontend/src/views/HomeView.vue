@@ -109,7 +109,7 @@ onMounted(() => {
 
   // Get user count
   analyticsApi
-    .getUsers()
+    .getUsers(7)
     .then((response) => response.data)
     .then((count) => {
       indicators.value.user.count = count
