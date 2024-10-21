@@ -2,7 +2,7 @@
 import type { BraceField, ColumnField, ConnectionField, MaterialField } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import OverviewMap from '@/components/commons/OverviewMap.vue'
-import { analyticsApi, bracesApi, columnsApi, connectionsApi, materialsApi } from '@/plugins/axios'
+import { analyticsApi, bracesApi, columnsApi, connectionsApi, materialsApi, residualsApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
 import { chain } from 'lodash'
 import { onMounted, ref, shallowRef, triggerRef } from 'vue'
@@ -71,7 +71,8 @@ onMounted(() => {
     bracesApi.getBracesDistinct(),
     columnsApi.getColumnsDistinct(),
     connectionsApi.getConnectionsDistinct(),
-    materialsApi.getMaterialsDistinct()
+    materialsApi.getMaterialsDistinct(),
+    residualsApi.getResidualStressesDistinct()
   ])
     .then((responses) =>
       chain(responses)
@@ -93,7 +94,8 @@ onMounted(() => {
     bracesApi.getBracesCounts(latLngFields),
     columnsApi.getColumnsCounts(latLngFields),
     connectionsApi.getConnectionsCounts(latLngFields),
-    materialsApi.getMaterialsCounts(latLngFields)
+    materialsApi.getMaterialsCounts(latLngFields),
+    residualsApi.getResidualStressesCounts(latLngFields)
   ])
     .then((responses) =>
       chain(responses)
