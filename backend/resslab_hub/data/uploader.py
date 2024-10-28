@@ -200,8 +200,15 @@ class TableUploader(Uploader):
         if isinstance(column.type, (Float, Numeric)):
             return Decimal(value)
         if isinstance(column.type, Date):
-            return datetime.strptime(value, "%d.%m.%y").date()
-
+            try:
+                return datetime.strptime(value, "%d.%m.%y").date()
+            except Exception:
+                try:
+                    return datetime.strptime(value, "%d.%m.%Y").date()
+                except Exception:
+                    raise ValueError(
+                        f"unexpected datetime.strptime {column.key}={value}"
+                    )
         return str(value)
 
 
