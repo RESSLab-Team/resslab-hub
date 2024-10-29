@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "resslab-hub"
-version = "0.2.0"
+version = "0.2.1"
 description = ""
 license = "GPL-3.0-or-later"
-authors = ["David Tang <david.tang@epfl.ch>"]
+authors = ["David Tang <david.tang@epfl.ch>", "Pierre Guilbert <pierre.guilbert@epfl.ch>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -18,8 +18,10 @@ alembic = "^1.7.5"
 psycopg2 = "^2.9.2"
 uvicorn = "^0.22.0"
 chardet = "^5.0.0"
-google-analytics-data = "^0.16.1"
+#google-analytics-data = "^0.18.14"
 python-multipart = "^0.0.6"
+requests = "^2.32.3"
+google-auth = "^2.35.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.2"

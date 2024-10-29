@@ -13,7 +13,8 @@
   ],
   "compilerOptions": {
     "lib": [
-      "ESNext"
+      "ESNext",
+      "ES2021.String"
     ],
     "types": [
       "vuetify"

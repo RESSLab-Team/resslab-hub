@@ -1,6 +1,9 @@
 services:
   reverse-proxy:
-    image: traefik:v2.8
+    image: traefik:v2.10
+    depends_on:
+      - backend
+      - frontend
     command:
       - "--providers.docker"
       - "--providers.file.directory=/configuration/"
@@ -9,6 +12,16 @@ services:
       - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
       - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entrypoints.websecure.address=:443"
+      # - "--api.dashboard=true"  # Enable Traefik Dashboard
+      # - "--api.insecure=true"  # WARNING: Only for development
+    labels:
+      - "traefik.http.middlewares.secureHeaders.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.secureHeaders.headers.forceSTSHeader=true"
+      # - "traefik.enable=true"
+      # - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
+      # - "traefik.http.routers.traefik.service=api@internal"
+      # - "traefik.http.routers.traefik.entrypoints=websecure"
+      # - "traefik.http.routers.traefik.tls=true"
     environment:
       - SSL_CERT_CRT=${SSL_CERT_CRT}
       - SSL_CERT_KEY=${SSL_CERT_KEY}
@@ -26,6 +39,7 @@ services:
     labels:
       - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.middlewares=secureHeaders@docker"
     restart: unless-stopped
   backend:
     build: ./backend
@@ -42,7 +56,7 @@ services:
     labels:
       - "traefik.http.routers.backend.tls=true"
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.middlewares=backend-stripprefix"
+      - "traefik.http.routers.backend.middlewares=backend-stripprefix,secureHeaders@docker"
       - "traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api"
     restart: unless-stopped
   database:

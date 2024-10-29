@@ -39,6 +39,10 @@ export interface Count {
 export function singleChartProps<F extends string>() {
   return {
     ...chartProps,
+    showReset: {
+      type: Boolean as unknown as () => boolean,
+      required: false as false
+    },
     field: {
       type: String as unknown as () => F,
       required: true as true
@@ -202,6 +206,7 @@ function getRequestFields<F>(fields: DoubleFields<F>): [F, F] {
 export interface ParallelField<T = string> {
   id: T | Division<T>
   name?: string
+  mapping?: Map<string, string>
 }
 export interface Division<T> {
   dividend: T

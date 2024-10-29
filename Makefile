@@ -4,7 +4,7 @@ install:
 	$(MAKE) -C frontend install
 
 dev-all:
-	docker-compose up -d database
+	docker compose up -d database
 	gnome-terminal --tab -- bash -c '$(MAKE) -C frontend dev'
 	$(MAKE) -C backend dev
 
@@ -15,7 +15,7 @@ dev-frontend:
 	$(MAKE) -C frontend dev
 
 dev-database:
-	docker-compose up -d database
+	docker compose up -d database
 
 test:
 	$(MAKE) -C backend test
@@ -29,8 +29,8 @@ update:
 	$(MAKE) -C backend update
 
 run:
-	docker-compose build --parallel --pull
-	docker-compose up --remove-orphans
+	docker compose build --parallel --pull
+	docker compose up --remove-orphans
 
 api:
 	cd backend; DATABASE_UPGRADE=false poetry run python api.py ../openapi.json

@@ -7,6 +7,8 @@ import MaterialSingleChart from '@/components/materials/charts/MaterialSingleCha
 import MaterialDetail from '@/components/materials/MaterialDetail.vue'
 import MaterialTable from '@/components/materials/MaterialTable.vue'
 import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
+import ResetChartButton from '@/components/commons/ResetChartButton.vue'
+
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useRoute } from 'vue-router'
@@ -34,6 +36,13 @@ const profileThicknessFields: DoubleFields<MaterialField> = [
   MaterialField.Profile
 ]
 const steelField = MaterialField.Type
+
+const profileTypeFields: MaterialField[] = [
+  MaterialField.Year,
+  MaterialField.Profile,
+  MaterialField.Thickness,
+  MaterialField.Profile
+]
 </script>
 
 <template>
@@ -74,7 +83,14 @@ const steelField = MaterialField.Type
       <v-row v-else>
         <v-col cols="12">
           <v-card>
-            <v-card-title>Profile Type</v-card-title>
+            <v-card-title class="d-flex justify-space-between">
+              Profile Type
+              <reset-chart-button
+                :field="profileTypeFields"
+                :is-filtered="profileTypeFields.some(field => query.includes((field as string)))"
+                @change:searches="changeSearches"
+              />
+            </v-card-title>
             <v-card-text>
               <v-row>
                 <v-col cols="12" md="6">

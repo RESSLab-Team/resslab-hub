@@ -7,6 +7,7 @@ import ConnectionParallelChart from '@/components/connections/charts/ConnectionP
 import ConnectionSingleChart from '@/components/connections/charts/ConnectionSingleChart.vue'
 import ConnectionDetail from '@/components/connections/ConnectionDetail.vue'
 import ConnectionTable from '@/components/connections/ConnectionTable.vue'
+import ResetChartButton from '@/components/commons/ResetChartButton.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useRoute } from 'vue-router'
@@ -93,27 +94,34 @@ const beamFields: DoubleFields<ConnectionField> = [
       <v-row v-else>
         <v-col cols="12">
           <v-card>
-            <v-card-title>
-              Connection Type
-              <info-tooltip>
-                <p>
-                  This rectangle below displays the proportion of each connection type in the
-                  database. Connection types are categorised according to AISC-358-16 Prequalified
-                  connections. See also the evolution of connection types studied over the years on
-                  the right.
-                </p>
-                How to use?
-                <ul>
-                  <li>
-                    See the connection type drawing by hovering over the corresponding type in the
-                    rectangle
-                  </li>
-                  <li>
-                    Filter the Database for a specific connection type or dates by clicking on the
-                    rectangle of using the dates sliders
-                  </li>
-                </ul>
-              </info-tooltip>
+            <v-card-title class="d-flex justify-space-between">
+              <div>
+                Connection Type
+                <info-tooltip>
+                  <p>
+                    This rectangle below displays the proportion of each connection type in the
+                    database. Connection types are categorised according to AISC-358-16 Prequalified
+                    connections. See also the evolution of connection types studied over the years
+                    on the right.
+                  </p>
+                  How to use?
+                  <ul>
+                    <li>
+                      See the connection type drawing by hovering over the corresponding type in the
+                      rectangle
+                    </li>
+                    <li>
+                      Filter the Database for a specific connection type or dates by clicking on the
+                      rectangle of using the dates sliders
+                    </li>
+                  </ul>
+                </info-tooltip>
+              </div>
+              <reset-chart-button
+                :field="[ConnectionField.Date, ConnectionField.ConnectionType]"
+                :is-filtered="[ConnectionField.Date, ConnectionField.ConnectionType].some(field => query.includes(field as string))"
+                @change:searches="changeSearches"
+              />
             </v-card-title>
             <v-card-text>
               <v-row>
@@ -121,6 +129,7 @@ const beamFields: DoubleFields<ConnectionField> = [
                   <connection-single-chart
                     :field="ConnectionField.ConnectionType"
                     :query="query"
+                    :show-reset="false"
                     flat
                     @change:searches="changeSearches"
                   />
@@ -139,22 +148,30 @@ const beamFields: DoubleFields<ConnectionField> = [
         </v-col>
         <v-col sm="6">
           <v-card>
-            <v-card-title>
-              Beam Depth [mm]
-              <info-tooltip>
-                <p>This histogram displays the distribution of column depths in the Database.</p>
-                How to use?
-                <ul>
-                  <li>
-                    Filter database for specific column depths, by clicking on a bar or using the
-                    slider below
-                  </li>
-                  <li>
-                    Filter database depending on the presence of doubler plates welded in the panel
-                    zone (0/1/2) by clicking on the legend.
-                  </li>
-                </ul>
-              </info-tooltip>
+            <v-card-title class="d-flex justify-space-between">
+              <div>
+                Beam Depth [mm]
+                <info-tooltip>
+                  <p>This histogram displays the distribution of column depths in the Database.</p>
+                  How to use?
+                  <ul>
+                    <li>
+                      Filter database for specific column depths, by clicking on a bar or using the
+                      slider below
+                    </li>
+                    <li>
+                      Filter database depending on the presence of doubler plates welded in the
+                      panel zone (0/1/2) by clicking on the legend.
+                    </li>
+                  </ul>
+                </info-tooltip>
+              </div>
+
+              <reset-chart-button
+                :field="beamFields"
+                :is-filtered="beamFields.some(field => query.includes(field as string))"
+                @change:searches="changeSearches"
+              />
             </v-card-title>
             <v-card-text>
               <connection-double-chart
@@ -168,22 +185,29 @@ const beamFields: DoubleFields<ConnectionField> = [
         </v-col>
         <v-col sm="6">
           <v-card>
-            <v-card-title>
-              Column Depth [mm]
-              <info-tooltip>
-                <p>This histogram displays the distribution of column depths in the Database.</p>
-                How to use?
-                <ul>
-                  <li>
-                    Filter database for specific column depths, by clicking on a bar or using the
-                    slider below
-                  </li>
-                  <li>
-                    Filter database depending on the presence of doubler plates welded in the panel
-                    zone (0/1/2) by clicking on the legend.
-                  </li>
-                </ul>
-              </info-tooltip>
+            <v-card-title class="d-flex justify-space-between">
+              <div>
+                Column Depth [mm]
+                <info-tooltip>
+                  <p>This histogram displays the distribution of column depths in the Database.</p>
+                  How to use?
+                  <ul>
+                    <li>
+                      Filter database for specific column depths, by clicking on a bar or using the
+                      slider below
+                    </li>
+                    <li>
+                      Filter database depending on the presence of doubler plates welded in the
+                      panel zone (0/1/2) by clicking on the legend.
+                    </li>
+                  </ul>
+                </info-tooltip>
+              </div>
+              <reset-chart-button
+                :field="[ConnectionField.DC, ConnectionField.NDp]"
+                :is-filtered="[ConnectionField.DC, ConnectionField.NDp].some(field => query.includes(field as string))"
+                @change:searches="changeSearches"
+              />
             </v-card-title>
             <v-card-text>
               <connection-double-chart
@@ -200,6 +224,7 @@ const beamFields: DoubleFields<ConnectionField> = [
             :color="colors.deepPurple"
             :field="ConnectionField.SteelB"
             :query="query"
+            :show-reset="true"
             @change:searches="changeSearches"
           >
             <template #title> <steel-type-card-title /> </template>
