@@ -7,7 +7,7 @@ authors = ["David Tang <david.tang@epfl.ch>", "Pierre Guilbert <pierre.guilbert@
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "~3.10"
+python = "^3.10"
 fastapi = "^0.95.2"
 dynaconf = "^3.1.7"
 greenlet = "^1.1.2"
