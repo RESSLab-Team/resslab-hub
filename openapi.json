@@ -4695,7 +4695,8 @@
       "ExtendedPage_BraceModel_": {
         "title": "ExtendedPage[BraceModel]",
         "required": [
-          "items"
+          "items",
+          "total"
         ],
         "type": "object",
         "properties": {
@@ -4708,7 +4709,6 @@
           },
           "total": {
             "title": "Total",
-            "minimum": 0.0,
             "type": "integer"
           },
           "page": {
@@ -4731,7 +4731,8 @@
       "ExtendedPage_ColumnModel_": {
         "title": "ExtendedPage[ColumnModel]",
         "required": [
-          "items"
+          "items",
+          "total"
         ],
         "type": "object",
         "properties": {
@@ -4744,7 +4745,6 @@
           },
           "total": {
             "title": "Total",
-            "minimum": 0.0,
             "type": "integer"
           },
           "page": {
@@ -4767,7 +4767,8 @@
       "ExtendedPage_ConnectionModel_": {
         "title": "ExtendedPage[ConnectionModel]",
         "required": [
-          "items"
+          "items",
+          "total"
         ],
         "type": "object",
         "properties": {
@@ -4780,7 +4781,6 @@
           },
           "total": {
             "title": "Total",
-            "minimum": 0.0,
             "type": "integer"
           },
           "page": {
@@ -4803,7 +4803,8 @@
       "ExtendedPage_HSSColumnModel_": {
         "title": "ExtendedPage[HSSColumnModel]",
         "required": [
-          "items"
+          "items",
+          "total"
         ],
         "type": "object",
         "properties": {
@@ -4816,7 +4817,6 @@
           },
           "total": {
             "title": "Total",
-            "minimum": 0.0,
             "type": "integer"
           },
           "page": {
@@ -4839,7 +4839,8 @@
       "ExtendedPage_MaterialModel_": {
         "title": "ExtendedPage[MaterialModel]",
         "required": [
-          "items"
+          "items",
+          "total"
         ],
         "type": "object",
         "properties": {
@@ -4852,7 +4853,6 @@
           },
           "total": {
             "title": "Total",
-            "minimum": 0.0,
             "type": "integer"
           },
           "page": {
@@ -4875,7 +4875,8 @@
       "ExtendedPage_ResidualStressModel_": {
         "title": "ExtendedPage[ResidualStressModel]",
         "required": [
-          "items"
+          "items",
+          "total"
         ],
         "type": "object",
         "properties": {
@@ -4888,7 +4889,6 @@
           },
           "total": {
             "title": "Total",
-            "minimum": 0.0,
             "type": "integer"
           },
           "page": {

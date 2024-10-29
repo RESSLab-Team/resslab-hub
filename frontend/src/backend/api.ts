@@ -928,7 +928,7 @@ export interface ExtendedPageBraceModel {
      * @type {number}
      * @memberof ExtendedPageBraceModel
      */
-    'total'?: number;
+    'total': number;
     /**
      * 
      * @type {number}
@@ -965,7 +965,7 @@ export interface ExtendedPageColumnModel {
      * @type {number}
      * @memberof ExtendedPageColumnModel
      */
-    'total'?: number;
+    'total': number;
     /**
      * 
      * @type {number}
@@ -1002,7 +1002,7 @@ export interface ExtendedPageConnectionModel {
      * @type {number}
      * @memberof ExtendedPageConnectionModel
      */
-    'total'?: number;
+    'total': number;
     /**
      * 
      * @type {number}
@@ -1039,7 +1039,7 @@ export interface ExtendedPageHSSColumnModel {
      * @type {number}
      * @memberof ExtendedPageHSSColumnModel
      */
-    'total'?: number;
+    'total': number;
     /**
      * 
      * @type {number}
@@ -1076,7 +1076,7 @@ export interface ExtendedPageMaterialModel {
      * @type {number}
      * @memberof ExtendedPageMaterialModel
      */
-    'total'?: number;
+    'total': number;
     /**
      * 
      * @type {number}
@@ -1113,7 +1113,7 @@ export interface ExtendedPageResidualStressModel {
      * @type {number}
      * @memberof ExtendedPageResidualStressModel
      */
-    'total'?: number;
+    'total': number;
     /**
      * 
      * @type {number}
