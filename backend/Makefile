@@ -44,10 +44,10 @@ upload-connection:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py connection-beam-west ../../resslab-hub-data/connections/Beam_moment_rotation_west/*.csv
 
 upload-material:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-materials ../../resslab-hub-data
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-material ../../resslab-hub-data
 
 upload-residual-stress:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-residual-stress ../../resslab-hub-data
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-residual-stresses ../../resslab-hub-data
 
 upload-hss-column:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-hss-columns ../../resslab-hub-data

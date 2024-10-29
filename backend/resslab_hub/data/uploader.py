@@ -70,7 +70,7 @@ class Type(Enum):
     ALL_COLUMN = "all-columns"
     ALL_BRACE = "all-braces"
     ALL_CONNECTION = "all-connections"
-    ALL_MATERIAL = "all-materials"
+    ALL_MATERIAL = "all-material"
     ALL_RESIDUAL_STRESS = "all-residual-stresses"
     ALL_HSS_COLUMN = "all-hss-columns"
     BRACE = "brace"
