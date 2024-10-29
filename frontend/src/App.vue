@@ -69,21 +69,21 @@ const menuItems: MenuItem[] = [
         to: '/database'
       }
     ]
-  },
-  {
-    text: 'HSS Columns',
-    to: '/hss-columns',
-    children: [
-      {
-        text: 'Database',
-        to: '/database'
-      },
-      {
-        text: 'Component Model',
-        to: '/model'
-      }
-    ]
   }
+  // {
+  //   text: 'HSS Columns',
+  //   to: '/hss-columns',
+  //   children: [
+  //     {
+  //       text: 'Database',
+  //       to: '/database'
+  //     },
+  //     {
+  //       text: 'Component Model',
+  //       to: '/model'
+  //     }
+  //   ]
+  // }
 ]
 
 const aboutDialog = ref<boolean>(false)
