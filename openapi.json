@@ -2,7 +2,7 @@
   "openapi": "3.0.2",
   "info": {
     "title": "resslab_hub",
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "paths": {
     "/": {
@@ -102,7 +102,7 @@
           "analytics"
         ],
         "summary": "Get Users",
-        "description": "Get user count",
+        "description": "Get user count using Google Analytics Data API with requests.",
         "operationId": "get_users",
         "parameters": [
           {
@@ -4695,8 +4695,7 @@
       "ExtendedPage_BraceModel_": {
         "title": "ExtendedPage[BraceModel]",
         "required": [
-          "items",
-          "total"
+          "items"
         ],
         "type": "object",
         "properties": {
@@ -4732,8 +4731,7 @@
       "ExtendedPage_ColumnModel_": {
         "title": "ExtendedPage[ColumnModel]",
         "required": [
-          "items",
-          "total"
+          "items"
         ],
         "type": "object",
         "properties": {
@@ -4769,8 +4767,7 @@
       "ExtendedPage_ConnectionModel_": {
         "title": "ExtendedPage[ConnectionModel]",
         "required": [
-          "items",
-          "total"
+          "items"
         ],
         "type": "object",
         "properties": {
@@ -4806,8 +4803,7 @@
       "ExtendedPage_HSSColumnModel_": {
         "title": "ExtendedPage[HSSColumnModel]",
         "required": [
-          "items",
-          "total"
+          "items"
         ],
         "type": "object",
         "properties": {
@@ -4843,8 +4839,7 @@
       "ExtendedPage_MaterialModel_": {
         "title": "ExtendedPage[MaterialModel]",
         "required": [
-          "items",
-          "total"
+          "items"
         ],
         "type": "object",
         "properties": {
@@ -4880,8 +4875,7 @@
       "ExtendedPage_ResidualStressModel_": {
         "title": "ExtendedPage[ResidualStressModel]",
         "required": [
-          "items",
-          "total"
+          "items"
         ],
         "type": "object",
         "properties": {
@@ -5863,7 +5857,7 @@
           "all-columns",
           "all-braces",
           "all-connections",
-          "all-materials",
+          "all-material",
           "all-residual-stresses",
           "all-hss-columns",
           "brace",
