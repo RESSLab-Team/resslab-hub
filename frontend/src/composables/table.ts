@@ -143,7 +143,7 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
         .then((response) => response.data)
         .then((page) => {
           items.value = page.items
-          totalFilteredCount.value = page.total
+          totalFilteredCount.value = page.total || 0
           emit('update:page', page)
         })
         .finally(() => {

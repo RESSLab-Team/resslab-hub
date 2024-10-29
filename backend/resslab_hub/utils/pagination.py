@@ -21,6 +21,7 @@ class ExtendedParams(Params):
 
 class ExtendedPage(Page[T], Generic[T]):
     __params_type__ = ExtendedParams
+    total: int
 
 
 async def paginate(
@@ -32,7 +33,9 @@ async def paginate(
 ) -> Page[T]:
     params = resolve_params(params)
 
-    total = await session.scalar(select(func.count()).select_from(query.subquery()))
+    total = (
+        await session.scalar(select(func.count()).select_from(query.subquery())) or 0
+    )
     result = await session.execute(paginate_query(query, params))
     items = result.unique().all()
     mapped_items = [
