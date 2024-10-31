@@ -4,6 +4,7 @@ Material Database Models
 from sqlalchemy import (
     BigInteger,
     Column,
+    Date,
     ForeignKey,
     Numeric,
     SmallInteger,
@@ -55,7 +56,7 @@ class Material(Base):  # type: ignore
     fy_n__mpa_ = Column(SmallInteger, nullable=False)
     fu_n__mpa_ = Column(SmallInteger, nullable=False)
     t_a__deg_c_ = Column(DecimalFloat, nullable=False)
-    date = Column(String, nullable=False)
+    date = Column(Date, nullable=False)
     investigator = Column(String, nullable=False)
     location = Column(String, nullable=False)
     machine = Column(String, nullable=False)
