@@ -1,6 +1,7 @@
 """
 Handle / requests
 """
+
 from secrets import compare_digest
 from tarfile import open
 from tempfile import TemporaryDirectory
@@ -13,6 +14,7 @@ from resslab_hub import __name__ as name
 from resslab_hub import __version__
 from resslab_hub.config import settings
 from resslab_hub.data.uploader import Type, upload_all
+from resslab_hub.data.validator import validate_all
 from resslab_hub.models import Info
 
 router = APIRouter()
@@ -20,7 +22,7 @@ router = APIRouter()
 security = HTTPBasic()
 
 
-def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
+def get_current_username(credentials: HTTPBasicCredentials = Depends(security)) -> str:
     """
     https://fastapi.tiangolo.com/advanced/security/http-basic-auth/
     """
@@ -63,6 +65,42 @@ async def create_upload_file(
                     "secondary_uploads": secondary_uploads,
                 },
             )
+    except Exception:
+        print("HTTP 500", Exception)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(Exception)
+        )
+    finally:
+        await file.close()
+
+
+@router.post("/validate", dependencies=[Depends(get_current_username)])
+async def validate_data(
+    file: UploadFile = File(...),
+    type: Type = Query(...),
+):
+    try:
+        with TemporaryDirectory() as tmpdir:
+            with open(fileobj=file.file, mode="r:gz") as tar_file:
+                tar_file.extractall(tmpdir)
+
+            results = validate_all(type, [tmpdir])
+
+            response = {
+                "valid": all(result.is_valid() for result in results),
+                "results": [
+                    {
+                        "file": result.filename,
+                        "valid": result.is_valid(),
+                        "errors": [str(err) for err in result.errors],
+                        "warnings": [str(warn) for warn in result.warnings],
+                    }
+                    for result in results
+                ],
+            }
+
+            return JSONResponse(status_code=status.HTTP_200_OK, content=response)
+
     except Exception:
         print("HTTP 500", Exception)
         raise HTTPException(
