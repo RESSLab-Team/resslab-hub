@@ -1,6 +1,7 @@
 """
 CLI for uploading csv to database
 """
+
 from abc import ABC, abstractmethod
 from csv import DictReader, reader
 from datetime import datetime
@@ -9,8 +10,8 @@ from enum import Enum
 from glob import iglob
 from logging import error, info, warning
 from math import nan
-from multiprocessing import get_context
-from os import path, sched_getaffinity
+from multiprocessing import cpu_count, get_context
+from os import path
 from typing import Any, Callable, List, Tuple
 
 from sqlalchemy import (
@@ -65,9 +66,17 @@ def initializer():
     engine.dispose(close=False)  # type: ignore
 
 
+# Type enum defines the hierarchy of uploadable data:
+# - ALL types: Process multiple related uploads (e.g., ALL_BRACE processes main
+#   table + measurements)
+# - Individual table types: For main entity tables (e.g., BRACE, COLUMN)
+# - Measurement types: For time-series data linked to main tables (e.g.,
+#   BRACE_DISPLACEMENT)
+
+
 class Type(Enum):
-    ALL = "all"
-    ALL_COLUMN = "all-columns"
+    ALL = "all"  # Triggers upload of all data types
+    ALL_COLUMN = "all-columns"  # Main column table + related measurements
     ALL_BRACE = "all-braces"
     ALL_CONNECTION = "all-connections"
     ALL_MATERIAL = "all-material"
@@ -96,9 +105,13 @@ class Type(Enum):
     HSS_COLUMN_MOMENT_ROTATION = "hss-column-moment-rotation"
 
 
+# Abstract base class defining the upload interface
 class Uploader(ABC):
     """
     Abstract class for all uploaders
+    Two concrete implementations:
+    - TableUploader: For main entity tables (1:1 mapping with DB schema)
+    - CsvFileUploader: For measurement data (linked to parent records)
     """
 
     @abstractmethod
@@ -108,17 +121,36 @@ class Uploader(ABC):
         """
 
 
+# Handles main entity tables where CSV headers match DB column names
 class TableUploader(Uploader):
     """
     Uploader from csv to table (csv header and table column name should match)
+    Process:
+    1. Reads CSV with matching headers
+    2. Validates and converts data types
+    3. Creates DB model instances
+    4. Handles updates and deletions
     """
 
     def __init__(self, base_model: Any, id_column_key: str = "id") -> None:
+        """
+        Initialize uploader for main entity tables
+        - base_model: SQLAlchemy model defining table schema
+        - id_column_key: Primary key column name (default 'id')
+        """
         self.base_model = base_model
         self.id_column_key = id_column_key
         self.id_column = base_model.__dict__[id_column_key]
 
     def upload_one(self, file_path: str) -> str:
+        """
+        Process single CSV file for main entity table
+        1. Reads CSV and matches headers to DB columns
+        2. Tracks existing records for update/delete
+        3. Converts data types (handles NA/NR values)
+        4. Merges new/updated records
+        5. Removes deleted records
+        """
         file_path = get_abs_path(file_path)
         info("Path to upload", file_path)
         try:
@@ -178,6 +210,15 @@ class TableUploader(Uploader):
 
     @staticmethod
     def __get_value(column: Column, headers: List[str], row: List[str]) -> Any:
+        """
+        Data type conversion and validation
+        Handles:
+        - NA/NR values (None/Not applicable)
+        - Boolean conversions (yes/no)
+        - Numeric types (Integer/Float/Decimal)
+        - Date formatting
+        - String values
+        """
         index = headers.index(column.key or "")
         value = row[index]
 
@@ -212,9 +253,16 @@ class TableUploader(Uploader):
         return str(value)
 
 
+# Handles measurement data that belongs to parent records
 class CsvFileUploader(Uploader):
     """
     Uploader from csv to table
+    Process:
+    1. Extracts parent ID from filename
+    2. Verifies parent record exists
+    3. Validates measurement data format
+    4. Creates measurement records linked via foreign keys
+    5. Manages existing measurements (delete & replace)
     """
 
     def __init__(
@@ -224,12 +272,26 @@ class CsvFileUploader(Uploader):
         filename_prefix="",
         filename_suffix="",
     ) -> None:
+        """
+        Initialize uploader for measurement data
+        - get_delete: Function to remove existing measurements
+        - get_instance: Function to create new measurement records
+        - filename_prefix/suffix: For extracting parent ID from filename
+        """
         self.get_delete = get_delete
         self.get_instance = get_instance
         self.filename_prefix = filename_prefix
         self.filename_suffix = filename_suffix
 
     def upload_one(self, file_path: str) -> str:
+        """
+        Process single measurement CSV file
+        1. Extracts parent ID from filename
+        2. Deletes existing measurements for this parent
+        3. Validates measurement data format
+        4. Creates new records with foreign key to parent
+        5. Handles transaction rollback on errors
+        """
         file_path = get_abs_path(file_path)
         try:
             filename = self.__get_filename(file_path)
@@ -259,11 +321,27 @@ class CsvFileUploader(Uploader):
 
     @staticmethod
     def __get_filename(file_path: str) -> str:
+        """
+        Extract filename for parent ID parsing
+        Used by CsvFileUploader to link measurements to parent records
+        """
         basename = path.basename(file_path)
         return path.splitext(basename)[0]
 
 
 def upload_one(input_type: Type, filename: str) -> str:
+    """
+    Handles individual file uploads based on type
+    Process:
+    1. Matches type to appropriate uploader
+    2. Configures uploader with correct table/measurement mappings
+    3. Returns upload status message
+
+    For measurement data:
+    - Defines foreign key relationships
+    - Specifies CSV column mappings
+    - Handles data type conversions
+    """
     info("Upload one", input_type, filename)
     match input_type:
         case Type.BRACE:
@@ -465,6 +543,16 @@ def upload_one(input_type: Type, filename: str) -> str:
 
 
 def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
+    """
+    For ALL types (recursive):
+    - ALL -> ALL_BRACE + ALL_COLUMN + ALL_CONNECTION + ...
+    - ALL_BRACE -> BRACE + BRACE_DISPLACEMENT
+    - ALL_COLUMN -> COLUMN + COLUMN_MEASUREMENTS
+
+    For specific types:
+    - Returns tuple of (type, filepath)
+    - Handles wildcard expansion for measurement files
+    """
     match input_type:
         case Type.ALL:
             return (
@@ -490,7 +578,11 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 (Type.COLUMN, path.join(root_folder, "steel_columns.csv")),
                 (
                     Type.COLUMN_AXIAL_SHORTENING,
-                    path.join(root_folder, "axial_shortening_rotation", "*.csv"),
+                    path.join(
+                        root_folder,
+                        "axial_shortening_rotation",
+                        "*.csv",
+                    ),
                 ),
                 (
                     Type.COLUMN_MOMENT_STRONG,
@@ -511,7 +603,11 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 ),
                 (
                     Type.CONNECTION_BEAM_WEST,
-                    path.join(root_folder, "Beam_moment_rotation_west", "*.csv"),
+                    path.join(
+                        root_folder,
+                        "Beam_moment_rotation_west",
+                        "*.csv",
+                    ),
                 ),
                 (
                     Type.CONNECTION_GLOBAL,
@@ -544,15 +640,27 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 ),
                 (
                     Type.RESIDUAL_STRESS_DISTRIBUTION_F1,
-                    path.join(root_folder, "Distributions/Distributions_F1", "*.csv"),
+                    path.join(
+                        root_folder,
+                        "Distributions/Distributions_F1",
+                        "*.csv",
+                    ),
                 ),
                 (
                     Type.RESIDUAL_STRESS_DISTRIBUTION_F2,
-                    path.join(root_folder, "Distributions/Distributions_F2", "*.csv"),
+                    path.join(
+                        root_folder,
+                        "Distributions/Distributions_F2",
+                        "*.csv",
+                    ),
                 ),
                 (
                     Type.RESIDUAL_STRESS_DISTRIBUTION_W1,
-                    path.join(root_folder, "Distributions/Distributions_W1", "*.csv"),
+                    path.join(
+                        root_folder,
+                        "Distributions/Distributions_W1",
+                        "*.csv",
+                    ),
                 ),
                 (
                     Type.RESIDUAL_STRESS_QP_COEFFICIENT,
@@ -576,21 +684,38 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
 
 
 def upload_parallel(upload_args, cpu):
-    # see https://pythonspeed.com/articles/python-multiprocessing/ it resolved #135
+    """
+    Parallel processing of uploads
+    1. Creates process pool based on CPU count
+    2. Initializes separate DB connections per process
+    3. Distributes upload tasks across processes
+    4. Collects results from all processes
+    """
     with get_context("spawn").Pool(cpu, initializer=initializer) as pool:
         return pool.starmap(upload_one, upload_args)
 
 
-def upload_all(input_type: Type, filenames: List[str], cpu=len(sched_getaffinity(0))):
+def upload_all(input_type: Type, filenames: List[str]):
+    """
+    Main upload orchestration:
+    1. Collects all (Type, filepath) tuples via get_args_all
+    2. Expands wildcards into actual filenames
+    3. Splits into primary (main tables) and subsidiary (measurements) types
+    4. Processes primary tables first (required for foreign key constraints)
+    5. Processes subsidiary data in parallel
+    """
     # os sched_getaffinity(0) returns the number of CPUs the process CAN use
     # instead of total number of CPUs with cpu_count()
     # see https://docs.python.org/3/library/os.html#os.cpu_count
+
+    cpu = cpu_count()
+
+    info(f"Number of CPUs available: {cpu}")
+
     wildcard_args = [
         arg for filename in filenames for arg in get_args_all(input_type, filename)
     ]
     args = [(arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])]
-
-    info(f"Number of CPUs available: {len(sched_getaffinity(0))}")
 
     primary_types = [
         arg
