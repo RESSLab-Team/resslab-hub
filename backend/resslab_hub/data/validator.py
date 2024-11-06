@@ -246,22 +246,21 @@ class CsvFileValidator(Validator):
                     # Validate each row
                     for row_num, row in enumerate(csv_reader, start=1):
                         for col_name in self.required_columns:
+                            # we don't validate against model definition because
+                            # it may contain additional columns that are not required
+                            # and it's always of type Numeric
                             value = row.get(col_name)
                             if value is None or value.strip() == "":
                                 result.add_error(
                                     row_num, col_name, value, "Required field is empty"
                                 )
-                            elif (
-                                "moment" in col_name.lower()
-                                or "force" in col_name.lower()
-                            ):
+                            else:
                                 try:
                                     Decimal(value)
                                 except InvalidOperation:
                                     result.add_error(
                                         row_num, col_name, value, "Must be a number"
                                     )
-
         except Exception as e:
             result.add_error(0, "file", file_path, f"Failed to process file: {str(e)}")
 
