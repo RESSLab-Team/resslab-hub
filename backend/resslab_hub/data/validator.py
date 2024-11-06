@@ -12,7 +12,16 @@ from multiprocessing import get_context
 from os import path
 from typing import Any, List
 
-from sqlalchemy import Boolean, Date, Float, Integer, Numeric, String, create_engine
+from sqlalchemy import (
+    Boolean,
+    Date,
+    Float,
+    Integer,
+    Numeric,
+    String,
+    create_engine,
+    text,
+)
 from sqlalchemy.orm import Session
 
 from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
@@ -219,7 +228,7 @@ class CsvFileValidator(Validator):
                 # Validate rows and foreign key
                 with Session(engine) as session:
                     # Check if foreign key exists
-                    stmt = (
+                    stmt = text(
                         f"SELECT 1 FROM {self.base_model.__tablename__} "
                         f"WHERE {self.foreign_key_field} = :id"
                     )
@@ -282,29 +291,29 @@ def validate_one(input_type: Type, filename: str) -> ValidationResult:
             validator = CsvFileValidator(
                 Brace,
                 ["Displacement [mm]", "Force [kN]"],
-                "brace_id",
+                "id",  # id column in brace table
             )
         case Type.COLUMN_AXIAL_SHORTENING:
             validator = CsvFileValidator(
                 ColumnEntity,
                 ["Chord Rotation [rads]", "Axial Shortening [mm]"],
-                "column_id",
+                "id",
             )
         case Type.COLUMN_MOMENT_STRONG:
             validator = CsvFileValidator(
                 ColumnEntity,
                 ["Chord Rotation [rads]", "Moment [kN-mm]"],
-                "column_id",
+                "id",
             )
         case Type.COLUMN_MOMENT_WEAK:
             validator = CsvFileValidator(
                 ColumnEntity,
                 ["Chord Rotation [rads]", "Moment [kN-mm]"],
-                "column_id",
+                "id",
             )
         case Type.CONNECTION_BEAM:
             validator = CsvFileValidator(
-                Connection, ["Chord Rotation [rads]", "Moment [kN-mm]"], "connection_id"
+                Connection, ["Chord Rotation [rads]", "Moment [kN-mm]"], "id"
             )
         case Type.CONNECTION_BEAM_WEST:
             validator = CsvFileValidator(
@@ -313,7 +322,7 @@ def validate_one(input_type: Type, filename: str) -> ValidationResult:
                     "Chrord Rotation, θ [rads]",
                     "Moment [kN-mm]",
                 ],
-                "connection_id",
+                "id",
             )
         case Type.CONNECTION_GLOBAL:
             validator = CsvFileValidator(
@@ -322,7 +331,7 @@ def validate_one(input_type: Type, filename: str) -> ValidationResult:
                     "Total story drift angle (rad)",
                     "Force in the actuator (kN)",
                 ],
-                "connection_id",
+                "id",
             )
         case Type.CONNECTION_GLOBAL_WEST:
             validator = CsvFileValidator(
@@ -331,7 +340,7 @@ def validate_one(input_type: Type, filename: str) -> ValidationResult:
                     "Total story drift angle (rad)",
                     "Force in the actuator (kN)",
                 ],
-                "connection_id",
+                "id",
             )
         case Type.CONNECTION_PANEL_ZONE:
             validator = CsvFileValidator(
@@ -340,43 +349,43 @@ def validate_one(input_type: Type, filename: str) -> ValidationResult:
                     "panel zone shear distortion (rad)",
                     "panel zone shear force (kN)",
                 ],
-                "connection_id",
+                "id",
             )
         case Type.MATERIAL_STRESS_STRAIN:
             validator = CsvFileValidator(
                 Material,
                 ["Sigma_true", "e_true"],
-                "material_id",
+                "id",
             )
         case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
             validator = CsvFileValidator(
                 ResidualStress,
                 ["coordinate", "residual_stress"],
-                "residual_stress_id",
+                "id",
             )
         case Type.RESIDUAL_STRESS_DISTRIBUTION_F2:
             validator = CsvFileValidator(
                 ResidualStress,
                 ["coordinate", "residual_stress"],
-                "residual_stress_id",
+                "id",
             )
         case Type.RESIDUAL_STRESS_DISTRIBUTION_W1:
             validator = CsvFileValidator(
                 ResidualStress,
                 ["coordinate", "residual_stress"],
-                "residual_stress_id",
+                "id",
             )
         case Type.RESIDUAL_STRESS_QP_COEFFICIENT:
             validator = CsvFileValidator(
                 ResidualStress,
                 ["qp_coefficient"],
-                "residual_stress_id",
+                "id",
             )
         case Type.HSS_COLUMN_MOMENT_ROTATION:
             validator = CsvFileValidator(
                 HSSColumn,
                 ["rotation (rad)", "moment (kN.m)"],
-                "hss_column_id",
+                "id",
             )
         case _:
             raise NotImplementedError(f"Unknown type {input_type}")
