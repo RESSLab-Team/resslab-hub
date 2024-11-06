@@ -12,7 +12,7 @@ from multiprocessing import get_context
 from os import path
 from typing import Any, List
 
-from sqlalchemy import create_engine
+from sqlalchemy import Boolean, Date, Float, Integer, Numeric, String, create_engine
 from sqlalchemy.orm import Session
 
 from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
@@ -134,29 +134,31 @@ class TableValidator(Validator):
     def _validate_field(
         self, result: ValidationResult, row: int, column: Any, value: str
     ):
+        # cf analyzer.py for column type determination and reference for now
         try:
             if value.upper() in ("NA", "NR"):
                 if not column.nullable:
                     result.add_error(row, column.key, value, "Field cannot be null")
                 return
-
-            if column.type.python_type == bool:
+            if isinstance(column.type, Boolean):
                 if value.lower() not in ("yes", "no"):
                     result.add_error(row, column.key, value, "Must be 'yes' or 'no'")
-
-            elif column.type.python_type == int:
+            elif isinstance(column.type, Integer):
                 try:
                     int(Decimal(value))
                 except (InvalidOperation, ValueError):
                     result.add_error(row, column.key, value, "Must be an integer")
-
-            elif column.type.python_type == Decimal:
+            elif isinstance(column.type, (Float, Numeric)):
                 try:
                     Decimal(value)
                 except InvalidOperation:
                     result.add_error(row, column.key, value, "Must be a number")
-
-            elif column.type.python_type == datetime:
+            elif isinstance(column.type, String):
+                try:
+                    str(value)
+                except Exception:
+                    result.add_error(row, column.key, value, "Must be a string")
+            elif isinstance(column.type, Date):
                 try:
                     datetime.strptime(value, "%d.%m.%y")
                 except ValueError:
