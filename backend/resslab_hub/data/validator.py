@@ -9,14 +9,14 @@ from decimal import Decimal, InvalidOperation
 from glob import iglob
 from logging import error, info
 from multiprocessing import get_context
-from os import cpu_count, path
+from os import path
 from typing import Any, List
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
-from resslab_hub.data.uploader import Type, get_args_all
+from resslab_hub.data.uploader import Type, get_args_all, get_safe_cpu_count
 from resslab_hub.models.database.brace import Brace
 from resslab_hub.models.database.column import ColumnEntity
 from resslab_hub.models.database.connection import Connection
@@ -383,7 +383,7 @@ def validate_all(
     Validate all files in parallel
     """
     if cpu is None:
-        cpu = cpu_count()
+        cpu = get_safe_cpu_count()
 
     info(f"Number of CPUs available: {cpu}")
 

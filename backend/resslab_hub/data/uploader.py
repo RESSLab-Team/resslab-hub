@@ -10,7 +10,7 @@ from enum import Enum
 from glob import iglob
 from logging import error, info, warning
 from math import nan
-from multiprocessing import cpu_count, get_context
+from multiprocessing import get_context
 from os import path
 from typing import Any, Callable, List, Tuple
 
@@ -57,6 +57,25 @@ from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
 Session = sessionmaker(engine)
+
+
+# os sched_getaffinity(0) returns the number of CPUs the process CAN use
+# instead of total number of CPUs with cpu_count()
+# see https://docs.python.org/3/library/os.html#os.cpu_count
+
+
+def get_safe_cpu_count() -> int:
+    """Get a safe number of CPU count in a cross-platform way"""
+    try:
+        # Try Linux-specific sched_getaffinity first
+        from os import sched_getaffinity
+
+        return max(1, len(sched_getaffinity(0)) - 1)
+    except (ImportError, AttributeError):
+        # Fallback to cpu_count() for other platforms
+        from multiprocessing import cpu_count
+
+        return max(1, cpu_count() - 1)
 
 
 def initializer():
@@ -683,7 +702,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             return [(input_type, filename)]
 
 
-def upload_parallel(upload_args, cpu):
+def upload_parallel(upload_args, cpu=None):
     """
     Parallel processing of uploads
     1. Creates process pool based on CPU count
@@ -691,7 +710,8 @@ def upload_parallel(upload_args, cpu):
     3. Distributes upload tasks across processes
     4. Collects results from all processes
     """
-    with get_context("spawn").Pool(cpu, initializer=initializer) as pool:
+    n_workers = cpu if cpu is not None else get_safe_cpu_count()
+    with get_context("spawn").Pool(n_workers, initializer=initializer) as pool:
         return pool.starmap(upload_one, upload_args)
 
 
@@ -704,11 +724,8 @@ def upload_all(input_type: Type, filenames: List[str]):
     4. Processes primary tables first (required for foreign key constraints)
     5. Processes subsidiary data in parallel
     """
-    # os sched_getaffinity(0) returns the number of CPUs the process CAN use
-    # instead of total number of CPUs with cpu_count()
-    # see https://docs.python.org/3/library/os.html#os.cpu_count
 
-    cpu = cpu_count()
+    cpu = get_safe_cpu_count()
 
     info(f"Number of CPUs available: {cpu}")
 
