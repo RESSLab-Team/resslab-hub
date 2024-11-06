@@ -163,7 +163,13 @@ class TableValidator(Validator):
                     try:
                         datetime.strptime(value, "%d.%m.%Y")
                     except ValueError:
-                        result.add_error(row, column.key, value, "Invalid date format")
+                        result.add_error(
+                            row,
+                            column.key,
+                            value,
+                            "Invalid date format: Expected format:"
+                            " DD.MM.YY or DD.MM.YYYY",
+                        )
 
         except Exception as e:
             result.add_error(row, column.key, value, f"Validation error: {str(e)}")
