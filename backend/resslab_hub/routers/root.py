@@ -100,9 +100,9 @@ async def validate_data(
             }
             # If any validation errors exist, return 422
             if not response["valid"]:
-                return HTTPException(
+                return JSONResponse(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail=str(response),
+                    content=response,
                 )
             return JSONResponse(status_code=status.HTTP_200_OK, content=response)
 
