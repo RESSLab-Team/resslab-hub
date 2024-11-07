@@ -531,10 +531,10 @@ def validate_all(
                 error(f"Error in validate_all: {str(e)}")
                 error(f"Traceback: {traceback.format_exc()}")
         # Check if all primary validations passed before proceeding
-        primary_errors = any(not result.is_valid() for result in primary_results)
-        if primary_errors:
-            error("Primary file validation failed. Skipping subsidiary files.")
-            return results
+        # primary_errors = any(not result.is_valid() for result in primary_results)
+        # if primary_errors:
+        #     error("Primary file validation failed. Skipping subsidiary files.")
+        #     return results
 
     # Then validate subsidiary files
     if subsidiary_types:
