@@ -2,6 +2,7 @@
 Validator for csv data integrity
 """
 
+import traceback
 from abc import ABC, abstractmethod
 from csv import DictReader, reader
 from datetime import datetime
@@ -196,16 +197,32 @@ class CsvFileValidator(Validator):
         base_model: Any,
         required_columns: List[str],
         foreign_key_field: str,
+        primary_csv_path: str = None,
     ) -> None:
         self.base_model = base_model
         self.required_columns = required_columns
         self.foreign_key_field = foreign_key_field
+        self.primary_csv_path = primary_csv_path
 
-    def validate_one(self, file_path: str) -> ValidationResult:
-        file_path = get_abs_path(file_path)
-        result = ValidationResult(path.basename(file_path))
+    def _check_primary_csv(self, foreign_key: str) -> bool:
+        """Check if the foreign key exists in the primary CSV being uploaded"""
+        error(f"Checking primary CSV: {self.primary_csv_path}")
+        if not self.primary_csv_path:
+            return False
 
         try:
+            encoding = get_file_encoding(get_abs_path(self.primary_csv_path))
+            with open(get_abs_path(self.primary_csv_path), encoding=encoding) as file:
+                csv_reader = DictReader(file)
+                return any(row.get("id") == foreign_key for row in csv_reader)
+        except Exception as e:
+            error(f"Error checking primary CSV: {str(e)}")
+            return False
+
+    def validate_one(self, file_path: str) -> ValidationResult:
+        try:
+            file_path = get_abs_path(file_path)
+            result = ValidationResult(path.basename(file_path))
             filename = path.splitext(path.basename(file_path))[0]
             encoding = get_file_encoding(file_path)
 
@@ -232,15 +249,33 @@ class CsvFileValidator(Validator):
                         f"SELECT 1 FROM {self.base_model.__tablename__} "
                         f"WHERE {self.foreign_key_field} = :id"
                     )
-                    exists = session.execute(stmt, {"id": filename}).first() is not None
+                    exists_in_db = (
+                        session.execute(stmt, {"id": filename}).first() is not None
+                    )
+                    exists_in_primary = self._check_primary_csv(filename)
 
-                    if not exists:
+                    # Check if foreign key exists in either primary CSV or database
+                    # Only show error if it doesn't exist in either location
+                    if exists_in_primary and not exists_in_db:
+                        # foreign key exists in primary
+                        # csv, but not in database: we're okay
+                        pass
+                    elif not exists_in_primary:
+                        # foreign key doesn't exist in either primary
+                        # CSV or database: show error
                         result.add_error(
                             0,
                             self.foreign_key_field,
                             filename,
-                            f"Foreign key '{filename}' does not exist in "
-                            f"parent table",
+                            f"Foreign key '{filename}' not found in primary CSV",
+                        )
+                    else:
+                        # foreign key does not exist in database: show error
+                        result.add_error(
+                            0,
+                            self.foreign_key_field,
+                            filename,
+                            f"Foreign key '{filename}' not found in database",
                         )
 
                     # Validate each row
@@ -267,7 +302,7 @@ class CsvFileValidator(Validator):
         return result
 
 
-def validate_one(input_type: Type, filename: str) -> ValidationResult:
+def validate_one_file(input_type: Type, filename: str) -> Validator:
     """
     Validate a single file based on its type
     """
@@ -351,11 +386,7 @@ def validate_one(input_type: Type, filename: str) -> ValidationResult:
                 "id",
             )
         case Type.MATERIAL_STRESS_STRAIN:
-            validator = CsvFileValidator(
-                Material,
-                ["Sigma_true", "e_true"],
-                "id",
-            )
+            validator = CsvFileValidator(Material, ["Sigma_true", "e_true"], "id")
         case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
             validator = CsvFileValidator(
                 ResidualStress,
@@ -389,7 +420,52 @@ def validate_one(input_type: Type, filename: str) -> ValidationResult:
         case _:
             raise NotImplementedError(f"Unknown type {input_type}")
 
-    return validator.validate_one(filename)
+    return validator
+
+
+# Map subsidiary types to their primary types
+PRIMARY_TYPE_MAP = {
+    Type.BRACE_DISPLACEMENT: Type.BRACE,
+    Type.COLUMN_AXIAL_SHORTENING: Type.COLUMN,
+    Type.COLUMN_MOMENT_STRONG: Type.COLUMN,
+    Type.COLUMN_MOMENT_WEAK: Type.COLUMN,
+    Type.CONNECTION_BEAM: Type.CONNECTION,
+    Type.CONNECTION_BEAM_WEST: Type.CONNECTION,
+    Type.CONNECTION_GLOBAL: Type.CONNECTION,
+    Type.CONNECTION_GLOBAL_WEST: Type.CONNECTION,
+    Type.CONNECTION_PANEL_ZONE: Type.CONNECTION,
+    Type.MATERIAL_STRESS_STRAIN: Type.MATERIAL,
+    Type.RESIDUAL_STRESS_DISTRIBUTION_F1: Type.RESIDUAL_STRESS,
+    Type.RESIDUAL_STRESS_DISTRIBUTION_F2: Type.RESIDUAL_STRESS,
+    Type.RESIDUAL_STRESS_DISTRIBUTION_W1: Type.RESIDUAL_STRESS,
+    Type.RESIDUAL_STRESS_QP_COEFFICIENT: Type.RESIDUAL_STRESS,
+    Type.HSS_COLUMN_MOMENT_ROTATION: Type.HSS_COLUMN,
+}
+
+
+def validate_with_primary(
+    input_type: Type, filename: str, primary_csv_paths: dict = None
+) -> ValidationResult:
+    """Helper function to create validator with appropriate primary CSV
+    Args:
+        input_type: The type of input file being validated
+        filename: Path to the file being validated
+    Returns:
+        ValidationResult containing validation outcome
+    """
+    """Helper function to create validator with appropriate primary CSV"""
+    try:
+        validator = validate_one_file(input_type, filename)
+        if isinstance(validator, CsvFileValidator):
+            primary_type = PRIMARY_TYPE_MAP.get(input_type)
+            if primary_type and primary_csv_paths:
+                primary_csv_path = primary_csv_paths.get(primary_type)
+                validator.primary_csv_path = primary_csv_path
+        return validator.validate_one(filename)
+    except Exception as e:
+        error(f"Error in validate_with_primary: {str(e)}")
+        error(f"Traceback: {traceback.format_exc()}")
+        raise
 
 
 def validate_all(
@@ -408,8 +484,66 @@ def validate_all(
     ]
     args = [(arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])]
 
-    with get_context("spawn").Pool(cpu) as pool:
-        results = pool.starmap(validate_one, args)
+    # Split into primary and subsidiary types
+    primary_types = [
+        arg
+        for arg in args
+        if arg[0]
+        in [
+            Type.BRACE,
+            Type.COLUMN,
+            Type.CONNECTION,
+            Type.MATERIAL,
+            Type.RESIDUAL_STRESS,
+            Type.HSS_COLUMN,
+        ]
+    ]
+    subsidiary_types = [arg for arg in args if arg not in primary_types]
+
+    # Create mapping of primary CSV paths
+    primary_csv_paths = {
+        Type.BRACE: next((f for t, f in primary_types if t == Type.BRACE), None),
+        Type.COLUMN: next((f for t, f in primary_types if t == Type.COLUMN), None),
+        Type.CONNECTION: next(
+            (f for t, f in primary_types if t == Type.CONNECTION), None
+        ),
+        Type.MATERIAL: next((f for t, f in primary_types if t == Type.MATERIAL), None),
+        Type.RESIDUAL_STRESS: next(
+            (f for t, f in primary_types if t == Type.RESIDUAL_STRESS), None
+        ),
+        Type.HSS_COLUMN: next(
+            (f for t, f in primary_types if t == Type.HSS_COLUMN), None
+        ),
+    }
+
+    results = []
+
+    # First validate primary files
+    if primary_types:
+        with get_context("spawn").Pool(cpu) as pool:
+            try:
+                primary_results = pool.starmap(
+                    validate_with_primary,
+                    [(t, f, primary_csv_paths) for t, f in primary_types],
+                )
+                results.extend(primary_results)
+            except Exception as e:
+                error(f"Error in validate_all: {str(e)}")
+                error(f"Traceback: {traceback.format_exc()}")
+        # Check if all primary validations passed before proceeding
+        primary_errors = any(not result.is_valid() for result in primary_results)
+        if primary_errors:
+            error("Primary file validation failed. Skipping subsidiary files.")
+            return results
+
+    # Then validate subsidiary files
+    if subsidiary_types:
+        with get_context("spawn").Pool(cpu) as pool:
+            subsidiary_results = pool.starmap(
+                validate_with_primary,
+                [(t, f, primary_csv_paths) for t, f in subsidiary_types],
+            )
+            results.extend(subsidiary_results)
 
     # Log results
     for result in results:

@@ -98,11 +98,15 @@ async def validate_data(
                     for result in results
                 ],
             }
-
+            # If any validation errors exist, return 422
+            if not response["valid"]:
+                return HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=str(response),
+                )
             return JSONResponse(status_code=status.HTTP_200_OK, content=response)
 
     except Exception:
-        print("HTTP 500", Exception)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(Exception)
         )

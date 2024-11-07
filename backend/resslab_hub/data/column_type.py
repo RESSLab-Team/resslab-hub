@@ -1,15 +1,5 @@
 from enum import Enum
 
-# from sqlalchemy import (
-#     BigInteger,
-#     Boolean,
-#     DecimalFloat,
-#     Integer,
-#     Numeric,
-#     SmallInteger,
-#     String
-# )
-
 
 class ColumnType(Enum):
     """
