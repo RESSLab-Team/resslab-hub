@@ -37,6 +37,7 @@ class HSSColumn(Base):  # type: ignore
 
     __tablename__ = "hss_column"
 
+    # START_OF_GENERATED_CODE
     id = Column(String, primary_key=True)
     date = Column(SmallInteger, nullable=False)
     investigator = Column(String, nullable=False)
@@ -95,6 +96,7 @@ class HSSColumn(Base):  # type: ignore
     lambda_s = Column(Numeric)
     lambda_c = Column(Numeric)
     flexural_buckling = Column(String, nullable=False)
+    # END_OF_GENERATED_CODE
 
     moment_rotation_count = column_property(
         select(func.count(HSSColumnMomentRotation.id))

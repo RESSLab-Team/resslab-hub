@@ -39,6 +39,7 @@ class Brace(Base):  # type: ignore
         "BraceDisplacement", backref="brace", cascade="all, delete, delete-orphan"
     )
 
+    # START_OF_GENERATED_CODE
     id = Column(String, primary_key=True)
     investigator = Column(String, nullable=False)
     specimen_ID = Column(String, nullable=False)
@@ -110,6 +111,7 @@ class Brace(Base):  # type: ignore
     link = Column(String, nullable=False)
     latitude = Column(Numeric, nullable=True)
     longitude = Column(Numeric, nullable=True)
+    # END_OF_GENERATED_CODE
 
     displacement_count = column_property(
         select(func.count(BraceDisplacement.id))

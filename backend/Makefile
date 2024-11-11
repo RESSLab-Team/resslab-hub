@@ -65,3 +65,23 @@ transform-data:
 
 analyze-data:
 	poetry run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/material/steel_material.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv ../../resslab-hub-data/residual_stresses/residual_stresses.csv ../../resslab-hub-data/hss_columns/hss_columns.csv
+
+generate-model:
+	poetry run python data/generate_model.py \
+		../../resslab-hub-data/braces/steel_braces_data_dictionary.csv \
+		resslab_hub/models/database/brace.py
+	poetry run python data/generate_model.py \
+		../../resslab-hub-data/columns/steel_columns_data_dictionary.csv \
+		resslab_hub/models/database/column.py
+	poetry run python data/generate_model.py \
+		../../resslab-hub-data/connections/connections_data_dictionary.csv \
+		resslab_hub/models/database/connection.py
+	poetry run python data/generate_model.py \
+		../../resslab-hub-data/hss_columns/hss_columns_data_dictionary.csv \
+		resslab_hub/models/database/hss_column.py
+	poetry run python data/generate_model.py \
+		../../resslab-hub-data/material/steel_material_data_dictionary.csv \
+		resslab_hub/models/database/material.py
+	poetry run python data/generate_model.py \
+		../../resslab-hub-data/residual_stresses/residual_stresses_data_dictionary.csv \
+		resslab_hub/models/database/residual_stress.py

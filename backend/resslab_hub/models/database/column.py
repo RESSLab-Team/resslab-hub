@@ -57,6 +57,7 @@ class ColumnEntity(Base):  # type: ignore
 
     __tablename__ = "column"
 
+    # START_OF_GENERATED_CODE
     id = Column(String, primary_key=True)
     experimental_program = Column(String, nullable=False)
     date = Column(SmallInteger, nullable=False)
@@ -154,6 +155,7 @@ class ColumnEntity(Base):  # type: ignore
     link = Column(String, nullable=False)
     latitude = Column(Numeric, nullable=True)
     longitude = Column(Numeric, nullable=True)
+    # END_OF_GENERATED_CODE
 
     built_up = column_property(section_c.ilike(text("'%built_up%'")))
 

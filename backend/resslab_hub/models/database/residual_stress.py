@@ -74,6 +74,7 @@ class ResidualStress(Base):  # type: ignore
 
     __tablename__ = "residual_stress"
 
+    # START_OF_GENERATED_CODE
     id = Column(String, primary_key=True)
     experimental_program = Column(String, nullable=False)
     date = Column(SmallInteger, nullable=False)
@@ -99,6 +100,7 @@ class ResidualStress(Base):  # type: ignore
     link = Column(String)
     latitude = Column(Numeric, nullable=False)
     longitude = Column(Numeric, nullable=False)
+    # END_OF_GENERATED_CODE
 
     qp_coefficient_count = column_property(
         select(func.count(ResidualStressQPCoefficient.id))

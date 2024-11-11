@@ -85,6 +85,7 @@ class Connection(Base):  # type: ignore
 
     __tablename__ = "connection"
 
+    # START_OF_GENERATED_CODE
     id = Column(String, primary_key=True)
     experimental_program = Column(String, nullable=False)
     date = Column(SmallInteger, nullable=False)
@@ -238,6 +239,7 @@ class Connection(Base):  # type: ignore
     link = Column(String)
     latitude = Column(Numeric, nullable=True)
     longitude = Column(Numeric, nullable=True)
+    # END_OF_GENERATED_CODE
 
     beam_count = column_property(
         select(func.count(ConnectionBeam.id))
