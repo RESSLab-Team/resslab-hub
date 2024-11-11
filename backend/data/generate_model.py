@@ -6,10 +6,14 @@ import sys
 def get_sqlalchemy_type(type_str: str) -> str:
     """Convert CSV type string to SQLAlchemy type"""
     type_mapping = {
-        "SmallInteger": "SmallInteger",
-        "String": "String",
+        "Numeric": "Numeric",
         "DecimalFloat": "DecimalFloat",
+        "SmallInteger": "SmallInteger",
+        "BigInteger": "BigInteger",
+        "Integer": "Integer",
+        "String": "String",
         "Date": "Date",
+        "Boolean": "Boolean",
     }
     return type_mapping.get(type_str, "String")
 
