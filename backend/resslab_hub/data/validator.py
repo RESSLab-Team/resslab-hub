@@ -2,6 +2,7 @@
 Validator for csv data integrity
 """
 
+import math
 import traceback
 from abc import ABC, abstractmethod
 from csv import DictReader, reader
@@ -14,11 +15,13 @@ from os import path
 from typing import Any, List
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     Date,
     Float,
     Integer,
     Numeric,
+    SmallInteger,
     String,
     create_engine,
     text,
@@ -146,25 +149,45 @@ class TableValidator(Validator):
     ):
         # cf analyzer.py for column type determination and reference for now
         try:
-            if value.upper() in ("NA", "NR"):
-                if not column.nullable:
-                    result.add_error(row, column.key, value, "Field cannot be null")
-                return
             if isinstance(column.type, Boolean):
                 if value.lower() not in ("yes", "no"):
                     result.add_error(row, column.key, value, "Must be 'yes' or 'no'")
-            elif isinstance(column.type, Integer):
+            elif isinstance(column.type, (SmallInteger, Integer, BigInteger)):
                 try:
                     int(Decimal(value))
                 except (InvalidOperation, ValueError):
                     result.add_error(row, column.key, value, "Must be an integer")
             elif isinstance(column.type, (Float, Numeric)):
                 try:
+                    if column.type not in (
+                        "FLOAT",
+                        "DOUBLE PRECISION",
+                        "NUMERIC",
+                    ) and math.isnan(value):
+                        result.add_error(
+                            row,
+                            column.key,
+                            value,
+                            f"Invalid column type {column.type} for NaN, "
+                            "should be FLOAT, DOUBLE PRECISION, or NUMERIC",
+                        )
                     Decimal(value)
                 except InvalidOperation:
                     result.add_error(row, column.key, value, "Must be a number")
             elif isinstance(column.type, String):
                 try:
+                    if value.upper() == "NA":
+                        if not column.nullable:
+                            result.add_error(
+                                row,
+                                column.key,
+                                value,
+                                "Field cannot be null: column is not nullable",
+                            )
+                    elif value.upper() == "NR":
+                        # Handle 'NR' as 'not reported'
+                        pass
+                    # Try to convert value to string
                     str(value)
                 except Exception:
                     result.add_error(row, column.key, value, "Must be a string")
@@ -182,6 +205,15 @@ class TableValidator(Validator):
                             "Invalid date format: Expected format:"
                             " DD.MM.YY or DD.MM.YYYY",
                         )
+            elif value is None:
+                if not column.nullable:
+                    result.add_error(
+                        row,
+                        column.key,
+                        value,
+                        "Field cannot be null: column is not nullable",
+                    )
+                pass
 
         except Exception as e:
             result.add_error(row, column.key, value, f"Validation error: {str(e)}")
