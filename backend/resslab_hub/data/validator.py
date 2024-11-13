@@ -278,6 +278,9 @@ class CsvFileValidator(Validator):
     def validate_one(self, file_path: str) -> ValidationResult:
         try:
             file_path = get_abs_path(file_path)
+            relative_path = path.relpath(
+                file_path, start=path.join(path.sep, *file_path.split(path.sep)[:7])
+            )
             result = ValidationResult(path.basename(file_path))
             filename = path.splitext(path.basename(file_path))[0]
             encoding = get_file_encoding(file_path)
@@ -302,7 +305,7 @@ class CsvFileValidator(Validator):
                 with Session(engine) as session:
                     # Check if foreign key exists
                     stmt = text(
-                        f"SELECT 1 FROM {self.base_model.__tablename__} "
+                        f'SELECT 1 FROM "{self.base_model.__tablename__}" '
                         f"WHERE {self.foreign_key_field} = :id"
                     )
                     exists_in_db = (
@@ -323,7 +326,8 @@ class CsvFileValidator(Validator):
                             0,
                             self.foreign_key_field,
                             filename,
-                            f"Foreign key '{filename}' not found in primary CSV",
+                            f"Foreign key '{filename}' not "
+                            f"found in primary CSV (cf '{relative_path}')",
                         )
                     else:
                         # foreign key does not exist in database: show error
@@ -331,7 +335,8 @@ class CsvFileValidator(Validator):
                             0,
                             self.foreign_key_field,
                             filename,
-                            f"Foreign key '{filename}' not found in database",
+                            f"Foreign key '{filename}' not found in "
+                            f"database based (cf '{relative_path}')",
                         )
 
                     # Validate each row
@@ -353,7 +358,9 @@ class CsvFileValidator(Validator):
                                         row_num, col_name, value, "Must be a number"
                                     )
         except Exception as e:
-            result.add_error(0, "file", file_path, f"Failed to process file: {str(e)}")
+            result.add_error(
+                0, "file", relative_path, f"Failed to process file: {str(e)}"
+            )
 
         return result
 
@@ -409,7 +416,7 @@ def validate_one_file(input_type: Type, filename: str) -> Validator:
             validator = CsvFileValidator(
                 Connection,
                 [
-                    "Chrord Rotation, θ [rads]",
+                    "Chord Rotation [rads]",
                     "Moment [kN-mm]",
                 ],
                 "id",
