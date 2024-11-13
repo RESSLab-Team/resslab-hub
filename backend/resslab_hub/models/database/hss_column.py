@@ -60,9 +60,9 @@ class HSSColumn(Base):  # type: ignore
     plastic_section_modulus__mm3 = Column(DecimalFloat, nullable=True)
     axial_load_ratio = Column(DecimalFloat, nullable=True)
     axial_load_sequence = Column(String, nullable=False)
-    loading_angle = Column(SmallInteger, nullable=False)
+    loading_angle = Column(SmallInteger, nullable=True)
     steel_type = Column(String, nullable=False)
-    fy_nominal__n_mm2 = Column(DecimalFloat, nullable=False)
+    fy_nominal__n_mm2 = Column(DecimalFloat, nullable=True)
     fy_measured__n_mm2 = Column(DecimalFloat, nullable=True)
     f_ultimate__n_mm2 = Column(DecimalFloat, nullable=True)
     mp_measured__knmm = Column(DecimalFloat, nullable=True)
@@ -95,6 +95,8 @@ class HSSColumn(Base):  # type: ignore
     lambda_s = Column(DecimalFloat, nullable=True)
     lambda_c = Column(DecimalFloat, nullable=True)
     flexural_buckling = Column(String, nullable=False)
+    latitude = Column(DecimalFloat, nullable=True)
+    longitude = Column(DecimalFloat, nullable=True)
     # END_OF_GENERATED_CODE
 
     moment_rotation_count = column_property(

@@ -47,7 +47,7 @@ class Material(Base):  # type: ignore
     source = Column(String, nullable=False)
     thickness = Column(DecimalFloat, nullable=False)
     grade = Column(String, nullable=False)
-    spec = Column(String, nullable=False)
+    spec = Column(String, nullable=True)
     lp = Column(String, nullable=False)
     size = Column(String, nullable=False)
     gage_length__mm_ = Column(DecimalFloat, nullable=True)
