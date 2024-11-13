@@ -270,7 +270,13 @@ class CsvFileValidator(Validator):
             encoding = get_file_encoding(get_abs_path(self.primary_csv_path))
             with open(get_abs_path(self.primary_csv_path), encoding=encoding) as file:
                 csv_reader = DictReader(file)
-                return any(row.get("id") == foreign_key for row in csv_reader)
+                # return any(row.get("id") == foreign_key for row in csv_reader)
+                for row in csv_reader:
+                    if row.get("id") == foreign_key:
+                        error(f"Match found for foreign key: {foreign_key}")
+                        return True
+                error(f"No match found for foreign key: {foreign_key}")
+                return False
         except Exception as e:
             error(f"Error checking primary CSV: {str(e)}")
             return False
@@ -313,30 +319,23 @@ class CsvFileValidator(Validator):
                     )
                     exists_in_primary = self._check_primary_csv(filename)
 
-                    # Check if foreign key exists in either primary CSV or database
-                    # Only show error if it doesn't exist in either location
-                    if exists_in_primary and not exists_in_db:
-                        # foreign key exists in primary
-                        # csv, but not in database: we're okay
-                        pass
+                    if self.primary_csv_path is None:
+                        if not exists_in_db:
+                            result.add_error(
+                                0,
+                                self.foreign_key_field,
+                                filename,
+                                f"Foreign key '{filename}' not found in "
+                                f"database, no primary csv provided (cf "
+                                f"{relative_path})",
+                            )
                     elif not exists_in_primary:
-                        # foreign key doesn't exist in either primary
-                        # CSV or database: show error
                         result.add_error(
                             0,
                             self.foreign_key_field,
                             filename,
-                            f"Foreign key '{filename}' not "
-                            f"found in primary CSV (cf '{relative_path}')",
-                        )
-                    else:
-                        # foreign key does not exist in database: show error
-                        result.add_error(
-                            0,
-                            self.foreign_key_field,
-                            filename,
-                            f"Foreign key '{filename}' not found in "
-                            f"database based (cf '{relative_path}')",
+                            f"Foreign key '{filename}' not found "
+                            f"in primary CSV (cf {relative_path})",
                         )
 
                     # Validate each row
