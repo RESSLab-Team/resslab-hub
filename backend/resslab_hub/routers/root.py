@@ -92,6 +92,7 @@ async def validate_data(
                     {
                         "file": result.filename,
                         "valid": result.is_valid(),
+                        "errors_count": len(result.errors),
                         "errors": [str(err) for err in result.errors],
                         "warnings": [str(warn) for warn in result.warnings],
                     }

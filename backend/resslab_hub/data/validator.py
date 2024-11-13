@@ -2,7 +2,6 @@
 Validator for csv data integrity
 """
 
-import math
 import traceback
 from abc import ABC, abstractmethod
 from csv import DictReader, reader
@@ -40,6 +39,8 @@ from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
 
+DecimalFloat = Float(asdecimal=True)
+
 
 class ValidationError:
     def __init__(self, row: int, column: str, value: Any, message: str):
@@ -56,10 +57,12 @@ class ValidationResult:
     def __init__(self, filename: str):
         self.filename = filename
         self.errors: List[ValidationError] = []
+        self.error_count: Integer = 0
         self.warnings: List[ValidationError] = []
 
     def add_error(self, row: int, column: str, value: Any, message: str):
         self.errors.append(ValidationError(row, column, value, message))
+        self.error_count += 1
 
     def add_warning(self, row: int, column: str, value: Any, message: str):
         self.warnings.append(ValidationError(row, column, value, message))
@@ -149,32 +152,24 @@ class TableValidator(Validator):
     ):
         # cf analyzer.py for column type determination and reference for now
         try:
-            if isinstance(column.type, Boolean):
-                if value.lower() not in ("yes", "no"):
-                    result.add_error(row, column.key, value, "Must be 'yes' or 'no'")
-            elif isinstance(column.type, (SmallInteger, Integer, BigInteger)):
-                try:
-                    int(Decimal(value))
-                except (InvalidOperation, ValueError):
-                    result.add_error(row, column.key, value, "Must be an integer")
-            elif isinstance(column.type, (Float, Numeric)):
-                try:
-                    if column.type not in (
-                        "FLOAT",
-                        "DOUBLE PRECISION",
-                        "NUMERIC",
-                    ) and math.isnan(value):
+            # Check if value is a string and "NA" or "NR"
+            if isinstance(value, str):
+                if value.upper() == "NA":
+                    if not column.nullable:
                         result.add_error(
                             row,
                             column.key,
                             value,
-                            f"Invalid column type {column.type} for NaN, "
-                            "should be FLOAT, DOUBLE PRECISION, or NUMERIC",
+                            "Field cannot be null: column is not nullable",
                         )
-                    Decimal(value)
-                except InvalidOperation:
-                    result.add_error(row, column.key, value, "Must be a number")
-            elif isinstance(column.type, String):
+                    # skip validation for 'NA' values
+                    return
+                elif value.upper() == "NR":
+                    # Handle 'NR' as 'not reported' and skip validation
+                    return
+
+            # Validate based on column type
+            if isinstance(column.type, String):
                 try:
                     if value.upper() == "NA":
                         if not column.nullable:
@@ -191,6 +186,30 @@ class TableValidator(Validator):
                     str(value)
                 except Exception:
                     result.add_error(row, column.key, value, "Must be a string")
+            elif isinstance(column.type, Boolean):
+                if value.lower() not in ("yes", "no"):
+                    result.add_error(row, column.key, value, "Must be 'yes' or 'no'")
+            elif isinstance(column.type, (SmallInteger, Integer, BigInteger)):
+                try:
+                    int(Decimal(value))
+                except (InvalidOperation, ValueError):
+                    result.add_error(row, column.key, value, "Must be an integer")
+            elif isinstance(column.type, Float) and column.type.asdecimal:
+                try:
+                    # DecimalFloat is a Float with asdecimal=True
+                    Decimal(value)
+                except InvalidOperation:
+                    result.add_error(
+                        row, column.key, value, "Must be a number: Float as decimal"
+                    )
+            elif isinstance(column.type, Numeric):
+                try:
+                    float(value)
+                except InvalidOperation:
+                    result.add_error(
+                        row, column.key, value, "Must be a number: Numeric float"
+                    )
+
             elif isinstance(column.type, Date):
                 try:
                     datetime.strptime(value, "%d.%m.%y")
@@ -216,6 +235,11 @@ class TableValidator(Validator):
                 pass
 
         except Exception as e:
+            print(
+                f"Validation error missing type: {str(e)}"
+                f"for column {column.key} with value {value}"
+                f"and type {column.type}"
+            )
             result.add_error(row, column.key, value, f"Validation error: {str(e)}")
 
 
