@@ -75,6 +75,57 @@
         ]
       }
     },
+    "/validate": {
+      "post": {
+        "summary": "Validate Data",
+        "operationId": "validate_data",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Type"
+            },
+            "name": "type",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_validate_data_validate_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
+      }
+    },
     "/user": {
       "get": {
         "summary": "Get User",
@@ -3952,6 +4003,20 @@
           }
         }
       },
+      "Body_validate_data_validate_post": {
+        "title": "Body_validate_data_validate_post",
+        "required": [
+          "file"
+        ],
+        "type": "object",
+        "properties": {
+          "file": {
+            "title": "File",
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      },
       "BraceField": {
         "title": "BraceField",
         "enum": [
@@ -3963,20 +4028,64 @@
           "cross_section_size",
           "area",
           "d_br",
+          "b_br",
           "t_br",
+          "w_br",
+          "i_x",
+          "i_y",
+          "r_x",
+          "r_y",
+          "z_x",
+          "z_y",
+          "j",
+          "configuration",
+          "brace_angle",
+          "l_b",
+          "l_b_clear",
           "steel",
+          "e",
           "f_yn",
           "fy_m",
           "f_um",
           "boundary_condition",
+          "l_1t",
+          "l_2t",
+          "l_3t",
+          "l_4t",
+          "l_5t",
+          "l_6t",
+          "l_7t",
           "t_t",
+          "l_1b",
+          "l_2b",
+          "l_3b",
+          "l_4b",
+          "l_5b",
+          "l_6b",
+          "l_7b",
+          "l_8b",
+          "t_b",
           "steel_gp",
           "f_yn_gp",
           "f_ym_gp",
           "f_um_gp",
+          "weld_type",
+          "l_weld",
+          "t_weld",
+          "stick_space",
+          "nub_bolts",
+          "bolt_size",
+          "bolt_mat",
           "reinforcement_pl",
           "loading_protocol",
+          "p_t",
+          "p_t_theory",
+          "p_c",
           "kl_r",
+          "l_c",
+          "l_c_theory",
+          "k_assumed",
+          "kl_r_theory",
           "reference",
           "link",
           "latitude",
@@ -3995,18 +4104,12 @@
           "date",
           "cross_section_shape",
           "cross_section_size",
-          "area",
-          "d_br",
-          "t_br",
+          "configuration",
+          "brace_angle",
           "steel",
-          "f_yn",
           "boundary_condition",
           "loading_protocol",
-          "kl_r",
           "reference",
-          "link",
-          "latitude",
-          "longitude",
           "displacement_count"
         ],
         "type": "object",
@@ -4043,13 +4146,69 @@
             "title": "D Br",
             "type": "number"
           },
+          "b_br": {
+            "title": "B Br",
+            "type": "number"
+          },
           "t_br": {
             "title": "T Br",
+            "type": "number"
+          },
+          "w_br": {
+            "title": "W Br",
+            "type": "number"
+          },
+          "i_x": {
+            "title": "I X",
+            "type": "number"
+          },
+          "i_y": {
+            "title": "I Y",
+            "type": "number"
+          },
+          "r_x": {
+            "title": "R X",
+            "type": "number"
+          },
+          "r_y": {
+            "title": "R Y",
+            "type": "number"
+          },
+          "z_x": {
+            "title": "Z X",
+            "type": "number"
+          },
+          "z_y": {
+            "title": "Z Y",
+            "type": "number"
+          },
+          "j": {
+            "title": "J",
+            "type": "number"
+          },
+          "configuration": {
+            "title": "Configuration",
+            "type": "string"
+          },
+          "brace_angle": {
+            "title": "Brace Angle",
+            "type": "number"
+          },
+          "l_b": {
+            "title": "L B",
+            "type": "number"
+          },
+          "l_b_clear": {
+            "title": "L B Clear",
             "type": "number"
           },
           "steel": {
             "title": "Steel",
             "type": "string"
+          },
+          "e": {
+            "title": "E",
+            "type": "number"
           },
           "f_yn": {
             "title": "F Yn",
@@ -4067,9 +4226,73 @@
             "title": "Boundary Condition",
             "type": "string"
           },
+          "l_1t": {
+            "title": "L 1T",
+            "type": "string"
+          },
+          "l_2t": {
+            "title": "L 2T",
+            "type": "string"
+          },
+          "l_3t": {
+            "title": "L 3T",
+            "type": "string"
+          },
+          "l_4t": {
+            "title": "L 4T",
+            "type": "number"
+          },
+          "l_5t": {
+            "title": "L 5T",
+            "type": "string"
+          },
+          "l_6t": {
+            "title": "L 6T",
+            "type": "string"
+          },
+          "l_7t": {
+            "title": "L 7T",
+            "type": "string"
+          },
           "t_t": {
             "title": "T T",
             "type": "number"
+          },
+          "l_1b": {
+            "title": "L 1B",
+            "type": "string"
+          },
+          "l_2b": {
+            "title": "L 2B",
+            "type": "string"
+          },
+          "l_3b": {
+            "title": "L 3B",
+            "type": "string"
+          },
+          "l_4b": {
+            "title": "L 4B",
+            "type": "string"
+          },
+          "l_5b": {
+            "title": "L 5B",
+            "type": "string"
+          },
+          "l_6b": {
+            "title": "L 6B",
+            "type": "string"
+          },
+          "l_7b": {
+            "title": "L 7B",
+            "type": "number"
+          },
+          "l_8b": {
+            "title": "L 8B",
+            "type": "number"
+          },
+          "t_b": {
+            "title": "T B",
+            "type": "string"
           },
           "steel_gp": {
             "title": "Steel Gp",
@@ -4087,6 +4310,34 @@
             "title": "F Um Gp",
             "type": "number"
           },
+          "weld_type": {
+            "title": "Weld Type",
+            "type": "string"
+          },
+          "l_weld": {
+            "title": "L Weld",
+            "type": "number"
+          },
+          "t_weld": {
+            "title": "T Weld",
+            "type": "number"
+          },
+          "stick_space": {
+            "title": "Stick Space",
+            "type": "number"
+          },
+          "nub_bolts": {
+            "title": "Nub Bolts",
+            "type": "number"
+          },
+          "bolt_size": {
+            "title": "Bolt Size",
+            "type": "string"
+          },
+          "bolt_mat": {
+            "title": "Bolt Mat",
+            "type": "string"
+          },
           "reinforcement_pl": {
             "title": "Reinforcement Pl",
             "type": "string"
@@ -4095,8 +4346,36 @@
             "title": "Loading Protocol",
             "type": "string"
           },
+          "p_t": {
+            "title": "P T",
+            "type": "number"
+          },
+          "p_t_theory": {
+            "title": "P T Theory",
+            "type": "number"
+          },
+          "p_c": {
+            "title": "P C",
+            "type": "number"
+          },
           "kl_r": {
             "title": "Kl R",
+            "type": "number"
+          },
+          "l_c": {
+            "title": "L C",
+            "type": "number"
+          },
+          "l_c_theory": {
+            "title": "L C Theory",
+            "type": "number"
+          },
+          "k_assumed": {
+            "title": "K Assumed",
+            "type": "number"
+          },
+          "kl_r_theory": {
+            "title": "Kl R Theory",
             "type": "number"
           },
           "reference": {
@@ -4127,15 +4406,42 @@
           "date",
           "area",
           "d_br",
+          "b_br",
           "t_br",
+          "w_br",
+          "i_x",
+          "i_y",
+          "r_x",
+          "r_y",
+          "z_x",
+          "z_y",
+          "j",
+          "brace_angle",
+          "l_b",
+          "l_b_clear",
+          "e",
           "f_yn",
           "fy_m",
           "f_um",
+          "l_4t",
           "t_t",
+          "l_7b",
+          "l_8b",
           "f_yn_gp",
           "f_ym_gp",
           "f_um_gp",
+          "l_weld",
+          "t_weld",
+          "stick_space",
+          "nub_bolts",
+          "p_t",
+          "p_t_theory",
+          "p_c",
           "kl_r",
+          "l_c",
+          "l_c_theory",
+          "k_assumed",
+          "kl_r_theory",
           "latitude",
           "longitude",
           "displacement_count"
@@ -4152,20 +4458,93 @@
           "section_c",
           "specimen_designation",
           "d_c",
+          "k_c",
+          "k1_c",
+          "h_c",
+          "t_cw",
           "h_over_t_cw",
+          "b_cf",
+          "t_cf",
           "b_f_over_t_cf",
+          "a_cm",
+          "a_cn",
+          "i_xb",
+          "i_xc",
+          "s_xc",
+          "s_yc",
+          "z_xc",
+          "z_yc",
+          "j_c",
+          "c_wc",
+          "r_yc",
+          "r_xc",
+          "l_c",
+          "l_sc",
+          "l_bc",
           "l_b_over_r_yc",
+          "k_xc",
+          "k_yc",
+          "lambda_xc",
+          "lambda_yc",
+          "lambda_ltb",
           "steel_c",
+          "r_y",
+          "r_t",
           "f_ymf",
           "f_ymw",
+          "f_umf",
+          "f_umw",
           "f_yn",
+          "f_un",
+          "e_nc",
+          "e_mc",
+          "g_nc",
+          "g_mc",
           "boundary_condition",
+          "p_ym",
+          "p_yn",
+          "p_ye",
           "lateral_lp",
           "direction_lp",
           "axis_of_bending",
           "axial_lp",
+          "p_g",
+          "p_t",
+          "p_c",
           "p_g_over_p_ym",
+          "p_g_over_p_yn",
+          "p_t_over_p_ym",
+          "p_c_over_p_ym",
+          "p_c_over_p_yn",
+          "p",
+          "t_top_plate",
+          "t_bottom_plate",
+          "test_procedure",
+          "comments",
+          "k_test",
+          "k_flexure_th",
+          "k_shear_th",
+          "k_theory",
+          "th_y",
+          "th_lb",
           "th_80",
+          "th_50",
+          "th_20",
+          "th_1l",
+          "th_2l",
+          "th_3l",
+          "th_4l",
+          "th_6l",
+          "d_80",
+          "d_50",
+          "d_20",
+          "f_class_us",
+          "w_class_us",
+          "cs_class_us",
+          "f_class_eu",
+          "w_class_eu",
+          "cs_class_eu",
+          "cfe",
           "reference",
           "link",
           "latitude",
@@ -4186,22 +4565,21 @@
           "date",
           "section_c",
           "specimen_designation",
-          "d_c",
-          "h_over_t_cw",
-          "b_f_over_t_cf",
-          "l_b_over_r_yc",
           "steel_c",
-          "f_ymf",
-          "f_ymw",
-          "f_yn",
           "boundary_condition",
           "lateral_lp",
           "direction_lp",
           "axis_of_bending",
           "axial_lp",
-          "p_g_over_p_ym",
+          "test_procedure",
+          "f_class_us",
+          "w_class_us",
+          "cs_class_us",
+          "f_class_eu",
+          "w_class_eu",
+          "cs_class_eu",
+          "cfe",
           "reference",
-          "link",
           "latitude",
           "longitude",
           "built_up",
@@ -4235,37 +4613,189 @@
             "title": "D C",
             "type": "number"
           },
+          "k_c": {
+            "title": "K C",
+            "type": "number"
+          },
+          "k1_c": {
+            "title": "K1 C",
+            "type": "number"
+          },
+          "h_c": {
+            "title": "H C",
+            "type": "number"
+          },
+          "t_cw": {
+            "title": "T Cw",
+            "type": "number"
+          },
           "h_over_t_cw": {
             "title": "H Over T Cw",
+            "type": "number"
+          },
+          "b_cf": {
+            "title": "B Cf",
+            "type": "number"
+          },
+          "t_cf": {
+            "title": "T Cf",
             "type": "number"
           },
           "b_f_over_t_cf": {
             "title": "B F Over T Cf",
             "type": "number"
           },
+          "a_cm": {
+            "title": "A Cm",
+            "type": "number"
+          },
+          "a_cn": {
+            "title": "A Cn",
+            "type": "number"
+          },
+          "i_xb": {
+            "title": "I Xb",
+            "type": "number"
+          },
+          "i_xc": {
+            "title": "I Xc",
+            "type": "number"
+          },
+          "s_xc": {
+            "title": "S Xc",
+            "type": "number"
+          },
+          "s_yc": {
+            "title": "S Yc",
+            "type": "number"
+          },
+          "z_xc": {
+            "title": "Z Xc",
+            "type": "number"
+          },
+          "z_yc": {
+            "title": "Z Yc",
+            "type": "number"
+          },
+          "j_c": {
+            "title": "J C",
+            "type": "number"
+          },
+          "c_wc": {
+            "title": "C Wc",
+            "type": "number"
+          },
+          "r_yc": {
+            "title": "R Yc",
+            "type": "number"
+          },
+          "r_xc": {
+            "title": "R Xc",
+            "type": "number"
+          },
+          "l_c": {
+            "title": "L C",
+            "type": "number"
+          },
+          "l_sc": {
+            "title": "L Sc",
+            "type": "number"
+          },
+          "l_bc": {
+            "title": "L Bc",
+            "type": "number"
+          },
           "l_b_over_r_yc": {
             "title": "L B Over R Yc",
+            "type": "number"
+          },
+          "k_xc": {
+            "title": "K Xc",
+            "type": "number"
+          },
+          "k_yc": {
+            "title": "K Yc",
+            "type": "number"
+          },
+          "lambda_xc": {
+            "title": "Lambda Xc",
+            "type": "number"
+          },
+          "lambda_yc": {
+            "title": "Lambda Yc",
+            "type": "number"
+          },
+          "lambda_ltb": {
+            "title": "Lambda Ltb",
             "type": "number"
           },
           "steel_c": {
             "title": "Steel C",
             "type": "string"
           },
+          "r_y": {
+            "title": "R Y",
+            "type": "number"
+          },
+          "r_t": {
+            "title": "R T",
+            "type": "number"
+          },
           "f_ymf": {
             "title": "F Ymf",
-            "type": "integer"
+            "type": "number"
           },
           "f_ymw": {
             "title": "F Ymw",
-            "type": "integer"
+            "type": "number"
+          },
+          "f_umf": {
+            "title": "F Umf",
+            "type": "number"
+          },
+          "f_umw": {
+            "title": "F Umw",
+            "type": "number"
           },
           "f_yn": {
             "title": "F Yn",
-            "type": "integer"
+            "type": "number"
+          },
+          "f_un": {
+            "title": "F Un",
+            "type": "number"
+          },
+          "e_nc": {
+            "title": "E Nc",
+            "type": "number"
+          },
+          "e_mc": {
+            "title": "E Mc",
+            "type": "number"
+          },
+          "g_nc": {
+            "title": "G Nc",
+            "type": "number"
+          },
+          "g_mc": {
+            "title": "G Mc",
+            "type": "number"
           },
           "boundary_condition": {
             "title": "Boundary Condition",
             "type": "string"
+          },
+          "p_ym": {
+            "title": "P Ym",
+            "type": "number"
+          },
+          "p_yn": {
+            "title": "P Yn",
+            "type": "number"
+          },
+          "p_ye": {
+            "title": "P Ye",
+            "type": "number"
           },
           "lateral_lp": {
             "title": "Lateral Lp",
@@ -4283,13 +4813,153 @@
             "title": "Axial Lp",
             "type": "string"
           },
+          "p_g": {
+            "title": "P G",
+            "type": "number"
+          },
+          "p_t": {
+            "title": "P T",
+            "type": "number"
+          },
+          "p_c": {
+            "title": "P C",
+            "type": "number"
+          },
           "p_g_over_p_ym": {
             "title": "P G Over P Ym",
+            "type": "number"
+          },
+          "p_g_over_p_yn": {
+            "title": "P G Over P Yn",
+            "type": "number"
+          },
+          "p_t_over_p_ym": {
+            "title": "P T Over P Ym",
+            "type": "number"
+          },
+          "p_c_over_p_ym": {
+            "title": "P C Over P Ym",
+            "type": "number"
+          },
+          "p_c_over_p_yn": {
+            "title": "P C Over P Yn",
+            "type": "number"
+          },
+          "p": {
+            "title": "P",
+            "type": "number"
+          },
+          "t_top_plate": {
+            "title": "T Top Plate",
+            "type": "number"
+          },
+          "t_bottom_plate": {
+            "title": "T Bottom Plate",
+            "type": "number"
+          },
+          "test_procedure": {
+            "title": "Test Procedure",
+            "type": "string"
+          },
+          "comments": {
+            "title": "Comments",
+            "type": "string"
+          },
+          "k_test": {
+            "title": "K Test",
+            "type": "number"
+          },
+          "k_flexure_th": {
+            "title": "K Flexure Th",
+            "type": "number"
+          },
+          "k_shear_th": {
+            "title": "K Shear Th",
+            "type": "number"
+          },
+          "k_theory": {
+            "title": "K Theory",
+            "type": "number"
+          },
+          "th_y": {
+            "title": "Th Y",
+            "type": "number"
+          },
+          "th_lb": {
+            "title": "Th Lb",
             "type": "number"
           },
           "th_80": {
             "title": "Th 80",
             "type": "number"
+          },
+          "th_50": {
+            "title": "Th 50",
+            "type": "number"
+          },
+          "th_20": {
+            "title": "Th 20",
+            "type": "number"
+          },
+          "th_1l": {
+            "title": "Th 1L",
+            "type": "number"
+          },
+          "th_2l": {
+            "title": "Th 2L",
+            "type": "number"
+          },
+          "th_3l": {
+            "title": "Th 3L",
+            "type": "number"
+          },
+          "th_4l": {
+            "title": "Th 4L",
+            "type": "number"
+          },
+          "th_6l": {
+            "title": "Th 6L",
+            "type": "number"
+          },
+          "d_80": {
+            "title": "D 80",
+            "type": "number"
+          },
+          "d_50": {
+            "title": "D 50",
+            "type": "number"
+          },
+          "d_20": {
+            "title": "D 20",
+            "type": "number"
+          },
+          "f_class_us": {
+            "title": "F Class Us",
+            "type": "string"
+          },
+          "w_class_us": {
+            "title": "W Class Us",
+            "type": "string"
+          },
+          "cs_class_us": {
+            "title": "Cs Class Us",
+            "type": "string"
+          },
+          "f_class_eu": {
+            "title": "F Class Eu",
+            "type": "string"
+          },
+          "w_class_eu": {
+            "title": "W Class Eu",
+            "type": "string"
+          },
+          "cs_class_eu": {
+            "title": "Cs Class Eu",
+            "type": "string"
+          },
+          "cfe": {
+            "title": "Cfe",
+            "type": "boolean"
           },
           "reference": {
             "title": "Reference",
@@ -4330,14 +5000,78 @@
         "enum": [
           "date",
           "d_c",
+          "k_c",
+          "k1_c",
+          "h_c",
+          "t_cw",
           "h_over_t_cw",
+          "b_cf",
+          "t_cf",
           "b_f_over_t_cf",
+          "a_cm",
+          "a_cn",
+          "i_xb",
+          "i_xc",
+          "s_xc",
+          "s_yc",
+          "z_xc",
+          "z_yc",
+          "j_c",
+          "c_wc",
+          "r_yc",
+          "r_xc",
+          "l_c",
+          "l_sc",
+          "l_bc",
           "l_b_over_r_yc",
+          "k_xc",
+          "k_yc",
+          "lambda_xc",
+          "lambda_yc",
+          "lambda_ltb",
+          "r_y",
+          "r_t",
           "f_ymf",
           "f_ymw",
+          "f_umf",
+          "f_umw",
           "f_yn",
+          "f_un",
+          "e_nc",
+          "e_mc",
+          "g_nc",
+          "g_mc",
+          "p_ym",
+          "p_yn",
+          "p_ye",
+          "p_g",
+          "p_t",
+          "p_c",
           "p_g_over_p_ym",
+          "p_g_over_p_yn",
+          "p_t_over_p_ym",
+          "p_c_over_p_ym",
+          "p_c_over_p_yn",
+          "p",
+          "t_top_plate",
+          "t_bottom_plate",
+          "k_test",
+          "k_flexure_th",
+          "k_shear_th",
+          "k_theory",
+          "th_y",
+          "th_lb",
           "th_80",
+          "th_50",
+          "th_20",
+          "th_1l",
+          "th_2l",
+          "th_3l",
+          "th_4l",
+          "th_6l",
+          "d_80",
+          "d_50",
+          "d_20",
           "latitude",
           "longitude",
           "axial_shortening_count",
@@ -4356,34 +5090,148 @@
           "specimen_designation",
           "northridge",
           "specimen_type",
+          "comments",
           "loading_protocol",
           "slab",
           "connection_type",
+          "t_pl",
+          "rbs_cut",
+          "s_h",
+          "d_h",
           "section_b",
           "d_b",
+          "d_bg",
+          "t_bw",
+          "b_bf",
+          "t_bf",
+          "r_b",
+          "a_b",
+          "i_xb",
+          "z_xb",
+          "z_xb_bfp",
+          "r_yb",
+          "b_bf_rbs",
+          "d_gb_rbs",
+          "a_b_rbs",
+          "i_xb_rbs",
+          "z_xb_rbs",
+          "d_bm",
+          "d_bgm",
+          "t_bwm",
+          "b_bfm",
+          "t_bfm",
+          "z_xbm",
           "steel_b",
           "f_yb",
           "f_ybw",
           "f_ybf",
+          "f_yb_mill",
+          "f_yb_avg",
+          "l_b",
+          "l_fc",
+          "l_o",
+          "lo_db",
           "section_c",
           "d_c",
+          "t_cw",
+          "b_cf",
+          "c_c",
           "t_cf",
+          "r_c",
+          "a_c",
+          "i_xc",
+          "d_cm",
+          "t_wcm",
+          "c_cm",
+          "b_fcm",
+          "t_fcm",
           "steel_c",
           "f_yc",
+          "f_ydp",
           "f_ycw",
           "f_ycf",
+          "f_yc_mill",
+          "f_yc_avg",
+          "h_c",
           "backing_bar",
           "electrode",
+          "d_electrode",
+          "cvn_0f",
+          "cvn_minus20f",
+          "cvn_70f",
+          "access_hole_geometry",
           "w",
+          "w_l",
+          "w_r",
           "h_t",
+          "a_s",
+          "f_sk",
+          "f_sm",
+          "h_co",
+          "slab_con_type",
+          "f_ck",
           "f_cm",
+          "cur_days",
+          "f_c_compr_calc",
+          "d",
+          "h_sc",
+          "n_studs",
+          "n_diss",
+          "n_r",
+          "f_u_sc",
+          "h_p",
+          "b_o",
           "deck_ribs_orientation",
+          "section_shape_c",
+          "d_pz",
+          "tw_pz",
+          "bf_pz",
+          "tf_pz",
+          "dz",
+          "zw",
+          "dz_plug",
+          "wz_plug",
+          "wd",
           "n_dp",
           "t_dp",
           "t_dp_tot",
+          "t_p",
+          "t_cp",
+          "d_cp",
+          "db_plus",
+          "db_minus",
+          "a_vc",
+          "fy_pz_m",
+          "p_cm",
+          "n_pm",
+          "v_pz_el_m_europe",
+          "r_n_el_m_aisc",
+          "r_n_pl_m_aisc",
+          "v_pz_m_aij",
+          "fy_pz_n",
+          "p_cn",
+          "n_pn",
+          "v_pz_el_n_europe",
+          "r_n_el_n_aisc",
+          "r_n_pl_n_aisc",
+          "v_pz_n_aij",
+          "m_cf_minus_n",
+          "m_cf_plus_n",
+          "m_cf_minus_m",
+          "m_cf_plus_m",
+          "v_bf_plus_n",
+          "v_bf_minus_n",
+          "v_col_n",
+          "r_u_n",
+          "r_u_m",
+          "ru_rn_el_n",
           "ru_rn_pl_n",
+          "aisc_pz_violation_n",
           "ru_rn_el_m",
           "ru_rn_pl_m",
+          "aisc_pz_violation_m",
+          "g_max",
+          "g_y",
           "g_max_g_y",
           "reference",
           "link",
@@ -4411,22 +5259,12 @@
           "slab",
           "connection_type",
           "section_b",
-          "d_b",
           "steel_b",
-          "f_yb",
           "section_c",
-          "d_c",
-          "t_cf",
           "steel_c",
-          "f_yc",
           "electrode",
-          "n_dp",
-          "t_dp",
-          "t_dp_tot",
-          "ru_rn_pl_n",
-          "g_max_g_y",
+          "section_shape_c",
           "reference",
-          "latitude",
           "longitude",
           "beam_count",
           "beam_west_count",
@@ -4460,6 +5298,10 @@
             "title": "Specimen Type",
             "type": "string"
           },
+          "comments": {
+            "title": "Comments",
+            "type": "string"
+          },
           "loading_protocol": {
             "title": "Loading Protocol",
             "type": "string"
@@ -4472,12 +5314,112 @@
             "title": "Connection Type",
             "type": "string"
           },
+          "t_pl": {
+            "title": "T Pl",
+            "type": "number"
+          },
+          "rbs_cut": {
+            "title": "Rbs Cut",
+            "type": "number"
+          },
+          "s_h": {
+            "title": "S H",
+            "type": "number"
+          },
+          "d_h": {
+            "title": "D H",
+            "type": "number"
+          },
           "section_b": {
             "title": "Section B",
             "type": "string"
           },
           "d_b": {
             "title": "D B",
+            "type": "number"
+          },
+          "d_bg": {
+            "title": "D Bg",
+            "type": "number"
+          },
+          "t_bw": {
+            "title": "T Bw",
+            "type": "number"
+          },
+          "b_bf": {
+            "title": "B Bf",
+            "type": "number"
+          },
+          "t_bf": {
+            "title": "T Bf",
+            "type": "number"
+          },
+          "r_b": {
+            "title": "R B",
+            "type": "number"
+          },
+          "a_b": {
+            "title": "A B",
+            "type": "number"
+          },
+          "i_xb": {
+            "title": "I Xb",
+            "type": "number"
+          },
+          "z_xb": {
+            "title": "Z Xb",
+            "type": "number"
+          },
+          "z_xb_bfp": {
+            "title": "Z Xb Bfp",
+            "type": "number"
+          },
+          "r_yb": {
+            "title": "R Yb",
+            "type": "number"
+          },
+          "b_bf_rbs": {
+            "title": "B Bf Rbs",
+            "type": "number"
+          },
+          "d_gb_rbs": {
+            "title": "D Gb Rbs",
+            "type": "number"
+          },
+          "a_b_rbs": {
+            "title": "A B Rbs",
+            "type": "number"
+          },
+          "i_xb_rbs": {
+            "title": "I Xb Rbs",
+            "type": "number"
+          },
+          "z_xb_rbs": {
+            "title": "Z Xb Rbs",
+            "type": "number"
+          },
+          "d_bm": {
+            "title": "D Bm",
+            "type": "number"
+          },
+          "d_bgm": {
+            "title": "D Bgm",
+            "type": "number"
+          },
+          "t_bwm": {
+            "title": "T Bwm",
+            "type": "number"
+          },
+          "b_bfm": {
+            "title": "B Bfm",
+            "type": "number"
+          },
+          "t_bfm": {
+            "title": "T Bfm",
+            "type": "number"
+          },
+          "z_xbm": {
+            "title": "Z Xbm",
             "type": "number"
           },
           "steel_b": {
@@ -4496,6 +5438,30 @@
             "title": "F Ybf",
             "type": "number"
           },
+          "f_yb_mill": {
+            "title": "F Yb Mill",
+            "type": "number"
+          },
+          "f_yb_avg": {
+            "title": "F Yb Avg",
+            "type": "number"
+          },
+          "l_b": {
+            "title": "L B",
+            "type": "number"
+          },
+          "l_fc": {
+            "title": "L Fc",
+            "type": "number"
+          },
+          "l_o": {
+            "title": "L O",
+            "type": "number"
+          },
+          "lo_db": {
+            "title": "Lo Db",
+            "type": "number"
+          },
           "section_c": {
             "title": "Section C",
             "type": "string"
@@ -4504,8 +5470,52 @@
             "title": "D C",
             "type": "number"
           },
+          "t_cw": {
+            "title": "T Cw",
+            "type": "number"
+          },
+          "b_cf": {
+            "title": "B Cf",
+            "type": "number"
+          },
+          "c_c": {
+            "title": "C C",
+            "type": "number"
+          },
           "t_cf": {
             "title": "T Cf",
+            "type": "number"
+          },
+          "r_c": {
+            "title": "R C",
+            "type": "number"
+          },
+          "a_c": {
+            "title": "A C",
+            "type": "number"
+          },
+          "i_xc": {
+            "title": "I Xc",
+            "type": "number"
+          },
+          "d_cm": {
+            "title": "D Cm",
+            "type": "number"
+          },
+          "t_wcm": {
+            "title": "T Wcm",
+            "type": "number"
+          },
+          "c_cm": {
+            "title": "C Cm",
+            "type": "number"
+          },
+          "b_fcm": {
+            "title": "B Fcm",
+            "type": "number"
+          },
+          "t_fcm": {
+            "title": "T Fcm",
             "type": "number"
           },
           "steel_c": {
@@ -4516,12 +5526,28 @@
             "title": "F Yc",
             "type": "number"
           },
+          "f_ydp": {
+            "title": "F Ydp",
+            "type": "number"
+          },
           "f_ycw": {
             "title": "F Ycw",
             "type": "number"
           },
           "f_ycf": {
             "title": "F Ycf",
+            "type": "number"
+          },
+          "f_yc_mill": {
+            "title": "F Yc Mill",
+            "type": "number"
+          },
+          "f_yc_avg": {
+            "title": "F Yc Avg",
+            "type": "number"
+          },
+          "h_c": {
+            "title": "H C",
             "type": "number"
           },
           "backing_bar": {
@@ -4532,21 +5558,153 @@
             "title": "Electrode",
             "type": "string"
           },
+          "d_electrode": {
+            "title": "D Electrode",
+            "type": "number"
+          },
+          "cvn_0f": {
+            "title": "Cvn 0F",
+            "type": "number"
+          },
+          "cvn_minus20f": {
+            "title": "Cvn Minus20F",
+            "type": "number"
+          },
+          "cvn_70f": {
+            "title": "Cvn 70F",
+            "type": "number"
+          },
+          "access_hole_geometry": {
+            "title": "Access Hole Geometry",
+            "type": "string"
+          },
           "w": {
             "title": "W",
+            "type": "number"
+          },
+          "w_l": {
+            "title": "W L",
+            "type": "number"
+          },
+          "w_r": {
+            "title": "W R",
             "type": "number"
           },
           "h_t": {
             "title": "H T",
             "type": "number"
           },
+          "a_s": {
+            "title": "A S",
+            "type": "number"
+          },
+          "f_sk": {
+            "title": "F Sk",
+            "type": "number"
+          },
+          "f_sm": {
+            "title": "F Sm",
+            "type": "number"
+          },
+          "h_co": {
+            "title": "H Co",
+            "type": "number"
+          },
+          "slab_con_type": {
+            "title": "Slab Con Type",
+            "type": "string"
+          },
+          "f_ck": {
+            "title": "F Ck",
+            "type": "number"
+          },
           "f_cm": {
             "title": "F Cm",
+            "type": "number"
+          },
+          "cur_days": {
+            "title": "Cur Days",
+            "type": "string"
+          },
+          "f_c_compr_calc": {
+            "title": "F C Compr Calc",
+            "type": "number"
+          },
+          "d": {
+            "title": "D",
+            "type": "number"
+          },
+          "h_sc": {
+            "title": "H Sc",
+            "type": "number"
+          },
+          "n_studs": {
+            "title": "N Studs",
+            "type": "integer"
+          },
+          "n_diss": {
+            "title": "N Diss",
+            "type": "integer"
+          },
+          "n_r": {
+            "title": "N R",
+            "type": "integer"
+          },
+          "f_u_sc": {
+            "title": "F U Sc",
+            "type": "number"
+          },
+          "h_p": {
+            "title": "H P",
+            "type": "number"
+          },
+          "b_o": {
+            "title": "B O",
             "type": "number"
           },
           "deck_ribs_orientation": {
             "title": "Deck Ribs Orientation",
             "type": "string"
+          },
+          "section_shape_c": {
+            "title": "Section Shape C",
+            "type": "string"
+          },
+          "d_pz": {
+            "title": "D Pz",
+            "type": "number"
+          },
+          "tw_pz": {
+            "title": "Tw Pz",
+            "type": "number"
+          },
+          "bf_pz": {
+            "title": "Bf Pz",
+            "type": "number"
+          },
+          "tf_pz": {
+            "title": "Tf Pz",
+            "type": "number"
+          },
+          "dz": {
+            "title": "Dz",
+            "type": "number"
+          },
+          "zw": {
+            "title": "Zw",
+            "type": "number"
+          },
+          "dz_plug": {
+            "title": "Dz Plug",
+            "type": "number"
+          },
+          "wz_plug": {
+            "title": "Wz Plug",
+            "type": "number"
+          },
+          "wd": {
+            "title": "Wd",
+            "type": "number"
           },
           "n_dp": {
             "title": "N Dp",
@@ -4560,9 +5718,133 @@
             "title": "T Dp Tot",
             "type": "number"
           },
+          "t_p": {
+            "title": "T P",
+            "type": "number"
+          },
+          "t_cp": {
+            "title": "T Cp",
+            "type": "number"
+          },
+          "d_cp": {
+            "title": "D Cp",
+            "type": "number"
+          },
+          "db_plus": {
+            "title": "Db Plus",
+            "type": "number"
+          },
+          "db_minus": {
+            "title": "Db Minus",
+            "type": "number"
+          },
+          "a_vc": {
+            "title": "A Vc",
+            "type": "number"
+          },
+          "fy_pz_m": {
+            "title": "Fy Pz M",
+            "type": "number"
+          },
+          "p_cm": {
+            "title": "P Cm",
+            "type": "number"
+          },
+          "n_pm": {
+            "title": "N Pm",
+            "type": "number"
+          },
+          "v_pz_el_m_europe": {
+            "title": "V Pz El M Europe",
+            "type": "number"
+          },
+          "r_n_el_m_aisc": {
+            "title": "R N El M Aisc",
+            "type": "number"
+          },
+          "r_n_pl_m_aisc": {
+            "title": "R N Pl M Aisc",
+            "type": "number"
+          },
+          "v_pz_m_aij": {
+            "title": "V Pz M Aij",
+            "type": "number"
+          },
+          "fy_pz_n": {
+            "title": "Fy Pz N",
+            "type": "number"
+          },
+          "p_cn": {
+            "title": "P Cn",
+            "type": "number"
+          },
+          "n_pn": {
+            "title": "N Pn",
+            "type": "number"
+          },
+          "v_pz_el_n_europe": {
+            "title": "V Pz El N Europe",
+            "type": "number"
+          },
+          "r_n_el_n_aisc": {
+            "title": "R N El N Aisc",
+            "type": "number"
+          },
+          "r_n_pl_n_aisc": {
+            "title": "R N Pl N Aisc",
+            "type": "number"
+          },
+          "v_pz_n_aij": {
+            "title": "V Pz N Aij",
+            "type": "number"
+          },
+          "m_cf_minus_n": {
+            "title": "M Cf Minus N",
+            "type": "number"
+          },
+          "m_cf_plus_n": {
+            "title": "M Cf Plus N",
+            "type": "number"
+          },
+          "m_cf_minus_m": {
+            "title": "M Cf Minus M",
+            "type": "number"
+          },
+          "m_cf_plus_m": {
+            "title": "M Cf Plus M",
+            "type": "number"
+          },
+          "v_bf_plus_n": {
+            "title": "V Bf Plus N",
+            "type": "number"
+          },
+          "v_bf_minus_n": {
+            "title": "V Bf Minus N",
+            "type": "number"
+          },
+          "v_col_n": {
+            "title": "V Col N",
+            "type": "number"
+          },
+          "r_u_n": {
+            "title": "R U N",
+            "type": "number"
+          },
+          "r_u_m": {
+            "title": "R U M",
+            "type": "number"
+          },
+          "ru_rn_el_n": {
+            "title": "Ru Rn El N",
+            "type": "number"
+          },
           "ru_rn_pl_n": {
             "title": "Ru Rn Pl N",
             "type": "number"
+          },
+          "aisc_pz_violation_n": {
+            "title": "Aisc Pz Violation N",
+            "type": "boolean"
           },
           "ru_rn_el_m": {
             "title": "Ru Rn El M",
@@ -4570,6 +5852,18 @@
           },
           "ru_rn_pl_m": {
             "title": "Ru Rn Pl M",
+            "type": "number"
+          },
+          "aisc_pz_violation_m": {
+            "title": "Aisc Pz Violation M",
+            "type": "boolean"
+          },
+          "g_max": {
+            "title": "G Max",
+            "type": "number"
+          },
+          "g_y": {
+            "title": "G Y",
             "type": "number"
           },
           "g_max_g_y": {
@@ -4619,24 +5913,131 @@
         "title": "ConnectionNumberField",
         "enum": [
           "date",
+          "t_pl",
+          "rbs_cut",
+          "s_h",
+          "d_h",
           "d_b",
+          "d_bg",
+          "t_bw",
+          "b_bf",
+          "t_bf",
+          "r_b",
+          "a_b",
+          "i_xb",
+          "z_xb",
+          "z_xb_bfp",
+          "r_yb",
+          "b_bf_rbs",
+          "d_gb_rbs",
+          "a_b_rbs",
+          "i_xb_rbs",
+          "z_xb_rbs",
+          "d_bm",
+          "d_bgm",
+          "t_bwm",
+          "b_bfm",
+          "t_bfm",
+          "z_xbm",
           "f_yb",
           "f_ybw",
           "f_ybf",
+          "f_yb_mill",
+          "f_yb_avg",
+          "l_b",
+          "l_fc",
+          "l_o",
+          "lo_db",
           "d_c",
+          "t_cw",
+          "b_cf",
+          "c_c",
           "t_cf",
+          "r_c",
+          "a_c",
+          "i_xc",
+          "d_cm",
+          "t_wcm",
+          "c_cm",
+          "b_fcm",
+          "t_fcm",
           "f_yc",
+          "f_ydp",
           "f_ycw",
           "f_ycf",
+          "f_yc_mill",
+          "f_yc_avg",
+          "h_c",
+          "d_electrode",
+          "cvn_0f",
+          "cvn_minus20f",
+          "cvn_70f",
           "w",
+          "w_l",
+          "w_r",
           "h_t",
+          "a_s",
+          "f_sk",
+          "f_sm",
+          "h_co",
+          "f_ck",
           "f_cm",
+          "f_c_compr_calc",
+          "d",
+          "h_sc",
+          "n_studs",
+          "n_diss",
+          "n_r",
+          "f_u_sc",
+          "h_p",
+          "b_o",
+          "d_pz",
+          "tw_pz",
+          "bf_pz",
+          "tf_pz",
+          "dz",
+          "zw",
+          "dz_plug",
+          "wz_plug",
+          "wd",
           "n_dp",
           "t_dp",
           "t_dp_tot",
+          "t_p",
+          "t_cp",
+          "d_cp",
+          "db_plus",
+          "db_minus",
+          "a_vc",
+          "fy_pz_m",
+          "p_cm",
+          "n_pm",
+          "v_pz_el_m_europe",
+          "r_n_el_m_aisc",
+          "r_n_pl_m_aisc",
+          "v_pz_m_aij",
+          "fy_pz_n",
+          "p_cn",
+          "n_pn",
+          "v_pz_el_n_europe",
+          "r_n_el_n_aisc",
+          "r_n_pl_n_aisc",
+          "v_pz_n_aij",
+          "m_cf_minus_n",
+          "m_cf_plus_n",
+          "m_cf_minus_m",
+          "m_cf_plus_m",
+          "v_bf_plus_n",
+          "v_bf_minus_n",
+          "v_col_n",
+          "r_u_n",
+          "r_u_m",
+          "ru_rn_el_n",
           "ru_rn_pl_n",
           "ru_rn_el_m",
           "ru_rn_pl_m",
+          "g_max",
+          "g_y",
           "g_max_g_y",
           "latitude",
           "longitude",
@@ -4969,6 +6370,8 @@
           "lambda_s",
           "lambda_c",
           "flexural_buckling",
+          "latitude",
+          "longitude",
           "moment_rotation_count"
         ],
         "type": "string",
@@ -4987,28 +6390,8 @@
           "loading_protocol",
           "forming_process",
           "tube_section",
-          "width__mm",
-          "depth__mm",
-          "flange_thickness__mm",
-          "web_thickness__mm",
-          "area__mm2",
-          "moment_of_inertia__mm4",
-          "radius__mm",
-          "depth_over_t",
-          "plastic_section_modulus__mm3",
-          "axial_load_ratio",
           "axial_load_sequence",
-          "loading_angle",
           "steel_type",
-          "fy_nominal__n_mm2",
-          "fy_measured__n_mm2",
-          "f_ultimate__n_mm2",
-          "mp_measured__knmm",
-          "length__mm",
-          "ke_measured__knmm_rad",
-          "my_pos_100fit__knmm",
-          "theta_p_pos_100fit__rad",
-          "mc_my_pos_100fit",
           "flexural_buckling",
           "moment_rotation_count"
         ],
@@ -5056,7 +6439,7 @@
           },
           "seams": {
             "title": "Seams",
-            "type": "number"
+            "type": "string"
           },
           "tube_section": {
             "title": "Tube Section",
@@ -5246,6 +6629,14 @@
             "title": "Flexural Buckling",
             "type": "string"
           },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
           "moment_rotation_count": {
             "title": "Moment Rotation Count",
             "type": "integer"
@@ -5257,7 +6648,6 @@
         "enum": [
           "date",
           "stiffness_coefficient",
-          "seams",
           "width__mm",
           "depth__mm",
           "flange_thickness__mm",
@@ -5301,6 +6691,8 @@
           "mu_mc_neg_80fit",
           "lambda_s",
           "lambda_c",
+          "latitude",
+          "longitude",
           "moment_rotation_count"
         ],
         "type": "string",
@@ -5349,25 +6741,67 @@
       "MaterialField": {
         "title": "MaterialField",
         "enum": [
-          "id",
+          "hidden_index",
           "experimental_program",
+          "id",
           "profile_type",
           "profile",
           "source",
           "thickness",
           "grade",
           "spec",
+          "lp",
           "size",
-          "t_a__deg_c_",
-          "date",
+          "gage_length__mm_",
+          "avg_reduced_dia__mm_",
+          "avg_fractured_dia_top__mm_",
+          "avg_fractured_dia_bot__mm_",
           "fy_n__mpa_",
           "fu_n__mpa_",
+          "t_a__deg_c_",
+          "date",
+          "investigator",
+          "location",
+          "machine",
+          "pid_force_k_p",
+          "pid_force_t_i",
+          "pid_force_t_d",
+          "pid_disp_k_p",
+          "pid_disp_t_i",
+          "pid_disp_t_d",
+          "pid_extenso_k_p",
+          "pid_extenso_t_i",
+          "pid_extenso_t_d",
           "yield_stress__mpa_",
+          "elastic_modulus__mpa_",
           "fracture_strain",
+          "c",
+          "si",
+          "mn",
+          "p",
+          "s",
+          "n",
+          "cu",
+          "mo",
+          "ni",
+          "cr",
+          "v",
+          "nb",
+          "ti",
+          "al",
+          "b",
+          "zr",
+          "sn",
+          "ca",
+          "h",
+          "fe",
+          "file",
           "reference",
           "link",
           "latitude",
           "longitude",
+          "citekey",
+          "uvc_phi__prct_",
           "uvc_e__mpa_",
           "uvc_sigma__mpa_",
           "uvc_q__mpa_",
@@ -5378,6 +6812,13 @@
           "uvc_g1",
           "uvc_c2__mpa_",
           "uvc_g2",
+          "hidden_dataset_index",
+          "uvc_sigma_sat__mpa_",
+          "uvc_sigma_hard__mpa_",
+          "uvc_rho_yield",
+          "uvc_rho_iso",
+          "uvc_rho_kin",
+          "uvc_rho_d",
           "type",
           "year",
           "stress_strain_count"
@@ -5388,43 +6829,38 @@
       "MaterialModel": {
         "title": "MaterialModel",
         "required": [
-          "id",
+          "hidden_index",
           "experimental_program",
+          "id",
           "profile_type",
           "profile",
           "source",
           "thickness",
           "grade",
-          "spec",
+          "lp",
           "size",
           "date",
-          "fy_n__mpa_",
-          "fu_n__mpa_",
-          "reference",
-          "latitude",
-          "longitude",
-          "uvc_e__mpa_",
-          "uvc_sigma__mpa_",
-          "uvc_q__mpa_",
+          "investigator",
+          "location",
+          "machine",
           "uvc_b",
-          "uvc_d__mpa_",
-          "uvc_a",
-          "uvc_c1__mpa_",
-          "uvc_g1",
-          "uvc_c2__mpa_",
-          "uvc_g2",
+          "hidden_dataset_index",
           "type",
           "year",
           "stress_strain_count"
         ],
         "type": "object",
         "properties": {
-          "id": {
-            "title": "Id",
-            "type": "string"
+          "hidden_index": {
+            "title": "Hidden Index",
+            "type": "integer"
           },
           "experimental_program": {
             "title": "Experimental Program",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
             "type": "string"
           },
           "profile_type": {
@@ -5441,7 +6877,7 @@
           },
           "thickness": {
             "title": "Thickness",
-            "type": "integer"
+            "type": "number"
           },
           "grade": {
             "title": "Grade",
@@ -5451,9 +6887,37 @@
             "title": "Spec",
             "type": "string"
           },
+          "lp": {
+            "title": "Lp",
+            "type": "string"
+          },
           "size": {
             "title": "Size",
             "type": "string"
+          },
+          "gage_length__mm_": {
+            "title": "Gage Length  Mm ",
+            "type": "number"
+          },
+          "avg_reduced_dia__mm_": {
+            "title": "Avg Reduced Dia  Mm ",
+            "type": "number"
+          },
+          "avg_fractured_dia_top__mm_": {
+            "title": "Avg Fractured Dia Top  Mm ",
+            "type": "number"
+          },
+          "avg_fractured_dia_bot__mm_": {
+            "title": "Avg Fractured Dia Bot  Mm ",
+            "type": "number"
+          },
+          "fy_n__mpa_": {
+            "title": "Fy N  Mpa ",
+            "type": "number"
+          },
+          "fu_n__mpa_": {
+            "title": "Fu N  Mpa ",
+            "type": "number"
           },
           "t_a__deg_c_": {
             "title": "T A  Deg C ",
@@ -5464,21 +6928,149 @@
             "type": "string",
             "format": "date"
           },
-          "fy_n__mpa_": {
-            "title": "Fy N  Mpa ",
-            "type": "integer"
+          "investigator": {
+            "title": "Investigator",
+            "type": "string"
           },
-          "fu_n__mpa_": {
-            "title": "Fu N  Mpa ",
-            "type": "integer"
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "machine": {
+            "title": "Machine",
+            "type": "string"
+          },
+          "pid_force_k_p": {
+            "title": "Pid Force K P",
+            "type": "number"
+          },
+          "pid_force_t_i": {
+            "title": "Pid Force T I",
+            "type": "number"
+          },
+          "pid_force_t_d": {
+            "title": "Pid Force T D",
+            "type": "number"
+          },
+          "pid_disp_k_p": {
+            "title": "Pid Disp K P",
+            "type": "number"
+          },
+          "pid_disp_t_i": {
+            "title": "Pid Disp T I",
+            "type": "number"
+          },
+          "pid_disp_t_d": {
+            "title": "Pid Disp T D",
+            "type": "number"
+          },
+          "pid_extenso_k_p": {
+            "title": "Pid Extenso K P",
+            "type": "number"
+          },
+          "pid_extenso_t_i": {
+            "title": "Pid Extenso T I",
+            "type": "number"
+          },
+          "pid_extenso_t_d": {
+            "title": "Pid Extenso T D",
+            "type": "number"
           },
           "yield_stress__mpa_": {
             "title": "Yield Stress  Mpa ",
             "type": "number"
           },
+          "elastic_modulus__mpa_": {
+            "title": "Elastic Modulus  Mpa ",
+            "type": "number"
+          },
           "fracture_strain": {
             "title": "Fracture Strain",
             "type": "number"
+          },
+          "c": {
+            "title": "C",
+            "type": "number"
+          },
+          "si": {
+            "title": "Si",
+            "type": "number"
+          },
+          "mn": {
+            "title": "Mn",
+            "type": "number"
+          },
+          "p": {
+            "title": "P",
+            "type": "number"
+          },
+          "s": {
+            "title": "S",
+            "type": "number"
+          },
+          "n": {
+            "title": "N",
+            "type": "number"
+          },
+          "cu": {
+            "title": "Cu",
+            "type": "number"
+          },
+          "mo": {
+            "title": "Mo",
+            "type": "number"
+          },
+          "ni": {
+            "title": "Ni",
+            "type": "number"
+          },
+          "cr": {
+            "title": "Cr",
+            "type": "number"
+          },
+          "v": {
+            "title": "V",
+            "type": "number"
+          },
+          "nb": {
+            "title": "Nb",
+            "type": "number"
+          },
+          "ti": {
+            "title": "Ti",
+            "type": "number"
+          },
+          "al": {
+            "title": "Al",
+            "type": "number"
+          },
+          "b": {
+            "title": "B",
+            "type": "number"
+          },
+          "zr": {
+            "title": "Zr",
+            "type": "number"
+          },
+          "sn": {
+            "title": "Sn",
+            "type": "number"
+          },
+          "ca": {
+            "title": "Ca",
+            "type": "number"
+          },
+          "h": {
+            "title": "H",
+            "type": "number"
+          },
+          "fe": {
+            "title": "Fe",
+            "type": "number"
+          },
+          "file": {
+            "title": "File",
+            "type": "string"
           },
           "reference": {
             "title": "Reference",
@@ -5494,6 +7086,14 @@
           },
           "longitude": {
             "title": "Longitude",
+            "type": "number"
+          },
+          "citekey": {
+            "title": "Citekey",
+            "type": "string"
+          },
+          "uvc_phi__prct_": {
+            "title": "Uvc Phi  Prct ",
             "type": "number"
           },
           "uvc_e__mpa_": {
@@ -5536,6 +7136,34 @@
             "title": "Uvc G2",
             "type": "number"
           },
+          "hidden_dataset_index": {
+            "title": "Hidden Dataset Index",
+            "type": "integer"
+          },
+          "uvc_sigma_sat__mpa_": {
+            "title": "Uvc Sigma Sat  Mpa ",
+            "type": "number"
+          },
+          "uvc_sigma_hard__mpa_": {
+            "title": "Uvc Sigma Hard  Mpa ",
+            "type": "number"
+          },
+          "uvc_rho_yield": {
+            "title": "Uvc Rho Yield",
+            "type": "number"
+          },
+          "uvc_rho_iso": {
+            "title": "Uvc Rho Iso",
+            "type": "number"
+          },
+          "uvc_rho_kin": {
+            "title": "Uvc Rho Kin",
+            "type": "number"
+          },
+          "uvc_rho_d": {
+            "title": "Uvc Rho D",
+            "type": "number"
+          },
           "type": {
             "title": "Type",
             "type": "string"
@@ -5553,14 +7181,50 @@
       "MaterialNumberField": {
         "title": "MaterialNumberField",
         "enum": [
+          "hidden_index",
           "thickness",
-          "t_a__deg_c_",
+          "gage_length__mm_",
+          "avg_reduced_dia__mm_",
+          "avg_fractured_dia_top__mm_",
+          "avg_fractured_dia_bot__mm_",
           "fy_n__mpa_",
           "fu_n__mpa_",
+          "t_a__deg_c_",
+          "pid_force_k_p",
+          "pid_force_t_i",
+          "pid_force_t_d",
+          "pid_disp_k_p",
+          "pid_disp_t_i",
+          "pid_disp_t_d",
+          "pid_extenso_k_p",
+          "pid_extenso_t_i",
+          "pid_extenso_t_d",
           "yield_stress__mpa_",
+          "elastic_modulus__mpa_",
           "fracture_strain",
+          "c",
+          "si",
+          "mn",
+          "p",
+          "s",
+          "n",
+          "cu",
+          "mo",
+          "ni",
+          "cr",
+          "v",
+          "nb",
+          "ti",
+          "al",
+          "b",
+          "zr",
+          "sn",
+          "ca",
+          "h",
+          "fe",
           "latitude",
           "longitude",
+          "uvc_phi__prct_",
           "uvc_e__mpa_",
           "uvc_sigma__mpa_",
           "uvc_q__mpa_",
@@ -5571,6 +7235,13 @@
           "uvc_g1",
           "uvc_c2__mpa_",
           "uvc_g2",
+          "hidden_dataset_index",
+          "uvc_sigma_sat__mpa_",
+          "uvc_sigma_hard__mpa_",
+          "uvc_rho_yield",
+          "uvc_rho_iso",
+          "uvc_rho_kin",
+          "uvc_rho_d",
           "year",
           "stress_strain_count"
         ],
@@ -5676,21 +7347,11 @@
           "profile_type",
           "profile",
           "steel",
-          "fy_n",
-          "fy_e",
-          "h",
-          "b",
-          "tw",
-          "tf",
-          "r",
-          "A",
           "sigma_0_f",
           "sigma_0_w",
           "flange_nr_data",
           "plot_sf",
           "reference",
-          "latitude",
-          "longitude",
           "qp_coefficient_count",
           "distribution_F1_count",
           "distribution_F2_count",
@@ -5765,7 +7426,7 @@
           },
           "A": {
             "title": "A",
-            "type": "integer"
+            "type": "number"
           },
           "sigma_0_f": {
             "title": "Sigma 0 F",
