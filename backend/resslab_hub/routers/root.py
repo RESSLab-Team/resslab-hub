@@ -88,16 +88,33 @@ async def validate_data(
 
             response = {
                 "valid": all(result.is_valid() for result in results),
-                "results": [
+                "error_results": [
                     {
                         "file": result.filename,
                         "valid": result.is_valid(),
+                        "errors_count": len(result.errors),
                         "errors": [str(err) for err in result.errors],
                         "warnings": [str(warn) for warn in result.warnings],
                     }
                     for result in results
+                    if not result.is_valid()
+                ],
+                "valid_results": [
+                    {
+                        "file": result.filename,
+                        "valid": result.is_valid(),
+                        "warnings": [str(warn) for warn in result.warnings],
+                    }
+                    for result in results
+                    if result.is_valid()
                 ],
             }
+            response["message"] = (
+                "Validation successful" if response["valid"] else "Validation failed"
+            )
+            response["error_count"] = sum(
+                len(result.errors) for result in results if result.is_valid() is False
+            )
             # If any validation errors exist, return 422
             if not response["valid"]:
                 return JSONResponse(

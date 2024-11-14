@@ -444,7 +444,8 @@ def upload_one(input_type: Type, filename: str) -> str:
                 lambda id, index, value: ConnectionBeamWest(
                     connection_id=id,
                     id=index,
-                    chord_rotation=value.get("Chrord Rotation, θ [rads]"),
+                    chord_rotation=value.get("Chord Rotation [rads]")
+                    or value.get("Chrord Rotation, θ [rads]"),
                     moment=value.get("Moment [kN-mm]"),
                 ),
             )

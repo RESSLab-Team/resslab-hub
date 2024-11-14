@@ -6,7 +6,6 @@ from sqlalchemy import (
     Column,
     Float,
     ForeignKey,
-    Integer,
     Numeric,
     SmallInteger,
     String,
@@ -74,31 +73,33 @@ class ResidualStress(Base):  # type: ignore
 
     __tablename__ = "residual_stress"
 
+    # START_OF_GENERATED_CODE
     id = Column(String, primary_key=True)
     experimental_program = Column(String, nullable=False)
     date = Column(SmallInteger, nullable=False)
     profile_type = Column(String, nullable=False)
     profile = Column(String, nullable=False)
-    spec_var = Column(String)
+    spec_var = Column(String, nullable=True)
     steel = Column(String, nullable=False)
-    fy_n = Column(SmallInteger, nullable=False)
-    fy_e = Column(Numeric, nullable=False)
-    fy_mf = Column(DecimalFloat, nullable=False)
-    fy_mw = Column(DecimalFloat, nullable=False)
-    h = Column(Numeric, nullable=False)
-    b = Column(Numeric, nullable=False)
-    tw = Column(Numeric, nullable=False)
-    tf = Column(Numeric, nullable=False)
-    r = Column(Numeric, nullable=False)
-    A = Column(Integer, nullable=False)
+    fy_n = Column(DecimalFloat, nullable=True)
+    fy_e = Column(Numeric, nullable=True)
+    fy_mf = Column(DecimalFloat, nullable=True)
+    fy_mw = Column(DecimalFloat, nullable=True)
+    h = Column(DecimalFloat, nullable=True)
+    b = Column(DecimalFloat, nullable=True)
+    tw = Column(DecimalFloat, nullable=True)
+    tf = Column(DecimalFloat, nullable=True)
+    r = Column(DecimalFloat, nullable=True)
+    A = Column(DecimalFloat, nullable=True)
     sigma_0_f = Column(Numeric, nullable=False)
     sigma_0_w = Column(Numeric, nullable=False)
     flange_nr_data = Column(SmallInteger, nullable=False)
     plot_sf = Column(Numeric, nullable=False)
     reference = Column(String, nullable=False)
-    link = Column(String)
-    latitude = Column(Numeric, nullable=False)
-    longitude = Column(Numeric, nullable=False)
+    link = Column(String, nullable=True)
+    latitude = Column(Numeric, nullable=True)
+    longitude = Column(Numeric, nullable=True)
+    # END_OF_GENERATED_CODE
 
     qp_coefficient_count = column_property(
         select(func.count(ResidualStressQPCoefficient.id))
