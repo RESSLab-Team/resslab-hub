@@ -34,6 +34,7 @@ class ConnectionModel(BaseModel):
     def change_nan_to_none(cls, v) -> Optional[Decimal]:
         return _change_nan_to_none(v)
 
+    # START_OF_GENERATED_CODE_connection
     id: str
     experimental_program: str
     date: int
@@ -73,6 +74,7 @@ class ConnectionModel(BaseModel):
     link: Optional[str]
     latitude: Decimal
     longitude: Decimal
+    # END_OF_GENERATED_CODE_connection
 
     beam_count: int
     beam_west_count: int
@@ -143,6 +145,7 @@ class ColumnModel(BaseModel):
     def change_nan_to_none(cls, v) -> Optional[Decimal]:
         return _change_nan_to_none(v)
 
+    # START_OF_GENERATED_CODE_column
     id: str
     experimental_program: str
     date: int
@@ -167,6 +170,7 @@ class ColumnModel(BaseModel):
     link: str
     latitude: Decimal
     longitude: Decimal
+    # END_OF_GENERATED_CODE_column
 
     built_up: bool
     axial_shortening_count: int
@@ -194,6 +198,7 @@ ColumnNumberField = Enum(
 
 
 class BraceModel(BaseModel):
+    # START_OF_GENERATED_CODE_brace
     id: str
     investigator: str
     specimen_ID: str
@@ -220,6 +225,7 @@ class BraceModel(BaseModel):
     link: str
     latitude: Decimal
     longitude: Decimal
+    # END_OF_GENERATED_CODE_brace
 
     displacement_count: int
 
@@ -244,6 +250,7 @@ BraceNumberField = Enum(
 
 
 class MaterialModel(BaseModel):
+    # START_OF_GENERATED_CODE_material
     id: str
     experimental_program: str
     profile_type: str
@@ -274,6 +281,7 @@ class MaterialModel(BaseModel):
     uvc_g1: Decimal
     uvc_c2__mpa_: Decimal
     uvc_g2: Decimal
+    # END_OF_GENERATED_CODE_material
 
     type: str
     year: int
@@ -312,6 +320,7 @@ MaterialDateField = Enum(
 
 
 class ResidualStressModel(BaseModel):
+    # START_OF_GENERATED_CODE_residual_stress
     id: str
     experimental_program: str
     date: int
@@ -337,6 +346,7 @@ class ResidualStressModel(BaseModel):
     link: Optional[str]
     latitude: Decimal
     longitude: Decimal
+    # END_OF_GENERATED_CODE_residual_stress
 
     qp_coefficient_count: int
 
@@ -367,6 +377,7 @@ ResidualStressNumberField = Enum(
 
 
 class HSSColumnModel(BaseModel):
+    # START_OF_GENERATED_CODE_hss_column
     id: str
     date: int
     investigator: str
@@ -377,7 +388,7 @@ class HSSColumnModel(BaseModel):
     test_type: str
     loading_protocol: str
     forming_process: str
-    seams: Optional[Decimal]
+    seams: Optional[str]
     tube_section: str
     width__mm: Decimal
     depth__mm: Decimal
@@ -425,6 +436,7 @@ class HSSColumnModel(BaseModel):
     lambda_s: Optional[Decimal]
     lambda_c: Optional[Decimal]
     flexural_buckling: str
+    # END_OF_GENERATED_CODE_hss_column
 
     moment_rotation_count: int
 

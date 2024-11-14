@@ -19,6 +19,8 @@ make generate-model
 
 You then need to check the generated code for any potential issues. And then you must run `make database-revision` to create a new revision with the proper changes.
 
+And don't forget to align the types in resslab-hub/backend/resslab_hub/models/api.py
+
 
 ### Alembic
 
