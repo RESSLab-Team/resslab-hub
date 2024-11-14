@@ -30,9 +30,29 @@ export function createResidualModels(
   distributionW1: number[][],
   distributionF2?: number[][]
 ) {
-  const coeff = qpCoefficient.map((serie) => serie[0])
+
 
   const { h_over_b, h, A, b, tf, tw, fy_n } = residual
+  if (fy_n == undefined) {
+    throw new Error('fy_n is undefined')
+  }
+  if (b == undefined) {
+    throw new Error('b is undefined')
+  }
+  if (tf == undefined) {
+    throw new Error('tf is undefined')
+  }
+  if (tw == undefined) {
+    throw new Error('tw is undefined')
+  }
+  if (h == undefined) {
+    throw new Error('h is undefined')
+  }
+  if (A == undefined) {
+    throw new Error('A is undefined')
+  }
+  const coeff = qpCoefficient.map((serie) => serie[0])
+
 
   const h0 = h - 2 * tf
 
@@ -151,6 +171,7 @@ export function createResidualModels(
 
   // Define alpha_SP and calculate parameters af, aw, cf, and cw
   const alpha_SP = 0.35
+  
   const af =
     (-alpha_SP *
       fy_n *
@@ -191,13 +212,13 @@ export function createResidualModels(
     [0, 0, 1, 1 / 3, 1 / 5],
     [0, 0, 1 / 3, 1 / 5, 1 / 7]
   ])
-  const Af_Aw: number = (2 * b * tf) / (h0 * tw)
+  const Af_Aw: number = (2 * (b ?? 0) * (tf ?? 0)) / (h0 * (tw ?? 0))
   const VECT_b = matrix([
     [1 / 2],
     [17 / 20],
     [1 / 2],
     [(-13 / 60) * Af_Aw],
-    [(Af_Aw * (Math.pow(b, 2) - 11 * Math.pow(h0 + tf, 2))) / (300 * Math.pow(h0, 2))]
+    [(Af_Aw * (Math.pow(b ?? 0, 2) - 11 * Math.pow(h0 + (tf ?? 0), 2))) / (300 * Math.pow(h0, 2))]
   ])
 
   // Solve system to get coefficients
@@ -205,12 +226,12 @@ export function createResidualModels(
 
   // Define the stress functions for Bradford and Trahair model
   const BT_flange_RS = (x3: number) =>
-    fy_n * (coeff_BT.get([0, 0]) - coeff_BT.get([1, 0]) * Math.pow((2 * x3) / b, 2))
+    (fy_n ?? 0) * (coeff_BT.get([0, 0]) - coeff_BT.get([1, 0]) * Math.pow((2 * x3) / (b ?? 0), 2))
   const BT_web_RS = (y3: number) =>
-    fy_n *
+    (fy_n ?? 0) *
     (coeff_BT.get([2, 0]) +
-      coeff_BT.get([3, 0]) * Math.pow((2 * y3) / (h - tf), 2) +
-      coeff_BT.get([4, 0]) * Math.pow((2 * y3) / (h - tf), 4))
+      coeff_BT.get([3, 0]) * Math.pow((2 * y3) / ((h ?? 0) - (tf ?? 0)), 2) +
+      coeff_BT.get([4, 0]) * Math.pow((2 * y3) / ((h ?? 0) - (tf ?? 0)), 4))
 
   return {
     x,
@@ -271,7 +292,7 @@ export function createLineSeries(
         width: 3
       },
 
-      data: distributionF1.map((x) => [x[0] - b / 2, x[1]])
+      data: distributionF1.map((x) => [b ? x[0] - b / 2: x[0], x[1]])
     },
     {
       name: 'Measured residual stresses F2',
@@ -281,7 +302,7 @@ export function createLineSeries(
       },
       color: colorPalette.at(-1),
       data:
-        flange_nr_data > 1 && distributionF2 ? distributionF2.map((x) => [x[0] - b / 2, x[1]]) : []
+        flange_nr_data > 1 && distributionF2 ? distributionF2.map((x) => [b ? x[0] - b / 2 : x[0], x[1]]) : []
     },
     {
       name: 'Skiadopoulos et al., 2023',
@@ -292,20 +313,20 @@ export function createLineSeries(
       xAxis: {
         max: 100
       },
-      data: x.map((x) => [x - b / 2, QP_Model_full_flange_RS(x)])
+      data: x.map((x) => [b ? x - b / 2 : x, QP_Model_full_flange_RS(x)])
     },
 
     {
       name: 'Galambos and Ketter 1959',
 
       lineStyle: { type: 'dashed' },
-      data: x.map((x) => [x - b / 2, GK_flange(x)])
+      data: x.map((x) => [b ? x - b / 2 : x, GK_flange(x)])
     },
     {
       name: 'ECCS 1984',
 
       lineStyle: { type: 'dashed' },
-      data: x.map((x) => [x - b / 2, ECCS_flange(x)])
+      data: x.map((x) => [b ? x - b / 2 : x, ECCS_flange(x)])
     },
     {
       name: 'Young 1975',
@@ -364,19 +385,19 @@ export function createLineSeries(
       name: 'Young 1975',
 
       lineStyle: { type: 'dashed' },
-      data: y3.map((y, i) => [YOUNG_web_RS(y), y + h / 2])
+      data: y3.map((y, i) => [YOUNG_web_RS(y),h ? y + h / 2: y])
     },
     {
       name: 'Szalai and Papp 2005',
 
       lineStyle: { type: 'dashed' },
-      data: y3.map((y, i) => [SP_web_RS(y), y + h / 2])
+      data: y3.map((y, i) => [SP_web_RS(y),h ? y + h / 2 : y])
     },
     {
       name: 'Bradford and Trahair 1985',
 
       lineStyle: { type: 'dashed' },
-      data: y3.map((y, i) => [BT_web_RS(y), y + h / 2])
+      data: y3.map((y, i) => [BT_web_RS(y), h ? y + h / 2 : y])
     }
   ].map((d) => ({ ...d, encode: { tooltip: [0] } })) as LineSeriesOption[]
 

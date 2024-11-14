@@ -34,20 +34,20 @@ watch(
               const strain = series.map((serie) => serie[1])
               const uvcStress = computeUvcStress(
                 strain,
-                material.uvc_e__mpa_ * 1000,
-                material.uvc_sigma__mpa_,
-                material.uvc_q__mpa_,
+                (material?.uvc_e__mpa_ ?? 0) * 1000,
+                (material.uvc_sigma__mpa_ ?? 0),
+                (material.uvc_q__mpa_ ?? 0),
                 material.uvc_b,
-                material.uvc_d__mpa_,
-                material.uvc_a,
+                (material.uvc_d__mpa_ ?? 0),
+                (material.uvc_a ?? 0),
                 [
                   {
-                    c: material.uvc_c1__mpa_,
-                    gamma: material.uvc_g1
+                    c: material.uvc_c1__mpa_ ?? 0,
+                    gamma: material.uvc_g1 ?? 0
                   },
                   {
-                    c: material.uvc_c2__mpa_,
-                    gamma: material.uvc_g2
+                    c: material.uvc_c2__mpa_ ?? 0,
+                    gamma: material.uvc_g2 ?? 0
                   }
                 ]
               )
@@ -80,8 +80,8 @@ watch(
 
 <template>
   <common-detail
-    :reference="material.reference"
-    :link="material.link"
+    :reference="material.reference ?? ''"
+    :link="material.link ?? ''"
     :carousel-items="carouselItems"
     :carousel-height="400"
     @close="emit('close')"
@@ -126,7 +126,7 @@ watch(
           <h2>Material Model Parameters *</h2>
           <p>
             <property-item name="Young's modulus, E" unit="MPa">
-              {{ formatNumber(material.uvc_e__mpa_ * 1000, 1) }}
+              {{ formatNumber((material.uvc_e__mpa_ ?? 0) * 1000, 1) }}
             </property-item>
             <property-item name="Initial yield stress, σyo" unit="MPa">
               {{ formatNumber(material.uvc_sigma__mpa_, 1) }}

@@ -38,20 +38,64 @@ export const BraceField = {
     CrossSectionSize: 'cross_section_size',
     Area: 'area',
     DBr: 'd_br',
+    BBr: 'b_br',
     TBr: 't_br',
+    WBr: 'w_br',
+    IX: 'i_x',
+    IY: 'i_y',
+    RX: 'r_x',
+    RY: 'r_y',
+    ZX: 'z_x',
+    ZY: 'z_y',
+    J: 'j',
+    Configuration: 'configuration',
+    BraceAngle: 'brace_angle',
+    LB: 'l_b',
+    LBClear: 'l_b_clear',
     Steel: 'steel',
+    E: 'e',
     FYn: 'f_yn',
     FyM: 'fy_m',
     FUm: 'f_um',
     BoundaryCondition: 'boundary_condition',
+    L1t: 'l_1t',
+    L2t: 'l_2t',
+    L3t: 'l_3t',
+    L4t: 'l_4t',
+    L5t: 'l_5t',
+    L6t: 'l_6t',
+    L7t: 'l_7t',
     TT: 't_t',
+    L1b: 'l_1b',
+    L2b: 'l_2b',
+    L3b: 'l_3b',
+    L4b: 'l_4b',
+    L5b: 'l_5b',
+    L6b: 'l_6b',
+    L7b: 'l_7b',
+    L8b: 'l_8b',
+    TB: 't_b',
     SteelGp: 'steel_gp',
     FYnGp: 'f_yn_gp',
     FYmGp: 'f_ym_gp',
     FUmGp: 'f_um_gp',
+    WeldType: 'weld_type',
+    LWeld: 'l_weld',
+    TWeld: 't_weld',
+    StickSpace: 'stick_space',
+    NubBolts: 'nub_bolts',
+    BoltSize: 'bolt_size',
+    BoltMat: 'bolt_mat',
     ReinforcementPl: 'reinforcement_pl',
     LoadingProtocol: 'loading_protocol',
+    PT: 'p_t',
+    PTTheory: 'p_t_theory',
+    PC: 'p_c',
     KlR: 'kl_r',
+    LC: 'l_c',
+    LCTheory: 'l_c_theory',
+    KAssumed: 'k_assumed',
+    KlRTheory: 'kl_r_theory',
     Reference: 'reference',
     Link: 'link',
     Latitude: 'latitude',
@@ -109,19 +153,97 @@ export interface BraceModel {
      * @type {number}
      * @memberof BraceModel
      */
-    'area': number;
+    'area'?: number;
     /**
      * 
      * @type {number}
      * @memberof BraceModel
      */
-    'd_br': number;
+    'd_br'?: number;
     /**
      * 
      * @type {number}
      * @memberof BraceModel
      */
-    't_br': number;
+    'b_br'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    't_br'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'w_br'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'i_x'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'i_y'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'r_x'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'r_y'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'z_x'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'z_y'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'j'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'configuration': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'brace_angle': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'l_b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'l_b_clear'?: number;
     /**
      * 
      * @type {string}
@@ -133,7 +255,13 @@ export interface BraceModel {
      * @type {number}
      * @memberof BraceModel
      */
-    'f_yn': number;
+    'e'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'f_yn'?: number;
     /**
      * 
      * @type {number}
@@ -154,10 +282,106 @@ export interface BraceModel {
     'boundary_condition': string;
     /**
      * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_1t'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_2t'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_3t'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'l_4t'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_5t'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_6t'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_7t'?: string;
+    /**
+     * 
      * @type {number}
      * @memberof BraceModel
      */
     't_t'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_1b'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_2b'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_3b'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_4b'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_5b'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'l_6b'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'l_7b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'l_8b'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    't_b'?: string;
     /**
      * 
      * @type {string}
@@ -187,6 +411,48 @@ export interface BraceModel {
      * @type {string}
      * @memberof BraceModel
      */
+    'weld_type'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'l_weld'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    't_weld'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'stick_space'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'nub_bolts'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'bolt_size'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
+    'bolt_mat'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof BraceModel
+     */
     'reinforcement_pl'?: string;
     /**
      * 
@@ -199,7 +465,49 @@ export interface BraceModel {
      * @type {number}
      * @memberof BraceModel
      */
-    'kl_r': number;
+    'p_t'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'p_t_theory'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'p_c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'kl_r'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'l_c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'l_c_theory'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'k_assumed'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof BraceModel
+     */
+    'kl_r_theory'?: number;
     /**
      * 
      * @type {string}
@@ -211,19 +519,19 @@ export interface BraceModel {
      * @type {string}
      * @memberof BraceModel
      */
-    'link': string;
+    'link'?: string;
     /**
      * 
      * @type {number}
      * @memberof BraceModel
      */
-    'latitude': number;
+    'latitude'?: number;
     /**
      * 
      * @type {number}
      * @memberof BraceModel
      */
-    'longitude': number;
+    'longitude'?: number;
     /**
      * 
      * @type {number}
@@ -241,15 +549,42 @@ export const BraceNumberField = {
     Date: 'date',
     Area: 'area',
     DBr: 'd_br',
+    BBr: 'b_br',
     TBr: 't_br',
+    WBr: 'w_br',
+    IX: 'i_x',
+    IY: 'i_y',
+    RX: 'r_x',
+    RY: 'r_y',
+    ZX: 'z_x',
+    ZY: 'z_y',
+    J: 'j',
+    BraceAngle: 'brace_angle',
+    LB: 'l_b',
+    LBClear: 'l_b_clear',
+    E: 'e',
     FYn: 'f_yn',
     FyM: 'fy_m',
     FUm: 'f_um',
+    L4t: 'l_4t',
     TT: 't_t',
+    L7b: 'l_7b',
+    L8b: 'l_8b',
     FYnGp: 'f_yn_gp',
     FYmGp: 'f_ym_gp',
     FUmGp: 'f_um_gp',
+    LWeld: 'l_weld',
+    TWeld: 't_weld',
+    StickSpace: 'stick_space',
+    NubBolts: 'nub_bolts',
+    PT: 'p_t',
+    PTTheory: 'p_t_theory',
+    PC: 'p_c',
     KlR: 'kl_r',
+    LC: 'l_c',
+    LCTheory: 'l_c_theory',
+    KAssumed: 'k_assumed',
+    KlRTheory: 'kl_r_theory',
     Latitude: 'latitude',
     Longitude: 'longitude',
     DisplacementCount: 'displacement_count'
@@ -271,20 +606,93 @@ export const ColumnField = {
     SectionC: 'section_c',
     SpecimenDesignation: 'specimen_designation',
     DC: 'd_c',
+    KC: 'k_c',
+    K1C: 'k1_c',
+    HC: 'h_c',
+    TCw: 't_cw',
     HOverTCw: 'h_over_t_cw',
+    BCf: 'b_cf',
+    TCf: 't_cf',
     BFOverTCf: 'b_f_over_t_cf',
+    ACm: 'a_cm',
+    ACn: 'a_cn',
+    IXb: 'i_xb',
+    IXc: 'i_xc',
+    SXc: 's_xc',
+    SYc: 's_yc',
+    ZXc: 'z_xc',
+    ZYc: 'z_yc',
+    JC: 'j_c',
+    CWc: 'c_wc',
+    RYc: 'r_yc',
+    RXc: 'r_xc',
+    LC: 'l_c',
+    LSc: 'l_sc',
+    LBc: 'l_bc',
     LBOverRYc: 'l_b_over_r_yc',
+    KXc: 'k_xc',
+    KYc: 'k_yc',
+    LambdaXc: 'lambda_xc',
+    LambdaYc: 'lambda_yc',
+    LambdaLtb: 'lambda_ltb',
     SteelC: 'steel_c',
+    RY: 'r_y',
+    RT: 'r_t',
     FYmf: 'f_ymf',
     FYmw: 'f_ymw',
+    FUmf: 'f_umf',
+    FUmw: 'f_umw',
     FYn: 'f_yn',
+    FUn: 'f_un',
+    ENc: 'e_nc',
+    EMc: 'e_mc',
+    GNc: 'g_nc',
+    GMc: 'g_mc',
     BoundaryCondition: 'boundary_condition',
+    PYm: 'p_ym',
+    PYn: 'p_yn',
+    PYe: 'p_ye',
     LateralLp: 'lateral_lp',
     DirectionLp: 'direction_lp',
     AxisOfBending: 'axis_of_bending',
     AxialLp: 'axial_lp',
+    PG: 'p_g',
+    PT: 'p_t',
+    PC: 'p_c',
     PGOverPYm: 'p_g_over_p_ym',
+    PGOverPYn: 'p_g_over_p_yn',
+    PTOverPYm: 'p_t_over_p_ym',
+    PCOverPYm: 'p_c_over_p_ym',
+    PCOverPYn: 'p_c_over_p_yn',
+    P: 'p',
+    TTopPlate: 't_top_plate',
+    TBottomPlate: 't_bottom_plate',
+    TestProcedure: 'test_procedure',
+    Comments: 'comments',
+    KTest: 'k_test',
+    KFlexureTh: 'k_flexure_th',
+    KShearTh: 'k_shear_th',
+    KTheory: 'k_theory',
+    ThY: 'th_y',
+    ThLb: 'th_lb',
     Th80: 'th_80',
+    Th50: 'th_50',
+    Th20: 'th_20',
+    Th1l: 'th_1l',
+    Th2l: 'th_2l',
+    Th3l: 'th_3l',
+    Th4l: 'th_4l',
+    Th6l: 'th_6l',
+    D80: 'd_80',
+    D50: 'd_50',
+    D20: 'd_20',
+    FClassUs: 'f_class_us',
+    WClassUs: 'w_class_us',
+    CsClassUs: 'cs_class_us',
+    FClassEu: 'f_class_eu',
+    WClassEu: 'w_class_eu',
+    CsClassEu: 'cs_class_eu',
+    Cfe: 'cfe',
     Reference: 'reference',
     Link: 'link',
     Latitude: 'latitude',
@@ -339,25 +747,181 @@ export interface ColumnModel {
      * @type {number}
      * @memberof ColumnModel
      */
-    'd_c': number;
+    'd_c'?: number;
     /**
      * 
      * @type {number}
      * @memberof ColumnModel
      */
-    'h_over_t_cw': number;
+    'k_c'?: number;
     /**
      * 
      * @type {number}
      * @memberof ColumnModel
      */
-    'b_f_over_t_cf': number;
+    'k1_c'?: number;
     /**
      * 
      * @type {number}
      * @memberof ColumnModel
      */
-    'l_b_over_r_yc': number;
+    'h_c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    't_cw'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'h_over_t_cw'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'b_cf'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    't_cf'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'b_f_over_t_cf'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'a_cm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'a_cn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'i_xb'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'i_xc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    's_xc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    's_yc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'z_xc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'z_yc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'j_c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'c_wc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'r_yc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'r_xc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'l_c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'l_sc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'l_bc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'l_b_over_r_yc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'k_xc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'k_yc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'lambda_xc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'lambda_yc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'lambda_ltb'?: number;
     /**
      * 
      * @type {string}
@@ -369,25 +933,97 @@ export interface ColumnModel {
      * @type {number}
      * @memberof ColumnModel
      */
-    'f_ymf': number;
+    'r_y'?: number;
     /**
      * 
      * @type {number}
      * @memberof ColumnModel
      */
-    'f_ymw': number;
+    'r_t'?: number;
     /**
      * 
      * @type {number}
      * @memberof ColumnModel
      */
-    'f_yn': number;
+    'f_ymf'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'f_ymw'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'f_umf'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'f_umw'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'f_yn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'f_un'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'e_nc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'e_mc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'g_nc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'g_mc'?: number;
     /**
      * 
      * @type {string}
      * @memberof ColumnModel
      */
     'boundary_condition': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'p_ym'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'p_yn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'p_ye'?: number;
     /**
      * 
      * @type {string}
@@ -417,13 +1053,223 @@ export interface ColumnModel {
      * @type {number}
      * @memberof ColumnModel
      */
-    'p_g_over_p_ym': number;
+    'p_g'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'p_t'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'p_c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'p_g_over_p_ym'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'p_g_over_p_yn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'p_t_over_p_ym'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'p_c_over_p_ym'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'p_c_over_p_yn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    't_top_plate'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    't_bottom_plate'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'test_procedure': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'comments'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'k_test'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'k_flexure_th'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'k_shear_th'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'k_theory'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'th_y'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'th_lb'?: number;
     /**
      * 
      * @type {number}
      * @memberof ColumnModel
      */
     'th_80'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'th_50'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'th_20'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'th_1l'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'th_2l'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'th_3l'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'th_4l'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'th_6l'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'd_80'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'd_50'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ColumnModel
+     */
+    'd_20'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'f_class_us': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'w_class_us': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'cs_class_us': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'f_class_eu': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'w_class_eu': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ColumnModel
+     */
+    'cs_class_eu': string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ColumnModel
+     */
+    'cfe': boolean;
     /**
      * 
      * @type {string}
@@ -435,7 +1281,7 @@ export interface ColumnModel {
      * @type {string}
      * @memberof ColumnModel
      */
-    'link': string;
+    'link'?: string;
     /**
      * 
      * @type {number}
@@ -482,14 +1328,78 @@ export interface ColumnModel {
 export const ColumnNumberField = {
     Date: 'date',
     DC: 'd_c',
+    KC: 'k_c',
+    K1C: 'k1_c',
+    HC: 'h_c',
+    TCw: 't_cw',
     HOverTCw: 'h_over_t_cw',
+    BCf: 'b_cf',
+    TCf: 't_cf',
     BFOverTCf: 'b_f_over_t_cf',
+    ACm: 'a_cm',
+    ACn: 'a_cn',
+    IXb: 'i_xb',
+    IXc: 'i_xc',
+    SXc: 's_xc',
+    SYc: 's_yc',
+    ZXc: 'z_xc',
+    ZYc: 'z_yc',
+    JC: 'j_c',
+    CWc: 'c_wc',
+    RYc: 'r_yc',
+    RXc: 'r_xc',
+    LC: 'l_c',
+    LSc: 'l_sc',
+    LBc: 'l_bc',
     LBOverRYc: 'l_b_over_r_yc',
+    KXc: 'k_xc',
+    KYc: 'k_yc',
+    LambdaXc: 'lambda_xc',
+    LambdaYc: 'lambda_yc',
+    LambdaLtb: 'lambda_ltb',
+    RY: 'r_y',
+    RT: 'r_t',
     FYmf: 'f_ymf',
     FYmw: 'f_ymw',
+    FUmf: 'f_umf',
+    FUmw: 'f_umw',
     FYn: 'f_yn',
+    FUn: 'f_un',
+    ENc: 'e_nc',
+    EMc: 'e_mc',
+    GNc: 'g_nc',
+    GMc: 'g_mc',
+    PYm: 'p_ym',
+    PYn: 'p_yn',
+    PYe: 'p_ye',
+    PG: 'p_g',
+    PT: 'p_t',
+    PC: 'p_c',
     PGOverPYm: 'p_g_over_p_ym',
+    PGOverPYn: 'p_g_over_p_yn',
+    PTOverPYm: 'p_t_over_p_ym',
+    PCOverPYm: 'p_c_over_p_ym',
+    PCOverPYn: 'p_c_over_p_yn',
+    P: 'p',
+    TTopPlate: 't_top_plate',
+    TBottomPlate: 't_bottom_plate',
+    KTest: 'k_test',
+    KFlexureTh: 'k_flexure_th',
+    KShearTh: 'k_shear_th',
+    KTheory: 'k_theory',
+    ThY: 'th_y',
+    ThLb: 'th_lb',
     Th80: 'th_80',
+    Th50: 'th_50',
+    Th20: 'th_20',
+    Th1l: 'th_1l',
+    Th2l: 'th_2l',
+    Th3l: 'th_3l',
+    Th4l: 'th_4l',
+    Th6l: 'th_6l',
+    D80: 'd_80',
+    D50: 'd_50',
+    D20: 'd_20',
     Latitude: 'latitude',
     Longitude: 'longitude',
     AxialShorteningCount: 'axial_shortening_count',
@@ -513,34 +1423,148 @@ export const ConnectionField = {
     SpecimenDesignation: 'specimen_designation',
     Northridge: 'northridge',
     SpecimenType: 'specimen_type',
+    Comments: 'comments',
     LoadingProtocol: 'loading_protocol',
     Slab: 'slab',
     ConnectionType: 'connection_type',
+    TPl: 't_pl',
+    RbsCut: 'rbs_cut',
+    SH: 's_h',
+    DH: 'd_h',
     SectionB: 'section_b',
     DB: 'd_b',
+    DBg: 'd_bg',
+    TBw: 't_bw',
+    BBf: 'b_bf',
+    TBf: 't_bf',
+    RB: 'r_b',
+    AB: 'a_b',
+    IXb: 'i_xb',
+    ZXb: 'z_xb',
+    ZXbBfp: 'z_xb_bfp',
+    RYb: 'r_yb',
+    BBfRbs: 'b_bf_rbs',
+    DGbRbs: 'd_gb_rbs',
+    ABRbs: 'a_b_rbs',
+    IXbRbs: 'i_xb_rbs',
+    ZXbRbs: 'z_xb_rbs',
+    DBm: 'd_bm',
+    DBgm: 'd_bgm',
+    TBwm: 't_bwm',
+    BBfm: 'b_bfm',
+    TBfm: 't_bfm',
+    ZXbm: 'z_xbm',
     SteelB: 'steel_b',
     FYb: 'f_yb',
     FYbw: 'f_ybw',
     FYbf: 'f_ybf',
+    FYbMill: 'f_yb_mill',
+    FYbAvg: 'f_yb_avg',
+    LB: 'l_b',
+    LFc: 'l_fc',
+    LO: 'l_o',
+    LoDb: 'lo_db',
     SectionC: 'section_c',
     DC: 'd_c',
+    TCw: 't_cw',
+    BCf: 'b_cf',
+    CC: 'c_c',
     TCf: 't_cf',
+    RC: 'r_c',
+    AC: 'a_c',
+    IXc: 'i_xc',
+    DCm: 'd_cm',
+    TWcm: 't_wcm',
+    CCm: 'c_cm',
+    BFcm: 'b_fcm',
+    TFcm: 't_fcm',
     SteelC: 'steel_c',
     FYc: 'f_yc',
+    FYdp: 'f_ydp',
     FYcw: 'f_ycw',
     FYcf: 'f_ycf',
+    FYcMill: 'f_yc_mill',
+    FYcAvg: 'f_yc_avg',
+    HC: 'h_c',
     BackingBar: 'backing_bar',
     Electrode: 'electrode',
+    DElectrode: 'd_electrode',
+    Cvn0f: 'cvn_0f',
+    CvnMinus20f: 'cvn_minus20f',
+    Cvn70f: 'cvn_70f',
+    AccessHoleGeometry: 'access_hole_geometry',
     W: 'w',
+    WL: 'w_l',
+    WR: 'w_r',
     HT: 'h_t',
+    AS: 'a_s',
+    FSk: 'f_sk',
+    FSm: 'f_sm',
+    HCo: 'h_co',
+    SlabConType: 'slab_con_type',
+    FCk: 'f_ck',
     FCm: 'f_cm',
+    CurDays: 'cur_days',
+    FCComprCalc: 'f_c_compr_calc',
+    D: 'd',
+    HSc: 'h_sc',
+    NStuds: 'n_studs',
+    NDiss: 'n_diss',
+    NR: 'n_r',
+    FUSc: 'f_u_sc',
+    HP: 'h_p',
+    BO: 'b_o',
     DeckRibsOrientation: 'deck_ribs_orientation',
+    SectionShapeC: 'section_shape_c',
+    DPz: 'd_pz',
+    TwPz: 'tw_pz',
+    BfPz: 'bf_pz',
+    TfPz: 'tf_pz',
+    Dz: 'dz',
+    Zw: 'zw',
+    DzPlug: 'dz_plug',
+    WzPlug: 'wz_plug',
+    Wd: 'wd',
     NDp: 'n_dp',
     TDp: 't_dp',
     TDpTot: 't_dp_tot',
+    TP: 't_p',
+    TCp: 't_cp',
+    DCp: 'd_cp',
+    DbPlus: 'db_plus',
+    DbMinus: 'db_minus',
+    AVc: 'a_vc',
+    FyPzM: 'fy_pz_m',
+    PCm: 'p_cm',
+    NPm: 'n_pm',
+    VPzElMEurope: 'v_pz_el_m_europe',
+    RNElMAisc: 'r_n_el_m_aisc',
+    RNPlMAisc: 'r_n_pl_m_aisc',
+    VPzMAij: 'v_pz_m_aij',
+    FyPzN: 'fy_pz_n',
+    PCn: 'p_cn',
+    NPn: 'n_pn',
+    VPzElNEurope: 'v_pz_el_n_europe',
+    RNElNAisc: 'r_n_el_n_aisc',
+    RNPlNAisc: 'r_n_pl_n_aisc',
+    VPzNAij: 'v_pz_n_aij',
+    MCfMinusN: 'm_cf_minus_n',
+    MCfPlusN: 'm_cf_plus_n',
+    MCfMinusM: 'm_cf_minus_m',
+    MCfPlusM: 'm_cf_plus_m',
+    VBfPlusN: 'v_bf_plus_n',
+    VBfMinusN: 'v_bf_minus_n',
+    VColN: 'v_col_n',
+    RUN: 'r_u_n',
+    RUM: 'r_u_m',
+    RuRnElN: 'ru_rn_el_n',
     RuRnPlN: 'ru_rn_pl_n',
+    AiscPzViolationN: 'aisc_pz_violation_n',
     RuRnElM: 'ru_rn_el_m',
     RuRnPlM: 'ru_rn_pl_m',
+    AiscPzViolationM: 'aisc_pz_violation_m',
+    GMax: 'g_max',
+    GY: 'g_y',
     GMaxGY: 'g_max_g_y',
     Reference: 'reference',
     Link: 'link',
@@ -603,6 +1627,12 @@ export interface ConnectionModel {
      * @type {string}
      * @memberof ConnectionModel
      */
+    'comments'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectionModel
+     */
     'loading_protocol': string;
     /**
      * 
@@ -618,6 +1648,30 @@ export interface ConnectionModel {
     'connection_type': string;
     /**
      * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_pl'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'rbs_cut'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    's_h'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'd_h'?: number;
+    /**
+     * 
      * @type {string}
      * @memberof ConnectionModel
      */
@@ -627,7 +1681,133 @@ export interface ConnectionModel {
      * @type {number}
      * @memberof ConnectionModel
      */
-    'd_b': number;
+    'd_b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'd_bg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_bw'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'b_bf'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_bf'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'r_b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'a_b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'i_xb'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'z_xb'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'z_xb_bfp'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'r_yb'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'b_bf_rbs'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'd_gb_rbs'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'a_b_rbs'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'i_xb_rbs'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'z_xb_rbs'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'd_bm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'd_bgm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_bwm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'b_bfm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_bfm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'z_xbm'?: number;
     /**
      * 
      * @type {string}
@@ -639,7 +1819,7 @@ export interface ConnectionModel {
      * @type {number}
      * @memberof ConnectionModel
      */
-    'f_yb': number;
+    'f_yb'?: number;
     /**
      * 
      * @type {number}
@@ -654,6 +1834,42 @@ export interface ConnectionModel {
     'f_ybf'?: number;
     /**
      * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_yb_mill'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_yb_avg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'l_b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'l_fc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'l_o'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'lo_db'?: number;
+    /**
+     * 
      * @type {string}
      * @memberof ConnectionModel
      */
@@ -663,13 +1879,79 @@ export interface ConnectionModel {
      * @type {number}
      * @memberof ConnectionModel
      */
-    'd_c': number;
+    'd_c'?: number;
     /**
      * 
      * @type {number}
      * @memberof ConnectionModel
      */
-    't_cf': number;
+    't_cw'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'b_cf'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'c_c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_cf'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'r_c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'a_c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'i_xc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'd_cm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_wcm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'c_cm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'b_fcm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_fcm'?: number;
     /**
      * 
      * @type {string}
@@ -681,7 +1963,13 @@ export interface ConnectionModel {
      * @type {number}
      * @memberof ConnectionModel
      */
-    'f_yc': number;
+    'f_yc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_ydp'?: number;
     /**
      * 
      * @type {number}
@@ -694,6 +1982,24 @@ export interface ConnectionModel {
      * @memberof ConnectionModel
      */
     'f_ycf'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_yc_mill'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_yc_avg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'h_c'?: number;
     /**
      * 
      * @type {boolean}
@@ -711,7 +2017,49 @@ export interface ConnectionModel {
      * @type {number}
      * @memberof ConnectionModel
      */
+    'd_electrode'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'cvn_0f'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'cvn_minus20f'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'cvn_70f'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectionModel
+     */
+    'access_hole_geometry'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
     'w'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'w_l'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'w_r'?: number;
     /**
      * 
      * @type {number}
@@ -723,7 +2071,103 @@ export interface ConnectionModel {
      * @type {number}
      * @memberof ConnectionModel
      */
+    'a_s'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_sk'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_sm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'h_co'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectionModel
+     */
+    'slab_con_type'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_ck'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
     'f_cm'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConnectionModel
+     */
+    'cur_days'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_c_compr_calc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'd'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'h_sc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'n_studs'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'n_diss'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'n_r'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'f_u_sc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'h_p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'b_o'?: number;
     /**
      * 
      * @type {string}
@@ -732,28 +2176,274 @@ export interface ConnectionModel {
     'deck_ribs_orientation'?: string;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof ConnectionModel
      */
-    'n_dp': number;
+    'section_shape_c': string;
     /**
      * 
      * @type {number}
      * @memberof ConnectionModel
      */
-    't_dp': number;
+    'd_pz'?: number;
     /**
      * 
      * @type {number}
      * @memberof ConnectionModel
      */
-    't_dp_tot': number;
+    'tw_pz'?: number;
     /**
      * 
      * @type {number}
      * @memberof ConnectionModel
      */
-    'ru_rn_pl_n': number;
+    'bf_pz'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'tf_pz'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'dz'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'zw'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'dz_plug'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'wz_plug'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'wd'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'n_dp'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_dp'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_dp_tot'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    't_cp'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'd_cp'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'db_plus'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'db_minus'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'a_vc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'fy_pz_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'p_cm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'n_pm'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'v_pz_el_m_europe'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'r_n_el_m_aisc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'r_n_pl_m_aisc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'v_pz_m_aij'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'fy_pz_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'p_cn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'n_pn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'v_pz_el_n_europe'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'r_n_el_n_aisc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'r_n_pl_n_aisc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'v_pz_n_aij'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'm_cf_minus_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'm_cf_plus_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'm_cf_minus_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'm_cf_plus_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'v_bf_plus_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'v_bf_minus_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'v_col_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'r_u_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'r_u_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'ru_rn_el_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'ru_rn_pl_n'?: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ConnectionModel
+     */
+    'aisc_pz_violation_n'?: boolean;
     /**
      * 
      * @type {number}
@@ -768,10 +2458,28 @@ export interface ConnectionModel {
     'ru_rn_pl_m'?: number;
     /**
      * 
+     * @type {boolean}
+     * @memberof ConnectionModel
+     */
+    'aisc_pz_violation_m'?: boolean;
+    /**
+     * 
      * @type {number}
      * @memberof ConnectionModel
      */
-    'g_max_g_y': number;
+    'g_max'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'g_y'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ConnectionModel
+     */
+    'g_max_g_y'?: number;
     /**
      * 
      * @type {string}
@@ -789,7 +2497,7 @@ export interface ConnectionModel {
      * @type {number}
      * @memberof ConnectionModel
      */
-    'latitude': number;
+    'latitude'?: number;
     /**
      * 
      * @type {number}
@@ -835,24 +2543,131 @@ export interface ConnectionModel {
 
 export const ConnectionNumberField = {
     Date: 'date',
+    TPl: 't_pl',
+    RbsCut: 'rbs_cut',
+    SH: 's_h',
+    DH: 'd_h',
     DB: 'd_b',
+    DBg: 'd_bg',
+    TBw: 't_bw',
+    BBf: 'b_bf',
+    TBf: 't_bf',
+    RB: 'r_b',
+    AB: 'a_b',
+    IXb: 'i_xb',
+    ZXb: 'z_xb',
+    ZXbBfp: 'z_xb_bfp',
+    RYb: 'r_yb',
+    BBfRbs: 'b_bf_rbs',
+    DGbRbs: 'd_gb_rbs',
+    ABRbs: 'a_b_rbs',
+    IXbRbs: 'i_xb_rbs',
+    ZXbRbs: 'z_xb_rbs',
+    DBm: 'd_bm',
+    DBgm: 'd_bgm',
+    TBwm: 't_bwm',
+    BBfm: 'b_bfm',
+    TBfm: 't_bfm',
+    ZXbm: 'z_xbm',
     FYb: 'f_yb',
     FYbw: 'f_ybw',
     FYbf: 'f_ybf',
+    FYbMill: 'f_yb_mill',
+    FYbAvg: 'f_yb_avg',
+    LB: 'l_b',
+    LFc: 'l_fc',
+    LO: 'l_o',
+    LoDb: 'lo_db',
     DC: 'd_c',
+    TCw: 't_cw',
+    BCf: 'b_cf',
+    CC: 'c_c',
     TCf: 't_cf',
+    RC: 'r_c',
+    AC: 'a_c',
+    IXc: 'i_xc',
+    DCm: 'd_cm',
+    TWcm: 't_wcm',
+    CCm: 'c_cm',
+    BFcm: 'b_fcm',
+    TFcm: 't_fcm',
     FYc: 'f_yc',
+    FYdp: 'f_ydp',
     FYcw: 'f_ycw',
     FYcf: 'f_ycf',
+    FYcMill: 'f_yc_mill',
+    FYcAvg: 'f_yc_avg',
+    HC: 'h_c',
+    DElectrode: 'd_electrode',
+    Cvn0f: 'cvn_0f',
+    CvnMinus20f: 'cvn_minus20f',
+    Cvn70f: 'cvn_70f',
     W: 'w',
+    WL: 'w_l',
+    WR: 'w_r',
     HT: 'h_t',
+    AS: 'a_s',
+    FSk: 'f_sk',
+    FSm: 'f_sm',
+    HCo: 'h_co',
+    FCk: 'f_ck',
     FCm: 'f_cm',
+    FCComprCalc: 'f_c_compr_calc',
+    D: 'd',
+    HSc: 'h_sc',
+    NStuds: 'n_studs',
+    NDiss: 'n_diss',
+    NR: 'n_r',
+    FUSc: 'f_u_sc',
+    HP: 'h_p',
+    BO: 'b_o',
+    DPz: 'd_pz',
+    TwPz: 'tw_pz',
+    BfPz: 'bf_pz',
+    TfPz: 'tf_pz',
+    Dz: 'dz',
+    Zw: 'zw',
+    DzPlug: 'dz_plug',
+    WzPlug: 'wz_plug',
+    Wd: 'wd',
     NDp: 'n_dp',
     TDp: 't_dp',
     TDpTot: 't_dp_tot',
+    TP: 't_p',
+    TCp: 't_cp',
+    DCp: 'd_cp',
+    DbPlus: 'db_plus',
+    DbMinus: 'db_minus',
+    AVc: 'a_vc',
+    FyPzM: 'fy_pz_m',
+    PCm: 'p_cm',
+    NPm: 'n_pm',
+    VPzElMEurope: 'v_pz_el_m_europe',
+    RNElMAisc: 'r_n_el_m_aisc',
+    RNPlMAisc: 'r_n_pl_m_aisc',
+    VPzMAij: 'v_pz_m_aij',
+    FyPzN: 'fy_pz_n',
+    PCn: 'p_cn',
+    NPn: 'n_pn',
+    VPzElNEurope: 'v_pz_el_n_europe',
+    RNElNAisc: 'r_n_el_n_aisc',
+    RNPlNAisc: 'r_n_pl_n_aisc',
+    VPzNAij: 'v_pz_n_aij',
+    MCfMinusN: 'm_cf_minus_n',
+    MCfPlusN: 'm_cf_plus_n',
+    MCfMinusM: 'm_cf_minus_m',
+    MCfPlusM: 'm_cf_plus_m',
+    VBfPlusN: 'v_bf_plus_n',
+    VBfMinusN: 'v_bf_minus_n',
+    VColN: 'v_col_n',
+    RUN: 'r_u_n',
+    RUM: 'r_u_m',
+    RuRnElN: 'ru_rn_el_n',
     RuRnPlN: 'ru_rn_pl_n',
     RuRnElM: 'ru_rn_el_m',
     RuRnPlM: 'ru_rn_pl_m',
+    GMax: 'g_max',
+    GY: 'g_y',
     GMaxGY: 'g_max_g_y',
     Latitude: 'latitude',
     Longitude: 'longitude',
@@ -1198,6 +3013,8 @@ export const HSSColumnField = {
     LambdaS: 'lambda_s',
     LambdaC: 'lambda_c',
     FlexuralBuckling: 'flexural_buckling',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
     MomentRotationCount: 'moment_rotation_count'
 } as const;
 
@@ -1272,10 +3089,10 @@ export interface HSSColumnModel {
     'forming_process': string;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof HSSColumnModel
      */
-    'seams'?: number;
+    'seams'?: string;
     /**
      * 
      * @type {string}
@@ -1287,61 +3104,61 @@ export interface HSSColumnModel {
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'width__mm': number;
+    'width__mm'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'depth__mm': number;
+    'depth__mm'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'flange_thickness__mm': number;
+    'flange_thickness__mm'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'web_thickness__mm': number;
+    'web_thickness__mm'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'area__mm2': number;
+    'area__mm2'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'moment_of_inertia__mm4': number;
+    'moment_of_inertia__mm4'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'radius__mm': number;
+    'radius__mm'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'depth_over_t': number;
+    'depth_over_t'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'plastic_section_modulus__mm3': number;
+    'plastic_section_modulus__mm3'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'axial_load_ratio': number;
+    'axial_load_ratio'?: number;
     /**
      * 
      * @type {string}
@@ -1353,7 +3170,7 @@ export interface HSSColumnModel {
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'loading_angle': number;
+    'loading_angle'?: number;
     /**
      * 
      * @type {string}
@@ -1365,43 +3182,43 @@ export interface HSSColumnModel {
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'fy_nominal__n_mm2': number;
+    'fy_nominal__n_mm2'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'fy_measured__n_mm2': number;
+    'fy_measured__n_mm2'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'f_ultimate__n_mm2': number;
+    'f_ultimate__n_mm2'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'mp_measured__knmm': number;
+    'mp_measured__knmm'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'length__mm': number;
+    'length__mm'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'ke_measured__knmm_rad': number;
+    'ke_measured__knmm_rad'?: number;
     /**
      * 
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'my_pos_100fit__knmm': number;
+    'my_pos_100fit__knmm'?: number;
     /**
      * 
      * @type {number}
@@ -1413,7 +3230,7 @@ export interface HSSColumnModel {
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'theta_p_pos_100fit__rad': number;
+    'theta_p_pos_100fit__rad'?: number;
     /**
      * 
      * @type {number}
@@ -1449,7 +3266,7 @@ export interface HSSColumnModel {
      * @type {number}
      * @memberof HSSColumnModel
      */
-    'mc_my_pos_100fit': number;
+    'mc_my_pos_100fit'?: number;
     /**
      * 
      * @type {number}
@@ -1563,6 +3380,18 @@ export interface HSSColumnModel {
      * @type {number}
      * @memberof HSSColumnModel
      */
+    'latitude'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
+    'longitude'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof HSSColumnModel
+     */
     'moment_rotation_count': number;
 }
 /**
@@ -1574,7 +3403,6 @@ export interface HSSColumnModel {
 export const HSSColumnNumberField = {
     Date: 'date',
     StiffnessCoefficient: 'stiffness_coefficient',
-    Seams: 'seams',
     WidthMm: 'width__mm',
     DepthMm: 'depth__mm',
     FlangeThicknessMm: 'flange_thickness__mm',
@@ -1618,6 +3446,8 @@ export const HSSColumnNumberField = {
     MuMcNeg80fit: 'mu_mc_neg_80fit',
     LambdaS: 'lambda_s',
     LambdaC: 'lambda_c',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
     MomentRotationCount: 'moment_rotation_count'
 } as const;
 
@@ -1683,25 +3513,67 @@ export type MaterialDateField = typeof MaterialDateField[keyof typeof MaterialDa
  */
 
 export const MaterialField = {
-    Id: 'id',
+    HiddenIndex: 'hidden_index',
     ExperimentalProgram: 'experimental_program',
+    Id: 'id',
     ProfileType: 'profile_type',
     Profile: 'profile',
     Source: 'source',
     Thickness: 'thickness',
     Grade: 'grade',
     Spec: 'spec',
+    Lp: 'lp',
     Size: 'size',
-    TADegC: 't_a__deg_c_',
-    Date: 'date',
+    GageLengthMm: 'gage_length__mm_',
+    AvgReducedDiaMm: 'avg_reduced_dia__mm_',
+    AvgFracturedDiaTopMm: 'avg_fractured_dia_top__mm_',
+    AvgFracturedDiaBotMm: 'avg_fractured_dia_bot__mm_',
     FyNMpa: 'fy_n__mpa_',
     FuNMpa: 'fu_n__mpa_',
+    TADegC: 't_a__deg_c_',
+    Date: 'date',
+    Investigator: 'investigator',
+    Location: 'location',
+    Machine: 'machine',
+    PidForceKP: 'pid_force_k_p',
+    PidForceTI: 'pid_force_t_i',
+    PidForceTD: 'pid_force_t_d',
+    PidDispKP: 'pid_disp_k_p',
+    PidDispTI: 'pid_disp_t_i',
+    PidDispTD: 'pid_disp_t_d',
+    PidExtensoKP: 'pid_extenso_k_p',
+    PidExtensoTI: 'pid_extenso_t_i',
+    PidExtensoTD: 'pid_extenso_t_d',
     YieldStressMpa: 'yield_stress__mpa_',
+    ElasticModulusMpa: 'elastic_modulus__mpa_',
     FractureStrain: 'fracture_strain',
+    C: 'c',
+    Si: 'si',
+    Mn: 'mn',
+    P: 'p',
+    S: 's',
+    N: 'n',
+    Cu: 'cu',
+    Mo: 'mo',
+    Ni: 'ni',
+    Cr: 'cr',
+    V: 'v',
+    Nb: 'nb',
+    Ti: 'ti',
+    Al: 'al',
+    B: 'b',
+    Zr: 'zr',
+    Sn: 'sn',
+    Ca: 'ca',
+    H: 'h',
+    Fe: 'fe',
+    File: 'file',
     Reference: 'reference',
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    Citekey: 'citekey',
+    UvcPhiPrct: 'uvc_phi__prct_',
     UvcEMpa: 'uvc_e__mpa_',
     UvcSigmaMpa: 'uvc_sigma__mpa_',
     UvcQMpa: 'uvc_q__mpa_',
@@ -1712,6 +3584,13 @@ export const MaterialField = {
     UvcG1: 'uvc_g1',
     UvcC2Mpa: 'uvc_c2__mpa_',
     UvcG2: 'uvc_g2',
+    HiddenDatasetIndex: 'hidden_dataset_index',
+    UvcSigmaSatMpa: 'uvc_sigma_sat__mpa_',
+    UvcSigmaHardMpa: 'uvc_sigma_hard__mpa_',
+    UvcRhoYield: 'uvc_rho_yield',
+    UvcRhoIso: 'uvc_rho_iso',
+    UvcRhoKin: 'uvc_rho_kin',
+    UvcRhoD: 'uvc_rho_d',
     Type: 'type',
     Year: 'year',
     StressStrainCount: 'stress_strain_count'
@@ -1728,16 +3607,22 @@ export type MaterialField = typeof MaterialField[keyof typeof MaterialField];
 export interface MaterialModel {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof MaterialModel
      */
-    'id': string;
+    'hidden_index': number;
     /**
      * 
      * @type {string}
      * @memberof MaterialModel
      */
     'experimental_program': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'id': string;
     /**
      * 
      * @type {string}
@@ -1773,13 +3658,55 @@ export interface MaterialModel {
      * @type {string}
      * @memberof MaterialModel
      */
-    'spec': string;
+    'spec'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'lp': string;
     /**
      * 
      * @type {string}
      * @memberof MaterialModel
      */
     'size': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'gage_length__mm_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'avg_reduced_dia__mm_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'avg_fractured_dia_top__mm_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'avg_fractured_dia_bot__mm_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'fy_n__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'fu_n__mpa_'?: number;
     /**
      * 
      * @type {number}
@@ -1794,16 +3721,76 @@ export interface MaterialModel {
     'date': string;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof MaterialModel
      */
-    'fy_n__mpa_': number;
+    'investigator': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'location': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'machine': string;
     /**
      * 
      * @type {number}
      * @memberof MaterialModel
      */
-    'fu_n__mpa_': number;
+    'pid_force_k_p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'pid_force_t_i'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'pid_force_t_d'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'pid_disp_k_p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'pid_disp_t_i'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'pid_disp_t_d'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'pid_extenso_k_p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'pid_extenso_t_i'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'pid_extenso_t_d'?: number;
     /**
      * 
      * @type {number}
@@ -1815,13 +3802,145 @@ export interface MaterialModel {
      * @type {number}
      * @memberof MaterialModel
      */
+    'elastic_modulus__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
     'fracture_strain'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'si'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'mn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    's'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'cu'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'mo'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'ni'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'cr'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'v'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'nb'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'ti'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'al'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'zr'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'sn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'ca'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'h'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'fe'?: number;
     /**
      * 
      * @type {string}
      * @memberof MaterialModel
      */
-    'reference': string;
+    'file'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'reference'?: string;
     /**
      * 
      * @type {string}
@@ -1833,31 +3952,43 @@ export interface MaterialModel {
      * @type {number}
      * @memberof MaterialModel
      */
-    'latitude': number;
+    'latitude'?: number;
     /**
      * 
      * @type {number}
      * @memberof MaterialModel
      */
-    'longitude': number;
+    'longitude'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof MaterialModel
+     */
+    'citekey'?: string;
     /**
      * 
      * @type {number}
      * @memberof MaterialModel
      */
-    'uvc_e__mpa_': number;
+    'uvc_phi__prct_'?: number;
     /**
      * 
      * @type {number}
      * @memberof MaterialModel
      */
-    'uvc_sigma__mpa_': number;
+    'uvc_e__mpa_'?: number;
     /**
      * 
      * @type {number}
      * @memberof MaterialModel
      */
-    'uvc_q__mpa_': number;
+    'uvc_sigma__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_q__mpa_'?: number;
     /**
      * 
      * @type {number}
@@ -1869,37 +4000,79 @@ export interface MaterialModel {
      * @type {number}
      * @memberof MaterialModel
      */
-    'uvc_d__mpa_': number;
+    'uvc_d__mpa_'?: number;
     /**
      * 
      * @type {number}
      * @memberof MaterialModel
      */
-    'uvc_a': number;
+    'uvc_a'?: number;
     /**
      * 
      * @type {number}
      * @memberof MaterialModel
      */
-    'uvc_c1__mpa_': number;
+    'uvc_c1__mpa_'?: number;
     /**
      * 
      * @type {number}
      * @memberof MaterialModel
      */
-    'uvc_g1': number;
+    'uvc_g1'?: number;
     /**
      * 
      * @type {number}
      * @memberof MaterialModel
      */
-    'uvc_c2__mpa_': number;
+    'uvc_c2__mpa_'?: number;
     /**
      * 
      * @type {number}
      * @memberof MaterialModel
      */
-    'uvc_g2': number;
+    'uvc_g2'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'hidden_dataset_index': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_sigma_sat__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_sigma_hard__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_rho_yield'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_rho_iso'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_rho_kin'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof MaterialModel
+     */
+    'uvc_rho_d'?: number;
     /**
      * 
      * @type {string}
@@ -1926,14 +4099,50 @@ export interface MaterialModel {
  */
 
 export const MaterialNumberField = {
+    HiddenIndex: 'hidden_index',
     Thickness: 'thickness',
-    TADegC: 't_a__deg_c_',
+    GageLengthMm: 'gage_length__mm_',
+    AvgReducedDiaMm: 'avg_reduced_dia__mm_',
+    AvgFracturedDiaTopMm: 'avg_fractured_dia_top__mm_',
+    AvgFracturedDiaBotMm: 'avg_fractured_dia_bot__mm_',
     FyNMpa: 'fy_n__mpa_',
     FuNMpa: 'fu_n__mpa_',
+    TADegC: 't_a__deg_c_',
+    PidForceKP: 'pid_force_k_p',
+    PidForceTI: 'pid_force_t_i',
+    PidForceTD: 'pid_force_t_d',
+    PidDispKP: 'pid_disp_k_p',
+    PidDispTI: 'pid_disp_t_i',
+    PidDispTD: 'pid_disp_t_d',
+    PidExtensoKP: 'pid_extenso_k_p',
+    PidExtensoTI: 'pid_extenso_t_i',
+    PidExtensoTD: 'pid_extenso_t_d',
     YieldStressMpa: 'yield_stress__mpa_',
+    ElasticModulusMpa: 'elastic_modulus__mpa_',
     FractureStrain: 'fracture_strain',
+    C: 'c',
+    Si: 'si',
+    Mn: 'mn',
+    P: 'p',
+    S: 's',
+    N: 'n',
+    Cu: 'cu',
+    Mo: 'mo',
+    Ni: 'ni',
+    Cr: 'cr',
+    V: 'v',
+    Nb: 'nb',
+    Ti: 'ti',
+    Al: 'al',
+    B: 'b',
+    Zr: 'zr',
+    Sn: 'sn',
+    Ca: 'ca',
+    H: 'h',
+    Fe: 'fe',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    UvcPhiPrct: 'uvc_phi__prct_',
     UvcEMpa: 'uvc_e__mpa_',
     UvcSigmaMpa: 'uvc_sigma__mpa_',
     UvcQMpa: 'uvc_q__mpa_',
@@ -1944,6 +4153,13 @@ export const MaterialNumberField = {
     UvcG1: 'uvc_g1',
     UvcC2Mpa: 'uvc_c2__mpa_',
     UvcG2: 'uvc_g2',
+    HiddenDatasetIndex: 'hidden_dataset_index',
+    UvcSigmaSatMpa: 'uvc_sigma_sat__mpa_',
+    UvcSigmaHardMpa: 'uvc_sigma_hard__mpa_',
+    UvcRhoYield: 'uvc_rho_yield',
+    UvcRhoIso: 'uvc_rho_iso',
+    UvcRhoKin: 'uvc_rho_kin',
+    UvcRhoD: 'uvc_rho_d',
     Year: 'year',
     StressStrainCount: 'stress_strain_count'
 } as const;
@@ -2084,13 +4300,13 @@ export interface ResidualStressModel {
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'fy_n': number;
+    'fy_n'?: number;
     /**
      * 
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'fy_e': number;
+    'fy_e'?: number;
     /**
      * 
      * @type {number}
@@ -2108,37 +4324,37 @@ export interface ResidualStressModel {
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'h': number;
+    'h'?: number;
     /**
      * 
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'b': number;
+    'b'?: number;
     /**
      * 
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'tw': number;
+    'tw'?: number;
     /**
      * 
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'tf': number;
+    'tf'?: number;
     /**
      * 
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'r': number;
+    'r'?: number;
     /**
      * 
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'A': number;
+    'A'?: number;
     /**
      * 
      * @type {number}
@@ -2180,13 +4396,13 @@ export interface ResidualStressModel {
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'latitude': number;
+    'latitude'?: number;
     /**
      * 
      * @type {number}
      * @memberof ResidualStressModel
      */
-    'longitude': number;
+    'longitude'?: number;
     /**
      * 
      * @type {number}
@@ -5522,6 +7738,58 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @summary Validate Data
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        validateData: async (type: Type, file: File, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'type' is not null or undefined
+            assertParamExists('validateData', 'type', type)
+            // verify required parameter 'file' is not null or undefined
+            assertParamExists('validateData', 'file', file)
+            const localVarPath = `/validate`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
+
+            // authentication HTTPBasic required
+            // http basic authentication required
+            setBasicAuthToObject(localVarRequestOptions, configuration)
+
+            if (type !== undefined) {
+                localVarQueryParameter['type'] = type;
+            }
+
+
+            if (file !== undefined) { 
+                localVarFormParams.append('file', file as any);
+            }
+    
+    
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = localVarFormParams;
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -5564,6 +7832,18 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.root(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
+        /**
+         * 
+         * @summary Validate Data
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async validateData(type: Type, file: File, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.validateData(type, file, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
     }
 };
 
@@ -5602,6 +7882,17 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          */
         root(options?: any): AxiosPromise<Info> {
             return localVarFp.root(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Validate Data
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        validateData(type: Type, file: File, options?: any): AxiosPromise<any> {
+            return localVarFp.validateData(type, file, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -5646,6 +7937,19 @@ export class DefaultApi extends BaseAPI {
      */
     public root(options?: AxiosRequestConfig) {
         return DefaultApiFp(this.configuration).root(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Validate Data
+     * @param {Type} type 
+     * @param {File} file 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DefaultApi
+     */
+    public validateData(type: Type, file: File, options?: AxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).validateData(type, file, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
