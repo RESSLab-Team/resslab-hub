@@ -30,7 +30,7 @@ update:
 
 run:
 	docker compose build --parallel --pull
-	docker compose up -d --remove-orphans --scale backend=4
+	docker compose up -d --remove-orphans --scale backend=7
 
 api:
 	cd backend; DATABASE_UPGRADE=false poetry run python api.py ../openapi.json
