@@ -14,11 +14,13 @@ from os import path
 from typing import Any, List
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     Date,
     Float,
     Integer,
     Numeric,
+    SmallInteger,
     String,
     create_engine,
     text,
@@ -37,6 +39,8 @@ from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
 
+DecimalFloat = Float(asdecimal=True)
+
 
 class ValidationError:
     def __init__(self, row: int, column: str, value: Any, message: str):
@@ -53,10 +57,12 @@ class ValidationResult:
     def __init__(self, filename: str):
         self.filename = filename
         self.errors: List[ValidationError] = []
+        self.error_count: Integer = 0
         self.warnings: List[ValidationError] = []
 
     def add_error(self, row: int, column: str, value: Any, message: str):
         self.errors.append(ValidationError(row, column, value, message))
+        self.error_count += 1
 
     def add_warning(self, row: int, column: str, value: Any, message: str):
         self.warnings.append(ValidationError(row, column, value, message))
@@ -146,28 +152,64 @@ class TableValidator(Validator):
     ):
         # cf analyzer.py for column type determination and reference for now
         try:
-            if value.upper() in ("NA", "NR"):
-                if not column.nullable:
-                    result.add_error(row, column.key, value, "Field cannot be null")
-                return
-            if isinstance(column.type, Boolean):
+            # Check if value is a string and "NA" or "NR"
+            if isinstance(value, str):
+                if value.upper() == "NA":
+                    if not column.nullable:
+                        result.add_error(
+                            row,
+                            column.key,
+                            value,
+                            "Field cannot be null: column is not nullable",
+                        )
+                    # skip validation for 'NA' values
+                    return
+                elif value.upper() == "NR":
+                    # Handle 'NR' as 'not reported' and skip validation
+                    return
+
+            # Validate based on column type
+            if isinstance(column.type, String):
+                try:
+                    if value.upper() == "NA":
+                        if not column.nullable:
+                            result.add_error(
+                                row,
+                                column.key,
+                                value,
+                                "Field cannot be null: column is not nullable",
+                            )
+                    elif value.upper() == "NR":
+                        # Handle 'NR' as 'not reported'
+                        pass
+                    # Try to convert value to string
+                    str(value)
+                except Exception:
+                    result.add_error(row, column.key, value, "Must be a string")
+            elif isinstance(column.type, Boolean):
                 if value.lower() not in ("yes", "no"):
                     result.add_error(row, column.key, value, "Must be 'yes' or 'no'")
-            elif isinstance(column.type, Integer):
+            elif isinstance(column.type, (SmallInteger, Integer, BigInteger)):
                 try:
                     int(Decimal(value))
                 except (InvalidOperation, ValueError):
                     result.add_error(row, column.key, value, "Must be an integer")
-            elif isinstance(column.type, (Float, Numeric)):
+            elif isinstance(column.type, Float) and column.type.asdecimal:
                 try:
+                    # DecimalFloat is a Float with asdecimal=True
                     Decimal(value)
                 except InvalidOperation:
-                    result.add_error(row, column.key, value, "Must be a number")
-            elif isinstance(column.type, String):
+                    result.add_error(
+                        row, column.key, value, "Must be a number: Float as decimal"
+                    )
+            elif isinstance(column.type, Numeric):
                 try:
-                    str(value)
-                except Exception:
-                    result.add_error(row, column.key, value, "Must be a string")
+                    float(value)
+                except InvalidOperation:
+                    result.add_error(
+                        row, column.key, value, "Must be a number: Numeric float"
+                    )
+
             elif isinstance(column.type, Date):
                 try:
                     datetime.strptime(value, "%d.%m.%y")
@@ -182,8 +224,22 @@ class TableValidator(Validator):
                             "Invalid date format: Expected format:"
                             " DD.MM.YY or DD.MM.YYYY",
                         )
+            elif value is None:
+                if not column.nullable:
+                    result.add_error(
+                        row,
+                        column.key,
+                        value,
+                        "Field cannot be null: column is not nullable",
+                    )
+                pass
 
         except Exception as e:
+            print(
+                f"Validation error missing type: {str(e)}"
+                f"for column {column.key} with value {value}"
+                f"and type {column.type}"
+            )
             result.add_error(row, column.key, value, f"Validation error: {str(e)}")
 
 
@@ -214,7 +270,13 @@ class CsvFileValidator(Validator):
             encoding = get_file_encoding(get_abs_path(self.primary_csv_path))
             with open(get_abs_path(self.primary_csv_path), encoding=encoding) as file:
                 csv_reader = DictReader(file)
-                return any(row.get("id") == foreign_key for row in csv_reader)
+                # return any(row.get("id") == foreign_key for row in csv_reader)
+                for row in csv_reader:
+                    if row.get("id") == foreign_key:
+                        error(f"Match found for foreign key: {foreign_key}")
+                        return True
+                error(f"No match found for foreign key: {foreign_key}")
+                return False
         except Exception as e:
             error(f"Error checking primary CSV: {str(e)}")
             return False
@@ -222,6 +284,9 @@ class CsvFileValidator(Validator):
     def validate_one(self, file_path: str) -> ValidationResult:
         try:
             file_path = get_abs_path(file_path)
+            relative_path = path.relpath(
+                file_path, start=path.join(path.sep, *file_path.split(path.sep)[:7])
+            )
             result = ValidationResult(path.basename(file_path))
             filename = path.splitext(path.basename(file_path))[0]
             encoding = get_file_encoding(file_path)
@@ -246,7 +311,7 @@ class CsvFileValidator(Validator):
                 with Session(engine) as session:
                     # Check if foreign key exists
                     stmt = text(
-                        f"SELECT 1 FROM {self.base_model.__tablename__} "
+                        f'SELECT 1 FROM "{self.base_model.__tablename__}" '
                         f"WHERE {self.foreign_key_field} = :id"
                     )
                     exists_in_db = (
@@ -254,28 +319,23 @@ class CsvFileValidator(Validator):
                     )
                     exists_in_primary = self._check_primary_csv(filename)
 
-                    # Check if foreign key exists in either primary CSV or database
-                    # Only show error if it doesn't exist in either location
-                    if exists_in_primary and not exists_in_db:
-                        # foreign key exists in primary
-                        # csv, but not in database: we're okay
-                        pass
+                    if self.primary_csv_path is None:
+                        if not exists_in_db:
+                            result.add_error(
+                                0,
+                                self.foreign_key_field,
+                                filename,
+                                f"Foreign key '{filename}' not found in "
+                                f"database, no primary csv provided (cf "
+                                f"{relative_path})",
+                            )
                     elif not exists_in_primary:
-                        # foreign key doesn't exist in either primary
-                        # CSV or database: show error
                         result.add_error(
                             0,
                             self.foreign_key_field,
                             filename,
-                            f"Foreign key '{filename}' not found in primary CSV",
-                        )
-                    else:
-                        # foreign key does not exist in database: show error
-                        result.add_error(
-                            0,
-                            self.foreign_key_field,
-                            filename,
-                            f"Foreign key '{filename}' not found in database",
+                            f"Foreign key '{filename}' not found "
+                            f"in primary CSV (cf {relative_path})",
                         )
 
                     # Validate each row
@@ -297,7 +357,9 @@ class CsvFileValidator(Validator):
                                         row_num, col_name, value, "Must be a number"
                                     )
         except Exception as e:
-            result.add_error(0, "file", file_path, f"Failed to process file: {str(e)}")
+            result.add_error(
+                0, "file", relative_path, f"Failed to process file: {str(e)}"
+            )
 
         return result
 
@@ -353,7 +415,7 @@ def validate_one_file(input_type: Type, filename: str) -> Validator:
             validator = CsvFileValidator(
                 Connection,
                 [
-                    "Chrord Rotation, θ [rads]",
+                    "Chord Rotation [rads]",
                     "Moment [kN-mm]",
                 ],
                 "id",

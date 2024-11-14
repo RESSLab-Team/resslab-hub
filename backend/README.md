@@ -7,15 +7,20 @@ When the data schema changed in the CSV, we need to do a database migration:
 - Data Analyzer: update the SQLAlchemy table definitions
 - Alembic: create a new revision with the changes and verify it
 
-### Data Analyzer
+### Data Model Generator
 
-The utility script `backend/data/analyzer.py` generates the column definition for SQLAlchemy.
+The utility script `backend/data/generate_model.py` generates the column definition for SQLAlchemy.
 
-Replace the generated definition in the corresponding `backend/resslab_hub/models/database/*.py`.
+Replace automatically the generated definition in the corresponding `backend/resslab_hub/models/database/*.py`.
 
 ```base
-make analyze-data
+make generate-model
 ```
+
+You then need to check the generated code for any potential issues. And then you must run `make database-revision` to create a new revision with the proper changes.
+
+And don't forget to align the types in resslab-hub/backend/resslab_hub/models/api.py
+
 
 ### Alembic
 

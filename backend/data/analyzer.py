@@ -21,6 +21,9 @@ from resslab_hub.utils.database import url
 engine = create_engine(url, echo=False)
 session = Session(engine)
 
+# DEPRECATED: use generate_model.py instead
+# TODO: remove this file once generate_model.py is used properly for some time
+
 
 class ColumnType(Enum):
     """

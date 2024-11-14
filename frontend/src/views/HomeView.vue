@@ -53,15 +53,15 @@ const indicators = shallowRef<
 >({
   test: {
     text: 'Tests',
-    count: '~580'
+    count: '...'
   },
   university: {
     text: 'Universities contributed',
-    count: '~30'
+    count: '...'
   },
   user: {
     text: 'Users worldwide',
-    count: '~160'
+    count: '...'
   }
 })
 
