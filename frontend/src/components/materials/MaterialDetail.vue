@@ -35,11 +35,11 @@ watch(
               const uvcStress = computeUvcStress(
                 strain,
                 (material?.uvc_e__mpa_ ?? 0) * 1000,
-                (material.uvc_sigma__mpa_ ?? 0),
-                (material.uvc_q__mpa_ ?? 0),
-                material.uvc_b,
-                (material.uvc_d__mpa_ ?? 0),
-                (material.uvc_a ?? 0),
+                material.uvc_sigma__mpa_ ?? 0,
+                material.uvc_q__mpa_ ?? 0,
+                material.uvc_b ?? 0,
+                material.uvc_d__mpa_ ?? 0,
+                material.uvc_a ?? 0,
                 [
                   {
                     c: material.uvc_c1__mpa_ ?? 0,
