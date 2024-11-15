@@ -195,9 +195,15 @@ export const icons = new Map(
   ])
 )
 
+function hasCoordinates(
+  d: LocationGlobal
+): d is LocationGlobal & { latitude: number; longitude: number } {
+  return d.latitude !== undefined && d.longitude !== undefined
+}
+
 export function createMarkers(data: LocationGlobal[], type: Type) {
-  return data.map((d) => {
-    const marker = new Marker([d.latitude ?? 0, d.longitude ?? 0], {
+  return data.filter(hasCoordinates).map((d) => {
+    const marker = new Marker([d.latitude, d.longitude], {
       icon: icons.get(type)
     }).bindPopup(createTooltip(d, type), { autoPanPadding: [50, 150] })
 
@@ -206,7 +212,7 @@ export function createMarkers(data: LocationGlobal[], type: Type) {
       properties: Object.assign(d, { type }),
       geometry: {
         type: 'Point',
-        coordinates: [d.latitude ?? 0, d.longitude ?? 0]
+        coordinates: [d.latitude, d.longitude]
       }
     }
     return marker
