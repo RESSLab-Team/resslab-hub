@@ -5,9 +5,9 @@ import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { residualsApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
 import { formatNumber } from '@/utils/formatter'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
-import { createLineSeries } from '@/utils/residual'
+import { createLineSeries, validateResidualModelParams } from '@/utils/residual'
 import type { LineSeriesOption } from 'echarts'
 
 const props = defineProps<{
@@ -26,9 +26,20 @@ const promise = ref<
   }>
 >(Promise.resolve({ flangeSeries: [], webSeries: [] }))
 
+const hasValidParameters = computed(() => validateResidualModelParams(props.residual))
+
+const errorMessage = ref('')
+
 watch(
   () => props.residual,
   (residual) => {
+    if (!hasValidParameters.value) {
+      errorMessage.value = 'Residual model parameters are missing so graph is not available.'
+      return Promise.resolve()
+    } else {
+      errorMessage.value = ''
+    }
+
     promise.value = Promise.all([
       residualsApi.getResidualStressesQpCoefficient(residual.id),
       residualsApi.getResidualStressesDistributionF1(props.residual.id),
@@ -55,29 +66,37 @@ watch(
 watch(
   () => promise.value,
   (newPromise) => {
-    newPromise.then(({ flangeSeries, webSeries }) => {
-      carouselItems.value = [
-        [
-          {
-            noCount: true,
-            series: flangeSeries,
-            title: 'Flange distribution',
-            xAxisName: 'bf [mm]',
-            yAxisName: 'σ 0,f [MPa]'
-          }
-        ],
-        [
-          {
-            noCount: true,
-            series: webSeries,
-            title: 'Web distribution',
-            axisPointerType: 'y',
-            xAxisName: 'σ 0,w [MPa]',
-            yAxisName: 'h [mm]'
-          }
+    newPromise.then(
+      ({
+        flangeSeries,
+        webSeries
+      }: {
+        flangeSeries: LineSeriesOption[]
+        webSeries: LineSeriesOption[]
+      }) => {
+        carouselItems.value = [
+          [
+            {
+              noCount: true,
+              series: flangeSeries,
+              title: 'Flange distribution',
+              xAxisName: 'bf [mm]',
+              yAxisName: 'σ 0,f [MPa]'
+            }
+          ],
+          [
+            {
+              noCount: true,
+              series: webSeries,
+              title: 'Web distribution',
+              axisPointerType: 'y',
+              xAxisName: 'σ 0,w [MPa]',
+              yAxisName: 'h [mm]'
+            }
+          ]
         ]
-      ]
-    })
+      }
+    )
   },
   {
     immediate: true
@@ -89,7 +108,7 @@ watch(
   <common-detail
     :reference="residual.reference"
     :link="residual.link"
-    :carousel-items="carouselItems"
+    :carousel-items="hasValidParameters ? carouselItems : []"
     :carousel-height="600"
     @close="emit('close')"
   >
@@ -98,6 +117,10 @@ watch(
       {{ residual.profile }}
     </template>
     <template #body>
+      <v-alert v-if="errorMessage" class="my-10" variant="outlined" type="warning">{{
+        errorMessage
+      }}</v-alert>
+
       <v-row>
         <v-col class="mt-6" cols="6">
           <h2 class="mb-2">Structural Steel Element</h2>

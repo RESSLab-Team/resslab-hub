@@ -48,6 +48,7 @@ watch(
       errorMessage.value = 'Material model UVC parameters are missing so graph is not available.'
       return
     } else {
+      errorMessage.value = ''
       carouselItems.value = [
         [
           {
