@@ -547,7 +547,7 @@ class MaterialModel(BaseModel):
     uvc_e__mpa_: Optional[Decimal]
     uvc_sigma__mpa_: Optional[Decimal]
     uvc_q__mpa_: Optional[Decimal]
-    uvc_b: Decimal
+    uvc_b: Optional[Decimal]
     uvc_d__mpa_: Optional[Decimal]
     uvc_a: Optional[Decimal]
     uvc_c1__mpa_: Optional[Decimal]

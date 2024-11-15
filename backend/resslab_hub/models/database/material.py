@@ -103,7 +103,7 @@ class Material(Base):  # type: ignore
     uvc_e__mpa_ = Column(DecimalFloat, nullable=True)
     uvc_sigma__mpa_ = Column(DecimalFloat, nullable=True)
     uvc_q__mpa_ = Column(DecimalFloat, nullable=True)
-    uvc_b = Column(DecimalFloat, nullable=False)
+    uvc_b = Column(DecimalFloat, nullable=True)
     uvc_d__mpa_ = Column(DecimalFloat, nullable=True)
     uvc_a = Column(DecimalFloat, nullable=True)
     uvc_c1__mpa_ = Column(DecimalFloat, nullable=True)

@@ -3994,7 +3994,7 @@ export interface MaterialModel {
      * @type {number}
      * @memberof MaterialModel
      */
-    'uvc_b': number;
+    'uvc_b'?: number;
     /**
      * 
      * @type {number}
