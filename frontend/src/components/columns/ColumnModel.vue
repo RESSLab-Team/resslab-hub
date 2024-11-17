@@ -2,6 +2,7 @@
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/steel_columns
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import DisclaimerComponent from '@/components/commons/DisclaimerComponent.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
 import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
 import TitleRow from '@/components/commons/TitleRow.vue'
@@ -381,6 +382,16 @@ defineExpose({ vars, backbone, envelope })
 </script>
 
 <template>
+  <disclaimer-component>
+    <template #title>Under development</template>
+    This section is under construction. Please report any bugs
+    <a
+      href="https://github.com/RESSLab-Team/resslab-hub/issues"
+      target="_blank"
+      rel="noopener noreferrer"
+      >here</a
+    >.
+  </disclaimer-component>
   <v-row>
     <v-col cols="12">
       <title-row>
