@@ -74,25 +74,24 @@ def main():
             Mapping("iy", lambda item: from_number(Decimal(item["i_y"]) * INCH)),
         ]
     elif source == Source.EUROPEAN:
+        # Similar to American but without INCH conversion
         mappings = [
-            Mapping("id", lambda item: item["cross_section"]),
-            Mapping("bf", lambda item: from_number(item["b"])),
+            Mapping("id", lambda item: item["section"]),
+            Mapping("bf", lambda item: from_number(Decimal(item["b_f"]))),
             Mapping(
                 "h",
                 lambda item: from_number(
-                    Decimal(item["h"])
-                    - 2 * Decimal(item["t_f"])
-                    - 2 * Decimal(item["r"]),
+                    (Decimal(item["d"]) - 2 * Decimal(item["k_des"]))
                 ),
             ),
-            Mapping("tf", lambda item: from_number(item["t_f"])),
-            Mapping("tw", lambda item: from_number(item["t_w"])),
-            Mapping("ix", lambda item: from_number(item["i_y"])),
-            Mapping("zx", lambda item: from_number(item["w_ply"])),
-            Mapping("ry", lambda item: from_number(item["r_z"])),
-            Mapping("d", lambda item: from_number(item["h"])),
-            Mapping("a", lambda item: from_number(item["a"])),
-            Mapping("iy", lambda item: from_number(item["i_y"])),
+            Mapping("tf", lambda item: from_number(Decimal(item["t_f"]))),
+            Mapping("tw", lambda item: from_number(Decimal(item["t_w"]))),
+            Mapping("ix", lambda item: from_number(Decimal(item["i_x"]))),
+            Mapping("zx", lambda item: from_number(Decimal(item["z_x"]))),
+            Mapping("ry", lambda item: from_number(Decimal(item["r_y"]))),
+            Mapping("d", lambda item: from_number(Decimal(item["d"]))),
+            Mapping("a", lambda item: from_number(Decimal(item["a"]))),
+            Mapping("iy", lambda item: from_number(Decimal(item["i_y"]))),
         ]
     elif source == Source.JAPANESE:
         mappings = [

@@ -57,7 +57,8 @@ const option = computed<EChartsOption>(() => ({
     left: 60,
     top: 40,
     right: 120,
-    bottom: 8
+    bottom: 8,
+    axisExpendable: true
   },
   parallelAxis: props.fields.map((field, index) => {
     const id: string =
@@ -99,6 +100,7 @@ const option = computed<EChartsOption>(() => ({
   }),
   series: {
     type: 'parallel',
+
     data: props.data.map((d) =>
       props.fields.map((f) => {
         const requestFieldsValue = props.requestFields
@@ -206,7 +208,7 @@ function reset(): void {
         @change:searches="reset"
       />
     </v-card-title>
-    <v-responsive aspect-ratio="4" min-height="100">
+    <v-responsive aspect-ratio="4" min-height="275">
       <v-chart
         ref="chart"
         autoresize

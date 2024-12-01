@@ -9,6 +9,7 @@ import { variableBind } from '@/utils/model'
 import { primaryColor, type SelectItem } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
 import { computed, reactive, ref, watch } from 'vue'
+import DisclaimerComponent from '@/components/commons/DisclaimerComponent.vue'
 
 type SteelType = 'S235' | 'S275' | 'S355' | 'S420' | 'S460'
 type Option = 'wide-flange' | 'double-c' | 'double-l' | 'round' | 'square' | 'l-shape'
@@ -310,6 +311,16 @@ function getCompressionOption(result: Result): EChartsOption {
 <template>
   <v-row>
     <v-col cols="12">
+      <disclaimer-component>
+        <template #title>Under development</template>
+        This section is under construction. Please report any bugs
+        <a
+          href="https://github.com/RESSLab-Team/resslab-hub/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+          >here</a
+        >.
+      </disclaimer-component>
       <title-row>
         <h1>Component Model for Steel Bracings</h1>
         <p>

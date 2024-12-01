@@ -34,7 +34,8 @@ watch(
   () => props.residual,
   (residual) => {
     if (!hasValidParameters.value) {
-      errorMessage.value = 'Residual model parameters are missing so graph is not available.'
+      errorMessage.value =
+        'The graph cannot be displayed because the input material model parameters are not available.'
       return Promise.resolve()
     } else {
       errorMessage.value = ''
