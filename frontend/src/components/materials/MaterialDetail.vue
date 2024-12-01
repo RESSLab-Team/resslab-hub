@@ -45,7 +45,8 @@ watch(
   (material) => {
     console.log(hasValidUvcParameters.value, props.material.uvc_q__mpa_)
     if (!hasValidUvcParameters.value) {
-      errorMessage.value = 'Material model UVC parameters are missing so graph is not available.'
+      errorMessage.value =
+        'The graph cannot be displayed because the input material model parameters are not available.'
       return
     } else {
       errorMessage.value = ''
