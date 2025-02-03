@@ -41,3 +41,6 @@ upload-data:
 
 upload-data-test:
 	$(MAKE) -C backend upload-data-test
+
+backup-dump:
+	@docker compose exec database sh -c 'pg_dumpall -U postgres' > ${DEST_FOLDER}/all-databases.sql
