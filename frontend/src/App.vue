@@ -44,7 +44,16 @@ const menuItems: MenuItem[] = [
   {
     text: 'Braces',
     to: '/braces',
-    children: subMenuItems
+    children: [
+      {
+        text: 'Database',
+        to: '/database'
+      },
+      {
+        text: 'Fragility Curve',
+        to: '/fragility-curve'
+      }
+    ]
   },
   {
     text: 'Materials',
