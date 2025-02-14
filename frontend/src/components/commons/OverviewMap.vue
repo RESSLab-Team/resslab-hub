@@ -1,13 +1,22 @@
 <script setup lang="ts">
 import 'leaflet/dist/leaflet.css'
 
-import { bracesApi, columnsApi, connectionsApi, materialsApi, residualsApi } from '@/plugins/axios'
+import {
+  bracesApi,
+  columnsApi,
+  connectionsApi,
+  hssApi,
+  materialsApi,
+  residualsApi
+} from '@/plugins/axios'
 import { typesNames } from '@/utils/backend'
 import {
   createMarkers,
   locationBraceFields,
   locationColumnFields,
   locationConnectionFields,
+  LocationHSSColumn,
+  locationHSSColumnFields,
   locationMaterialFields,
   locationResidualStressFields,
   type LocationBrace,
@@ -62,13 +71,21 @@ residualsApi.getResidualStressesFields(locationResidualStressFields).then((res) 
   updateMap()
 })
 
+const hssColumnsLocations = ref<LocationHSSColumn[]>([])
+hssApi.getHssColumnsFields(locationHSSColumnFields).then((res) => {
+  hssColumnsLocations.value = res.data as LocationHSSColumn[]
+  console.log('Hss columns locations', hssColumnsLocations.value)
+  updateMap()
+})
+
 const dataLength = computed(
   () =>
     connectionsLocations.value.length +
     columnsLocations.value.length +
     bracesLocations.value.length +
     materialsLocations.value.length +
-    residualStressesLocations.value.length
+    residualStressesLocations.value.length +
+    hssColumnsLocations.value.length
 )
 
 const mapContainer = ref<HTMLDivElement>()
@@ -129,7 +146,8 @@ const markers = computed<Marker[]>(() => {
     createMarkers(columnsLocations.value, 'Columns'),
     createMarkers(bracesLocations.value, 'Braces'),
     createMarkers(materialsLocations.value, 'Materials'),
-    createMarkers(residualStressesLocations.value, 'Residual Stresses')
+    createMarkers(residualStressesLocations.value, 'Residual Stresses'),
+    createMarkers(hssColumnsLocations.value, 'HSS Columns')
   ].flat()
 })
 

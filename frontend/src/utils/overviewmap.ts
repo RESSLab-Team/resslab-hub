@@ -5,6 +5,8 @@ import type {
   ColumnModel,
   ConnectionField,
   ConnectionModel,
+  HSSColumnField,
+  HSSColumnModel,
   MaterialField,
   MaterialModel,
   ResidualStressField,
@@ -15,6 +17,7 @@ import {
   getBraceImage,
   getColumnMapImage,
   getConnectionSpecimenImage,
+  getHSSColumnImage,
   getResidualStressImage,
   getSteelMaterialImage
 } from '@/utils/component'
@@ -23,10 +26,11 @@ import { divIcon, Marker } from 'leaflet'
 
 // First we list all the fields that we want to use in the tooltip
 // We will use these fields as argument fot get_fields api
-const locationCommonFields = ['id', 'link', 'date', 'reference', 'latitude', 'longitude'] as const
+const locationCommonFields = ['id', 'date', 'reference', 'latitude', 'longitude'] as const
 const _locationBraceFields = [
   ...locationCommonFields,
   'cross_section_size',
+  'link',
   'investigator',
   'kl_r',
   'boundary_condition'
@@ -34,6 +38,7 @@ const _locationBraceFields = [
 export const locationBraceFields: BraceField[] = [..._locationBraceFields]
 const _locationColumnFields = [
   ...locationCommonFields,
+  'link',
   'boundary_condition',
   'experimental_program',
   'axial_lp',
@@ -44,6 +49,7 @@ const _locationColumnFields = [
 export const locationColumnFields: ColumnField[] = [..._locationColumnFields]
 const _locationConnectionFields = [
   ...locationCommonFields,
+  'link',
   'experimental_program',
   'specimen_type',
   'section_b',
@@ -53,6 +59,7 @@ const _locationConnectionFields = [
 export const locationConnectionFields: ConnectionField[] = [..._locationConnectionFields]
 const _locationMaterialFields = [
   ...locationCommonFields,
+  'link',
   'profile_type',
   'profile',
   'experimental_program'
@@ -60,6 +67,7 @@ const _locationMaterialFields = [
 export const locationMaterialFields: MaterialField[] = [..._locationMaterialFields]
 const _locationResidualStressFields = [
   ...locationCommonFields,
+  'link',
   'profile_type',
   'profile',
   'experimental_program'
@@ -67,6 +75,14 @@ const _locationResidualStressFields = [
 export const locationResidualStressFields: ResidualStressField[] = [
   ..._locationResidualStressFields
 ]
+const _locationHSSColumnFields = [
+  ...locationCommonFields,
+  'investigator',
+  'test_type',
+  'tube_section',
+  'url'
+] as const
+export const locationHSSColumnFields: HSSColumnField[] = [..._locationHSSColumnFields]
 
 // Then we use the fields list to create fields types for each model
 // Finally we use Pick to extract type from bigger model type using only the fields we want
@@ -78,12 +94,15 @@ export type LocationResidualStress = Pick<
   ResidualStressModel,
   (typeof _locationResidualStressFields)[number]
 >
+export type LocationHSSColumn = Pick<HSSColumnModel, (typeof _locationHSSColumnFields)[number]>
+
 type LocationGlobal =
   | LocationBrace
   | LocationColumn
   | LocationConnection
   | LocationMaterial
   | LocationResidualStress
+  | LocationHSSColumn
 
 // Now we use the newly created types for our specific tooltip functions
 
@@ -167,6 +186,21 @@ export function createTooltipResidualStresses(d: LocationResidualStress) {
         </div>`
 }
 
+export function createTooltipHSSColumn(d: LocationHSSColumn) {
+  return `<div class="tooltip">
+        <h3><a target="_blank" href="${d.url}">${d.investigator} (${d.date})</a></h3>
+        <br>
+        <ul>
+          <li>Test type: ${d.test_type}</li>
+          <li>Tube section: ${d.tube_section}</li>
+          <li>
+            <img alt="Residual Stresses placeholder image" src="${getHSSColumnImage()}"></img>
+          </li>
+          <li><a href='/hss-columns/database?id=${d.id}&detail=true'>View experimental data</a></li>
+        </ul>
+        </div>`
+}
+
 export function createTooltip(d: LocationGlobal, type: Type) {
   switch (type) {
     case 'Connections':
@@ -179,6 +213,8 @@ export function createTooltip(d: LocationGlobal, type: Type) {
       return createTooltipMaterials(d as LocationMaterial)
     case 'Residual Stresses':
       return createTooltipResidualStresses(d as LocationResidualStress)
+    case 'HSS Columns':
+      return createTooltipHSSColumn(d as LocationHSSColumn)
     default:
       return `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`
   }

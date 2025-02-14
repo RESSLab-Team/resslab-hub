@@ -90,3 +90,7 @@ export function getColumnImage(
   }
   return undefined
 }
+
+export function getHSSColumnImage(): string | undefined {
+  return publicPath + 'img/column-type/Biaxial_Fixed_Flexible.png'
+}
