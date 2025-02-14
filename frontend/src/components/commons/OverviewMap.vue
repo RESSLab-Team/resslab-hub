@@ -74,7 +74,6 @@ residualsApi.getResidualStressesFields(locationResidualStressFields).then((res) 
 const hssColumnsLocations = ref<LocationHSSColumn[]>([])
 hssApi.getHssColumnsFields(locationHSSColumnFields).then((res) => {
   hssColumnsLocations.value = res.data as LocationHSSColumn[]
-  console.log('Hss columns locations', hssColumnsLocations.value)
   updateMap()
 })
 
