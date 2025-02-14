@@ -34,6 +34,19 @@ declare module '@/assets/connection/*-sections.csv' {
   }[]
   export default content
 }
+
+declare module '@/assets/hss/*-sections.csv' {
+  const content: {
+    id: string
+    zy: number
+    iy: number
+    b: number
+    t: number
+    h: number
+  }[]
+  export default content
+}
+
 declare module '@/assets/material/parameter-material-list.csv' {
   const content: {
     steel: string

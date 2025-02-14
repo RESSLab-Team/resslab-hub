@@ -33,3 +33,12 @@ export interface Section {
   a: number
   iy: number
 }
+
+export interface HSSSection {
+  id: string
+  zy: number
+  iy: number
+  b: number
+  t: number
+  h: number
+}
