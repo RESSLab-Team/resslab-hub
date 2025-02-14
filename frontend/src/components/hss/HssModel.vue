@@ -5,7 +5,7 @@ import SectionSelector from '@/components/commons/SectionSelector.vue'
 import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
 import TitleRow from '@/components/commons/TitleRow.vue'
 import UnitTableRow, { type UnitTableRowData } from '@/components/commons/UnitTableRow.vue'
-import { publicPath, type HSSSection } from '@/utils/common'
+import { publicPath, type Section, type HSSSection } from '@/utils/common'
 import { variableBind, type Point } from '@/utils/model'
 import { primaryColor, secondaryColor } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
@@ -310,11 +310,12 @@ const envelope = computed<Envelope>(() => {
 const backboneResult = computed<Result>(() => getResult(backbone.value))
 const envelopeResult = computed<Result>(() => getResult(envelope.value))
 
-function onSectionChanged(value?: HSSSection): void {
-  section.value = value
-  if (value) {
-    variables.b = value.b
-    variables.t = value.t
+function onSectionChanged(value?: HSSSection | Section): void {
+  const hssValue = value as HSSSection //This come from putting source="hss" for section-selector
+  section.value = hssValue
+  if (hssValue) {
+    variables.b = hssValue.b
+    variables.t = hssValue.t
   }
 }
 
