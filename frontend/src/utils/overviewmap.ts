@@ -194,7 +194,9 @@ export function createTooltipHSSColumn(d: LocationHSSColumn) {
           <li>Test type: ${d.test_type}</li>
           <li>Tube section: ${d.tube_section}</li>
           <li>
-            <img alt="Residual Stresses placeholder image" src="${getHSSColumnImage()}"></img>
+            <img alt="Residual Stresses placeholder image" src="${getHSSColumnImage(
+              d.test_type
+            )}"></img>
           </li>
           <li><a href='/hss-columns/database?id=${d.id}&detail=true'>View experimental data</a></li>
         </ul>

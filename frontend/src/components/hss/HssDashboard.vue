@@ -20,13 +20,13 @@ const { clickTableRow, closeDetail, item, query, search, searches, changeSearche
   useDashboard<HSSColumnModel>(route, HSSColumnField)
 
 const parallelFields: ParallelField<HSSColumnField>[] = [
-  { id: HSSColumnField.ThetaPPos100fitRad, name: 'Θp [rad]' },
+  { id: HSSColumnField.ThetaPPos100fitRad, name: 'θp [rad]' },
   { id: HSSColumnField.DepthOverT, name: 'D/t' },
   { id: HSSColumnField.AxialLoadRatio, name: 'Pg/Py' },
   { id: HSSColumnField.LoadingAngle, name: 'Load Angle [degrees]' },
   {
     id: HSSColumnField.TestConfiguration,
-    name: 'Boundary Condition',
+    name: 'Configuration',
     mapping: new Map([
       ['3PB', '3 Point Bending'],
       ['CF', 'Cantilever'],
@@ -104,6 +104,7 @@ const steelField = HSSColumnField.SteelType
             :color="colors.blue"
             :field="loadingProtocolField"
             :query="query"
+            style="height: 300px"
             @change:searches="changeSearches"
           >
             <template #title>

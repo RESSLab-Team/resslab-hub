@@ -4,8 +4,9 @@ import CommonDetail, { type DetailCarouselItem } from '@/components/commons/Comm
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { hssApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
+import { getHSSColumnImage } from '@/utils/component'
 import { formatNumber } from '@/utils/formatter'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   hssColumn: HSSColumnModel
@@ -35,6 +36,10 @@ watch(
     immediate: true
   }
 )
+
+const testConfigurationImageSrc = computed<string>(() =>
+  getHSSColumnImage(props.hssColumn.test_configuration)
+)
 </script>
 
 <template>
@@ -61,7 +66,7 @@ watch(
             <property-item name="Pg/Py">
               {{ hssColumn.axial_load_ratio }}
             </property-item>
-            <property-item name="Boundary conditions">
+            <property-item name="Test configuration">
               {{ hssColumn.test_configuration }}
             </property-item>
             <property-item name="Column cross section">
@@ -88,7 +93,7 @@ watch(
           </p>
         </v-col>
         <v-col cols="6">
-          <v-img :src="publicPath + 'img/hssColumns/detail.png'" />
+          <v-img :src="testConfigurationImageSrc" />
         </v-col>
       </v-row>
     </template>
