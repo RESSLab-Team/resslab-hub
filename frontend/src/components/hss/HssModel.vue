@@ -5,7 +5,7 @@ import SectionSelector from '@/components/commons/SectionSelector.vue'
 import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
 import TitleRow from '@/components/commons/TitleRow.vue'
 import UnitTableRow, { type UnitTableRowData } from '@/components/commons/UnitTableRow.vue'
-import { publicPath, type Section } from '@/utils/common'
+import { publicPath, type HSSSection } from '@/utils/common'
 import { variableBind, type Point } from '@/utils/model'
 import { primaryColor, secondaryColor } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
@@ -70,8 +70,8 @@ const memberProperties: Variable<keyof Variables>[] = [
     key: 'l',
     text: 'L',
     unit: 'mm',
-    min: 1000,
-    max: 12000
+    min: 3000,
+    max: 8000
   },
   {
     key: 'fy',
@@ -138,7 +138,7 @@ const rows: UnitTableRowData[] = [
   }
 ]
 
-const section = ref<Section>()
+const section = ref<HSSSection>()
 
 const e = 205
 interface Variables {
@@ -149,8 +149,8 @@ interface Variables {
   fy: number
 }
 const variables = reactive<Variables>({
-  b: 355.6,
-  t: 15.875,
+  b: 300,
+  t: 10,
   pgPye: 0.2,
   l: 5000,
   fy: 380
@@ -160,48 +160,46 @@ const vars = computed(() => {
   const { b, t, pgPye, l, fy } = variables
 
   let ix: number
-  let ry: number
   let zx: number
 
   const d = b //apparently we only deal with square sections
 
   if (section.value) {
-    ix = section.value.ix
-    ry = section.value.ry
-    zx = section.value.zx
+    ix = section.value.iy
+    zx = section.value.zy
   } else {
     // inner dimensions see schema for ref https://www.engineersedge.com/graphics/section_rectange_case_10.gif
     const h = b - 2 * t,
       k = d - 2 * t
 
+    const b1 = h - 2 * t,
+      b2 = b - 2 * t
+
     // formulas comes from https://www.engineersedge.com/calculators/section_square_case_10.htm
 
     //  moment of inertia of a hollow square section
-    ix = (b * d ** 3 - h * k ** 3) / 12
-
-    // radius of gyration
-    ry = Math.sqrt((b * d ** 3 - h * k ** 3) / (12 * (b * d - h * k)))
+    ix = (b * h ** 3 - b2 * b1 ** 3) / 12
 
     // sections modulus
-    zx = (b * d ** 3 - h * k ** 3) / (6 * d)
+    zx = (b * h ** 2 - b2 * b1 ** 2) / 4
   }
 
   // total member response
   // shear modulus
-  const g = e / (2 * (1 + 0.3))
+  // const g = e / (2 * (1 + 0.3))
   // sgear area of hss cross section
-  const aw = 2 * b * t
+  // const aw = 2 * b * t
+
   // flexural stiffness (member in double curvature)
-  const ke = (6 * e * ix * 0.44 * g * aw * l) / (12 * e * ix + 0.44 * g * aw * l ** 2)
+  const ke = (6 * e * ix) / l
 
   const my =
     pgPye < 0.2
-      ? 1.3 * zx * (fy / 1000) * (1 - pgPye / 2)
-      : 1.3 * zx * (fy / 1000) * (9 / 8) * (1 - pgPye)
+      ? 1.2 * zx * (fy / 1000) * (1 - pgPye / 2)
+      : 1.2 * zx * (fy / 1000) * (9 / 8) * (1 - pgPye)
 
   return {
     ix,
-    ry,
     ke,
     zx,
     my
@@ -312,11 +310,11 @@ const envelope = computed<Envelope>(() => {
 const backboneResult = computed<Result>(() => getResult(backbone.value))
 const envelopeResult = computed<Result>(() => getResult(envelope.value))
 
-function onSectionChanged(value?: Section): void {
+function onSectionChanged(value?: HSSSection): void {
   section.value = value
   if (value) {
-    variables.b = value.bf
-    variables.t = value.tf
+    variables.b = value.b
+    variables.t = value.t
   }
 }
 
@@ -415,7 +413,7 @@ defineExpose({ vars, backbone, envelope })
               <info-tooltip> Here, you may input dimensions using the sliders below </info-tooltip>
             </v-card-title>
             <v-card-text>
-              <section-selector @update:section="onSectionChanged($event)" />
+              <section-selector source="hss" @update:section="onSectionChanged($event)" />
 
               <v-row>
                 <v-col v-for="item in steelShapeDimensions" :key="item.key" v-bind="variableBind">
@@ -465,7 +463,7 @@ defineExpose({ vars, backbone, envelope })
       </v-row>
     </v-col>
     <v-col cols="6">
-      <v-img height="400px" :src="publicPath + 'img/column/component.png'" />
+      <v-img height="400px" :src="publicPath + 'img/hss/component.png'" />
     </v-col>
     <v-col cols="6">
       <v-row justify="center">
