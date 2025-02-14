@@ -181,17 +181,19 @@ const vars = computed(() => {
   let h: number
   let ix: number
   let ry: number
+  let zx: number
   if (section.value) {
     h = section.value.h
     ix = section.value.ix
     ry = section.value.ry
+    zx = section.value.zx
   } else {
     h = d - 2 * tf
     ix =
       (Math.pow(d - 2 * tf, 3) * tw) / 12 +
       2 * bf * tf * (Math.pow(tf, 2) / 12 + Math.pow((d - tf) / 2, 2))
     ry = Math.sqrt(
-      ((tf * Math.pow(bf, 3)) / 12 + ((d - 2 * tf) * Math.pow(tw, 3)) / 12) /
+      ((2 * tf * Math.pow(bf, 3)) / 12 + ((d - 2 * tf) * Math.pow(tw, 3)) / 12) /
         (2 * tf * bf + (d - 2 * tf) * tw)
     )
   }
@@ -234,7 +236,7 @@ const backboneRbs = computed(() => {
   const { h, ry, ke, le } = vars.value
   const { zx, lRbs, zRbs, my } = rbs.value
 
-  const a = 1.09
+  const a = 1.06
   const mc = a * my
   const res = 0.4
   const mRes = res * my
@@ -371,11 +373,7 @@ const backboneNonRbs = computed<Backbone>(() => {
       Math.pow(d / 533, -0.28) *
       Math.pow(fy / 355, -0.43)
     lambda = clamp(
-      536 *
-        Math.pow(h / tw, -1.26) *
-        Math.pow(bf / 2 / tf, -0.525) *
-        Math.pow(lb / ry, -0.13) *
-        Math.pow(fy / 355, -0.291),
+      495 * Math.pow(h / tw, -1.34) * Math.pow(bf / 2 / tf, -0.595) * Math.pow(fy / 355, -0.36),
       3.0
     )
   } else {
@@ -395,12 +393,13 @@ const backboneNonRbs = computed<Backbone>(() => {
       Math.pow(lb / ry, -0.11) *
       Math.pow(d / 533, -0.161) *
       Math.pow(fy / 355, -0.32)
+
     lambda = clamp(
-      585 *
-        Math.pow(h / tw, -1.14) *
-        Math.pow(bf / 2 / tf, -0.632) *
-        Math.pow(lb / ry, -0.205) *
-        Math.pow(fy / 355, -0.391),
+      536 *
+        Math.pow(h / tw, -1.26) *
+        Math.pow(bf / 2 / tf, -0.525) *
+        Math.pow(lb / ry, -0.13) *
+        Math.pow(fy / 355, -0.291),
       3.0
     )
   }
@@ -476,7 +475,7 @@ function getZx(rbs: boolean): number {
     return section.value.zx
   }
   const n = rbs ? rbsReduction : 1
-  return 2 * (n * bf * tf * ((d - tf) / 2) + (Math.pow(d - 2 * tf, 2) * tw) / 4)
+  return 2 * (n * bf * tf * ((d - tf) / 2) + (Math.pow(d - 2 * tf, 2) * tw) / 8)
 }
 
 function onSectionChanged(value?: Section): void {
