@@ -48,15 +48,15 @@ const steelShapeDimensions: Variable<keyof Variables>[] = [
     key: 'b',
     text: 'b',
     unit: 'mm',
-    min: 100,
-    max: 500
+    min: 200,
+    max: 1000
   },
   {
     key: 'h',
     text: 'h',
     unit: 'mm',
-    min: 100,
-    max: 500
+    min: 200,
+    max: 1000
   },
   {
     key: 't',
