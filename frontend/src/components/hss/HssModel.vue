@@ -52,6 +52,13 @@ const steelShapeDimensions: Variable<keyof Variables>[] = [
     max: 500
   },
   {
+    key: 'h',
+    text: 'h',
+    unit: 'mm',
+    min: 100,
+    max: 500
+  },
+  {
     key: 't',
     text: 't',
     unit: 'mm',
@@ -143,6 +150,7 @@ const section = ref<HSSSection>()
 const e = 205
 interface Variables {
   b: number
+  h: number
   t: number
   pgPye: number
   l: number
@@ -150,6 +158,7 @@ interface Variables {
 }
 const variables = reactive<Variables>({
   b: 300,
+  h: 300,
   t: 10,
   pgPye: 0.2,
   l: 5000,
@@ -157,7 +166,7 @@ const variables = reactive<Variables>({
 })
 
 const vars = computed(() => {
-  const { b, t, pgPye, l, fy } = variables
+  const { b, h, t, pgPye, l, fy } = variables
 
   let ix: number
   let zx: number
@@ -169,8 +178,7 @@ const vars = computed(() => {
     zx = section.value.zy
   } else {
     // inner dimensions see schema for ref https://www.engineersedge.com/graphics/section_rectange_case_10.gif
-    const h = b - 2 * t,
-      k = d - 2 * t
+    const k = d - 2 * t
 
     const b1 = h - 2 * t,
       b2 = b - 2 * t
@@ -179,7 +187,6 @@ const vars = computed(() => {
 
     //  moment of inertia of a hollow square section
     ix = (b * h ** 3 - b2 * b1 ** 3) / 12
-
     // sections modulus
     zx = (b * h ** 2 - b2 * b1 ** 2) / 4
   }
@@ -226,13 +233,13 @@ const backbone = computed<Backbone>(() => {
   // plastic rotation
   const thetaP = Math.min(
     0.2,
-    0.001 * Math.pow(b / t, -2.32) * Math.pow(e / fy, 1.73) * Math.pow(1 - pgPye, 0.87)
+    0.001 * Math.pow(b / t, -2.32) * Math.pow(e / (fy / 1000), 1.73) * Math.pow(1 - pgPye, 0.87)
   )
 
   // post-capping plastic rotation
   const thetaPc = Math.min(
     0.3,
-    0.0054 * Math.pow(b / t, -1.22) * Math.pow(e / fy, 1.25) * Math.pow(1 - pgPye, 3.31)
+    0.0054 * Math.pow(b / t, -1.22) * Math.pow(e / (fy / 1000), 1.25) * Math.pow(1 - pgPye, 3.31)
   )
 
   // Ultimate rotation
@@ -316,6 +323,7 @@ function onSectionChanged(value?: HSSSection | Section): void {
   if (hssValue) {
     variables.b = hssValue.b
     variables.t = hssValue.t
+    variables.h = hssValue.h
   }
 }
 
