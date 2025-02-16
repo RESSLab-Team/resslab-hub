@@ -1,11 +1,13 @@
 import type { CountModel } from '@/backend'
 import type { Page } from '@/utils/backend'
 import type { Searches } from '@/utils/common'
+import { debounceAPIParameters, debounceAPITime } from '@/utils/common'
 import type { DataOptions } from '@/utils/vuetify'
 import type { AxiosResponse } from 'axios'
 import download from 'downloadjs'
 import JSZip from 'jszip'
-import { computed, ref, unref, watchEffect, type Ref } from 'vue'
+import { debounce } from 'lodash'
+import { computed, ref, unref, watch, type Ref } from 'vue'
 
 export enum DownloadType {
   Main = 'main',
@@ -129,28 +131,35 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
       totalCount.value = counts[0].value
     })
 
-  watchEffect(() => {
-    const optionsValue = unref(options)
-    if (optionsValue) {
-      loading.value = true
-      getPage(
-        query.value,
-        optionsValue.sortBy?.map((sortBy) => sortBy.key),
-        optionsValue.sortBy?.map((sortBy) => sortBy.order === 'desc'),
-        optionsValue.page,
-        optionsValue.itemsPerPage === -1 ? 1000 : optionsValue.itemsPerPage
-      )
-        .then((response) => response.data)
-        .then((page) => {
-          items.value = page.items
-          totalFilteredCount.value = page.total || 0
-          emit('update:page', page)
-        })
-        .finally(() => {
-          loading.value = false
-        })
-    }
-  })
+  const debouncedGetPage = debounce(
+    () => {
+      const optionsValue = unref(options)
+      if (optionsValue) {
+        loading.value = true
+        getPage(
+          query.value,
+          optionsValue.sortBy?.map((sortBy) => sortBy.key),
+          optionsValue.sortBy?.map((sortBy) => sortBy.order === 'desc'),
+          optionsValue.page,
+          optionsValue.itemsPerPage === -1 ? 1000 : optionsValue.itemsPerPage
+        )
+          .then((response) => response.data)
+          .then((page) => {
+            items.value = page.items
+            totalFilteredCount.value = page.total || 0
+            emit('update:page', page)
+          })
+          .finally(() => {
+            loading.value = false
+          })
+      }
+    },
+    debounceAPITime,
+    debounceAPIParameters
+  )
+
+  watch(() => [query.value, options], debouncedGetPage, { immediate: true, deep: true })
+
   return {
     items,
     loading,

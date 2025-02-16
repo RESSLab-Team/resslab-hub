@@ -42,3 +42,6 @@ export interface HSSSection {
   t: number
   h: number
 }
+
+export const debounceAPITime = 80
+export const debounceAPIParameters = { leading: false, trailing: true }
