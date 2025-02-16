@@ -171,15 +171,10 @@ const vars = computed(() => {
   let ix: number
   let zx: number
 
-  const d = b //apparently we only deal with square sections
-
   if (section.value) {
     ix = section.value.iy
     zx = section.value.zy
   } else {
-    // inner dimensions see schema for ref https://www.engineersedge.com/graphics/section_rectange_case_10.gif
-    const k = d - 2 * t
-
     const b1 = h - 2 * t,
       b2 = b - 2 * t
 
@@ -214,7 +209,7 @@ const vars = computed(() => {
 })
 
 const backbone = computed<Backbone>(() => {
-  const { b, t, h, pgPye, fy } = variables
+  const { t, h, pgPye, fy } = variables
   const { ke, my } = vars.value
 
   // capping to yield ratio
