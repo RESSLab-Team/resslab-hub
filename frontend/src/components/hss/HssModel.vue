@@ -214,7 +214,7 @@ const vars = computed(() => {
 })
 
 const backbone = computed<Backbone>(() => {
-  const { b, t, pgPye, fy } = variables
+  const { b, t, h, pgPye, fy } = variables
   const { ke, my } = vars.value
 
   // capping to yield ratio
@@ -233,13 +233,13 @@ const backbone = computed<Backbone>(() => {
   // plastic rotation
   const thetaP = Math.min(
     0.2,
-    0.001 * Math.pow(b / t, -2.32) * Math.pow(e / (fy / 1000), 1.73) * Math.pow(1 - pgPye, 0.87)
+    0.001 * Math.pow(h / t, -2.32) * Math.pow(e / (fy / 1000), 1.73) * Math.pow(1 - pgPye, 0.87)
   )
 
   // post-capping plastic rotation
   const thetaPc = Math.min(
     0.3,
-    0.0054 * Math.pow(b / t, -1.22) * Math.pow(e / (fy / 1000), 1.25) * Math.pow(1 - pgPye, 3.31)
+    0.0054 * Math.pow(h / t, -1.22) * Math.pow(e / (fy / 1000), 1.25) * Math.pow(1 - pgPye, 3.31)
   )
 
   // Ultimate rotation
@@ -252,8 +252,8 @@ const backbone = computed<Backbone>(() => {
   const alphaPc = (0.0 - mc) / (ke * thetaPc)
 
   // Reference Cumulative Plastic Rotation
-  const lambdaS = Math.min(3.0, 951.0 * Math.pow(b / t, -2.2) * Math.pow(1 - pgPye, 3.02))
-  const lambdaC = Math.min(3.0, 1791.0 * Math.pow(b / t, -2.31) * Math.pow(1 - pgPye, 4.91))
+  const lambdaS = Math.min(3.0, 951.0 * Math.pow(h / t, -2.2) * Math.pow(1 - pgPye, 3.02))
+  const lambdaC = Math.min(3.0, 1791.0 * Math.pow(h / t, -2.31) * Math.pow(1 - pgPye, 4.91))
 
   return {
     thetaY,
@@ -271,7 +271,7 @@ const backbone = computed<Backbone>(() => {
   }
 })
 const envelope = computed<Envelope>(() => {
-  const { b, t, pgPye } = variables
+  const { h, t, pgPye } = variables
   const { ke, my } = vars.value
   // capping to yield ratio
 
@@ -287,14 +287,14 @@ const envelope = computed<Envelope>(() => {
   const thetaY = my / ke
 
   // plastic rotation
-  const thetaP = Math.min(0.1, 0.71 * Math.pow(b / t, -0.98) * Math.pow(1 - pgPye, 1.81))
+  const thetaP = Math.min(0.1, 0.71 * Math.pow(h / t, -0.98) * Math.pow(1 - pgPye, 1.81))
 
   // post-capping plastic rotation
-  const thetaPc = Math.min(0.1, 0.44 * Math.pow(b / t, -0.74) * Math.pow(1 - pgPye, 2.8))
+  const thetaPc = Math.min(0.1, 0.44 * Math.pow(h / t, -0.74) * Math.pow(1 - pgPye, 2.8))
 
   // Ultimate rotation
   const thetaUlt =
-    thetaY + Math.min(0.15, 0.27 * Math.pow(b / t, -0.51) * Math.pow(1 - pgPye, 1.45))
+    thetaY + Math.min(0.15, 0.27 * Math.pow(h / t, -0.51) * Math.pow(1 - pgPye, 1.45))
 
   // Post-yielding stiffness of the member
   const alpha = (mc - my) / thetaP / ke
