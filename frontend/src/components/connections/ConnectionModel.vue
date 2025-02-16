@@ -219,7 +219,7 @@ const rbs = computed<{
   const _a = 0.625 * bf
   const _b = 0.75 * d
   const _c = rbsReduction * bf
-  const zx = getZx(true)
+  const zx = getZx(false)
   const lRbs = _a + 0.5 * _b
   const zRbs = zx - _c * tf * (d - tf)
 
@@ -236,7 +236,7 @@ const backboneRbs = computed(() => {
   const { h, ry, ke, le } = vars.value
   const { zx, lRbs, zRbs, my } = rbs.value
 
-  const a = 1.06
+  const a = 1.09
   const mc = a * my
   const res = 0.4
   const mRes = res * my
@@ -300,13 +300,13 @@ const envelopeRbs = computed<Envelope>(() => {
     Math.pow(bf / 2 / tf, -0.7) *
     Math.pow(lb / ry, -0.5) *
     Math.pow((le - lRbs) / d, 0.8) *
-    Math.pow(e / fy, 0.23)
+    Math.pow(e / (fy / 1000), 0.23)
   const thetaPc = clamp(
     2.5 *
       Math.pow(h / tw, -1.1) *
       Math.pow(bf / 2 / tf, -0.1) *
       Math.pow(lb / ry, -0.1) *
-      Math.pow(e / fy, 0.09),
+      Math.pow(e / (fy / 1000), 0.09),
     0.05
   )
   const thetaUlt = 0.08
@@ -436,13 +436,13 @@ const envelopeNonRbs = computed<Envelope>(() => {
     Math.pow(bf / 2 / tf, -1.1) *
     Math.pow(lb / ry, -0.2) *
     Math.pow(le / d, 1.1) *
-    Math.pow(e / fy, 0.2)
+    Math.pow(e / (fy / 1000), 0.2)
   const thetaPc = clamp(
     6.4 *
       Math.pow(h / tw, -0.9) *
       Math.pow(bf / 2 / tf, -0.2) *
       Math.pow(lb / ry, -0.5) *
-      Math.pow(e / fy, 0.1),
+      Math.pow(e / (fy / 1000), 0.1),
     0.05
   )
   const thetaUlt = 0.08
