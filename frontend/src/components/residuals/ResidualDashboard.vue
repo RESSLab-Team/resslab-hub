@@ -11,12 +11,13 @@ import ResetChartButton from '@/components/commons/ResetChartButton.vue'
 
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import colors from 'vuetify/lib/util/colors'
 
 const route = useRoute()
+const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
-  useDashboard<ResidualStressModel>(route, ResidualStressField)
+  useDashboard<ResidualStressModel>(route, router, ResidualStressField)
 
 const parallelFields: ParallelField<ResidualStressField>[] = [
   { id: ResidualStressField.Steel, name: 'Steel Grade' },

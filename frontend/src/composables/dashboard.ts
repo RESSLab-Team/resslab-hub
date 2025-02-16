@@ -1,12 +1,16 @@
 import type { Page } from '@/utils/backend'
 import { filterColumnValue, globalSearchKey, type Searches, type Value } from '@/utils/common'
-import { computed, ref, triggerRef, unref } from 'vue'
-import type { RouteLocationNormalizedLoaded } from 'vue-router'
+import { computed, ref, triggerRef, unref, watch } from 'vue'
+import type { RouteLocationNormalizedLoaded, Router } from 'vue-router'
 
 export const queryFieldSeparator = ';'
 export const queryKeyValueSeparator = ':'
 
-export function useDashboard<M>(route: RouteLocationNormalizedLoaded, field: object) {
+export function useDashboard<M>(
+  route: RouteLocationNormalizedLoaded,
+  router: Router,
+  field: object
+) {
   const fields: string[] = Object.values(field)
 
   const search = ref<string>('')
@@ -46,14 +50,49 @@ export function useDashboard<M>(route: RouteLocationNormalizedLoaded, field: obj
     return queries.join(queryFieldSeparator)
   })
 
-  Object.entries(route.query)
-    .filter(([key, value]) => fields.includes(key) && value)
-    .forEach(([key, value]) => {
-      const newValue = parseValue(value)
-      if (newValue) {
-        searches.value[key] = newValue
+  watch(
+    () => [searches.value, search.value],
+    () => {
+      const query = {
+        ...searches.value,
+        ...(search.value ? { [globalSearchKey]: search.value } : {})
       }
-    })
+      if (router) {
+        router.push({ query })
+      }
+    },
+    { immediate: true, deep: true }
+  )
+
+  watch(
+    () => route.query,
+    (newQuery) => {
+      // Update or add keys from newQuery
+      Object.entries(newQuery)
+        .filter(([key, value]) => fields.includes(key))
+        .forEach(([key, value]) => {
+          const newValue = parseValue(value)
+          if (newValue !== undefined) {
+            // Update the value if changed or add it if not present
+            if (JSON.stringify(searches.value[key]) !== JSON.stringify(newValue)) {
+              searches.value[key] = newValue
+            }
+          } else {
+            // Remove the key if the new value is invalid
+            delete searches.value[key]
+          }
+        })
+
+      // Remove keys that are in searches.value but not in newQuery
+      Object.keys(searches.value).forEach((key) => {
+        if (!(key in newQuery)) {
+          delete searches.value[key]
+        }
+      })
+    },
+    { immediate: true, deep: true }
+  )
+
   const globalSearchValue = route.query[globalSearchKey]
   if (typeof globalSearchValue === 'string') {
     search.value = globalSearchValue
