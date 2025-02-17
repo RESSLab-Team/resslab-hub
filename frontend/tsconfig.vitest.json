@@ -3,7 +3,7 @@
   "exclude": [],
   "compilerOptions": {
     "composite": true,
-    "lib": [ "ESNext"],
+    "lib": ["dom", "ESNext"],
     "types": ["node", "jsdom"]
   }
 }

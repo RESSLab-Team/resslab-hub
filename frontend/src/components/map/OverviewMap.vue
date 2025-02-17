@@ -40,6 +40,7 @@ import {
 import 'leaflet.markercluster'
 import { computed, onMounted, ref } from 'vue'
 
+// Reactive references to store various locations from API calls
 const connectionsLocations = ref<LocationConnection[]>([])
 
 connectionsApi.getConnectionsFields([...locationConnectionFields]).then((res) => {
@@ -77,6 +78,7 @@ hssApi.getHssColumnsFields(locationHSSColumnFields).then((res) => {
   updateMap()
 })
 
+// Computed property to get the total number of markers
 const dataLength = computed(
   () =>
     connectionsLocations.value.length +
@@ -87,8 +89,10 @@ const dataLength = computed(
     hssColumnsLocations.value.length
 )
 
+// Reference to the map container element
 const mapContainer = ref<HTMLDivElement>()
 
+// Initialize the Leaflet map using the container reference
 const map = computed(() => {
   const map = LMap(mapContainer.value as HTMLDivElement, {
     minZoom: 1,
@@ -115,6 +119,7 @@ const cluster = computed(() => {
 
       const allChilds = cluster.getAllChildMarkers()
 
+      // Use D3 rollups to count the distribution of marker types within the cluster
       const counts = rollups(
         allChilds,
         (v) => v.length,
@@ -139,6 +144,7 @@ const cluster = computed(() => {
   })
 })
 
+// Compute markers from the fetched locations
 const markers = computed<Marker[]>(() => {
   return [
     createMarkers(connectionsLocations.value, 'Connections'),
@@ -150,6 +156,7 @@ const markers = computed<Marker[]>(() => {
   ].flat()
 })
 
+// Create a legend control for filtering markers by type
 const legend = computed(() => {
   const legend = new Control({ position: 'bottomleft' })
 
@@ -215,10 +222,22 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="mapContainer" class="fill-height mapContainer" color="secondary" />
+  <div class="fill-height">
+    <div ref="mapContainer" class="fill-height mapContainer" color="secondary"></div>
+    <div
+      class="cluster-table"
+      :style="{ width: `${mapWidth / 5}px`, height: `${mapHeight / 5}px` }"
+    />
+  </div>
 </template>
 
 <style lang="scss" scoped>
+.cluster-table {
+  position: relative;
+  z-index: 10;
+  background-color: blue;
+}
+
 .mapContainer {
   z-index: 1;
 }
