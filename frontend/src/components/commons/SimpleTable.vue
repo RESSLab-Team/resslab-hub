@@ -4,7 +4,7 @@ import TextSubscript from '@/components/commons/TextSubscript.vue'
 import { DownloadType, type Column, type ColumnType } from '@/composables/table'
 import i18n from '@/plugins/i18n'
 import { useNotificationStore } from '@/stores/notification'
-import { filterColumnValue, globalSearchKey, type Searches } from '@/utils/common'
+import type { Searches } from '@/utils/common'
 import { booleanOptions, type DataOptions } from '@/utils/vuetify'
 import { mdiDownload, mdiMagnify, mdiShare } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
@@ -131,16 +131,10 @@ function click(_: Event, value: { item: { raw: M } }): void {
 }
 
 function shareUrl(): void {
-  const url = new URL(window.location.origin + route.path)
-  Object.entries(columnSearches.value)
-    .filter(([, value]) => filterColumnValue(value))
-    .forEach(([key, value]) => {
-      url.searchParams.append(key, value.toString())
-    })
-  if (globalSearch.value.length > 0) {
-    url.searchParams.append(globalSearchKey, globalSearch.value)
-  }
+  // removed the URL query generation since it's now added automatically via vue-router
+  const url = new URL(window.location.origin + route.fullPath)
   const shareUrl = url.href
+
   if (navigator.share) {
     navigator.share({
       url: shareUrl

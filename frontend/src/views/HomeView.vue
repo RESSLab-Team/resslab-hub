@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import type { BraceField, ColumnField, ConnectionField, MaterialField } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import OverviewMap from '@/components/commons/OverviewMap.vue'
-import { analyticsApi, bracesApi, columnsApi, connectionsApi, materialsApi, residualsApi } from '@/plugins/axios'
+import OverviewMap from '@/components/map/OverviewMap.vue'
+import {
+  analyticsApi,
+  bracesApi,
+  columnsApi,
+  connectionsApi,
+  materialsApi,
+  residualsApi
+} from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
 import { chain } from 'lodash'
 import { onMounted, ref, shallowRef, triggerRef } from 'vue'

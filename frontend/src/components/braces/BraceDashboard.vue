@@ -10,12 +10,13 @@ import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import colors from 'vuetify/lib/util/colors'
 
 const route = useRoute()
+const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
-  useDashboard<BraceModel>(route, BraceField)
+  useDashboard<BraceModel>(route, router, BraceField)
 
 const parallelFields: ParallelField<BraceField>[] = [
   { id: BraceField.KlR },

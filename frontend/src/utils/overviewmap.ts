@@ -12,17 +12,11 @@ import type {
   ResidualStressField,
   ResidualStressModel
 } from '@/backend'
+import TooltipContent from '@/components/map/TooltipContent.vue'
 import { typesNames, type Type } from '@/utils/backend'
-import {
-  getBraceImage,
-  getColumnMapImage,
-  getConnectionSpecimenImage,
-  getHSSColumnImage,
-  getResidualStressImage,
-  getSteelMaterialImage
-} from '@/utils/component'
 import { MarkerSVG, scaleColor } from '@/utils/piechart'
 import { divIcon, Marker } from 'leaflet'
+import { createApp } from 'vue'
 
 // First we list all the fields that we want to use in the tooltip
 // We will use these fields as argument fot get_fields api
@@ -104,123 +98,6 @@ type LocationGlobal =
   | LocationResidualStress
   | LocationHSSColumn
 
-// Now we use the newly created types for our specific tooltip functions
-
-export function createTooltipConnections(d: LocationConnection) {
-  return `<div class="tooltip">
-        <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${d.date})</a></h3>
-        <br>
-        <ul>
-          <li>${d.specimen_type}</li>
-          <li>${d.connection_type}, Beam: ${d.section_b} Col: ${d.section_c}</li>
-          <li>
-            <img alt="${d.specimen_type}" src="${getConnectionSpecimenImage(
-    d.specimen_type
-  )}"></img>
-          </li>
-          <li><a href='/connections/database?id=${d.id}&detail=true'>View experimental data</a></li>
-        </ul>
-        </div>`
-}
-
-export function createTooltipBraces(d: LocationBrace) {
-  return `<div class="tooltip">
-        <h3><a target="_blank" href="${d.link}">${d.investigator} (${d.date})</a></h3>
-        <br>
-        <ul>
-          <li>Cross section: ${d.cross_section_size}</li>
-          <li>KL/r:   ${d.kl_r}</li>
-          <li>
-            <img alt="Braces placeholder image" src="${getBraceImage(d.boundary_condition)}"></img>
-          </li>
-          <li><a href='/braces/database?id=${d.id}&detail=true'>View experimental data</a></li>
-        </ul>
-        </div>`
-}
-
-export function createTooltipColumns(d: LocationColumn) {
-  return `<div class="tooltip">
-        <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${d.date})</a></h3>
-        <br>
-        <ul>
-          <li>${d.boundary_condition}</li>
-          <li>${d.axial_lp} (Pg/Py = ${d.p_g_over_p_ym}), Column: ${d.section_c}</li>
-          <li>
-            <img alt="Columns placeholder image" src="${getColumnMapImage(
-              d.axis_of_bending,
-              d.boundary_condition
-            )}"></img>
-          </li>
-          <li><a href='/columns/database?id=${d.id}&detail=true'>View experimental data</a></li>
-        </ul>
-        </div>`
-}
-
-export function createTooltipMaterials(d: LocationMaterial) {
-  return `<div class="tooltip">
-        <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${d.date})</a></h3>
-        <br>
-        <ul>
-          <li>Profile type: ${d.profile_type}</li>
-          <li>Cross section: ${d.profile}</li>
-          <li>
-            <img alt="Materials placeholder image" src="${getSteelMaterialImage()}"></img>
-          </li>
-          <li><a href='/materials/database?id=${d.id}&detail=true'>View experimental data</a></li>
-        </ul>
-        </div>`
-}
-
-export function createTooltipResidualStresses(d: LocationResidualStress) {
-  return `<div class="tooltip">
-        <h3><a target="_blank" href="${d.link}">${d.experimental_program} (${d.date})</a></h3>
-        <br>
-        <ul>
-          <li>Profile type: ${d.profile_type}</li>
-          <li>Cross section: ${d.profile}</li>
-          <li>
-            <img alt="Residual Stresses placeholder image" src="${getResidualStressImage()}"></img>
-          </li>
-          <li><a href='/residuals/database?id=${d.id}&detail=true'>View experimental data</a></li>
-        </ul>
-        </div>`
-}
-
-export function createTooltipHSSColumn(d: LocationHSSColumn) {
-  return `<div class="tooltip">
-        <h3><a target="_blank" href="${d.url}">${d.investigator} (${d.date})</a></h3>
-        <br>
-        <ul>
-          <li>Test type: ${d.test_type}</li>
-          <li>Tube section: ${d.tube_section}</li>
-          <li>
-            <img alt="Residual Stresses placeholder image" src="${getHSSColumnImage(
-              d.test_type
-            )}"></img>
-          </li>
-          <li><a href='/hss-columns/database?id=${d.id}&detail=true'>View experimental data</a></li>
-        </ul>
-        </div>`
-}
-
-export function createTooltip(d: LocationGlobal, type: Type) {
-  switch (type) {
-    case 'Connections':
-      return createTooltipConnections(d as LocationConnection)
-    case 'Columns':
-      return createTooltipColumns(d as LocationColumn)
-    case 'Braces':
-      return createTooltipBraces(d as LocationBrace)
-    case 'Materials':
-      return createTooltipMaterials(d as LocationMaterial)
-    case 'Residual Stresses':
-      return createTooltipResidualStresses(d as LocationResidualStress)
-    case 'HSS Columns':
-      return createTooltipHSSColumn(d as LocationHSSColumn)
-    default:
-      return `<h3>No tooltip constructor found for ${d} type is ${type}</h3>`
-  }
-}
 export const icons = new Map(
   typesNames.map((type) => [
     type,
@@ -241,9 +118,16 @@ function hasCoordinates(
 
 export function createMarkers(data: LocationGlobal[], type: Type) {
   return data.filter(hasCoordinates).map((d) => {
+    // Create a container element to mount the Vue tooltip component
+    const container = document.createElement('div')
+
+    // Create the Vue app with your TooltipContent component and pass props
+    createApp(TooltipContent, { data: d, type }).mount(container)
+
+    // Create a marker with a popup bound to the container's innerHTML
     const marker = new Marker([d.latitude, d.longitude], {
       icon: icons.get(type)
-    }).bindPopup(createTooltip(d, type), { autoPanPadding: [50, 150] })
+    }).bindPopup(container.innerHTML, { autoPanPadding: [50, 150] })
 
     marker.feature = {
       type: 'Feature',
