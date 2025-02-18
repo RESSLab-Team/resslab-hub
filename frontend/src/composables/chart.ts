@@ -172,7 +172,6 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
     query,
     (newQuery, oldQuery) => {
       if (newQuery !== oldQuery) debouncedGetCounts()
-      else console.log("Query didn't change")
     },
     { immediate: true }
   )
