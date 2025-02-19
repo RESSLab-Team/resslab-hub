@@ -98,6 +98,8 @@ type LocationGlobal =
   | LocationResidualStress
   | LocationHSSColumn
 
+type LocationWithCoordinates = LocationGlobal & { latitude: number; longitude: number }
+
 export const icons = new Map(
   typesNames.map((type) => [
     type,
@@ -110,14 +112,13 @@ export const icons = new Map(
   ])
 )
 
-function hasCoordinates(
-  d: LocationGlobal
-): d is LocationGlobal & { latitude: number; longitude: number } {
-  return d.latitude !== undefined && d.longitude !== undefined
+export function hasCoordinates(d: LocationGlobal): d is LocationWithCoordinates {
+  if (d.latitude && d.longitude) return true
+  else return false
 }
 
 export function createMarkers(data: LocationGlobal[], type: Type) {
-  return data.filter(hasCoordinates).map((d) => {
+  return data.filter<LocationWithCoordinates>(hasCoordinates).map((d) => {
     // Create a container element to mount the Vue tooltip component
     const container = document.createElement('div')
 

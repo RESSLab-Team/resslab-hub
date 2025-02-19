@@ -12,6 +12,7 @@ import {
 import { typesNames } from '@/utils/backend'
 import {
   createMarkers,
+  hasCoordinates,
   locationBraceFields,
   locationColumnFields,
   locationConnectionFields,
@@ -42,39 +43,38 @@ import { computed, onMounted, ref } from 'vue'
 
 // Reactive references to store various locations from API calls
 const connectionsLocations = ref<LocationConnection[]>([])
-
 connectionsApi.getConnectionsFields([...locationConnectionFields]).then((res) => {
-  connectionsLocations.value = res.data as LocationConnection[]
+  connectionsLocations.value = (res.data as LocationConnection[]).filter(hasCoordinates)
   updateMap()
 })
 
 const columnsLocations = ref<LocationColumn[]>([])
 columnsApi.getColumnsFields(locationColumnFields).then((res) => {
-  columnsLocations.value = res.data as LocationColumn[]
+  columnsLocations.value = (res.data as LocationColumn[]).filter(hasCoordinates)
   updateMap()
 })
 
 const bracesLocations = ref<LocationBrace[]>([])
 bracesApi.getBracesFields(locationBraceFields).then((res) => {
-  bracesLocations.value = res.data as LocationBrace[]
+  bracesLocations.value = (res.data as LocationBrace[]).filter(hasCoordinates)
   updateMap()
 })
 
 const materialsLocations = ref<LocationMaterial[]>([])
 materialsApi.getMaterialsFields(locationMaterialFields).then((res) => {
-  materialsLocations.value = res.data as LocationMaterial[]
+  materialsLocations.value = (res.data as LocationMaterial[]).filter(hasCoordinates)
   updateMap()
 })
 
 const residualStressesLocations = ref<LocationResidualStress[]>([])
 residualsApi.getResidualStressesFields(locationResidualStressFields).then((res) => {
-  residualStressesLocations.value = res.data as LocationResidualStress[]
+  residualStressesLocations.value = (res.data as LocationResidualStress[]).filter(hasCoordinates)
   updateMap()
 })
 
 const hssColumnsLocations = ref<LocationHSSColumn[]>([])
 hssApi.getHssColumnsFields(locationHSSColumnFields).then((res) => {
-  hssColumnsLocations.value = res.data as LocationHSSColumn[]
+  hssColumnsLocations.value = (res.data as LocationHSSColumn[]).filter(hasCoordinates)
   updateMap()
 })
 
