@@ -73,6 +73,7 @@ const _locationHSSColumnFields = [
   ...locationCommonFields,
   'investigator',
   'test_type',
+  'test_configuration',
   'tube_section',
   'url'
 ] as const

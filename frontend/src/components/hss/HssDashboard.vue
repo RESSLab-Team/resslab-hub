@@ -15,6 +15,8 @@ import { useDashboard } from '@/composables/dashboard'
 import { useRoute, useRouter } from 'vue-router'
 import colors from 'vuetify/lib/util/colors'
 
+import { testConfigurationNameMapping } from '@/utils/hss'
+
 const route = useRoute()
 const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
@@ -28,11 +30,7 @@ const parallelFields: ParallelField<HSSColumnField>[] = [
   {
     id: HSSColumnField.TestConfiguration,
     name: 'Configuration',
-    mapping: new Map([
-      ['3PB', '3 Point Bending'],
-      ['CF', 'Cantilever'],
-      ['DC', 'Double curvature']
-    ])
+    mapping: testConfigurationNameMapping
   }
 ]
 

@@ -3,10 +3,10 @@ import {
   getBraceImage,
   getColumnMapImage,
   getConnectionSpecimenImage,
-  getHSSColumnImage,
   getResidualStressImage,
   getSteelMaterialImage
 } from '@/utils/component'
+import { testConfigurationNameMapping } from '@/utils/hss'
 
 const { data, type } = defineProps<{
   data: any
@@ -101,10 +101,10 @@ const { data, type } = defineProps<{
         <a target="_blank" :href="data.url"> {{ data.investigator }} ({{ data.date }}) </a>
       </h3>
       <ul>
-        <li>Test type: {{ data.test_type }}</li>
+        <li>Test configuration: {{ testConfigurationNameMapping.get(data.test_configuration) }}</li>
         <li>Tube section: {{ data.tube_section }}</li>
         <li>
-          <img alt="HSS Column image" :src="getHSSColumnImage(data.test_type)" />
+          <img alt="HSS Column image" src="/img/hss/hss_tooltip.png" />
         </li>
         <li>
           <a :href="`/hss-columns/database?id=${data.id}&detail=true`"> View experimental data </a>

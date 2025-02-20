@@ -98,5 +98,8 @@ export function getHSSColumnImage(test_configuration: string): string {
     return publicPath + 'img/hss/type/cantilever.jpg'
   } else if (test_configuration === 'DC') {
     return publicPath + 'img/hss/type/double_curvature.jpg'
-  } else return ''
+  } else {
+    console.warn('Unknown test configuration: ' + test_configuration)
+    return ''
+  }
 }
