@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import type { BraceField, ColumnField, ConnectionField, MaterialField } from '@/backend'
+import type {
+  BraceField,
+  ColumnField,
+  ConnectionField,
+  HSSColumnField,
+  MaterialField
+} from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import OverviewMap from '@/components/map/OverviewMap.vue'
 import {
@@ -7,6 +13,7 @@ import {
   bracesApi,
   columnsApi,
   connectionsApi,
+  hssApi,
   materialsApi,
   residualsApi
 } from '@/plugins/axios'
@@ -79,7 +86,8 @@ onMounted(() => {
     columnsApi.getColumnsDistinct(),
     connectionsApi.getConnectionsDistinct(),
     materialsApi.getMaterialsDistinct(),
-    residualsApi.getResidualStressesDistinct()
+    residualsApi.getResidualStressesDistinct(),
+    hssApi.getHssColumnsDistinct()
   ])
     .then((responses) =>
       chain(responses)
@@ -93,16 +101,18 @@ onMounted(() => {
     })
 
   // Get university count
-  const latLngFields: (BraceField & ColumnField & ConnectionField & MaterialField)[] = [
-    'latitude',
-    'longitude'
-  ]
+  const latLngFields: (BraceField &
+    ColumnField &
+    ConnectionField &
+    MaterialField &
+    HSSColumnField)[] = ['latitude', 'longitude']
   Promise.all([
     bracesApi.getBracesCounts(latLngFields),
     columnsApi.getColumnsCounts(latLngFields),
     connectionsApi.getConnectionsCounts(latLngFields),
     materialsApi.getMaterialsCounts(latLngFields),
-    residualsApi.getResidualStressesCounts(latLngFields)
+    residualsApi.getResidualStressesCounts(latLngFields),
+    hssApi.getHssColumnsCounts(latLngFields)
   ])
     .then((responses) =>
       chain(responses)
