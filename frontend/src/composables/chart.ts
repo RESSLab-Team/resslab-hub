@@ -1,11 +1,11 @@
 import type { CountModel, DateRangeModel, MatrixModel, RangeModel } from '@/backend'
 import type { Value } from '@/utils/common'
+import { debounceAPIParameters, debounceAPITime } from '@/utils/common'
 import type { Color } from '@/utils/vuetify'
 import type { AxiosResponse } from 'axios'
-import { chain } from 'lodash'
-import { computed, ref, watch, watchEffect, type Ref } from 'vue'
+import { chain, debounce } from 'lodash'
+import { computed, ref, watch, type Ref } from 'vue'
 import { queryFieldSeparator, queryKeyValueSeparator } from './dashboard'
-
 const chartProps = {
   color: Object as () => Color,
   query: String
@@ -65,20 +65,31 @@ export function useSingleChart<F>(
     emit('change:searches', key, value)
   }
 
-  watchEffect(() => {
-    getCounts([field], query.value)
-      .then((response) => response.data)
-      .then((values) => {
-        counts.value = values
-          .map((count) => {
-            return {
-              name: count.names[0],
-              value: count.value
-            }
-          })
-          .sort((c1, c2) => (c1.name < c2.name ? -1 : 1))
-      })
-  })
+  const debouncedGetCounts = debounce(
+    () =>
+      getCounts([field], query.value)
+        .then((response) => response.data)
+        .then((values) => {
+          counts.value = values
+            .map((count) => {
+              return {
+                name: count.names[0],
+                value: count.value
+              }
+            })
+            .sort((c1, c2) => (c1.name < c2.name ? -1 : 1))
+        }),
+    debounceAPITime,
+    debounceAPIParameters
+  )
+
+  watch(
+    query,
+    (newQuery, oldQuery) => {
+      if (newQuery !== oldQuery) debouncedGetCounts()
+    },
+    { immediate: true }
+  )
 
   return { counts, changeSearches }
 }
@@ -146,13 +157,24 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
     emit('change:searches', key, value)
   }
 
-  watchEffect(() => {
-    getCounts(requestFields, query.value)
-      .then((response) => response.data)
-      .then((values) => {
-        counts.value = values
-      })
-  })
+  const debouncedGetCounts = debounce(
+    () =>
+      getCounts(requestFields, query.value)
+        .then((response) => response.data)
+        .then((values) => {
+          counts.value = values
+        }),
+    debounceAPITime,
+    debounceAPIParameters
+  )
+
+  watch(
+    query,
+    (newQuery, oldQuery) => {
+      if (newQuery !== oldQuery) debouncedGetCounts()
+    },
+    { immediate: true }
+  )
 
   const numberField = getField<NF>(numberRangeOption.field, fields[0].toString())
   if (numberField) {
@@ -249,15 +271,25 @@ export function useParallelChart<F extends string>(
     emit('change:searches', idField, value)
   }
 
-  watchEffect(() => {
-    getMatrix(requestFields.value, query.value)
-      .then((response) => response.data)
-      .then((matrixModel) => {
-        ids.value = matrixModel.ids
-        data.value = matrixModel.data as (string | number)[][]
-      })
-  })
+  const debouncedGetMatrix = debounce(
+    () =>
+      getMatrix(requestFields.value, query.value)
+        .then((response) => response.data)
+        .then((matrixModel) => {
+          ids.value = matrixModel.ids
+          data.value = matrixModel.data as (string | number)[][]
+        }),
+    debounceAPITime,
+    debounceAPIParameters
+  )
 
+  watch(
+    query,
+    (newQuery, oldQuery) => {
+      if (newQuery !== oldQuery) debouncedGetMatrix()
+    },
+    { immediate: true }
+  )
   const isFiltered = computed(() => query.value?.includes(idField) ?? false)
 
   return { ids, data, requestFields, isFiltered, changeSearches }

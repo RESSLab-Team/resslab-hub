@@ -62,6 +62,9 @@ transform-data:
 	poetry run python data/csv_transformer.py aisc ../../resslab-hub-data/connections/component/aisc.csv ../frontend/src/assets/connection/aisc-sections.csv
 	poetry run python data/csv_transformer.py european ../../resslab-hub-data/connections/component/european.csv ../frontend/src/assets/connection/european-sections.csv
 	poetry run python data/csv_transformer.py japanese ../../resslab-hub-data/connections/component/japanese.csv ../frontend/src/assets/connection/japanese-sections.csv
+	poetry run python data/hss_csv_transformer.py aisc ../../resslab-hub-data/hss_columns/sections/aisc.csv ../frontend/src/assets/hss/hss-aisc-sections.csv
+	poetry run python data/hss_csv_transformer.py european ../../resslab-hub-data/hss_columns/sections/european.csv ../frontend/src/assets/hss/hss-european-sections.csv
+	poetry run python data/hss_csv_transformer.py japanese ../../resslab-hub-data/hss_columns/sections/japanese.csv ../frontend/src/assets/hss/hss-japanese-sections.csv
 
 analyze-data:
 	poetry run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/material/steel_material.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv ../../resslab-hub-data/residual_stresses/residual_stresses.csv ../../resslab-hub-data/hss_columns/hss_columns.csv

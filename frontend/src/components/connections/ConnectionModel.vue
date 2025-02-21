@@ -2,7 +2,6 @@
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/steel_beams
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import DisclaimerComponent from '@/components/commons/DisclaimerComponent.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
 import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
 import TitleRow from '@/components/commons/TitleRow.vue'
@@ -181,17 +180,19 @@ const vars = computed(() => {
   let h: number
   let ix: number
   let ry: number
+  let zx: number
   if (section.value) {
     h = section.value.h
     ix = section.value.ix
     ry = section.value.ry
+    zx = section.value.zx
   } else {
     h = d - 2 * tf
     ix =
       (Math.pow(d - 2 * tf, 3) * tw) / 12 +
       2 * bf * tf * (Math.pow(tf, 2) / 12 + Math.pow((d - tf) / 2, 2))
     ry = Math.sqrt(
-      ((tf * Math.pow(bf, 3)) / 12 + ((d - 2 * tf) * Math.pow(tw, 3)) / 12) /
+      ((2 * tf * Math.pow(bf, 3)) / 12 + ((d - 2 * tf) * Math.pow(tw, 3)) / 12) /
         (2 * tf * bf + (d - 2 * tf) * tw)
     )
   }
@@ -217,7 +218,7 @@ const rbs = computed<{
   const _a = 0.625 * bf
   const _b = 0.75 * d
   const _c = rbsReduction * bf
-  const zx = getZx(true)
+  const zx = getZx(false)
   const lRbs = _a + 0.5 * _b
   const zRbs = zx - _c * tf * (d - tf)
 
@@ -298,13 +299,13 @@ const envelopeRbs = computed<Envelope>(() => {
     Math.pow(bf / 2 / tf, -0.7) *
     Math.pow(lb / ry, -0.5) *
     Math.pow((le - lRbs) / d, 0.8) *
-    Math.pow(e / fy, 0.23)
+    Math.pow(e / (fy / 1000), 0.23)
   const thetaPc = clamp(
     2.5 *
       Math.pow(h / tw, -1.1) *
       Math.pow(bf / 2 / tf, -0.1) *
       Math.pow(lb / ry, -0.1) *
-      Math.pow(e / fy, 0.09),
+      Math.pow(e / (fy / 1000), 0.09),
     0.05
   )
   const thetaUlt = 0.08
@@ -371,11 +372,7 @@ const backboneNonRbs = computed<Backbone>(() => {
       Math.pow(d / 533, -0.28) *
       Math.pow(fy / 355, -0.43)
     lambda = clamp(
-      536 *
-        Math.pow(h / tw, -1.26) *
-        Math.pow(bf / 2 / tf, -0.525) *
-        Math.pow(lb / ry, -0.13) *
-        Math.pow(fy / 355, -0.291),
+      495 * Math.pow(h / tw, -1.34) * Math.pow(bf / 2 / tf, -0.595) * Math.pow(fy / 355, -0.36),
       3.0
     )
   } else {
@@ -395,12 +392,13 @@ const backboneNonRbs = computed<Backbone>(() => {
       Math.pow(lb / ry, -0.11) *
       Math.pow(d / 533, -0.161) *
       Math.pow(fy / 355, -0.32)
+
     lambda = clamp(
-      585 *
-        Math.pow(h / tw, -1.14) *
-        Math.pow(bf / 2 / tf, -0.632) *
-        Math.pow(lb / ry, -0.205) *
-        Math.pow(fy / 355, -0.391),
+      536 *
+        Math.pow(h / tw, -1.26) *
+        Math.pow(bf / 2 / tf, -0.525) *
+        Math.pow(lb / ry, -0.13) *
+        Math.pow(fy / 355, -0.291),
       3.0
     )
   }
@@ -437,13 +435,13 @@ const envelopeNonRbs = computed<Envelope>(() => {
     Math.pow(bf / 2 / tf, -1.1) *
     Math.pow(lb / ry, -0.2) *
     Math.pow(le / d, 1.1) *
-    Math.pow(e / fy, 0.2)
+    Math.pow(e / (fy / 1000), 0.2)
   const thetaPc = clamp(
     6.4 *
       Math.pow(h / tw, -0.9) *
       Math.pow(bf / 2 / tf, -0.2) *
       Math.pow(lb / ry, -0.5) *
-      Math.pow(e / fy, 0.1),
+      Math.pow(e / (fy / 1000), 0.1),
     0.05
   )
   const thetaUlt = 0.08
@@ -476,7 +474,7 @@ function getZx(rbs: boolean): number {
     return section.value.zx
   }
   const n = rbs ? rbsReduction : 1
-  return 2 * (n * bf * tf * ((d - tf) / 2) + (Math.pow(d - 2 * tf, 2) * tw) / 4)
+  return 2 * (n * bf * tf * ((d - tf) / 2) + (Math.pow(d - 2 * tf, 2) * tw) / 8)
 }
 
 function onSectionChanged(value?: Section): void {
@@ -562,16 +560,6 @@ defineExpose({ vars, backboneRbs, backboneNonRbs, envelopeRbs, envelopeNonRbs })
 </script>
 
 <template>
-  <disclaimer-component>
-    <template #title>Under development</template>
-    This section is under construction. Please report any bugs
-    <a
-      href="https://github.com/RESSLab-Team/resslab-hub/issues"
-      target="_blank"
-      rel="noopener noreferrer"
-      >here</a
-    >.
-  </disclaimer-component>
   <v-row>
     <v-col cols="12">
       <title-row>

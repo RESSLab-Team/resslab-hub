@@ -12,26 +12,25 @@ import ResetChartButton from '@/components/commons/ResetChartButton.vue'
 
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import colors from 'vuetify/lib/util/colors'
 
+import { testConfigurationNameMapping } from '@/utils/hss'
+
 const route = useRoute()
+const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
-  useDashboard<HSSColumnModel>(route, HSSColumnField)
+  useDashboard<HSSColumnModel>(route, router, HSSColumnField)
 
 const parallelFields: ParallelField<HSSColumnField>[] = [
-  { id: HSSColumnField.ThetaPPos100fitRad, name: 'Θp [rad]' },
+  { id: HSSColumnField.ThetaPPos100fitRad, name: 'θp [rad]' },
   { id: HSSColumnField.DepthOverT, name: 'D/t' },
   { id: HSSColumnField.AxialLoadRatio, name: 'Pg/Py' },
   { id: HSSColumnField.LoadingAngle, name: 'Load Angle [degrees]' },
   {
     id: HSSColumnField.TestConfiguration,
-    name: 'Boundary Condition',
-    mapping: new Map([
-      ['3PB', '3 Point Bending'],
-      ['CF', 'Cantilever'],
-      ['DC', 'Double curvature']
-    ])
+    name: 'Configuration',
+    mapping: testConfigurationNameMapping
   }
 ]
 
@@ -104,6 +103,7 @@ const steelField = HSSColumnField.SteelType
             :color="colors.blue"
             :field="loadingProtocolField"
             :query="query"
+            style="height: 300px"
             @change:searches="changeSearches"
           >
             <template #title>

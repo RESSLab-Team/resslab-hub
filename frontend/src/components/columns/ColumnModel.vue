@@ -2,7 +2,6 @@
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/steel_columns
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import DisclaimerComponent from '@/components/commons/DisclaimerComponent.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
 import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
 import TitleRow from '@/components/commons/TitleRow.vue'
@@ -12,7 +11,7 @@ import { variableBind, type Point } from '@/utils/model'
 import { primaryColor, secondaryColor } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
 import { clamp, omit } from 'lodash'
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 
 interface Result {
   ke: number
@@ -67,7 +66,7 @@ const steelShapeDimensions: Variable<keyof Variables>[] = [
     max: 100
   }
 ]
-const memberProperties: Variable<keyof Variables>[] = [
+const memberProperties = ref<Variable<keyof Variables>[]>([
   {
     key: 'pgPye',
     text: 'P<sub>g</sub>/P<sub>ye</sub>',
@@ -78,14 +77,15 @@ const memberProperties: Variable<keyof Variables>[] = [
     key: 'l',
     text: 'L',
     unit: 'mm',
-    min: 1000,
-    max: 12000
+    min: 3000,
+    max: 8000
   },
   {
     key: 'lb',
     text: 'L<sub>b</sub>',
     unit: 'mm',
-    min: 1000,
+    min: 3000,
+    // Max value should be the value of L
     max: 12000
   },
   {
@@ -95,7 +95,8 @@ const memberProperties: Variable<keyof Variables>[] = [
     min: 250,
     max: 500
   }
-]
+])
+
 const rows: UnitTableRowData[] = [
   {
     key: 'ke',
@@ -171,6 +172,15 @@ const variables = reactive<Variables>({
   fy: 380
 })
 
+watch(
+  () => variables.l,
+  (value) => {
+    memberProperties.value[2].max = value
+    variables.lb = Math.min(variables.lb, value)
+  },
+  { immediate: true }
+)
+
 const vars = computed(() => {
   const { bf, d, tf, tw, pgPye, l, fy } = variables
 
@@ -189,10 +199,10 @@ const vars = computed(() => {
       (Math.pow(d - 2 * tf, 3) * tw) / 12 +
       2 * bf * tf * (Math.pow(tf, 2) / 12 + Math.pow((d - tf) / 2, 2))
     ry = Math.sqrt(
-      ((tf * Math.pow(bf, 3)) / 12 + ((d - 2 * tf) * Math.pow(tw, 3)) / 12) /
+      ((2 * tf * Math.pow(bf, 3)) / 12 + ((d - 2 * tf) * Math.pow(tw, 3)) / 12) /
         (2 * tf * bf + (d - 2 * tf) * tw)
     )
-    zx = 2 * (bf * tf * ((d - tf) / 2) + (Math.pow(d - 2 * tf, 2) * tw) / 4)
+    zx = 2 * (bf * tf * ((d - tf) / 2) + (Math.pow(d - 2 * tf, 2) * tw) / 8)
   }
 
   const ke = (6 * e * ix) / l
@@ -265,7 +275,7 @@ const envelope = computed<Envelope>(() => {
   const a = clamp(
     9.5 * Math.pow(h / tw, -0.4) * Math.pow(lb / ry, -0.16) * Math.pow(1 - pgPye, 0.2),
     1,
-    1.3
+    1.2
   )
   const mc = a * my
   const res = 0.4 - 0.4 * pgPye
@@ -382,16 +392,6 @@ defineExpose({ vars, backbone, envelope })
 </script>
 
 <template>
-  <disclaimer-component>
-    <template #title>Under development</template>
-    This section is under construction. Please report any bugs
-    <a
-      href="https://github.com/RESSLab-Team/resslab-hub/issues"
-      target="_blank"
-      rel="noopener noreferrer"
-      >here</a
-    >.
-  </disclaimer-component>
   <v-row>
     <v-col cols="12">
       <title-row>

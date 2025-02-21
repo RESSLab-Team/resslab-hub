@@ -11,12 +11,13 @@ import ResetChartButton from '@/components/commons/ResetChartButton.vue'
 
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import colors from 'vuetify/lib/util/colors'
 
 const route = useRoute()
+const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
-  useDashboard<MaterialModel>(route, MaterialField)
+  useDashboard<MaterialModel>(route, router, MaterialField)
 
 const parallelFields: ParallelField<MaterialField>[] = [
   { id: MaterialField.Type },
@@ -30,18 +31,18 @@ const parallelFields: ParallelField<MaterialField>[] = [
   { id: MaterialField.FractureStrain },
   { id: MaterialField.Thickness }
 ]
-const profileFields: DoubleFields<MaterialField> = [MaterialField.Year, MaterialField.Profile]
+const profileFields: DoubleFields<MaterialField> = [MaterialField.Year, MaterialField.ProfileType]
 const profileThicknessFields: DoubleFields<MaterialField> = [
   MaterialField.Thickness,
-  MaterialField.Profile
+  MaterialField.ProfileType
 ]
 const steelField = MaterialField.Type
 
 const profileTypeFields: MaterialField[] = [
   MaterialField.Year,
-  MaterialField.Profile,
+  MaterialField.ProfileType,
   MaterialField.Thickness,
-  MaterialField.Profile
+  MaterialField.ProfileType
 ]
 </script>
 

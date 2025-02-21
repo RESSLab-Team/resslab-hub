@@ -33,3 +33,15 @@ export interface Section {
   a: number
   iy: number
 }
+
+export interface HSSSection {
+  id: string
+  zy: number
+  iy: number
+  b: number
+  t: number
+  h: number
+}
+
+export const debounceAPITime = 80
+export const debounceAPIParameters = { leading: false, trailing: true }

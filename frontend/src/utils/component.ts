@@ -90,3 +90,16 @@ export function getColumnImage(
   }
   return undefined
 }
+
+export function getHSSColumnImage(test_configuration: string): string {
+  if (test_configuration === '3PB') {
+    return publicPath + 'img/hss/type/3_point_bending.jpg'
+  } else if (test_configuration === 'CF') {
+    return publicPath + 'img/hss/type/cantilever.jpg'
+  } else if (test_configuration === 'DC') {
+    return publicPath + 'img/hss/type/double_curvature.jpg'
+  } else {
+    console.warn('Unknown test configuration: ' + test_configuration)
+    return ''
+  }
+}

@@ -1,15 +1,25 @@
 <script setup lang="ts">
 import 'leaflet/dist/leaflet.css'
 
-import { bracesApi, columnsApi, connectionsApi, materialsApi, residualsApi } from '@/plugins/axios'
+import {
+  bracesApi,
+  columnsApi,
+  connectionsApi,
+  hssApi,
+  materialsApi,
+  residualsApi
+} from '@/plugins/axios'
 import { typesNames } from '@/utils/backend'
 import {
   createMarkers,
+  hasCoordinates,
   locationBraceFields,
   locationColumnFields,
   locationConnectionFields,
+  locationHSSColumnFields,
   locationMaterialFields,
   locationResidualStressFields,
+  type LocationHSSColumn,
   type LocationBrace,
   type LocationColumn,
   type LocationConnection,
@@ -31,48 +41,58 @@ import {
 import 'leaflet.markercluster'
 import { computed, onMounted, ref } from 'vue'
 
+// Reactive references to store various locations from API calls
 const connectionsLocations = ref<LocationConnection[]>([])
-
 connectionsApi.getConnectionsFields([...locationConnectionFields]).then((res) => {
-  connectionsLocations.value = res.data as LocationConnection[]
+  connectionsLocations.value = (res.data as LocationConnection[]).filter(hasCoordinates)
   updateMap()
 })
 
 const columnsLocations = ref<LocationColumn[]>([])
 columnsApi.getColumnsFields(locationColumnFields).then((res) => {
-  columnsLocations.value = res.data as LocationColumn[]
+  columnsLocations.value = (res.data as LocationColumn[]).filter(hasCoordinates)
   updateMap()
 })
 
 const bracesLocations = ref<LocationBrace[]>([])
 bracesApi.getBracesFields(locationBraceFields).then((res) => {
-  bracesLocations.value = res.data as LocationBrace[]
+  bracesLocations.value = (res.data as LocationBrace[]).filter(hasCoordinates)
   updateMap()
 })
 
 const materialsLocations = ref<LocationMaterial[]>([])
 materialsApi.getMaterialsFields(locationMaterialFields).then((res) => {
-  materialsLocations.value = res.data as LocationMaterial[]
+  materialsLocations.value = (res.data as LocationMaterial[]).filter(hasCoordinates)
   updateMap()
 })
 
 const residualStressesLocations = ref<LocationResidualStress[]>([])
 residualsApi.getResidualStressesFields(locationResidualStressFields).then((res) => {
-  residualStressesLocations.value = res.data as LocationResidualStress[]
+  residualStressesLocations.value = (res.data as LocationResidualStress[]).filter(hasCoordinates)
   updateMap()
 })
 
+const hssColumnsLocations = ref<LocationHSSColumn[]>([])
+hssApi.getHssColumnsFields(locationHSSColumnFields).then((res) => {
+  hssColumnsLocations.value = (res.data as LocationHSSColumn[]).filter(hasCoordinates)
+  updateMap()
+})
+
+// Computed property to get the total number of markers
 const dataLength = computed(
   () =>
     connectionsLocations.value.length +
     columnsLocations.value.length +
     bracesLocations.value.length +
     materialsLocations.value.length +
-    residualStressesLocations.value.length
+    residualStressesLocations.value.length +
+    hssColumnsLocations.value.length
 )
 
+// Reference to the map container element
 const mapContainer = ref<HTMLDivElement>()
 
+// Initialize the Leaflet map using the container reference
 const map = computed(() => {
   const map = LMap(mapContainer.value as HTMLDivElement, {
     minZoom: 1,
@@ -99,6 +119,7 @@ const cluster = computed(() => {
 
       const allChilds = cluster.getAllChildMarkers()
 
+      // Use D3 rollups to count the distribution of marker types within the cluster
       const counts = rollups(
         allChilds,
         (v) => v.length,
@@ -123,16 +144,19 @@ const cluster = computed(() => {
   })
 })
 
+// Compute markers from the fetched locations
 const markers = computed<Marker[]>(() => {
   return [
     createMarkers(connectionsLocations.value, 'Connections'),
     createMarkers(columnsLocations.value, 'Columns'),
     createMarkers(bracesLocations.value, 'Braces'),
     createMarkers(materialsLocations.value, 'Materials'),
-    createMarkers(residualStressesLocations.value, 'Residual Stresses')
+    createMarkers(residualStressesLocations.value, 'Residual Stresses'),
+    createMarkers(hssColumnsLocations.value, 'HSS Columns')
   ].flat()
 })
 
+// Create a legend control for filtering markers by type
 const legend = computed(() => {
   const legend = new Control({ position: 'bottomleft' })
 
@@ -198,10 +222,22 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="mapContainer" class="fill-height mapContainer" color="secondary" />
+  <div class="fill-height">
+    <div ref="mapContainer" class="fill-height mapContainer" color="secondary"></div>
+    <div
+      class="cluster-table"
+      :style="{ width: `${mapWidth / 5}px`, height: `${mapHeight / 5}px` }"
+    />
+  </div>
 </template>
 
 <style lang="scss" scoped>
+.cluster-table {
+  position: relative;
+  z-index: 10;
+  background-color: blue;
+}
+
 .mapContainer {
   z-index: 1;
 }

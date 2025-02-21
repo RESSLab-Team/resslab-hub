@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { HSSColumnField, type HSSColumnModel } from '@/backend'
+import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
 import { hssApi } from '@/plugins/axios'
@@ -82,5 +83,32 @@ const {
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"
     @download="downloadFiles"
-  />
+  >
+    <template #title>
+      HSS Columns
+      <info-tooltip>
+        <p>
+          The HSS Columns Database presents data from early 1975 on columns under reversed cyclic
+          and monotonic loading. The primary data involve the deduced moment chord rotation of the
+          column.
+        </p>
+        How to use?
+        <ul>
+          <li>
+            Filter the table by making selections in the various plots around the table, or by using
+            the filters and dropdowns above the table headers.
+          </li>
+          <li>Click on a row to see the data of a single test.</li>
+          <li>
+            Download specific tests results by selecting the test (left-most column) and click
+            "Download" below.
+          </li>
+          <li>
+            Share specific tests results by selecting the test (left-most column) and click "Share"
+            below.
+          </li>
+        </ul>
+      </info-tooltip>
+    </template>
+  </simple-table>
 </template>

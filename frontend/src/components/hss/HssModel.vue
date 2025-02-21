@@ -5,7 +5,7 @@ import SectionSelector from '@/components/commons/SectionSelector.vue'
 import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
 import TitleRow from '@/components/commons/TitleRow.vue'
 import UnitTableRow, { type UnitTableRowData } from '@/components/commons/UnitTableRow.vue'
-import { publicPath, type Section } from '@/utils/common'
+import { publicPath, type Section, type HSSSection } from '@/utils/common'
 import { variableBind, type Point } from '@/utils/model'
 import { primaryColor, secondaryColor } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
@@ -48,8 +48,15 @@ const steelShapeDimensions: Variable<keyof Variables>[] = [
     key: 'b',
     text: 'b',
     unit: 'mm',
-    min: 100,
-    max: 500
+    min: 200,
+    max: 1000
+  },
+  {
+    key: 'h',
+    text: 'h',
+    unit: 'mm',
+    min: 200,
+    max: 1000
   },
   {
     key: 't',
@@ -70,8 +77,8 @@ const memberProperties: Variable<keyof Variables>[] = [
     key: 'l',
     text: 'L',
     unit: 'mm',
-    min: 1000,
-    max: 12000
+    min: 3000,
+    max: 8000
   },
   {
     key: 'fy',
@@ -138,70 +145,63 @@ const rows: UnitTableRowData[] = [
   }
 ]
 
-const section = ref<Section>()
+const section = ref<HSSSection>()
 
 const e = 205
 interface Variables {
   b: number
+  h: number
   t: number
   pgPye: number
   l: number
   fy: number
 }
 const variables = reactive<Variables>({
-  b: 355.6,
-  t: 15.875,
+  b: 300,
+  h: 300,
+  t: 10,
   pgPye: 0.2,
   l: 5000,
   fy: 380
 })
 
 const vars = computed(() => {
-  const { b, t, pgPye, l, fy } = variables
+  const { b, h, t, pgPye, l, fy } = variables
 
   let ix: number
-  let ry: number
   let zx: number
 
-  const d = b //apparently we only deal with square sections
-
   if (section.value) {
-    ix = section.value.ix
-    ry = section.value.ry
-    zx = section.value.zx
+    ix = section.value.iy
+    zx = section.value.zy
   } else {
-    // inner dimensions see schema for ref https://www.engineersedge.com/graphics/section_rectange_case_10.gif
-    const h = b - 2 * t,
-      k = d - 2 * t
+    const b1 = h - 2 * t,
+      b2 = b - 2 * t
 
     // formulas comes from https://www.engineersedge.com/calculators/section_square_case_10.htm
 
     //  moment of inertia of a hollow square section
-    ix = (b * d ** 3 - h * k ** 3) / 12
-
-    // radius of gyration
-    ry = Math.sqrt((b * d ** 3 - h * k ** 3) / (12 * (b * d - h * k)))
-
+    ix = (b * h ** 3 - b2 * b1 ** 3) / 12
     // sections modulus
-    zx = (b * d ** 3 - h * k ** 3) / (6 * d)
+    zx = (b * h ** 2 - b2 * b1 ** 2) / 4
   }
 
   // total member response
   // shear modulus
-  const g = e / (2 * (1 + 0.3))
+  // const g = e / (2 * (1 + 0.3))
   // sgear area of hss cross section
-  const aw = 2 * b * t
+  // const aw = 2 * b * t
+
   // flexural stiffness (member in double curvature)
-  const ke = (6 * e * ix * 0.44 * g * aw * l) / (12 * e * ix + 0.44 * g * aw * l ** 2)
+  const ke = (6 * e * ix) / l
 
   const my =
     pgPye < 0.2
-      ? 1.3 * zx * (fy / 1000) * (1 - pgPye / 2)
-      : 1.3 * zx * (fy / 1000) * (9 / 8) * (1 - pgPye)
+      ? 1.2 * zx * (fy / 1000) * (1 - pgPye / 2)
+      : 1.2 * zx * (fy / 1000) * (9 / 8) * (1 - pgPye)
 
   return {
     ix,
-    ry,
     ke,
     zx,
     my
@@ -209,7 +209,7 @@ const vars = computed(() => {
 })
 
 const backbone = computed<Backbone>(() => {
-  const { b, t, pgPye, fy } = variables
+  const { t, h, pgPye, fy } = variables
   const { ke, my } = vars.value
 
   // capping to yield ratio
@@ -228,13 +228,13 @@ const backbone = computed<Backbone>(() => {
   // plastic rotation
   const thetaP = Math.min(
     0.2,
-    0.001 * Math.pow(b / t, -2.32) * Math.pow(e / fy, 1.73) * Math.pow(1 - pgPye, 0.87)
+    0.001 * Math.pow(h / t, -2.32) * Math.pow(e / (fy / 1000), 1.73) * Math.pow(1 - pgPye, 0.87)
   )
 
   // post-capping plastic rotation
   const thetaPc = Math.min(
     0.3,
-    0.0054 * Math.pow(b / t, -1.22) * Math.pow(e / fy, 1.25) * Math.pow(1 - pgPye, 3.31)
+    0.0054 * Math.pow(h / t, -1.22) * Math.pow(e / (fy / 1000), 1.25) * Math.pow(1 - pgPye, 3.31)
   )
 
   // Ultimate rotation
@@ -247,8 +247,8 @@ const backbone = computed<Backbone>(() => {
   const alphaPc = (0.0 - mc) / (ke * thetaPc)
 
   // Reference Cumulative Plastic Rotation
-  const lambdaS = Math.min(3.0, 951.0 * Math.pow(b / t, -2.2) * Math.pow(1 - pgPye, 3.02))
-  const lambdaC = Math.min(3.0, 1791.0 * Math.pow(b / t, -2.31) * Math.pow(1 - pgPye, 4.91))
+  const lambdaS = Math.min(3.0, 951.0 * Math.pow(h / t, -2.2) * Math.pow(1 - pgPye, 3.02))
+  const lambdaC = Math.min(3.0, 1791.0 * Math.pow(h / t, -2.31) * Math.pow(1 - pgPye, 4.91))
 
   return {
     thetaY,
@@ -266,7 +266,7 @@ const backbone = computed<Backbone>(() => {
   }
 })
 const envelope = computed<Envelope>(() => {
-  const { b, t, pgPye } = variables
+  const { h, t, pgPye } = variables
   const { ke, my } = vars.value
   // capping to yield ratio
 
@@ -282,14 +282,14 @@ const envelope = computed<Envelope>(() => {
   const thetaY = my / ke
 
   // plastic rotation
-  const thetaP = Math.min(0.1, 0.71 * Math.pow(b / t, -0.98) * Math.pow(1 - pgPye, 1.81))
+  const thetaP = Math.min(0.1, 0.71 * Math.pow(h / t, -0.98) * Math.pow(1 - pgPye, 1.81))
 
   // post-capping plastic rotation
-  const thetaPc = Math.min(0.1, 0.44 * Math.pow(b / t, -0.74) * Math.pow(1 - pgPye, 2.8))
+  const thetaPc = Math.min(0.1, 0.44 * Math.pow(h / t, -0.74) * Math.pow(1 - pgPye, 2.8))
 
   // Ultimate rotation
   const thetaUlt =
-    thetaY + Math.min(0.15, 0.27 * Math.pow(b / t, -0.51) * Math.pow(1 - pgPye, 1.45))
+    thetaY + Math.min(0.15, 0.27 * Math.pow(h / t, -0.51) * Math.pow(1 - pgPye, 1.45))
 
   // Post-yielding stiffness of the member
   const alpha = (mc - my) / thetaP / ke
@@ -312,11 +312,13 @@ const envelope = computed<Envelope>(() => {
 const backboneResult = computed<Result>(() => getResult(backbone.value))
 const envelopeResult = computed<Result>(() => getResult(envelope.value))
 
-function onSectionChanged(value?: Section): void {
-  section.value = value
-  if (value) {
-    variables.b = value.bf
-    variables.t = value.tf
+function onSectionChanged(value?: HSSSection | Section): void {
+  const hssValue = value as HSSSection //This come from putting source="hss" for section-selector
+  section.value = hssValue
+  if (hssValue) {
+    variables.b = hssValue.b
+    variables.t = hssValue.t
+    variables.h = hssValue.h
   }
 }
 
@@ -415,7 +417,7 @@ defineExpose({ vars, backbone, envelope })
               <info-tooltip> Here, you may input dimensions using the sliders below </info-tooltip>
             </v-card-title>
             <v-card-text>
-              <section-selector @update:section="onSectionChanged($event)" />
+              <section-selector source="hss" @update:section="onSectionChanged($event)" />
 
               <v-row>
                 <v-col v-for="item in steelShapeDimensions" :key="item.key" v-bind="variableBind">
@@ -465,7 +467,7 @@ defineExpose({ vars, backbone, envelope })
       </v-row>
     </v-col>
     <v-col cols="6">
-      <v-img height="400px" :src="publicPath + 'img/column/component.png'" />
+      <v-img height="400px" :src="publicPath + 'img/hss/component.png'" />
     </v-col>
     <v-col cols="6">
       <v-row justify="center">

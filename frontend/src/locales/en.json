@@ -53,6 +53,7 @@
     "id": "Specimen Designation",
     "type": "Steel Type",
     "profile": "Profile",
+    "profile_type": "Profile Type",
     "source": "Source",
     "date": "Date",
     "yield_stress__mpa_": "fy,m [MPa]",

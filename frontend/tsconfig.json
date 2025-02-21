@@ -12,12 +12,7 @@
     }
   ],
   "compilerOptions": {
-    "lib": [
-      "ESNext",
-      "ES2021.String"
-    ],
-    "types": [
-      "vuetify"
-    ],
+    "lib": ["dom", "ESNext", "ES2021.String"],
+    "types": ["vuetify"]
   }
 }
