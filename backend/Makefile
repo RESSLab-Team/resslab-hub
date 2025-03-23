@@ -87,6 +87,7 @@ transform-data:
 	poetry run python data/hss_csv_transformer.py european ../../resslab-hub-data/hss_columns/sections/european.csv ../frontend/src/assets/hss/hss-european-sections.csv
 	poetry run python data/hss_csv_transformer.py japanese ../../resslab-hub-data/hss_columns/sections/japanese.csv ../frontend/src/assets/hss/hss-japanese-sections.csv
 
+#This is outdated now that we use the data dictionnaries
 analyze-data:
 	poetry run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/material/steel_material.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv ../../resslab-hub-data/residual_stresses/residual_stresses.csv ../../resslab-hub-data/hss_columns/hss_columns.csv
 
@@ -115,3 +116,7 @@ generate-model:
 		../../resslab-hub-data/residual_stresses/residual_stresses_data_dictionary.csv \
 		resslab_hub/models/database/residual_stress.py \
 		resslab_hub/models/api.py residual_stress
+	poetry run python data/generate_model.py \
+		../../resslab-hub-data/eccentric_braced_frames/eccentric_braced_frames_data_dictionary.csv \
+		resslab_hub/models/database/eccentric_braced_frame.py \
+		resslab_hub/models/api.py eccentric_braced_frame
