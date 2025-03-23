@@ -3,6 +3,7 @@ import {
   BracesApi,
   ColumnsApi,
   ConnectionsApi,
+  EccentricBracedFrameApi,
   HssColumnApi,
   MaterialsApi,
   ResidualStressApi
@@ -19,3 +20,4 @@ export const connectionsApi = new ConnectionsApi(undefined, baseUrl, axiosInstan
 export const materialsApi = new MaterialsApi(undefined, baseUrl, axiosInstance)
 export const residualsApi = new ResidualStressApi(undefined, baseUrl, axiosInstance)
 export const hssApi = new HssColumnApi(undefined, baseUrl, axiosInstance)
+export const ebfApi = new EccentricBracedFrameApi(undefined, baseUrl, axiosInstance)

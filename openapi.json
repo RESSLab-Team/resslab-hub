@@ -3985,6 +3985,486 @@
           }
         }
       }
+    },
+    "/eccentric-braced-frame": {
+      "get": {
+        "tags": [
+          "eccentric-braced-frame"
+        ],
+        "summary": "Get Eccentric Braced Frames",
+        "description": "Get paginated Eccentric Braced Frames",
+        "operationId": "get_eccentric_braced_frames",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort By",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "sort_by",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort Desc",
+              "type": "array",
+              "items": {
+                "type": "boolean"
+              },
+              "default": []
+            },
+            "name": "sort_desc",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page",
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 1
+            },
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "maximum": 1000.0,
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 10
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedPage_EccentricBracedFrameModel_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eccentric-braced-frame/fields": {
+      "get": {
+        "tags": [
+          "eccentric-braced-frame"
+        ],
+        "summary": "Get Eccentric Braced Frames Fields",
+        "description": "Get filtered fields",
+        "operationId": "get_eccentric_braced_frames_fields",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/EccentricBracedFrameField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Eccentric Braced Frames Fields Eccentric Braced Frame Fields Get",
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eccentric-braced-frame/counts": {
+      "get": {
+        "tags": [
+          "eccentric-braced-frame"
+        ],
+        "summary": "Get Eccentric Braced Frames Counts",
+        "description": "Get occurrences count of field values",
+        "operationId": "get_eccentric_braced_frames_counts",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/EccentricBracedFrameField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Eccentric Braced Frames Counts Eccentric Braced Frame Counts Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountModel"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eccentric-braced-frame/range": {
+      "get": {
+        "tags": [
+          "eccentric-braced-frame"
+        ],
+        "summary": "Get Eccentric Braced Frames Range",
+        "description": "Get range of field",
+        "operationId": "get_eccentric_braced_frames_range",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/EccentricBracedFrameNumberField"
+            },
+            "name": "field",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eccentric-braced-frame/matrix": {
+      "get": {
+        "tags": [
+          "eccentric-braced-frame"
+        ],
+        "summary": "Get Eccentric Braced Frames Matrix",
+        "operationId": "get_eccentric_braced_frames_matrix",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/EccentricBracedFrameField"
+              }
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eccentric-braced-frame/csv": {
+      "get": {
+        "tags": [
+          "eccentric-braced-frame"
+        ],
+        "summary": "Get Eccentric Braced Frames Csv",
+        "description": "Get master csv",
+        "operationId": "get_eccentric_braced_frames_csv",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Ids",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "ids",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eccentric-braced-frame/distinct": {
+      "get": {
+        "tags": [
+          "eccentric-braced-frame"
+        ],
+        "summary": "Get Eccentric Braced Frames Distinct",
+        "description": "Get distinct count",
+        "operationId": "get_eccentric_braced_frames_distinct",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/EccentricBracedFrameField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Eccentric Braced Frames Distinct Eccentric Braced Frame Distinct Get",
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eccentric-braced-frame/{eccentric_braced_frame_id}/shear-link-angle": {
+      "get": {
+        "tags": [
+          "eccentric-braced-frame"
+        ],
+        "summary": "Get Eccentric Braced Frames Shear Link Angle",
+        "description": "Get shear-link-angle series from Eccentric Braced Frame",
+        "operationId": "get_eccentric_braced_frames_shear_link_angle",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Eccentric Braced Frame Id",
+              "type": "string"
+            },
+            "name": "eccentric_braced_frame_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Eccentric Braced Frames Shear Link Angle Eccentric Braced Frame  Eccentric Braced Frame Id  Shear Link Angle Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/eccentric-braced-frame/{eccentric_braced_frame_id}/shear-link-angle/csv": {
+      "get": {
+        "tags": [
+          "eccentric-braced-frame"
+        ],
+        "summary": "Get Eccentric Braced Frames Shear Link Angle Csv",
+        "description": "Get shear-link-angle csv",
+        "operationId": "get_eccentric_braced_frames_shear_link_angle_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Eccentric Braced Frame Id",
+              "type": "string"
+            },
+            "name": "eccentric_braced_frame_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6093,6 +6573,678 @@
         },
         "description": "Date Range"
       },
+      "EccentricBracedFrameField": {
+        "title": "EccentricBracedFrameField",
+        "enum": [
+          "id",
+          "investigator",
+          "year",
+          "spec_id",
+          "profile",
+          "region",
+          "sec_type",
+          "sg_flg_link",
+          "sg_web_link",
+          "f_y_n_flg",
+          "f_y_n_web",
+          "f_u_n_flg",
+          "f_u_n_web",
+          "e_n_flg",
+          "e_n_web",
+          "f_y_m_flg",
+          "f_y_m_web",
+          "f_y_exp_l_flg",
+          "f_y_exp_l_web",
+          "f_y_exp_u_flg",
+          "f_y_exp_u_web",
+          "f_u_m_flg",
+          "f_u_m_web",
+          "f_u_exp_l_flg",
+          "f_u_exp_l_web",
+          "f_u_exp_u_flg",
+          "f_u_exp_u_web",
+          "e_m_flg",
+          "e_m_web",
+          "r_y_l_flg",
+          "r_y_l_web",
+          "r_y_u_flg",
+          "r_y_u_web",
+          "r_t_l_flg",
+          "r_t_l_web",
+          "r_t_u_flg",
+          "r_t_u_web",
+          "f_u_f_y_n_flg",
+          "f_u_f_y_n_web",
+          "f_u_f_y_m_flg",
+          "f_u_f_y_m_web",
+          "h_n",
+          "tw_n",
+          "bf_n",
+          "tf_n",
+          "tf_add_n",
+          "r_n",
+          "h_m",
+          "tw_m",
+          "bf_m",
+          "tf_m",
+          "tf_add_m",
+          "hw_n",
+          "hw_m",
+          "a_fil_n",
+          "af_n",
+          "aw_n",
+          "a_n",
+          "af_m",
+          "aw_m",
+          "a_m",
+          "zp_fil_n",
+          "zp_n",
+          "zp_no_fil_n",
+          "zp_fil_m",
+          "zp_m",
+          "zp_no_fil_m",
+          "link_loc",
+          "l_confi",
+          "l_con_typ",
+          "l_st",
+          "h_st",
+          "e",
+          "l_con_confi",
+          "l_con_wld",
+          "l_endp_wld",
+          "l_bu_wld",
+          "l_s_side",
+          "l_s_reg",
+          "l_s_d_pnl_1_f",
+          "l_s_d_pnl_2_f",
+          "l_s_d_pnl_1_b",
+          "l_s_d_pnl_2_b",
+          "t_s",
+          "l_s_weld",
+          "l_s_no_f",
+          "l_s_no_b",
+          "a_b_b",
+          "t_e_s",
+          "t_b_s",
+          "d_b_s",
+          "d_b_pnl_1",
+          "d_b_pnl_2",
+          "b_s_no",
+          "l_p_typ",
+          "n_d_n_pl_ten",
+          "n_d_n_pl_comp",
+          "fail_mode",
+          "ov_aisc",
+          "ov_ec8",
+          "class_aisc",
+          "class_ec8",
+          "reference",
+          "url",
+          "latitude",
+          "longitude",
+          "shear_link_angle_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "EccentricBracedFrameModel": {
+        "title": "EccentricBracedFrameModel",
+        "required": [
+          "id",
+          "investigator",
+          "year",
+          "spec_id",
+          "profile",
+          "region",
+          "sec_type",
+          "sg_flg_link",
+          "sg_web_link",
+          "f_y_n_flg",
+          "f_y_n_web",
+          "f_u_n_flg",
+          "f_u_n_web",
+          "e_n_flg",
+          "e_n_web",
+          "h_n",
+          "tw_n",
+          "bf_n",
+          "tf_n",
+          "hw_n",
+          "af_n",
+          "aw_n",
+          "a_n",
+          "e",
+          "l_p_typ",
+          "class_aisc",
+          "class_ec8",
+          "reference",
+          "url",
+          "latitude",
+          "longitude",
+          "shear_link_angle_count"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "investigator": {
+            "title": "Investigator",
+            "type": "string"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          },
+          "spec_id": {
+            "title": "Spec Id",
+            "type": "string"
+          },
+          "profile": {
+            "title": "Profile",
+            "type": "string"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "sec_type": {
+            "title": "Sec Type",
+            "type": "string"
+          },
+          "sg_flg_link": {
+            "title": "Sg Flg Link",
+            "type": "string"
+          },
+          "sg_web_link": {
+            "title": "Sg Web Link",
+            "type": "string"
+          },
+          "f_y_n_flg": {
+            "title": "F Y N Flg",
+            "type": "number"
+          },
+          "f_y_n_web": {
+            "title": "F Y N Web",
+            "type": "number"
+          },
+          "f_u_n_flg": {
+            "title": "F U N Flg",
+            "type": "number"
+          },
+          "f_u_n_web": {
+            "title": "F U N Web",
+            "type": "number"
+          },
+          "e_n_flg": {
+            "title": "E N Flg",
+            "type": "integer"
+          },
+          "e_n_web": {
+            "title": "E N Web",
+            "type": "integer"
+          },
+          "f_y_m_flg": {
+            "title": "F Y M Flg",
+            "type": "number"
+          },
+          "f_y_m_web": {
+            "title": "F Y M Web",
+            "type": "number"
+          },
+          "f_y_exp_l_flg": {
+            "title": "F Y Exp L Flg",
+            "type": "number"
+          },
+          "f_y_exp_l_web": {
+            "title": "F Y Exp L Web",
+            "type": "number"
+          },
+          "f_y_exp_u_flg": {
+            "title": "F Y Exp U Flg",
+            "type": "number"
+          },
+          "f_y_exp_u_web": {
+            "title": "F Y Exp U Web",
+            "type": "number"
+          },
+          "f_u_m_flg": {
+            "title": "F U M Flg",
+            "type": "number"
+          },
+          "f_u_m_web": {
+            "title": "F U M Web",
+            "type": "number"
+          },
+          "f_u_exp_l_flg": {
+            "title": "F U Exp L Flg",
+            "type": "number"
+          },
+          "f_u_exp_l_web": {
+            "title": "F U Exp L Web",
+            "type": "number"
+          },
+          "f_u_exp_u_flg": {
+            "title": "F U Exp U Flg",
+            "type": "number"
+          },
+          "f_u_exp_u_web": {
+            "title": "F U Exp U Web",
+            "type": "number"
+          },
+          "e_m_flg": {
+            "title": "E M Flg",
+            "type": "number"
+          },
+          "e_m_web": {
+            "title": "E M Web",
+            "type": "number"
+          },
+          "r_y_l_flg": {
+            "title": "R Y L Flg",
+            "type": "number"
+          },
+          "r_y_l_web": {
+            "title": "R Y L Web",
+            "type": "number"
+          },
+          "r_y_u_flg": {
+            "title": "R Y U Flg",
+            "type": "number"
+          },
+          "r_y_u_web": {
+            "title": "R Y U Web",
+            "type": "number"
+          },
+          "r_t_l_flg": {
+            "title": "R T L Flg",
+            "type": "number"
+          },
+          "r_t_l_web": {
+            "title": "R T L Web",
+            "type": "number"
+          },
+          "r_t_u_flg": {
+            "title": "R T U Flg",
+            "type": "number"
+          },
+          "r_t_u_web": {
+            "title": "R T U Web",
+            "type": "number"
+          },
+          "f_u_f_y_n_flg": {
+            "title": "F U F Y N Flg",
+            "type": "number"
+          },
+          "f_u_f_y_n_web": {
+            "title": "F U F Y N Web",
+            "type": "number"
+          },
+          "f_u_f_y_m_flg": {
+            "title": "F U F Y M Flg",
+            "type": "number"
+          },
+          "f_u_f_y_m_web": {
+            "title": "F U F Y M Web",
+            "type": "number"
+          },
+          "h_n": {
+            "title": "H N",
+            "type": "number"
+          },
+          "tw_n": {
+            "title": "Tw N",
+            "type": "number"
+          },
+          "bf_n": {
+            "title": "Bf N",
+            "type": "number"
+          },
+          "tf_n": {
+            "title": "Tf N",
+            "type": "number"
+          },
+          "tf_add_n": {
+            "title": "Tf Add N",
+            "type": "number"
+          },
+          "r_n": {
+            "title": "R N",
+            "type": "number"
+          },
+          "h_m": {
+            "title": "H M",
+            "type": "number"
+          },
+          "tw_m": {
+            "title": "Tw M",
+            "type": "number"
+          },
+          "bf_m": {
+            "title": "Bf M",
+            "type": "number"
+          },
+          "tf_m": {
+            "title": "Tf M",
+            "type": "number"
+          },
+          "tf_add_m": {
+            "title": "Tf Add M",
+            "type": "number"
+          },
+          "hw_n": {
+            "title": "Hw N",
+            "type": "number"
+          },
+          "hw_m": {
+            "title": "Hw M",
+            "type": "number"
+          },
+          "a_fil_n": {
+            "title": "A Fil N",
+            "type": "number"
+          },
+          "af_n": {
+            "title": "Af N",
+            "type": "number"
+          },
+          "aw_n": {
+            "title": "Aw N",
+            "type": "number"
+          },
+          "a_n": {
+            "title": "A N",
+            "type": "number"
+          },
+          "af_m": {
+            "title": "Af M",
+            "type": "number"
+          },
+          "aw_m": {
+            "title": "Aw M",
+            "type": "number"
+          },
+          "a_m": {
+            "title": "A M",
+            "type": "number"
+          },
+          "zp_fil_n": {
+            "title": "Zp Fil N",
+            "type": "number"
+          },
+          "zp_n": {
+            "title": "Zp N",
+            "type": "number"
+          },
+          "zp_no_fil_n": {
+            "title": "Zp No Fil N",
+            "type": "number"
+          },
+          "zp_fil_m": {
+            "title": "Zp Fil M",
+            "type": "number"
+          },
+          "zp_m": {
+            "title": "Zp M",
+            "type": "number"
+          },
+          "zp_no_fil_m": {
+            "title": "Zp No Fil M",
+            "type": "number"
+          },
+          "link_loc": {
+            "title": "Link Loc",
+            "type": "string"
+          },
+          "l_confi": {
+            "title": "L Confi",
+            "type": "string"
+          },
+          "l_con_typ": {
+            "title": "L Con Typ",
+            "type": "string"
+          },
+          "l_st": {
+            "title": "L St",
+            "type": "number"
+          },
+          "h_st": {
+            "title": "H St",
+            "type": "number"
+          },
+          "e": {
+            "title": "E",
+            "type": "integer"
+          },
+          "l_con_confi": {
+            "title": "L Con Confi",
+            "type": "string"
+          },
+          "l_con_wld": {
+            "title": "L Con Wld",
+            "type": "string"
+          },
+          "l_endp_wld": {
+            "title": "L Endp Wld",
+            "type": "string"
+          },
+          "l_bu_wld": {
+            "title": "L Bu Wld",
+            "type": "string"
+          },
+          "l_s_side": {
+            "title": "L S Side",
+            "type": "string"
+          },
+          "l_s_reg": {
+            "title": "L S Reg",
+            "type": "string"
+          },
+          "l_s_d_pnl_1_f": {
+            "title": "L S D Pnl 1 F",
+            "type": "number"
+          },
+          "l_s_d_pnl_2_f": {
+            "title": "L S D Pnl 2 F",
+            "type": "number"
+          },
+          "l_s_d_pnl_1_b": {
+            "title": "L S D Pnl 1 B",
+            "type": "number"
+          },
+          "l_s_d_pnl_2_b": {
+            "title": "L S D Pnl 2 B",
+            "type": "number"
+          },
+          "t_s": {
+            "title": "T S",
+            "type": "number"
+          },
+          "l_s_weld": {
+            "title": "L S Weld",
+            "type": "string"
+          },
+          "l_s_no_f": {
+            "title": "L S No F",
+            "type": "integer"
+          },
+          "l_s_no_b": {
+            "title": "L S No B",
+            "type": "integer"
+          },
+          "a_b_b": {
+            "title": "A B B",
+            "type": "number"
+          },
+          "t_e_s": {
+            "title": "T E S",
+            "type": "number"
+          },
+          "t_b_s": {
+            "title": "T B S",
+            "type": "number"
+          },
+          "d_b_s": {
+            "title": "D B S",
+            "type": "number"
+          },
+          "d_b_pnl_1": {
+            "title": "D B Pnl 1",
+            "type": "number"
+          },
+          "d_b_pnl_2": {
+            "title": "D B Pnl 2",
+            "type": "number"
+          },
+          "b_s_no": {
+            "title": "B S No",
+            "type": "integer"
+          },
+          "l_p_typ": {
+            "title": "L P Typ",
+            "type": "string"
+          },
+          "n_d_n_pl_ten": {
+            "title": "N D N Pl Ten",
+            "type": "number"
+          },
+          "n_d_n_pl_comp": {
+            "title": "N D N Pl Comp",
+            "type": "number"
+          },
+          "fail_mode": {
+            "title": "Fail Mode",
+            "type": "string"
+          },
+          "ov_aisc": {
+            "title": "Ov Aisc",
+            "type": "number"
+          },
+          "ov_ec8": {
+            "title": "Ov Ec8",
+            "type": "number"
+          },
+          "class_aisc": {
+            "title": "Class Aisc",
+            "type": "string"
+          },
+          "class_ec8": {
+            "title": "Class Ec8",
+            "type": "string"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "shear_link_angle_count": {
+            "title": "Shear Link Angle Count",
+            "type": "integer"
+          }
+        }
+      },
+      "EccentricBracedFrameNumberField": {
+        "title": "EccentricBracedFrameNumberField",
+        "enum": [
+          "year",
+          "f_y_n_flg",
+          "f_y_n_web",
+          "f_u_n_flg",
+          "f_u_n_web",
+          "e_n_flg",
+          "e_n_web",
+          "f_y_m_flg",
+          "f_y_m_web",
+          "f_y_exp_l_flg",
+          "f_y_exp_l_web",
+          "f_y_exp_u_flg",
+          "f_y_exp_u_web",
+          "f_u_m_flg",
+          "f_u_m_web",
+          "f_u_exp_l_flg",
+          "f_u_exp_l_web",
+          "f_u_exp_u_flg",
+          "f_u_exp_u_web",
+          "e_m_flg",
+          "e_m_web",
+          "r_y_l_flg",
+          "r_y_l_web",
+          "r_y_u_flg",
+          "r_y_u_web",
+          "r_t_l_flg",
+          "r_t_l_web",
+          "r_t_u_flg",
+          "r_t_u_web",
+          "f_u_f_y_n_flg",
+          "f_u_f_y_n_web",
+          "f_u_f_y_m_flg",
+          "f_u_f_y_m_web",
+          "h_n",
+          "tw_n",
+          "bf_n",
+          "tf_n",
+          "tf_add_n",
+          "r_n",
+          "h_m",
+          "tw_m",
+          "bf_m",
+          "tf_m",
+          "tf_add_m",
+          "hw_n",
+          "hw_m",
+          "a_fil_n",
+          "af_n",
+          "aw_n",
+          "a_n",
+          "af_m",
+          "aw_m",
+          "a_m",
+          "zp_fil_n",
+          "zp_n",
+          "zp_no_fil_n",
+          "zp_fil_m",
+          "zp_m",
+          "zp_no_fil_m",
+          "l_st",
+          "h_st",
+          "e",
+          "l_s_d_pnl_1_f",
+          "l_s_d_pnl_2_f",
+          "l_s_d_pnl_1_b",
+          "l_s_d_pnl_2_b",
+          "t_s",
+          "l_s_no_f",
+          "l_s_no_b",
+          "a_b_b",
+          "t_e_s",
+          "t_b_s",
+          "d_b_s",
+          "d_b_pnl_1",
+          "d_b_pnl_2",
+          "b_s_no",
+          "n_d_n_pl_ten",
+          "n_d_n_pl_comp",
+          "ov_aisc",
+          "ov_ec8",
+          "latitude",
+          "longitude",
+          "shear_link_angle_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
       "ExtendedPage_BraceModel_": {
         "title": "ExtendedPage[BraceModel]",
         "required": [
@@ -6178,6 +7330,42 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ConnectionModel"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "page": {
+            "title": "Page",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 0.0,
+            "type": "integer"
+          }
+        }
+      },
+      "ExtendedPage_EccentricBracedFrameModel_": {
+        "title": "ExtendedPage[EccentricBracedFrameModel]",
+        "required": [
+          "items",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EccentricBracedFrameModel"
             }
           },
           "total": {
@@ -7520,6 +8708,7 @@
           "all-material",
           "all-residual-stresses",
           "all-hss-columns",
+          "all-eccentric-braced-frames",
           "brace",
           "brace-displacement",
           "column",
@@ -7540,7 +8729,9 @@
           "residual-stress-distribution-w1",
           "residual-stress-qp-coefficient",
           "hss-column",
-          "hss-column-moment-rotation"
+          "hss-column-moment-rotation",
+          "eccentric-braced-frame",
+          "eccentric-braced-frame-shear-link-angle"
         ],
         "description": "An enumeration."
       },
