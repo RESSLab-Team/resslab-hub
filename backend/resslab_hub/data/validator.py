@@ -8,7 +8,7 @@ from csv import DictReader, reader
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from glob import iglob
-from logging import debug, error, info
+from logging import debug, error, getLogger, info
 from multiprocessing import get_context
 from os import path
 from typing import Any, List
@@ -129,6 +129,7 @@ class TableValidator(Validator):
                 missing_columns = expected_columns - set(headers)
                 unexpected_columns = set(headers) - expected_columns
 
+                missing_columns = expected_columns - set(headers)
                 if missing_columns:
                     error(f"Missing columns: {missing_columns}")
                     result.add_error(
@@ -152,8 +153,19 @@ class TableValidator(Validator):
                     if is_empty_row(row):
                         result.add_warning(row_num, "row", row, "Empty row detected")
                         continue
+                    # Add check for incomplete rows
+                    if len(row) < len(headers):
+                        result.add_error(
+                            row_num,
+                            "row",
+                            row,
+                            f"Row has fewer values ({len(row)})"
+                            f"than headers ({len(headers)})",
+                        )
+                        continue
 
                     for col_idx, value in enumerate(row):
+                        debug(f"Validating row {row_num}, column {col_idx}: {value}")
                         if col_idx >= len(headers):
                             break
 
@@ -563,6 +575,16 @@ def validate_all(
 
     info(f"Number of CPUs available: {cpu}")
 
+    # Get current logging configuration to pass to workers
+
+    getLogger().setLevel("DEBUG")
+    current_log_level = getLogger().level
+    root_logger = getLogger()
+    current_log_format = None
+    if root_logger.handlers and hasattr(root_logger.handlers[0], "formatter"):
+        if root_logger.handlers[0].formatter:
+            current_log_format = root_logger.handlers[0].formatter._fmt
+
     wildcard_args = [
         arg for filename in filenames for arg in get_args_all(input_type, filename)
     ]
@@ -613,6 +635,7 @@ def validate_all(
         with get_context("spawn").Pool(
             cpu,
             initializer=initializer,
+            initargs=(current_log_level, current_log_format),
         ) as pool:
             try:
                 primary_results = pool.starmap(
@@ -636,6 +659,7 @@ def validate_all(
         with get_context("spawn").Pool(
             cpu,
             initializer=initializer,
+            initargs=(current_log_level, current_log_format),
         ) as pool:
             subsidiary_results = pool.starmap(
                 validate_with_primary,
