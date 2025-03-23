@@ -22,9 +22,25 @@ def is_empty_row(row: List[str]) -> bool:
 
 
 def get_file_encoding(file_path: str) -> str:
+    """
+    Get file encoding, with special handling for UTF-8 with BOM
+    """
     with open(file_path, "rb") as file:
+        # First check for BOM
+        raw = file.read(4)  # Read enough bytes to detect BOM
+
+        # UTF-8 BOM check (EF BB BF)
+        if raw.startswith(b"\xef\xbb\xbf"):
+            logging.debug(f"Detected UTF-8 with BOM in {file_path}")
+            return "utf-8-sig"  # Special encoding that handles BOM
+
+        # Rewind and use chardet for other encodings
+        file.seek(0)
         detection = detect(file.read())
+
     encoding = (detection or {}).get("encoding")
     if not encoding:
         raise Exception("cannot detect encoding")
+
+    logging.debug(f"Detected encoding {encoding} for {file_path}")
     return encoding

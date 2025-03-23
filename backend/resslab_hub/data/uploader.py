@@ -2,13 +2,14 @@
 CLI for uploading csv to database
 """
 
+import traceback
 from abc import ABC, abstractmethod
 from csv import DictReader, reader
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from glob import iglob
-from logging import error, info, warning
+from logging import debug, error, getLogger, info, warning
 from math import nan
 from multiprocessing import get_context
 from os import path
@@ -78,10 +79,25 @@ def get_safe_cpu_count() -> int:
         return max(1, cpu_count() - 1)
 
 
-def initializer():
+def initializer(log_level=None, log_format=None):
     """
     https://docs.sqlalchemy.org/en/20/core/pooling.html#using-connection-pools-with-multiprocessing-or-os-fork
     """
+    # Configure logging for this worker process
+    import logging
+
+    # Use provided log_level or default to INFO
+    if log_level is None:
+        log_level = logging.INFO
+    if log_format is None:
+        log_format = "[%(process)d] %(levelname)s: %(message)s"
+
+    logging.basicConfig(
+        level=log_level,
+        format=log_format,
+        force=True,  # Ensure configuration takes effect even if logging was initialized
+    )
+
     engine.dispose(close=False)  # type: ignore
 
 
@@ -171,7 +187,7 @@ class TableUploader(Uploader):
         5. Removes deleted records
         """
         file_path = get_abs_path(file_path)
-        info("Path to upload", file_path)
+        debug(f"Path to upload: {file_path}")
         try:
             encoding = get_file_encoding(file_path)
             with (
@@ -185,29 +201,38 @@ class TableUploader(Uploader):
                 ids = []
                 added_count, modified_count = 0, 0
 
+                for i, header in enumerate(headers):
+                    debug(f"Header {i}: '{header}'")
+
                 existing_ids = {row[0] for row in session.query(self.id_column).all()}
-                info(
-                    "Opened file",
-                    path.basename(file_path),
-                    csv_reader,
-                    encoding,
-                    id_index,
+                debug(
+                    f"Opened file {path.basename(file_path)},"
+                    f"encoding: {encoding}, id_index: {id_index}"
                 )
                 # add new rows
-                for row in csv_reader:
+                for i, row in enumerate(csv_reader):
+                    debug(f"Row {i} length: {len(row)}")
+                    if len(row) < len(headers):
+                        debug(
+                            f"  Warning: Row {i} has fewer elements ({len(row)}) than "
+                            f"headers ({len(headers)})"
+                        )
                     if is_empty_row(row):
                         warning("skip empty line")
                     else:
-                        ids.append(row[id_index])
-                        data = {
-                            column.key: self.__get_value(column, headers, row)
-                            for column in self.base_model.__table__.c
-                        }
-                        if row[id_index] in existing_ids:
-                            modified_count += 1
+                        if is_empty_row(row):
+                            warning("skip empty line")
                         else:
-                            added_count += 1
-                        session.merge(self.base_model(**data))
+                            ids.append(row[id_index])
+                            data = {
+                                column.key: self.__get_value(column, headers, row)
+                                for column in self.base_model.__table__.c
+                            }
+                            if row[id_index] in existing_ids:
+                                modified_count += 1
+                            else:
+                                added_count += 1
+                            session.merge(self.base_model(**data))
                 # remove outdated rows
                 removed_ids = existing_ids - set(ids)
                 if removed_ids:
@@ -223,9 +248,11 @@ class TableUploader(Uploader):
                 )
 
         except Exception as e:
-            error_message = f"skiping {file_path} due to error {e}"
+            error_traceback = traceback.format_exc()
+            error_message = f"Skipping {file_path} due to error: {e}"
             error(error_message)
-            return error_message
+            debug(f"Full traceback:\n{error_traceback}")
+            return f"{error_message} (see logs for details)"
 
     @staticmethod
     def __get_value(column: Column, headers: List[str], row: List[str]) -> Any:
@@ -361,205 +388,211 @@ def upload_one(input_type: Type, filename: str) -> str:
     - Specifies CSV column mappings
     - Handles data type conversions
     """
-    info("Upload one", input_type, filename)
-    match input_type:
-        case Type.BRACE:
-            uploader = TableUploader(Brace)
-        case Type.COLUMN:
-            uploader = TableUploader(ColumnEntity)
-        case Type.CONNECTION:
-            uploader = TableUploader(Connection)
-        case Type.MATERIAL:
-            uploader = TableUploader(Material)
-        case Type.RESIDUAL_STRESS:
-            uploader = TableUploader(ResidualStress)
-        case Type.HSS_COLUMN:
-            uploader = TableUploader(HSSColumn)
-        case Type.BRACE_DISPLACEMENT:
-            uploader = CsvFileUploader(
-                lambda id: delete(BraceDisplacement).where(
-                    BraceDisplacement.brace_id == id
-                ),
-                lambda id, index, value: BraceDisplacement(
-                    brace_id=id,
-                    id=index,
-                    displacement=value.get("Displacement [mm]"),
-                    force=value.get("Force [kN]"),
-                ),
-            )
-        case Type.COLUMN_AXIAL_SHORTENING:
-            uploader = CsvFileUploader(
-                lambda id: delete(ColumnAxialShortening).where(
-                    ColumnAxialShortening.column_id == id
-                ),
-                lambda id, index, value: ColumnAxialShortening(
-                    column_id=id,
-                    id=index,
-                    chord_rotation=value.get("Chord Rotation [rads]"),
-                    axial_shortening=value.get("Axial Shortening [mm]"),
-                ),
-            )
-        case Type.COLUMN_MOMENT_STRONG:
-            uploader = CsvFileUploader(
-                lambda id: delete(ColumnMomentStrong).where(
-                    ColumnMomentStrong.column_id == id
-                ),
-                lambda id, index, value: ColumnMomentStrong(
-                    column_id=id,
-                    id=index,
-                    chord_rotation=value.get("Chord Rotation [rads]"),
-                    moment=value.get("Moment [kN-mm]"),
-                ),
-            )
-        case Type.COLUMN_MOMENT_WEAK:
-            uploader = CsvFileUploader(
-                lambda id: delete(ColumnMomentWeak).where(
-                    ColumnMomentWeak.column_id == id
-                ),
-                lambda id, index, value: ColumnMomentWeak(
-                    column_id=id,
-                    id=index,
-                    chord_rotation=value.get("Chord Rotation [rads]"),
-                    moment=value.get("Moment [kN-mm]"),
-                ),
-            )
-        case Type.CONNECTION_BEAM:
-            uploader = CsvFileUploader(
-                lambda id: delete(ConnectionBeam).where(
-                    ConnectionBeam.connection_id == id
-                ),
-                lambda id, index, value: ConnectionBeam(
-                    connection_id=id,
-                    id=index,
-                    chord_rotation=value.get("Chord Rotation [rads]")
-                    or value.get("Chrord Rotation, θ [rads]"),
-                    moment=value.get("Moment [kN-mm]"),
-                ),
-            )
-        case Type.CONNECTION_BEAM_WEST:
-            uploader = CsvFileUploader(
-                lambda id: delete(ConnectionBeamWest).where(
-                    ConnectionBeamWest.connection_id == id
-                ),
-                lambda id, index, value: ConnectionBeamWest(
-                    connection_id=id,
-                    id=index,
-                    chord_rotation=value.get("Chord Rotation [rads]")
-                    or value.get("Chrord Rotation, θ [rads]"),
-                    moment=value.get("Moment [kN-mm]"),
-                ),
-            )
-        case Type.CONNECTION_GLOBAL:
-            uploader = CsvFileUploader(
-                lambda id: delete(ConnectionGlobal).where(
-                    ConnectionGlobal.connection_id == id
-                ),
-                lambda id, index, value: ConnectionGlobal(
-                    connection_id=id,
-                    id=index,
-                    story_drift_angle=value.get("Total story drift angle (rad)"),
-                    actuator_force=value.get("Force in the actuator (kN)"),
-                ),
-            )
-        case Type.CONNECTION_GLOBAL_WEST:
-            uploader = CsvFileUploader(
-                lambda id: delete(ConnectionGlobalWest).where(
-                    ConnectionGlobalWest.connection_id == id
-                ),
-                lambda id, index, value: ConnectionGlobalWest(
-                    connection_id=id,
-                    id=index,
-                    story_drift_angle=value.get("Total story drift angle (rad)"),
-                    actuator_force=value.get("Force in the actuator (kN)"),
-                ),
-            )
-        case Type.CONNECTION_PANEL_ZONE:
-            uploader = CsvFileUploader(
-                lambda id: delete(ConnectionPanelZone).where(
-                    ConnectionPanelZone.connection_id == id
-                ),
-                lambda id, index, value: ConnectionPanelZone(
-                    connection_id=id,
-                    id=index,
-                    shear_distortion=value.get("panel zone shear distortion (rad)"),
-                    shear_force=value.get("panel zone shear force (kN)"),
-                ),
-            )
-        case Type.MATERIAL_STRESS_STRAIN:
-            uploader = CsvFileUploader(
-                lambda id: delete(MaterialStressStrain).where(
-                    MaterialStressStrain.material_id == id
-                ),
-                lambda id, index, value: MaterialStressStrain(
-                    material_id=id,
-                    id=index,
-                    stress=value.get("Sigma_true"),
-                    strain=value.get("e_true"),
-                ),
-            )
-        case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
-            uploader = CsvFileUploader(
-                lambda id: delete(ResidualStressDistributionF1).where(
-                    ResidualStressDistributionF1.residual_stress_id == id
-                ),
-                lambda id, index, value: ResidualStressDistributionF1(
-                    residual_stress_id=id,
-                    id=index,
-                    coordinate=value.get("coordinate"),
-                    residual_stress=value.get("residual_stress"),
-                ),
-            )
-        case Type.RESIDUAL_STRESS_DISTRIBUTION_F2:
-            uploader = CsvFileUploader(
-                lambda id: delete(ResidualStressDistributionF2).where(
-                    ResidualStressDistributionF2.residual_stress_id == id
-                ),
-                lambda id, index, value: ResidualStressDistributionF2(
-                    residual_stress_id=id,
-                    id=index,
-                    coordinate=value.get("coordinate"),
-                    residual_stress=value.get("residual_stress"),
-                ),
-            )
-        case Type.RESIDUAL_STRESS_DISTRIBUTION_W1:
-            uploader = CsvFileUploader(
-                lambda id: delete(ResidualStressDistributionW1).where(
-                    ResidualStressDistributionW1.residual_stress_id == id
-                ),
-                lambda id, index, value: ResidualStressDistributionW1(
-                    residual_stress_id=id,
-                    id=index,
-                    coordinate=value.get("coordinate"),
-                    residual_stress=value.get("residual_stress"),
-                ),
-            )
-        case Type.RESIDUAL_STRESS_QP_COEFFICIENT:
-            uploader = CsvFileUploader(
-                lambda id: delete(ResidualStressQPCoefficient).where(
-                    ResidualStressQPCoefficient.residual_stress_id == id
-                ),
-                lambda id, index, value: ResidualStressQPCoefficient(
-                    residual_stress_id=id,
-                    id=index,
-                    qp_coefficient=value.get("qp_coefficient"),
-                ),
-            )
-        case Type.HSS_COLUMN_MOMENT_ROTATION:
-            uploader = CsvFileUploader(
-                lambda id: delete(HSSColumnMomentRotation).where(
-                    HSSColumnMomentRotation.hss_column_id == id
-                ),
-                lambda id, index, value: HSSColumnMomentRotation(
-                    hss_column_id=id,
-                    id=index,
-                    rotation=value.get("rotation (rad)"),
-                    moment=value.get("moment (kN.m)"),
-                ),
-            )
-        case _:
-            raise NotImplementedError(f"unknown type {input_type}")
+    info(f"Upload one: {input_type}, {filename}")
+    try:
+        match input_type:
+            case Type.BRACE:
+                uploader = TableUploader(Brace)
+            case Type.COLUMN:
+                uploader = TableUploader(ColumnEntity)
+            case Type.CONNECTION:
+                uploader = TableUploader(Connection)
+            case Type.MATERIAL:
+                uploader = TableUploader(Material)
+            case Type.RESIDUAL_STRESS:
+                uploader = TableUploader(ResidualStress)
+            case Type.HSS_COLUMN:
+                uploader = TableUploader(HSSColumn)
+            case Type.BRACE_DISPLACEMENT:
+                uploader = CsvFileUploader(
+                    lambda id: delete(BraceDisplacement).where(
+                        BraceDisplacement.brace_id == id
+                    ),
+                    lambda id, index, value: BraceDisplacement(
+                        brace_id=id,
+                        id=index,
+                        displacement=value.get("Displacement [mm]"),
+                        force=value.get("Force [kN]"),
+                    ),
+                )
+            case Type.COLUMN_AXIAL_SHORTENING:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ColumnAxialShortening).where(
+                        ColumnAxialShortening.column_id == id
+                    ),
+                    lambda id, index, value: ColumnAxialShortening(
+                        column_id=id,
+                        id=index,
+                        chord_rotation=value.get("Chord Rotation [rads]"),
+                        axial_shortening=value.get("Axial Shortening [mm]"),
+                    ),
+                )
+            case Type.COLUMN_MOMENT_STRONG:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ColumnMomentStrong).where(
+                        ColumnMomentStrong.column_id == id
+                    ),
+                    lambda id, index, value: ColumnMomentStrong(
+                        column_id=id,
+                        id=index,
+                        chord_rotation=value.get("Chord Rotation [rads]"),
+                        moment=value.get("Moment [kN-mm]"),
+                    ),
+                )
+            case Type.COLUMN_MOMENT_WEAK:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ColumnMomentWeak).where(
+                        ColumnMomentWeak.column_id == id
+                    ),
+                    lambda id, index, value: ColumnMomentWeak(
+                        column_id=id,
+                        id=index,
+                        chord_rotation=value.get("Chord Rotation [rads]"),
+                        moment=value.get("Moment [kN-mm]"),
+                    ),
+                )
+            case Type.CONNECTION_BEAM:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ConnectionBeam).where(
+                        ConnectionBeam.connection_id == id
+                    ),
+                    lambda id, index, value: ConnectionBeam(
+                        connection_id=id,
+                        id=index,
+                        chord_rotation=value.get("Chord Rotation [rads]")
+                        or value.get("Chrord Rotation, θ [rads]"),
+                        moment=value.get("Moment [kN-mm]"),
+                    ),
+                )
+            case Type.CONNECTION_BEAM_WEST:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ConnectionBeamWest).where(
+                        ConnectionBeamWest.connection_id == id
+                    ),
+                    lambda id, index, value: ConnectionBeamWest(
+                        connection_id=id,
+                        id=index,
+                        chord_rotation=value.get("Chord Rotation [rads]")
+                        or value.get("Chrord Rotation, θ [rads]"),
+                        moment=value.get("Moment [kN-mm]"),
+                    ),
+                )
+            case Type.CONNECTION_GLOBAL:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ConnectionGlobal).where(
+                        ConnectionGlobal.connection_id == id
+                    ),
+                    lambda id, index, value: ConnectionGlobal(
+                        connection_id=id,
+                        id=index,
+                        story_drift_angle=value.get("Total story drift angle (rad)"),
+                        actuator_force=value.get("Force in the actuator (kN)"),
+                    ),
+                )
+            case Type.CONNECTION_GLOBAL_WEST:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ConnectionGlobalWest).where(
+                        ConnectionGlobalWest.connection_id == id
+                    ),
+                    lambda id, index, value: ConnectionGlobalWest(
+                        connection_id=id,
+                        id=index,
+                        story_drift_angle=value.get("Total story drift angle (rad)"),
+                        actuator_force=value.get("Force in the actuator (kN)"),
+                    ),
+                )
+            case Type.CONNECTION_PANEL_ZONE:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ConnectionPanelZone).where(
+                        ConnectionPanelZone.connection_id == id
+                    ),
+                    lambda id, index, value: ConnectionPanelZone(
+                        connection_id=id,
+                        id=index,
+                        shear_distortion=value.get("panel zone shear distortion (rad)"),
+                        shear_force=value.get("panel zone shear force (kN)"),
+                    ),
+                )
+            case Type.MATERIAL_STRESS_STRAIN:
+                uploader = CsvFileUploader(
+                    lambda id: delete(MaterialStressStrain).where(
+                        MaterialStressStrain.material_id == id
+                    ),
+                    lambda id, index, value: MaterialStressStrain(
+                        material_id=id,
+                        id=index,
+                        stress=value.get("Sigma_true"),
+                        strain=value.get("e_true"),
+                    ),
+                )
+            case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ResidualStressDistributionF1).where(
+                        ResidualStressDistributionF1.residual_stress_id == id
+                    ),
+                    lambda id, index, value: ResidualStressDistributionF1(
+                        residual_stress_id=id,
+                        id=index,
+                        coordinate=value.get("coordinate"),
+                        residual_stress=value.get("residual_stress"),
+                    ),
+                )
+            case Type.RESIDUAL_STRESS_DISTRIBUTION_F2:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ResidualStressDistributionF2).where(
+                        ResidualStressDistributionF2.residual_stress_id == id
+                    ),
+                    lambda id, index, value: ResidualStressDistributionF2(
+                        residual_stress_id=id,
+                        id=index,
+                        coordinate=value.get("coordinate"),
+                        residual_stress=value.get("residual_stress"),
+                    ),
+                )
+            case Type.RESIDUAL_STRESS_DISTRIBUTION_W1:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ResidualStressDistributionW1).where(
+                        ResidualStressDistributionW1.residual_stress_id == id
+                    ),
+                    lambda id, index, value: ResidualStressDistributionW1(
+                        residual_stress_id=id,
+                        id=index,
+                        coordinate=value.get("coordinate"),
+                        residual_stress=value.get("residual_stress"),
+                    ),
+                )
+            case Type.RESIDUAL_STRESS_QP_COEFFICIENT:
+                uploader = CsvFileUploader(
+                    lambda id: delete(ResidualStressQPCoefficient).where(
+                        ResidualStressQPCoefficient.residual_stress_id == id
+                    ),
+                    lambda id, index, value: ResidualStressQPCoefficient(
+                        residual_stress_id=id,
+                        id=index,
+                        qp_coefficient=value.get("qp_coefficient"),
+                    ),
+                )
+            case Type.HSS_COLUMN_MOMENT_ROTATION:
+                uploader = CsvFileUploader(
+                    lambda id: delete(HSSColumnMomentRotation).where(
+                        HSSColumnMomentRotation.hss_column_id == id
+                    ),
+                    lambda id, index, value: HSSColumnMomentRotation(
+                        hss_column_id=id,
+                        id=index,
+                        rotation=value.get("rotation (rad)"),
+                        moment=value.get("moment (kN.m)"),
+                    ),
+                )
+            case _:
+                raise NotImplementedError(f"unknown type {input_type}")
 
-    return uploader.upload_one(filename)
+        return uploader.upload_one(filename)
+    except Exception as e:
+        error_message = f"Error in upload_one: {e}"
+        error(error_message)
+        # Re-raise with more context
+        raise Exception(f"Failed to upload {filename} as {input_type}: {str(e)}")
 
 
 def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
@@ -712,7 +745,17 @@ def upload_parallel(upload_args, cpu=None):
     4. Collects results from all processes
     """
     n_workers = cpu if cpu is not None else get_safe_cpu_count()
-    with get_context("spawn").Pool(n_workers, initializer=initializer) as pool:
+    current_log_level = getLogger().level
+    root_logger = getLogger()
+    current_log_format = None
+    if root_logger.handlers and hasattr(root_logger.handlers[0], "formatter"):
+        if root_logger.handlers[0].formatter:
+            current_log_format = root_logger.handlers[0].formatter._fmt
+    with get_context("spawn").Pool(
+        n_workers,
+        initializer=initializer,
+        initargs=(current_log_level, current_log_format),
+    ) as pool:
         return pool.starmap(upload_one, upload_args)
 
 
