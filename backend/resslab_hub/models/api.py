@@ -760,91 +760,91 @@ class EccentricBracedFrameModel(BaseModel):
     f_u_n_web: Decimal
     e_n_flg: int
     e_n_web: int
-    f_y_m_flg: Decimal
-    f_y_m_web: Decimal
-    f_y_exp_l_flg: Decimal
-    f_y_exp_l_web: Decimal
-    f_y_exp_u_flg: Decimal
-    f_y_exp_u_web: Decimal
-    f_u_m_flg: Decimal
-    f_u_m_web: Decimal
-    f_u_exp_l_flg: Decimal
-    f_u_exp_l_web: Decimal
-    f_u_exp_u_flg: Decimal
-    f_u_exp_u_web: Decimal
+    f_y_m_flg: Optional[Decimal]
+    f_y_m_web: Optional[Decimal]
+    f_y_exp_l_flg: Optional[Decimal]
+    f_y_exp_l_web: Optional[Decimal]
+    f_y_exp_u_flg: Optional[Decimal]
+    f_y_exp_u_web: Optional[Decimal]
+    f_u_m_flg: Optional[Decimal]
+    f_u_m_web: Optional[Decimal]
+    f_u_exp_l_flg: Optional[Decimal]
+    f_u_exp_l_web: Optional[Decimal]
+    f_u_exp_u_flg: Optional[Decimal]
+    f_u_exp_u_web: Optional[Decimal]
     e_m_flg: Optional[Decimal]
     e_m_web: Optional[Decimal]
-    r_y_l_flg: Decimal
-    r_y_l_web: Decimal
-    r_y_u_flg: Decimal
-    r_y_u_web: Decimal
-    r_t_l_flg: Decimal
-    r_t_l_web: Decimal
-    r_t_u_flg: Decimal
-    r_t_u_web: Decimal
-    f_u_f_y_n_flg: Decimal
-    f_u_f_y_n_web: Decimal
-    f_u_f_y_m_flg: Decimal
-    f_u_f_y_m_web: Decimal
+    r_y_l_flg: Optional[Decimal]
+    r_y_l_web: Optional[Decimal]
+    r_y_u_flg: Optional[Decimal]
+    r_y_u_web: Optional[Decimal]
+    r_t_l_flg: Optional[Decimal]
+    r_t_l_web: Optional[Decimal]
+    r_t_u_flg: Optional[Decimal]
+    r_t_u_web: Optional[Decimal]
+    f_u_f_y_n_flg: Optional[Decimal]
+    f_u_f_y_n_web: Optional[Decimal]
+    f_u_f_y_m_flg: Optional[Decimal]
+    f_u_f_y_m_web: Optional[Decimal]
     h_n: Decimal
     tw_n: Decimal
     bf_n: Decimal
     tf_n: Decimal
     tf_add_n: Optional[Decimal]
-    r_n: Decimal
-    h_m: Decimal
-    tw_m: Decimal
-    bf_m: Decimal
-    tf_m: Decimal
+    r_n: Optional[Decimal]
+    h_m: Optional[Decimal]
+    tw_m: Optional[Decimal]
+    bf_m: Optional[Decimal]
+    tf_m: Optional[Decimal]
     tf_add_m: Optional[Decimal]
     hw_n: Decimal
-    hw_m: Decimal
-    a_fil_n: Decimal
+    hw_m: Optional[Decimal]
+    a_fil_n: Optional[Decimal]
     af_n: Decimal
     aw_n: Decimal
     a_n: Decimal
-    af_m: Decimal
-    aw_m: Decimal
-    a_m: Decimal
-    zp_fil_n: Decimal
-    zp_n: Decimal
-    zp_no_fil_n: Decimal
-    zp_fil_m: Decimal
-    zp_m: Decimal
-    zp_no_fil_m: Decimal
-    link_loc: str
-    l_confi: str
-    l_con_typ: str
+    af_m: Optional[Decimal]
+    aw_m: Optional[Decimal]
+    a_m: Optional[Decimal]
+    zp_fil_n: Optional[Decimal]
+    zp_n: Optional[Decimal]
+    zp_no_fil_n: Optional[Decimal]
+    zp_fil_m: Optional[Decimal]
+    zp_m: Optional[Decimal]
+    zp_no_fil_m: Optional[Decimal]
+    link_loc: Optional[str]
+    l_confi: Optional[str]
+    l_con_typ: Optional[str]
     l_st: Optional[Decimal]
     h_st: Optional[Decimal]
-    e: Decimal
-    l_con_confi: str
-    l_con_wld: str
+    e: int
+    l_con_confi: Optional[str]
+    l_con_wld: Optional[str]
     l_endp_wld: Optional[str]
     l_bu_wld: Optional[str]
-    l_s_side: str
-    l_s_reg: str
-    l_s_d_pnl_1_f: Decimal
-    l_s_d_pnl_2_f: Decimal
+    l_s_side: Optional[str]
+    l_s_reg: Optional[str]
+    l_s_d_pnl_1_f: Optional[Decimal]
+    l_s_d_pnl_2_f: Optional[Decimal]
     l_s_d_pnl_1_b: Optional[Decimal]
     l_s_d_pnl_2_b: Optional[Decimal]
-    t_s: Decimal
-    l_s_weld: str
-    l_s_no_f: int
+    t_s: Optional[Decimal]
+    l_s_weld: Optional[str]
+    l_s_no_f: Optional[int]
     l_s_no_b: Optional[int]
-    a_b_b: Decimal
-    t_e_s: Decimal
+    a_b_b: Optional[Decimal]
+    t_e_s: Optional[Decimal]
     t_b_s: Optional[Decimal]
     d_b_s: Optional[Decimal]
-    d_b_pnl_1: Decimal
+    d_b_pnl_1: Optional[Decimal]
     d_b_pnl_2: Optional[Decimal]
     b_s_no: Optional[int]
     l_p_typ: str
     n_d_n_pl_ten: Optional[Decimal]
     n_d_n_pl_comp: Optional[Decimal]
-    fail_mode: str
-    ov_aisc: Decimal
-    ov_ec8: Decimal
+    fail_mode: Optional[str]
+    ov_aisc: Optional[Decimal]
+    ov_ec8: Optional[Decimal]
     class_aisc: str
     class_ec8: str
     reference: str

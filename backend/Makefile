@@ -73,6 +73,9 @@ upload-residual-stress:
 upload-hss-column:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-hss-columns ../../resslab-hub-data
 
+upload-eccentric-braced-frame:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all-eccentric-braced-frames ../../resslab-hub-data
+
 upload-data:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python data/uploader.py all ../../resslab-hub-data
 

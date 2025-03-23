@@ -1,6 +1,7 @@
 """
 CLI for uploading csv to database
 """
+
 import csv
 import logging
 from argparse import ArgumentParser
@@ -41,7 +42,7 @@ class ColumnType(Enum):
 
 class Column:
     __boolean_values = ["yes", "no"]
-    __null_values = ["", "NA"]
+    __null_values = ["", "NA", "NR", "N/A", "N/R", "NAN"]
 
     def __init__(self, header: str) -> None:
         self.header: str = header
