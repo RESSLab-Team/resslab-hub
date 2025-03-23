@@ -1,6 +1,7 @@
 """
 API Models
 """
+
 from datetime import date
 from decimal import Decimal
 from enum import Enum
@@ -735,6 +736,138 @@ HSSColumnNumberField = Enum(
     {
         key: key
         for key, field in HSSColumnModel.__fields__.items()
+        if field.type_ in [Decimal, int]
+    },
+    module=__name__,
+    type=str,
+)
+
+
+class EccentricBracedFrameModel(BaseModel):
+    # START_OF_GENERATED_CODE_eccentric_braced_frame
+    id: str
+    investigator: str
+    year: int
+    spec_id: str
+    profile: str
+    region: str
+    sec_type: str
+    sg_flg_link: str
+    sg_web_link: str
+    f_y_n_flg: Decimal
+    f_y_n_web: Decimal
+    f_u_n_flg: Decimal
+    f_u_n_web: Decimal
+    e_n_flg: int
+    e_n_web: int
+    f_y_m_flg: Decimal
+    f_y_m_web: Decimal
+    f_y_exp_l_flg: Decimal
+    f_y_exp_l_web: Decimal
+    f_y_exp_u_flg: Decimal
+    f_y_exp_u_web: Decimal
+    f_u_m_flg: Decimal
+    f_u_m_web: Decimal
+    f_u_exp_l_flg: Decimal
+    f_u_exp_l_web: Decimal
+    f_u_exp_u_flg: Decimal
+    f_u_exp_u_web: Decimal
+    e_m_flg: Optional[Decimal]
+    e_m_web: Optional[Decimal]
+    r_y_l_flg: Decimal
+    r_y_l_web: Decimal
+    r_y_u_flg: Decimal
+    r_y_u_web: Decimal
+    r_t_l_flg: Decimal
+    r_t_l_web: Decimal
+    r_t_u_flg: Decimal
+    r_t_u_web: Decimal
+    f_u_f_y_n_flg: Decimal
+    f_u_f_y_n_web: Decimal
+    f_u_f_y_m_flg: Decimal
+    f_u_f_y_m_web: Decimal
+    h_n: Decimal
+    tw_n: Decimal
+    bf_n: Decimal
+    tf_n: Decimal
+    tf_add_n: Optional[Decimal]
+    r_n: Decimal
+    h_m: Decimal
+    tw_m: Decimal
+    bf_m: Decimal
+    tf_m: Decimal
+    tf_add_m: Optional[Decimal]
+    hw_n: Decimal
+    hw_m: Decimal
+    a_fil_n: Decimal
+    af_n: Decimal
+    aw_n: Decimal
+    a_n: Decimal
+    af_m: Decimal
+    aw_m: Decimal
+    a_m: Decimal
+    zp_fil_n: Decimal
+    zp_n: Decimal
+    zp_no_fil_n: Decimal
+    zp_fil_m: Decimal
+    zp_m: Decimal
+    zp_no_fil_m: Decimal
+    link_loc: str
+    l_confi: str
+    l_con_typ: str
+    l_st: Optional[Decimal]
+    h_st: Optional[Decimal]
+    e: Decimal
+    l_con_confi: str
+    l_con_wld: str
+    l_endp_wld: Optional[str]
+    l_bu_wld: Optional[str]
+    l_s_side: str
+    l_s_reg: str
+    l_s_d_pnl_1_f: Decimal
+    l_s_d_pnl_2_f: Decimal
+    l_s_d_pnl_1_b: Optional[Decimal]
+    l_s_d_pnl_2_b: Optional[Decimal]
+    t_s: Decimal
+    l_s_weld: str
+    l_s_no_f: int
+    l_s_no_b: Optional[int]
+    a_b_b: Decimal
+    t_e_s: Decimal
+    t_b_s: Optional[Decimal]
+    d_b_s: Optional[Decimal]
+    d_b_pnl_1: Decimal
+    d_b_pnl_2: Optional[Decimal]
+    b_s_no: Optional[int]
+    l_p_typ: str
+    n_d_n_pl_ten: Optional[Decimal]
+    n_d_n_pl_comp: Optional[Decimal]
+    fail_mode: str
+    ov_aisc: Decimal
+    ov_ec8: Decimal
+    class_aisc: str
+    class_ec8: str
+    reference: str
+    url: str
+    latitude: Decimal
+    longitude: Decimal
+    # END_OF_GENERATED_CODE_eccentric_braced_frame
+
+    shear_link_angle_count: int
+
+
+EccentricBracedFrameField = Enum(
+    "EccentricBracedFrameField",
+    {key: key for key in EccentricBracedFrameModel.__fields__},
+    module=__name__,
+    type=str,
+)
+
+EccentricBracedFrameNumberField = Enum(
+    "EccentricBracedFrameNumberField",
+    {
+        key: key
+        for key, field in EccentricBracedFrameModel.__fields__.items()
         if field.type_ in [Decimal, int]
     },
     module=__name__,
