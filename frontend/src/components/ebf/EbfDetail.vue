@@ -6,7 +6,7 @@ import { ebfApi } from '@/plugins/axios'
 import { formatNumber } from '@/utils/formatter'
 import { computed, ref, watch } from 'vue'
 import { linkConfigurationMapping } from '@/utils/ebf'
-import { getEbfImagePath } from '@/utils/component'
+import { getEbfImage } from '@/utils/component'
 
 const props = defineProps<{
   eccentricBracedFrame: EccentricBracedFrameModel
@@ -43,7 +43,7 @@ const imageSrc = computed(() => {
 
   const configKey = linkConfiguration.toLowerCase()
 
-  return getEbfImagePath(configKey)
+  return getEbfImage(configKey)
 })
 </script>
 

@@ -104,7 +104,7 @@ export function getHSSColumnImage(test_configuration: string): string {
   }
 }
 
-export const getEbfImagePath = (linkConfiguration: string): string => {
+export const getEbfImage = (linkConfiguration: string): string => {
   let imageName = ''
   switch (linkConfiguration) {
     case 'tf1':
@@ -124,5 +124,5 @@ export const getEbfImagePath = (linkConfiguration: string): string => {
       return '' // No matching image
   }
 
-  return `${publicPath}img/ebf/${imageName}`
+  return publicPath + `img/ebf/${imageName}`
 }
