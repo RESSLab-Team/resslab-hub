@@ -103,3 +103,26 @@ export function getHSSColumnImage(test_configuration: string): string {
     return ''
   }
 }
+
+export const getEbfImagePath = (linkConfiguration: string): string => {
+  let imageName = ''
+  switch (linkConfiguration) {
+    case 'tf1':
+      imageName = 'EBF_1.png'
+      break
+    case 'tf2':
+      imageName = 'EBF_2.png'
+      break
+    case 'tf2c':
+      imageName = 'EBF_3.png'
+      break
+    case 'tf3c':
+      imageName = 'EBF_4.png'
+      break
+    default:
+      console.warn('Unknown linkConfiguration: ' + linkConfiguration)
+      return '' // No matching image
+  }
+
+  return `${publicPath}img/ebf/${imageName}`
+}

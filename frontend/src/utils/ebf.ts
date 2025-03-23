@@ -18,30 +18,3 @@ export const sectionTypeMapping = new Map([
   ['hot-rolled', 'Hot-Rolled'],
   ['built-up', 'Built-up']
 ])
-
-export const getEbfImagePath = (linkConfiguration: string): string => {
-  const publicPath = process.env.BASE_URL || '/'
-
-  if (!linkConfiguration) return ''
-
-  const configKey = linkConfiguration.toLowerCase()
-  let imageName = ''
-  switch (configKey) {
-    case 'tf1':
-      imageName = 'EBF_1.png'
-      break
-    case 'tf2':
-      imageName = 'EBF_2.png'
-      break
-    case 'tf2c':
-      imageName = 'EBF_3.png'
-      break
-    case 'tf3c':
-      imageName = 'EBF_4.png'
-      break
-    default:
-      return '' // No matching image
-  }
-
-  return `${publicPath}img/ebf/link_config/${imageName}`
-}
