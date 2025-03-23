@@ -123,6 +123,20 @@ const router = createRouter({
           component: () => import('@/views/HssModelView.vue')
         }
       ]
+    },
+    {
+      path: '/eccentric-braced-frames',
+      component: () => import('@/views/EbfView.vue'),
+      children: [
+        {
+          path: '',
+          redirect: '/eccentric-braced-frames/database'
+        },
+        {
+          path: 'database',
+          component: () => import('@/views/EbfDatabase.vue')
+        }
+      ]
     }
   ]
 })
