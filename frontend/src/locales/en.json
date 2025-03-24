@@ -81,5 +81,9 @@
     "loading_angle": "Load Angle",
     "flexural_buckling": "Buckling",
     "date": "Date"
+  },
+  "ebf": {
+    "sec_type": "Section Type",
+    "class_aisc": "Classification"
   }
 }
