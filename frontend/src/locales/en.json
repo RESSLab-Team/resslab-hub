@@ -84,6 +84,10 @@
   },
   "ebf": {
     "sec_type": "Section Type",
-    "class_aisc": "Classification"
+    "class_aisc": "Classification",
+    "year": "Year",
+    "l_confi": "Configuration",
+    "sg_flg_link": "Link Flange",
+    "l_p_typ": "Link Plate Type"
   }
 }
