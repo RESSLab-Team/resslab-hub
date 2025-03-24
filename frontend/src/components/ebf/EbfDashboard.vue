@@ -15,7 +15,7 @@ import { useDashboard } from '@/composables/dashboard'
 import { useRoute, useRouter } from 'vue-router'
 import colors from 'vuetify/lib/util/colors'
 
-import { linkConfigurationMapping, linkTypeMapping, sectionTypeMapping } from '@/utils/ebf'
+import { sectionTypeMapping } from '@/utils/ebf'
 const route = useRoute()
 const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
