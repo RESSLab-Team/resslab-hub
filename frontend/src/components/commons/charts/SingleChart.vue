@@ -41,6 +41,14 @@ const emit = defineEmits<{
   (e: 'mouseout'): void
 }>()
 
+const reverseMapping = computed(() => {
+  const reverse = new Map<string, string>()
+  for (const [key, value] of props.mapping.entries()) {
+    reverse.set(value, key)
+  }
+  return reverse
+})
+
 const option = computed<EChartsOption>(() => ({
   tooltip: {
     trigger: 'item',
@@ -59,7 +67,8 @@ const option = computed<EChartsOption>(() => ({
         const label = props.mapping.get(count.name) ?? count.name
         return {
           name: label,
-          value: count.value
+          value: count.value,
+          originalName: count.name
         }
       }),
       breadcrumb: {
@@ -73,7 +82,13 @@ const option = computed<EChartsOption>(() => ({
 
 function click(params: CallbackDataParams): void {
   if (params.seriesId) {
-    emit('change:searches', params.seriesId, params.name)
+    const displayedName = params.name as string
+    const mappedName = props.mapping.get(displayedName)
+    const originalName = reverseMapping.value.get(params.name)
+
+    const valueToEmit = originalName || mappedName || displayedName
+
+    emit('change:searches', params.seriesId as string, valueToEmit)
   }
 }
 
