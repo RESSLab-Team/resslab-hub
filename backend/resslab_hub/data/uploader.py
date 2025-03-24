@@ -220,19 +220,16 @@ class TableUploader(Uploader):
                     if is_empty_row(row):
                         warning("skip empty line")
                     else:
-                        if is_empty_row(row):
-                            warning("skip empty line")
+                        ids.append(row[id_index])
+                        data = {
+                            column.key: self.__get_value(column, headers, row)
+                            for column in self.base_model.__table__.c
+                        }
+                        if row[id_index] in existing_ids:
+                            modified_count += 1
                         else:
-                            ids.append(row[id_index])
-                            data = {
-                                column.key: self.__get_value(column, headers, row)
-                                for column in self.base_model.__table__.c
-                            }
-                            if row[id_index] in existing_ids:
-                                modified_count += 1
-                            else:
-                                added_count += 1
-                            session.merge(self.base_model(**data))
+                            added_count += 1
+                        session.merge(self.base_model(**data))
                 # remove outdated rows
                 removed_ids = existing_ids - set(ids)
                 if removed_ids:
