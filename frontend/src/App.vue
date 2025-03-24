@@ -92,6 +92,16 @@ const menuItems: MenuItem[] = [
         to: '/model'
       }
     ]
+  },
+  {
+    text: 'Eccentric Braced Frames',
+    to: '/eccentric-braced-frames',
+    children: [
+      {
+        text: 'Database',
+        to: '/database'
+      }
+    ]
   }
 ]
 

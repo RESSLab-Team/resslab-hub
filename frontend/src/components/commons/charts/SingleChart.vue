@@ -23,6 +23,7 @@ const props = withDefaults(
     field: string
     labelPrefix?: string
     flat?: boolean
+    mapping?: Map<string, string>
     showReset?: boolean
   }>(),
   {
@@ -30,6 +31,7 @@ const props = withDefaults(
     counts: () => [],
     flat: false,
     showReset: true,
+    mapping: () => new Map<string, string>(),
     labelPrefix: ''
   }
 )
@@ -54,8 +56,9 @@ const option = computed<EChartsOption>(() => ({
       right: 0,
       bottom: 0,
       data: props.counts.map((count) => {
+        const label = props.mapping.get(count.name) ?? count.name
         return {
-          name: count.name,
+          name: label,
           value: count.value
         }
       }),

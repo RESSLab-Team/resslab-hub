@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Add Node.js to the PATH
+export PATH="$PATH:$(dirname $(which node))"
+
 # Use local commitlint directly
-./node_modules/.bin/commitlint --edit ""
+./node_modules/.bin/commitlint --edit "$1"
