@@ -13,6 +13,27 @@ lint:
 update:
 	pre-commit autoupdate
 
+validate-data:
+	@echo "Choose a data type to validate: braces, columns, connections, material, residual-stresses, or hss-columns"
+	@echo "Example: make validate-braces"
+
+# Add to your Makefile or replace the existing validate-% rule
+validate-%:
+	@echo "Preparing archive for validating $*..."
+	$(eval DIRECTORY=$(subst -,_,$*))
+	$(eval TAR_NAME=$(DIRECTORY).tar.gz)
+	@echo "Looking for files in: ../../resslab-hub-data/$(DIRECTORY)"
+	@ls ../../resslab-hub-data/$(DIRECTORY) || (echo "Directory not found or empty" && exit 1)
+	@echo "Creating archive $(TAR_NAME)..."
+#	tar --exclude-vcs -czf $(TAR_NAME) -C ../../resslab-hub-data $(DIRECTORY)
+	@echo ""
+	@echo "Executing validation..."
+	$(eval API_PASSWORD=$(shell DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run python -c "from resslab_hub.config import settings; print(settings.api_password)"))
+	curl -s -F "file=@$(TAR_NAME)" -u user:$(API_PASSWORD) http://localhost:8000/validate?type=all-$* | \
+	jq -r
+	@echo ""
+	@echo "Cleaning up temporary file..."
+
 database-upgrade:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" poetry run alembic upgrade head
 

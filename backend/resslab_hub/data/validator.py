@@ -8,7 +8,7 @@ from csv import DictReader, reader
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from glob import iglob
-from logging import error, info
+from logging import debug, error, getLogger, info
 from multiprocessing import get_context
 from os import path
 from typing import Any, List
@@ -28,7 +28,12 @@ from sqlalchemy import (
 from sqlalchemy.orm import Session
 
 from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
-from resslab_hub.data.uploader import Type, get_args_all, get_safe_cpu_count
+from resslab_hub.data.uploader import (
+    Type,
+    get_args_all,
+    get_safe_cpu_count,
+    initializer,
+)
 from resslab_hub.models.database.brace import Brace
 from resslab_hub.models.database.column import ColumnEntity
 from resslab_hub.models.database.connection import Connection
@@ -114,15 +119,33 @@ class TableValidator(Validator):
                 csv_reader = reader(file, strict=True)
                 headers = next(csv_reader)
 
+                debug(f"Validating headers for {path.basename(file_path)}")
                 # Validate headers
                 expected_columns = {col.key for col in self.base_model.__table__.c}
+
+                debug(f"Expected columns: {expected_columns}")
+                debug(f"Found columns: {headers}")
+
+                missing_columns = expected_columns - set(headers)
+                unexpected_columns = set(headers) - expected_columns
+
                 missing_columns = expected_columns - set(headers)
                 if missing_columns:
+                    error(f"Missing columns: {missing_columns}")
                     result.add_error(
                         0,
                         "headers",
                         headers,
-                        f"Missing required columns" f": {', '.join(missing_columns)}",
+                        f"Missing required columns: {', '.join(missing_columns)}",
+                    )
+
+                if unexpected_columns:
+                    error(f"Unexpected columns: {unexpected_columns}")
+                    result.add_warning(
+                        0,
+                        "headers",
+                        headers,
+                        f"Unexpected columns: {', '.join(unexpected_columns)}",
                     )
 
                 # Validate rows
@@ -130,8 +153,19 @@ class TableValidator(Validator):
                     if is_empty_row(row):
                         result.add_warning(row_num, "row", row, "Empty row detected")
                         continue
+                    # Add check for incomplete rows
+                    if len(row) < len(headers):
+                        result.add_error(
+                            row_num,
+                            "row",
+                            row,
+                            f"Row has fewer values ({len(row)})"
+                            f"than headers ({len(headers)})",
+                        )
+                        continue
 
                     for col_idx, value in enumerate(row):
+                        debug(f"Validating row {row_num}, column {col_idx}: {value}")
                         if col_idx >= len(headers):
                             break
 
@@ -262,7 +296,7 @@ class CsvFileValidator(Validator):
 
     def _check_primary_csv(self, foreign_key: str) -> bool:
         """Check if the foreign key exists in the primary CSV being uploaded"""
-        error(f"Checking primary CSV: {self.primary_csv_path}")
+        info(f"Checking primary CSV: {self.primary_csv_path}")
         if not self.primary_csv_path:
             return False
 
@@ -273,7 +307,7 @@ class CsvFileValidator(Validator):
                 # return any(row.get("id") == foreign_key for row in csv_reader)
                 for row in csv_reader:
                     if row.get("id") == foreign_key:
-                        error(f"Match found for foreign key: {foreign_key}")
+                        info(f"Match found for foreign key: {foreign_key}")
                         return True
                 error(f"No match found for foreign key: {foreign_key}")
                 return False
@@ -541,6 +575,16 @@ def validate_all(
 
     info(f"Number of CPUs available: {cpu}")
 
+    # Get current logging configuration to pass to workers
+
+    getLogger().setLevel("DEBUG")
+    current_log_level = getLogger().level
+    root_logger = getLogger()
+    current_log_format = None
+    if root_logger.handlers and hasattr(root_logger.handlers[0], "formatter"):
+        if root_logger.handlers[0].formatter:
+            current_log_format = root_logger.handlers[0].formatter._fmt
+
     wildcard_args = [
         arg for filename in filenames for arg in get_args_all(input_type, filename)
     ]
@@ -561,6 +605,10 @@ def validate_all(
         ]
     ]
     subsidiary_types = [arg for arg in args if arg not in primary_types]
+    info(
+        f"Found {len(primary_types)} primary types"
+        f"and {len(subsidiary_types)} subsidiary types"
+    )
 
     # Create mapping of primary CSV paths
     primary_csv_paths = {
@@ -582,7 +630,13 @@ def validate_all(
 
     # First validate primary files
     if primary_types:
-        with get_context("spawn").Pool(cpu) as pool:
+        debug(f"Validating primary types: {[t.name for t, _ in primary_types]}")
+
+        with get_context("spawn").Pool(
+            cpu,
+            initializer=initializer,
+            initargs=(current_log_level, current_log_format),
+        ) as pool:
             try:
                 primary_results = pool.starmap(
                     validate_with_primary,
@@ -600,7 +654,13 @@ def validate_all(
 
     # Then validate subsidiary files
     if subsidiary_types:
-        with get_context("spawn").Pool(cpu) as pool:
+        debug(f"Validating subsidiary types: {[t.name for t, _ in subsidiary_types]}")
+
+        with get_context("spawn").Pool(
+            cpu,
+            initializer=initializer,
+            initargs=(current_log_level, current_log_format),
+        ) as pool:
             subsidiary_results = pool.starmap(
                 validate_with_primary,
                 [(t, f, primary_csv_paths) for t, f in subsidiary_types],

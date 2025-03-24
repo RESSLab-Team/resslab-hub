@@ -2,6 +2,7 @@
 Entrypoint for FastAPI application
 https://fastapi.tiangolo.com/tutorial/bigger-applications/
 """
+
 import logging
 import sys
 
@@ -33,7 +34,7 @@ def is_debug_mode():
     return "--log-level" in sys.argv and "debug" in sys.argv
 
 
-logger = logging.getLogger("uvicorn")
+logger = logging.getLogger()
 
 logger.setLevel(logging.DEBUG)
 logger.propagate = True

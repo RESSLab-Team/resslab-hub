@@ -22,9 +22,15 @@ def is_empty_row(row: List[str]) -> bool:
 
 
 def get_file_encoding(file_path: str) -> str:
+    """
+    Get file encoding, with special handling for UTF-8 with BOM
+    """
     with open(file_path, "rb") as file:
-        detection = detect(file.read())
-    encoding = (detection or {}).get("encoding")
+        raw = file.read()
+        encoding = detect(raw)["encoding"]
+
     if not encoding:
         raise Exception("cannot detect encoding")
+
+    logging.debug(f"Detected encoding {encoding} for {file_path}")
     return encoding
