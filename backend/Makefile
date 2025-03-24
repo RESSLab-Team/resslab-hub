@@ -91,6 +91,7 @@ transform-data:
 	poetry run python data/hss_csv_transformer.py japanese ../../resslab-hub-data/hss_columns/sections/japanese.csv ../frontend/src/assets/hss/hss-japanese-sections.csv
 
 #This is outdated now that we use the data dictionnaries
+#We keep it for local testing purposes
 analyze-data:
 	poetry run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/material/steel_material.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv ../../resslab-hub-data/residual_stresses/residual_stresses.csv ../../resslab-hub-data/hss_columns/hss_columns.csv
 
