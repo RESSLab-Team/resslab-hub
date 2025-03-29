@@ -156,7 +156,7 @@ const steelField = EccentricBracedFrameField.SgFlgLink
           >
             <template #title>
               <div>
-                Test Setup
+                Test Configuration
                 <info-tooltip>
                   <p>This chart shows the different test configurations:</p>
                   <ul>
@@ -164,6 +164,9 @@ const steelField = EccentricBracedFrameField.SgFlgLink
                     <li>TF2 = Link in bare frame</li>
                     <li>TF2C = Link in composite frame</li>
                     <li>TF3 = Link in system</li>
+                    <li>TF4 = Edge link in bare frame</li>
+                    <li>TF4c = Edge link in composite frame</li>
+                    <li>TF5 = Continuous link</li>
                   </ul>
                 </info-tooltip>
               </div>

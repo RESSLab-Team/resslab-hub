@@ -7,8 +7,8 @@ import InfoTooltip from '@/components/commons/InfoTooltip.vue'
     Steel Material Type
     <info-tooltip>
       <p>
-        This rectangle below displays the proportion of each steel material in the database. Steel
-        materials are defined according to the respective region of origin.
+        This chart displays the proportion of each steel material in the database. Steel materials
+        are defined according to the respective region of origin.
       </p>
       How to use?
       <ul>
