@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type EccentricBracedFrameModel } from '@/backend'
+import type { EccentricBracedFrameModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { ebfApi } from '@/plugins/axios'
