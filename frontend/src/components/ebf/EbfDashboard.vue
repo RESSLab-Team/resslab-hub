@@ -131,7 +131,7 @@ const steelField = EccentricBracedFrameField.SgFlgLink
         <v-col>
           <ebf-single-chart
             :show-reset="true"
-            :color="colors.teal"
+            :color="colors.red"
             :field="loadingProtocolField"
             :query="query"
             @change:searches="changeSearches"
@@ -149,7 +149,7 @@ const steelField = EccentricBracedFrameField.SgFlgLink
         <v-col cols="12">
           <ebf-single-chart
             :show-reset="true"
-            :color="colors.deepPurple"
+            :color="colors.blue"
             :field="testSetupField"
             :query="query"
             @change:searches="changeSearches"
