@@ -125,12 +125,12 @@ const router = createRouter({
       ]
     },
     {
-      path: '/eccentric-braced-frames',
+      path: '/ebf-links',
       component: () => import('@/views/EbfView.vue'),
       children: [
         {
           path: '',
-          redirect: '/eccentric-braced-frames/database'
+          redirect: '/ebf-links/database'
         },
         {
           path: 'database',

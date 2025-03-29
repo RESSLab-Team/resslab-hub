@@ -112,7 +112,7 @@ const { data, type } = defineProps<{
         </li>
       </ul>
     </template>
-    <template v-else-if="type === 'Eccentric Braced Frames'">
+    <template v-else-if="type === 'EBF Links'">
       <h3>
         <a target="_blank" :href="data.url"> {{ data.investigator }} ({{ data.year }}) </a>
       </h3>
@@ -127,7 +127,7 @@ const { data, type } = defineProps<{
           <img alt="EBF Link Configuration" :src="getEbfImage(data.l_confi)" />
         </li>
         <li>
-          <a :href="`/ebf/database?id=${data.id}&detail=true`"> View experimental data </a>
+          <a :href="`/ebf-links/database?id=${data.id}&detail=true`"> View experimental data </a>
         </li>
       </ul>
     </template>

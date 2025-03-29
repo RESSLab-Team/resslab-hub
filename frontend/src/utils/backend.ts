@@ -12,7 +12,7 @@ export type Type =
   | 'Materials'
   | 'Residual Stresses'
   | 'HSS Columns'
-  | 'Eccentric Braced Frames'
+  | 'EBF Links'
 export const typesNames: Type[] = [
   'Braces',
   'Columns',
@@ -20,5 +20,5 @@ export const typesNames: Type[] = [
   'Materials',
   'Residual Stresses',
   'HSS Columns',
-  'Eccentric Braced Frames'
+  'EBF Links'
 ]

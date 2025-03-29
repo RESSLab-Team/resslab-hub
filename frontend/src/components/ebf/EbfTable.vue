@@ -87,19 +87,19 @@ const {
     :loading="loading"
     prefix="ebf."
     :query="query"
-    title="Eccentric Braced Frames"
+    title="EBF Links"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"
     @download="downloadFiles"
   >
     <template #title>
-      Eccentric Braced Frames
+      Eccentric Braced Frames Links
       <info-tooltip>
         <p>
-          The Eccentric Braced Frames Database presents data from early 1977s on EBF under reversed
-          cyclic and monotonic loading. The primary data involve the deduced shear-link angle of the
-          EBF link.
+          The Eccentric Braced Frames Links Database presents data from early 1977s on EBF under
+          reversed cyclic and monotonic loading. The primary data involve the deduced shear-link
+          angle of the EBF link.
         </p>
         How to use?
         <ul>

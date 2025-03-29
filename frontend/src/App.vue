@@ -94,8 +94,8 @@ const menuItems: MenuItem[] = [
     ]
   },
   {
-    text: 'Eccentric Braced Frames',
-    to: '/eccentric-braced-frames',
+    text: 'EBF Links',
+    to: '/ebf-links',
     children: [
       {
         text: 'Database',
