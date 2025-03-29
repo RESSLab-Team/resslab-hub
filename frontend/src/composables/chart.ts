@@ -229,6 +229,7 @@ export interface ParallelField<T = string> {
   id: T | Division<T>
   name?: string
   mapping?: Map<string, string>
+  sortValues?: string[]
 }
 export interface Division<T> {
   dividend: T

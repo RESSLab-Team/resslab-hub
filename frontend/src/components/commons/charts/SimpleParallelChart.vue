@@ -83,7 +83,7 @@ const option = computed<EChartsOption>(() => ({
           scale: true
         })
       } else {
-        const sortedValues = chain(values).uniq().sort().value()
+        const sortedValues = field.sortValues || chain(values).uniq().sort().value()
         return merge(option, {
           nameLocation: 'start',
           inverse: true,

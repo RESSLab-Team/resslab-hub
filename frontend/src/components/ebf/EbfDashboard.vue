@@ -27,7 +27,11 @@ const parallelFields: ParallelField<EccentricBracedFrameField>[] = [
   { id: EccentricBracedFrameField.SecType, name: 'Type' },
   { id: EccentricBracedFrameField.SgFlgLink, name: 'Material' },
   { id: EccentricBracedFrameField.OvAisc, name: 'Ω' },
-  { id: EccentricBracedFrameField.ClassAisc, name: 'Classification' }
+  {
+    id: EccentricBracedFrameField.ClassAisc,
+    name: 'Link Classification',
+    sortValues: ['long', 'intermediate', 'short']
+  }
 ]
 
 const yearSectionFields: DoubleFields<EccentricBracedFrameField> = [
