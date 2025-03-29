@@ -97,9 +97,9 @@ const {
       Eccentric Braced Frames Links
       <info-tooltip>
         <p>
-          The Eccentric Braced Frames Links Database presents data from early 1977s on EBF under
-          reversed cyclic and monotonic loading. The primary data involve the deduced shear-link
-          angle of the EBF link.
+          The database on eccentric braced frame (EBF) links presents data from early 1977s on EBF
+          Links under reversed cyclic and monotonic loading. The primary data involve the deduced
+          shear-link angle of the EBF link.
         </p>
         How to use?
         <ul>
