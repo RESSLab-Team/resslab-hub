@@ -406,7 +406,7 @@ class BraceModel(BaseModel):
     z_y: Optional[Decimal]
     j: Optional[Decimal]
     configuration: str
-    brace_angle: Decimal
+    brace_angle: Optional[Decimal]
     l_b: Optional[Decimal]
     l_b_clear: Optional[Decimal]
     steel: str
