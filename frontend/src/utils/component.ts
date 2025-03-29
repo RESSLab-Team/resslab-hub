@@ -119,6 +119,15 @@ export const getEbfImage = (linkConfiguration: string): string => {
     case 'tf3c':
       imageName = 'EBF_4.png'
       break
+    case 'tf4':
+      imageName = 'EBF_5.png'
+      break
+    case 'tf4c':
+      imageName = 'EBF_6.png'
+      break
+    case 'tf5':
+      imageName = 'EBF_7.png'
+      break
     default:
       console.warn('Unknown linkConfiguration: ' + linkConfiguration)
       return '' // No matching image

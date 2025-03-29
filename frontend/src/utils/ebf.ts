@@ -4,6 +4,9 @@ export const linkConfigurationMapping = new Map([
   ['TF2C', 'Link in composite frame'],
   ['TF3', 'Link in system'],
   ['TF3c', 'Link in system - configuration c'],
+  ['TF4', 'Edge link in bare frame'],
+  ['TF4c', 'Edge link in composite frame'],
+  ['TF5', 'Continuous link'],
   ['LC1', 'Connection Configuration 1'],
   ['LC5', 'Connection Configuration 5']
 ])
