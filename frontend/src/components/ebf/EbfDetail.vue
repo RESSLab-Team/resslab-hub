@@ -60,7 +60,7 @@ const imageSrc = computed(() => {
     </template>
     <template #body>
       <v-row>
-        <v-col class="mt-6" cols="12">
+        <v-col class="mt-6" cols="6">
           <h2 class="mb-2">Loading and Geometric Parameters</h2>
           <p class="mb-6">
             <property-item name="Loading Protocol">
