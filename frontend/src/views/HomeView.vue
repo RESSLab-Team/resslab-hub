@@ -13,6 +13,7 @@ import {
   bracesApi,
   columnsApi,
   connectionsApi,
+  ebfApi,
   hssApi,
   materialsApi,
   residualsApi
@@ -87,7 +88,8 @@ onMounted(() => {
     connectionsApi.getConnectionsDistinct(),
     materialsApi.getMaterialsDistinct(),
     residualsApi.getResidualStressesDistinct(),
-    hssApi.getHssColumnsDistinct()
+    hssApi.getHssColumnsDistinct(),
+    ebfApi.getEccentricBracedFramesDistinct()
   ])
     .then((responses) =>
       chain(responses)
