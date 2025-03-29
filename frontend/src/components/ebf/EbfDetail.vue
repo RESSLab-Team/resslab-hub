@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EccentricBracedFrameModel } from '@/backend'
+import { EccentricBracedFrameApi, type EccentricBracedFrameModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { ebfApi } from '@/plugins/axios'
@@ -60,7 +60,7 @@ const imageSrc = computed(() => {
     </template>
     <template #body>
       <v-row>
-        <v-col class="mt-6" cols="6">
+        <v-col class="mt-6" cols="12">
           <h2 class="mb-2">Loading and Geometric Parameters</h2>
           <p class="mb-6">
             <property-item name="Loading Protocol">
@@ -78,7 +78,7 @@ const imageSrc = computed(() => {
             <property-item name="Section Type">
               {{ eccentricBracedFrame.sec_type }}
             </property-item>
-            <property-item name="Link Length" unit="mm">
+            <property-item name="Link Length, e" unit="mm">
               {{ eccentricBracedFrame.e }}
             </property-item>
             <property-item name="Test Setup">
@@ -88,12 +88,15 @@ const imageSrc = computed(() => {
                   : 'Not defined'
               }}
             </property-item>
+            <property-item name="Link Connection Type">
+              {{ eccentricBracedFrame.l_con_typ }}
+            </property-item>
           </p>
 
           <h2 class="mb-2">Steel Material Designation</h2>
           <v-row>
-            <v-col cols="6">
-              <h3 class="text-subtitle-1">Flange</h3>
+            <v-col cols="12">
+              <h3>Flange</h3>
               <property-item name="Steel Type">
                 {{ eccentricBracedFrame.sg_flg_link }}
               </property-item>
@@ -107,8 +110,8 @@ const imageSrc = computed(() => {
                 {{ formatNumber(eccentricBracedFrame.f_u_m_flg) }}
               </property-item>
             </v-col>
-            <v-col cols="6">
-              <h3 class="text-subtitle-1">Web</h3>
+            <v-col cols="12">
+              <h3>Web</h3>
               <property-item name="Steel Type">
                 {{ eccentricBracedFrame.sg_web_link }}
               </property-item>
