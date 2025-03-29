@@ -107,25 +107,25 @@ export function getHSSColumnImage(test_configuration: string): string {
 export const getEbfImage = (linkConfiguration: string): string => {
   let imageName = ''
   switch (linkConfiguration) {
-    case 'tf1':
+    case 'TF1':
       imageName = 'EBF_1.png'
       break
-    case 'tf2':
+    case 'TF2':
       imageName = 'EBF_2.png'
       break
-    case 'tf2c':
+    case 'TF2c':
       imageName = 'EBF_3.png'
       break
-    case 'tf3c':
+    case 'TF3c':
       imageName = 'EBF_4.png'
       break
-    case 'tf4':
+    case 'TF4':
       imageName = 'EBF_5.png'
       break
-    case 'tf4c':
+    case 'TF4c':
       imageName = 'EBF_6.png'
       break
-    case 'tf5':
+    case 'TF5':
       imageName = 'EBF_7.png'
       break
     default:

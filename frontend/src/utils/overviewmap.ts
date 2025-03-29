@@ -89,6 +89,7 @@ const _locationEbfFields = [
   'region',
   'link_loc',
   'e',
+  'l_confi',
   'sec_type',
   'class_aisc',
   'l_p_typ',

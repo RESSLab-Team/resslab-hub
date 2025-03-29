@@ -41,7 +41,7 @@ const imageSrc = computed(() => {
   const linkConfiguration = props.eccentricBracedFrame.l_confi
   if (!linkConfiguration) return ''
 
-  const configKey = linkConfiguration.toLowerCase()
+  const configKey = linkConfiguration
 
   return getEbfImage(configKey)
 })
