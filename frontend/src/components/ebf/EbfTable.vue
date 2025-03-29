@@ -94,7 +94,7 @@ const {
     @download="downloadFiles"
   >
     <template #title>
-      Eccentric Braced Frames Links
+      EBF Links
       <info-tooltip>
         <p>
           The database on eccentric braced frame (EBF) links presents data from early 1977s on EBF
