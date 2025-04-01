@@ -92,6 +92,16 @@ const menuItems: MenuItem[] = [
         to: '/model'
       }
     ]
+  },
+  {
+    text: 'EBF Links',
+    to: '/ebf-links',
+    children: [
+      {
+        text: 'Database',
+        to: '/database'
+      }
+    ]
   }
 ]
 

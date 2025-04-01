@@ -69,7 +69,7 @@ export function useDashboard<M>(
     (newQuery) => {
       // Update or add keys from newQuery
       Object.entries(newQuery)
-        .filter(([key, value]) => fields.includes(key))
+        .filter(([key]) => fields.includes(key))
         .forEach(([key, value]) => {
           const newValue = parseValue(value)
           if (newValue !== undefined) {

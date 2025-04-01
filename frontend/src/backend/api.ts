@@ -2727,6 +2727,869 @@ export interface DateRangeModel {
     'max': string;
 }
 /**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const EccentricBracedFrameField = {
+    Id: 'id',
+    Investigator: 'investigator',
+    Year: 'year',
+    SpecId: 'spec_id',
+    Profile: 'profile',
+    Region: 'region',
+    SecType: 'sec_type',
+    SgFlgLink: 'sg_flg_link',
+    SgWebLink: 'sg_web_link',
+    FYNFlg: 'f_y_n_flg',
+    FYNWeb: 'f_y_n_web',
+    FUNFlg: 'f_u_n_flg',
+    FUNWeb: 'f_u_n_web',
+    ENFlg: 'e_n_flg',
+    ENWeb: 'e_n_web',
+    FYMFlg: 'f_y_m_flg',
+    FYMWeb: 'f_y_m_web',
+    FYExpLFlg: 'f_y_exp_l_flg',
+    FYExpLWeb: 'f_y_exp_l_web',
+    FYExpUFlg: 'f_y_exp_u_flg',
+    FYExpUWeb: 'f_y_exp_u_web',
+    FUMFlg: 'f_u_m_flg',
+    FUMWeb: 'f_u_m_web',
+    FUExpLFlg: 'f_u_exp_l_flg',
+    FUExpLWeb: 'f_u_exp_l_web',
+    FUExpUFlg: 'f_u_exp_u_flg',
+    FUExpUWeb: 'f_u_exp_u_web',
+    EMFlg: 'e_m_flg',
+    EMWeb: 'e_m_web',
+    RYLFlg: 'r_y_l_flg',
+    RYLWeb: 'r_y_l_web',
+    RYUFlg: 'r_y_u_flg',
+    RYUWeb: 'r_y_u_web',
+    RTLFlg: 'r_t_l_flg',
+    RTLWeb: 'r_t_l_web',
+    RTUFlg: 'r_t_u_flg',
+    RTUWeb: 'r_t_u_web',
+    FUFYNFlg: 'f_u_f_y_n_flg',
+    FUFYNWeb: 'f_u_f_y_n_web',
+    FUFYMFlg: 'f_u_f_y_m_flg',
+    FUFYMWeb: 'f_u_f_y_m_web',
+    HN: 'h_n',
+    TwN: 'tw_n',
+    BfN: 'bf_n',
+    TfN: 'tf_n',
+    TfAddN: 'tf_add_n',
+    RN: 'r_n',
+    HM: 'h_m',
+    TwM: 'tw_m',
+    BfM: 'bf_m',
+    TfM: 'tf_m',
+    TfAddM: 'tf_add_m',
+    HwN: 'hw_n',
+    HwM: 'hw_m',
+    AFilN: 'a_fil_n',
+    AfN: 'af_n',
+    AwN: 'aw_n',
+    AN: 'a_n',
+    AfM: 'af_m',
+    AwM: 'aw_m',
+    AM: 'a_m',
+    ZpFilN: 'zp_fil_n',
+    ZpN: 'zp_n',
+    ZpNoFilN: 'zp_no_fil_n',
+    ZpFilM: 'zp_fil_m',
+    ZpM: 'zp_m',
+    ZpNoFilM: 'zp_no_fil_m',
+    LinkLoc: 'link_loc',
+    LConfi: 'l_confi',
+    LConTyp: 'l_con_typ',
+    LSt: 'l_st',
+    HSt: 'h_st',
+    E: 'e',
+    LConConfi: 'l_con_confi',
+    LConWld: 'l_con_wld',
+    LEndpWld: 'l_endp_wld',
+    LBuWld: 'l_bu_wld',
+    LSSide: 'l_s_side',
+    LSReg: 'l_s_reg',
+    LSDPnl1F: 'l_s_d_pnl_1_f',
+    LSDPnl2F: 'l_s_d_pnl_2_f',
+    LSDPnl1B: 'l_s_d_pnl_1_b',
+    LSDPnl2B: 'l_s_d_pnl_2_b',
+    TS: 't_s',
+    LSWeld: 'l_s_weld',
+    LSNoF: 'l_s_no_f',
+    LSNoB: 'l_s_no_b',
+    ABB: 'a_b_b',
+    TES: 't_e_s',
+    TBS: 't_b_s',
+    DBS: 'd_b_s',
+    DBPnl1: 'd_b_pnl_1',
+    DBPnl2: 'd_b_pnl_2',
+    BSNo: 'b_s_no',
+    LPTyp: 'l_p_typ',
+    NDNPlTen: 'n_d_n_pl_ten',
+    NDNPlComp: 'n_d_n_pl_comp',
+    FailMode: 'fail_mode',
+    OvAisc: 'ov_aisc',
+    OvEc8: 'ov_ec8',
+    ClassAisc: 'class_aisc',
+    ClassEc8: 'class_ec8',
+    Reference: 'reference',
+    Url: 'url',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    ShearLinkAngleCount: 'shear_link_angle_count'
+} as const;
+
+export type EccentricBracedFrameField = typeof EccentricBracedFrameField[keyof typeof EccentricBracedFrameField];
+
+
+/**
+ * 
+ * @export
+ * @interface EccentricBracedFrameModel
+ */
+export interface EccentricBracedFrameModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'investigator': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'year': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'spec_id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'profile': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'region': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'sec_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'sg_flg_link': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'sg_web_link': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_y_n_flg': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_y_n_web': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_n_flg': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_n_web': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'e_n_flg': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'e_n_web': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_y_m_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_y_m_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_y_exp_l_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_y_exp_l_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_y_exp_u_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_y_exp_u_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_m_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_m_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_exp_l_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_exp_l_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_exp_u_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_exp_u_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'e_m_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'e_m_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'r_y_l_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'r_y_l_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'r_y_u_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'r_y_u_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'r_t_l_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'r_t_l_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'r_t_u_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'r_t_u_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_f_y_n_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_f_y_n_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_f_y_m_flg'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'f_u_f_y_m_web'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'h_n': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'tw_n': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'bf_n': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'tf_n': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'tf_add_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'r_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'h_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'tw_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'bf_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'tf_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'tf_add_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'hw_n': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'hw_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'a_fil_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'af_n': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'aw_n': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'a_n': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'af_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'aw_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'a_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'zp_fil_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'zp_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'zp_no_fil_n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'zp_fil_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'zp_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'zp_no_fil_m'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'link_loc'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_confi'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_con_typ'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_st'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'h_st'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'e': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_con_confi'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_con_wld'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_endp_wld'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_bu_wld'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_s_side'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_s_reg'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_s_d_pnl_1_f'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_s_d_pnl_2_f'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_s_d_pnl_1_b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_s_d_pnl_2_b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    't_s'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_s_weld'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_s_no_f'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_s_no_b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'a_b_b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    't_e_s'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    't_b_s'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'd_b_s'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'd_b_pnl_1'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'd_b_pnl_2'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'b_s_no'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'l_p_typ': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'n_d_n_pl_ten'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'n_d_n_pl_comp'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'fail_mode'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'ov_aisc'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'ov_ec8'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'class_aisc': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'class_ec8': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EccentricBracedFrameModel
+     */
+    'url': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'longitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof EccentricBracedFrameModel
+     */
+    'shear_link_angle_count': number;
+}
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const EccentricBracedFrameNumberField = {
+    Year: 'year',
+    FYNFlg: 'f_y_n_flg',
+    FYNWeb: 'f_y_n_web',
+    FUNFlg: 'f_u_n_flg',
+    FUNWeb: 'f_u_n_web',
+    ENFlg: 'e_n_flg',
+    ENWeb: 'e_n_web',
+    FYMFlg: 'f_y_m_flg',
+    FYMWeb: 'f_y_m_web',
+    FYExpLFlg: 'f_y_exp_l_flg',
+    FYExpLWeb: 'f_y_exp_l_web',
+    FYExpUFlg: 'f_y_exp_u_flg',
+    FYExpUWeb: 'f_y_exp_u_web',
+    FUMFlg: 'f_u_m_flg',
+    FUMWeb: 'f_u_m_web',
+    FUExpLFlg: 'f_u_exp_l_flg',
+    FUExpLWeb: 'f_u_exp_l_web',
+    FUExpUFlg: 'f_u_exp_u_flg',
+    FUExpUWeb: 'f_u_exp_u_web',
+    EMFlg: 'e_m_flg',
+    EMWeb: 'e_m_web',
+    RYLFlg: 'r_y_l_flg',
+    RYLWeb: 'r_y_l_web',
+    RYUFlg: 'r_y_u_flg',
+    RYUWeb: 'r_y_u_web',
+    RTLFlg: 'r_t_l_flg',
+    RTLWeb: 'r_t_l_web',
+    RTUFlg: 'r_t_u_flg',
+    RTUWeb: 'r_t_u_web',
+    FUFYNFlg: 'f_u_f_y_n_flg',
+    FUFYNWeb: 'f_u_f_y_n_web',
+    FUFYMFlg: 'f_u_f_y_m_flg',
+    FUFYMWeb: 'f_u_f_y_m_web',
+    HN: 'h_n',
+    TwN: 'tw_n',
+    BfN: 'bf_n',
+    TfN: 'tf_n',
+    TfAddN: 'tf_add_n',
+    RN: 'r_n',
+    HM: 'h_m',
+    TwM: 'tw_m',
+    BfM: 'bf_m',
+    TfM: 'tf_m',
+    TfAddM: 'tf_add_m',
+    HwN: 'hw_n',
+    HwM: 'hw_m',
+    AFilN: 'a_fil_n',
+    AfN: 'af_n',
+    AwN: 'aw_n',
+    AN: 'a_n',
+    AfM: 'af_m',
+    AwM: 'aw_m',
+    AM: 'a_m',
+    ZpFilN: 'zp_fil_n',
+    ZpN: 'zp_n',
+    ZpNoFilN: 'zp_no_fil_n',
+    ZpFilM: 'zp_fil_m',
+    ZpM: 'zp_m',
+    ZpNoFilM: 'zp_no_fil_m',
+    LSt: 'l_st',
+    HSt: 'h_st',
+    E: 'e',
+    LSDPnl1F: 'l_s_d_pnl_1_f',
+    LSDPnl2F: 'l_s_d_pnl_2_f',
+    LSDPnl1B: 'l_s_d_pnl_1_b',
+    LSDPnl2B: 'l_s_d_pnl_2_b',
+    TS: 't_s',
+    LSNoF: 'l_s_no_f',
+    LSNoB: 'l_s_no_b',
+    ABB: 'a_b_b',
+    TES: 't_e_s',
+    TBS: 't_b_s',
+    DBS: 'd_b_s',
+    DBPnl1: 'd_b_pnl_1',
+    DBPnl2: 'd_b_pnl_2',
+    BSNo: 'b_s_no',
+    NDNPlTen: 'n_d_n_pl_ten',
+    NDNPlComp: 'n_d_n_pl_comp',
+    OvAisc: 'ov_aisc',
+    OvEc8: 'ov_ec8',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    ShearLinkAngleCount: 'shear_link_angle_count'
+} as const;
+
+export type EccentricBracedFrameNumberField = typeof EccentricBracedFrameNumberField[keyof typeof EccentricBracedFrameNumberField];
+
+
+/**
  * 
  * @export
  * @interface ExtendedPageBraceModel
@@ -2834,6 +3697,43 @@ export interface ExtendedPageConnectionModel {
      * 
      * @type {number}
      * @memberof ExtendedPageConnectionModel
+     */
+    'pages'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface ExtendedPageEccentricBracedFrameModel
+ */
+export interface ExtendedPageEccentricBracedFrameModel {
+    /**
+     * 
+     * @type {Array<EccentricBracedFrameModel>}
+     * @memberof ExtendedPageEccentricBracedFrameModel
+     */
+    'items': Array<EccentricBracedFrameModel>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageEccentricBracedFrameModel
+     */
+    'total': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageEccentricBracedFrameModel
+     */
+    'page'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageEccentricBracedFrameModel
+     */
+    'size'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageEccentricBracedFrameModel
      */
     'pages'?: number;
 }
@@ -4482,6 +5382,7 @@ export const Type = {
     AllMaterial: 'all-material',
     AllResidualStresses: 'all-residual-stresses',
     AllHssColumns: 'all-hss-columns',
+    AllEccentricBracedFrames: 'all-eccentric-braced-frames',
     Brace: 'brace',
     BraceDisplacement: 'brace-displacement',
     Column: 'column',
@@ -4502,7 +5403,9 @@ export const Type = {
     ResidualStressDistributionW1: 'residual-stress-distribution-w1',
     ResidualStressQpCoefficient: 'residual-stress-qp-coefficient',
     HssColumn: 'hss-column',
-    HssColumnMomentRotation: 'hss-column-moment-rotation'
+    HssColumnMomentRotation: 'hss-column-moment-rotation',
+    EccentricBracedFrame: 'eccentric-braced-frame',
+    EccentricBracedFrameShearLinkAngle: 'eccentric-braced-frame-shear-link-angle'
 } as const;
 
 export type Type = typeof Type[keyof typeof Type];
@@ -7950,6 +8853,714 @@ export class DefaultApi extends BaseAPI {
      */
     public validateData(type: Type, file: File, options?: AxiosRequestConfig) {
         return DefaultApiFp(this.configuration).validateData(type, file, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
+ * EccentricBracedFrameApi - axios parameter creator
+ * @export
+ */
+export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get paginated Eccentric Braced Frames
+         * @summary Get Eccentric Braced Frames
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFrames: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/eccentric-braced-frame`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            if (sortBy) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+            if (sortDesc) {
+                localVarQueryParameter['sort_desc'] = sortDesc;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get occurrences count of field values
+         * @summary Get Eccentric Braced Frames Counts
+         * @param {Array<EccentricBracedFrameField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesCounts: async (fields?: Array<EccentricBracedFrameField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/eccentric-braced-frame/counts`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get master csv
+         * @summary Get Eccentric Braced Frames Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/eccentric-braced-frame/csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (ids) {
+                localVarQueryParameter['ids'] = ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distinct count
+         * @summary Get Eccentric Braced Frames Distinct
+         * @param {Array<EccentricBracedFrameField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesDistinct: async (fields?: Array<EccentricBracedFrameField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/eccentric-braced-frame/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Eccentric Braced Frames Fields
+         * @param {Array<EccentricBracedFrameField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesFields: async (fields?: Array<EccentricBracedFrameField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/eccentric-braced-frame/fields`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Eccentric Braced Frames Matrix
+         * @param {Array<EccentricBracedFrameField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesMatrix: async (fields: Array<EccentricBracedFrameField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getEccentricBracedFramesMatrix', 'fields', fields)
+            const localVarPath = `/eccentric-braced-frame/matrix`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get range of field
+         * @summary Get Eccentric Braced Frames Range
+         * @param {EccentricBracedFrameNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesRange: async (field: EccentricBracedFrameNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getEccentricBracedFramesRange', 'field', field)
+            const localVarPath = `/eccentric-braced-frame/range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get shear-link-angle series from Eccentric Braced Frame
+         * @summary Get Eccentric Braced Frames Shear Link Angle
+         * @param {string} eccentricBracedFrameId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesShearLinkAngle: async (eccentricBracedFrameId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'eccentricBracedFrameId' is not null or undefined
+            assertParamExists('getEccentricBracedFramesShearLinkAngle', 'eccentricBracedFrameId', eccentricBracedFrameId)
+            const localVarPath = `/eccentric-braced-frame/{eccentric_braced_frame_id}/shear-link-angle`
+                .replace(`{${"eccentric_braced_frame_id"}}`, encodeURIComponent(String(eccentricBracedFrameId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get shear-link-angle csv
+         * @summary Get Eccentric Braced Frames Shear Link Angle Csv
+         * @param {string} eccentricBracedFrameId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesShearLinkAngleCsv: async (eccentricBracedFrameId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'eccentricBracedFrameId' is not null or undefined
+            assertParamExists('getEccentricBracedFramesShearLinkAngleCsv', 'eccentricBracedFrameId', eccentricBracedFrameId)
+            const localVarPath = `/eccentric-braced-frame/{eccentric_braced_frame_id}/shear-link-angle/csv`
+                .replace(`{${"eccentric_braced_frame_id"}}`, encodeURIComponent(String(eccentricBracedFrameId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * EccentricBracedFrameApi - functional programming interface
+ * @export
+ */
+export const EccentricBracedFrameApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = EccentricBracedFrameApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get paginated Eccentric Braced Frames
+         * @summary Get Eccentric Braced Frames
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getEccentricBracedFrames(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageEccentricBracedFrameModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFrames(query, sortBy, sortDesc, page, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get occurrences count of field values
+         * @summary Get Eccentric Braced Frames Counts
+         * @param {Array<EccentricBracedFrameField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getEccentricBracedFramesCounts(fields?: Array<EccentricBracedFrameField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesCounts(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get master csv
+         * @summary Get Eccentric Braced Frames Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getEccentricBracedFramesCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesCsv(ids, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distinct count
+         * @summary Get Eccentric Braced Frames Distinct
+         * @param {Array<EccentricBracedFrameField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getEccentricBracedFramesDistinct(fields?: Array<EccentricBracedFrameField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesDistinct(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Eccentric Braced Frames Fields
+         * @param {Array<EccentricBracedFrameField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getEccentricBracedFramesFields(fields?: Array<EccentricBracedFrameField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesFields(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Eccentric Braced Frames Matrix
+         * @param {Array<EccentricBracedFrameField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getEccentricBracedFramesMatrix(fields: Array<EccentricBracedFrameField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesMatrix(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get range of field
+         * @summary Get Eccentric Braced Frames Range
+         * @param {EccentricBracedFrameNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getEccentricBracedFramesRange(field: EccentricBracedFrameNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesRange(field, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get shear-link-angle series from Eccentric Braced Frame
+         * @summary Get Eccentric Braced Frames Shear Link Angle
+         * @param {string} eccentricBracedFrameId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get shear-link-angle csv
+         * @summary Get Eccentric Braced Frames Shear Link Angle Csv
+         * @param {string} eccentricBracedFrameId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * EccentricBracedFrameApi - factory interface
+ * @export
+ */
+export const EccentricBracedFrameApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = EccentricBracedFrameApiFp(configuration)
+    return {
+        /**
+         * Get paginated Eccentric Braced Frames
+         * @summary Get Eccentric Braced Frames
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFrames(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageEccentricBracedFrameModel> {
+            return localVarFp.getEccentricBracedFrames(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurrences count of field values
+         * @summary Get Eccentric Braced Frames Counts
+         * @param {Array<EccentricBracedFrameField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesCounts(fields?: Array<EccentricBracedFrameField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getEccentricBracedFramesCounts(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get master csv
+         * @summary Get Eccentric Braced Frames Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+            return localVarFp.getEccentricBracedFramesCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Eccentric Braced Frames Distinct
+         * @param {Array<EccentricBracedFrameField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesDistinct(fields?: Array<EccentricBracedFrameField>, options?: any): AxiosPromise<number> {
+            return localVarFp.getEccentricBracedFramesDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Eccentric Braced Frames Fields
+         * @param {Array<EccentricBracedFrameField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesFields(fields?: Array<EccentricBracedFrameField>, options?: any): AxiosPromise<Array<object>> {
+            return localVarFp.getEccentricBracedFramesFields(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Eccentric Braced Frames Matrix
+         * @param {Array<EccentricBracedFrameField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesMatrix(fields: Array<EccentricBracedFrameField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+            return localVarFp.getEccentricBracedFramesMatrix(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get range of field
+         * @summary Get Eccentric Braced Frames Range
+         * @param {EccentricBracedFrameNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesRange(field: EccentricBracedFrameNumberField, options?: any): AxiosPromise<RangeModel> {
+            return localVarFp.getEccentricBracedFramesRange(field, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get shear-link-angle series from Eccentric Braced Frame
+         * @summary Get Eccentric Braced Frames Shear Link Angle
+         * @param {string} eccentricBracedFrameId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get shear-link-angle csv
+         * @summary Get Eccentric Braced Frames Shear Link Angle Csv
+         * @param {string} eccentricBracedFrameId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * EccentricBracedFrameApi - object-oriented interface
+ * @export
+ * @class EccentricBracedFrameApi
+ * @extends {BaseAPI}
+ */
+export class EccentricBracedFrameApi extends BaseAPI {
+    /**
+     * Get paginated Eccentric Braced Frames
+     * @summary Get Eccentric Braced Frames
+     * @param {string} [query] 
+     * @param {Array<string>} [sortBy] 
+     * @param {Array<boolean>} [sortDesc] 
+     * @param {number} [page] 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EccentricBracedFrameApi
+     */
+    public getEccentricBracedFrames(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+        return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFrames(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurrences count of field values
+     * @summary Get Eccentric Braced Frames Counts
+     * @param {Array<EccentricBracedFrameField>} [fields] 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EccentricBracedFrameApi
+     */
+    public getEccentricBracedFramesCounts(fields?: Array<EccentricBracedFrameField>, query?: string, options?: AxiosRequestConfig) {
+        return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get master csv
+     * @summary Get Eccentric Braced Frames Csv
+     * @param {Array<string>} [ids] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EccentricBracedFrameApi
+     */
+    public getEccentricBracedFramesCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+        return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Eccentric Braced Frames Distinct
+     * @param {Array<EccentricBracedFrameField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EccentricBracedFrameApi
+     */
+    public getEccentricBracedFramesDistinct(fields?: Array<EccentricBracedFrameField>, options?: AxiosRequestConfig) {
+        return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get filtered fields
+     * @summary Get Eccentric Braced Frames Fields
+     * @param {Array<EccentricBracedFrameField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EccentricBracedFrameApi
+     */
+    public getEccentricBracedFramesFields(fields?: Array<EccentricBracedFrameField>, options?: AxiosRequestConfig) {
+        return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesFields(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Eccentric Braced Frames Matrix
+     * @param {Array<EccentricBracedFrameField>} fields 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EccentricBracedFrameApi
+     */
+    public getEccentricBracedFramesMatrix(fields: Array<EccentricBracedFrameField>, query?: string, options?: AxiosRequestConfig) {
+        return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get range of field
+     * @summary Get Eccentric Braced Frames Range
+     * @param {EccentricBracedFrameNumberField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EccentricBracedFrameApi
+     */
+    public getEccentricBracedFramesRange(field: EccentricBracedFrameNumberField, options?: AxiosRequestConfig) {
+        return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesRange(field, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get shear-link-angle series from Eccentric Braced Frame
+     * @summary Get Eccentric Braced Frames Shear Link Angle
+     * @param {string} eccentricBracedFrameId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EccentricBracedFrameApi
+     */
+    public getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId: string, size?: number, options?: AxiosRequestConfig) {
+        return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get shear-link-angle csv
+     * @summary Get Eccentric Braced Frames Shear Link Angle Csv
+     * @param {string} eccentricBracedFrameId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EccentricBracedFrameApi
+     */
+    public getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId: string, options?: AxiosRequestConfig) {
+        return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

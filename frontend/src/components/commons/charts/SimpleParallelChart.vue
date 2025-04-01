@@ -52,6 +52,25 @@ const selectedIds = ref<string[]>([])
 const transposedData = computed<(string | number)[][]>(
   () => zip(...props.data) as (string | number)[][]
 )
+
+const chartHeight = computed(() => {
+  // Find the field with the most categories
+  const maxCategories = Math.max(
+    ...props.fields.map((field) => {
+      const values = getValues(field)?.filter((d) => d != null && d !== undefined)
+      if (!values || typeof values[0] === 'number') return 0
+      return new Set(values).size
+    })
+  )
+
+  // Base height + additional height per category
+  const baseHeight = 300
+  const heightPerCategory = 30
+  const additionalHeight = Math.max(0, maxCategories - 10) * heightPerCategory
+
+  return baseHeight + additionalHeight
+})
+
 const option = computed<EChartsOption>(() => ({
   parallel: {
     left: 60,
@@ -83,7 +102,7 @@ const option = computed<EChartsOption>(() => ({
           scale: true
         })
       } else {
-        const sortedValues = chain(values).uniq().sort().value()
+        const sortedValues = field.sortValues || chain(values).uniq().sort().value()
         return merge(option, {
           nameLocation: 'start',
           inverse: true,
@@ -183,7 +202,7 @@ function reset(): void {
 </script>
 
 <template>
-  <v-card>
+  <v-card height="100%">
     <v-card-title class="d-flex justify-space-between">
       <div>
         <slot name="title">
@@ -208,7 +227,7 @@ function reset(): void {
         @change:searches="reset"
       />
     </v-card-title>
-    <v-responsive aspect-ratio="4" min-height="275">
+    <div class="chart-container" :style="`height: ${chartHeight}px;`">
       <v-chart
         ref="chart"
         autoresize
@@ -218,7 +237,7 @@ function reset(): void {
         @click="onClick"
         @axisareaselected="onBrush"
       />
-    </v-responsive>
+    </div>
     <v-card-actions>
       <v-btn
         color="primary"

@@ -5,6 +5,7 @@ import {
   bracesApi,
   columnsApi,
   connectionsApi,
+  ebfApi,
   hssApi,
   materialsApi,
   residualsApi
@@ -16,10 +17,12 @@ import {
   locationBraceFields,
   locationColumnFields,
   locationConnectionFields,
+  locationEbfFields,
   locationHSSColumnFields,
   locationMaterialFields,
   locationResidualStressFields,
   type LocationHSSColumn,
+  type LocationEbf,
   type LocationBrace,
   type LocationColumn,
   type LocationConnection,
@@ -78,6 +81,12 @@ hssApi.getHssColumnsFields(locationHSSColumnFields).then((res) => {
   updateMap()
 })
 
+const ebfLocations = ref<LocationEbf[]>([])
+ebfApi.getEccentricBracedFramesFields(locationEbfFields).then((res) => {
+  ebfLocations.value = (res.data as LocationEbf[]).filter(hasCoordinates)
+  updateMap()
+})
+
 // Computed property to get the total number of markers
 const dataLength = computed(
   () =>
@@ -86,7 +95,8 @@ const dataLength = computed(
     bracesLocations.value.length +
     materialsLocations.value.length +
     residualStressesLocations.value.length +
-    hssColumnsLocations.value.length
+    hssColumnsLocations.value.length +
+    ebfLocations.value.length
 )
 
 // Reference to the map container element
@@ -152,7 +162,8 @@ const markers = computed<Marker[]>(() => {
     createMarkers(bracesLocations.value, 'Braces'),
     createMarkers(materialsLocations.value, 'Materials'),
     createMarkers(residualStressesLocations.value, 'Residual Stresses'),
-    createMarkers(hssColumnsLocations.value, 'HSS Columns')
+    createMarkers(hssColumnsLocations.value, 'HSS Columns'),
+    createMarkers(ebfLocations.value, 'EBF Links')
   ].flat()
 })
 

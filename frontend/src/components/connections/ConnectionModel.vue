@@ -180,12 +180,10 @@ const vars = computed(() => {
   let h: number
   let ix: number
   let ry: number
-  let zx: number
   if (section.value) {
     h = section.value.h
     ix = section.value.ix
     ry = section.value.ry
-    zx = section.value.zx
   } else {
     h = d - 2 * tf
     ix =

@@ -58,7 +58,7 @@ class Brace(Base):  # type: ignore
     z_y = Column(DecimalFloat, nullable=True)
     j = Column(DecimalFloat, nullable=True)
     configuration = Column(String, nullable=False)
-    brace_angle = Column(DecimalFloat, nullable=False)
+    brace_angle = Column(DecimalFloat, nullable=True)
     l_b = Column(DecimalFloat, nullable=True)
     l_b_clear = Column(DecimalFloat, nullable=True)
     steel = Column(String, nullable=False)

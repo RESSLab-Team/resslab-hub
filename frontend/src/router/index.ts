@@ -123,6 +123,20 @@ const router = createRouter({
           component: () => import('@/views/HssModelView.vue')
         }
       ]
+    },
+    {
+      path: '/ebf-links',
+      component: () => import('@/views/EbfView.vue'),
+      children: [
+        {
+          path: '',
+          redirect: '/ebf-links/database'
+        },
+        {
+          path: 'database',
+          component: () => import('@/views/EbfDatabase.vue')
+        }
+      ]
     }
   ]
 })

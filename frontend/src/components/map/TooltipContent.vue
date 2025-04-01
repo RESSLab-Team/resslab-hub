@@ -4,7 +4,8 @@ import {
   getColumnMapImage,
   getConnectionSpecimenImage,
   getResidualStressImage,
-  getSteelMaterialImage
+  getSteelMaterialImage,
+  getEbfImage
 } from '@/utils/component'
 import { testConfigurationNameMapping } from '@/utils/hss'
 
@@ -108,6 +109,25 @@ const { data, type } = defineProps<{
         </li>
         <li>
           <a :href="`/hss-columns/database?id=${data.id}&detail=true`"> View experimental data </a>
+        </li>
+      </ul>
+    </template>
+    <template v-else-if="type === 'EBF Links'">
+      <h3>
+        <a target="_blank" :href="data.url"> {{ data.investigator }} ({{ data.year }}) </a>
+      </h3>
+      <ul>
+        <li><strong>Specimen ID:</strong> {{ data.spec_id }}</li>
+        <li><strong>Profile:</strong> {{ data.profile }}</li>
+        <li><strong>Link Location:</strong> {{ data.link_loc }}</li>
+        <li><strong>Link Length:</strong> {{ data.e }} mm</li>
+        <li><strong>Section Type:</strong> {{ data.sec_type }}</li>
+        <li><strong>Classification:</strong> {{ data.class_aisc }}</li>
+        <li>
+          <img alt="EBF Link Configuration" :src="getEbfImage(data.l_confi)" />
+        </li>
+        <li>
+          <a :href="`/ebf-links/database?id=${data.id}&detail=true`"> View experimental data </a>
         </li>
       </ul>
     </template>

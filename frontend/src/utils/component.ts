@@ -103,3 +103,35 @@ export function getHSSColumnImage(test_configuration: string): string {
     return ''
   }
 }
+
+export const getEbfImage = (linkConfiguration: string): string => {
+  let imageName = ''
+  switch (linkConfiguration) {
+    case 'TF1':
+      imageName = 'EBF_1.png'
+      break
+    case 'TF2':
+      imageName = 'EBF_2.png'
+      break
+    case 'TF2c':
+      imageName = 'EBF_3.png'
+      break
+    case 'TF3c':
+      imageName = 'EBF_4.png'
+      break
+    case 'TF4':
+      imageName = 'EBF_5.png'
+      break
+    case 'TF4c':
+      imageName = 'EBF_6.png'
+      break
+    case 'TF5':
+      imageName = 'EBF_7.png'
+      break
+    default:
+      console.warn('Unknown linkConfiguration: ' + linkConfiguration)
+      return '' // No matching image
+  }
+
+  return publicPath + `img/ebf/${imageName}`
+}

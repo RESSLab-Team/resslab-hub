@@ -10,7 +10,6 @@ from decimal import Decimal
 from enum import Enum
 from glob import iglob
 from logging import debug, error, getLogger, info, warning
-from math import nan
 from multiprocessing import get_context
 from os import path
 from typing import Any, Callable, List, Tuple
@@ -44,6 +43,10 @@ from resslab_hub.models.database.connection import (
     ConnectionGlobal,
     ConnectionGlobalWest,
     ConnectionPanelZone,
+)
+from resslab_hub.models.database.eccentric_braced_frame import (
+    EccentricBracedFrame,
+    EccentricBracedFrameShearLinkAngle,
 )
 from resslab_hub.models.database.hss_column import HSSColumn, HSSColumnMomentRotation
 from resslab_hub.models.database.material import Material, MaterialStressStrain
@@ -117,6 +120,7 @@ class Type(Enum):
     ALL_MATERIAL = "all-material"
     ALL_RESIDUAL_STRESS = "all-residual-stresses"
     ALL_HSS_COLUMN = "all-hss-columns"
+    ALL_ECCENTRIC_BRACED_FRAME = "all-eccentric-braced-frames"
     BRACE = "brace"
     BRACE_DISPLACEMENT = "brace-displacement"
     COLUMN = "column"
@@ -138,6 +142,8 @@ class Type(Enum):
     RESIDUAL_STRESS_QP_COEFFICIENT = "residual-stress-qp-coefficient"
     HSS_COLUMN = "hss-column"
     HSS_COLUMN_MOMENT_ROTATION = "hss-column-moment-rotation"
+    ECCENTRIC_BRACED_FRAME = "eccentric-braced-frame"
+    ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE = "eccentric-braced-frame-shear-link-angle"
 
 
 # Abstract base class defining the upload interface
@@ -272,7 +278,11 @@ class TableUploader(Uploader):
         if value.upper() == "NR":
             if isinstance(column.type, String):
                 return "Not reported"
-            return nan
+            return None
+        if value.upper() == "NAN":
+            if isinstance(column.type, String):
+                return "Not a number"
+            return None
         if isinstance(column.type, Boolean):
             if value.lower() == "yes":
                 return True
@@ -400,6 +410,22 @@ def upload_one(input_type: Type, filename: str) -> str:
                 uploader = TableUploader(ResidualStress)
             case Type.HSS_COLUMN:
                 uploader = TableUploader(HSSColumn)
+            case Type.ECCENTRIC_BRACED_FRAME:
+                uploader = TableUploader(EccentricBracedFrame)
+            case Type.ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE:
+                uploader = CsvFileUploader(
+                    lambda id: delete(EccentricBracedFrameShearLinkAngle).where(
+                        EccentricBracedFrameShearLinkAngle.eccentric_braced_frame_id
+                        == id
+                    ),
+                    lambda id, index, value: EccentricBracedFrameShearLinkAngle(
+                        eccentric_braced_frame_id=id,
+                        id=index,
+                        gamma_t=value.get("gamma_t"),
+                        v=value.get("V"),
+                    ),
+                    filename_prefix="id",
+                )
             case Type.BRACE_DISPLACEMENT:
                 uploader = CsvFileUploader(
                     lambda id: delete(BraceDisplacement).where(
@@ -612,6 +638,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 + get_args_all(Type.ALL_MATERIAL, filename)
                 + get_args_all(Type.ALL_RESIDUAL_STRESS, filename)
                 + get_args_all(Type.ALL_HSS_COLUMN, filename)
+                + get_args_all(Type.ALL_ECCENTRIC_BRACED_FRAME, filename)
             )
         case Type.ALL_BRACE:
             root_folder = path.join(filename, "braces")
@@ -729,6 +756,18 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     path.join(root_folder, "Moment_Rotation", "*.csv"),
                 ),
             ]
+        case Type.ALL_ECCENTRIC_BRACED_FRAME:
+            root_folder = path.join(filename, "eccentric_braced_frames")
+            return [
+                (
+                    Type.ECCENTRIC_BRACED_FRAME,
+                    path.join(root_folder, "eccentric_braced_frames.csv"),
+                ),
+                (
+                    Type.ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE,
+                    path.join(root_folder, "processed_data", "*.csv"),
+                ),
+            ]
         case _:
             return [(input_type, filename)]
 
@@ -786,6 +825,7 @@ def upload_all(input_type: Type, filenames: List[str]):
             Type.MATERIAL,
             Type.RESIDUAL_STRESS,
             Type.HSS_COLUMN,
+            Type.ECCENTRIC_BRACED_FRAME,
         ]
     ]
     subsidiary_types = [arg for arg in args if arg not in primary_types]

@@ -20,6 +20,7 @@ from resslab_hub.routers import (
     braces,
     columns,
     connections,
+    eccentric_braced_frame,
     hss_columns,
     materials,
     residual_stress,
@@ -76,6 +77,7 @@ app.include_router(connections.router)
 app.include_router(materials.router)
 app.include_router(residual_stress.router)
 app.include_router(hss_columns.router)
+app.include_router(eccentric_braced_frame.router)
 add_pagination(app)
 use_route_names_as_operation_ids(app)
 

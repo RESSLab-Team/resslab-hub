@@ -23,6 +23,7 @@ const props = withDefaults(
     field: string
     labelPrefix?: string
     flat?: boolean
+    mapping?: Map<string, string>
     showReset?: boolean
   }>(),
   {
@@ -30,6 +31,7 @@ const props = withDefaults(
     counts: () => [],
     flat: false,
     showReset: true,
+    mapping: () => new Map<string, string>(),
     labelPrefix: ''
   }
 )
@@ -38,6 +40,14 @@ const emit = defineEmits<{
   (e: 'mouseover', value: CallbackDataParams): void
   (e: 'mouseout'): void
 }>()
+
+const reverseMapping = computed(() => {
+  const reverse = new Map<string, string>()
+  for (const [key, value] of props.mapping.entries()) {
+    reverse.set(value, key)
+  }
+  return reverse
+})
 
 const option = computed<EChartsOption>(() => ({
   tooltip: {
@@ -54,9 +64,11 @@ const option = computed<EChartsOption>(() => ({
       right: 0,
       bottom: 0,
       data: props.counts.map((count) => {
+        const label = props.mapping.get(count.name) ?? count.name
         return {
-          name: count.name,
-          value: count.value
+          name: label,
+          value: count.value,
+          originalName: count.name
         }
       }),
       breadcrumb: {
@@ -70,7 +82,13 @@ const option = computed<EChartsOption>(() => ({
 
 function click(params: CallbackDataParams): void {
   if (params.seriesId) {
-    emit('change:searches', params.seriesId, params.name)
+    const displayedName = params.name as string
+    const mappedName = props.mapping.get(displayedName)
+    const originalName = reverseMapping.value.get(params.name)
+
+    const valueToEmit = originalName || mappedName || displayedName
+
+    emit('change:searches', params.seriesId as string, valueToEmit)
   }
 }
 

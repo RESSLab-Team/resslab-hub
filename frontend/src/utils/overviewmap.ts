@@ -5,6 +5,8 @@ import type {
   ColumnModel,
   ConnectionField,
   ConnectionModel,
+  EccentricBracedFrameField,
+  EccentricBracedFrameModel,
   HSSColumnField,
   HSSColumnModel,
   MaterialField,
@@ -78,6 +80,25 @@ const _locationHSSColumnFields = [
   'url'
 ] as const
 export const locationHSSColumnFields: HSSColumnField[] = [..._locationHSSColumnFields]
+const _locationEbfFields = [
+  'id',
+  'investigator',
+  'year',
+  'spec_id',
+  'profile',
+  'region',
+  'link_loc',
+  'e',
+  'l_confi',
+  'sec_type',
+  'class_aisc',
+  'l_p_typ',
+  'latitude',
+  'longitude',
+  'reference',
+  'url'
+] as const
+export const locationEbfFields: EccentricBracedFrameField[] = [..._locationEbfFields]
 
 // Then we use the fields list to create fields types for each model
 // Finally we use Pick to extract type from bigger model type using only the fields we want
@@ -90,6 +111,7 @@ export type LocationResidualStress = Pick<
   (typeof _locationResidualStressFields)[number]
 >
 export type LocationHSSColumn = Pick<HSSColumnModel, (typeof _locationHSSColumnFields)[number]>
+export type LocationEbf = Pick<EccentricBracedFrameModel, (typeof _locationEbfFields)[number]>
 
 type LocationGlobal =
   | LocationBrace
@@ -98,6 +120,7 @@ type LocationGlobal =
   | LocationMaterial
   | LocationResidualStress
   | LocationHSSColumn
+  | LocationEbf
 
 type LocationWithCoordinates = LocationGlobal & { latitude: number; longitude: number }
 
