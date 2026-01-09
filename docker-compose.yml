@@ -1,6 +1,6 @@
 services:
   reverse-proxy:
-    image: traefik:v2.10
+    image: traefik:v3.6
     depends_on:
       - backend
       - frontend
