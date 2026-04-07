@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/RESSLab-Team/resslab-hub/compare/v1.1.0...v1.1.1) (2026-04-07)
+
+
+### Bug Fixes
+
+* **reverse-proxy:** use traefik 3.6 for docker api compatibility ([863f770](https://github.com/RESSLab-Team/resslab-hub/commit/863f77076f5b8d2d19d08c8e90da24f3431e35a1))
+
 ## 1.0.0 (2025-04-01)
 
 
