@@ -1,31 +1,29 @@
-FROM python:3.10.6-alpine as build-stage
+FROM python:3.12-slim AS build-stage
 WORKDIR /app
-RUN apk add --no-cache \
-    gcc \
-    musl-dev
-RUN pip install poetry
-RUN pip install --user poetry-plugin-export
-COPY ./pyproject.toml ./poetry.lock* /app/
-RUN poetry export --output requirements.txt --without-hashes
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+ENV UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1
+
+# Layer 1 — deps only (re-uses cache unless pyproject.toml / uv.lock change)
+COPY pyproject.toml uv.lock /app/
+RUN uv sync --frozen --no-dev --no-install-project
+
+# Layer 2 — project (re-uses cache unless source changes)
+COPY README.md /app/
+COPY ./resslab_hub /app/resslab_hub
+RUN uv pip install --no-deps . \
+    && test -d /app/.venv/lib/python3.12/site-packages/resslab_hub
 
 
-FROM python:3.10.6-alpine as production-stage
+FROM python:3.12-slim AS production-stage
 EXPOSE 80
 WORKDIR /app
-RUN apk add --no-cache \
-    g++ \
-    gcc \
-    musl-dev \
-    postgresql-dev
 
-COPY --from=build-stage /app/requirements.txt /app
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY ./alembic.ini ./pyproject.toml ./README.md /app/
-COPY ./resslab_hub /app/resslab_hub
+COPY --from=build-stage /app/.venv /app/.venv
+COPY ./alembic.ini /app/
 COPY ./alembic /app/alembic
 COPY ./secrets /app/secrets
 
-RUN pip install --no-cache-dir .
+ENV PATH="/app/.venv/bin:${PATH}" \
+    PYTHONUNBUFFERED=1
 
 CMD [ "uvicorn", "resslab_hub.main:app", "--host", "0.0.0.0", "--port", "80" ]

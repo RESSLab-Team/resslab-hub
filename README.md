@@ -11,9 +11,8 @@
 
 Prerequisites:
 
-- [Python](https://www.python.org/) 3.10
+- [uv](https://docs.astral.sh/uv/) (manages Python automatically)
 - [Make](https://www.gnu.org/software/make/)
-- [Poetry](https://python-poetry.org/)
 - [Node.js](https://nodejs.org/) 16.x
 - [Docker](https://www.docker.com/)
   - [Docker Compose](https://docs.docker.com/compose/) 1.27.0+
@@ -34,9 +33,8 @@ make install
 
 #### for MAC OS
 
-1. Do not hesitate to use pyenv to setup python3.9.6 at least
-2. Use brew to install openssl and postgresql
-3. if you encounter any problem, clear your poetry cache
+1. Use brew to install openssl and postgresql
+2. if you encounter any problem, clear your uv cache (`uv cache clean`)
 
 https://github.com/psycopg/psycopg2/issues/1200#issuecomment-776159466
 
