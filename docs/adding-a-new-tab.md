@@ -41,6 +41,75 @@ Each step below is exhaustive.
 
 ---
 
+## Commit order / methodology
+
+Both tabs added to date (HSS — issue #176, Dec 2023; EBF — issue #215 / PR #224, Mar 2025) were committed in essentially the same sequence. Reconstructed from reflog; the messages below are the actual commits that landed.
+
+**Guiding principle: one logical layer per commit, inside-out.** Data layer → API layer → ingestion → generated bridge → frontend scaffolding → frontend assets → cross-cutting wiring → polish. Each step should be independently reviewable, and the stack should compile (backend at least) at every commit so `git bisect` stays useful.
+
+### EBF (branch `feat/EBF_TAB`, every commit references `#215`)
+
+1. `feat(ebf): generate ebf model & alembic revision` — ORM model + Alembic migration from the data dictionary (`make generate-model` + `make database-revision`).
+2. `feat(ebf): create ebf api & router model` — Pydantic schema + FastAPI router.
+3. `feat(ebf): add uploader & fix model/alembic with correct null columns & add NAN to None in analyser` — CSV uploader + late null-column fixups on the model/migration.
+4. `feat(ebf): generate open api files` — regenerated `openapi.json` + `frontend/src/backend/` TS client. **This is its own commit — don't mix it with either backend logic or frontend code.**
+5. `feat: add all ebf components` — one big frontend commit: views (`EbfView.vue`, `EbfDatabase.vue`), `components/ebf/*` (dashboard + table + detail + 3 charts), `utils/ebf.ts`, `App.vue` nav, `router/index.ts`, `plugins/axios.ts`, `locales/en.json`. (HSS split this into three — your call.)
+6. `feat(ebf): allow mapping prop to single chart for label` — tiny shared-chart tweak the tab needed (`components/commons/charts/SingleChart.vue`).
+7. `feat(ebf): add ebf detail images` — static PNGs under `frontend/public/img/ebf/`.
+8. `feat(ebf): update detail with correct path for images` — wire `getEbfImage()` paths to the new PNGs.
+9. `feat(ebf): add ebf to overview map & create tooltip` — `OverviewMap.vue` + `TooltipContent.vue` + `HomeView.vue` indicator. **Cross-cutting wiring last.**
+
+Then a multi-week feedback round (issue #225) added ~15 more `feat(ebf):` / `fix(ebf):` commits for renaming "Eccentric Braced Frames" → "EBF Links", chart color tuning, detail content restructuring, a second migration `update_ebf_model`, etc. This is expected — budget for a polish round and don't try to ship it in the initial commit stream.
+
+### HSS (issue `#176`, Dec 2023 — same shape, finer-grained frontend splits)
+
+1. `feat(hss): create model & alembic revision`
+2. `feat(hss): create api & router model`
+3. `fix(hss): change precision moment rotation` — schema precision fix that surfaced as soon as the router started using the model.
+4. `feat(hss): add uploader`
+5. `feat(hss): generate open api files`
+6. `feat(hss): add date column` — additive schema iteration (re-ran codegen → new migration → regen client). Fine to do mid-stream before the frontend gets big.
+7. `feat(hss): create hss views & first commit dashboard` — scaffold only.
+8. `fix(hss): lowercase hss components` — naming-convention cleanup immediately after the scaffold landed.
+9. `feat(hss): add all charts dashboard`
+10. `feat(hss): add hss detail`
+11. `feat(hss): add mapping parallel view field & add it boundary condition` — last of the frontend UI commits.
+
+Cross-cutting wiring (home indicator, map tooltip, configuration images) was deferred to separate PRs over the following year (`feat(hss): connect home indicators to hss api #219`, `feat(hss): add hss location to overviewmap #219`, `feat(hss): add hss configuration images #176`). That deferral was deliberate — the tab shipped hidden and was unveiled in stages. **For a brand-new tab today, prefer EBF's pattern and land the cross-cutting wiring in the initial PR** so the map/home experience is coherent at launch.
+
+The HSS Model view was added one commit later (`feat(hss): add hss component model #176`) once the analytical model was ready. Model/Fragility views should be their own commits, layered on top of the database vertical slice — never mixed into the initial commit stream.
+
+### Distilled template for the next tab
+
+| # | Commit | Layer | Notes |
+|---|--------|-------|-------|
+| 1 | `feat(<tab>): generate <tab> model & alembic revision #<issue>` | Backend data | Output of `make generate-model` + `make database-revision` |
+| 2 | `feat(<tab>): create <tab> api & router model #<issue>` | Backend API | Pydantic schema + FastAPI router + `main.py` wiring |
+| 3 | `feat(<tab>): add uploader #<issue>` | Backend ingest | `uploader.py` + Makefile `upload-<tab>` target |
+| 4 | `feat(<tab>): generate open api files #<issue>` | Generated bridge | `openapi.json` + `frontend/src/backend/` — nothing else in this commit |
+| 5 | `feat(<tab>): create <tab> views & dashboard #<issue>` | Frontend scaffold | Views + dashboard + router + nav + `axios.ts` + i18n |
+| 6 | `feat(<tab>): add charts #<issue>` | Frontend UI | Parallel + Double + Single charts |
+| 7 | `feat(<tab>): add detail #<issue>` | Frontend UI | Detail panel + time-series carousel |
+| 8 | `feat(<tab>): add utils & mappings #<issue>` | Frontend util | `utils/<tab>.ts`, `component.ts`, `backend.ts` edits |
+| 9 | `feat(<tab>): add detail images #<issue>` | Frontend assets | `public/img/<tab>/*.png` |
+| 10 | `feat(<tab>): add <tab> to overview map & tooltip #<issue>` | Cross-cutting | `OverviewMap.vue`, `TooltipContent.vue`, `HomeView.vue` |
+| (11+) | `feat(<tab>): add <tab> model view #<issue>` | Optional | Only if the component has a published analytical model |
+| (11+) | `feat(<tab>): add <tab> fragility view #<issue>` | Optional | Only if fragility parameters exist (Braces only today) |
+
+You can split or fuse rows if the diff is trivial or huge — EBF fused 5–10 into one "feat: add all ebf components" commit, HSS split them. What matters is the **order**: backend-first, generated-bridge as its own commit, frontend scaffold before UI details, cross-cutting wiring last.
+
+### Rules of thumb
+
+- **Every commit references the tracking issue** (`#215`, `#176`, `#219`). Release Please + commitlint are happy, and grep-by-issue works for archaeology.
+- **Commit scope is the short tab name** (`feat(ebf):`, `feat(hss):`), not the full snake_case (`eccentric_braced_frames`). Short form matches the frontend folder and display name.
+- **Keep generated files (`openapi.json`, `frontend/src/backend/`) in their own commit.** Mixing them with backend logic or frontend UI makes review noisy because the diff is huge and mechanical.
+- **Migrations live with the commit that produced them.** The `feat(<tab>): generate model & alembic revision` commit owns the initial migration; schema refinements that come later get their own migration in their own commit (`update_<tab>_model`). **Never amend a merged migration.**
+- **If a backend fixup is needed after the API commit (precision, nullability), land it as a separate `fix(<tab>):` commit rather than amending.** HSS did this with `fix(hss): change precision moment rotation`; EBF folded its fixups into the uploader commit, which worked but made that commit's message awkward.
+- **Cross-cutting polish (shared chart props, parallel-axis sort order, info tooltips) belongs in its own commit, not hidden inside the scaffolding commit.** EBF's `feat(ebf): allow mapping prop to single chart for label` is the model here.
+- **Expect a polish round after the initial PR merges.** EBF had ~15 follow-up commits on issue #225 covering renames, chart colors, home/map integration gaps, detail content redesign. Plan for it.
+
+---
+
 ## Step 1 — Data repository (`resslab-hub-data`, sibling `../../resslab-hub-data`)
 
 All schema work starts in the data repo. Nothing in the code repo will compile correctly until the data dictionary is stable, because `make generate-model` reads from it.
