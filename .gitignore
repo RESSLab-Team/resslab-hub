@@ -22,3 +22,6 @@ CLAUDE.md
 
 # uv virtualenv
 backend/.venv/
+.env
+
+.python-version
