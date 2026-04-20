@@ -1,7 +1,6 @@
 from abc import ABC
 from datetime import date, datetime
 from decimal import Decimal
-from distutils.util import strtobool
 from functools import reduce
 from math import ceil, isnan
 from typing import Any, Dict, Generic, List, Optional, Set, TypeVar, Union
@@ -29,6 +28,16 @@ from resslab_hub.utils.pagination import paginate
 
 D = TypeVar("D", bound=Base)  # type: ignore
 M = TypeVar("M", bound=BaseModel)
+
+
+# Replacement for distutils.util.strtobool (removed in Python 3.12).
+def strtobool(value: str) -> int:
+    v = value.lower()
+    if v in ("y", "yes", "t", "true", "on", "1"):
+        return 1
+    if v in ("n", "no", "f", "false", "off", "0"):
+        return 0
+    raise ValueError(f"invalid truth value {value!r}")
 
 
 class SubComponent:
@@ -364,7 +373,7 @@ class Component(ABC, Generic[D, M]):
         if isinstance(value, Decimal):
             if isnan(value):
                 return "NR"
-            return Decimal(f"{value.normalize():f}")
+            return Decimal(f"{value.normalize():f}")  # noqa: E231
         return value
 
     @staticmethod
