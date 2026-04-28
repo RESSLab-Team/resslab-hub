@@ -23,7 +23,7 @@ export function getSteelMaterialImage() {
 }
 
 export function getTensileCouponImage() {
-  return publicPath + 'img/material/steel_material.jpg'
+  return publicPath + 'img/material/detail.png'
 }
 
 export function getBraceImage(boundary_condition: string) {
