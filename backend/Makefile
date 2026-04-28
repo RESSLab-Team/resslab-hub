@@ -76,6 +76,9 @@ upload-hss-column:
 upload-eccentric-braced-frame:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-eccentric-braced-frames ../../resslab-hub-data
 
+upload-tensile-coupon:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-tensile-coupons ../../resslab-hub-data
+
 upload-data:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all ../../resslab-hub-data
 
