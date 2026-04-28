@@ -231,7 +231,7 @@ export interface BraceModel {
      * @type {number}
      * @memberof BraceModel
      */
-    'brace_angle': number;
+    'brace_angle'?: number;
     /**
      * 
      * @type {number}
@@ -2752,24 +2752,16 @@ export const EccentricBracedFrameField = {
     FYMWeb: 'f_y_m_web',
     FYExpLFlg: 'f_y_exp_l_flg',
     FYExpLWeb: 'f_y_exp_l_web',
-    FYExpUFlg: 'f_y_exp_u_flg',
-    FYExpUWeb: 'f_y_exp_u_web',
     FUMFlg: 'f_u_m_flg',
     FUMWeb: 'f_u_m_web',
     FUExpLFlg: 'f_u_exp_l_flg',
     FUExpLWeb: 'f_u_exp_l_web',
-    FUExpUFlg: 'f_u_exp_u_flg',
-    FUExpUWeb: 'f_u_exp_u_web',
     EMFlg: 'e_m_flg',
     EMWeb: 'e_m_web',
-    RYLFlg: 'r_y_l_flg',
-    RYLWeb: 'r_y_l_web',
-    RYUFlg: 'r_y_u_flg',
-    RYUWeb: 'r_y_u_web',
-    RTLFlg: 'r_t_l_flg',
-    RTLWeb: 'r_t_l_web',
-    RTUFlg: 'r_t_u_flg',
-    RTUWeb: 'r_t_u_web',
+    RYFlg: 'r_y_flg',
+    RYWeb: 'r_y_web',
+    RTFlg: 'r_t_flg',
+    RTWeb: 'r_t_web',
     FUFYNFlg: 'f_u_f_y_n_flg',
     FUFYNWeb: 'f_u_f_y_n_web',
     FUFYMFlg: 'f_u_f_y_m_flg',
@@ -2970,18 +2962,6 @@ export interface EccentricBracedFrameModel {
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'f_y_exp_u_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_y_exp_u_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'f_u_m_flg'?: number;
     /**
      * 
@@ -3006,18 +2986,6 @@ export interface EccentricBracedFrameModel {
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'f_u_exp_u_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_exp_u_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'e_m_flg'?: number;
     /**
      * 
@@ -3030,49 +2998,25 @@ export interface EccentricBracedFrameModel {
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'r_y_l_flg'?: number;
+    'r_y_flg'?: number;
     /**
      * 
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'r_y_l_web'?: number;
+    'r_y_web'?: number;
     /**
      * 
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'r_y_u_flg'?: number;
+    'r_t_flg'?: number;
     /**
      * 
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'r_y_u_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_l_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_l_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_u_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_u_web'?: number;
+    'r_t_web'?: number;
     /**
      * 
      * @type {number}
@@ -3512,24 +3456,16 @@ export const EccentricBracedFrameNumberField = {
     FYMWeb: 'f_y_m_web',
     FYExpLFlg: 'f_y_exp_l_flg',
     FYExpLWeb: 'f_y_exp_l_web',
-    FYExpUFlg: 'f_y_exp_u_flg',
-    FYExpUWeb: 'f_y_exp_u_web',
     FUMFlg: 'f_u_m_flg',
     FUMWeb: 'f_u_m_web',
     FUExpLFlg: 'f_u_exp_l_flg',
     FUExpLWeb: 'f_u_exp_l_web',
-    FUExpUFlg: 'f_u_exp_u_flg',
-    FUExpUWeb: 'f_u_exp_u_web',
     EMFlg: 'e_m_flg',
     EMWeb: 'e_m_web',
-    RYLFlg: 'r_y_l_flg',
-    RYLWeb: 'r_y_l_web',
-    RYUFlg: 'r_y_u_flg',
-    RYUWeb: 'r_y_u_web',
-    RTLFlg: 'r_t_l_flg',
-    RTLWeb: 'r_t_l_web',
-    RTUFlg: 'r_t_u_flg',
-    RTUWeb: 'r_t_u_web',
+    RYFlg: 'r_y_flg',
+    RYWeb: 'r_y_web',
+    RTFlg: 'r_t_flg',
+    RTWeb: 'r_t_web',
     FUFYNFlg: 'f_u_f_y_n_flg',
     FUFYNWeb: 'f_u_f_y_n_web',
     FUFYMFlg: 'f_u_f_y_m_flg',
@@ -3845,6 +3781,43 @@ export interface ExtendedPageResidualStressModel {
      * 
      * @type {number}
      * @memberof ExtendedPageResidualStressModel
+     */
+    'pages'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface ExtendedPageTensileCouponModel
+ */
+export interface ExtendedPageTensileCouponModel {
+    /**
+     * 
+     * @type {Array<TensileCouponModel>}
+     * @memberof ExtendedPageTensileCouponModel
+     */
+    'items': Array<TensileCouponModel>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageTensileCouponModel
+     */
+    'total': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageTensileCouponModel
+     */
+    'page'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageTensileCouponModel
+     */
+    'size'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageTensileCouponModel
      */
     'pages'?: number;
 }
@@ -5374,6 +5347,588 @@ export type ResidualStressNumberField = typeof ResidualStressNumberField[keyof t
  * @enum {string}
  */
 
+export const TensileCouponField = {
+    ExperimentalProgram: 'experimental_program',
+    Standard: 'standard',
+    SpecimenType: 'specimen_type',
+    Id: 'id',
+    ProfileType: 'profile_type',
+    Profile: 'profile',
+    SpecimenSource: 'specimen_source',
+    SteelGrade: 'steel_grade',
+    AvgInitReducedWidthMm: 'avg_init_reduced_width__mm_',
+    AvgInitReducedThicknessMm: 'avg_init_reduced_thickness__mm_',
+    AvgInitMarkedGaugeLengthMm: 'avg_init_marked_gauge_length__mm_',
+    EffFracturedWidthMm: 'eff_fractured_width__mm_',
+    EffFracturedThicknessMm: 'eff_fractured_thickness__mm_',
+    AvgFracturedMarkedGaugeLengthMm: 'avg_fractured_marked_gauge_length__mm_',
+    FyNMpa: 'fy_n__mpa_',
+    FuNMpa: 'fu_n__mpa_',
+    TADegC: 't_a__deg_c_',
+    Date: 'date',
+    Year: 'year',
+    Investigator: 'investigator',
+    Location: 'location',
+    Machine: 'machine',
+    PidForceP: 'pid_force_p',
+    PidForceI: 'pid_force_i',
+    PidForceD: 'pid_force_d',
+    PidDispP: 'pid_disp_p',
+    PidDispI: 'pid_disp_i',
+    PidDispD: 'pid_disp_d',
+    PidExtP: 'pid_ext_p',
+    PidExtI: 'pid_ext_i',
+    PidExtD: 'pid_ext_d',
+    YieldStress02Mpa: 'yield_stress_02__mpa_',
+    YieldStrain02: 'yield_strain_02',
+    BinDiscontYield: 'bin_discont_yield',
+    YieldStressUypMpa: 'yield_stress_uyp__mpa_',
+    YieldStressLypMpa: 'yield_stress_lyp__mpa_',
+    YieldPointElongation: 'yield_point_elongation',
+    TensileStrengthMpa: 'tensile_strength__mpa_',
+    UniformElongation: 'uniform_elongation',
+    ElongationAtFracture: 'elongation_at_fracture',
+    ElongationAfterFracture: 'elongation_after_fracture',
+    ReductionOfArea: 'reduction_of_area',
+    ElasticModulusMpa: 'elastic_modulus__mpa_',
+    C: 'c',
+    Si: 'si',
+    Mn: 'mn',
+    P: 'p',
+    S: 's',
+    N: 'n',
+    Cu: 'cu',
+    Mo: 'mo',
+    Ni: 'ni',
+    Cr: 'cr',
+    V: 'v',
+    Nb: 'nb',
+    Ti: 'ti',
+    Al: 'al',
+    B: 'b',
+    Zr: 'zr',
+    Sn: 'sn',
+    Ca: 'ca',
+    H: 'h',
+    Fe: 'fe',
+    FilePath: 'file_path',
+    Reference: 'reference',
+    Link: 'link',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    PublicationKey: 'publication_key',
+    DatacolVersion: 'datacol_version',
+    StressStrainCount: 'stress_strain_count'
+} as const;
+
+export type TensileCouponField = typeof TensileCouponField[keyof typeof TensileCouponField];
+
+
+/**
+ * 
+ * @export
+ * @interface TensileCouponModel
+ */
+export interface TensileCouponModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'experimental_program': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'standard': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'specimen_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'profile_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'profile': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'specimen_source'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'steel_grade': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'avg_init_reduced_width__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'avg_init_reduced_thickness__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'avg_init_marked_gauge_length__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'eff_fractured_width__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'eff_fractured_thickness__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'avg_fractured_marked_gauge_length__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'fy_n__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'fu_n__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    't_a__deg_c_': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'date': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'year': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'investigator': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'location': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'machine': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_force_p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_force_i'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_force_d'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_disp_p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_disp_i'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_disp_d'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_ext_p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_ext_i'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_ext_d'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'yield_stress_02__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'yield_strain_02'?: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof TensileCouponModel
+     */
+    'bin_discont_yield': boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'yield_stress_uyp__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'yield_stress_lyp__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'yield_point_elongation'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'tensile_strength__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'uniform_elongation'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'elongation_at_fracture'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'elongation_after_fracture'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'reduction_of_area'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'elastic_modulus__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'si'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'mn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    's'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'cu'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'mo'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'ni'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'cr'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'v'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'nb'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'ti'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'al'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'zr'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'sn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'ca'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'h'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'fe'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'file_path'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'reference'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'link'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'longitude': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'publication_key'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'datacol_version': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'stress_strain_count': number;
+}
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const TensileCouponNumberField = {
+    AvgInitReducedWidthMm: 'avg_init_reduced_width__mm_',
+    AvgInitReducedThicknessMm: 'avg_init_reduced_thickness__mm_',
+    AvgInitMarkedGaugeLengthMm: 'avg_init_marked_gauge_length__mm_',
+    EffFracturedWidthMm: 'eff_fractured_width__mm_',
+    EffFracturedThicknessMm: 'eff_fractured_thickness__mm_',
+    AvgFracturedMarkedGaugeLengthMm: 'avg_fractured_marked_gauge_length__mm_',
+    FyNMpa: 'fy_n__mpa_',
+    FuNMpa: 'fu_n__mpa_',
+    TADegC: 't_a__deg_c_',
+    Year: 'year',
+    PidForceP: 'pid_force_p',
+    PidForceI: 'pid_force_i',
+    PidForceD: 'pid_force_d',
+    PidDispP: 'pid_disp_p',
+    PidDispI: 'pid_disp_i',
+    PidDispD: 'pid_disp_d',
+    PidExtP: 'pid_ext_p',
+    PidExtI: 'pid_ext_i',
+    PidExtD: 'pid_ext_d',
+    YieldStress02Mpa: 'yield_stress_02__mpa_',
+    YieldStrain02: 'yield_strain_02',
+    YieldStressUypMpa: 'yield_stress_uyp__mpa_',
+    YieldStressLypMpa: 'yield_stress_lyp__mpa_',
+    YieldPointElongation: 'yield_point_elongation',
+    TensileStrengthMpa: 'tensile_strength__mpa_',
+    UniformElongation: 'uniform_elongation',
+    ElongationAtFracture: 'elongation_at_fracture',
+    ElongationAfterFracture: 'elongation_after_fracture',
+    ReductionOfArea: 'reduction_of_area',
+    ElasticModulusMpa: 'elastic_modulus__mpa_',
+    C: 'c',
+    Si: 'si',
+    Mn: 'mn',
+    P: 'p',
+    S: 's',
+    N: 'n',
+    Cu: 'cu',
+    Mo: 'mo',
+    Ni: 'ni',
+    Cr: 'cr',
+    V: 'v',
+    Nb: 'nb',
+    Ti: 'ti',
+    Al: 'al',
+    B: 'b',
+    Zr: 'zr',
+    Sn: 'sn',
+    Ca: 'ca',
+    H: 'h',
+    Fe: 'fe',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    DatacolVersion: 'datacol_version',
+    StressStrainCount: 'stress_strain_count'
+} as const;
+
+export type TensileCouponNumberField = typeof TensileCouponNumberField[keyof typeof TensileCouponNumberField];
+
+
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
 export const Type = {
     All: 'all',
     AllColumns: 'all-columns',
@@ -5405,7 +5960,10 @@ export const Type = {
     HssColumn: 'hss-column',
     HssColumnMomentRotation: 'hss-column-moment-rotation',
     EccentricBracedFrame: 'eccentric-braced-frame',
-    EccentricBracedFrameShearLinkAngle: 'eccentric-braced-frame-shear-link-angle'
+    EccentricBracedFrameShearLinkAngle: 'eccentric-braced-frame-shear-link-angle',
+    AllTensileCoupons: 'all-tensile-coupons',
+    TensileCoupon: 'tensile-coupon',
+    TensileCouponStressStrain: 'tensile-coupon-stress-strain'
 } as const;
 
 export type Type = typeof Type[keyof typeof Type];
@@ -12181,6 +12739,714 @@ export class ResidualStressApi extends BaseAPI {
      */
     public getResidualStressesRange(field: ResidualStressNumberField, options?: AxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesRange(field, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
+ * TensileCouponApi - axios parameter creator
+ * @export
+ */
+export const TensileCouponApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get paginated Tensile Coupons
+         * @summary Get Tensile Coupons
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCoupons: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            if (sortBy) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+            if (sortDesc) {
+                localVarQueryParameter['sort_desc'] = sortDesc;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Tensile Coupons Counts
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCounts: async (fields?: Array<TensileCouponField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/counts`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get master csv
+         * @summary Get Tensile Coupons Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (ids) {
+                localVarQueryParameter['ids'] = ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distinct count
+         * @summary Get Tensile Coupons Distinct
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsDistinct: async (fields?: Array<TensileCouponField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Tensile Coupons Fields
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsFields: async (fields?: Array<TensileCouponField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/fields`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Tensile Coupons Matrix
+         * @param {Array<TensileCouponField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsMatrix: async (fields: Array<TensileCouponField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getTensileCouponsMatrix', 'fields', fields)
+            const localVarPath = `/tensile-coupon/matrix`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get range of field
+         * @summary Get Tensile Coupons Range
+         * @param {TensileCouponNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsRange: async (field: TensileCouponNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getTensileCouponsRange', 'field', field)
+            const localVarPath = `/tensile-coupon/range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Stress-Strain series from tensile coupon
+         * @summary Get Tensile Coupons Stress Strain
+         * @param {string} tensileCouponId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrain: async (tensileCouponId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tensileCouponId' is not null or undefined
+            assertParamExists('getTensileCouponsStressStrain', 'tensileCouponId', tensileCouponId)
+            const localVarPath = `/tensile-coupon/{tensile_coupon_id}/stress-strain`
+                .replace(`{${"tensile_coupon_id"}}`, encodeURIComponent(String(tensileCouponId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Tensile Coupons Stress Strain Csv
+         * @param {string} tensileCouponId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrainCsv: async (tensileCouponId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tensileCouponId' is not null or undefined
+            assertParamExists('getTensileCouponsStressStrainCsv', 'tensileCouponId', tensileCouponId)
+            const localVarPath = `/tensile-coupon/{tensile_coupon_id}/stress-strain/csv`
+                .replace(`{${"tensile_coupon_id"}}`, encodeURIComponent(String(tensileCouponId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * TensileCouponApi - functional programming interface
+ * @export
+ */
+export const TensileCouponApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TensileCouponApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get paginated Tensile Coupons
+         * @summary Get Tensile Coupons
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCoupons(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageTensileCouponModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCoupons(query, sortBy, sortDesc, page, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Tensile Coupons Counts
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsCounts(fields?: Array<TensileCouponField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsCounts(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get master csv
+         * @summary Get Tensile Coupons Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsCsv(ids, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distinct count
+         * @summary Get Tensile Coupons Distinct
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsDistinct(fields?: Array<TensileCouponField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsDistinct(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Tensile Coupons Fields
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsFields(fields?: Array<TensileCouponField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsFields(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Tensile Coupons Matrix
+         * @param {Array<TensileCouponField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsMatrix(fields: Array<TensileCouponField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsMatrix(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get range of field
+         * @summary Get Tensile Coupons Range
+         * @param {TensileCouponNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsRange(field: TensileCouponNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsRange(field, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Stress-Strain series from tensile coupon
+         * @summary Get Tensile Coupons Stress Strain
+         * @param {string} tensileCouponId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsStressStrain(tensileCouponId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsStressStrain(tensileCouponId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Tensile Coupons Stress Strain Csv
+         * @param {string} tensileCouponId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsStressStrainCsv(tensileCouponId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsStressStrainCsv(tensileCouponId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * TensileCouponApi - factory interface
+ * @export
+ */
+export const TensileCouponApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TensileCouponApiFp(configuration)
+    return {
+        /**
+         * Get paginated Tensile Coupons
+         * @summary Get Tensile Coupons
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCoupons(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageTensileCouponModel> {
+            return localVarFp.getTensileCoupons(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Tensile Coupons Counts
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCounts(fields?: Array<TensileCouponField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getTensileCouponsCounts(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get master csv
+         * @summary Get Tensile Coupons Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+            return localVarFp.getTensileCouponsCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Tensile Coupons Distinct
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsDistinct(fields?: Array<TensileCouponField>, options?: any): AxiosPromise<number> {
+            return localVarFp.getTensileCouponsDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Tensile Coupons Fields
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsFields(fields?: Array<TensileCouponField>, options?: any): AxiosPromise<Array<object>> {
+            return localVarFp.getTensileCouponsFields(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Tensile Coupons Matrix
+         * @param {Array<TensileCouponField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsMatrix(fields: Array<TensileCouponField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+            return localVarFp.getTensileCouponsMatrix(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get range of field
+         * @summary Get Tensile Coupons Range
+         * @param {TensileCouponNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsRange(field: TensileCouponNumberField, options?: any): AxiosPromise<RangeModel> {
+            return localVarFp.getTensileCouponsRange(field, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Stress-Strain series from tensile coupon
+         * @summary Get Tensile Coupons Stress Strain
+         * @param {string} tensileCouponId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrain(tensileCouponId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getTensileCouponsStressStrain(tensileCouponId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Tensile Coupons Stress Strain Csv
+         * @param {string} tensileCouponId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrainCsv(tensileCouponId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getTensileCouponsStressStrainCsv(tensileCouponId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * TensileCouponApi - object-oriented interface
+ * @export
+ * @class TensileCouponApi
+ * @extends {BaseAPI}
+ */
+export class TensileCouponApi extends BaseAPI {
+    /**
+     * Get paginated Tensile Coupons
+     * @summary Get Tensile Coupons
+     * @param {string} [query] 
+     * @param {Array<string>} [sortBy] 
+     * @param {Array<boolean>} [sortDesc] 
+     * @param {number} [page] 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCoupons(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCoupons(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurences count of field values
+     * @summary Get Tensile Coupons Counts
+     * @param {Array<TensileCouponField>} [fields] 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsCounts(fields?: Array<TensileCouponField>, query?: string, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get master csv
+     * @summary Get Tensile Coupons Csv
+     * @param {Array<string>} [ids] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Tensile Coupons Distinct
+     * @param {Array<TensileCouponField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsDistinct(fields?: Array<TensileCouponField>, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get filtered fields
+     * @summary Get Tensile Coupons Fields
+     * @param {Array<TensileCouponField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsFields(fields?: Array<TensileCouponField>, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsFields(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Tensile Coupons Matrix
+     * @param {Array<TensileCouponField>} fields 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsMatrix(fields: Array<TensileCouponField>, query?: string, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get range of field
+     * @summary Get Tensile Coupons Range
+     * @param {TensileCouponNumberField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsRange(field: TensileCouponNumberField, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsRange(field, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Stress-Strain series from tensile coupon
+     * @summary Get Tensile Coupons Stress Strain
+     * @param {string} tensileCouponId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsStressStrain(tensileCouponId: string, size?: number, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsStressStrain(tensileCouponId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Stress-Strain csv
+     * @summary Get Tensile Coupons Stress Strain Csv
+     * @param {string} tensileCouponId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsStressStrainCsv(tensileCouponId: string, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsStressStrainCsv(tensileCouponId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

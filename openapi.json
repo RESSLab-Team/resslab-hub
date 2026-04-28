@@ -4465,6 +4465,486 @@
           }
         }
       }
+    },
+    "/tensile-coupon": {
+      "get": {
+        "tags": [
+          "tensile-coupon"
+        ],
+        "summary": "Get Tensile Coupons",
+        "description": "Get paginated Tensile Coupons",
+        "operationId": "get_tensile_coupons",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort By",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "sort_by",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort Desc",
+              "type": "array",
+              "items": {
+                "type": "boolean"
+              },
+              "default": []
+            },
+            "name": "sort_desc",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page",
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 1
+            },
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "maximum": 1000.0,
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 10
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedPage_TensileCouponModel_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tensile-coupon/fields": {
+      "get": {
+        "tags": [
+          "tensile-coupon"
+        ],
+        "summary": "Get Tensile Coupons Fields",
+        "description": "Get filtered fields",
+        "operationId": "get_tensile_coupons_fields",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TensileCouponField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Tensile Coupons Fields Tensile Coupon Fields Get",
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tensile-coupon/counts": {
+      "get": {
+        "tags": [
+          "tensile-coupon"
+        ],
+        "summary": "Get Tensile Coupons Counts",
+        "description": "Get occurences count of field values",
+        "operationId": "get_tensile_coupons_counts",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TensileCouponField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Tensile Coupons Counts Tensile Coupon Counts Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountModel"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tensile-coupon/range": {
+      "get": {
+        "tags": [
+          "tensile-coupon"
+        ],
+        "summary": "Get Tensile Coupons Range",
+        "description": "Get range of field",
+        "operationId": "get_tensile_coupons_range",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TensileCouponNumberField"
+            },
+            "name": "field",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tensile-coupon/matrix": {
+      "get": {
+        "tags": [
+          "tensile-coupon"
+        ],
+        "summary": "Get Tensile Coupons Matrix",
+        "operationId": "get_tensile_coupons_matrix",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TensileCouponField"
+              }
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tensile-coupon/csv": {
+      "get": {
+        "tags": [
+          "tensile-coupon"
+        ],
+        "summary": "Get Tensile Coupons Csv",
+        "description": "Get master csv",
+        "operationId": "get_tensile_coupons_csv",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Ids",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "ids",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tensile-coupon/distinct": {
+      "get": {
+        "tags": [
+          "tensile-coupon"
+        ],
+        "summary": "Get Tensile Coupons Distinct",
+        "description": "Get distinct count",
+        "operationId": "get_tensile_coupons_distinct",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TensileCouponField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Tensile Coupons Distinct Tensile Coupon Distinct Get",
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tensile-coupon/{tensile_coupon_id}/stress-strain": {
+      "get": {
+        "tags": [
+          "tensile-coupon"
+        ],
+        "summary": "Get Tensile Coupons Stress Strain",
+        "description": "Get Stress-Strain series from tensile coupon",
+        "operationId": "get_tensile_coupons_stress_strain",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Tensile Coupon Id",
+              "type": "string"
+            },
+            "name": "tensile_coupon_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Tensile Coupons Stress Strain Tensile Coupon  Tensile Coupon Id  Stress Strain Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tensile-coupon/{tensile_coupon_id}/stress-strain/csv": {
+      "get": {
+        "tags": [
+          "tensile-coupon"
+        ],
+        "summary": "Get Tensile Coupons Stress Strain Csv",
+        "description": "Get Stress-Strain csv",
+        "operationId": "get_tensile_coupons_stress_strain_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Tensile Coupon Id",
+              "type": "string"
+            },
+            "name": "tensile_coupon_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4585,7 +5065,6 @@
           "cross_section_shape",
           "cross_section_size",
           "configuration",
-          "brace_angle",
           "steel",
           "boundary_condition",
           "loading_protocol",
@@ -6595,24 +7074,16 @@
           "f_y_m_web",
           "f_y_exp_l_flg",
           "f_y_exp_l_web",
-          "f_y_exp_u_flg",
-          "f_y_exp_u_web",
           "f_u_m_flg",
           "f_u_m_web",
           "f_u_exp_l_flg",
           "f_u_exp_l_web",
-          "f_u_exp_u_flg",
-          "f_u_exp_u_web",
           "e_m_flg",
           "e_m_web",
-          "r_y_l_flg",
-          "r_y_l_web",
-          "r_y_u_flg",
-          "r_y_u_web",
-          "r_t_l_flg",
-          "r_t_l_web",
-          "r_t_u_flg",
-          "r_t_u_web",
+          "r_y_flg",
+          "r_y_web",
+          "r_t_flg",
+          "r_t_web",
           "f_u_f_y_n_flg",
           "f_u_f_y_n_web",
           "f_u_f_y_m_flg",
@@ -6801,14 +7272,6 @@
             "title": "F Y Exp L Web",
             "type": "number"
           },
-          "f_y_exp_u_flg": {
-            "title": "F Y Exp U Flg",
-            "type": "number"
-          },
-          "f_y_exp_u_web": {
-            "title": "F Y Exp U Web",
-            "type": "number"
-          },
           "f_u_m_flg": {
             "title": "F U M Flg",
             "type": "number"
@@ -6825,14 +7288,6 @@
             "title": "F U Exp L Web",
             "type": "number"
           },
-          "f_u_exp_u_flg": {
-            "title": "F U Exp U Flg",
-            "type": "number"
-          },
-          "f_u_exp_u_web": {
-            "title": "F U Exp U Web",
-            "type": "number"
-          },
           "e_m_flg": {
             "title": "E M Flg",
             "type": "number"
@@ -6841,36 +7296,20 @@
             "title": "E M Web",
             "type": "number"
           },
-          "r_y_l_flg": {
-            "title": "R Y L Flg",
+          "r_y_flg": {
+            "title": "R Y Flg",
             "type": "number"
           },
-          "r_y_l_web": {
-            "title": "R Y L Web",
+          "r_y_web": {
+            "title": "R Y Web",
             "type": "number"
           },
-          "r_y_u_flg": {
-            "title": "R Y U Flg",
+          "r_t_flg": {
+            "title": "R T Flg",
             "type": "number"
           },
-          "r_y_u_web": {
-            "title": "R Y U Web",
-            "type": "number"
-          },
-          "r_t_l_flg": {
-            "title": "R T L Flg",
-            "type": "number"
-          },
-          "r_t_l_web": {
-            "title": "R T L Web",
-            "type": "number"
-          },
-          "r_t_u_flg": {
-            "title": "R T U Flg",
-            "type": "number"
-          },
-          "r_t_u_web": {
-            "title": "R T U Web",
+          "r_t_web": {
+            "title": "R T Web",
             "type": "number"
           },
           "f_u_f_y_n_flg": {
@@ -7169,24 +7608,16 @@
           "f_y_m_web",
           "f_y_exp_l_flg",
           "f_y_exp_l_web",
-          "f_y_exp_u_flg",
-          "f_y_exp_u_web",
           "f_u_m_flg",
           "f_u_m_web",
           "f_u_exp_l_flg",
           "f_u_exp_l_web",
-          "f_u_exp_u_flg",
-          "f_u_exp_u_web",
           "e_m_flg",
           "e_m_web",
-          "r_y_l_flg",
-          "r_y_l_web",
-          "r_y_u_flg",
-          "r_y_u_web",
-          "r_t_l_flg",
-          "r_t_l_web",
-          "r_t_u_flg",
-          "r_t_u_web",
+          "r_y_flg",
+          "r_y_web",
+          "r_t_flg",
+          "r_t_web",
           "f_u_f_y_n_flg",
           "f_u_f_y_n_web",
           "f_u_f_y_m_flg",
@@ -7474,6 +7905,42 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ResidualStressModel"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "page": {
+            "title": "Page",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 0.0,
+            "type": "integer"
+          }
+        }
+      },
+      "ExtendedPage_TensileCouponModel_": {
+        "title": "ExtendedPage[TensileCouponModel]",
+        "required": [
+          "items",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TensileCouponModel"
             }
           },
           "total": {
@@ -8698,6 +9165,463 @@
         "type": "string",
         "description": "An enumeration."
       },
+      "TensileCouponField": {
+        "title": "TensileCouponField",
+        "enum": [
+          "experimental_program",
+          "standard",
+          "specimen_type",
+          "id",
+          "profile_type",
+          "profile",
+          "specimen_source",
+          "steel_grade",
+          "avg_init_reduced_width__mm_",
+          "avg_init_reduced_thickness__mm_",
+          "avg_init_marked_gauge_length__mm_",
+          "eff_fractured_width__mm_",
+          "eff_fractured_thickness__mm_",
+          "avg_fractured_marked_gauge_length__mm_",
+          "fy_n__mpa_",
+          "fu_n__mpa_",
+          "t_a__deg_c_",
+          "date",
+          "year",
+          "investigator",
+          "location",
+          "machine",
+          "pid_force_p",
+          "pid_force_i",
+          "pid_force_d",
+          "pid_disp_p",
+          "pid_disp_i",
+          "pid_disp_d",
+          "pid_ext_p",
+          "pid_ext_i",
+          "pid_ext_d",
+          "yield_stress_02__mpa_",
+          "yield_strain_02",
+          "bin_discont_yield",
+          "yield_stress_uyp__mpa_",
+          "yield_stress_lyp__mpa_",
+          "yield_point_elongation",
+          "tensile_strength__mpa_",
+          "uniform_elongation",
+          "elongation_at_fracture",
+          "elongation_after_fracture",
+          "reduction_of_area",
+          "elastic_modulus__mpa_",
+          "c",
+          "si",
+          "mn",
+          "p",
+          "s",
+          "n",
+          "cu",
+          "mo",
+          "ni",
+          "cr",
+          "v",
+          "nb",
+          "ti",
+          "al",
+          "b",
+          "zr",
+          "sn",
+          "ca",
+          "h",
+          "fe",
+          "file_path",
+          "reference",
+          "link",
+          "latitude",
+          "longitude",
+          "publication_key",
+          "datacol_version",
+          "stress_strain_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "TensileCouponModel": {
+        "title": "TensileCouponModel",
+        "required": [
+          "experimental_program",
+          "standard",
+          "specimen_type",
+          "id",
+          "profile_type",
+          "profile",
+          "steel_grade",
+          "avg_init_reduced_width__mm_",
+          "avg_init_reduced_thickness__mm_",
+          "avg_init_marked_gauge_length__mm_",
+          "eff_fractured_width__mm_",
+          "eff_fractured_thickness__mm_",
+          "avg_fractured_marked_gauge_length__mm_",
+          "fy_n__mpa_",
+          "fu_n__mpa_",
+          "t_a__deg_c_",
+          "date",
+          "year",
+          "investigator",
+          "location",
+          "machine",
+          "bin_discont_yield",
+          "latitude",
+          "longitude",
+          "datacol_version",
+          "stress_strain_count"
+        ],
+        "type": "object",
+        "properties": {
+          "experimental_program": {
+            "title": "Experimental Program",
+            "type": "string"
+          },
+          "standard": {
+            "title": "Standard",
+            "type": "string"
+          },
+          "specimen_type": {
+            "title": "Specimen Type",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "profile_type": {
+            "title": "Profile Type",
+            "type": "string"
+          },
+          "profile": {
+            "title": "Profile",
+            "type": "string"
+          },
+          "specimen_source": {
+            "title": "Specimen Source",
+            "type": "string"
+          },
+          "steel_grade": {
+            "title": "Steel Grade",
+            "type": "string"
+          },
+          "avg_init_reduced_width__mm_": {
+            "title": "Avg Init Reduced Width  Mm ",
+            "type": "number"
+          },
+          "avg_init_reduced_thickness__mm_": {
+            "title": "Avg Init Reduced Thickness  Mm ",
+            "type": "number"
+          },
+          "avg_init_marked_gauge_length__mm_": {
+            "title": "Avg Init Marked Gauge Length  Mm ",
+            "type": "number"
+          },
+          "eff_fractured_width__mm_": {
+            "title": "Eff Fractured Width  Mm ",
+            "type": "number"
+          },
+          "eff_fractured_thickness__mm_": {
+            "title": "Eff Fractured Thickness  Mm ",
+            "type": "number"
+          },
+          "avg_fractured_marked_gauge_length__mm_": {
+            "title": "Avg Fractured Marked Gauge Length  Mm ",
+            "type": "number"
+          },
+          "fy_n__mpa_": {
+            "title": "Fy N  Mpa ",
+            "type": "number"
+          },
+          "fu_n__mpa_": {
+            "title": "Fu N  Mpa ",
+            "type": "number"
+          },
+          "t_a__deg_c_": {
+            "title": "T A  Deg C ",
+            "type": "number"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          },
+          "investigator": {
+            "title": "Investigator",
+            "type": "string"
+          },
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "machine": {
+            "title": "Machine",
+            "type": "string"
+          },
+          "pid_force_p": {
+            "title": "Pid Force P",
+            "type": "number"
+          },
+          "pid_force_i": {
+            "title": "Pid Force I",
+            "type": "number"
+          },
+          "pid_force_d": {
+            "title": "Pid Force D",
+            "type": "number"
+          },
+          "pid_disp_p": {
+            "title": "Pid Disp P",
+            "type": "number"
+          },
+          "pid_disp_i": {
+            "title": "Pid Disp I",
+            "type": "number"
+          },
+          "pid_disp_d": {
+            "title": "Pid Disp D",
+            "type": "number"
+          },
+          "pid_ext_p": {
+            "title": "Pid Ext P",
+            "type": "number"
+          },
+          "pid_ext_i": {
+            "title": "Pid Ext I",
+            "type": "number"
+          },
+          "pid_ext_d": {
+            "title": "Pid Ext D",
+            "type": "number"
+          },
+          "yield_stress_02__mpa_": {
+            "title": "Yield Stress 02  Mpa ",
+            "type": "number"
+          },
+          "yield_strain_02": {
+            "title": "Yield Strain 02",
+            "type": "number"
+          },
+          "bin_discont_yield": {
+            "title": "Bin Discont Yield",
+            "type": "boolean"
+          },
+          "yield_stress_uyp__mpa_": {
+            "title": "Yield Stress Uyp  Mpa ",
+            "type": "number"
+          },
+          "yield_stress_lyp__mpa_": {
+            "title": "Yield Stress Lyp  Mpa ",
+            "type": "number"
+          },
+          "yield_point_elongation": {
+            "title": "Yield Point Elongation",
+            "type": "number"
+          },
+          "tensile_strength__mpa_": {
+            "title": "Tensile Strength  Mpa ",
+            "type": "number"
+          },
+          "uniform_elongation": {
+            "title": "Uniform Elongation",
+            "type": "number"
+          },
+          "elongation_at_fracture": {
+            "title": "Elongation At Fracture",
+            "type": "number"
+          },
+          "elongation_after_fracture": {
+            "title": "Elongation After Fracture",
+            "type": "number"
+          },
+          "reduction_of_area": {
+            "title": "Reduction Of Area",
+            "type": "number"
+          },
+          "elastic_modulus__mpa_": {
+            "title": "Elastic Modulus  Mpa ",
+            "type": "number"
+          },
+          "c": {
+            "title": "C",
+            "type": "number"
+          },
+          "si": {
+            "title": "Si",
+            "type": "number"
+          },
+          "mn": {
+            "title": "Mn",
+            "type": "number"
+          },
+          "p": {
+            "title": "P",
+            "type": "number"
+          },
+          "s": {
+            "title": "S",
+            "type": "number"
+          },
+          "n": {
+            "title": "N",
+            "type": "number"
+          },
+          "cu": {
+            "title": "Cu",
+            "type": "number"
+          },
+          "mo": {
+            "title": "Mo",
+            "type": "number"
+          },
+          "ni": {
+            "title": "Ni",
+            "type": "number"
+          },
+          "cr": {
+            "title": "Cr",
+            "type": "number"
+          },
+          "v": {
+            "title": "V",
+            "type": "number"
+          },
+          "nb": {
+            "title": "Nb",
+            "type": "number"
+          },
+          "ti": {
+            "title": "Ti",
+            "type": "number"
+          },
+          "al": {
+            "title": "Al",
+            "type": "number"
+          },
+          "b": {
+            "title": "B",
+            "type": "number"
+          },
+          "zr": {
+            "title": "Zr",
+            "type": "number"
+          },
+          "sn": {
+            "title": "Sn",
+            "type": "number"
+          },
+          "ca": {
+            "title": "Ca",
+            "type": "number"
+          },
+          "h": {
+            "title": "H",
+            "type": "number"
+          },
+          "fe": {
+            "title": "Fe",
+            "type": "number"
+          },
+          "file_path": {
+            "title": "File Path",
+            "type": "string"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "publication_key": {
+            "title": "Publication Key",
+            "type": "string"
+          },
+          "datacol_version": {
+            "title": "Datacol Version",
+            "type": "integer"
+          },
+          "stress_strain_count": {
+            "title": "Stress Strain Count",
+            "type": "integer"
+          }
+        }
+      },
+      "TensileCouponNumberField": {
+        "title": "TensileCouponNumberField",
+        "enum": [
+          "avg_init_reduced_width__mm_",
+          "avg_init_reduced_thickness__mm_",
+          "avg_init_marked_gauge_length__mm_",
+          "eff_fractured_width__mm_",
+          "eff_fractured_thickness__mm_",
+          "avg_fractured_marked_gauge_length__mm_",
+          "fy_n__mpa_",
+          "fu_n__mpa_",
+          "t_a__deg_c_",
+          "year",
+          "pid_force_p",
+          "pid_force_i",
+          "pid_force_d",
+          "pid_disp_p",
+          "pid_disp_i",
+          "pid_disp_d",
+          "pid_ext_p",
+          "pid_ext_i",
+          "pid_ext_d",
+          "yield_stress_02__mpa_",
+          "yield_strain_02",
+          "yield_stress_uyp__mpa_",
+          "yield_stress_lyp__mpa_",
+          "yield_point_elongation",
+          "tensile_strength__mpa_",
+          "uniform_elongation",
+          "elongation_at_fracture",
+          "elongation_after_fracture",
+          "reduction_of_area",
+          "elastic_modulus__mpa_",
+          "c",
+          "si",
+          "mn",
+          "p",
+          "s",
+          "n",
+          "cu",
+          "mo",
+          "ni",
+          "cr",
+          "v",
+          "nb",
+          "ti",
+          "al",
+          "b",
+          "zr",
+          "sn",
+          "ca",
+          "h",
+          "fe",
+          "latitude",
+          "longitude",
+          "datacol_version",
+          "stress_strain_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
       "Type": {
         "title": "Type",
         "enum": [
@@ -8731,7 +9655,10 @@
           "hss-column",
           "hss-column-moment-rotation",
           "eccentric-braced-frame",
-          "eccentric-braced-frame-shear-link-angle"
+          "eccentric-braced-frame-shear-link-angle",
+          "all-tensile-coupons",
+          "tensile-coupon",
+          "tensile-coupon-stress-strain"
         ],
         "description": "An enumeration."
       },
