@@ -3,7 +3,7 @@ import type { TensileCouponModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { tensileCouponApi } from '@/plugins/axios'
-import { getSteelMaterialImage } from '@/utils/component'
+import { getTensileCouponImage } from '@/utils/component'
 import { formatNumber } from '@/utils/formatter'
 import type { LineSeriesOption } from 'echarts'
 import { computed } from 'vue'
@@ -120,7 +120,7 @@ const publicationLink = computed(() => {
           </div>
         </v-col>
         <v-col cols="6">
-          <v-img :src="getSteelMaterialImage()" />
+          <v-img :src="getTensileCouponImage()" />
         </v-col>
       </v-row>
     </template>

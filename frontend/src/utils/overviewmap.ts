@@ -12,7 +12,9 @@ import type {
   MaterialField,
   MaterialModel,
   ResidualStressField,
-  ResidualStressModel
+  ResidualStressModel,
+  TensileCouponField,
+  TensileCouponModel
 } from '@/backend'
 import TooltipContent from '@/components/map/TooltipContent.vue'
 import { typesNames, type Type } from '@/utils/backend'
@@ -80,6 +82,14 @@ const _locationHSSColumnFields = [
   'url'
 ] as const
 export const locationHSSColumnFields: HSSColumnField[] = [..._locationHSSColumnFields]
+const _locationTensileCouponFields = [
+  ...locationCommonFields,
+  'link',
+  'investigator',
+  'year',
+  'experimental_program'
+] as const
+export const locationTensileCouponFields: TensileCouponField[] = [..._locationTensileCouponFields]
 const _locationEbfFields = [
   'id',
   'investigator',
@@ -112,6 +122,10 @@ export type LocationResidualStress = Pick<
 >
 export type LocationHSSColumn = Pick<HSSColumnModel, (typeof _locationHSSColumnFields)[number]>
 export type LocationEbf = Pick<EccentricBracedFrameModel, (typeof _locationEbfFields)[number]>
+export type LocationTensileCoupon = Pick<
+  TensileCouponModel,
+  (typeof _locationTensileCouponFields)[number]
+>
 
 type LocationGlobal =
   | LocationBrace
@@ -121,6 +135,7 @@ type LocationGlobal =
   | LocationResidualStress
   | LocationHSSColumn
   | LocationEbf
+  | LocationTensileCoupon
 
 type LocationWithCoordinates = LocationGlobal & { latitude: number; longitude: number }
 
