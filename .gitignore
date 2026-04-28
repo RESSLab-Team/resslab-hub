@@ -25,3 +25,4 @@ backend/.venv/
 .env
 
 .python-version
+/tensile-coupons/

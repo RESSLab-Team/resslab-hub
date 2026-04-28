@@ -60,8 +60,12 @@ const menuItems: MenuItem[] = [
     to: '/materials',
     children: [
       {
-        text: 'Database',
-        to: '/database'
+        text: 'Cyclic Coupons DB',
+        to: '/cyclic-coupons'
+      },
+      {
+        text: 'Tensile Coupons DB',
+        to: '/tensile-coupons'
       },
       {
         text: 'Material Model',

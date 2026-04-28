@@ -80,11 +80,19 @@ const router = createRouter({
       children: [
         {
           path: '',
-          redirect: '/materials/database'
+          redirect: '/materials/cyclic-coupons'
         },
         {
           path: 'database',
+          redirect: '/materials/cyclic-coupons'
+        },
+        {
+          path: 'cyclic-coupons',
           component: () => import('@/views/MaterialsDatabase.vue')
+        },
+        {
+          path: 'tensile-coupons',
+          component: () => import('@/views/TensileCouponsDatabase.vue')
         },
         {
           path: 'model',

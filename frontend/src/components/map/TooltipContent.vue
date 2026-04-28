@@ -78,7 +78,7 @@ const { data, type } = defineProps<{
           <img alt="Material image" :src="getSteelMaterialImage()" />
         </li>
         <li>
-          <a :href="`/materials/database?id=${data.id}&detail=true`"> View experimental data </a>
+          <a :href="`/materials/cyclic-coupons?id=${data.id}&detail=true`"> View experimental data </a>
         </li>
       </ul>
     </template>

@@ -89,5 +89,30 @@
     "l_confi": "Configuration",
     "sg_flg_link": "Link Flange",
     "l_p_typ": "Link Plate Type"
+  },
+  "tensile_coupon": {
+    "experimental_program": "Experimental Program",
+    "id": "Specimen Designation",
+    "steel_grade": "Steel Type",
+    "profile": "Profile",
+    "profile_type": "Profile Type",
+    "specimen_source": "Source",
+    "specimen_type": "Reference Tensile Coupon",
+    "standard": "Standard",
+    "year": "Year",
+    "date": "Date",
+    "fy_n__mpa_": "fy,n [MPa]",
+    "fu_n__mpa_": "fu,n [MPa]",
+    "yield_stress_02__mpa_": "fy,m [MPa]",
+    "tensile_strength__mpa_": "fu,m [MPa]",
+    "tensile_strength__mpa_/yield_stress_02__mpa_": "fu,m / fy,m",
+    "yield_stress_02__mpa_/fy_n__mpa_": "Ry",
+    "elastic_modulus__mpa_": "E [MPa]",
+    "yield_strain_02": "εy [%]",
+    "elongation_at_fracture": "εu [%]",
+    "elongation_after_fracture": "εf [%]",
+    "reduction_of_area": "Z [%]",
+    "avg_init_reduced_thickness__mm_": "Thickness [mm]",
+    "t_a__deg_c_": "T [°C]"
   }
 }
