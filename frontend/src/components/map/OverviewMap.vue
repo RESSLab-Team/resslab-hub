@@ -8,7 +8,8 @@ import {
   ebfApi,
   hssApi,
   materialsApi,
-  residualsApi
+  residualsApi,
+  tensileCouponApi
 } from '@/plugins/axios'
 import { typesNames } from '@/utils/backend'
 import {
@@ -21,13 +22,15 @@ import {
   locationHSSColumnFields,
   locationMaterialFields,
   locationResidualStressFields,
+  locationTensileCouponFields,
   type LocationHSSColumn,
   type LocationEbf,
   type LocationBrace,
   type LocationColumn,
   type LocationConnection,
   type LocationMaterial,
-  type LocationResidualStress
+  type LocationResidualStress,
+  type LocationTensileCoupon
 } from '@/utils/overviewmap'
 import { PieChart, scaleColor, scaleRadius } from '@/utils/piechart'
 import { rollups, select } from 'd3'
@@ -87,6 +90,12 @@ ebfApi.getEccentricBracedFramesFields(locationEbfFields).then((res) => {
   updateMap()
 })
 
+const tensileCouponLocations = ref<LocationTensileCoupon[]>([])
+tensileCouponApi.getTensileCouponsFields(locationTensileCouponFields).then((res) => {
+  tensileCouponLocations.value = (res.data as LocationTensileCoupon[]).filter(hasCoordinates)
+  updateMap()
+})
+
 // Computed property to get the total number of markers
 const dataLength = computed(
   () =>
@@ -96,7 +105,8 @@ const dataLength = computed(
     materialsLocations.value.length +
     residualStressesLocations.value.length +
     hssColumnsLocations.value.length +
-    ebfLocations.value.length
+    ebfLocations.value.length +
+    tensileCouponLocations.value.length
 )
 
 // Reference to the map container element
@@ -163,7 +173,8 @@ const markers = computed<Marker[]>(() => {
     createMarkers(materialsLocations.value, 'Materials'),
     createMarkers(residualStressesLocations.value, 'Residual Stresses'),
     createMarkers(hssColumnsLocations.value, 'HSS Columns'),
-    createMarkers(ebfLocations.value, 'EBF Links')
+    createMarkers(ebfLocations.value, 'EBF Links'),
+    createMarkers(tensileCouponLocations.value, 'Tensile Coupons')
   ].flat()
 })
 

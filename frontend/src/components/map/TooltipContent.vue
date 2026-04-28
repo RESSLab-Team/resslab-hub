@@ -5,6 +5,7 @@ import {
   getConnectionSpecimenImage,
   getResidualStressImage,
   getSteelMaterialImage,
+  getTensileCouponImage,
   getEbfImage
 } from '@/utils/component'
 import { testConfigurationNameMapping } from '@/utils/hss'
@@ -109,6 +110,20 @@ const { data, type } = defineProps<{
         </li>
         <li>
           <a :href="`/hss-columns/database?id=${data.id}&detail=true`"> View experimental data </a>
+        </li>
+      </ul>
+    </template>
+    <template v-else-if="type === 'Tensile Coupons'">
+      <h3>
+        <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.year }}) </a>
+      </h3>
+      <ul>
+        <li>Investigator: {{ data.investigator }}</li>
+        <li>
+          <img alt="Tensile coupon image" :src="getTensileCouponImage()" />
+        </li>
+        <li>
+          <a :href="`/materials/tensile-coupons?id=${data.id}&detail=true`"> View experimental data </a>
         </li>
       </ul>
     </template>

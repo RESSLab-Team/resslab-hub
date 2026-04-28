@@ -6,7 +6,7 @@ import { tensileCouponApi } from '@/plugins/axios'
 import { getTensileCouponImage } from '@/utils/component'
 import { formatNumber } from '@/utils/formatter'
 import type { LineSeriesOption } from 'echarts'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   tensileCoupon: TensileCouponModel
@@ -15,20 +15,28 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
-const carouselItems = computed<DetailCarouselItem[][]>(() => [
-  [
-    {
-      count: props.tensileCoupon.stress_strain_count,
-      promise: tensileCouponApi
-        .getTensileCouponsStressStrain(props.tensileCoupon.id)
-        .then((response) => response.data.map((serie) => [serie[1], serie[0]]))
-        .then((data) => [{ data }] as LineSeriesOption[]),
-      title: 'Engineering stress-strain',
-      xAxisName: 'ε',
-      yAxisName: 'σ [MPa]'
-    }
-  ]
-])
+const carouselItems = ref<DetailCarouselItem[][]>([])
+
+watch(
+  () => props.tensileCoupon,
+  (tensileCoupon) => {
+    carouselItems.value = [
+      [
+        {
+          count: tensileCoupon.stress_strain_count,
+          promise: tensileCouponApi
+            .getTensileCouponsStressStrain(tensileCoupon.id)
+            .then((response) => response.data.map((serie) => [serie[1], serie[0]]))
+            .then((data) => [{ data }] as LineSeriesOption[]),
+          title: 'Engineering stress-strain',
+          xAxisName: 'ε',
+          yAxisName: 'σ [MPa]'
+        }
+      ]
+    ]
+  },
+  { immediate: true }
+)
 
 const profileTypeWithSource = computed(() => {
   const profileType = props.tensileCoupon.profile_type
