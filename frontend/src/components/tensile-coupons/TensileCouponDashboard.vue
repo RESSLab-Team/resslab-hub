@@ -6,6 +6,7 @@ import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
 import TensileCouponDoubleChart from '@/components/tensile-coupons/charts/TensileCouponDoubleChart.vue'
 import TensileCouponParallelChart from '@/components/tensile-coupons/charts/TensileCouponParallelChart.vue'
 import TensileCouponSingleChart from '@/components/tensile-coupons/charts/TensileCouponSingleChart.vue'
+import TensileCouponDetail from '@/components/tensile-coupons/TensileCouponDetail.vue'
 import TensileCouponTable from '@/components/tensile-coupons/TensileCouponTable.vue'
 
 import type { DoubleFields, ParallelField } from '@/composables/chart'
@@ -15,7 +16,7 @@ import colors from 'vuetify/lib/util/colors'
 
 const route = useRoute()
 const router = useRouter()
-const { clickTableRow, item, query, search, searches, changeSearches, updatePage } =
+const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
   useDashboard<TensileCouponModel>(route, router, TensileCouponField)
 
 const parallelFields: ParallelField<TensileCouponField>[] = [
@@ -87,7 +88,7 @@ const profileTypeFields: TensileCouponField[] = [
     <v-col md="6">
       <v-row v-if="item">
         <v-col cols="12">
-          <!-- Detail panel added in Commit 7 -->
+          <tensile-coupon-detail :tensile-coupon="item" @close="closeDetail" />
         </v-col>
       </v-row>
       <v-row v-else>
