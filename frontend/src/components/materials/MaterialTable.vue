@@ -76,7 +76,7 @@ const {
     :loading="loading"
     prefix="material."
     :query="query"
-    title="Materials"
+    title="Cyclic Coupons"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"
