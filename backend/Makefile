@@ -124,3 +124,7 @@ generate-model:
 		../../resslab-hub-data/eccentric_braced_frames/eccentric_braced_frames_data_dictionary.csv \
 		resslab_hub/models/database/eccentric_braced_frame.py \
 		resslab_hub/models/api.py eccentric_braced_frame
+	uv run python data/generate_model.py \
+		../../resslab-hub-data/tensile_coupons/tensile_coupons_data_dictionary.csv \
+		resslab_hub/models/database/tensile_coupon.py \
+		resslab_hub/models/api.py tensile_coupon

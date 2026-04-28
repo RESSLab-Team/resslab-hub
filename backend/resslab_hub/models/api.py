@@ -865,3 +865,99 @@ EccentricBracedFrameNumberField = Enum(
     module=__name__,
     type=str,
 )
+
+
+class TensileCouponModel(BaseModel):
+    # START_OF_GENERATED_CODE_tensile_coupon
+    experimental_program: str
+    standard: str
+    specimen_type: str
+    id: str
+    profile_type: str
+    profile: str
+    specimen_source: Optional[str]
+    steel_grade: str
+    avg_init_reduced_width__mm_: Decimal
+    avg_init_reduced_thickness__mm_: Decimal
+    avg_init_marked_gauge_length__mm_: Decimal
+    eff_fractured_width__mm_: Decimal
+    eff_fractured_thickness__mm_: Decimal
+    avg_fractured_marked_gauge_length__mm_: Decimal
+    fy_n__mpa_: Decimal
+    fu_n__mpa_: Decimal
+    t_a__deg_c_: Decimal
+    date: str
+    year: int
+    investigator: str
+    location: str
+    machine: str
+    pid_force_p: Optional[Decimal]
+    pid_force_i: Optional[Decimal]
+    pid_force_d: Optional[Decimal]
+    pid_disp_p: Optional[Decimal]
+    pid_disp_i: Optional[Decimal]
+    pid_disp_d: Optional[Decimal]
+    pid_ext_p: Optional[Decimal]
+    pid_ext_i: Optional[Decimal]
+    pid_ext_d: Optional[Decimal]
+    yield_stress_02__mpa_: Optional[Decimal]
+    yield_strain_02: Optional[Decimal]
+    bin_discont_yield: bool
+    yield_stress_uyp__mpa_: Optional[Decimal]
+    yield_stress_lyp__mpa_: Optional[Decimal]
+    yield_point_elongation: Optional[Decimal]
+    tensile_strength__mpa_: Optional[Decimal]
+    uniform_elongation: Optional[Decimal]
+    elongation_at_fracture: Optional[Decimal]
+    elongation_after_fracture: Optional[Decimal]
+    reduction_of_area: Optional[Decimal]
+    elastic_modulus__mpa_: Optional[Decimal]
+    c: Optional[Decimal]
+    si: Optional[Decimal]
+    mn: Optional[Decimal]
+    p: Optional[Decimal]
+    s: Optional[Decimal]
+    n: Optional[Decimal]
+    cu: Optional[Decimal]
+    mo: Optional[Decimal]
+    ni: Optional[Decimal]
+    cr: Optional[Decimal]
+    v: Optional[Decimal]
+    nb: Optional[Decimal]
+    ti: Optional[Decimal]
+    al: Optional[Decimal]
+    b: Optional[Decimal]
+    zr: Optional[Decimal]
+    sn: Optional[Decimal]
+    ca: Optional[Decimal]
+    h: Optional[Decimal]
+    fe: Optional[Decimal]
+    file_path: Optional[str]
+    reference: Optional[str]
+    link: Optional[str]
+    latitude: Decimal
+    longitude: Decimal
+    publication_key: Optional[str]
+    datacol_version: int
+    # END_OF_GENERATED_CODE_tensile_coupon
+
+    stress_strain_count: int
+
+
+TensileCouponField = Enum(
+    "TensileCouponField",
+    {key: key for key in TensileCouponModel.__fields__},
+    module=__name__,
+    type=str,
+)
+
+TensileCouponNumberField = Enum(
+    "TensileCouponNumberField",
+    {
+        key: key
+        for key, field in TensileCouponModel.__fields__.items()
+        if field.type_ in [Decimal, int]
+    },
+    module=__name__,
+    type=str,
+)
