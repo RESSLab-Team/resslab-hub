@@ -57,7 +57,7 @@ make upload-data-test
 kubectl -n epfl-resslab-resslab-hub-dev port-forward svc/resslab-hub-db-dev 5432:5432
 ```
 
-Set `backend/secrets/.env` with the dev creds from Infisical (`/epfl-resslab/resslab-hub/db`, env slug `dev`):
+Set `secrets/.env` (at the **repo root**, not under `backend/` — the Makefile loads `../secrets/.env`) with the dev creds from Infisical (`/epfl-resslab/resslab-hub/db`, env slug `dev`):
 
 ```env
 POSTGRES_HOST=localhost
@@ -66,5 +66,7 @@ POSTGRES_USER=<DB_USER>
 POSTGRES_PASSWORD=<DB_PASSWORD>
 API_PASSWORD=<any non-empty value>
 ```
+
+If your local machine already runs a Postgres on 5432, port-forward to a different port (e.g. `5433:5432`) and set `POSTGRES_PORT=5433` in the `.env`.
 
 Then from `backend/`, run `make upload-data`. Note: it **erases** existing data in the tables it touches.
