@@ -30,7 +30,9 @@ watch(
             .then((data) => [{ data }] as LineSeriesOption[]),
           title: 'Engineering stress-strain',
           xAxisName: 'ε',
-          yAxisName: 'σ [MPa]'
+          yAxisName: 'σ [MPa]',
+          xAxisMin: 0,
+          yAxisMin: 0
         }
       ]
     ]
@@ -112,8 +114,8 @@ const publicationLink = computed(() => {
               <property-item name="Young's modulus, E" unit="MPa">
                 {{ formatNumber(tensileCoupon.elastic_modulus__mpa_, 1) }}
               </property-item>
-              <property-item name="εy" unit="%">
-                {{ formatNumber(tensileCoupon.yield_strain_02, 2) }}
+              <property-item name="εy">
+                {{ formatNumber(tensileCoupon.yield_strain_02, 5) }}
               </property-item>
               <property-item name="εu" unit="%">
                 {{ formatNumber(tensileCoupon.elongation_at_fracture, 2) }}
