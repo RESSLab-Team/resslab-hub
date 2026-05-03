@@ -31,6 +31,8 @@ mkdir -p secrets && echo POSTGRES_PASSWORD=changeit > secrets/.env
 make install
 ```
 
+Git hooks (commitlint + lint/format) are managed by [Lefthook](https://lefthook.dev) and installed automatically by `make install`. Skip with `LEFTHOOK=0`.
+
 #### for MAC OS
 
 1. Use brew to install openssl and postgresql

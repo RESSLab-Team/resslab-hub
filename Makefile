@@ -3,6 +3,9 @@ install:
 	$(MAKE) -C backend install
 	$(MAKE) -C frontend install
 
+hooks:
+	npx lefthook install
+
 dev-all:
 	docker compose up -d database
 	gnome-terminal --tab -- bash -c '$(MAKE) -C frontend dev'

@@ -22,3 +22,6 @@ CLAUDE.md
 
 # uv virtualenv
 backend/.venv/
+
+# Lefthook local overrides
+lefthook-local.yml
