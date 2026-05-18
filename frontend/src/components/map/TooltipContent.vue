@@ -68,7 +68,7 @@ const { data, type } = defineProps<{
         </li>
       </ul>
     </template>
-    <template v-else-if="type === 'Materials'">
+    <template v-else-if="type === 'Cyclic Coupons'">
       <h3>
         <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.date }}) </a>
       </h3>

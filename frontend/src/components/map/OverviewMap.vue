@@ -170,7 +170,7 @@ const markers = computed<Marker[]>(() => {
     createMarkers(connectionsLocations.value, 'Connections'),
     createMarkers(columnsLocations.value, 'Columns'),
     createMarkers(bracesLocations.value, 'Braces'),
-    createMarkers(materialsLocations.value, 'Materials'),
+    createMarkers(materialsLocations.value, 'Cyclic Coupons'),
     createMarkers(residualStressesLocations.value, 'Residual Stresses'),
     createMarkers(hssColumnsLocations.value, 'HSS Columns'),
     createMarkers(ebfLocations.value, 'EBF Links'),

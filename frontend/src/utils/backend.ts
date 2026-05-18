@@ -9,18 +9,18 @@ export type Type =
   | 'Braces'
   | 'Columns'
   | 'Connections'
-  | 'Materials'
+  | 'Cyclic Coupons'
+  | 'Tensile Coupons'
   | 'Residual Stresses'
   | 'HSS Columns'
   | 'EBF Links'
-  | 'Tensile Coupons'
 export const typesNames: Type[] = [
   'Braces',
   'Columns',
   'Connections',
-  'Materials',
+  'Cyclic Coupons',
+  'Tensile Coupons',
   'Residual Stresses',
   'HSS Columns',
-  'EBF Links',
-  'Tensile Coupons'
+  'EBF Links'
 ]
