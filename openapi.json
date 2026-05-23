@@ -24,6 +24,22 @@
         }
       }
     },
+    "/healthz": {
+      "get": {
+        "summary": "Healthz",
+        "operationId": "healthz",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/upload": {
       "post": {
         "summary": "Create Upload File",
@@ -4945,6 +4961,1061 @@
           }
         }
       }
+    },
+    "/ductile-fracture": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures",
+        "description": "Get paginated Ductile Fractures",
+        "operationId": "get_ductile_fractures",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort By",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "sort_by",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Sort Desc",
+              "type": "array",
+              "items": {
+                "type": "boolean"
+              },
+              "default": []
+            },
+            "name": "sort_desc",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page",
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 1
+            },
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "maximum": 1000.0,
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 10
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedPage_DuctileFractureModel_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/fields": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Fields",
+        "description": "Get filtered fields",
+        "operationId": "get_ductile_fractures_fields",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/DuctileFractureField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Ductile Fractures Fields Ductile Fracture Fields Get",
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/counts": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Counts",
+        "description": "Get occurences count of field values",
+        "operationId": "get_ductile_fractures_counts",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/DuctileFractureField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Ductile Fractures Counts Ductile Fracture Counts Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountModel"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/range": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Range",
+        "description": "Get range of field",
+        "operationId": "get_ductile_fractures_range",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DuctileFractureNumberField"
+            },
+            "name": "field",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/matrix": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Matrix",
+        "operationId": "get_ductile_fractures_matrix",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/DuctileFractureField"
+              }
+            },
+            "name": "fields",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/csv": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Csv",
+        "description": "Get master csv",
+        "operationId": "get_ductile_fractures_csv",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Ids",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "name": "ids",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/distinct": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Distinct",
+        "description": "Get distinct count",
+        "operationId": "get_ductile_fractures_distinct",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/DuctileFractureField"
+              },
+              "default": []
+            },
+            "name": "fields",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Ductile Fractures Distinct Ductile Fracture Distinct Get",
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/force-elongation": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Force Elongation",
+        "description": "Get Force-Elongation test series",
+        "operationId": "get_ductile_fractures_force_elongation",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Ductile Fractures Force Elongation Ductile Fracture  Ductile Fracture Id  Force Elongation Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/force-elongation/csv": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Force Elongation Csv",
+        "operationId": "get_ductile_fractures_force_elongation_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/force-elongation-simulation": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Force Elongation Simulation",
+        "description": "Get Force-Elongation simulation series",
+        "operationId": "get_ductile_fractures_force_elongation_simulation",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Ductile Fractures Force Elongation Simulation Ductile Fracture  Ductile Fracture Id  Force Elongation Simulation Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/force-elongation-simulation/csv": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Force Elongation Simulation Csv",
+        "operationId": "get_ductile_fractures_force_elongation_simulation_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/force-radial": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Force Radial",
+        "description": "Get Force-Radial elongation test series",
+        "operationId": "get_ductile_fractures_force_radial",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Ductile Fractures Force Radial Ductile Fracture  Ductile Fracture Id  Force Radial Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/force-radial/csv": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Force Radial Csv",
+        "operationId": "get_ductile_fractures_force_radial_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/force-radial-simulation": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Force Radial Simulation",
+        "description": "Get Force-Radial elongation simulation series",
+        "operationId": "get_ductile_fractures_force_radial_simulation",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Ductile Fractures Force Radial Simulation Ductile Fracture  Ductile Fracture Id  Force Radial Simulation Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/force-radial-simulation/csv": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Force Radial Simulation Csv",
+        "operationId": "get_ductile_fractures_force_radial_simulation_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/epeq-simulation": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Epeq Simulation",
+        "description": "Get Equivalent Plastic Strain - Elongation simulation series",
+        "operationId": "get_ductile_fractures_epeq_simulation",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Ductile Fractures Epeq Simulation Ductile Fracture  Ductile Fracture Id  Epeq Simulation Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/epeq-simulation/csv": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Epeq Simulation Csv",
+        "operationId": "get_ductile_fractures_epeq_simulation_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/lode-simulation": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Lode Simulation",
+        "description": "Get Lode angle - Elongation simulation series",
+        "operationId": "get_ductile_fractures_lode_simulation",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Ductile Fractures Lode Simulation Ductile Fracture  Ductile Fracture Id  Lode Simulation Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/lode-simulation/csv": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Lode Simulation Csv",
+        "operationId": "get_ductile_fractures_lode_simulation_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/triax-simulation": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Triax Simulation",
+        "description": "Get Triaxiality - Elongation simulation series",
+        "operationId": "get_ductile_fractures_triax_simulation",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Size",
+              "minimum": 0.0,
+              "type": "integer",
+              "default": 1024
+            },
+            "name": "size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Ductile Fractures Triax Simulation Ductile Fracture  Ductile Fracture Id  Triax Simulation Get",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ductile-fracture/{ductile_fracture_id}/triax-simulation/csv": {
+      "get": {
+        "tags": [
+          "ductile-fracture"
+        ],
+        "summary": "Get Ductile Fractures Triax Simulation Csv",
+        "operationId": "get_ductile_fractures_triax_simulation_csv",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Ductile Fracture Id",
+              "type": "string"
+            },
+            "name": "ductile_fracture_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -7052,6 +8123,562 @@
         },
         "description": "Date Range"
       },
+      "DuctileFractureField": {
+        "title": "DuctileFractureField",
+        "enum": [
+          "id",
+          "specimen_designation",
+          "experimental_program",
+          "date",
+          "specimen_type",
+          "piece",
+          "loading",
+          "loading_protocol",
+          "location_coupon",
+          "section_type",
+          "section_profile",
+          "steel_type",
+          "coupon_direction",
+          "crack_opening_direction",
+          "plate_thickness",
+          "f_yn",
+          "f_un",
+          "fy_m",
+          "fu_m",
+          "elongation_fr",
+          "temperature",
+          "chemical_composition_C",
+          "chemical_composition_Si",
+          "chemical_composition_Mn",
+          "chemical_composition_P",
+          "chemical_composition_S",
+          "chemical_composition_Cu",
+          "chemical_composition_Ni",
+          "chemical_composition_Cr",
+          "chemical_composition_V",
+          "chemical_composition_Nb",
+          "chemical_composition_Mo",
+          "chemical_composition_Ti",
+          "chemical_composition_Al",
+          "chemical_composition_N",
+          "gauge_length",
+          "nom_notch_radius",
+          "nom_whole_diameter_cnt",
+          "nom_notch_diameter_cnt",
+          "nom_notch_width",
+          "nom_width_gp",
+          "nom_whole_thickness_gp",
+          "nom_notch_thickness_gp",
+          "meas_whole_diameter_cnt",
+          "meas_notch_diameter_cnt",
+          "meas_notch_width",
+          "meas_width_gp",
+          "meas_whole_thickness_gp",
+          "meas_notch_thickness_gp",
+          "disp_fract",
+          "exc_at_fract",
+          "step_fract",
+          "fract_loc",
+          "young_mod",
+          "nu",
+          "triax_at_fr",
+          "triax_avg_till_fr",
+          "lode_at_fr",
+          "lode_avg_till_fr",
+          "peeq_at_fr",
+          "cvgm_etamono",
+          "cvgm_lambda",
+          "swdfm_alpha_pos",
+          "swdfm_alpha_neg",
+          "swdfm_kappa",
+          "swdfm_C",
+          "swdfm_beta",
+          "kk_alpha_1",
+          "kk_alpha_2",
+          "kk_beta_1",
+          "kk_beta_2",
+          "kk_d_cr",
+          "l_star",
+          "reference",
+          "link",
+          "latitude",
+          "longitude",
+          "force_elongation_count",
+          "force_elongation_simulation_count",
+          "force_radial_count",
+          "force_radial_simulation_count",
+          "epeq_simulation_count",
+          "lode_simulation_count",
+          "triax_simulation_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "DuctileFractureModel": {
+        "title": "DuctileFractureModel",
+        "required": [
+          "id",
+          "specimen_designation",
+          "experimental_program",
+          "date",
+          "specimen_type",
+          "piece",
+          "loading",
+          "loading_protocol",
+          "location_coupon",
+          "section_type",
+          "section_profile",
+          "steel_type",
+          "coupon_direction",
+          "crack_opening_direction",
+          "plate_thickness",
+          "f_yn",
+          "temperature",
+          "gauge_length",
+          "nom_notch_radius",
+          "nom_notch_width",
+          "meas_notch_width",
+          "step_fract",
+          "fract_loc",
+          "young_mod",
+          "nu",
+          "triax_avg_till_fr",
+          "lode_at_fr",
+          "lode_avg_till_fr",
+          "peeq_at_fr",
+          "cvgm_etamono",
+          "cvgm_lambda",
+          "swdfm_alpha_pos",
+          "swdfm_alpha_neg",
+          "swdfm_kappa",
+          "swdfm_C",
+          "swdfm_beta",
+          "kk_alpha_1",
+          "kk_alpha_2",
+          "kk_beta_1",
+          "kk_beta_2",
+          "kk_d_cr",
+          "reference",
+          "link",
+          "latitude",
+          "longitude",
+          "force_elongation_count",
+          "force_elongation_simulation_count",
+          "force_radial_count",
+          "force_radial_simulation_count",
+          "epeq_simulation_count",
+          "lode_simulation_count",
+          "triax_simulation_count"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "specimen_designation": {
+            "title": "Specimen Designation",
+            "type": "string"
+          },
+          "experimental_program": {
+            "title": "Experimental Program",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "integer"
+          },
+          "specimen_type": {
+            "title": "Specimen Type",
+            "type": "string"
+          },
+          "piece": {
+            "title": "Piece",
+            "type": "string"
+          },
+          "loading": {
+            "title": "Loading",
+            "type": "string"
+          },
+          "loading_protocol": {
+            "title": "Loading Protocol",
+            "type": "string"
+          },
+          "location_coupon": {
+            "title": "Location Coupon",
+            "type": "string"
+          },
+          "section_type": {
+            "title": "Section Type",
+            "type": "string"
+          },
+          "section_profile": {
+            "title": "Section Profile",
+            "type": "string"
+          },
+          "steel_type": {
+            "title": "Steel Type",
+            "type": "string"
+          },
+          "coupon_direction": {
+            "title": "Coupon Direction",
+            "type": "string"
+          },
+          "crack_opening_direction": {
+            "title": "Crack Opening Direction",
+            "type": "string"
+          },
+          "plate_thickness": {
+            "title": "Plate Thickness",
+            "type": "number"
+          },
+          "f_yn": {
+            "title": "F Yn",
+            "type": "number"
+          },
+          "f_un": {
+            "title": "F Un",
+            "type": "number"
+          },
+          "fy_m": {
+            "title": "Fy M",
+            "type": "number"
+          },
+          "fu_m": {
+            "title": "Fu M",
+            "type": "number"
+          },
+          "elongation_fr": {
+            "title": "Elongation Fr",
+            "type": "number"
+          },
+          "temperature": {
+            "title": "Temperature",
+            "type": "number"
+          },
+          "chemical_composition_C": {
+            "title": "Chemical Composition C",
+            "type": "number"
+          },
+          "chemical_composition_Si": {
+            "title": "Chemical Composition Si",
+            "type": "number"
+          },
+          "chemical_composition_Mn": {
+            "title": "Chemical Composition Mn",
+            "type": "number"
+          },
+          "chemical_composition_P": {
+            "title": "Chemical Composition P",
+            "type": "number"
+          },
+          "chemical_composition_S": {
+            "title": "Chemical Composition S",
+            "type": "number"
+          },
+          "chemical_composition_Cu": {
+            "title": "Chemical Composition Cu",
+            "type": "number"
+          },
+          "chemical_composition_Ni": {
+            "title": "Chemical Composition Ni",
+            "type": "number"
+          },
+          "chemical_composition_Cr": {
+            "title": "Chemical Composition Cr",
+            "type": "number"
+          },
+          "chemical_composition_V": {
+            "title": "Chemical Composition V",
+            "type": "number"
+          },
+          "chemical_composition_Nb": {
+            "title": "Chemical Composition Nb",
+            "type": "number"
+          },
+          "chemical_composition_Mo": {
+            "title": "Chemical Composition Mo",
+            "type": "number"
+          },
+          "chemical_composition_Ti": {
+            "title": "Chemical Composition Ti",
+            "type": "number"
+          },
+          "chemical_composition_Al": {
+            "title": "Chemical Composition Al",
+            "type": "number"
+          },
+          "chemical_composition_N": {
+            "title": "Chemical Composition N",
+            "type": "number"
+          },
+          "gauge_length": {
+            "title": "Gauge Length",
+            "type": "number"
+          },
+          "nom_notch_radius": {
+            "title": "Nom Notch Radius",
+            "type": "number"
+          },
+          "nom_whole_diameter_cnt": {
+            "title": "Nom Whole Diameter Cnt",
+            "type": "number"
+          },
+          "nom_notch_diameter_cnt": {
+            "title": "Nom Notch Diameter Cnt",
+            "type": "number"
+          },
+          "nom_notch_width": {
+            "title": "Nom Notch Width",
+            "type": "number"
+          },
+          "nom_width_gp": {
+            "title": "Nom Width Gp",
+            "type": "number"
+          },
+          "nom_whole_thickness_gp": {
+            "title": "Nom Whole Thickness Gp",
+            "type": "number"
+          },
+          "nom_notch_thickness_gp": {
+            "title": "Nom Notch Thickness Gp",
+            "type": "number"
+          },
+          "meas_whole_diameter_cnt": {
+            "title": "Meas Whole Diameter Cnt",
+            "type": "string"
+          },
+          "meas_notch_diameter_cnt": {
+            "title": "Meas Notch Diameter Cnt",
+            "type": "string"
+          },
+          "meas_notch_width": {
+            "title": "Meas Notch Width",
+            "type": "string"
+          },
+          "meas_width_gp": {
+            "title": "Meas Width Gp",
+            "type": "string"
+          },
+          "meas_whole_thickness_gp": {
+            "title": "Meas Whole Thickness Gp",
+            "type": "string"
+          },
+          "meas_notch_thickness_gp": {
+            "title": "Meas Notch Thickness Gp",
+            "type": "string"
+          },
+          "disp_fract": {
+            "title": "Disp Fract",
+            "type": "number"
+          },
+          "exc_at_fract": {
+            "title": "Exc At Fract",
+            "type": "integer"
+          },
+          "step_fract": {
+            "title": "Step Fract",
+            "type": "integer"
+          },
+          "fract_loc": {
+            "title": "Fract Loc",
+            "type": "string"
+          },
+          "young_mod": {
+            "title": "Young Mod",
+            "type": "number"
+          },
+          "nu": {
+            "title": "Nu",
+            "type": "number"
+          },
+          "triax_at_fr": {
+            "title": "Triax At Fr",
+            "type": "number"
+          },
+          "triax_avg_till_fr": {
+            "title": "Triax Avg Till Fr",
+            "type": "number"
+          },
+          "lode_at_fr": {
+            "title": "Lode At Fr",
+            "type": "number"
+          },
+          "lode_avg_till_fr": {
+            "title": "Lode Avg Till Fr",
+            "type": "number"
+          },
+          "peeq_at_fr": {
+            "title": "Peeq At Fr",
+            "type": "number"
+          },
+          "cvgm_etamono": {
+            "title": "Cvgm Etamono",
+            "type": "number"
+          },
+          "cvgm_lambda": {
+            "title": "Cvgm Lambda",
+            "type": "number"
+          },
+          "swdfm_alpha_pos": {
+            "title": "Swdfm Alpha Pos",
+            "type": "number"
+          },
+          "swdfm_alpha_neg": {
+            "title": "Swdfm Alpha Neg",
+            "type": "number"
+          },
+          "swdfm_kappa": {
+            "title": "Swdfm Kappa",
+            "type": "number"
+          },
+          "swdfm_C": {
+            "title": "Swdfm C",
+            "type": "number"
+          },
+          "swdfm_beta": {
+            "title": "Swdfm Beta",
+            "type": "number"
+          },
+          "kk_alpha_1": {
+            "title": "Kk Alpha 1",
+            "type": "number"
+          },
+          "kk_alpha_2": {
+            "title": "Kk Alpha 2",
+            "type": "number"
+          },
+          "kk_beta_1": {
+            "title": "Kk Beta 1",
+            "type": "number"
+          },
+          "kk_beta_2": {
+            "title": "Kk Beta 2",
+            "type": "number"
+          },
+          "kk_d_cr": {
+            "title": "Kk D Cr",
+            "type": "number"
+          },
+          "l_star": {
+            "title": "L Star",
+            "type": "number"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "force_elongation_count": {
+            "title": "Force Elongation Count",
+            "type": "integer"
+          },
+          "force_elongation_simulation_count": {
+            "title": "Force Elongation Simulation Count",
+            "type": "integer"
+          },
+          "force_radial_count": {
+            "title": "Force Radial Count",
+            "type": "integer"
+          },
+          "force_radial_simulation_count": {
+            "title": "Force Radial Simulation Count",
+            "type": "integer"
+          },
+          "epeq_simulation_count": {
+            "title": "Epeq Simulation Count",
+            "type": "integer"
+          },
+          "lode_simulation_count": {
+            "title": "Lode Simulation Count",
+            "type": "integer"
+          },
+          "triax_simulation_count": {
+            "title": "Triax Simulation Count",
+            "type": "integer"
+          }
+        }
+      },
+      "DuctileFractureNumberField": {
+        "title": "DuctileFractureNumberField",
+        "enum": [
+          "date",
+          "plate_thickness",
+          "f_yn",
+          "f_un",
+          "fy_m",
+          "fu_m",
+          "elongation_fr",
+          "temperature",
+          "chemical_composition_C",
+          "chemical_composition_Si",
+          "chemical_composition_Mn",
+          "chemical_composition_P",
+          "chemical_composition_S",
+          "chemical_composition_Cu",
+          "chemical_composition_Ni",
+          "chemical_composition_Cr",
+          "chemical_composition_V",
+          "chemical_composition_Nb",
+          "chemical_composition_Mo",
+          "chemical_composition_Ti",
+          "chemical_composition_Al",
+          "chemical_composition_N",
+          "gauge_length",
+          "nom_notch_radius",
+          "nom_whole_diameter_cnt",
+          "nom_notch_diameter_cnt",
+          "nom_notch_width",
+          "nom_width_gp",
+          "nom_whole_thickness_gp",
+          "nom_notch_thickness_gp",
+          "disp_fract",
+          "exc_at_fract",
+          "step_fract",
+          "young_mod",
+          "nu",
+          "triax_at_fr",
+          "triax_avg_till_fr",
+          "lode_at_fr",
+          "lode_avg_till_fr",
+          "peeq_at_fr",
+          "cvgm_etamono",
+          "cvgm_lambda",
+          "swdfm_alpha_pos",
+          "swdfm_alpha_neg",
+          "swdfm_kappa",
+          "swdfm_C",
+          "swdfm_beta",
+          "kk_alpha_1",
+          "kk_alpha_2",
+          "kk_beta_1",
+          "kk_beta_2",
+          "kk_d_cr",
+          "l_star",
+          "latitude",
+          "longitude",
+          "force_elongation_count",
+          "force_elongation_simulation_count",
+          "force_radial_count",
+          "force_radial_simulation_count",
+          "epeq_simulation_count",
+          "lode_simulation_count",
+          "triax_simulation_count"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
       "EccentricBracedFrameField": {
         "title": "EccentricBracedFrameField",
         "enum": [
@@ -7761,6 +9388,42 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ConnectionModel"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "page": {
+            "title": "Page",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 0.0,
+            "type": "integer"
+          }
+        }
+      },
+      "ExtendedPage_DuctileFractureModel_": {
+        "title": "ExtendedPage[DuctileFractureModel]",
+        "required": [
+          "items",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DuctileFractureModel"
             }
           },
           "total": {
@@ -9658,7 +11321,16 @@
           "eccentric-braced-frame-shear-link-angle",
           "all-tensile-coupons",
           "tensile-coupon",
-          "tensile-coupon-stress-strain"
+          "tensile-coupon-stress-strain",
+          "all-ductile-fractures",
+          "ductile-fracture",
+          "ductile-fracture-force-elongation",
+          "ductile-fracture-force-elongation-simulation",
+          "ductile-fracture-force-radial",
+          "ductile-fracture-force-radial-simulation",
+          "ductile-fracture-epeq-simulation",
+          "ductile-fracture-lode-simulation",
+          "ductile-fracture-triax-simulation"
         ],
         "description": "An enumeration."
       },
