@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { initOptions, updateOptions } from '@/components/commons/charts/utils'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import type { ParallelField } from '@/composables/chart'
+import { isDivision, type ParallelField } from '@/composables/chart'
 import i18n from '@/plugins/i18n'
 import type { Value } from '@/utils/common'
 import type { VerticalAlign, ZRFontWeight } from '@/utils/echarts'
@@ -81,7 +81,11 @@ const option = computed<EChartsOption>(() => ({
   },
   parallelAxis: props.fields.map((field, index) => {
     const id: string =
-      typeof field.id === 'string' ? field.id : `${field.id.dividend}/${field.id.divisor}`
+      typeof field.id === 'string'
+        ? field.id
+        : isDivision(field.id)
+          ? `${field.id.dividend}/${field.id.divisor}`
+          : field.id.key
     const name = field.name ?? i18n.global.t(props.labelPrefix + id).toString()
     const values = getValues(field)
     const option = {
@@ -127,11 +131,17 @@ const option = computed<EChartsOption>(() => ({
           const value = d[requestFieldsValue.indexOf(f.id)]
           if (f.mapping && typeof value === 'string') return f.mapping.get(value) || value
           else return value
-        } else {
+        } else if (isDivision(f.id)) {
           return (
             (d[requestFieldsValue.indexOf(f.id.dividend)] as number) /
             (d[requestFieldsValue.indexOf(f.id.divisor)] as number)
           )
+        } else {
+          const values = f.id.fields.map((field) => {
+            const v = d[requestFieldsValue.indexOf(field)]
+            return v == null ? null : (v as number)
+          })
+          return f.id.compute(values) as number
         }
       })
     ),
@@ -155,13 +165,28 @@ function getValues(field: ParallelField): (string | number)[] {
         typeof d == 'string' ? (field.mapping as Map<string, string>).get(d) || d : d
       )
     else return values
-  } else {
+  } else if (isDivision(field.id)) {
     return zip(
       transposedDataValue[requestFieldsValue.indexOf(field.id.dividend)],
       transposedDataValue[requestFieldsValue.indexOf(field.id.divisor)]
     )
       .map((v) => v as [number, number])
       .map((v) => v[0] / v[1])
+  } else {
+    const computed = field.id
+    const columns = computed.fields.map(
+      (f) => transposedDataValue[requestFieldsValue.indexOf(f)] ?? []
+    )
+    const rowCount = columns[0]?.length ?? 0
+    const values: (number | null)[] = []
+    for (let i = 0; i < rowCount; i++) {
+      const rowValues = columns.map((col) => {
+        const v = col[i]
+        return v == null ? null : (v as number)
+      })
+      values.push(computed.compute(rowValues))
+    }
+    return values as (string | number)[]
   }
 }
 function onClick(params: CallbackDataParams): void {

@@ -226,7 +226,7 @@ function getRequestFields<F>(fields: DoubleFields<F>): [F, F] {
 // Parallel
 
 export interface ParallelField<T = string> {
-  id: T | Division<T>
+  id: T | Division<T> | Computed<T>
   name?: string
   mapping?: Map<string, string>
   sortValues?: string[]
@@ -234,6 +234,18 @@ export interface ParallelField<T = string> {
 export interface Division<T> {
   dividend: T
   divisor: T
+}
+export interface Computed<T> {
+  key: string
+  fields: T[]
+  compute: (values: (number | null)[]) => number | null
+}
+
+export function isDivision<T>(id: T | Division<T> | Computed<T>): id is Division<T> {
+  return typeof id === 'object' && id !== null && 'dividend' in id
+}
+export function isComputed<T>(id: T | Division<T> | Computed<T>): id is Computed<T> {
+  return typeof id === 'object' && id !== null && 'compute' in id
 }
 
 export function parallelChartProps<F extends string>() {
@@ -260,8 +272,10 @@ export function useParallelChart<F extends string>(
       .flatMap((f) => {
         if (typeof f.id === 'string') {
           return [f.id]
-        } else {
+        } else if (isDivision(f.id)) {
           return [f.id.dividend, f.id.divisor]
+        } else {
+          return f.id.fields
         }
       })
       .uniq()
