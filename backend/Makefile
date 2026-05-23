@@ -131,3 +131,7 @@ generate-model:
 		../../resslab-hub-data/tensile_coupons/tensile_coupons_data_dictionary.csv \
 		resslab_hub/models/database/tensile_coupon.py \
 		resslab_hub/models/api.py tensile_coupon
+	uv run python data/generate_model.py \
+		../../resslab-hub-data/ductile_fracture/ductile_fracture_data_dictionary.csv \
+		resslab_hub/models/database/ductile_fracture.py \
+		resslab_hub/models/api.py ductile_fracture
