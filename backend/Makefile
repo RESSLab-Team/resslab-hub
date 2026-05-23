@@ -79,6 +79,9 @@ upload-eccentric-braced-frame:
 upload-tensile-coupon:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-tensile-coupons ../../resslab-hub-data
 
+upload-ductile-fracture:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-ductile-fractures ../../resslab-hub-data
+
 upload-data:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all ../../resslab-hub-data
 

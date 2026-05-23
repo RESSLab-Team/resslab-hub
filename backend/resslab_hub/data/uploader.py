@@ -44,6 +44,16 @@ from resslab_hub.models.database.connection import (
     ConnectionGlobalWest,
     ConnectionPanelZone,
 )
+from resslab_hub.models.database.ductile_fracture import (
+    DuctileFracture,
+    DuctileFractureEpeqSimulation,
+    DuctileFractureForceElongation,
+    DuctileFractureForceElongationSimulation,
+    DuctileFractureForceRadial,
+    DuctileFractureForceRadialSimulation,
+    DuctileFractureLodeSimulation,
+    DuctileFractureTriaxSimulation,
+)
 from resslab_hub.models.database.eccentric_braced_frame import (
     EccentricBracedFrame,
     EccentricBracedFrameShearLinkAngle,
@@ -151,6 +161,19 @@ class Type(Enum):
     ALL_TENSILE_COUPON = "all-tensile-coupons"
     TENSILE_COUPON = "tensile-coupon"
     TENSILE_COUPON_STRESS_STRAIN = "tensile-coupon-stress-strain"
+    ALL_DUCTILE_FRACTURE = "all-ductile-fractures"
+    DUCTILE_FRACTURE = "ductile-fracture"
+    DUCTILE_FRACTURE_FORCE_ELONGATION = "ductile-fracture-force-elongation"
+    DUCTILE_FRACTURE_FORCE_ELONGATION_SIMULATION = (
+        "ductile-fracture-force-elongation-simulation"
+    )
+    DUCTILE_FRACTURE_FORCE_RADIAL = "ductile-fracture-force-radial"
+    DUCTILE_FRACTURE_FORCE_RADIAL_SIMULATION = (
+        "ductile-fracture-force-radial-simulation"
+    )
+    DUCTILE_FRACTURE_EPEQ_SIMULATION = "ductile-fracture-epeq-simulation"
+    DUCTILE_FRACTURE_LODE_SIMULATION = "ductile-fracture-lode-simulation"
+    DUCTILE_FRACTURE_TRIAX_SIMULATION = "ductile-fracture-triax-simulation"
 
 
 # Abstract base class defining the upload interface
@@ -278,6 +301,10 @@ class TableUploader(Uploader):
         index = headers.index(column.key or "")
         value = row[index]
 
+        if value == "":
+            if isinstance(column.type, String):
+                return ""
+            return None
         if value.upper() == "NA":
             if isinstance(column.type, String):
                 return "Not applicable"
@@ -628,6 +655,93 @@ def upload_one(input_type: Type, filename: str) -> str:
                         moment=value.get("moment (kN.m)"),
                     ),
                 )
+            case Type.DUCTILE_FRACTURE:
+                uploader = TableUploader(DuctileFracture)
+            case Type.DUCTILE_FRACTURE_FORCE_ELONGATION:
+                uploader = CsvFileUploader(
+                    lambda id: delete(DuctileFractureForceElongation).where(
+                        DuctileFractureForceElongation.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: DuctileFractureForceElongation(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Elongation [mm]"),
+                        load=value.get("Load [kN]"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_FORCE_ELONGATION_SIMULATION:
+                uploader = CsvFileUploader(
+                    lambda id: delete(DuctileFractureForceElongationSimulation).where(
+                        DuctileFractureForceElongationSimulation.ductile_fracture_id
+                        == id
+                    ),
+                    lambda id, index, value: DuctileFractureForceElongationSimulation(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Elongation [mm]"),
+                        load=value.get("Load [kN]"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_FORCE_RADIAL:
+                uploader = CsvFileUploader(
+                    lambda id: delete(DuctileFractureForceRadial).where(
+                        DuctileFractureForceRadial.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: DuctileFractureForceRadial(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Radial elongation [mm]"),
+                        load=value.get("Load [kN]"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_FORCE_RADIAL_SIMULATION:
+                uploader = CsvFileUploader(
+                    lambda id: delete(DuctileFractureForceRadialSimulation).where(
+                        DuctileFractureForceRadialSimulation.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: DuctileFractureForceRadialSimulation(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Radial elongation [mm]"),
+                        load=value.get("Load [kN]"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_EPEQ_SIMULATION:
+                uploader = CsvFileUploader(
+                    lambda id: delete(DuctileFractureEpeqSimulation).where(
+                        DuctileFractureEpeqSimulation.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: DuctileFractureEpeqSimulation(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Elongation [mm]"),
+                        peeq=value.get("Equivalent plastic strain"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_LODE_SIMULATION:
+                uploader = CsvFileUploader(
+                    lambda id: delete(DuctileFractureLodeSimulation).where(
+                        DuctileFractureLodeSimulation.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: DuctileFractureLodeSimulation(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Elongation [mm]"),
+                        lode=value.get("Lode angle"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_TRIAX_SIMULATION:
+                uploader = CsvFileUploader(
+                    lambda id: delete(DuctileFractureTriaxSimulation).where(
+                        DuctileFractureTriaxSimulation.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: DuctileFractureTriaxSimulation(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Elongation [mm]"),
+                        triaxiality=value.get("Triaxiality"),
+                    ),
+                )
             case _:
                 raise NotImplementedError(f"unknown type {input_type}")
 
@@ -661,6 +775,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 + get_args_all(Type.ALL_HSS_COLUMN, filename)
                 + get_args_all(Type.ALL_ECCENTRIC_BRACED_FRAME, filename)
                 + get_args_all(Type.ALL_TENSILE_COUPON, filename)
+                + get_args_all(Type.ALL_DUCTILE_FRACTURE, filename)
             )
         case Type.ALL_BRACE:
             root_folder = path.join(filename, "braces")
@@ -799,6 +914,48 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     path.join(root_folder, "stress_strain", "*.csv"),
                 ),
             ]
+        case Type.ALL_DUCTILE_FRACTURE:
+            root_folder = path.join(filename, "ductile_fracture")
+            return [
+                (
+                    Type.DUCTILE_FRACTURE,
+                    path.join(root_folder, "ductile_fracture.csv"),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_FORCE_ELONGATION,
+                    path.join(root_folder, "force_elongation", "*.csv"),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_FORCE_ELONGATION_SIMULATION,
+                    path.join(root_folder, "force_elongation_simulation", "*.csv"),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_FORCE_RADIAL,
+                    path.join(root_folder, "force_radial", "*.csv"),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_FORCE_RADIAL_SIMULATION,
+                    path.join(root_folder, "force_radial_simulation", "*.csv"),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_EPEQ_SIMULATION,
+                    path.join(
+                        root_folder,
+                        "equivalent_plastic_strain_elongation_simulation",
+                        "*.csv",
+                    ),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_LODE_SIMULATION,
+                    path.join(root_folder, "lode_angle_elongation_simulation", "*.csv"),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_TRIAX_SIMULATION,
+                    path.join(
+                        root_folder, "triaxiality_elongation_simulation", "*.csv"
+                    ),
+                ),
+            ]
         case _:
             return [(input_type, filename)]
 
@@ -858,6 +1015,7 @@ def upload_all(input_type: Type, filenames: List[str]):
             Type.HSS_COLUMN,
             Type.ECCENTRIC_BRACED_FRAME,
             Type.TENSILE_COUPON,
+            Type.DUCTILE_FRACTURE,
         ]
     ]
     subsidiary_types = [arg for arg in args if arg not in primary_types]
