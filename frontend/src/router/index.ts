@@ -95,6 +95,10 @@ const router = createRouter({
           component: () => import('@/views/TensileCouponsDatabase.vue')
         },
         {
+          path: 'ductile-fracture',
+          component: () => import('@/views/DuctileFractureDatabase.vue')
+        },
+        {
           path: 'model',
           component: () => import('@/views/MaterialsModelView.vue')
         }

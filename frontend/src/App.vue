@@ -68,6 +68,10 @@ const menuItems: MenuItem[] = [
         to: '/tensile-coupons'
       },
       {
+        text: 'Ductile Fracture DB',
+        to: '/ductile-fracture'
+      },
+      {
         text: 'Material Model',
         to: '/model'
       }
