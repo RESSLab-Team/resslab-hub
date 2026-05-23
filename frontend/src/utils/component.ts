@@ -26,6 +26,10 @@ export function getTensileCouponImage() {
   return publicPath + 'img/material/detail.png'
 }
 
+export function getDuctileFractureImage() {
+  return publicPath + 'img/material/detail.png'
+}
+
 export function getBraceImage(boundary_condition: string) {
   switch (boundary_condition) {
     case 'Gusset plate':

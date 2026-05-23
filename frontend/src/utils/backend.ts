@@ -11,6 +11,7 @@ export type Type =
   | 'Connections'
   | 'Cyclic Coupons'
   | 'Tensile Coupons'
+  | 'Ductile Fracture'
   | 'Residual Stresses'
   | 'HSS Columns'
   | 'EBF Links'
@@ -20,6 +21,7 @@ export const typesNames: Type[] = [
   'Connections',
   'Cyclic Coupons',
   'Tensile Coupons',
+  'Ductile Fracture',
   'Residual Stresses',
   'HSS Columns',
   'EBF Links'
