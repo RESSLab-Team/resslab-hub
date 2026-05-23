@@ -13,6 +13,7 @@ import {
   bracesApi,
   columnsApi,
   connectionsApi,
+  ductileFractureApi,
   ebfApi,
   hssApi,
   materialsApi,
@@ -91,7 +92,8 @@ onMounted(() => {
     residualsApi.getResidualStressesDistinct(),
     hssApi.getHssColumnsDistinct(),
     ebfApi.getEccentricBracedFramesDistinct(),
-    tensileCouponApi.getTensileCouponsDistinct()
+    tensileCouponApi.getTensileCouponsDistinct(),
+    ductileFractureApi.getDuctileFracturesDistinct()
   ])
     .then((responses) =>
       chain(responses)

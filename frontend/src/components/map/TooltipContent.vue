@@ -3,6 +3,7 @@ import {
   getBraceImage,
   getColumnMapImage,
   getConnectionSpecimenImage,
+  getDuctileFractureImage,
   getResidualStressImage,
   getSteelMaterialImage,
   getTensileCouponImage,
@@ -124,6 +125,23 @@ const { data, type } = defineProps<{
         </li>
         <li>
           <a :href="`/materials/tensile-coupons?id=${data.id}&detail=true`"> View experimental data </a>
+        </li>
+      </ul>
+    </template>
+    <template v-else-if="type === 'Ductile Fracture'">
+      <h3>
+        <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.date }}) </a>
+      </h3>
+      <ul>
+        <li><strong>Specimen:</strong> {{ data.specimen_designation }}</li>
+        <li><strong>Type:</strong> {{ data.specimen_type }}</li>
+        <li>
+          <img alt="Ductile fracture image" :src="getDuctileFractureImage()" />
+        </li>
+        <li>
+          <a :href="`/materials/ductile-fracture?id=${data.id}&detail=true`">
+            View experimental data
+          </a>
         </li>
       </ul>
     </template>

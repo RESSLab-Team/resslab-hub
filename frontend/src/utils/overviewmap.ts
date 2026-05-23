@@ -5,6 +5,8 @@ import type {
   ColumnModel,
   ConnectionField,
   ConnectionModel,
+  DuctileFractureField,
+  DuctileFractureModel,
   EccentricBracedFrameField,
   EccentricBracedFrameModel,
   HSSColumnField,
@@ -90,6 +92,16 @@ const _locationTensileCouponFields = [
   'experimental_program'
 ] as const
 export const locationTensileCouponFields: TensileCouponField[] = [..._locationTensileCouponFields]
+const _locationDuctileFractureFields = [
+  ...locationCommonFields,
+  'link',
+  'experimental_program',
+  'specimen_designation',
+  'specimen_type'
+] as const
+export const locationDuctileFractureFields: DuctileFractureField[] = [
+  ..._locationDuctileFractureFields
+]
 const _locationEbfFields = [
   'id',
   'investigator',
@@ -126,6 +138,10 @@ export type LocationTensileCoupon = Pick<
   TensileCouponModel,
   (typeof _locationTensileCouponFields)[number]
 >
+export type LocationDuctileFracture = Pick<
+  DuctileFractureModel,
+  (typeof _locationDuctileFractureFields)[number]
+>
 
 type LocationGlobal =
   | LocationBrace
@@ -136,6 +152,7 @@ type LocationGlobal =
   | LocationHSSColumn
   | LocationEbf
   | LocationTensileCoupon
+  | LocationDuctileFracture
 
 type LocationWithCoordinates = LocationGlobal & { latitude: number; longitude: number }
 

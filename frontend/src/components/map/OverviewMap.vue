@@ -5,6 +5,7 @@ import {
   bracesApi,
   columnsApi,
   connectionsApi,
+  ductileFractureApi,
   ebfApi,
   hssApi,
   materialsApi,
@@ -18,6 +19,7 @@ import {
   locationBraceFields,
   locationColumnFields,
   locationConnectionFields,
+  locationDuctileFractureFields,
   locationEbfFields,
   locationHSSColumnFields,
   locationMaterialFields,
@@ -28,6 +30,7 @@ import {
   type LocationBrace,
   type LocationColumn,
   type LocationConnection,
+  type LocationDuctileFracture,
   type LocationMaterial,
   type LocationResidualStress,
   type LocationTensileCoupon
@@ -96,6 +99,12 @@ tensileCouponApi.getTensileCouponsFields(locationTensileCouponFields).then((res)
   updateMap()
 })
 
+const ductileFractureLocations = ref<LocationDuctileFracture[]>([])
+ductileFractureApi.getDuctileFracturesFields(locationDuctileFractureFields).then((res) => {
+  ductileFractureLocations.value = (res.data as LocationDuctileFracture[]).filter(hasCoordinates)
+  updateMap()
+})
+
 // Computed property to get the total number of markers
 const dataLength = computed(
   () =>
@@ -106,7 +115,8 @@ const dataLength = computed(
     residualStressesLocations.value.length +
     hssColumnsLocations.value.length +
     ebfLocations.value.length +
-    tensileCouponLocations.value.length
+    tensileCouponLocations.value.length +
+    ductileFractureLocations.value.length
 )
 
 // Reference to the map container element
@@ -174,7 +184,8 @@ const markers = computed<Marker[]>(() => {
     createMarkers(residualStressesLocations.value, 'Residual Stresses'),
     createMarkers(hssColumnsLocations.value, 'HSS Columns'),
     createMarkers(ebfLocations.value, 'EBF Links'),
-    createMarkers(tensileCouponLocations.value, 'Tensile Coupons')
+    createMarkers(tensileCouponLocations.value, 'Tensile Coupons'),
+    createMarkers(ductileFractureLocations.value, 'Ductile Fracture')
   ].flat()
 })
 
