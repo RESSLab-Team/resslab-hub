@@ -26,3 +26,5 @@ backend/.venv/
 
 .python-version
 /tensile-coupons/
+
+docker-compose.override.yml
