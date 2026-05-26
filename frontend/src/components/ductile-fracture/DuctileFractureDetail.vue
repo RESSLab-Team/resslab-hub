@@ -2,7 +2,9 @@
 import type { DuctileFractureModel } from '@/backend'
 import CommonDetail from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
+import DuctileFracturePlotSlot from '@/components/ductile-fracture/charts/DuctileFracturePlotSlot.vue'
 import { getDuctileFractureImage } from '@/utils/component'
+import type { DuctileFracturePlotId } from '@/utils/ductile_fracture'
 import { formatNumber } from '@/utils/formatter'
 import { computed } from 'vue'
 
@@ -20,6 +22,22 @@ const publicationLink = computed(() => {
   }
   return link
 })
+
+const leftOptions = computed<DuctileFracturePlotId[]>(() => {
+  const opts: DuctileFracturePlotId[] = []
+  if (props.ductileFracture.force_elongation_count > 0) opts.push('force-axial')
+  if (props.ductileFracture.force_radial_count > 0) opts.push('force-radial')
+  return opts
+})
+const rightOptions = computed<DuctileFracturePlotId[]>(() => {
+  const opts: DuctileFracturePlotId[] = []
+  if (props.ductileFracture.triax_simulation_count > 0) opts.push('triax')
+  if (props.ductileFracture.lode_simulation_count > 0) opts.push('lode')
+  if (props.ductileFracture.epeq_simulation_count > 0) opts.push('epeq')
+  return opts
+})
+const twoFigures = computed(() => rightOptions.value.length > 0)
+const showPlots = computed(() => leftOptions.value.length > 0 || twoFigures.value)
 </script>
 
 <template>
@@ -35,6 +53,23 @@ const publicationLink = computed(() => {
       {{ ductileFracture.specimen_designation }}
     </template>
     <template #body>
+      <v-row v-if="showPlots" class="mt-2 mb-2">
+        <v-col :cols="twoFigures ? 6 : 12">
+          <ductile-fracture-plot-slot
+            v-if="leftOptions.length > 0"
+            :model="ductileFracture"
+            :options="leftOptions"
+            :default-plot="leftOptions[0]"
+          />
+        </v-col>
+        <v-col v-if="twoFigures" cols="6">
+          <ductile-fracture-plot-slot
+            :model="ductileFracture"
+            :options="rightOptions"
+            :default-plot="rightOptions[0]"
+          />
+        </v-col>
+      </v-row>
       <v-row>
         <v-col cols="6">
           <div class="mb-5">
