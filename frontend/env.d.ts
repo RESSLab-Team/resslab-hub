@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_APP_BACKEND_URL: string
+  readonly VITE_SEM_CDN_BASE_URL: string
 }
 
 interface ImportMeta {
