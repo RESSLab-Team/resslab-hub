@@ -8203,6 +8203,7 @@
           "link",
           "latitude",
           "longitude",
+          "has_sem",
           "force_elongation_count",
           "force_elongation_simulation_count",
           "force_radial_count",
@@ -8579,6 +8580,10 @@
           "longitude": {
             "title": "Longitude",
             "type": "number"
+          },
+          "has_sem": {
+            "title": "Has Sem",
+            "type": "boolean"
           },
           "force_elongation_count": {
             "title": "Force Elongation Count",

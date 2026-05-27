@@ -2810,6 +2810,7 @@ export const DuctileFractureField = {
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    HasSem: 'has_sem',
     ForceElongationCount: 'force_elongation_count',
     ForceElongationSimulationCount: 'force_elongation_simulation_count',
     ForceRadialCount: 'force_radial_count',
@@ -3290,6 +3291,12 @@ export interface DuctileFractureModel {
      * @memberof DuctileFractureModel
      */
     'longitude': number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DuctileFractureModel
+     */
+    'has_sem'?: boolean;
     /**
      * 
      * @type {number}
