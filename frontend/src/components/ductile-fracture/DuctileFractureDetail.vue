@@ -3,10 +3,12 @@ import type { DuctileFractureModel } from '@/backend'
 import CommonDetail from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import DuctileFracturePlotSlot from '@/components/ductile-fracture/charts/DuctileFracturePlotSlot.vue'
+import SemDialog from '@/components/ductile-fracture/sem/SemDialog.vue'
 import { getDuctileFractureImage } from '@/utils/component'
 import type { DuctileFracturePlotId } from '@/utils/ductile_fracture'
 import { formatNumber } from '@/utils/formatter'
-import { computed } from 'vue'
+import { mdiMagnifyPlusOutline } from '@mdi/js'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
   ductileFracture: DuctileFractureModel
@@ -38,6 +40,8 @@ const rightOptions = computed<DuctileFracturePlotId[]>(() => {
 })
 const twoFigures = computed(() => rightOptions.value.length > 0)
 const showPlots = computed(() => leftOptions.value.length > 0 || twoFigures.value)
+
+const semOpen = ref(false)
 </script>
 
 <template>
@@ -137,6 +141,14 @@ const showPlots = computed(() => leftOptions.value.length > 0 || twoFigures.valu
           <v-img :src="getDuctileFractureImage()" />
         </v-col>
       </v-row>
+      <v-row v-if="ductileFracture.has_sem">
+        <v-col cols="12">
+          <v-btn block size="large" :prepend-icon="mdiMagnifyPlusOutline" @click="semOpen = true">
+            Scanning Electron Microscopy (SEM)
+          </v-btn>
+        </v-col>
+      </v-row>
+      <sem-dialog v-model="semOpen" :model="ductileFracture" />
     </template>
   </common-detail>
 </template>
