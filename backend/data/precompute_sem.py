@@ -5,9 +5,13 @@ For each specimen folder under ``<data_repo>/ductile_fracture/sem/<id>/``:
 - Convert each ``*.tif`` to WebP.
 - For non-global images, read the EXIF pixel size and run process_sem to extract
   per-image dimple diameters (mm). Pool everything into a "dimples_all.json".
-- Upload WebPs and dimple JSONs to the EPFL enacit4r-cdn under
-  ``s3://<bucket>/sem/<id>/`` (skipped when DRY_RUN=1 — outputs go to a local
-  ``_webp/`` directory instead).
+- Upload WebPs and dimple JSONs to the EPFL enacit4r-cdn (skipped when
+  DRY_RUN=1 — outputs go to a local ``_webp/`` directory instead).
+
+The CDN model: uploads go to ``s3.epfl.ch`` into a shared enacit4r bucket, and
+the same path inside that bucket is served at ``enacit4r-cdn.epfl.ch/...``.
+So objects land at ``s3://<bucket>/resslab-hub/sem/<id>/...`` to be readable
+at ``https://enacit4r-cdn.epfl.ch/resslab-hub/sem/<id>/...``.
 
 Usage::
 
@@ -17,10 +21,12 @@ Usage::
 Environment:
     DRY_RUN           If "1", skip CDN upload. WebPs and JSONs land in
                       ``<sem_dir>/_webp/<id>/``.
-    ACCESS_KEY_ID, ACCESS_KEY_SECRET, S3_ENDPOINT_URL, S3_BUCKET
-                      S3 creds for the EPFL CDN. Defaults:
-                      S3_ENDPOINT_URL=https://enacit4r-cdn.epfl.ch,
-                      S3_BUCKET=resslab-hub.
+    ACCESS_KEY_ID, ACCESS_KEY_SECRET
+                      S3 creds for the EPFL CDN (from EPFL KeeWeb).
+    BUCKET_NAME       Shared enacit4r bucket name (from EPFL KeeWeb). Required.
+    S3_ENDPOINT_URL   Defaults to https://s3.epfl.ch.
+    CDN_PREFIX        Defaults to "resslab-hub". Matches VITE_SEM_CDN_BASE_URL
+                      in frontend/.env.production.
 """
 from __future__ import annotations
 
@@ -39,8 +45,8 @@ from PIL import Image
 
 from process_sem_lib import crop_legend, process_sem  # noqa: E402
 
-DEFAULT_S3_ENDPOINT = "https://enacit4r-cdn.epfl.ch"
-DEFAULT_S3_BUCKET = "resslab-hub"
+DEFAULT_S3_ENDPOINT = "https://s3.epfl.ch"
+DEFAULT_CDN_PREFIX = "resslab-hub"
 WEBP_QUALITY = 85
 EXIF_PIXEL_SIZE_TAG = "Image Tag 0x8546"
 # Filename convention: "<location>_<magnification>.tif" or "global.tif".
@@ -92,12 +98,19 @@ def extract_dimples_mm(tif_path: Path, pixel_size_mm: float) -> List[float]:
 def _make_s3_client():
     """Lazy import boto3 so DRY_RUN runs don't require the dep."""
     import boto3  # noqa: WPS433
+    from botocore.config import Config  # noqa: WPS433
 
+    # EPFL enacit4r-cdn rejects boto3 >=1.36's default trailing checksums
+    # ("BadRequest: trailing checksum is not supported"). Opt out.
     return boto3.client(
         "s3",
         endpoint_url=os.environ.get("S3_ENDPOINT_URL", DEFAULT_S3_ENDPOINT),
         aws_access_key_id=os.environ["ACCESS_KEY_ID"],
         aws_secret_access_key=os.environ["ACCESS_KEY_SECRET"],
+        config=Config(
+            request_checksum_calculation="when_required",
+            response_checksum_validation="when_required",
+        ),
     )
 
 
@@ -117,7 +130,8 @@ def process_specimen(sem_dir: Path, specimen_id: str, dry_run: bool) -> None:
         return
 
     s3 = None if dry_run else _make_s3_client()
-    bucket = os.environ.get("S3_BUCKET", DEFAULT_S3_BUCKET)
+    bucket = None if dry_run else os.environ["BUCKET_NAME"]
+    cdn_prefix = os.environ.get("CDN_PREFIX", DEFAULT_CDN_PREFIX)
 
     out_dir: Optional[Path] = None
     if dry_run:
@@ -150,7 +164,7 @@ def process_specimen(sem_dir: Path, specimen_id: str, dry_run: bool) -> None:
             _upload(
                 s3,
                 bucket,
-                f"sem/{specimen_id}/{webp_name}",
+                f"{cdn_prefix}/sem/{specimen_id}/{webp_name}",
                 webp_bytes,
                 "image/webp",
             )
@@ -174,7 +188,7 @@ def process_specimen(sem_dir: Path, specimen_id: str, dry_run: bool) -> None:
         if dry_run:
             (out_dir / name).write_bytes(body)
         else:
-            _upload(s3, bucket, f"sem/{specimen_id}/{name}", body, "application/json")
+            _upload(s3, bucket, f"{cdn_prefix}/sem/{specimen_id}/{name}", body, "application/json")
 
     pooled_body = json.dumps(pooled_diameters).encode("utf-8")
     if dry_run:
@@ -183,7 +197,7 @@ def process_specimen(sem_dir: Path, specimen_id: str, dry_run: bool) -> None:
         _upload(
             s3,
             bucket,
-            f"sem/{specimen_id}/dimples_all.json",
+            f"{cdn_prefix}/sem/{specimen_id}/dimples_all.json",
             pooled_body,
             "application/json",
         )
