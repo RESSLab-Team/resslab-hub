@@ -82,6 +82,9 @@ upload-tensile-coupon:
 upload-ductile-fracture:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-ductile-fractures ../../resslab-hub-data
 
+precompute-sem:
+	uv run --group sem python data/precompute_sem.py ../../resslab-hub-data
+
 upload-data:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all ../../resslab-hub-data
 
