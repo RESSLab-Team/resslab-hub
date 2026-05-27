@@ -1042,6 +1042,7 @@ class DuctileFractureModel(BaseModel):
     link: str
     latitude: Decimal
     longitude: Decimal
+    has_sem: Optional[bool]
     # END_OF_GENERATED_CODE_ductile_fracture
 
     force_elongation_count: int

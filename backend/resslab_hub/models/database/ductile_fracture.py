@@ -3,6 +3,7 @@ Ductile Fracture Database Models
 """
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     Column,
     ForeignKey,
     Integer,
@@ -187,6 +188,7 @@ class DuctileFracture(Base):  # type: ignore
     link = Column(String, nullable=False)
     latitude = Column(DecimalFloat, nullable=False)
     longitude = Column(DecimalFloat, nullable=False)
+    has_sem = Column(Boolean, nullable=True)
     # END_OF_GENERATED_CODE
 
     force_elongation_count = column_property(
