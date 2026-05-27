@@ -17,7 +17,7 @@ Usage::
 Environment:
     DRY_RUN           If "1", skip CDN upload. WebPs and JSONs land in
                       ``<sem_dir>/_webp/<id>/``.
-    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_ENDPOINT_URL, S3_BUCKET
+    ACCESS_KEY_ID, ACCESS_KEY_SECRET, S3_ENDPOINT_URL, S3_BUCKET
                       S3 creds for the EPFL CDN. Defaults:
                       S3_ENDPOINT_URL=https://enacit4r-cdn.epfl.ch,
                       S3_BUCKET=resslab-hub.
@@ -96,8 +96,8 @@ def _make_s3_client():
     return boto3.client(
         "s3",
         endpoint_url=os.environ.get("S3_ENDPOINT_URL", DEFAULT_S3_ENDPOINT),
-        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
-        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+        aws_access_key_id=os.environ["ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["ACCESS_KEY_SECRET"],
     )
 
 
