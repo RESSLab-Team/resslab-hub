@@ -1,7 +1,7 @@
 """
 Precompute SEM artifacts for the ductile-fracture tab.
 
-For each specimen folder under ``<data_repo>/ductile_fracture/sem/<id>/``:
+For each specimen folder under ``<data_repo>/material/ductile_fracture/sem/<id>/``:
 - Convert each ``*.tif`` to WebP.
 - For non-global images, read the EXIF pixel size and run process_sem to extract
   per-image dimple diameters (mm). Pool everything into a "dimples_all.json".
@@ -215,7 +215,7 @@ def main(argv: List[str]) -> int:
         print(f"Usage: python {argv[0]} <path-to-resslab-hub-data>", file=sys.stderr)
         return 2
     data_root = Path(argv[1]).resolve()
-    sem_dir = data_root / "ductile_fracture" / "sem"
+    sem_dir = data_root / "material" / "ductile_fracture" / "sem"
     if not sem_dir.is_dir():
         print(f"SEM directory not found: {sem_dir}", file=sys.stderr)
         return 1

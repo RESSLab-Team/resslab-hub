@@ -837,7 +837,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 ),
             ]
         case Type.ALL_MATERIAL:
-            root_folder = path.join(filename, "material")
+            root_folder = path.join(filename, "material", "cyclic_coupons")
             return [
                 (Type.MATERIAL, path.join(root_folder, "steel_material.csv")),
                 (
@@ -906,7 +906,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 ),
             ]
         case Type.ALL_TENSILE_COUPON:
-            root_folder = path.join(filename, "tensile_coupons")
+            root_folder = path.join(filename, "material", "tensile_coupons")
             return [
                 (Type.TENSILE_COUPON, path.join(root_folder, "tensile_coupons.csv")),
                 (
@@ -915,7 +915,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 ),
             ]
         case Type.ALL_DUCTILE_FRACTURE:
-            root_folder = path.join(filename, "ductile_fracture")
+            root_folder = path.join(filename, "material", "ductile_fracture")
             return [
                 (
                     Type.DUCTILE_FRACTURE,
