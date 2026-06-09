@@ -3,7 +3,7 @@ name: deploy
 
 on:
   push:
-    branches: [dev, test, stage]
+    branches: [dev, stage]
     tags: ['v*.*.*']
 
 jobs:
