@@ -28,3 +28,6 @@ backend/.venv/
 /tensile-coupons/
 
 docker-compose.override.yml
+
+# Lefthook local overrides
+lefthook-local.yml
