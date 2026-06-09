@@ -38,11 +38,9 @@ import sys
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-import cv2
 import exifread
 import numpy as np
 from PIL import Image
-
 from process_sem_lib import crop_legend, process_sem  # noqa: E402
 
 DEFAULT_S3_ENDPOINT = "https://s3.epfl.ch"
@@ -70,7 +68,8 @@ def read_pixel_size_mm(tif_path: Path) -> Optional[float]:
     raw = tags.get(EXIF_PIXEL_SIZE_TAG)
     if raw is None:
         return None
-    # The tag value is an ASCII byte array like "PixelSize=3.722e-06m\x00..." per process_SEM.py.
+    # The tag value is an ASCII byte array like
+    # "PixelSize=3.722e-06m\x00..." per process_SEM.py.
     return float(str(raw.values)[9:21])
 
 
@@ -188,7 +187,13 @@ def process_specimen(sem_dir: Path, specimen_id: str, dry_run: bool) -> None:
         if dry_run:
             (out_dir / name).write_bytes(body)
         else:
-            _upload(s3, bucket, f"{cdn_prefix}/sem/{specimen_id}/{name}", body, "application/json")
+            _upload(
+                s3,
+                bucket,
+                f"{cdn_prefix}/sem/{specimen_id}/{name}",
+                body,
+                "application/json",
+            )
 
     pooled_body = json.dumps(pooled_diameters).encode("utf-8")
     if dry_run:
@@ -222,9 +227,13 @@ def main(argv: List[str]) -> int:
 
     dry_run = os.environ.get("DRY_RUN") == "1"
     if dry_run:
-        print(f"DRY_RUN=1 — writing WebPs/JSONs to {sem_dir / '_webp'} (no CDN upload).")
+        print(
+            f"DRY_RUN=1 — writing WebPs/JSONs to {sem_dir / '_webp'} (no CDN upload)."
+        )
 
-    specimens = sorted(p.name for p in sem_dir.iterdir() if p.is_dir() and not p.name.startswith("_"))
+    specimens = sorted(
+        p.name for p in sem_dir.iterdir() if p.is_dir() and not p.name.startswith("_")
+    )
     if not specimens:
         print(f"No specimen folders under {sem_dir}")
         return 0

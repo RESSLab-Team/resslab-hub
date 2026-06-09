@@ -21,10 +21,9 @@ DEFAULT_CROP_BOTTOM = 688
 def find_contour_radius(
     binary_img: np.ndarray,
 ) -> Tuple[List[np.ndarray], List[float], List[float]]:
-    """Return external contours of a binary image plus their areas and equivalent radii."""
-    contours, _ = cv2.findContours(
-        binary_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-    )
+    """Return external contours of a binary image plus their areas and
+    equivalent radii."""
+    contours, _ = cv2.findContours(binary_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     areas: List[float] = []
     radii: List[float] = []
     for c in contours:
@@ -44,7 +43,8 @@ def process_sem(
     """
     Segment voids ("dimples") in a SEM image and return their pixel areas and radii.
 
-    Pipeline: median filter → CLAHE → threshold → morphological opening → contour extraction.
+    Pipeline: median filter → CLAHE → threshold → morphological opening →
+    contour extraction.
     Caller must convert pixel radius to physical units using the image's pixel size.
     """
     f_img = cv2.medianBlur(img, f_size)
