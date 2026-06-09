@@ -19,6 +19,10 @@ const props = withDefaults(
     yAxisName: string
     xUnit?: string
     yUnit?: string
+    xAxisMin?: number
+    yAxisMin?: number
+    xAxisMax?: number
+    yAxisMax?: number
   }>(),
   {
     colors: () => primaryColors,
@@ -30,7 +34,11 @@ const props = withDefaults(
     xAxisName: undefined,
     yAxisName: undefined,
     xUnit: undefined,
-    yUnit: undefined
+    yUnit: undefined,
+    xAxisMin: undefined,
+    yAxisMin: undefined,
+    xAxisMax: undefined,
+    yAxisMax: undefined
   }
 )
 
@@ -52,10 +60,14 @@ const option = computed<EChartsOption>(
         show: props.series.length > 1
       },
       xAxis: {
-        name: props.xAxisName
+        name: props.xAxisName,
+        min: props.xAxisMin,
+        max: props.xAxisMax
       },
       yAxis: {
-        name: props.yAxisName
+        name: props.yAxisName,
+        min: props.yAxisMin,
+        max: props.yAxisMax
       },
       tooltip: {
         formatter: null as unknown as undefined,

@@ -865,3 +865,209 @@ EccentricBracedFrameNumberField = Enum(
     module=__name__,
     type=str,
 )
+
+
+class TensileCouponModel(BaseModel):
+    # START_OF_GENERATED_CODE_tensile_coupon
+    experimental_program: str
+    standard: str
+    specimen_type: str
+    id: str
+    profile_type: str
+    profile: str
+    specimen_source: Optional[str]
+    steel_grade: str
+    avg_init_reduced_width__mm_: Decimal
+    avg_init_reduced_thickness__mm_: Decimal
+    avg_init_marked_gauge_length__mm_: Decimal
+    eff_fractured_width__mm_: Decimal
+    eff_fractured_thickness__mm_: Decimal
+    avg_fractured_marked_gauge_length__mm_: Decimal
+    fy_n__mpa_: Decimal
+    fu_n__mpa_: Decimal
+    t_a__deg_c_: Decimal
+    date: str
+    year: int
+    investigator: str
+    location: str
+    machine: str
+    pid_force_p: Optional[Decimal]
+    pid_force_i: Optional[Decimal]
+    pid_force_d: Optional[Decimal]
+    pid_disp_p: Optional[Decimal]
+    pid_disp_i: Optional[Decimal]
+    pid_disp_d: Optional[Decimal]
+    pid_ext_p: Optional[Decimal]
+    pid_ext_i: Optional[Decimal]
+    pid_ext_d: Optional[Decimal]
+    yield_stress_02__mpa_: Optional[Decimal]
+    yield_strain_02: Optional[Decimal]
+    bin_discont_yield: bool
+    yield_stress_uyp__mpa_: Optional[Decimal]
+    yield_stress_lyp__mpa_: Optional[Decimal]
+    yield_point_elongation: Optional[Decimal]
+    tensile_strength__mpa_: Optional[Decimal]
+    uniform_elongation: Optional[Decimal]
+    elongation_at_fracture: Optional[Decimal]
+    elongation_after_fracture: Optional[Decimal]
+    reduction_of_area: Optional[Decimal]
+    elastic_modulus__mpa_: Optional[Decimal]
+    c: Optional[Decimal]
+    si: Optional[Decimal]
+    mn: Optional[Decimal]
+    p: Optional[Decimal]
+    s: Optional[Decimal]
+    n: Optional[Decimal]
+    cu: Optional[Decimal]
+    mo: Optional[Decimal]
+    ni: Optional[Decimal]
+    cr: Optional[Decimal]
+    v: Optional[Decimal]
+    nb: Optional[Decimal]
+    ti: Optional[Decimal]
+    al: Optional[Decimal]
+    b: Optional[Decimal]
+    zr: Optional[Decimal]
+    sn: Optional[Decimal]
+    ca: Optional[Decimal]
+    h: Optional[Decimal]
+    fe: Optional[Decimal]
+    file_path: Optional[str]
+    reference: Optional[str]
+    link: Optional[str]
+    latitude: Decimal
+    longitude: Decimal
+    publication_key: Optional[str]
+    datacol_version: int
+    # END_OF_GENERATED_CODE_tensile_coupon
+
+    stress_strain_count: int
+
+
+TensileCouponField = Enum(
+    "TensileCouponField",
+    {key: key for key in TensileCouponModel.__fields__},
+    module=__name__,
+    type=str,
+)
+
+TensileCouponNumberField = Enum(
+    "TensileCouponNumberField",
+    {
+        key: key
+        for key, field in TensileCouponModel.__fields__.items()
+        if field.type_ in [Decimal, int]
+    },
+    module=__name__,
+    type=str,
+)
+
+
+class DuctileFractureModel(BaseModel):
+    # START_OF_GENERATED_CODE_ductile_fracture
+    id: str
+    specimen_designation: str
+    experimental_program: str
+    date: int
+    specimen_type: str
+    piece: str
+    loading: str
+    loading_protocol: str
+    location_coupon: str
+    section_type: str
+    section_profile: str
+    steel_type: str
+    coupon_direction: str
+    crack_opening_direction: str
+    plate_thickness: Decimal
+    f_yn: Decimal
+    f_un: Optional[Decimal]
+    fy_m: Optional[Decimal]
+    fu_m: Optional[Decimal]
+    elongation_fr: Optional[Decimal]
+    temperature: Decimal
+    chemical_composition_C: Optional[Decimal]
+    chemical_composition_Si: Optional[Decimal]
+    chemical_composition_Mn: Optional[Decimal]
+    chemical_composition_P: Optional[Decimal]
+    chemical_composition_S: Optional[Decimal]
+    chemical_composition_Cu: Optional[Decimal]
+    chemical_composition_Ni: Optional[Decimal]
+    chemical_composition_Cr: Optional[Decimal]
+    chemical_composition_V: Optional[Decimal]
+    chemical_composition_Nb: Optional[Decimal]
+    chemical_composition_Mo: Optional[Decimal]
+    chemical_composition_Ti: Optional[Decimal]
+    chemical_composition_Al: Optional[Decimal]
+    chemical_composition_N: Optional[Decimal]
+    gauge_length: Decimal
+    nom_notch_radius: Decimal
+    nom_whole_diameter_cnt: Optional[Decimal]
+    nom_notch_diameter_cnt: Optional[Decimal]
+    nom_notch_width: Decimal
+    nom_width_gp: Optional[Decimal]
+    nom_whole_thickness_gp: Optional[Decimal]
+    nom_notch_thickness_gp: Optional[Decimal]
+    meas_whole_diameter_cnt: Optional[str]
+    meas_notch_diameter_cnt: Optional[str]
+    meas_notch_width: str
+    meas_width_gp: Optional[str]
+    meas_whole_thickness_gp: Optional[str]
+    meas_notch_thickness_gp: Optional[str]
+    disp_fract: Optional[Decimal]
+    exc_at_fract: Optional[int]
+    step_fract: int
+    fract_loc: str
+    young_mod: Decimal
+    nu: Decimal
+    triax_at_fr: Optional[Decimal]
+    triax_avg_till_fr: Decimal
+    lode_at_fr: Decimal
+    lode_avg_till_fr: Decimal
+    peeq_at_fr: Decimal
+    cvgm_etamono: Decimal
+    cvgm_lambda: Decimal
+    swdfm_alpha_pos: Decimal
+    swdfm_alpha_neg: Decimal
+    swdfm_kappa: Decimal
+    swdfm_C: Decimal
+    swdfm_beta: Decimal
+    kk_alpha_1: Decimal
+    kk_alpha_2: Decimal
+    kk_beta_1: Decimal
+    kk_beta_2: Decimal
+    kk_d_cr: Decimal
+    l_star: Optional[Decimal]
+    reference: str
+    link: str
+    latitude: Decimal
+    longitude: Decimal
+    has_sem: Optional[bool]
+    # END_OF_GENERATED_CODE_ductile_fracture
+
+    force_elongation_count: int
+    force_elongation_simulation_count: int
+    force_radial_count: int
+    force_radial_simulation_count: int
+    epeq_simulation_count: int
+    lode_simulation_count: int
+    triax_simulation_count: int
+
+
+DuctileFractureField = Enum(
+    "DuctileFractureField",
+    {key: key for key in DuctileFractureModel.__fields__},
+    module=__name__,
+    type=str,
+)
+
+DuctileFractureNumberField = Enum(
+    "DuctileFractureNumberField",
+    {
+        key: key
+        for key, field in DuctileFractureModel.__fields__.items()
+        if field.type_ in [Decimal, int]
+    },
+    module=__name__,
+    type=str,
+)

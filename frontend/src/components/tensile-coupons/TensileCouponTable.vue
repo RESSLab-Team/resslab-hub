@@ -1,0 +1,85 @@
+<script setup lang="ts">
+import { TensileCouponField, type TensileCouponModel } from '@/backend'
+import SimpleTable from '@/components/commons/SimpleTable.vue'
+import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { tensileCouponApi } from '@/plugins/axios'
+import { useNotificationStore } from '@/stores/notification'
+import { toRef } from 'vue'
+
+const columns: Column[] = [
+  {
+    value: TensileCouponField.ExperimentalProgram,
+    type: 'text'
+  },
+  {
+    value: TensileCouponField.Id,
+    type: 'text'
+  },
+  {
+    value: TensileCouponField.SteelGrade,
+    type: 'text'
+  },
+  {
+    value: TensileCouponField.Profile,
+    type: 'text'
+  },
+  {
+    value: TensileCouponField.SpecimenSource,
+    type: 'text'
+  }
+]
+
+const props = defineProps(tableProps)
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface Emits extends TableEmits<TensileCouponModel> {}
+const emit = defineEmits<Emits>()
+
+const notificationStore = useNotificationStore()
+const {
+  clickRow,
+  downloadFiles,
+  items,
+  loading,
+  options,
+  search,
+  searches,
+  totalCount,
+  totalFilteredCount
+} = useTable<TensileCouponModel>(
+  emit,
+  'tensile-coupon',
+  toRef(props, 'query'),
+  toRef(props, 'search'),
+  toRef(props, 'searches'),
+  [
+    {
+      name: 'stress-strain',
+      countKey: 'stress_strain_count',
+      getCsv: (id) => tensileCouponApi.getTensileCouponsStressStrainCsv(id)
+    }
+  ],
+  () => tensileCouponApi.getTensileCouponsCounts(),
+  (query, sortBy, sortDesc, page, size) =>
+    tensileCouponApi.getTensileCoupons(query, sortBy, sortDesc, page, size),
+  (ids) => tensileCouponApi.getTensileCouponsCsv(ids),
+  (message) => notificationStore.notify(message)
+)
+</script>
+
+<template>
+  <simple-table
+    v-model:options="options"
+    v-model:search="search"
+    v-model:searches="searches"
+    :columns="columns"
+    :items="items"
+    :loading="loading"
+    prefix="tensile_coupon."
+    :query="query"
+    title="Tensile Coupons"
+    :total-count="totalCount"
+    :total-filtered-count="totalFilteredCount"
+    @click:row="clickRow"
+    @download="downloadFiles"
+  />
+</template>

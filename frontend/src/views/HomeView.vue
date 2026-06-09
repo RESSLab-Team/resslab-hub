@@ -13,10 +13,12 @@ import {
   bracesApi,
   columnsApi,
   connectionsApi,
+  ductileFractureApi,
   ebfApi,
   hssApi,
   materialsApi,
-  residualsApi
+  residualsApi,
+  tensileCouponApi
 } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
 import { chain } from 'lodash'
@@ -89,7 +91,9 @@ onMounted(() => {
     materialsApi.getMaterialsDistinct(),
     residualsApi.getResidualStressesDistinct(),
     hssApi.getHssColumnsDistinct(),
-    ebfApi.getEccentricBracedFramesDistinct()
+    ebfApi.getEccentricBracedFramesDistinct(),
+    tensileCouponApi.getTensileCouponsDistinct(),
+    ductileFractureApi.getDuctileFracturesDistinct()
   ])
     .then((responses) =>
       chain(responses)

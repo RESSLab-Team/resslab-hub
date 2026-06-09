@@ -293,7 +293,7 @@ class Component(ABC, Generic[D, M]):
 
     @staticmethod
     def __clean_value(value: Any) -> Optional[Union[Decimal, str]]:
-        if type(value) == Decimal and isnan(value):
+        if isinstance(value, Decimal) and isnan(value):
             return None
         return value
 

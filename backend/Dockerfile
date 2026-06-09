@@ -21,7 +21,6 @@ WORKDIR /app
 COPY --from=build-stage /app/.venv /app/.venv
 COPY ./alembic.ini /app/
 COPY ./alembic /app/alembic
-COPY ./secrets /app/secrets
 
 ENV PATH="/app/.venv/bin:${PATH}" \
     PYTHONUNBUFFERED=1

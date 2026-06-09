@@ -47,6 +47,11 @@ async def root() -> Info:
     return Info(name=name, version=__version__)
 
 
+@router.get("/healthz")
+async def healthz():
+    return {"status": "ok"}
+
+
 @router.post("/upload", dependencies=[Depends(get_current_username)])
 async def create_upload_file(
     file: UploadFile = File(...),

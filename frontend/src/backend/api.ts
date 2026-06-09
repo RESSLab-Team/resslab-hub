@@ -231,7 +231,7 @@ export interface BraceModel {
      * @type {number}
      * @memberof BraceModel
      */
-    'brace_angle': number;
+    'brace_angle'?: number;
     /**
      * 
      * @type {number}
@@ -2732,6 +2732,694 @@ export interface DateRangeModel {
  * @enum {string}
  */
 
+export const DuctileFractureField = {
+    Id: 'id',
+    SpecimenDesignation: 'specimen_designation',
+    ExperimentalProgram: 'experimental_program',
+    Date: 'date',
+    SpecimenType: 'specimen_type',
+    Piece: 'piece',
+    Loading: 'loading',
+    LoadingProtocol: 'loading_protocol',
+    LocationCoupon: 'location_coupon',
+    SectionType: 'section_type',
+    SectionProfile: 'section_profile',
+    SteelType: 'steel_type',
+    CouponDirection: 'coupon_direction',
+    CrackOpeningDirection: 'crack_opening_direction',
+    PlateThickness: 'plate_thickness',
+    FYn: 'f_yn',
+    FUn: 'f_un',
+    FyM: 'fy_m',
+    FuM: 'fu_m',
+    ElongationFr: 'elongation_fr',
+    Temperature: 'temperature',
+    ChemicalCompositionC: 'chemical_composition_C',
+    ChemicalCompositionSi: 'chemical_composition_Si',
+    ChemicalCompositionMn: 'chemical_composition_Mn',
+    ChemicalCompositionP: 'chemical_composition_P',
+    ChemicalCompositionS: 'chemical_composition_S',
+    ChemicalCompositionCu: 'chemical_composition_Cu',
+    ChemicalCompositionNi: 'chemical_composition_Ni',
+    ChemicalCompositionCr: 'chemical_composition_Cr',
+    ChemicalCompositionV: 'chemical_composition_V',
+    ChemicalCompositionNb: 'chemical_composition_Nb',
+    ChemicalCompositionMo: 'chemical_composition_Mo',
+    ChemicalCompositionTi: 'chemical_composition_Ti',
+    ChemicalCompositionAl: 'chemical_composition_Al',
+    ChemicalCompositionN: 'chemical_composition_N',
+    GaugeLength: 'gauge_length',
+    NomNotchRadius: 'nom_notch_radius',
+    NomWholeDiameterCnt: 'nom_whole_diameter_cnt',
+    NomNotchDiameterCnt: 'nom_notch_diameter_cnt',
+    NomNotchWidth: 'nom_notch_width',
+    NomWidthGp: 'nom_width_gp',
+    NomWholeThicknessGp: 'nom_whole_thickness_gp',
+    NomNotchThicknessGp: 'nom_notch_thickness_gp',
+    MeasWholeDiameterCnt: 'meas_whole_diameter_cnt',
+    MeasNotchDiameterCnt: 'meas_notch_diameter_cnt',
+    MeasNotchWidth: 'meas_notch_width',
+    MeasWidthGp: 'meas_width_gp',
+    MeasWholeThicknessGp: 'meas_whole_thickness_gp',
+    MeasNotchThicknessGp: 'meas_notch_thickness_gp',
+    DispFract: 'disp_fract',
+    ExcAtFract: 'exc_at_fract',
+    StepFract: 'step_fract',
+    FractLoc: 'fract_loc',
+    YoungMod: 'young_mod',
+    Nu: 'nu',
+    TriaxAtFr: 'triax_at_fr',
+    TriaxAvgTillFr: 'triax_avg_till_fr',
+    LodeAtFr: 'lode_at_fr',
+    LodeAvgTillFr: 'lode_avg_till_fr',
+    PeeqAtFr: 'peeq_at_fr',
+    CvgmEtamono: 'cvgm_etamono',
+    CvgmLambda: 'cvgm_lambda',
+    SwdfmAlphaPos: 'swdfm_alpha_pos',
+    SwdfmAlphaNeg: 'swdfm_alpha_neg',
+    SwdfmKappa: 'swdfm_kappa',
+    SwdfmC: 'swdfm_C',
+    SwdfmBeta: 'swdfm_beta',
+    KkAlpha1: 'kk_alpha_1',
+    KkAlpha2: 'kk_alpha_2',
+    KkBeta1: 'kk_beta_1',
+    KkBeta2: 'kk_beta_2',
+    KkDCr: 'kk_d_cr',
+    LStar: 'l_star',
+    Reference: 'reference',
+    Link: 'link',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    HasSem: 'has_sem',
+    ForceElongationCount: 'force_elongation_count',
+    ForceElongationSimulationCount: 'force_elongation_simulation_count',
+    ForceRadialCount: 'force_radial_count',
+    ForceRadialSimulationCount: 'force_radial_simulation_count',
+    EpeqSimulationCount: 'epeq_simulation_count',
+    LodeSimulationCount: 'lode_simulation_count',
+    TriaxSimulationCount: 'triax_simulation_count'
+} as const;
+
+export type DuctileFractureField = typeof DuctileFractureField[keyof typeof DuctileFractureField];
+
+
+/**
+ * 
+ * @export
+ * @interface DuctileFractureModel
+ */
+export interface DuctileFractureModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'specimen_designation': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'experimental_program': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'date': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'specimen_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'piece': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'loading': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'loading_protocol': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'location_coupon': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'section_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'section_profile': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'steel_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'coupon_direction': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'crack_opening_direction': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'plate_thickness': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'f_yn': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'f_un'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'fy_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'fu_m'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'elongation_fr'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'temperature': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_C'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_Si'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_Mn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_P'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_S'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_Cu'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_Ni'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_Cr'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_V'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_Nb'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_Mo'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_Ti'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_Al'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'chemical_composition_N'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'gauge_length': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'nom_notch_radius': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'nom_whole_diameter_cnt'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'nom_notch_diameter_cnt'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'nom_notch_width': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'nom_width_gp'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'nom_whole_thickness_gp'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'nom_notch_thickness_gp'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'meas_whole_diameter_cnt'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'meas_notch_diameter_cnt'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'meas_notch_width': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'meas_width_gp'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'meas_whole_thickness_gp'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'meas_notch_thickness_gp'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'disp_fract'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'exc_at_fract'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'step_fract': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'fract_loc': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'young_mod': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'nu': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'triax_at_fr'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'triax_avg_till_fr': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'lode_at_fr': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'lode_avg_till_fr': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'peeq_at_fr': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'cvgm_etamono': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'cvgm_lambda': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'swdfm_alpha_pos': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'swdfm_alpha_neg': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'swdfm_kappa': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'swdfm_C': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'swdfm_beta': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'kk_alpha_1': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'kk_alpha_2': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'kk_beta_1': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'kk_beta_2': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'kk_d_cr': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'l_star'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'reference': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DuctileFractureModel
+     */
+    'link': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'longitude': number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DuctileFractureModel
+     */
+    'has_sem'?: boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'force_elongation_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'force_elongation_simulation_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'force_radial_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'force_radial_simulation_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'epeq_simulation_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'lode_simulation_count': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DuctileFractureModel
+     */
+    'triax_simulation_count': number;
+}
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const DuctileFractureNumberField = {
+    Date: 'date',
+    PlateThickness: 'plate_thickness',
+    FYn: 'f_yn',
+    FUn: 'f_un',
+    FyM: 'fy_m',
+    FuM: 'fu_m',
+    ElongationFr: 'elongation_fr',
+    Temperature: 'temperature',
+    ChemicalCompositionC: 'chemical_composition_C',
+    ChemicalCompositionSi: 'chemical_composition_Si',
+    ChemicalCompositionMn: 'chemical_composition_Mn',
+    ChemicalCompositionP: 'chemical_composition_P',
+    ChemicalCompositionS: 'chemical_composition_S',
+    ChemicalCompositionCu: 'chemical_composition_Cu',
+    ChemicalCompositionNi: 'chemical_composition_Ni',
+    ChemicalCompositionCr: 'chemical_composition_Cr',
+    ChemicalCompositionV: 'chemical_composition_V',
+    ChemicalCompositionNb: 'chemical_composition_Nb',
+    ChemicalCompositionMo: 'chemical_composition_Mo',
+    ChemicalCompositionTi: 'chemical_composition_Ti',
+    ChemicalCompositionAl: 'chemical_composition_Al',
+    ChemicalCompositionN: 'chemical_composition_N',
+    GaugeLength: 'gauge_length',
+    NomNotchRadius: 'nom_notch_radius',
+    NomWholeDiameterCnt: 'nom_whole_diameter_cnt',
+    NomNotchDiameterCnt: 'nom_notch_diameter_cnt',
+    NomNotchWidth: 'nom_notch_width',
+    NomWidthGp: 'nom_width_gp',
+    NomWholeThicknessGp: 'nom_whole_thickness_gp',
+    NomNotchThicknessGp: 'nom_notch_thickness_gp',
+    DispFract: 'disp_fract',
+    ExcAtFract: 'exc_at_fract',
+    StepFract: 'step_fract',
+    YoungMod: 'young_mod',
+    Nu: 'nu',
+    TriaxAtFr: 'triax_at_fr',
+    TriaxAvgTillFr: 'triax_avg_till_fr',
+    LodeAtFr: 'lode_at_fr',
+    LodeAvgTillFr: 'lode_avg_till_fr',
+    PeeqAtFr: 'peeq_at_fr',
+    CvgmEtamono: 'cvgm_etamono',
+    CvgmLambda: 'cvgm_lambda',
+    SwdfmAlphaPos: 'swdfm_alpha_pos',
+    SwdfmAlphaNeg: 'swdfm_alpha_neg',
+    SwdfmKappa: 'swdfm_kappa',
+    SwdfmC: 'swdfm_C',
+    SwdfmBeta: 'swdfm_beta',
+    KkAlpha1: 'kk_alpha_1',
+    KkAlpha2: 'kk_alpha_2',
+    KkBeta1: 'kk_beta_1',
+    KkBeta2: 'kk_beta_2',
+    KkDCr: 'kk_d_cr',
+    LStar: 'l_star',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    ForceElongationCount: 'force_elongation_count',
+    ForceElongationSimulationCount: 'force_elongation_simulation_count',
+    ForceRadialCount: 'force_radial_count',
+    ForceRadialSimulationCount: 'force_radial_simulation_count',
+    EpeqSimulationCount: 'epeq_simulation_count',
+    LodeSimulationCount: 'lode_simulation_count',
+    TriaxSimulationCount: 'triax_simulation_count'
+} as const;
+
+export type DuctileFractureNumberField = typeof DuctileFractureNumberField[keyof typeof DuctileFractureNumberField];
+
+
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
 export const EccentricBracedFrameField = {
     Id: 'id',
     Investigator: 'investigator',
@@ -2752,24 +3440,16 @@ export const EccentricBracedFrameField = {
     FYMWeb: 'f_y_m_web',
     FYExpLFlg: 'f_y_exp_l_flg',
     FYExpLWeb: 'f_y_exp_l_web',
-    FYExpUFlg: 'f_y_exp_u_flg',
-    FYExpUWeb: 'f_y_exp_u_web',
     FUMFlg: 'f_u_m_flg',
     FUMWeb: 'f_u_m_web',
     FUExpLFlg: 'f_u_exp_l_flg',
     FUExpLWeb: 'f_u_exp_l_web',
-    FUExpUFlg: 'f_u_exp_u_flg',
-    FUExpUWeb: 'f_u_exp_u_web',
     EMFlg: 'e_m_flg',
     EMWeb: 'e_m_web',
-    RYLFlg: 'r_y_l_flg',
-    RYLWeb: 'r_y_l_web',
-    RYUFlg: 'r_y_u_flg',
-    RYUWeb: 'r_y_u_web',
-    RTLFlg: 'r_t_l_flg',
-    RTLWeb: 'r_t_l_web',
-    RTUFlg: 'r_t_u_flg',
-    RTUWeb: 'r_t_u_web',
+    RYFlg: 'r_y_flg',
+    RYWeb: 'r_y_web',
+    RTFlg: 'r_t_flg',
+    RTWeb: 'r_t_web',
     FUFYNFlg: 'f_u_f_y_n_flg',
     FUFYNWeb: 'f_u_f_y_n_web',
     FUFYMFlg: 'f_u_f_y_m_flg',
@@ -2970,18 +3650,6 @@ export interface EccentricBracedFrameModel {
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'f_y_exp_u_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_y_exp_u_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'f_u_m_flg'?: number;
     /**
      * 
@@ -3006,18 +3674,6 @@ export interface EccentricBracedFrameModel {
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'f_u_exp_u_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_exp_u_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'e_m_flg'?: number;
     /**
      * 
@@ -3030,49 +3686,25 @@ export interface EccentricBracedFrameModel {
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'r_y_l_flg'?: number;
+    'r_y_flg'?: number;
     /**
      * 
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'r_y_l_web'?: number;
+    'r_y_web'?: number;
     /**
      * 
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'r_y_u_flg'?: number;
+    'r_t_flg'?: number;
     /**
      * 
      * @type {number}
      * @memberof EccentricBracedFrameModel
      */
-    'r_y_u_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_l_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_l_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_u_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_u_web'?: number;
+    'r_t_web'?: number;
     /**
      * 
      * @type {number}
@@ -3512,24 +4144,16 @@ export const EccentricBracedFrameNumberField = {
     FYMWeb: 'f_y_m_web',
     FYExpLFlg: 'f_y_exp_l_flg',
     FYExpLWeb: 'f_y_exp_l_web',
-    FYExpUFlg: 'f_y_exp_u_flg',
-    FYExpUWeb: 'f_y_exp_u_web',
     FUMFlg: 'f_u_m_flg',
     FUMWeb: 'f_u_m_web',
     FUExpLFlg: 'f_u_exp_l_flg',
     FUExpLWeb: 'f_u_exp_l_web',
-    FUExpUFlg: 'f_u_exp_u_flg',
-    FUExpUWeb: 'f_u_exp_u_web',
     EMFlg: 'e_m_flg',
     EMWeb: 'e_m_web',
-    RYLFlg: 'r_y_l_flg',
-    RYLWeb: 'r_y_l_web',
-    RYUFlg: 'r_y_u_flg',
-    RYUWeb: 'r_y_u_web',
-    RTLFlg: 'r_t_l_flg',
-    RTLWeb: 'r_t_l_web',
-    RTUFlg: 'r_t_u_flg',
-    RTUWeb: 'r_t_u_web',
+    RYFlg: 'r_y_flg',
+    RYWeb: 'r_y_web',
+    RTFlg: 'r_t_flg',
+    RTWeb: 'r_t_web',
     FUFYNFlg: 'f_u_f_y_n_flg',
     FUFYNWeb: 'f_u_f_y_n_web',
     FUFYMFlg: 'f_u_f_y_m_flg',
@@ -3703,6 +4327,43 @@ export interface ExtendedPageConnectionModel {
 /**
  * 
  * @export
+ * @interface ExtendedPageDuctileFractureModel
+ */
+export interface ExtendedPageDuctileFractureModel {
+    /**
+     * 
+     * @type {Array<DuctileFractureModel>}
+     * @memberof ExtendedPageDuctileFractureModel
+     */
+    'items': Array<DuctileFractureModel>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageDuctileFractureModel
+     */
+    'total': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageDuctileFractureModel
+     */
+    'page'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageDuctileFractureModel
+     */
+    'size'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageDuctileFractureModel
+     */
+    'pages'?: number;
+}
+/**
+ * 
+ * @export
  * @interface ExtendedPageEccentricBracedFrameModel
  */
 export interface ExtendedPageEccentricBracedFrameModel {
@@ -3845,6 +4506,43 @@ export interface ExtendedPageResidualStressModel {
      * 
      * @type {number}
      * @memberof ExtendedPageResidualStressModel
+     */
+    'pages'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface ExtendedPageTensileCouponModel
+ */
+export interface ExtendedPageTensileCouponModel {
+    /**
+     * 
+     * @type {Array<TensileCouponModel>}
+     * @memberof ExtendedPageTensileCouponModel
+     */
+    'items': Array<TensileCouponModel>;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageTensileCouponModel
+     */
+    'total': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageTensileCouponModel
+     */
+    'page'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageTensileCouponModel
+     */
+    'size'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ExtendedPageTensileCouponModel
      */
     'pages'?: number;
 }
@@ -5374,6 +6072,588 @@ export type ResidualStressNumberField = typeof ResidualStressNumberField[keyof t
  * @enum {string}
  */
 
+export const TensileCouponField = {
+    ExperimentalProgram: 'experimental_program',
+    Standard: 'standard',
+    SpecimenType: 'specimen_type',
+    Id: 'id',
+    ProfileType: 'profile_type',
+    Profile: 'profile',
+    SpecimenSource: 'specimen_source',
+    SteelGrade: 'steel_grade',
+    AvgInitReducedWidthMm: 'avg_init_reduced_width__mm_',
+    AvgInitReducedThicknessMm: 'avg_init_reduced_thickness__mm_',
+    AvgInitMarkedGaugeLengthMm: 'avg_init_marked_gauge_length__mm_',
+    EffFracturedWidthMm: 'eff_fractured_width__mm_',
+    EffFracturedThicknessMm: 'eff_fractured_thickness__mm_',
+    AvgFracturedMarkedGaugeLengthMm: 'avg_fractured_marked_gauge_length__mm_',
+    FyNMpa: 'fy_n__mpa_',
+    FuNMpa: 'fu_n__mpa_',
+    TADegC: 't_a__deg_c_',
+    Date: 'date',
+    Year: 'year',
+    Investigator: 'investigator',
+    Location: 'location',
+    Machine: 'machine',
+    PidForceP: 'pid_force_p',
+    PidForceI: 'pid_force_i',
+    PidForceD: 'pid_force_d',
+    PidDispP: 'pid_disp_p',
+    PidDispI: 'pid_disp_i',
+    PidDispD: 'pid_disp_d',
+    PidExtP: 'pid_ext_p',
+    PidExtI: 'pid_ext_i',
+    PidExtD: 'pid_ext_d',
+    YieldStress02Mpa: 'yield_stress_02__mpa_',
+    YieldStrain02: 'yield_strain_02',
+    BinDiscontYield: 'bin_discont_yield',
+    YieldStressUypMpa: 'yield_stress_uyp__mpa_',
+    YieldStressLypMpa: 'yield_stress_lyp__mpa_',
+    YieldPointElongation: 'yield_point_elongation',
+    TensileStrengthMpa: 'tensile_strength__mpa_',
+    UniformElongation: 'uniform_elongation',
+    ElongationAtFracture: 'elongation_at_fracture',
+    ElongationAfterFracture: 'elongation_after_fracture',
+    ReductionOfArea: 'reduction_of_area',
+    ElasticModulusMpa: 'elastic_modulus__mpa_',
+    C: 'c',
+    Si: 'si',
+    Mn: 'mn',
+    P: 'p',
+    S: 's',
+    N: 'n',
+    Cu: 'cu',
+    Mo: 'mo',
+    Ni: 'ni',
+    Cr: 'cr',
+    V: 'v',
+    Nb: 'nb',
+    Ti: 'ti',
+    Al: 'al',
+    B: 'b',
+    Zr: 'zr',
+    Sn: 'sn',
+    Ca: 'ca',
+    H: 'h',
+    Fe: 'fe',
+    FilePath: 'file_path',
+    Reference: 'reference',
+    Link: 'link',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    PublicationKey: 'publication_key',
+    DatacolVersion: 'datacol_version',
+    StressStrainCount: 'stress_strain_count'
+} as const;
+
+export type TensileCouponField = typeof TensileCouponField[keyof typeof TensileCouponField];
+
+
+/**
+ * 
+ * @export
+ * @interface TensileCouponModel
+ */
+export interface TensileCouponModel {
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'experimental_program': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'standard': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'specimen_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'profile_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'profile': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'specimen_source'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'steel_grade': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'avg_init_reduced_width__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'avg_init_reduced_thickness__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'avg_init_marked_gauge_length__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'eff_fractured_width__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'eff_fractured_thickness__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'avg_fractured_marked_gauge_length__mm_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'fy_n__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'fu_n__mpa_': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    't_a__deg_c_': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'date': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'year': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'investigator': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'location': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'machine': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_force_p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_force_i'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_force_d'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_disp_p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_disp_i'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_disp_d'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_ext_p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_ext_i'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'pid_ext_d'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'yield_stress_02__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'yield_strain_02'?: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof TensileCouponModel
+     */
+    'bin_discont_yield': boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'yield_stress_uyp__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'yield_stress_lyp__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'yield_point_elongation'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'tensile_strength__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'uniform_elongation'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'elongation_at_fracture'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'elongation_after_fracture'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'reduction_of_area'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'elastic_modulus__mpa_'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'c'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'si'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'mn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'p'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    's'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'n'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'cu'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'mo'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'ni'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'cr'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'v'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'nb'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'ti'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'al'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'b'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'zr'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'sn'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'ca'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'h'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'fe'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'file_path'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'reference'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'link'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'latitude': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'longitude': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof TensileCouponModel
+     */
+    'publication_key'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'datacol_version': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof TensileCouponModel
+     */
+    'stress_strain_count': number;
+}
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
+export const TensileCouponNumberField = {
+    AvgInitReducedWidthMm: 'avg_init_reduced_width__mm_',
+    AvgInitReducedThicknessMm: 'avg_init_reduced_thickness__mm_',
+    AvgInitMarkedGaugeLengthMm: 'avg_init_marked_gauge_length__mm_',
+    EffFracturedWidthMm: 'eff_fractured_width__mm_',
+    EffFracturedThicknessMm: 'eff_fractured_thickness__mm_',
+    AvgFracturedMarkedGaugeLengthMm: 'avg_fractured_marked_gauge_length__mm_',
+    FyNMpa: 'fy_n__mpa_',
+    FuNMpa: 'fu_n__mpa_',
+    TADegC: 't_a__deg_c_',
+    Year: 'year',
+    PidForceP: 'pid_force_p',
+    PidForceI: 'pid_force_i',
+    PidForceD: 'pid_force_d',
+    PidDispP: 'pid_disp_p',
+    PidDispI: 'pid_disp_i',
+    PidDispD: 'pid_disp_d',
+    PidExtP: 'pid_ext_p',
+    PidExtI: 'pid_ext_i',
+    PidExtD: 'pid_ext_d',
+    YieldStress02Mpa: 'yield_stress_02__mpa_',
+    YieldStrain02: 'yield_strain_02',
+    YieldStressUypMpa: 'yield_stress_uyp__mpa_',
+    YieldStressLypMpa: 'yield_stress_lyp__mpa_',
+    YieldPointElongation: 'yield_point_elongation',
+    TensileStrengthMpa: 'tensile_strength__mpa_',
+    UniformElongation: 'uniform_elongation',
+    ElongationAtFracture: 'elongation_at_fracture',
+    ElongationAfterFracture: 'elongation_after_fracture',
+    ReductionOfArea: 'reduction_of_area',
+    ElasticModulusMpa: 'elastic_modulus__mpa_',
+    C: 'c',
+    Si: 'si',
+    Mn: 'mn',
+    P: 'p',
+    S: 's',
+    N: 'n',
+    Cu: 'cu',
+    Mo: 'mo',
+    Ni: 'ni',
+    Cr: 'cr',
+    V: 'v',
+    Nb: 'nb',
+    Ti: 'ti',
+    Al: 'al',
+    B: 'b',
+    Zr: 'zr',
+    Sn: 'sn',
+    Ca: 'ca',
+    H: 'h',
+    Fe: 'fe',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    DatacolVersion: 'datacol_version',
+    StressStrainCount: 'stress_strain_count'
+} as const;
+
+export type TensileCouponNumberField = typeof TensileCouponNumberField[keyof typeof TensileCouponNumberField];
+
+
+/**
+ * An enumeration.
+ * @export
+ * @enum {string}
+ */
+
 export const Type = {
     All: 'all',
     AllColumns: 'all-columns',
@@ -5405,7 +6685,19 @@ export const Type = {
     HssColumn: 'hss-column',
     HssColumnMomentRotation: 'hss-column-moment-rotation',
     EccentricBracedFrame: 'eccentric-braced-frame',
-    EccentricBracedFrameShearLinkAngle: 'eccentric-braced-frame-shear-link-angle'
+    EccentricBracedFrameShearLinkAngle: 'eccentric-braced-frame-shear-link-angle',
+    AllTensileCoupons: 'all-tensile-coupons',
+    TensileCoupon: 'tensile-coupon',
+    TensileCouponStressStrain: 'tensile-coupon-stress-strain',
+    AllDuctileFractures: 'all-ductile-fractures',
+    DuctileFracture: 'ductile-fracture',
+    DuctileFractureForceElongation: 'ductile-fracture-force-elongation',
+    DuctileFractureForceElongationSimulation: 'ductile-fracture-force-elongation-simulation',
+    DuctileFractureForceRadial: 'ductile-fracture-force-radial',
+    DuctileFractureForceRadialSimulation: 'ductile-fracture-force-radial-simulation',
+    DuctileFractureEpeqSimulation: 'ductile-fracture-epeq-simulation',
+    DuctileFractureLodeSimulation: 'ductile-fracture-lode-simulation',
+    DuctileFractureTriaxSimulation: 'ductile-fracture-triax-simulation'
 } as const;
 
 export type Type = typeof Type[keyof typeof Type];
@@ -8612,6 +9904,36 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * 
+         * @summary Healthz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthz: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/healthz`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get Info
          * @summary Root
          * @param {*} [options] Override http request option.
@@ -8726,6 +10048,16 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * 
+         * @summary Healthz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async healthz(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.healthz(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Get Info
          * @summary Root
          * @param {*} [options] Override http request option.
@@ -8776,6 +10108,15 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          */
         getUser(options?: any): AxiosPromise<any> {
             return localVarFp.getUser(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Healthz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthz(options?: any): AxiosPromise<any> {
+            return localVarFp.healthz(options).then((request) => request(axios, basePath));
         },
         /**
          * Get Info
@@ -8832,6 +10173,17 @@ export class DefaultApi extends BaseAPI {
     }
 
     /**
+     * 
+     * @summary Healthz
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DefaultApi
+     */
+    public healthz(options?: AxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).healthz(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Get Info
      * @summary Root
      * @param {*} [options] Override http request option.
@@ -8853,6 +10205,1566 @@ export class DefaultApi extends BaseAPI {
      */
     public validateData(type: Type, file: File, options?: AxiosRequestConfig) {
         return DefaultApiFp(this.configuration).validateData(type, file, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
+ * DuctileFractureApi - axios parameter creator
+ * @export
+ */
+export const DuctileFractureApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get paginated Ductile Fractures
+         * @summary Get Ductile Fractures
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFractures: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/ductile-fracture`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            if (sortBy) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+            if (sortDesc) {
+                localVarQueryParameter['sort_desc'] = sortDesc;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Ductile Fractures Counts
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesCounts: async (fields?: Array<DuctileFractureField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/ductile-fracture/counts`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get master csv
+         * @summary Get Ductile Fractures Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/ductile-fracture/csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (ids) {
+                localVarQueryParameter['ids'] = ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distinct count
+         * @summary Get Ductile Fractures Distinct
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesDistinct: async (fields?: Array<DuctileFractureField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/ductile-fracture/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Equivalent Plastic Strain - Elongation simulation series
+         * @summary Get Ductile Fractures Epeq Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesEpeqSimulation: async (ductileFractureId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesEpeqSimulation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/epeq-simulation`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Epeq Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesEpeqSimulationCsv: async (ductileFractureId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesEpeqSimulationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/epeq-simulation/csv`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Ductile Fractures Fields
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesFields: async (fields?: Array<DuctileFractureField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/ductile-fracture/fields`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Force-Elongation test series
+         * @summary Get Ductile Fractures Force Elongation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongation: async (ductileFractureId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceElongation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-elongation`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationCsv: async (ductileFractureId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceElongationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-elongation/csv`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Force-Elongation simulation series
+         * @summary Get Ductile Fractures Force Elongation Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationSimulation: async (ductileFractureId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceElongationSimulation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-elongation-simulation`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationSimulationCsv: async (ductileFractureId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceElongationSimulationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-elongation-simulation/csv`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Force-Radial elongation test series
+         * @summary Get Ductile Fractures Force Radial
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadial: async (ductileFractureId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceRadial', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-radial`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialCsv: async (ductileFractureId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceRadialCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-radial/csv`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Force-Radial elongation simulation series
+         * @summary Get Ductile Fractures Force Radial Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialSimulation: async (ductileFractureId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceRadialSimulation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-radial-simulation`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialSimulationCsv: async (ductileFractureId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceRadialSimulationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-radial-simulation/csv`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Lode angle - Elongation simulation series
+         * @summary Get Ductile Fractures Lode Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesLodeSimulation: async (ductileFractureId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesLodeSimulation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/lode-simulation`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Lode Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesLodeSimulationCsv: async (ductileFractureId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesLodeSimulationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/lode-simulation/csv`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Matrix
+         * @param {Array<DuctileFractureField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesMatrix: async (fields: Array<DuctileFractureField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getDuctileFracturesMatrix', 'fields', fields)
+            const localVarPath = `/ductile-fracture/matrix`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get range of field
+         * @summary Get Ductile Fractures Range
+         * @param {DuctileFractureNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesRange: async (field: DuctileFractureNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getDuctileFracturesRange', 'field', field)
+            const localVarPath = `/ductile-fracture/range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Triaxiality - Elongation simulation series
+         * @summary Get Ductile Fractures Triax Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesTriaxSimulation: async (ductileFractureId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesTriaxSimulation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/triax-simulation`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Triax Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesTriaxSimulationCsv: async (ductileFractureId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesTriaxSimulationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/triax-simulation/csv`
+                .replace(`{${"ductile_fracture_id"}}`, encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * DuctileFractureApi - functional programming interface
+ * @export
+ */
+export const DuctileFractureApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = DuctileFractureApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get paginated Ductile Fractures
+         * @summary Get Ductile Fractures
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFractures(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageDuctileFractureModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFractures(query, sortBy, sortDesc, page, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Ductile Fractures Counts
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesCounts(fields?: Array<DuctileFractureField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesCounts(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get master csv
+         * @summary Get Ductile Fractures Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesCsv(ids, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distinct count
+         * @summary Get Ductile Fractures Distinct
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesDistinct(fields?: Array<DuctileFractureField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesDistinct(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Equivalent Plastic Strain - Elongation simulation series
+         * @summary Get Ductile Fractures Epeq Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesEpeqSimulation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesEpeqSimulation(ductileFractureId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Epeq Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesEpeqSimulationCsv(ductileFractureId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesEpeqSimulationCsv(ductileFractureId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Ductile Fractures Fields
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesFields(fields?: Array<DuctileFractureField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesFields(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Force-Elongation test series
+         * @summary Get Ductile Fractures Force Elongation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceElongation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceElongation(ductileFractureId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceElongationCsv(ductileFractureId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceElongationCsv(ductileFractureId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Force-Elongation simulation series
+         * @summary Get Ductile Fractures Force Elongation Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceElongationSimulation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceElongationSimulation(ductileFractureId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceElongationSimulationCsv(ductileFractureId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceElongationSimulationCsv(ductileFractureId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Force-Radial elongation test series
+         * @summary Get Ductile Fractures Force Radial
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceRadial(ductileFractureId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceRadial(ductileFractureId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceRadialCsv(ductileFractureId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceRadialCsv(ductileFractureId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Force-Radial elongation simulation series
+         * @summary Get Ductile Fractures Force Radial Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceRadialSimulation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceRadialSimulation(ductileFractureId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceRadialSimulationCsv(ductileFractureId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceRadialSimulationCsv(ductileFractureId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Lode angle - Elongation simulation series
+         * @summary Get Ductile Fractures Lode Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesLodeSimulation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesLodeSimulation(ductileFractureId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Lode Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesLodeSimulationCsv(ductileFractureId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesLodeSimulationCsv(ductileFractureId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Matrix
+         * @param {Array<DuctileFractureField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesMatrix(fields: Array<DuctileFractureField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesMatrix(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get range of field
+         * @summary Get Ductile Fractures Range
+         * @param {DuctileFractureNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesRange(field: DuctileFractureNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesRange(field, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Triaxiality - Elongation simulation series
+         * @summary Get Ductile Fractures Triax Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesTriaxSimulation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesTriaxSimulation(ductileFractureId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Triax Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesTriaxSimulationCsv(ductileFractureId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesTriaxSimulationCsv(ductileFractureId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * DuctileFractureApi - factory interface
+ * @export
+ */
+export const DuctileFractureApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = DuctileFractureApiFp(configuration)
+    return {
+        /**
+         * Get paginated Ductile Fractures
+         * @summary Get Ductile Fractures
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFractures(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageDuctileFractureModel> {
+            return localVarFp.getDuctileFractures(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Ductile Fractures Counts
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesCounts(fields?: Array<DuctileFractureField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getDuctileFracturesCounts(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get master csv
+         * @summary Get Ductile Fractures Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Ductile Fractures Distinct
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesDistinct(fields?: Array<DuctileFractureField>, options?: any): AxiosPromise<number> {
+            return localVarFp.getDuctileFracturesDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Equivalent Plastic Strain - Elongation simulation series
+         * @summary Get Ductile Fractures Epeq Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesEpeqSimulation(ductileFractureId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesEpeqSimulation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Epeq Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesEpeqSimulationCsv(ductileFractureId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesEpeqSimulationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Ductile Fractures Fields
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesFields(fields?: Array<DuctileFractureField>, options?: any): AxiosPromise<Array<object>> {
+            return localVarFp.getDuctileFracturesFields(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Force-Elongation test series
+         * @summary Get Ductile Fractures Force Elongation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongation(ductileFractureId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesForceElongation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationCsv(ductileFractureId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesForceElongationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Force-Elongation simulation series
+         * @summary Get Ductile Fractures Force Elongation Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationSimulation(ductileFractureId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesForceElongationSimulation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationSimulationCsv(ductileFractureId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesForceElongationSimulationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Force-Radial elongation test series
+         * @summary Get Ductile Fractures Force Radial
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadial(ductileFractureId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesForceRadial(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialCsv(ductileFractureId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesForceRadialCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Force-Radial elongation simulation series
+         * @summary Get Ductile Fractures Force Radial Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialSimulation(ductileFractureId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesForceRadialSimulation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialSimulationCsv(ductileFractureId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesForceRadialSimulationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Lode angle - Elongation simulation series
+         * @summary Get Ductile Fractures Lode Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesLodeSimulation(ductileFractureId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesLodeSimulation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Lode Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesLodeSimulationCsv(ductileFractureId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesLodeSimulationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Matrix
+         * @param {Array<DuctileFractureField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesMatrix(fields: Array<DuctileFractureField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+            return localVarFp.getDuctileFracturesMatrix(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get range of field
+         * @summary Get Ductile Fractures Range
+         * @param {DuctileFractureNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesRange(field: DuctileFractureNumberField, options?: any): AxiosPromise<RangeModel> {
+            return localVarFp.getDuctileFracturesRange(field, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Triaxiality - Elongation simulation series
+         * @summary Get Ductile Fractures Triax Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesTriaxSimulation(ductileFractureId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesTriaxSimulation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Triax Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesTriaxSimulationCsv(ductileFractureId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesTriaxSimulationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * DuctileFractureApi - object-oriented interface
+ * @export
+ * @class DuctileFractureApi
+ * @extends {BaseAPI}
+ */
+export class DuctileFractureApi extends BaseAPI {
+    /**
+     * Get paginated Ductile Fractures
+     * @summary Get Ductile Fractures
+     * @param {string} [query] 
+     * @param {Array<string>} [sortBy] 
+     * @param {Array<boolean>} [sortDesc] 
+     * @param {number} [page] 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFractures(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFractures(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurences count of field values
+     * @summary Get Ductile Fractures Counts
+     * @param {Array<DuctileFractureField>} [fields] 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesCounts(fields?: Array<DuctileFractureField>, query?: string, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get master csv
+     * @summary Get Ductile Fractures Csv
+     * @param {Array<string>} [ids] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Ductile Fractures Distinct
+     * @param {Array<DuctileFractureField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesDistinct(fields?: Array<DuctileFractureField>, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Equivalent Plastic Strain - Elongation simulation series
+     * @summary Get Ductile Fractures Epeq Simulation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesEpeqSimulation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesEpeqSimulation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Epeq Simulation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesEpeqSimulationCsv(ductileFractureId: string, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesEpeqSimulationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get filtered fields
+     * @summary Get Ductile Fractures Fields
+     * @param {Array<DuctileFractureField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesFields(fields?: Array<DuctileFractureField>, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesFields(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Force-Elongation test series
+     * @summary Get Ductile Fractures Force Elongation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesForceElongation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceElongation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Force Elongation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesForceElongationCsv(ductileFractureId: string, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceElongationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Force-Elongation simulation series
+     * @summary Get Ductile Fractures Force Elongation Simulation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesForceElongationSimulation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceElongationSimulation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Force Elongation Simulation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesForceElongationSimulationCsv(ductileFractureId: string, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceElongationSimulationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Force-Radial elongation test series
+     * @summary Get Ductile Fractures Force Radial
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesForceRadial(ductileFractureId: string, size?: number, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceRadial(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Force Radial Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesForceRadialCsv(ductileFractureId: string, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceRadialCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Force-Radial elongation simulation series
+     * @summary Get Ductile Fractures Force Radial Simulation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesForceRadialSimulation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceRadialSimulation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Force Radial Simulation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesForceRadialSimulationCsv(ductileFractureId: string, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceRadialSimulationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Lode angle - Elongation simulation series
+     * @summary Get Ductile Fractures Lode Simulation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesLodeSimulation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesLodeSimulation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Lode Simulation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesLodeSimulationCsv(ductileFractureId: string, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesLodeSimulationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Matrix
+     * @param {Array<DuctileFractureField>} fields 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesMatrix(fields: Array<DuctileFractureField>, query?: string, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get range of field
+     * @summary Get Ductile Fractures Range
+     * @param {DuctileFractureNumberField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesRange(field: DuctileFractureNumberField, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesRange(field, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Triaxiality - Elongation simulation series
+     * @summary Get Ductile Fractures Triax Simulation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesTriaxSimulation(ductileFractureId: string, size?: number, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesTriaxSimulation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Triax Simulation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DuctileFractureApi
+     */
+    public getDuctileFracturesTriaxSimulationCsv(ductileFractureId: string, options?: AxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesTriaxSimulationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -12181,6 +15093,714 @@ export class ResidualStressApi extends BaseAPI {
      */
     public getResidualStressesRange(field: ResidualStressNumberField, options?: AxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesRange(field, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
+ * TensileCouponApi - axios parameter creator
+ * @export
+ */
+export const TensileCouponApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get paginated Tensile Coupons
+         * @summary Get Tensile Coupons
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCoupons: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            if (sortBy) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+            if (sortDesc) {
+                localVarQueryParameter['sort_desc'] = sortDesc;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Tensile Coupons Counts
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCounts: async (fields?: Array<TensileCouponField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/counts`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get master csv
+         * @summary Get Tensile Coupons Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (ids) {
+                localVarQueryParameter['ids'] = ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distinct count
+         * @summary Get Tensile Coupons Distinct
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsDistinct: async (fields?: Array<TensileCouponField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Tensile Coupons Fields
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsFields: async (fields?: Array<TensileCouponField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/fields`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Tensile Coupons Matrix
+         * @param {Array<TensileCouponField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsMatrix: async (fields: Array<TensileCouponField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getTensileCouponsMatrix', 'fields', fields)
+            const localVarPath = `/tensile-coupon/matrix`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get range of field
+         * @summary Get Tensile Coupons Range
+         * @param {TensileCouponNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsRange: async (field: TensileCouponNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getTensileCouponsRange', 'field', field)
+            const localVarPath = `/tensile-coupon/range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Stress-Strain series from tensile coupon
+         * @summary Get Tensile Coupons Stress Strain
+         * @param {string} tensileCouponId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrain: async (tensileCouponId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tensileCouponId' is not null or undefined
+            assertParamExists('getTensileCouponsStressStrain', 'tensileCouponId', tensileCouponId)
+            const localVarPath = `/tensile-coupon/{tensile_coupon_id}/stress-strain`
+                .replace(`{${"tensile_coupon_id"}}`, encodeURIComponent(String(tensileCouponId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Tensile Coupons Stress Strain Csv
+         * @param {string} tensileCouponId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrainCsv: async (tensileCouponId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tensileCouponId' is not null or undefined
+            assertParamExists('getTensileCouponsStressStrainCsv', 'tensileCouponId', tensileCouponId)
+            const localVarPath = `/tensile-coupon/{tensile_coupon_id}/stress-strain/csv`
+                .replace(`{${"tensile_coupon_id"}}`, encodeURIComponent(String(tensileCouponId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * TensileCouponApi - functional programming interface
+ * @export
+ */
+export const TensileCouponApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TensileCouponApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get paginated Tensile Coupons
+         * @summary Get Tensile Coupons
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCoupons(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageTensileCouponModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCoupons(query, sortBy, sortDesc, page, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Tensile Coupons Counts
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsCounts(fields?: Array<TensileCouponField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsCounts(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get master csv
+         * @summary Get Tensile Coupons Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsCsv(ids, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get distinct count
+         * @summary Get Tensile Coupons Distinct
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsDistinct(fields?: Array<TensileCouponField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsDistinct(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Tensile Coupons Fields
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsFields(fields?: Array<TensileCouponField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsFields(fields, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @summary Get Tensile Coupons Matrix
+         * @param {Array<TensileCouponField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsMatrix(fields: Array<TensileCouponField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsMatrix(fields, query, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get range of field
+         * @summary Get Tensile Coupons Range
+         * @param {TensileCouponNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsRange(field: TensileCouponNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsRange(field, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Stress-Strain series from tensile coupon
+         * @summary Get Tensile Coupons Stress Strain
+         * @param {string} tensileCouponId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsStressStrain(tensileCouponId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsStressStrain(tensileCouponId, size, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Tensile Coupons Stress Strain Csv
+         * @param {string} tensileCouponId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsStressStrainCsv(tensileCouponId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsStressStrainCsv(tensileCouponId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * TensileCouponApi - factory interface
+ * @export
+ */
+export const TensileCouponApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TensileCouponApiFp(configuration)
+    return {
+        /**
+         * Get paginated Tensile Coupons
+         * @summary Get Tensile Coupons
+         * @param {string} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCoupons(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageTensileCouponModel> {
+            return localVarFp.getTensileCoupons(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Tensile Coupons Counts
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCounts(fields?: Array<TensileCouponField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getTensileCouponsCounts(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get master csv
+         * @summary Get Tensile Coupons Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+            return localVarFp.getTensileCouponsCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Tensile Coupons Distinct
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsDistinct(fields?: Array<TensileCouponField>, options?: any): AxiosPromise<number> {
+            return localVarFp.getTensileCouponsDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Tensile Coupons Fields
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsFields(fields?: Array<TensileCouponField>, options?: any): AxiosPromise<Array<object>> {
+            return localVarFp.getTensileCouponsFields(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Tensile Coupons Matrix
+         * @param {Array<TensileCouponField>} fields 
+         * @param {string} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsMatrix(fields: Array<TensileCouponField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+            return localVarFp.getTensileCouponsMatrix(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get range of field
+         * @summary Get Tensile Coupons Range
+         * @param {TensileCouponNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsRange(field: TensileCouponNumberField, options?: any): AxiosPromise<RangeModel> {
+            return localVarFp.getTensileCouponsRange(field, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Stress-Strain series from tensile coupon
+         * @summary Get Tensile Coupons Stress Strain
+         * @param {string} tensileCouponId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrain(tensileCouponId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getTensileCouponsStressStrain(tensileCouponId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Tensile Coupons Stress Strain Csv
+         * @param {string} tensileCouponId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrainCsv(tensileCouponId: string, options?: any): AxiosPromise<void> {
+            return localVarFp.getTensileCouponsStressStrainCsv(tensileCouponId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * TensileCouponApi - object-oriented interface
+ * @export
+ * @class TensileCouponApi
+ * @extends {BaseAPI}
+ */
+export class TensileCouponApi extends BaseAPI {
+    /**
+     * Get paginated Tensile Coupons
+     * @summary Get Tensile Coupons
+     * @param {string} [query] 
+     * @param {Array<string>} [sortBy] 
+     * @param {Array<boolean>} [sortDesc] 
+     * @param {number} [page] 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCoupons(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCoupons(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurences count of field values
+     * @summary Get Tensile Coupons Counts
+     * @param {Array<TensileCouponField>} [fields] 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsCounts(fields?: Array<TensileCouponField>, query?: string, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get master csv
+     * @summary Get Tensile Coupons Csv
+     * @param {Array<string>} [ids] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Tensile Coupons Distinct
+     * @param {Array<TensileCouponField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsDistinct(fields?: Array<TensileCouponField>, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get filtered fields
+     * @summary Get Tensile Coupons Fields
+     * @param {Array<TensileCouponField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsFields(fields?: Array<TensileCouponField>, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsFields(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Tensile Coupons Matrix
+     * @param {Array<TensileCouponField>} fields 
+     * @param {string} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsMatrix(fields: Array<TensileCouponField>, query?: string, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get range of field
+     * @summary Get Tensile Coupons Range
+     * @param {TensileCouponNumberField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsRange(field: TensileCouponNumberField, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsRange(field, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Stress-Strain series from tensile coupon
+     * @summary Get Tensile Coupons Stress Strain
+     * @param {string} tensileCouponId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsStressStrain(tensileCouponId: string, size?: number, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsStressStrain(tensileCouponId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Stress-Strain csv
+     * @summary Get Tensile Coupons Stress Strain Csv
+     * @param {string} tensileCouponId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TensileCouponApi
+     */
+    public getTensileCouponsStressStrainCsv(tensileCouponId: string, options?: AxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsStressStrainCsv(tensileCouponId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

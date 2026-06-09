@@ -5,10 +5,12 @@ import {
   bracesApi,
   columnsApi,
   connectionsApi,
+  ductileFractureApi,
   ebfApi,
   hssApi,
   materialsApi,
-  residualsApi
+  residualsApi,
+  tensileCouponApi
 } from '@/plugins/axios'
 import { typesNames } from '@/utils/backend'
 import {
@@ -17,17 +19,21 @@ import {
   locationBraceFields,
   locationColumnFields,
   locationConnectionFields,
+  locationDuctileFractureFields,
   locationEbfFields,
   locationHSSColumnFields,
   locationMaterialFields,
   locationResidualStressFields,
+  locationTensileCouponFields,
   type LocationHSSColumn,
   type LocationEbf,
   type LocationBrace,
   type LocationColumn,
   type LocationConnection,
+  type LocationDuctileFracture,
   type LocationMaterial,
-  type LocationResidualStress
+  type LocationResidualStress,
+  type LocationTensileCoupon
 } from '@/utils/overviewmap'
 import { PieChart, scaleColor, scaleRadius } from '@/utils/piechart'
 import { rollups, select } from 'd3'
@@ -87,6 +93,18 @@ ebfApi.getEccentricBracedFramesFields(locationEbfFields).then((res) => {
   updateMap()
 })
 
+const tensileCouponLocations = ref<LocationTensileCoupon[]>([])
+tensileCouponApi.getTensileCouponsFields(locationTensileCouponFields).then((res) => {
+  tensileCouponLocations.value = (res.data as LocationTensileCoupon[]).filter(hasCoordinates)
+  updateMap()
+})
+
+const ductileFractureLocations = ref<LocationDuctileFracture[]>([])
+ductileFractureApi.getDuctileFracturesFields(locationDuctileFractureFields).then((res) => {
+  ductileFractureLocations.value = (res.data as LocationDuctileFracture[]).filter(hasCoordinates)
+  updateMap()
+})
+
 // Computed property to get the total number of markers
 const dataLength = computed(
   () =>
@@ -96,7 +114,9 @@ const dataLength = computed(
     materialsLocations.value.length +
     residualStressesLocations.value.length +
     hssColumnsLocations.value.length +
-    ebfLocations.value.length
+    ebfLocations.value.length +
+    tensileCouponLocations.value.length +
+    ductileFractureLocations.value.length
 )
 
 // Reference to the map container element
@@ -160,10 +180,12 @@ const markers = computed<Marker[]>(() => {
     createMarkers(connectionsLocations.value, 'Connections'),
     createMarkers(columnsLocations.value, 'Columns'),
     createMarkers(bracesLocations.value, 'Braces'),
-    createMarkers(materialsLocations.value, 'Materials'),
+    createMarkers(materialsLocations.value, 'Cyclic Coupons'),
     createMarkers(residualStressesLocations.value, 'Residual Stresses'),
     createMarkers(hssColumnsLocations.value, 'HSS Columns'),
-    createMarkers(ebfLocations.value, 'EBF Links')
+    createMarkers(ebfLocations.value, 'EBF Links'),
+    createMarkers(tensileCouponLocations.value, 'Tensile Coupons'),
+    createMarkers(ductileFractureLocations.value, 'Ductile Fracture')
   ].flat()
 })
 

@@ -22,6 +22,12 @@ CLAUDE.md
 
 # uv virtualenv
 backend/.venv/
+.env
+
+.python-version
+/tensile-coupons/
+
+docker-compose.override.yml
 
 # Lefthook local overrides
 lefthook-local.yml

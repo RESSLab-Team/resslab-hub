@@ -76,6 +76,15 @@ upload-hss-column:
 upload-eccentric-braced-frame:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-eccentric-braced-frames ../../resslab-hub-data
 
+upload-tensile-coupon:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-tensile-coupons ../../resslab-hub-data
+
+upload-ductile-fracture:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-ductile-fractures ../../resslab-hub-data
+
+precompute-sem:
+	uv run --group sem python data/precompute_sem.py ../../resslab-hub-data
+
 upload-data:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all ../../resslab-hub-data
 
@@ -93,7 +102,7 @@ transform-data:
 #This is outdated now that we use the data dictionnaries
 #We keep it for local testing purposes
 analyze-data:
-	uv run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/material/steel_material.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv ../../resslab-hub-data/residual_stresses/residual_stresses.csv ../../resslab-hub-data/hss_columns/hss_columns.csv
+	uv run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/material/cyclic_coupons/steel_material.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv ../../resslab-hub-data/residual_stresses/residual_stresses.csv ../../resslab-hub-data/hss_columns/hss_columns.csv
 
 generate-model:
 	uv run python data/generate_model.py \
@@ -113,7 +122,7 @@ generate-model:
 		resslab_hub/models/database/hss_column.py \
 		resslab_hub/models/api.py hss_column
 	uv run python data/generate_model.py \
-		../../resslab-hub-data/material/steel_material_data_dictionary.csv \
+		../../resslab-hub-data/material/cyclic_coupons/steel_material_data_dictionary.csv \
 		resslab_hub/models/database/material.py \
 		resslab_hub/models/api.py material
 	uv run python data/generate_model.py \
@@ -124,3 +133,11 @@ generate-model:
 		../../resslab-hub-data/eccentric_braced_frames/eccentric_braced_frames_data_dictionary.csv \
 		resslab_hub/models/database/eccentric_braced_frame.py \
 		resslab_hub/models/api.py eccentric_braced_frame
+	uv run python data/generate_model.py \
+		../../resslab-hub-data/material/tensile_coupons/tensile_coupons_data_dictionary.csv \
+		resslab_hub/models/database/tensile_coupon.py \
+		resslab_hub/models/api.py tensile_coupon
+	uv run python data/generate_model.py \
+		../../resslab-hub-data/material/ductile_fracture/ductile_fracture_data_dictionary.csv \
+		resslab_hub/models/database/ductile_fracture.py \
+		resslab_hub/models/api.py ductile_fracture

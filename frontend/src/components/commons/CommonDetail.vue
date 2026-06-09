@@ -15,6 +15,10 @@ export interface DetailCarouselItem {
   axisPointerType?: string
   xAxisName: string
   yAxisName: string
+  xAxisMin?: number
+  yAxisMin?: number
+  xAxisMax?: number
+  yAxisMax?: number
 }
 
 export interface Props {

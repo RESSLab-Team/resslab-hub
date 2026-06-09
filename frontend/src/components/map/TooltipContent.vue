@@ -3,8 +3,10 @@ import {
   getBraceImage,
   getColumnMapImage,
   getConnectionSpecimenImage,
+  getDuctileFractureImage,
   getResidualStressImage,
   getSteelMaterialImage,
+  getTensileCouponImage,
   getEbfImage
 } from '@/utils/component'
 import { testConfigurationNameMapping } from '@/utils/hss'
@@ -67,7 +69,7 @@ const { data, type } = defineProps<{
         </li>
       </ul>
     </template>
-    <template v-else-if="type === 'Materials'">
+    <template v-else-if="type === 'Cyclic Coupons'">
       <h3>
         <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.date }}) </a>
       </h3>
@@ -78,7 +80,7 @@ const { data, type } = defineProps<{
           <img alt="Material image" :src="getSteelMaterialImage()" />
         </li>
         <li>
-          <a :href="`/materials/database?id=${data.id}&detail=true`"> View experimental data </a>
+          <a :href="`/materials/cyclic-coupons?id=${data.id}&detail=true`"> View experimental data </a>
         </li>
       </ul>
     </template>
@@ -109,6 +111,37 @@ const { data, type } = defineProps<{
         </li>
         <li>
           <a :href="`/hss-columns/database?id=${data.id}&detail=true`"> View experimental data </a>
+        </li>
+      </ul>
+    </template>
+    <template v-else-if="type === 'Tensile Coupons'">
+      <h3>
+        <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.year }}) </a>
+      </h3>
+      <ul>
+        <li>Investigator: {{ data.investigator }}</li>
+        <li>
+          <img alt="Tensile coupon image" :src="getTensileCouponImage()" />
+        </li>
+        <li>
+          <a :href="`/materials/tensile-coupons?id=${data.id}&detail=true`"> View experimental data </a>
+        </li>
+      </ul>
+    </template>
+    <template v-else-if="type === 'Ductile Fracture'">
+      <h3>
+        <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.date }}) </a>
+      </h3>
+      <ul>
+        <li><strong>Specimen:</strong> {{ data.specimen_designation }}</li>
+        <li><strong>Type:</strong> {{ data.specimen_type }}</li>
+        <li>
+          <img alt="Ductile fracture image" :src="getDuctileFractureImage()" />
+        </li>
+        <li>
+          <a :href="`/materials/ductile-fracture?id=${data.id}&detail=true`">
+            View experimental data
+          </a>
         </li>
       </ul>
     </template>
