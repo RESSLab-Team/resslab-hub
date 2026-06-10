@@ -27,7 +27,8 @@ pre-commit:
     - name: frontend-eslint
       glob: "frontend/**/*.{js,jsx,cjs,mjs,ts,tsx,cts,mts,vue}"
       root: "frontend/"
-      run: npx --no-install eslint --fix --no-warn-ignored {staged_files}
+      # NB: --no-warn-ignored is ESLint v9+; the repo is on ESLint 8
+      run: npx --no-install eslint --fix {staged_files}
       stage_fixed: true
 
     - name: frontend-prettier
