@@ -1,5 +1,8 @@
 import App from '@/App.vue'
 import '@/assets/main.scss'
+import '@/assets/styles/app.css'
+import '@/assets/styles/chart-colors.css'
+import '@/assets/styles/epfl-tokens.css'
 import { options } from '@/plugins/gtag'
 import vuetify from '@/plugins/vuetify'
 import router from '@/router'

@@ -1,119 +1,14 @@
 <script setup lang="ts">
-import AboutContent from '@/components/commons/AboutContent.vue'
+import AppSidebar from '@/components/layout/AppSidebar.vue'
 import SimpleSnackbar from '@/components/commons/SimpleSnackbar.vue'
 import { useNotificationStore } from '@/stores/notification'
-import { mdiInformationOutline } from '@mdi/js'
-import { ref } from 'vue'
-
-interface MenuItem {
-  text: string
-  to: string
-  children?: MenuItem[]
-}
+import { publicPath } from '@/utils/common'
+import { mdiMenu } from '@mdi/js'
+import { onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useTheme } from 'vuetify'
 
 const notificationStore = useNotificationStore()
-const subMenuItems: MenuItem[] = [
-  {
-    text: 'Database',
-    to: '/database'
-  },
-  {
-    text: 'Component Model',
-    to: '/model'
-  },
-  {
-    text: 'Fragility Curve',
-    to: '/fragility-curve'
-  }
-]
-const menuItems: MenuItem[] = [
-  {
-    text: 'RESSLab Hub',
-    to: '/'
-  },
-  {
-    text: 'Connections',
-    to: '/connections',
-    children: subMenuItems
-  },
-  {
-    text: 'Columns',
-    to: '/columns',
-    children: subMenuItems
-  },
-  {
-    text: 'Braces',
-    to: '/braces',
-    children: [
-      {
-        text: 'Database',
-        to: '/database'
-      },
-      {
-        text: 'Fragility Curve',
-        to: '/fragility-curve'
-      }
-    ]
-  },
-  {
-    text: 'Materials',
-    to: '/materials',
-    children: [
-      {
-        text: 'Cyclic Coupons DB',
-        to: '/cyclic-coupons'
-      },
-      {
-        text: 'Tensile Coupons DB',
-        to: '/tensile-coupons'
-      },
-      {
-        text: 'Ductile Fracture DB',
-        to: '/ductile-fracture'
-      },
-      {
-        text: 'Material Model',
-        to: '/model'
-      }
-    ]
-  },
-  {
-    text: 'Residual Stresses',
-    to: '/residuals',
-    children: [
-      {
-        text: 'Database',
-        to: '/database'
-      }
-    ]
-  },
-  {
-    text: 'HSS Columns',
-    to: '/hss-columns',
-    children: [
-      {
-        text: 'Database',
-        to: '/database'
-      },
-      {
-        text: 'Component Model',
-        to: '/model'
-      }
-    ]
-  },
-  {
-    text: 'EBF Links',
-    to: '/ebf-links',
-    children: [
-      {
-        text: 'Database',
-        to: '/database'
-      }
-    ]
-  }
-]
-
-const aboutDialog = ref<boolean>(false)
 const snackbar = ref<InstanceType<typeof SimpleSnackbar>>()
 
 notificationStore.$subscribe((_, state) => {
@@ -121,72 +16,59 @@ notificationStore.$subscribe((_, state) => {
     snackbar.value?.open(state.message, state.url ?? undefined)
   }
 })
+
+/* ---- theme (light default, dark persisted) ---- */
+const THEME_STORAGE_KEY = 'THEME'
+const theme = useTheme()
+const dark = ref(localStorage.getItem(THEME_STORAGE_KEY) === 'dark')
+
+function applyTheme(): void {
+  theme.global.name.value = dark.value ? 'dark' : 'light'
+  document.body.classList.toggle('theme-dark', dark.value)
+}
+function toggleTheme(): void {
+  dark.value = !dark.value
+  localStorage.setItem(THEME_STORAGE_KEY, dark.value ? 'dark' : 'light')
+  applyTheme()
+}
+onMounted(applyTheme)
+
+/* ---- mobile sidebar ---- */
+const sidebarOpen = ref(false)
+const route = useRoute()
+watch(
+  () => route.fullPath,
+  () => {
+    sidebarOpen.value = false
+  }
+)
 </script>
 
 <template>
   <v-app>
-    <v-app-bar app density="compact">
-      <v-tabs color="primary" hide-slider>
-        <template v-for="item in menuItems">
-          <v-menu v-if="item.children" :key="`${item.to}/`" offset-y open-on-hover>
-            <template #activator="{ props }">
-              <v-tab :to="item.to" v-bind="props">
-                {{ item.text }}
-              </v-tab>
-            </template>
-            <v-list density="compact" nav>
-              <v-list-item v-for="subItem in item.children" :key="subItem.to">
-                <v-tab
-                  :to="item.to + subItem.to"
-                  :class="item.to + subItem.to == $route.path ? 'text-primary' : undefined"
-                  hide-slider
-                >
-                  {{ subItem.text }}
-                </v-tab>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-          <v-tab v-else :key="item.to" :to="item.to">
-            <v-app-bar-title v-if="item.to === '/'">
-              {{ item.text }}
-            </v-app-bar-title>
-            <template v-else>
-              {{ item.text }}
-            </template>
-          </v-tab>
-        </template>
-      </v-tabs>
-      <template #append>
-        <v-dialog v-model="aboutDialog" max-width="800px">
-          <template #activator="{ props }">
-            <v-btn v-bind="props" :icon="mdiInformationOutline" />
-          </template>
-          <about-content @click:close="aboutDialog = false" />
-        </v-dialog>
-      </template>
-    </v-app-bar>
-    <v-main>
-      <router-view />
-    </v-main>
+    <div class="app-shell">
+      <app-sidebar
+        :open="sidebarOpen"
+        :dark="dark"
+        @toggle-theme="toggleTheme"
+        @close="sidebarOpen = false"
+      />
+      <div class="sidebar-scrim" :class="{ open: sidebarOpen }" @click="sidebarOpen = false" />
+      <div class="app-main">
+        <header class="mhdr">
+          <button class="hdr-icon-btn" aria-label="Open navigation" @click="sidebarOpen = true">
+            <v-icon :icon="mdiMenu" size="18" />
+          </button>
+          <router-link class="mhdr-brand" to="/">
+            <img :src="publicPath + 'logo/EPFL_Logo_184X53.svg'" alt="EPFL" />
+            RESSLab Hub
+          </router-link>
+        </header>
+        <main class="app-content">
+          <router-view />
+        </main>
+      </div>
+    </div>
     <simple-snackbar ref="snackbar" />
   </v-app>
 </template>
-
-<style lang="scss" scoped>
-.v-toolbar__title {
-  overflow: unset;
-  text-transform: none;
-}
-
-.v-list {
-  padding: 0;
-  > .v-list-item {
-    padding: 0;
-    > .v-list-item__content > .v-tab {
-      height: 40px;
-      width: 100%;
-      justify-content: flex-start;
-    }
-  }
-}
-</style>

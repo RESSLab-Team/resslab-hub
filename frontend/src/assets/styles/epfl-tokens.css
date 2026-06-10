@@ -1,0 +1,99 @@
+/* ============================================================
+   EPFL Design System — Colors & Type tokens
+   Source: github.com/epfl-si/elements (charte graphique Web EPFL)
+   Brand reference: EPFL Brand Guidelines (2019)
+
+   Note on fonts: the official EPFL face is Suisse Int'l, whose
+   license restricts hosting to *.epfl.ch — the font files are
+   therefore NOT bundled in this public repository. As in EPFL's
+   public stylesheet, the stack falls back to Arial/Helvetica.
+   ============================================================ */
+
+:root {
+  /* ──────────── COLOR — RAW PALETTE ──────────── */
+
+  /* Brand red — the EPFL signature */
+  --epfl-red: #ff0000;
+  --epfl-red-dark: #b51f1f;
+  --epfl-leman: #00a79f;
+  --epfl-canard: #007480;
+  --epfl-canard-dark: #004248;
+
+  /* Neutrals */
+  --epfl-white: #ffffff;
+  --epfl-gray-100: #e6e6e6;
+  --epfl-gray-200: #d5d5d5;
+  --epfl-gray-300: #c1c1c1;
+  --epfl-gray-500: #8e8e8e;
+  --epfl-gray-600: #707070;
+  --epfl-black: #212121; /* Soft black, never pure */
+
+  /* Status */
+  --epfl-blue: #4a90e2;
+  --epfl-orange: #f5a623;
+  --epfl-green: #7ed321;
+  --epfl-green-text: #699b32;
+
+  /* ──────────── COLOR — SEMANTIC TOKENS ──────────── */
+
+  /* Surfaces */
+  --bg: var(--epfl-white);
+  --bg-muted: var(--epfl-gray-100);
+  --bg-subtle: #f5f5f5;
+  --bg-dark: var(--epfl-black);
+  --bg-overlay: rgba(33, 33, 33, 0.5);
+
+  /* Foreground */
+  --fg: var(--epfl-black);
+  --fg-muted: var(--epfl-gray-600);
+  --fg-subtle: var(--epfl-gray-500);
+  --fg-disabled: var(--epfl-gray-300);
+  --fg-inverse: var(--epfl-white);
+
+  /* Borders */
+  --border: var(--epfl-gray-200);
+  --border-strong: var(--epfl-gray-500);
+  --border-subtle: var(--epfl-gray-100);
+  --border-hairline: rgba(33, 33, 33, 0.1);
+
+  /* Brand intent */
+  --primary: var(--epfl-red);
+  --primary-hover: var(--epfl-red-dark);
+  --on-primary: var(--epfl-white);
+  --tertiary: var(--epfl-canard);
+  --tertiary-hover: var(--epfl-canard-dark);
+  --on-tertiary: var(--epfl-white);
+
+  /* Links */
+  --link: var(--epfl-black);
+  --link-hover: var(--epfl-red);
+
+  /* ──────────── TYPE ──────────── */
+  --font-sans: "Suisse Int'l", 'SuisseIntl', 'Suisse Intl', Arial, 'Helvetica Neue', Helvetica,
+    sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+
+  /* ──────────── SHAPE / MOTION ──────────── */
+  --radius: 2px; /* deliberately tight — Swiss/sharp */
+  --radius-lg: 4px;
+  --shadow-sm: 0 1px 2px rgba(33, 33, 33, 0.075);
+  --shadow: 0 0.5rem 1rem rgba(33, 33, 33, 0.175);
+  --shadow-lg: 0 1rem 2rem rgba(33, 33, 33, 0.2);
+  --focus-ring: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+  --t-fast: 0.15s ease-in-out;
+  --t-base: 0.2s ease-in-out;
+}
+
+/* ──────────── DARK MODE ──────────── */
+body.theme-dark {
+  --bg: #0e0e10;
+  --bg-muted: #1a1a1d;
+  --bg-subtle: #141417;
+  --fg: #f5f5f5;
+  --fg-muted: #a8a8ac;
+  --fg-subtle: #6e6e73;
+  --border: #2a2a2e;
+  --border-subtle: #1f1f22;
+  --border-strong: #3a3a40;
+  --link: #f5f5f5;
+}

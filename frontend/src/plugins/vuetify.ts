@@ -21,7 +21,19 @@ export default createVuetify({
         colors: {
           primary: '#FF0000', // EPFL rouge
           secondary: '#413D3A', // EPFL ardoise
-          accent: '#00A79F' // EPFL leman
+          accent: '#00A79F', // EPFL leman
+          background: '#FFFFFF',
+          surface: '#FFFFFF'
+        }
+      },
+      dark: {
+        dark: true,
+        colors: {
+          primary: '#FF0000',
+          secondary: '#A8A8AC',
+          accent: '#00A79F',
+          background: '#0E0E10',
+          surface: '#1A1A1D'
         }
       }
     }

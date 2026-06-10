@@ -6,105 +6,40 @@ import type {
   HSSColumnField,
   MaterialField
 } from '@/backend'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import AppFooter from '@/components/layout/AppFooter.vue'
 import OverviewMap from '@/components/map/OverviewMap.vue'
 import {
   analyticsApi,
   bracesApi,
   columnsApi,
   connectionsApi,
-  ductileFractureApi,
-  ebfApi,
   hssApi,
   materialsApi,
-  residualsApi,
-  tensileCouponApi
+  residualsApi
 } from '@/plugins/axios'
+import { useCountsStore } from '@/stores/counts'
 import { publicPath } from '@/utils/common'
+import { DATABASES, TOOLS } from '@/utils/navigation'
+import { mdiArrowRight } from '@mdi/js'
 import { chain } from 'lodash'
-import { onMounted, ref, shallowRef, triggerRef } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
-const carouselImages: {
-  src: string
-  credit: string
-}[] = [
-  'El Jisr and Lignos (2022)',
-  'Elkady and Lignos (2018)',
-  'Prof. Dimitrios Lignos, EPFL',
-  'Andronikos Skiadopoulos, EPFL',
-  'Suzuki and Lignos (2021)',
-  'Skiadopoulos and Lignos (2022)',
-  'Elkady and Lignos (2018)',
-  'Andronikos Skiadopoulos, EPFL'
-].map((credit, index) => ({
-  src: publicPath + `img/home/Photo${index + 1}.jpg`,
-  credit: credit
-}))
+const countsStore = useCountsStore()
+const universityCount = ref<number | string>('…')
+const userCount = ref<number | string>('…')
 
-const logos: {
-  src: string
-  url: string
-}[] = [
+const keyNumbers = computed(() => [
   {
-    src: publicPath + 'logo/resslab_logo_v1.svg',
-    url: 'https://www.epfl.ch/labs/resslab'
+    num: countsStore.total != null ? countsStore.total.toLocaleString('en-CH') : '…',
+    label: 'Experimental tests digitized'
   },
-  {
-    src: publicPath + 'logo/EPFL_Logo_184X53.svg',
-    url: 'https://www.epfl.ch'
-  },
-
-  {
-    src: publicPath + 'logo/logo_IT4R.svg',
-    url: 'https://enac-it4r.epfl.ch'
-  },
-  {
-    src: publicPath + 'logo/SNF_logo_standard_web_color_pos_e.svg',
-    url: 'https://www.snf.ch'
-  }
-]
-
-const imageIndex = ref(0)
-const indicators = shallowRef<
-  Record<'test' | 'university' | 'user', { text: string; count: number | string }>
->({
-  test: {
-    text: 'Tests',
-    count: '...'
-  },
-  university: {
-    text: 'Universities contributed',
-    count: '...'
-  },
-  user: {
-    text: 'Users worldwide',
-    count: '...'
-  }
-})
+  { num: universityCount.value, label: 'Universities contributed' },
+  { num: userCount.value, label: 'Researchers & engineers worldwide' },
+  { num: DATABASES.length, label: 'Curated databases, one consistent format' }
+])
 
 onMounted(() => {
-  // Get test count
-  Promise.all([
-    bracesApi.getBracesDistinct(),
-    columnsApi.getColumnsDistinct(),
-    connectionsApi.getConnectionsDistinct(),
-    materialsApi.getMaterialsDistinct(),
-    residualsApi.getResidualStressesDistinct(),
-    hssApi.getHssColumnsDistinct(),
-    ebfApi.getEccentricBracedFramesDistinct(),
-    tensileCouponApi.getTensileCouponsDistinct(),
-    ductileFractureApi.getDuctileFracturesDistinct()
-  ])
-    .then((responses) =>
-      chain(responses)
-        .flatMap((response) => response.data)
-        .sum()
-        .value()
-    )
-    .then((count) => {
-      indicators.value.test.count = count
-      triggerRef(indicators)
-    })
+  countsStore.fetch()
 
   // Get university count
   const latLngFields: (BraceField &
@@ -128,8 +63,7 @@ onMounted(() => {
         .value()
     )
     .then((count) => {
-      indicators.value.university.count = count
-      triggerRef(indicators)
+      universityCount.value = count
     })
 
   // Get user count
@@ -137,208 +71,149 @@ onMounted(() => {
     .getUsers()
     .then((response) => response.data)
     .then((count) => {
-      indicators.value.user.count = count
-      triggerRef(indicators)
+      userCount.value = count
     })
 })
 </script>
 
 <template>
-  <v-container class="text-justify">
-    <v-row>
-      <v-col>
-        <v-card>
-          <v-responsive content-class="d-flex align-center" height="256px">
-            <video class="w-100" autoplay loop muted preload="auto">
-              <source :src="publicPath + 'video/steel-mrf-front-page.mp4'" type="video/mp4" />
-            </video>
-            <v-overlay
-              class="align-center justify-center"
-              contained
-              :model-value="true"
-              persistent
-              no-click-animation
-            >
-              <h1 class="pa-5 text-center text-white">
-                RESSLab Hub: Open-access databases and models for design and assessment of steel
-                structures
-              </h1>
-            </v-overlay>
-          </v-responsive>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-row class="">
-      <v-col>
-        <v-card class="fill-height">
-          <div class="pa-5">
-            <p>
-              Recent developments in Performance-Based Earthquake Engineering enable studies to
-              benchmark the seismic performance of infrastructure systems, further develop our codes
-              and standards and to minimize the impacts of earthquakes worldwide. Moreover,
-              digitalization of our cities requires the use of standardized predictive models for
-              maintenance and life-cycle assessment of infrastructure systems. Within such a
-              context, the RESSLab-hub provides open-access to the engineering and research
-              communities to databases along with state-of-the-art modeling with the overarching
-              goal to advance knowledge for minimizing the earthquake risk of steel and
-              composite-steel concrete structures.
-            </p>
-            <br />
-            <p>RESSLab Hub is composed of :</p>
-            <p>
-              - Databases
-              <info-tooltip>
-                A series of databases have been developed with enhanced visualization features for
-                efficient search and data exploitation. The databases provide access to physical
-                experiments of a rich set of structural steel materials, structural components and
-                connections, residual stress measurements that were tested worldwide since the
-                1970s. In particular, the databases include highly heterogenous data in a consistent
-                format with parallel axis search and visualization capabilities. Fully digitized
-                experimental data is made available that were extracted from experimental reports.
-              </info-tooltip>
-            </p>
-            <p>
-              - Component Models
-              <info-tooltip>
-                A web-based interactive module allows for the automatically constructed backbone and
-                first-cycle envelope curves for structural steel components for direct use in
-                nonlinear static and dynamic analyses procedures. This module incorporates the
-                state-of-the-art in component modeling for seismic assessment of existing structures
-                in North America and Europe. Besides the use of built-up cross sections, it links
-                with currently available cross-sectional databases from North America, Europe and
-                Japan to extract geometric features from standardized hot-rolled profiles, which are
-                currently used in steel construction worldwide.
-              </info-tooltip>
-            </p>
-            <p>
-              - Fragility Curves
-              <info-tooltip>
-                A web-based interactive tool enables the exploitation of fragility curves for
-                structural components that allows for financial loss estimation within the PBEE
-                framework. The fragility curves are either univariate or multivariate depending on
-                the component modeling resolution of interest. Visualization features include bar
-                plots to enable exploitation of fragility curves and surfaces based on pertinent
-                geometric and material parameters of interest.
-              </info-tooltip>
-            </p>
-            <p>
-              - ... and future updates
-              <info-tooltip>
-                Other databases and web-based interactive tools are currently under development.
-                Stay tuned for future updates.
-              </info-tooltip>
-            </p>
+  <div>
+    <!-- Hero — overlapping white text panel breaking the media edge -->
+    <section class="hero">
+      <div class="hero-text">
+        <div class="hero-eyebrow">EPFL · RESSLab</div>
+        <h1 class="hero-title">Open data for <em>seismic-resilient</em><br />steel structures.</h1>
+        <p class="hero-lede">
+          Curated experimental databases and state-of-the-art component models for performance-based
+          earthquake engineering — assembled worldwide since the 1970s, fully digitized, freely
+          accessible.
+        </p>
+        <div class="hero-cta">
+          <router-link class="btn btn-primary" to="/connections/database">
+            Browse databases
+            <v-icon :icon="mdiArrowRight" size="14" />
+          </router-link>
+          <router-link class="btn btn-secondary" to="/about">About the project</router-link>
+        </div>
+      </div>
+      <div class="hero-img">
+        <video autoplay loop muted playsinline preload="auto">
+          <source :src="publicPath + 'video/steel-mrf-front-page.mp4'" type="video/mp4" />
+        </video>
+        <div class="hero-img-credit">RESSLab, EPFL</div>
+      </div>
+    </section>
+
+    <!-- Key numbers -->
+    <div class="keynums">
+      <div v-for="(item, index) in keyNumbers" :key="index" class="keynum">
+        <div class="keynum-num">{{ item.num }}</div>
+        <div class="keynum-bar" />
+        <div class="keynum-label">{{ item.label }}</div>
+      </div>
+    </div>
+
+    <!-- Databases -->
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Databases</div>
+          <h2 class="section-title">Nine curated datasets, one consistent format.</h2>
+          <p class="section-sub">
+            Digitized experimental data from labs worldwide. Filter by geometry, material and
+            loading protocol; export reproducibly; cite original sources.
+          </p>
+        </div>
+        <router-link class="section-link" to="/connections/database">
+          View all databases →
+        </router-link>
+      </div>
+      <div class="cat-grid">
+        <router-link v-for="db in DATABASES" :key="db.id" class="cat-tile" :to="db.to">
+          <div class="cat-tile-icon"><v-icon :icon="db.icon" size="22" /></div>
+          <h3 class="cat-tile-title">{{ db.name }}</h3>
+          <p class="cat-tile-desc">{{ db.desc }}</p>
+          <div class="cat-tile-meta">
+            <template v-if="countsStore.counts[db.id] != null">
+              <strong>{{ countsStore.counts[db.id] }}</strong>
+              <span>tests</span>
+            </template>
+            <span style="flex: 1" />
+            <span class="cat-tab">{{ db.group }}</span>
           </div>
-        </v-card>
-      </v-col>
-      <v-col lg="7" xl="8">
-        <v-card class="fill-height">
+          <v-icon :icon="mdiArrowRight" size="16" class="cat-arrow" />
+        </router-link>
+      </div>
+    </section>
+
+    <!-- Worldwide reach + tutorial -->
+    <section class="section section-bg-subtle">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Worldwide reach</div>
+          <h2 class="section-title">
+            Tests contributed from
+            {{ typeof universityCount === 'number' ? universityCount : 'dozens of' }}
+            universities worldwide.
+          </h2>
+        </div>
+      </div>
+      <div class="split-7-5">
+        <div class="map-frame">
           <overview-map />
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12">
-        <v-card class="pa-5" color="secondary">
-          <v-row>
-            <v-col
-              v-for="(item, index) in indicators"
-              :key="index"
-              class="d-flex flex-column align-center"
-            >
-              <h1>
-                {{ item.count }}
-              </h1>
-              <span>{{ item.text }}</span>
-            </v-col>
-          </v-row>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="7">
-        <v-card class="fill-height pa-5">
-          <h1>Video introduction & tutorial</h1>
-          <v-carousel class="rounded pb-10" height="500">
-            <v-carousel-item class="pa-10">
-              <iframe
-                width="100%"
-                height="100%"
-                src="https://www.youtube.com/embed/5TkO07T16z4"
-                frameborder="10"
-                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-              ></iframe>
-            </v-carousel-item>
-            <v-carousel-item>
-              <iframe
-                width="100%"
-                height="100%"
-                src="https://www.youtube.com/embed/JLWvJ_K3bAs"
-                frameborder="0"
-                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-              ></iframe>
-            </v-carousel-item>
-          </v-carousel>
-        </v-card>
-      </v-col>
-      <v-col cols="5">
-        <v-card class="rounded pa-5">
-          <v-carousel
-            v-model="imageIndex"
-            class="bg-secondary rounded"
-            cycle
-            height="500"
-            hide-delimiter-background
-            :show-arrows="false"
-          >
-            <v-carousel-item v-for="(image, index) in carouselImages" :key="index" cover>
-              <v-img :src="image.src" height="100%" />
-            </v-carousel-item>
-          </v-carousel>
-          <v-card-text class="pa-0 pt-5 mb-0 text-right">
-            Credits: {{ carouselImages[imageIndex].credit }}
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-row class="my-10">
-      <v-col v-for="(logo, index) in logos" :key="index">
-        <a :href="logo.url" target="_blank">
-          <v-img :src="logo.src" max-height="64" />
-        </a>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12">
-        <v-card class="rounded">
-          <div class="pa-5">
-            <h1>Copyrights</h1>
-            <p>
-              The databases in RESSLab-hub were assembled as a service to the research and practice
-              communities in earthquake engineering. The assembled data, which have been fully
-              digitized from various experimental reports, are shared under the
-              <a href="https://creativecommons.org/licenses/by/2.0/legalcode" target="_blank"
-                >Creative Commons Attribution 2.0 Generic</a
-              >
-              and the
-              <a
-                href="https://github.com/amaelkady/Steel-Columns-Test-Data/blob/main/LICENSE"
-                target="_blank"
-                >GNU General Public</a
-              >
-              licences. EPFL, and the researchers who performed the experiments make no warranties
-              to the accuracy of the information that has been collected and provided in this
-              website. If you have any questions, comments or suggestions, please contact
-              <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank"
-                >Prof. Dimitrios Lignos</a
-              >
-              at <a href="https://www.epfl.ch" target="_blank">EPFL</a>.
-            </p>
+        </div>
+        <div class="surface surface-pad" style="display: flex; flex-direction: column">
+          <div class="video-frame">
+            <iframe
+              src="https://www.youtube.com/embed/5TkO07T16z4"
+              title="Getting started with RESSLab Hub"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+            ></iframe>
           </div>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+          <div style="margin-top: 24px">
+            <div class="eyebrow" style="margin-bottom: 10px">Modeling tools</div>
+            <p style="margin: 0 0 16px; color: var(--fg-muted); font-size: 14px; line-height: 1.5">
+              Beyond data: interactive backbone curves and fragility surfaces for direct use in
+              nonlinear analyses.
+            </p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <router-link
+                v-for="tool in TOOLS"
+                :key="tool.to"
+                class="btn btn-secondary btn-sm"
+                :to="tool.to"
+              >
+                {{ tool.name }}
+              </router-link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Partners -->
+    <div class="logos">
+      <div class="logos-eyebrow">Partners &amp; funding</div>
+      <div class="logos-items">
+        <a href="https://www.epfl.ch/labs/resslab" target="_blank" rel="noreferrer">
+          <img :src="publicPath + 'logo/resslab_logo_v1.svg'" alt="RESSLab" />
+        </a>
+        <a href="https://www.epfl.ch" target="_blank" rel="noreferrer">
+          <img :src="publicPath + 'logo/EPFL_Logo_184X53.svg'" alt="EPFL" />
+        </a>
+        <a href="https://enac-it4r.epfl.ch" target="_blank" rel="noreferrer">
+          <img :src="publicPath + 'logo/logo_IT4R.svg'" alt="ENAC-IT4R" />
+        </a>
+        <a href="https://www.snf.ch" target="_blank" rel="noreferrer">
+          <img
+            :src="publicPath + 'logo/SNF_logo_standard_web_color_pos_e.svg'"
+            alt="Swiss National Science Foundation"
+          />
+        </a>
+      </div>
+    </div>
+
+    <app-footer />
+  </div>
 </template>
