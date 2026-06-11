@@ -188,6 +188,18 @@
 .mhdr-brand img {
   height: 20px;
 }
+.mhdr-brand-name {
+  line-height: 1.2;
+}
+.mhdr-brand-name small {
+  display: block;
+  font-weight: 400;
+  font-size: 10px;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
 .sidebar-scrim {
   display: none;
 }

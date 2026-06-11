@@ -61,7 +61,7 @@ watch(
           </button>
           <router-link class="mhdr-brand" to="/">
             <img :src="publicPath + 'logo/EPFL_Logo_184X53.svg'" alt="EPFL" />
-            RESSLab Hub
+            <span class="mhdr-brand-name">RESSLab Hub<small>Steel structures research</small></span>
           </router-link>
         </header>
         <main class="app-content">
