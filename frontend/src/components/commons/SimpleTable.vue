@@ -176,13 +176,15 @@ function downloadZip(): void {
 </script>
 
 <template>
-  <v-card>
-    <v-card-title class="d-flex">
-      <slot name="title">
-        {{ title }}
-      </slot>
+  <v-card class="stbl" flat>
+    <div class="stbl-toolbar">
+      <div class="stbl-title">
+        <slot name="title">
+          {{ title }}
+        </slot>
+      </div>
       <v-spacer />
-      <v-responsive class="mx-1" max-width="256">
+      <v-responsive class="stbl-search" max-width="280">
         <v-text-field
           v-model="globalSearch"
           clearable
@@ -194,10 +196,10 @@ function downloadZip(): void {
           variant="outlined"
         />
       </v-responsive>
-      <v-btn color="primary" :disabled="!hasFilters" variant="text" @click="resetFilters">
+      <button class="btn btn-ghost btn-sm" :disabled="!hasFilters" @click="resetFilters">
         Reset filters
-      </v-btn>
-    </v-card-title>
+      </button>
+    </div>
     <v-data-table-server
       v-model="selectedItemsIds"
       density="compact"
@@ -337,19 +339,20 @@ function downloadZip(): void {
         >
       </template>
     </v-data-table-server>
-    <v-card-actions>
-      <v-btn
-        color="primary"
+    <div class="stbl-actions">
+      <button
+        class="btn btn-secondary btn-sm"
         :disabled="selectedItems.length === 0 || selectedItems.length > maxDownloadCount"
-        :prepend-icon="mdiDownload"
         @click="downloadZip"
       >
+        <v-icon :icon="mdiDownload" size="14" />
         Download ({{ selectedItems.length }}/{{ totalCount }})
-      </v-btn>
-      <v-btn color="primary" :disabled="!hasFilters" :prepend-icon="mdiShare" @click="shareUrl">
+      </button>
+      <button class="btn btn-secondary btn-sm" :disabled="!hasFilters" @click="shareUrl">
+        <v-icon :icon="mdiShare" size="14" />
         Share
-      </v-btn>
-    </v-card-actions>
+      </button>
+    </div>
     <checkbox-dialog
       ref="downloadDialog"
       title="Download"
@@ -360,13 +363,93 @@ function downloadZip(): void {
 </template>
 
 <style lang="scss" scoped>
+/* EPFL design-system table — mirrors the handoff's .tbl styles on top of
+   v-data-table-server. */
+.stbl {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--bg);
+}
+
+.stbl-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.stbl-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+.stbl-search :deep(.v-field) {
+  border-radius: var(--radius);
+  font-size: 14px;
+}
+
+.stbl-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+
+:deep(.v-table) {
+  font-size: 13px;
+  font-feature-settings: 'tnum';
+  background: var(--bg);
+}
+
 :deep(.v-table__wrapper) {
   max-height: 50vh;
   overflow-y: auto;
 }
 
+/* Column header row */
+:deep(.v-table__wrapper) > table > thead > tr > th {
+  background: var(--bg-subtle) !important;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: var(--fg-muted);
+  border-bottom: 1px solid var(--border) !important;
+  white-space: nowrap;
+}
+
+/* Filter row (custom thead slot) */
+:deep(.v-table__wrapper) > table > thead > tr > td {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border) !important;
+  padding: 4px 8px;
+}
+
+/* Body rows */
+:deep(.v-table__wrapper) > table > tbody > tr > td {
+  border-bottom: 1px solid var(--border-subtle) !important;
+  white-space: nowrap;
+}
 :deep(.v-table__wrapper) > table > tbody > tr:hover {
   cursor: pointer;
+  background: var(--bg-subtle);
+}
+:deep(.v-table__wrapper) > table > tbody > tr.v-data-table__tr--clickable:focus-visible,
+:deep(.v-table__wrapper) > table > tbody > tr:has(.v-selection-control--dirty) {
+  background: rgba(255, 0, 0, 0.05);
+  box-shadow: inset 3px 0 0 var(--epfl-red);
+}
+
+/* Pagination footer */
+:deep(.v-data-table-footer) {
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--fg-muted);
+  padding: 8px 16px;
 }
 
 table > tr > td {
