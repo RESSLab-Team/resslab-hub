@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { useCountsStore } from '@/stores/counts'
 import { publicPath } from '@/utils/common'
-import { DATABASES, TOOLS } from '@/utils/navigation'
+import { NAV_GROUPS, type NavGroup } from '@/utils/navigation'
 import {
   mdiBookOpenVariant,
+  mdiChevronDown,
   mdiHomeOutline,
   mdiInformationOutline,
   mdiWeatherNight,
   mdiWeatherSunny
 } from '@mdi/js'
-import { onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 defineProps<{
@@ -25,11 +26,26 @@ const route = useRoute()
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
 
-const components = DATABASES.filter((db) => db.group === 'components')
-const materials = DATABASES.filter((db) => db.group === 'materials')
+const manuallyOpened = ref(new Set<string>())
 
-function isActive(to: string): boolean {
-  return route.path === to
+function routePrefix(group: NavGroup): string {
+  // '/connections/database' -> '/connections'
+  return '/' + group.children[0].to.split('/')[1]
+}
+
+const activeGroupId = computed(
+  () => NAV_GROUPS.find((g) => route.path.startsWith(routePrefix(g) + '/'))?.id
+)
+
+function isExpanded(group: NavGroup): boolean {
+  return group.id === activeGroupId.value || manuallyOpened.value.has(group.id)
+}
+
+function toggleGroup(group: NavGroup) {
+  const opened = new Set(manuallyOpened.value)
+  if (opened.has(group.id)) opened.delete(group.id)
+  else opened.add(group.id)
+  manuallyOpened.value = opened
 }
 </script>
 
@@ -50,47 +66,64 @@ function isActive(to: string): boolean {
       Overview
     </router-link>
 
-    <div class="sidebar-section">Components</div>
-    <router-link
-      v-for="db in components"
-      :key="db.id"
-      class="sidebar-link"
-      :class="{ 'is-active': isActive(db.to) }"
-      :to="db.to"
-      @click="emit('close')"
-    >
-      {{ db.name }}
-      <span v-if="countsStore.counts[db.id] != null" class="count">
-        {{ countsStore.counts[db.id] }}
-      </span>
-    </router-link>
+    <div class="sidebar-section">Databases &amp; tools</div>
+    <template v-for="group in NAV_GROUPS" :key="group.id">
+      <!-- Single-page groups render as a plain link -->
+      <router-link
+        v-if="group.children.length === 1"
+        class="sidebar-link"
+        :class="{ 'is-active': route.path === group.children[0].to }"
+        :to="group.children[0].to"
+        @click="emit('close')"
+      >
+        {{ group.name }}
+        <span
+          v-if="group.children[0].countId && countsStore.counts[group.children[0].countId] != null"
+          class="count"
+        >
+          {{ countsStore.counts[group.children[0].countId!] }}
+        </span>
+      </router-link>
 
-    <div class="sidebar-section">Materials</div>
-    <router-link
-      v-for="db in materials"
-      :key="db.id"
-      class="sidebar-link"
-      :class="{ 'is-active': isActive(db.to) }"
-      :to="db.to"
-      @click="emit('close')"
-    >
-      {{ db.name }}
-      <span v-if="countsStore.counts[db.id] != null" class="count">
-        {{ countsStore.counts[db.id] }}
-      </span>
-    </router-link>
-
-    <div class="sidebar-section">Modeling tools</div>
-    <router-link
-      v-for="tool in TOOLS"
-      :key="tool.to"
-      class="sidebar-link"
-      :class="{ 'is-active': isActive(tool.to) }"
-      :to="tool.to"
-      @click="emit('close')"
-    >
-      {{ tool.name }}
-    </router-link>
+      <template v-else>
+        <div class="sidebar-group" :class="{ 'is-active': group.id === activeGroupId }">
+          <router-link
+            class="sidebar-link sidebar-group-link"
+            :to="group.children[0].to"
+            @click="emit('close')"
+          >
+            {{ group.name }}
+          </router-link>
+          <button
+            class="sidebar-group-toggle"
+            :aria-expanded="isExpanded(group)"
+            :aria-label="(isExpanded(group) ? 'Collapse ' : 'Expand ') + group.name"
+            @click="toggleGroup(group)"
+          >
+            <v-icon
+              :icon="mdiChevronDown"
+              size="16"
+              :class="{ 'chevron-open': isExpanded(group) }"
+            />
+          </button>
+        </div>
+        <div v-if="isExpanded(group)" class="sidebar-children">
+          <router-link
+            v-for="child in group.children"
+            :key="child.to"
+            class="sidebar-link sidebar-child"
+            :class="{ 'is-active': route.path === child.to }"
+            :to="child.to"
+            @click="emit('close')"
+          >
+            {{ child.name }}
+            <span v-if="child.countId && countsStore.counts[child.countId] != null" class="count">
+              {{ countsStore.counts[child.countId!] }}
+            </span>
+          </router-link>
+        </div>
+      </template>
+    </template>
 
     <div class="sidebar-section">Reference</div>
     <router-link
