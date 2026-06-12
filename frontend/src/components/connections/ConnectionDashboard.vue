@@ -10,7 +10,8 @@ import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import i18n from '@/plugins/i18n'
 import { useCountsStore } from '@/stores/counts'
-import type { Value } from '@/utils/common'
+import { useNotificationStore } from '@/stores/notification'
+import { shareCurrentUrl, type Value } from '@/utils/common'
 import { cobalt, peach, periwinkle, plum, sky } from '@/utils/vuetify'
 import {
   mdiCalendarRange,
@@ -18,12 +19,15 @@ import {
   mdiFilterVariant,
   mdiHistory,
   mdiLayersOutline,
+  mdiLayersTriple,
+  mdiMagnify,
   mdiPulse,
+  mdiShare,
   mdiTagOutline,
   mdiTune,
   mdiViewGridOutline
 } from '@mdi/js'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -125,6 +129,16 @@ const railGroups: FilterRailGroup[] = [
     ]
   },
   {
+    key: ConnectionField.NDp,
+    label: 'Doubler plates',
+    icon: mdiLayersTriple,
+    type: 'chips',
+    options: [
+      { label: 'None', value: '0' },
+      { label: 'With', value: '> 0' }
+    ]
+  },
+  {
     key: ConnectionField.DB,
     label: 'Beam depth db [mm]',
     icon: mdiTune,
@@ -144,15 +158,8 @@ const railGroups: FilterRailGroup[] = [
   }
 ]
 
-// Auto-collapse the rail on narrower laptops; the user can re-expand it.
-const collapseQuery = window.matchMedia('(max-width: 1399px)')
-const railCollapsed = ref<boolean>(collapseQuery.matches)
+// Filters live in a slide-in overlay opened from the toolbar button.
 const filtersOverlayOpen = ref<boolean>(false)
-function onCollapseQueryChange(event: MediaQueryListEvent): void {
-  railCollapsed.value = event.matches
-}
-onMounted(() => collapseQuery.addEventListener('change', onCollapseQueryChange))
-onUnmounted(() => collapseQuery.removeEventListener('change', onCollapseQueryChange))
 
 const railFilterCount = computed<number>(
   () => railGroups.filter((group) => searches.value[group.key] != null).length
@@ -184,177 +191,185 @@ const activeChips = computed(() =>
 )
 
 function clearAll(): void {
+  search.value = ''
   Object.keys(searches.value).forEach((key) => changeSearches(key, undefined))
+}
+
+/* ---- head actions (design handoff: Share view) ---- */
+const notificationStore = useNotificationStore()
+
+function shareView(): void {
+  shareCurrentUrl(route.fullPath, notificationStore.notify)
 }
 </script>
 
 <template>
-  <div
-    class="dash dash-with-rail"
-    :class="{ 'rail-collapsed': railCollapsed }"
-    data-filter-pos="right"
-  >
-    <filter-rail
-      :collapsed="railCollapsed"
-      :groups="railGroups"
-      position="right"
-      :searches="searches"
-      @change:searches="changeSearches"
-      @update:collapsed="railCollapsed = $event"
-    />
-
-    <div class="dash-main">
-      <!-- Page header -->
-      <div class="dash-head">
-        <div class="eyebrow" style="margin-bottom: 6px">Components · Database</div>
-        <div class="dash-head-row">
-          <h1 class="dash-title">
-            Connections
-            <span v-if="countsStore.counts.connections != null" class="dash-title-count">
-              {{ countsStore.counts.connections.toLocaleString('en-CH') }} tests
-            </span>
-          </h1>
-          <button
-            class="btn btn-secondary btn-sm dash-filters-trigger"
-            @click="filtersOverlayOpen = true"
-          >
-            <v-icon :icon="mdiFilterVariant" size="14" />
-            Filters
-            <span v-if="railFilterCount > 0" class="dash-filters-trigger-badge">
-              {{ railFilterCount }}
-            </span>
+  <div class="dash">
+    <!-- Page header -->
+    <div class="dash-head">
+      <div class="eyebrow" style="margin-bottom: 6px">Components · Database</div>
+      <div class="dash-head-row">
+        <h1 class="dash-title">
+          Connections
+          <span v-if="countsStore.counts.connections != null" class="dash-title-count">
+            {{ countsStore.counts.connections.toLocaleString('en-CH') }} tests
+          </span>
+        </h1>
+        <div class="dash-head-actions">
+          <button class="btn btn-secondary btn-sm" @click="shareView">
+            <v-icon :icon="mdiShare" size="14" />
+            Share view
           </button>
         </div>
-        <p class="dash-desc">
-          Beam-to-column moment connection tests under reversed cyclic and monotonic loading,
-          categorized per AISC-358-16. Filter through the rail, the charts below or the table column
-          filters; click a row for the full specimen detail and digitized test data.
-        </p>
       </div>
+      <p class="dash-desc">
+        Beam-to-column moment connection tests under reversed cyclic and monotonic loading,
+        categorized per AISC-358-16. Filter through the filters panel, the table column filters or
+        the charts below; click a row for the full specimen detail and digitized test data.
+      </p>
+    </div>
 
-      <!-- Active filters -->
-      <div v-if="activeChips.length > 0" class="dash-active-filters">
-        <strong>Active filters</strong>
-        <span v-for="chip in activeChips" :key="chip.key" class="fchip">
-          {{ chip.label }}
-          <span
-            class="fchip-x"
-            role="button"
-            :aria-label="`Remove filter ${chip.label}`"
-            @click="changeSearches(chip.key, undefined)"
-          >
-            <v-icon :icon="mdiClose" size="10" />
-          </span>
+    <!-- Toolbar: global search + filters -->
+    <div class="dash-toolbar">
+      <div class="dash-search">
+        <v-icon class="dash-search-icon" :icon="mdiMagnify" size="16" />
+        <input v-model="search" type="search" placeholder="Search all columns…" />
+      </div>
+      <div class="dash-toolbar-spacer" />
+      <button
+        class="btn btn-secondary btn-sm dash-filters-trigger"
+        @click="filtersOverlayOpen = true"
+      >
+        <v-icon :icon="mdiFilterVariant" size="14" />
+        Filters
+        <span v-if="railFilterCount > 0" class="dash-filters-trigger-badge">
+          {{ railFilterCount }}
         </span>
-        <button class="chip-clear" @click="clearAll">
+      </button>
+    </div>
+
+    <!-- Active filters -->
+    <div v-if="activeChips.length > 0" class="dash-active-filters">
+      <strong>Active filters</strong>
+      <span v-for="chip in activeChips" :key="chip.key" class="fchip">
+        {{ chip.label }}
+        <span
+          class="fchip-x"
+          role="button"
+          :aria-label="`Remove filter ${chip.label}`"
+          @click="changeSearches(chip.key, undefined)"
+        >
           <v-icon :icon="mdiClose" size="10" />
-          Clear all
-        </button>
-      </div>
+        </span>
+      </span>
+      <button class="chip-clear" @click="clearAll">
+        <v-icon :icon="mdiClose" size="10" />
+        Clear all
+      </button>
+    </div>
 
-      <!-- Charts — row 1: distributions -->
-      <div class="charts-strip">
-        <div class="chart-cell chart-cell--quiet">
-          <div class="chart-head">
-            <h5>Connection type</h5>
-            <span class="info">Click a tile to filter</span>
-          </div>
-          <div class="chart-body">
-            <connection-single-chart
-              :color="peach"
-              :field="ConnectionField.ConnectionType"
-              :query="query"
-              :show-reset="false"
-              flat
-              @change:searches="changeSearches"
-            />
-          </div>
+    <!-- Table (full bleed) -->
+    <div class="dash-table-full">
+      <connection-table
+        v-model:search="search"
+        v-model:searches="searches"
+        :query="query"
+        @click:row="clickTableRow"
+        @update:page="updatePage"
+      />
+    </div>
+
+    <!-- Charts — row 1: distributions -->
+    <div class="charts-strip">
+      <div class="chart-cell chart-cell--quiet">
+        <div class="chart-head">
+          <h5>Connection type</h5>
+          <span class="info">Click a tile to filter</span>
         </div>
-        <div class="chart-cell">
-          <div class="chart-head">
-            <h5>Tests per year × type</h5>
-            <span class="info">Click legend to filter</span>
-          </div>
-          <div class="chart-body">
-            <connection-double-chart
-              :color="periwinkle"
-              :fields="[ConnectionField.Date, ConnectionField.ConnectionType]"
-              :query="query"
-              type="line"
-              @change:searches="changeSearches"
-            />
-          </div>
-        </div>
-        <div class="chart-cell chart-cell--quiet">
-          <div class="chart-head">
-            <h5>Beam steel grade</h5>
-            <span class="info">Click to filter</span>
-          </div>
-          <div class="chart-body">
-            <connection-single-chart
-              :color="cobalt"
-              :field="ConnectionField.SteelB"
-              :query="query"
-              :show-reset="false"
-              flat
-              @change:searches="changeSearches"
-            />
-          </div>
+        <div class="chart-body">
+          <connection-single-chart
+            :color="peach"
+            :field="ConnectionField.ConnectionType"
+            :query="query"
+            :show-reset="false"
+            flat
+            @change:searches="changeSearches"
+          />
         </div>
       </div>
-
-      <!-- Charts — row 2: stacked histograms -->
-      <div class="charts-strip charts-strip-2cols">
-        <div class="chart-cell">
-          <div class="chart-head">
-            <h5>Beam depth × slab</h5>
-            <span class="info">Stacked histogram · click bar or legend</span>
-          </div>
-          <div class="chart-body">
-            <connection-double-chart
-              :color="sky"
-              :fields="beamFields"
-              :query="query"
-              @change:searches="changeSearches"
-            />
-          </div>
+      <div class="chart-cell">
+        <div class="chart-head">
+          <h5>Tests per year × type</h5>
+          <span class="info">Click legend to filter</span>
         </div>
-        <div class="chart-cell">
-          <div class="chart-head">
-            <h5>Column depth × doubler plates</h5>
-            <span class="info">Stacked histogram · click bar or legend</span>
-          </div>
-          <div class="chart-body">
-            <connection-double-chart
-              :color="plum"
-              :fields="[ConnectionField.DC, ConnectionField.NDp]"
-              :query="query"
-              @change:searches="changeSearches"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Charts — row 3: parallel coordinates (full width) -->
-      <div class="charts-strip charts-strip-1col">
-        <div class="chart-cell">
-          <connection-parallel-chart
+        <div class="chart-body">
+          <connection-double-chart
             :color="periwinkle"
-            :fields="parallelFields"
+            :fields="[ConnectionField.Date, ConnectionField.ConnectionType]"
+            :query="query"
+            type="line"
+            @change:searches="changeSearches"
+          />
+        </div>
+      </div>
+      <div class="chart-cell chart-cell--quiet">
+        <div class="chart-head">
+          <h5>Beam steel grade</h5>
+          <span class="info">Click to filter</span>
+        </div>
+        <div class="chart-body">
+          <connection-single-chart
+            :color="cobalt"
+            :field="ConnectionField.SteelB"
+            :query="query"
+            :show-reset="false"
+            flat
+            @change:searches="changeSearches"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts — row 2: stacked histograms -->
+    <div class="charts-strip charts-strip-2cols">
+      <div class="chart-cell">
+        <div class="chart-head">
+          <h5>Beam depth × slab</h5>
+          <span class="info">Stacked histogram · click bar or legend</span>
+        </div>
+        <div class="chart-body">
+          <connection-double-chart
+            :color="sky"
+            :fields="beamFields"
             :query="query"
             @change:searches="changeSearches"
           />
         </div>
       </div>
+      <div class="chart-cell">
+        <div class="chart-head">
+          <h5>Column depth × doubler plates</h5>
+          <span class="info">Stacked histogram · click bar or legend</span>
+        </div>
+        <div class="chart-body">
+          <connection-double-chart
+            :color="plum"
+            :fields="[ConnectionField.DC, ConnectionField.NDp]"
+            :query="query"
+            @change:searches="changeSearches"
+          />
+        </div>
+      </div>
+    </div>
 
-      <!-- Table -->
-      <div class="dash-table">
-        <connection-table
-          v-model:search="search"
-          v-model:searches="searches"
+    <!-- Charts — row 3: parallel coordinates (full width) -->
+    <div class="charts-strip charts-strip-1col">
+      <div class="chart-cell">
+        <connection-parallel-chart
+          :color="periwinkle"
+          :fields="parallelFields"
           :query="query"
-          @click:row="clickTableRow"
-          @update:page="updatePage"
+          @change:searches="changeSearches"
         />
       </div>
     </div>
@@ -365,7 +380,7 @@ function clearAll(): void {
       <connection-detail v-if="item" :connection="item" @close="closeDetail" />
     </aside>
 
-    <!-- Filters overlay drawer (narrow viewports) -->
+    <!-- Filters overlay drawer -->
     <div
       class="drawer-scrim"
       :class="{ open: filtersOverlayOpen }"

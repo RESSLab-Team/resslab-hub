@@ -20,7 +20,8 @@ const columns: Column[] = [
   },
   {
     value: ConnectionField.SpecimenDesignation,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'strong'
   },
   {
     value: ConnectionField.Northridge,
@@ -42,15 +43,18 @@ const columns: Column[] = [
   {
     value: ConnectionField.ConnectionType,
     type: 'option',
-    options: ['WUF-W', 'RBS', 'WUF-B', 'BFP', 'WFP', 'KBB', 'BEEP']
+    options: ['WUF-W', 'RBS', 'WUF-B', 'BFP', 'WFP', 'KBB', 'BEEP'],
+    cellVariant: 'tag'
   },
   {
     value: ConnectionField.SectionB,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: ConnectionField.SectionC,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: ConnectionField.NDp,
@@ -131,6 +135,8 @@ function getImageSource(item: string): string {
     v-model:search="search"
     v-model:searches="searches"
     :columns="columns"
+    hide-filter-only
+    hide-toolbar
     :items="items"
     :loading="loading"
     prefix="connection."

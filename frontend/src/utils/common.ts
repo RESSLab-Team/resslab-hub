@@ -45,3 +45,24 @@ export interface HSSSection {
 
 export const debounceAPITime = 80
 export const debounceAPIParameters = { leading: false, trailing: true }
+
+/**
+ * Share the current view URL (filters round-trip through the router query):
+ * native share sheet when available, else clipboard, else a notification link.
+ */
+export function shareCurrentUrl(
+  fullPath: string,
+  notify: (message: string, url?: string) => void
+): void {
+  const url = new URL(window.location.origin + fullPath).href
+  if (navigator.share) {
+    navigator.share({ url })
+    return
+  }
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url)
+    notify('Copied to clipboard')
+    return
+  }
+  notify(url, url)
+}

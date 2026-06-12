@@ -4,7 +4,7 @@ import TextSubscript from '@/components/commons/TextSubscript.vue'
 import { DownloadType, type Column, type ColumnType } from '@/composables/table'
 import i18n from '@/plugins/i18n'
 import { useNotificationStore } from '@/stores/notification'
-import type { Searches } from '@/utils/common'
+import { shareCurrentUrl, type Searches } from '@/utils/common'
 import { booleanOptions, type DataOptions } from '@/utils/vuetify'
 import { mdiDownload, mdiMagnify, mdiShare } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
@@ -15,9 +15,11 @@ interface TableHeader {
   multiple?: boolean
   options?: string[]
   format?: (value: unknown) => string
+  cellVariant?: 'mono' | 'tag' | 'strong'
   // https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/labs/VDataTable/types.ts
   key: string
   title: string
+  align?: 'start' | 'end'
 }
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
@@ -35,6 +37,10 @@ const props = withDefaults(
     query?: string
     searches?: Searches
     search?: string
+    /** Hide the filter-only inputs row above the table (when a filter rail covers them) */
+    hideFilterOnly?: boolean
+    /** Hide the title/search toolbar (when the dashboard provides its own toolbar) */
+    hideToolbar?: boolean
   }>(),
   {
     title: undefined,
@@ -46,7 +52,9 @@ const props = withDefaults(
     prefix: undefined,
     query: undefined,
     searches: () => ({}),
-    search: ''
+    search: '',
+    hideFilterOnly: false,
+    hideToolbar: false
   }
 )
 const emit = defineEmits<{
@@ -58,6 +66,7 @@ const emit = defineEmits<{
 }>()
 
 const maxDownloadCount = 5
+const itemsPerPageOptions = [5, 10, 20, 100, 1000]
 const vInputBind = {
   class: 'table-input',
   clearable: true,
@@ -65,6 +74,11 @@ const vInputBind = {
   hideDetails: true,
   singleLine: true,
   variant: 'underlined' as 'underlined'
+}
+// Design-handoff bordered inputs for the in-thead filter row (border comes from CSS)
+const vTheadInputBind = {
+  ...vInputBind,
+  variant: 'plain' as 'plain'
 }
 const checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
   {
@@ -83,6 +97,8 @@ const notificationStore = useNotificationStore()
 const downloadDialog = ref<InstanceType<typeof CheckboxDialog>>()
 const selectedItemsIds = ref<string[]>([])
 const selectedItems = ref<M[]>([])
+const page = ref<number>(1)
+const itemsPerPage = ref<number>(5)
 
 watch(selectedItemsIds, (newIdList, oldIdList) => {
   const oldList = selectedItems.value
@@ -110,6 +126,45 @@ const filterHeaders = computed<TableHeader[]>(() =>
 )
 const hasFilters = computed<boolean>(() => !!props.query && props.query?.length != 0)
 
+const pageCount = computed<number>(() =>
+  Math.max(1, Math.ceil(props.totalFilteredCount / itemsPerPage.value))
+)
+const pageFrom = computed<number>(() =>
+  props.totalFilteredCount === 0 ? 0 : (page.value - 1) * itemsPerPage.value + 1
+)
+const pageTo = computed<number>(() =>
+  Math.min(page.value * itemsPerPage.value, props.totalFilteredCount)
+)
+// Design-handoff pager: 1 … around current … last, with ellipsis gaps
+const pageItems = computed<(number | '…')[]>(() => {
+  const last = pageCount.value
+  const current = page.value
+  if (last <= 7) {
+    return Array.from({ length: last }, (_, index) => index + 1)
+  }
+  const pages = new Set<number>([1, last])
+  for (let p = current - 1; p <= current + 1; p++) {
+    if (p >= 1 && p <= last) {
+      pages.add(p)
+    }
+  }
+  const sorted = [...pages].sort((a, b) => a - b)
+  const items: (number | '…')[] = []
+  sorted.forEach((p, index) => {
+    if (index > 0 && p - sorted[index - 1] > 1) {
+      items.push('…')
+    }
+    items.push(p)
+  })
+  return items
+})
+
+watch(pageCount, (value) => {
+  if (page.value > value) {
+    page.value = value
+  }
+})
+
 watch(selectedItems, (value) => {
   if (value.length >= maxDownloadCount) {
     notificationStore.notify(`You cannot download more than ${maxDownloadCount} items.`)
@@ -131,24 +186,8 @@ function click(_: Event, value: { item: { raw: M } }): void {
 }
 
 function shareUrl(): void {
-  // removed the URL query generation since it's now added automatically via vue-router
-  const url = new URL(window.location.origin + route.fullPath)
-  const shareUrl = url.href
-
-  if (navigator.share) {
-    navigator.share({
-      url: shareUrl
-    })
-    return
-  }
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(shareUrl)
-    notificationStore.notify('Copied to clipboard')
-    return
-  }
-  if (shareUrl) {
-    notificationStore.notify(shareUrl, shareUrl)
-  }
+  // the URL query is added automatically via vue-router
+  shareCurrentUrl(route.fullPath, notificationStore.notify)
 }
 
 function getTableHeader(column: Column): TableHeader {
@@ -157,8 +196,10 @@ function getTableHeader(column: Column): TableHeader {
     title: column.title ?? i18n.global.t(props.prefix + column.value).toString(),
     type: column.type,
     format: column.format,
+    cellVariant: column.cellVariant,
     options: column.options?.sort(),
-    multiple: column.options ? column.options.length > 2 : false
+    multiple: column.options ? column.options.length > 2 : false,
+    align: column.type === 'number' ? 'end' : 'start'
   }
 }
 
@@ -177,7 +218,7 @@ function downloadZip(): void {
 
 <template>
   <v-card class="stbl" flat>
-    <div class="stbl-toolbar">
+    <div v-if="!hideToolbar" class="stbl-toolbar">
       <div class="stbl-title">
         <slot name="title">
           {{ title }}
@@ -202,15 +243,13 @@ function downloadZip(): void {
     </div>
     <v-data-table-server
       v-model="selectedItemsIds"
+      v-model:page="page"
+      v-model:items-per-page="itemsPerPage"
       density="compact"
       fixed-header
       :headers="tableHeaders"
       :items="items"
       :items-length="totalFilteredCount"
-      :items-per-page="5"
-      :footer-props="{
-        itemsPerPageOptions: [5, 10, 20, 100, 1000]
-      }"
       :loading="loading"
       must-sort
       :search="search"
@@ -223,11 +262,27 @@ function downloadZip(): void {
       <template v-for="header in tableHeaders" :key="header.key" #[`column.${header.key}`]>
         <text-subscript :text="header.title" />
       </template>
-      <template v-for="header in tableHeaders" #[`item.${header.key}`]="{ item }">
-        {{ header.format ? header.format(item.columns[header.key]) : item.columns[header.key] }}
+      <template
+        v-for="header in tableHeaders"
+        :key="`item-${header.key}`"
+        #[`item.${header.key}`]="{ item }"
+      >
+        <span v-if="header.cellVariant === 'tag' && item.columns[header.key]" class="tag">{{
+          header.format ? header.format(item.columns[header.key]) : item.columns[header.key]
+        }}</span>
+        <span
+          v-else
+          :class="{
+            'cell-mono': header.cellVariant === 'mono',
+            'cell-strong': header.cellVariant === 'strong'
+          }"
+          >{{
+            header.format ? header.format(item.columns[header.key]) : item.columns[header.key]
+          }}</span
+        >
       </template>
 
-      <template #top>
+      <template v-if="!hideFilterOnly && filterHeaders.length" #top>
         <v-row class="px-4 pb-4">
           <v-col v-for="header in filterHeaders" :key="header.key">
             <v-select
@@ -275,7 +330,7 @@ function downloadZip(): void {
           <td v-for="header in tableHeaders" :key="header.key">
             <v-select
               v-if="header.options"
-              v-bind="vInputBind"
+              v-bind="vTheadInputBind"
               :model-value="(columnSearches[header.key] as string)"
               :label="header.title"
               :multiple="header.multiple"
@@ -299,7 +354,7 @@ function downloadZip(): void {
             </v-select>
             <v-text-field
               v-else-if="header.type === 'text'"
-              v-bind="vInputBind"
+              v-bind="vTheadInputBind"
               v-model="columnSearches[header.key]"
               :label="header.title"
             >
@@ -307,7 +362,7 @@ function downloadZip(): void {
             </v-text-field>
             <v-select
               v-else-if="header.type === 'boolean'"
-              v-bind="vInputBind"
+              v-bind="vTheadInputBind"
               v-model="columnSearches[header.key]"
               :label="header.title"
               :items="booleanOptions"
@@ -316,7 +371,7 @@ function downloadZip(): void {
             </v-select>
             <v-text-field
               v-else-if="header.type === 'number'"
-              v-bind="vInputBind"
+              v-bind="vTheadInputBind"
               v-model="columnSearches[header.key]"
               :label="header.title"
               type="number"
@@ -338,21 +393,49 @@ function downloadZip(): void {
           }}</template
         >
       </template>
+      <template #bottom>
+        <div class="dash-pager">
+          <div class="dash-pager-actions">
+            <button
+              class="btn btn-secondary btn-sm"
+              :disabled="selectedItems.length === 0 || selectedItems.length > maxDownloadCount"
+              @click="downloadZip"
+            >
+              <v-icon :icon="mdiDownload" size="14" />
+              Download ({{ selectedItems.length }}/{{ totalCount }})
+            </button>
+            <button
+              v-if="!hideToolbar"
+              class="btn btn-secondary btn-sm"
+              :disabled="!hasFilters"
+              @click="shareUrl"
+            >
+              <v-icon :icon="mdiShare" size="14" />
+              Share
+            </button>
+          </div>
+          <div class="dash-pager-info">
+            Showing <strong>{{ pageFrom }}–{{ pageTo }}</strong> of
+            <strong>{{ totalFilteredCount }}</strong>
+            <select v-model.number="itemsPerPage" class="pager-size" aria-label="Rows per page">
+              <option v-for="option in itemsPerPageOptions" :key="option" :value="option">
+                {{ option }} / page
+              </option>
+            </select>
+          </div>
+          <div class="pager-btns">
+            <button class="pager-btn" :disabled="page <= 1" @click="page--">‹</button>
+            <template v-for="(item, index) in pageItems" :key="`${index}-${item}`">
+              <span v-if="item === '…'" class="pager-ellipsis">…</span>
+              <button v-else class="pager-btn" :class="{ on: item === page }" @click="page = item">
+                {{ item }}
+              </button>
+            </template>
+            <button class="pager-btn" :disabled="page >= pageCount" @click="page++">›</button>
+          </div>
+        </div>
+      </template>
     </v-data-table-server>
-    <div class="stbl-actions">
-      <button
-        class="btn btn-secondary btn-sm"
-        :disabled="selectedItems.length === 0 || selectedItems.length > maxDownloadCount"
-        @click="downloadZip"
-      >
-        <v-icon :icon="mdiDownload" size="14" />
-        Download ({{ selectedItems.length }}/{{ totalCount }})
-      </button>
-      <button class="btn btn-secondary btn-sm" :disabled="!hasFilters" @click="shareUrl">
-        <v-icon :icon="mdiShare" size="14" />
-        Share
-      </button>
-    </div>
     <checkbox-dialog
       ref="downloadDialog"
       title="Download"
@@ -391,14 +474,6 @@ function downloadZip(): void {
   font-size: 14px;
 }
 
-.stbl-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--border);
-}
-
 :deep(.v-table) {
   font-size: 13px;
   font-feature-settings: 'tnum';
@@ -422,11 +497,36 @@ function downloadZip(): void {
   white-space: nowrap;
 }
 
-/* Filter row (custom thead slot) */
+/* Filter row (custom thead slot) — design-handoff bordered inputs */
 :deep(.v-table__wrapper) > table > thead > tr > td {
   background: var(--bg);
   border-bottom: 1px solid var(--border) !important;
-  padding: 4px 8px;
+  padding: 6px 6px;
+}
+:deep(.v-table__wrapper) > table > thead > tr > td .v-field {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font-size: 12px;
+  padding-inline-start: 8px;
+}
+:deep(.v-table__wrapper) > table > thead > tr > td .v-field--focused {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -1px;
+}
+:deep(.v-table__wrapper) > table > thead > tr > td .v-field--variant-plain .v-field__input {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  min-height: 28px;
+  font-size: 12px;
+  opacity: 1;
+}
+:deep(.v-table__wrapper) > table > thead > tr > td .v-field--variant-plain .v-label {
+  font-size: 12px;
+}
+:deep(.v-table__wrapper) > table > thead > tr > td .v-field__clearable,
+:deep(.v-table__wrapper) > table > thead > tr > td .v-field__append-inner {
+  padding-top: 2px;
 }
 
 /* Body rows */
@@ -444,12 +544,18 @@ function downloadZip(): void {
   box-shadow: inset 3px 0 0 var(--epfl-red);
 }
 
-/* Pagination footer */
-:deep(.v-data-table-footer) {
-  border-top: 1px solid var(--border);
+/* Selection checkboxes — EPFL red when checked */
+:deep(.v-selection-control--dirty .v-icon) {
+  color: var(--epfl-red);
+}
+
+/* Cell treatments (design tbl) */
+:deep(.cell-mono) {
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--fg-muted);
-  padding: 8px 16px;
+}
+:deep(.cell-strong) {
+  font-weight: 600;
 }
 
 table > tr > td {

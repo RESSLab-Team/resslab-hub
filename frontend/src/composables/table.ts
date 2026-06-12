@@ -23,6 +23,8 @@ export interface Column {
   options?: string[]
   filterOnly?: boolean
   format?: (value: any) => string
+  /** Design-system cell treatment: monospace section names, tag pill, bold identifier */
+  cellVariant?: 'mono' | 'tag' | 'strong'
 }
 
 export const tableProps = {
