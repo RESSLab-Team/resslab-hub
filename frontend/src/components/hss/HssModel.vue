@@ -3,8 +3,9 @@ import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
 import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
-import TitleRow from '@/components/commons/TitleRow.vue'
+import PageHeader from '@/components/commons/PageHeader.vue'
 import UnitTableRow, { type UnitTableRowData } from '@/components/commons/UnitTableRow.vue'
+import UnitToggle from '@/components/commons/UnitToggle.vue'
 import { publicPath, type Section, type HSSSection } from '@/utils/common'
 import { variableBind, type Point } from '@/utils/model'
 import { primaryColor, secondaryColor } from '@/utils/vuetify'
@@ -398,122 +399,125 @@ defineExpose({ vars, backbone, envelope })
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12">
-      <title-row>
-        <h1>Predictive Model for Steel Hollow Structural Steel Columns</h1>
-        <p>
-          For further information refer to
-          <a href="" target="_blank"> Hartloper et al. (2024) </a>
-        </p>
-      </title-row>
-    </v-col>
-    <v-col cols="6">
-      <v-row>
-        <v-col>
-          <v-card>
-            <v-card-title>
-              Select HSS Column Profile
-              <info-tooltip> Here, you may input dimensions using the sliders below </info-tooltip>
-            </v-card-title>
-            <v-card-text>
-              <section-selector source="hss" @update:section="onSectionChanged($event)" />
+  <div class="tool-page">
+    <page-header
+      eyebrow="Tools · Component model"
+      title="Predictive Model for Hollow Structural Steel Columns"
+    >
+      <template #actions><unit-toggle /></template>
+      For further information refer to
+      <a href="" target="_blank"> Hartloper et al. (2024) </a>
+    </page-header>
+    <v-row class="tool-body">
+      <v-col cols="12" md="6">
+        <v-row>
+          <v-col>
+            <v-card>
+              <v-card-title>
+                Select HSS Column Profile
+                <info-tooltip>
+                  Here, you may input dimensions using the sliders below
+                </info-tooltip>
+              </v-card-title>
+              <v-card-text>
+                <section-selector source="hss" @update:section="onSectionChanged($event)" />
 
-              <v-row>
-                <v-col v-for="item in steelShapeDimensions" :key="item.key" v-bind="variableBind">
-                  <unit-slider
-                    v-model="variables[item.key]"
-                    :disabled="!!section"
-                    :label="item.text"
-                    :max="item.max"
-                    :min="item.min"
-                    :unit="item.unit"
-                  />
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <v-card>
-            <v-card-title>
-              Specify Member and Loading Properties
-              <info-tooltip>
-                Here you need to specify the beam full length (L), the beam unbraced length
-                (L<sub>b</sub>), which is defined as the distance from the column face to the
-                nearest lateral brace, the expected yield stress, F<sub>y</sub> of the steel
-                material, the capping-to-yield ratio <sup>Mc</sup>/<sub>My</sub>, the expected
-                residual strength ratio, K, and the ultimate rotation &theta;<sub>u</sub> of the
-                steel component.
-              </info-tooltip>
-            </v-card-title>
-            <v-card-text>
-              <v-row>
-                <v-col v-for="item in memberProperties" :key="item.key" v-bind="variableBind">
-                  <unit-slider
-                    v-model="variables[item.key]"
-                    :label="item.text"
-                    :max="item.max"
-                    :min="item.min"
-                    :unit="item.unit"
-                  />
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col cols="6">
-      <v-img height="400px" :src="publicPath + 'img/hss/component.png'" />
-    </v-col>
-    <v-col cols="6">
-      <v-row justify="center">
-        <v-col cols="12" lg="8" xl="6">
-          <v-card>
-            <v-card-text>
-              <unit-chart
-                :option="getOption(backboneResult, envelopeResult)"
-                x-unit="rad"
-                y-unit="kN⋅mm"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col cols="6">
-      <v-card>
-        <v-card-title>
-          Predictive Model for Columns
-          <info-tooltip>Provided that the steel member is in double curvature</info-tooltip>
-        </v-card-title>
-        <v-card-text>
-          <v-table density="compact">
-            <thead>
-              <tr>
-                <th class="text-center">Parameter</th>
-                <th class="text-center">Unit</th>
-                <th class="text-center">Monotonic Backbone</th>
-                <th class="text-center">First Cycle Envelope</th>
-              </tr>
-            </thead>
-            <tbody>
-              <unit-table-row
-                v-for="item in rows"
-                :key="item.key"
-                :field="item.key"
-                :text="item.text"
-                :unit="item.unit"
-                :fraction-digit="item.fractionDigit"
-                :columns="getTableColumns(backboneResult, envelopeResult)"
-              />
-            </tbody>
-          </v-table>
-        </v-card-text>
-      </v-card>
-    </v-col>
-  </v-row>
+                <v-row>
+                  <v-col v-for="item in steelShapeDimensions" :key="item.key" v-bind="variableBind">
+                    <unit-slider
+                      v-model="variables[item.key]"
+                      :disabled="!!section"
+                      :label="item.text"
+                      :max="item.max"
+                      :min="item.min"
+                      :unit="item.unit"
+                    />
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-card>
+              <v-card-title>
+                Specify Member and Loading Properties
+                <info-tooltip>
+                  Here you need to specify the beam full length (L), the beam unbraced length
+                  (L<sub>b</sub>), which is defined as the distance from the column face to the
+                  nearest lateral brace, the expected yield stress, F<sub>y</sub> of the steel
+                  material, the capping-to-yield ratio <sup>Mc</sup>/<sub>My</sub>, the expected
+                  residual strength ratio, K, and the ultimate rotation &theta;<sub>u</sub> of the
+                  steel component.
+                </info-tooltip>
+              </v-card-title>
+              <v-card-text>
+                <v-row>
+                  <v-col v-for="item in memberProperties" :key="item.key" v-bind="variableBind">
+                    <unit-slider
+                      v-model="variables[item.key]"
+                      :label="item.text"
+                      :max="item.max"
+                      :min="item.min"
+                      :unit="item.unit"
+                    />
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-img height="400px" :src="publicPath + 'img/hss/component.png'" />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-row justify="center">
+          <v-col cols="12" lg="8" xl="6">
+            <v-card>
+              <v-card-text>
+                <unit-chart
+                  :option="getOption(backboneResult, envelopeResult)"
+                  x-unit="rad"
+                  y-unit="kN⋅mm"
+                />
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-card>
+          <v-card-title>
+            Predictive Model for Columns
+            <info-tooltip>Provided that the steel member is in double curvature</info-tooltip>
+          </v-card-title>
+          <v-card-text>
+            <v-table density="compact">
+              <thead>
+                <tr>
+                  <th class="text-center">Parameter</th>
+                  <th class="text-center">Unit</th>
+                  <th class="text-center">Monotonic Backbone</th>
+                  <th class="text-center">First Cycle Envelope</th>
+                </tr>
+              </thead>
+              <tbody>
+                <unit-table-row
+                  v-for="item in rows"
+                  :key="item.key"
+                  :field="item.key"
+                  :text="item.text"
+                  :unit="item.unit"
+                  :fraction-digit="item.fractionDigit"
+                  :columns="getTableColumns(backboneResult, envelopeResult)"
+                />
+              </tbody>
+            </v-table>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </div>
 </template>

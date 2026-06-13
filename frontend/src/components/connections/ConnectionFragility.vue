@@ -12,7 +12,8 @@ import { MAX_ECHARTS_POINTS, sampleArray } from '@/utils/echarts'
 import type { EChartsOption } from 'echarts'
 import { computed, reactive, ref } from 'vue'
 
-import TitleRow from '@/components/commons/TitleRow.vue'
+import PageHeader from '@/components/commons/PageHeader.vue'
+import UnitToggle from '@/components/commons/UnitToggle.vue'
 
 type Material = 'a36' | 'a572'
 interface Variables {
@@ -146,64 +147,65 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12">
-      <title-row>
-        <h1>Fragility Curve Plotter for Steel Component</h1>
-        <p>
-          This tab introduces a web-based interactive module for visualizing fragility curves of
-          Pre- and Post-Northridge beam-to-column connections. For further information refer to
-          <a
-            href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0000214"
-            target="_blank"
-            >Lignos et al. (2010)</a
-          >
-          and
-          <a
-            href="https://www.sciencedirect.com/science/article/abs/pii/S0141029612003689"
-            target="_blank"
-            >Ramirez et al. (2012)</a
-          >.
-        </p>
-      </title-row>
-    </v-col>
-    <v-col cols="4">
-      <v-card>
-        <v-card-title>Steel Type</v-card-title>
-        <v-card-text>
-          <simple-toggle v-model="material" class="my-4" :items="materials" />
-        </v-card-text>
-        <v-card-title>Geometric Parameters</v-card-title>
-        <v-card-text>
-          <v-switch
-            v-model="infoAvailable"
-            color="primary"
-            label="Geometric parameters available"
-          />
-          <unit-slider
-            v-for="item in parameters"
-            :key="item.key"
-            v-model="variables[item.key]"
-            class="my-4"
-            :disabled="!infoAvailable"
-            :label="item.label"
-            :max="item.max"
-            :min="item.min"
-            :unit="item.unit"
-          />
-        </v-card-text>
-      </v-card>
-      <v-col cols="12">
-        <v-img height="300px" :src="publicPath + 'img/connection/connection_fragility.png'" />
+  <div class="tool-page">
+    <page-header
+      eyebrow="Tools · Fragility curves"
+      title="Fragility Curve Plotter for Steel Components"
+    >
+      <template #actions><unit-toggle /></template>
+      This tab introduces a web-based interactive module for visualizing fragility curves of Pre-
+      and Post-Northridge beam-to-column connections. For further information refer to
+      <a
+        href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0000214"
+        target="_blank"
+        >Lignos et al. (2010)</a
+      >
+      and
+      <a
+        href="https://www.sciencedirect.com/science/article/abs/pii/S0141029612003689"
+        target="_blank"
+        >Ramirez et al. (2012)</a
+      >.
+    </page-header>
+    <v-row class="tool-body">
+      <v-col cols="12" md="4">
+        <v-card>
+          <v-card-title>Steel Type</v-card-title>
+          <v-card-text>
+            <simple-toggle v-model="material" class="my-4" :items="materials" />
+          </v-card-text>
+          <v-card-title>Geometric Parameters</v-card-title>
+          <v-card-text>
+            <v-switch
+              v-model="infoAvailable"
+              color="primary"
+              label="Geometric parameters available"
+            />
+            <unit-slider
+              v-for="item in parameters"
+              :key="item.key"
+              v-model="variables[item.key]"
+              class="my-4"
+              :disabled="!infoAvailable"
+              :label="item.label"
+              :max="item.max"
+              :min="item.min"
+              :unit="item.unit"
+            />
+          </v-card-text>
+        </v-card>
+        <v-col cols="12">
+          <v-img height="300px" :src="publicPath + 'img/connection/connection_fragility.png'" />
+        </v-col>
       </v-col>
-    </v-col>
-    <v-col cols="4">
-      <h2>Pre-Northridge</h2>
-      <unit-chart :option="preNorthridgeOption" x-unit="rad" />
-    </v-col>
-    <v-col cols="4">
-      <h2>Post-Northridge</h2>
-      <unit-chart :option="postNorthridgeOption" x-unit="rad" />
-    </v-col>
-  </v-row>
+      <v-col cols="12" md="4">
+        <h2>Pre-Northridge</h2>
+        <unit-chart :option="preNorthridgeOption" x-unit="rad" />
+      </v-col>
+      <v-col cols="12" md="4">
+        <h2>Post-Northridge</h2>
+        <unit-chart :option="postNorthridgeOption" x-unit="rad" />
+      </v-col>
+    </v-row>
+  </div>
 </template>

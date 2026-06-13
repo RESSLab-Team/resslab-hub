@@ -640,6 +640,52 @@ body.theme-dark .logos img {
   filter: invert(1) hue-rotate(180deg);
 }
 
+/* ================ TOOL PAGES (MODEL / FRAGILITY) ================ */
+/* Light reskin of the interactive tool pages: full-bleed PageHeader (.dash-head)
+   above a padded body. Existing Vuetify v-cards are flattened into design
+   surfaces in-place so the page form logic stays untouched. */
+.tool-page {
+  background: var(--bg);
+  min-height: calc(100vh - 56px);
+}
+.tool-body {
+  padding: 28px 32px 48px;
+}
+/* Flatten Vuetify cards into design surfaces */
+.tool-page .v-card {
+  box-shadow: none !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+.tool-page .v-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  padding: 16px 20px 4px;
+  white-space: normal;
+  line-height: 1.3;
+}
+.tool-page .v-card-text {
+  padding: 12px 20px 16px;
+}
+.tool-page h2 {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+@media (max-width: 767px) {
+  .tool-body {
+    padding: 20px 16px 40px;
+  }
+}
+
 /* ================ DASHBOARD ================ */
 .dash {
   background: var(--bg);

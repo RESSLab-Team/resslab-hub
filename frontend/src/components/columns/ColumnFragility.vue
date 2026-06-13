@@ -4,8 +4,8 @@ import LegendChart from '@/components/commons/charts/LegendChart.vue'
 import SurfaceGlChart from '@/components/commons/charts/SurfaceGlChart.vue'
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import PageHeader from '@/components/commons/PageHeader.vue'
 import UnitSlider, { type UnitSliderItem } from '@/components/commons/sliders/UnitSlider.vue'
-import TitleRow from '@/components/commons/TitleRow.vue'
 import type { EChartsGlOption } from '@/utils/echarts-gl'
 import { univariateOption } from '@/utils/fragility'
 import { subscripts } from '@/utils/unicode'
@@ -246,26 +246,22 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
 </script>
 
 <template>
-  <div>
-    <v-row>
-      <v-col cols="12">
-        <title-row hide-unit>
-          <h1>Fragility Curve Plotter for Wide-Flange Steel Columns</h1>
-          <p>
-            This module plots univariate and multivariate fragility curves for wide-flange steel
-            columns depending on their primary loading and geometric characteristics. For further
-            information please refer to
-            <a
-              target="_blank"
-              href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
-              >Elkady et al. (2018)</a
-            >.
-          </p>
-        </title-row>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="6">
+  <div class="tool-page">
+    <page-header
+      eyebrow="Tools · Fragility curves"
+      title="Fragility Curve Plotter for Wide-Flange Steel Columns"
+    >
+      This module plots univariate and multivariate fragility curves for wide-flange steel columns
+      depending on their primary loading and geometric characteristics. For further information
+      please refer to
+      <a
+        target="_blank"
+        href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
+        >Elkady et al. (2018)</a
+      >.
+    </page-header>
+    <v-row class="tool-body">
+      <v-col cols="12" md="6">
         <v-row>
           <v-col cols="12">
             <v-card>
@@ -306,7 +302,7 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
           </v-col>
         </v-row>
       </v-col>
-      <v-col cols="6">
+      <v-col cols="12" md="6">
         <h2>Surface Fragility Curves</h2>
         <v-row>
           <v-col v-for="(item, index) in surfaceOptions" :key="index" cols="6">

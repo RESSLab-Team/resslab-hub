@@ -3,8 +3,9 @@
 import SurfaceGlChart from '@/components/commons/charts/SurfaceGlChart.vue'
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import PageHeader from '@/components/commons/PageHeader.vue'
 import SimpleToggle from '@/components/commons/SimpleToggle.vue'
-import TitleRow from '@/components/commons/TitleRow.vue'
+import UnitToggle from '@/components/commons/UnitToggle.vue'
 import type { EChartsGlOption } from '@/utils/echarts-gl'
 import { univariateOption, type DamageState } from '@/utils/fragility'
 import type { ToggleItem } from '@/utils/toggle'
@@ -280,40 +281,41 @@ function correlatedBivariate(
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12">
-      <title-row>
-        <h1>Fragility Curve Plotter for Steel Bracings</h1>
-        <p>
-          This interactive module plots univariate and multivariate fragility curves for steel
-          bracings of various types of cross sections. the multivariate curves depict the dependence
-          of the fragility curve on member slenderness. For further information refer to
-          <a
-            href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
-            target="_blank"
-            >Lignos and Karamanci (2013)</a
-          >.
-        </p>
-      </title-row>
-    </v-col>
-    <v-col cols="12">
-      <simple-toggle v-model="option" :items="options" />
-      <info-tooltip>
-        Select the appropriate cross sectional shape of the bracing member to visualize the
-        corresponding fragility curve.
-      </info-tooltip>
-    </v-col>
-    <v-col cols="4">
-      <h2>Univariate Fragilities</h2>
-      <unit-chart :aspect-ratio="2" :option="univariateOptions[option]" x-unit="rad" />
-    </v-col>
-    <v-col cols="8">
-      <h2>Multivariate Fragilities</h2>
-      <v-row>
-        <v-col v-for="(item, i) in multivariateOptions" :key="i" cols="4">
-          <surface-gl-chart :aspect-ratio="1" :option="item" />
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+  <div class="tool-page">
+    <page-header
+      eyebrow="Tools · Fragility curves"
+      title="Fragility Curve Plotter for Steel Bracings"
+    >
+      <template #actions><unit-toggle /></template>
+      This interactive module plots univariate and multivariate fragility curves for steel bracings
+      of various types of cross sections. the multivariate curves depict the dependence of the
+      fragility curve on member slenderness. For further information refer to
+      <a
+        href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
+        target="_blank"
+        >Lignos and Karamanci (2013)</a
+      >.
+    </page-header>
+    <v-row class="tool-body">
+      <v-col cols="12">
+        <simple-toggle v-model="option" :items="options" />
+        <info-tooltip>
+          Select the appropriate cross sectional shape of the bracing member to visualize the
+          corresponding fragility curve.
+        </info-tooltip>
+      </v-col>
+      <v-col cols="12" md="4">
+        <h2>Univariate Fragilities</h2>
+        <unit-chart :aspect-ratio="2" :option="univariateOptions[option]" x-unit="rad" />
+      </v-col>
+      <v-col cols="12" md="8">
+        <h2>Multivariate Fragilities</h2>
+        <v-row>
+          <v-col v-for="(item, i) in multivariateOptions" :key="i" cols="6" md="4">
+            <surface-gl-chart :aspect-ratio="1" :option="item" />
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
+  </div>
 </template>

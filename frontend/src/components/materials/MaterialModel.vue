@@ -2,8 +2,9 @@
 import materialParameters from '@/assets/material/parameter-material-list.csv'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import PageHeader from '@/components/commons/PageHeader.vue'
 import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
-import TitleRow from '@/components/commons/TitleRow.vue'
+import UnitToggle from '@/components/commons/UnitToggle.vue'
 import { materialsApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { computeUvcStress } from '@/utils/material'
@@ -193,70 +194,68 @@ watch(
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12">
-      <title-row>
-        <h1>Material Model</h1>
-        <p>
-          This web based interactive interface computes the hysteretic behavior of typical steels
-          under inelastic cyclic straining. For further information refer to
-          <a
-            href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
-            target="_blank"
-            >Hartloper et al. (2021)</a
-          >
-          The uniaxial loading protocols are based on work by
-          <a
-            href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29EM.1943-7889.0001922"
-            target="_blank"
-            >de Castro e Sousa et al. (2020)</a
-          >
-        </p>
-      </title-row>
-    </v-col>
-    <v-col cols="6">
-      <v-card>
-        <v-card-title>
-          Select Steel Material
-          <info-tooltip>
-            Here you can select a steel material from the available list and with the sliders below
-            you can check the sensitivity of the updated Voce and Chaboche constitutive model to the
-            input material model parameters. The model is displayed based on four selected
-            strain-based protocols for the same set of input model parameters.
-          </info-tooltip>
-        </v-card-title>
-        <v-card-text>
-          <v-row>
-            <v-col v-bind="variableBind">
-              <v-select v-model="selectedMaterial" :items="materialSelectItems" />
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col v-for="item in materialVariables" :key="item.key" v-bind="variableBind">
-              <unit-slider
-                v-model="variables[item.key]"
-                :label="item.text"
-                :max="item.max"
-                :min="item.min"
-                :unit="item.unit"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-    </v-col>
-    <v-col cols="6">
-      <v-row>
-        <v-col v-for="item in charts" :key="item.title" cols="6">
-          <unit-line-chart
-            :series="[chartSeries[item.id]]"
-            :title="item.title"
-            x-axis-name="ε"
-            y-axis-name="σ"
-            y-unit="MPa"
-          />
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+  <div class="tool-page">
+    <page-header eyebrow="Tools · Component model" title="Material Model">
+      <template #actions><unit-toggle /></template>
+      This web based interactive interface computes the hysteretic behavior of typical steels under
+      inelastic cyclic straining. For further information refer to
+      <a
+        href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
+        target="_blank"
+        >Hartloper et al. (2021)</a
+      >
+      The uniaxial loading protocols are based on work by
+      <a
+        href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29EM.1943-7889.0001922"
+        target="_blank"
+        >de Castro e Sousa et al. (2020)</a
+      >
+    </page-header>
+    <v-row class="tool-body">
+      <v-col cols="12" md="6">
+        <v-card>
+          <v-card-title>
+            Select Steel Material
+            <info-tooltip>
+              Here you can select a steel material from the available list and with the sliders
+              below you can check the sensitivity of the updated Voce and Chaboche constitutive
+              model to the input material model parameters. The model is displayed based on four
+              selected strain-based protocols for the same set of input model parameters.
+            </info-tooltip>
+          </v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col v-bind="variableBind">
+                <v-select v-model="selectedMaterial" :items="materialSelectItems" />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col v-for="item in materialVariables" :key="item.key" v-bind="variableBind">
+                <unit-slider
+                  v-model="variables[item.key]"
+                  :label="item.text"
+                  :max="item.max"
+                  :min="item.min"
+                  :unit="item.unit"
+                />
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-row>
+          <v-col v-for="item in charts" :key="item.title" cols="12" sm="6">
+            <unit-line-chart
+              :series="[chartSeries[item.id]]"
+              :title="item.title"
+              x-axis-name="ε"
+              y-axis-name="σ"
+              y-unit="MPa"
+            />
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
+  </div>
 </template>

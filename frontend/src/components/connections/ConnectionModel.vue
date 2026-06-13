@@ -4,8 +4,9 @@ import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
 import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
-import TitleRow from '@/components/commons/TitleRow.vue'
+import PageHeader from '@/components/commons/PageHeader.vue'
 import UnitTableRow, { type UnitTableRowData } from '@/components/commons/UnitTableRow.vue'
+import UnitToggle from '@/components/commons/UnitToggle.vue'
 import { publicPath, type Section } from '@/utils/common'
 import { variableBind, type Point } from '@/utils/model'
 import { primaryColor, secondaryColor } from '@/utils/vuetify'
@@ -558,155 +559,153 @@ defineExpose({ vars, backboneRbs, backboneNonRbs, envelopeRbs, envelopeNonRbs })
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12">
-      <title-row>
-        <h1>Backbone Curve Plotter for Steel Components</h1>
-        <p>
-          Construct the backbone curve of beams with RBS and beams other-than-RBS. For further
-          information refer to
-          <a
-            href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376"
-            target="_blank"
-          >
-            Lignos and Krawinkler (2011)
-          </a>
-        </p>
-      </title-row>
-    </v-col>
-    <v-col cols="6">
-      <v-row>
-        <v-col>
-          <v-card>
-            <v-card-title>
-              Select Steel Profile
-              <info-tooltip>
-                Here, you may choose to either select a W-Shape from the AISC database or input your
-                own dimensions using the sliders below
-              </info-tooltip>
-            </v-card-title>
-            <v-card-text>
-              <section-selector @update:section="onSectionChanged($event)" />
-              <v-row>
-                <v-col v-for="item in steelShapeDimensions" :key="item.key" v-bind="variableBind">
-                  <unit-slider
-                    v-model="variables[item.key]"
-                    :disabled="!!section"
-                    :label="item.text"
-                    :max="item.max"
-                    :min="item.min"
-                    :unit="item.unit"
-                  />
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <v-card>
-            <v-card-title>
-              Specify Member Properties
-              <info-tooltip>
-                Here you need to specify the beam full length (L), the beam unbraced length
-                (L<sub>b</sub>), which is defined as the distance from the column face to the
-                nearest lateral brace, the expected yield stress, F<sub>y</sub> of the steel
-                material, the capping-to-yield ratio <sup>Mc</sup>/<sub>My</sub>, the expected
-                residual strength ratio, K, and the ultimate rotation &theta;<sub>u</sub> of the
-                steel component.
-              </info-tooltip>
-            </v-card-title>
-            <v-card-text>
-              <v-row>
-                <v-col v-for="item in memberProperties" :key="item.key" v-bind="variableBind">
-                  <unit-slider
-                    v-model="variables[item.key]"
-                    :label="item.text"
-                    :max="item.max"
-                    :min="item.min"
-                    :unit="item.unit"
-                  />
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col cols="6">
-      <v-img height="200px" :src="publicPath + 'img/connection/component-1.png'" />
-      <v-img height="200px" :src="publicPath + 'img/connection/component-2.png'" />
-    </v-col>
-    <v-col cols="6">
-      <v-row>
-        <v-col cols="6">
-          <v-card>
-            <v-card-title>Beams with RBS</v-card-title>
-            <v-card-text>
-              <unit-chart
-                :option="option(backboneWithRbs, envelopeWithRbs)"
-                x-unit="rad"
-                y-unit="kN⋅mm"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="6">
-          <v-card>
-            <v-card-title>Beams without RBS</v-card-title>
-            <v-card-text>
-              <unit-chart
-                :option="option(backboneWithoutRbs, envelopeWithoutRbs)"
-                x-unit="rad"
-                y-unit="kN⋅mm"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col cols="6">
-      <v-card>
-        <v-card-title>
-          Component Models
-          <info-tooltip>Provided that the steel member is in double curvature</info-tooltip>
-        </v-card-title>
-        <v-card-text>
-          <v-table density="compact">
-            <thead>
-              <tr>
-                <th class="text-center" rowspan="2">Parameter</th>
-                <th class="text-center" rowspan="2">Unit</th>
-                <th class="text-center" colspan="2">Beams with RBS</th>
-                <th class="text-center" colspan="2">Beams without RBS</th>
-              </tr>
-              <tr>
-                <th class="text-center">Monotonic Backbone</th>
-                <th class="text-center">First Cycle Envelope</th>
-                <th class="text-center">Monotonic Backbone</th>
-                <th class="text-center">First Cycle Envelope</th>
-              </tr>
-            </thead>
-            <tbody>
-              <unit-table-row
-                v-for="item in rows"
-                :key="item.key"
-                :field="item.key"
-                :text="item.text"
-                :unit="item.unit"
-                :fraction-digit="item.fractionDigit"
-                :columns="[
-                  omit(backboneWithRbs, 'points'),
-                  omit(envelopeWithRbs, 'points'),
-                  omit(backboneWithoutRbs, 'points'),
-                  omit(envelopeWithoutRbs, 'points')
-                ]"
-              />
-            </tbody>
-          </v-table>
-        </v-card-text>
-      </v-card>
-    </v-col>
-  </v-row>
+  <div class="tool-page">
+    <page-header
+      eyebrow="Tools · Component model"
+      title="Backbone Curve Plotter for Steel Components"
+    >
+      <template #actions><unit-toggle /></template>
+      Construct the backbone curve of beams with RBS and beams other-than-RBS. For further
+      information refer to
+      <a href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376" target="_blank">
+        Lignos and Krawinkler (2011)
+      </a>
+    </page-header>
+    <v-row class="tool-body">
+      <v-col cols="12" md="6">
+        <v-row>
+          <v-col>
+            <v-card>
+              <v-card-title>
+                Select Steel Profile
+                <info-tooltip>
+                  Here, you may choose to either select a W-Shape from the AISC database or input
+                  your own dimensions using the sliders below
+                </info-tooltip>
+              </v-card-title>
+              <v-card-text>
+                <section-selector @update:section="onSectionChanged($event)" />
+                <v-row>
+                  <v-col v-for="item in steelShapeDimensions" :key="item.key" v-bind="variableBind">
+                    <unit-slider
+                      v-model="variables[item.key]"
+                      :disabled="!!section"
+                      :label="item.text"
+                      :max="item.max"
+                      :min="item.min"
+                      :unit="item.unit"
+                    />
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-card>
+              <v-card-title>
+                Specify Member Properties
+                <info-tooltip>
+                  Here you need to specify the beam full length (L), the beam unbraced length
+                  (L<sub>b</sub>), which is defined as the distance from the column face to the
+                  nearest lateral brace, the expected yield stress, F<sub>y</sub> of the steel
+                  material, the capping-to-yield ratio <sup>Mc</sup>/<sub>My</sub>, the expected
+                  residual strength ratio, K, and the ultimate rotation &theta;<sub>u</sub> of the
+                  steel component.
+                </info-tooltip>
+              </v-card-title>
+              <v-card-text>
+                <v-row>
+                  <v-col v-for="item in memberProperties" :key="item.key" v-bind="variableBind">
+                    <unit-slider
+                      v-model="variables[item.key]"
+                      :label="item.text"
+                      :max="item.max"
+                      :min="item.min"
+                      :unit="item.unit"
+                    />
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-img height="200px" :src="publicPath + 'img/connection/component-1.png'" />
+        <v-img height="200px" :src="publicPath + 'img/connection/component-2.png'" />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-row>
+          <v-col cols="12" sm="6">
+            <v-card>
+              <v-card-title>Beams with RBS</v-card-title>
+              <v-card-text>
+                <unit-chart
+                  :option="option(backboneWithRbs, envelopeWithRbs)"
+                  x-unit="rad"
+                  y-unit="kN⋅mm"
+                />
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <v-card>
+              <v-card-title>Beams without RBS</v-card-title>
+              <v-card-text>
+                <unit-chart
+                  :option="option(backboneWithoutRbs, envelopeWithoutRbs)"
+                  x-unit="rad"
+                  y-unit="kN⋅mm"
+                />
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-card>
+          <v-card-title>
+            Component Models
+            <info-tooltip>Provided that the steel member is in double curvature</info-tooltip>
+          </v-card-title>
+          <v-card-text>
+            <v-table density="compact">
+              <thead>
+                <tr>
+                  <th class="text-center" rowspan="2">Parameter</th>
+                  <th class="text-center" rowspan="2">Unit</th>
+                  <th class="text-center" colspan="2">Beams with RBS</th>
+                  <th class="text-center" colspan="2">Beams without RBS</th>
+                </tr>
+                <tr>
+                  <th class="text-center">Monotonic Backbone</th>
+                  <th class="text-center">First Cycle Envelope</th>
+                  <th class="text-center">Monotonic Backbone</th>
+                  <th class="text-center">First Cycle Envelope</th>
+                </tr>
+              </thead>
+              <tbody>
+                <unit-table-row
+                  v-for="item in rows"
+                  :key="item.key"
+                  :field="item.key"
+                  :text="item.text"
+                  :unit="item.unit"
+                  :fraction-digit="item.fractionDigit"
+                  :columns="[
+                    omit(backboneWithRbs, 'points'),
+                    omit(envelopeWithRbs, 'points'),
+                    omit(backboneWithoutRbs, 'points'),
+                    omit(envelopeWithoutRbs, 'points')
+                  ]"
+                />
+              </tbody>
+            </v-table>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </div>
 </template>
