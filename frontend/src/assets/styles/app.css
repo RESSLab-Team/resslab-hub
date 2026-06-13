@@ -1873,6 +1873,7 @@ a.cd-publication-ref:hover {
   }
   .hero-title {
     font-size: 32px;
+    width: auto;
   }
   .hero-img {
     margin-left: 0;
