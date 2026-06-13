@@ -53,8 +53,6 @@ app = FastAPI(
 
 if settings.cors_enabled:
     logging.debug("cors enabled")
-else:
-    logging.warning("cors disabled")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -62,6 +60,8 @@ else:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+else:
+    logging.warning("cors disabled")
 
 
 # Custom error handler for detailed logging
