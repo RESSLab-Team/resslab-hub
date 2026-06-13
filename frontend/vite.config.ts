@@ -7,9 +7,23 @@ import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 import vuetify from 'vite-plugin-vuetify'
 
+// Strips the EPFL cookie-consent tags in dev only — their consent cookie is
+// scoped to the registrable domain, which the browser rejects on localhost /
+// tunnel hosts, so the banner reappears on every load. Production keeps them.
+function stripCookieConsentInDev() {
+  return {
+    name: 'strip-cookie-consent-dev',
+    apply: 'serve' as const,
+    transformIndexHtml(html: string) {
+      return html.replace(/^.*epfl-cookie-consent\.(css|js).*\n?/gm, '')
+    }
+  }
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    stripCookieConsentInDev(),
     vue(),
     vuetify({
       styles: { configFile: 'src/settings.scss' }
