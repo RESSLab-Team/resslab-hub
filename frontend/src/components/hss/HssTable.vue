@@ -15,7 +15,8 @@ const columns: Column[] = [
   },
   {
     value: HSSColumnField.TubeSection,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: HSSColumnField.AxialLoadRatio,
@@ -74,6 +75,7 @@ const {
     v-model:search="search"
     v-model:searches="searches"
     :columns="columns"
+    hide-toolbar
     :items="items"
     :loading="loading"
     prefix="hss."

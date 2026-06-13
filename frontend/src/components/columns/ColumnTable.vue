@@ -14,11 +14,13 @@ const columns: Column[] = [
   },
   {
     value: ColumnField.SpecimenDesignation,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'strong'
   },
   {
     value: ColumnField.SectionC,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: ColumnField.PGOverPYm,
@@ -91,6 +93,7 @@ const {
     v-model:search="search"
     v-model:searches="searches"
     :columns="columns"
+    hide-toolbar
     :items="items"
     :loading="loading"
     prefix="column."

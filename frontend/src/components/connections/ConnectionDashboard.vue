@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ConnectionField, type ConnectionModel } from '@/backend'
-import FilterRail, { type FilterRailGroup } from '@/components/commons/FilterRail.vue'
+import ChartCell from '@/components/commons/ChartCell.vue'
+import DashboardShell from '@/components/commons/DashboardShell.vue'
+import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import ConnectionDoubleChart from '@/components/connections/charts/ConnectionDoubleChart.vue'
 import ConnectionParallelChart from '@/components/connections/charts/ConnectionParallelChart.vue'
 import ConnectionSingleChart from '@/components/connections/charts/ConnectionSingleChart.vue'
@@ -8,26 +10,19 @@ import ConnectionDetail from '@/components/connections/ConnectionDetail.vue'
 import ConnectionTable from '@/components/connections/ConnectionTable.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
-import i18n from '@/plugins/i18n'
 import { useCountsStore } from '@/stores/counts'
-import { useNotificationStore } from '@/stores/notification'
-import { shareCurrentUrl, type Value } from '@/utils/common'
 import { cobalt, peach, periwinkle, plum, sky } from '@/utils/vuetify'
 import {
   mdiCalendarRange,
-  mdiClose,
-  mdiFilterVariant,
   mdiHistory,
   mdiLayersOutline,
   mdiLayersTriple,
-  mdiMagnify,
   mdiPulse,
-  mdiShare,
   mdiTagOutline,
   mdiTune,
   mdiViewGridOutline
 } from '@mdi/js'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -80,7 +75,6 @@ const beamFields: DoubleFields<ConnectionField> = [
   }
 ]
 
-/* ---- filter rail (design handoff: right-anchored, collapsible) ---- */
 const railGroups: FilterRailGroup[] = [
   {
     key: ConnectionField.ConnectionType,
@@ -157,119 +151,25 @@ const railGroups: FilterRailGroup[] = [
     type: 'range'
   }
 ]
-
-// Filters live in a slide-in overlay opened from the toolbar button.
-const filtersOverlayOpen = ref<boolean>(false)
-
-const railFilterCount = computed<number>(
-  () => railGroups.filter((group) => searches.value[group.key] != null).length
-)
-
-/* ---- active-filter chips (mirrors the searches driving table + charts) ---- */
-function formatChipValue(value: Value): string {
-  if (Array.isArray(value)) {
-    if (value.length === 2 && value.every((v) => !isNaN(Number(v)))) {
-      return `${value[0]} – ${value[1]}`
-    }
-    return `${value.length} selected`
-  }
-  if (typeof value === 'boolean') {
-    return value ? 'Yes' : 'No'
-  }
-  const text = String(value)
-  if (text.includes('<<')) {
-    return text.split('<<', 2).join(' – ')
-  }
-  return text.length > 32 ? `${text.split(',').length} selected` : text
-}
-
-const activeChips = computed(() =>
-  Object.entries(searches.value).map(([key, value]) => ({
-    key,
-    label: `${i18n.global.t('connection.' + key)}: ${formatChipValue(value)}`
-  }))
-)
-
-function clearAll(): void {
-  search.value = ''
-  Object.keys(searches.value).forEach((key) => changeSearches(key, undefined))
-}
-
-/* ---- head actions (design handoff: Share view) ---- */
-const notificationStore = useNotificationStore()
-
-function shareView(): void {
-  shareCurrentUrl(route.fullPath, notificationStore.notify)
-}
 </script>
 
 <template>
-  <div class="dash">
-    <!-- Page header -->
-    <div class="dash-head">
-      <div class="eyebrow" style="margin-bottom: 6px">Components · Database</div>
-      <div class="dash-head-row">
-        <h1 class="dash-title">
-          Connections
-          <span v-if="countsStore.counts.connections != null" class="dash-title-count">
-            {{ countsStore.counts.connections.toLocaleString('en-CH') }} tests
-          </span>
-        </h1>
-        <div class="dash-head-actions">
-          <button class="btn btn-secondary btn-sm" @click="shareView">
-            <v-icon :icon="mdiShare" size="14" />
-            Share view
-          </button>
-        </div>
-      </div>
-      <p class="dash-desc">
-        Beam-to-column moment connection tests under reversed cyclic and monotonic loading,
-        categorized per AISC-358-16. Filter through the filters panel, the table column filters or
-        the charts below; click a row for the full specimen detail and digitized test data.
-      </p>
-    </div>
-
-    <!-- Toolbar: global search + filters -->
-    <div class="dash-toolbar">
-      <div class="dash-search">
-        <v-icon class="dash-search-icon" :icon="mdiMagnify" size="16" />
-        <input v-model="search" type="search" placeholder="Search all columns…" />
-      </div>
-      <div class="dash-toolbar-spacer" />
-      <button
-        class="btn btn-secondary btn-sm dash-filters-trigger"
-        @click="filtersOverlayOpen = true"
-      >
-        <v-icon :icon="mdiFilterVariant" size="14" />
-        Filters
-        <span v-if="railFilterCount > 0" class="dash-filters-trigger-badge">
-          {{ railFilterCount }}
-        </span>
-      </button>
-    </div>
-
-    <!-- Active filters -->
-    <div v-if="activeChips.length > 0" class="dash-active-filters">
-      <strong>Active filters</strong>
-      <span v-for="chip in activeChips" :key="chip.key" class="fchip">
-        {{ chip.label }}
-        <span
-          class="fchip-x"
-          role="button"
-          :aria-label="`Remove filter ${chip.label}`"
-          @click="changeSearches(chip.key, undefined)"
-        >
-          <v-icon :icon="mdiClose" size="10" />
-        </span>
-      </span>
-      <button class="chip-clear" @click="clearAll">
-        <v-icon :icon="mdiClose" size="10" />
-        Clear all
-      </button>
-    </div>
-
-    <!-- Table (full bleed) -->
-    <div class="dash-table-full">
+  <dashboard-shell
+    v-model:search="search"
+    eyebrow="Components · Database"
+    title="Connections"
+    :count="countsStore.counts.connections"
+    description="Beam-to-column moment connection tests under reversed cyclic and monotonic loading,
+      categorized per AISC-358-16. Filter through the filters panel, the table column filters or
+      the charts below; click a row for the full specimen detail and digitized test data."
+    i18n-prefix="connection."
+    :rail-groups="railGroups"
+    :searches="searches"
+    :detail-open="!!item"
+    @change:searches="changeSearches"
+    @close:detail="closeDetail"
+  >
+    <template #table>
       <connection-table
         v-model:search="search"
         v-model:searches="searches"
@@ -277,16 +177,12 @@ function shareView(): void {
         @click:row="clickTableRow"
         @update:page="updatePage"
       />
-    </div>
+    </template>
 
-    <!-- Charts — row 1: distributions -->
-    <div class="charts-strip">
-      <div class="chart-cell chart-cell--quiet">
-        <div class="chart-head">
-          <h5>Connection type</h5>
-          <span class="info">Click a tile to filter</span>
-        </div>
-        <div class="chart-body">
+    <template #charts>
+      <!-- Row 1: distributions -->
+      <div class="charts-strip">
+        <chart-cell quiet title="Connection type" hint="Click a tile to filter">
           <connection-single-chart
             :color="peach"
             :field="ConnectionField.ConnectionType"
@@ -295,14 +191,8 @@ function shareView(): void {
             flat
             @change:searches="changeSearches"
           />
-        </div>
-      </div>
-      <div class="chart-cell">
-        <div class="chart-head">
-          <h5>Tests per year × type</h5>
-          <span class="info">Click legend to filter</span>
-        </div>
-        <div class="chart-body">
+        </chart-cell>
+        <chart-cell title="Tests per year × type" hint="Click legend to filter">
           <connection-double-chart
             :color="periwinkle"
             :fields="[ConnectionField.Date, ConnectionField.ConnectionType]"
@@ -310,14 +200,8 @@ function shareView(): void {
             type="line"
             @change:searches="changeSearches"
           />
-        </div>
-      </div>
-      <div class="chart-cell chart-cell--quiet">
-        <div class="chart-head">
-          <h5>Beam steel grade</h5>
-          <span class="info">Click to filter</span>
-        </div>
-        <div class="chart-body">
+        </chart-cell>
+        <chart-cell quiet title="Beam steel grade" hint="Click to filter">
           <connection-single-chart
             :color="cobalt"
             :field="ConnectionField.SteelB"
@@ -326,86 +210,47 @@ function shareView(): void {
             flat
             @change:searches="changeSearches"
           />
-        </div>
+        </chart-cell>
       </div>
-    </div>
 
-    <!-- Charts — row 2: stacked histograms -->
-    <div class="charts-strip charts-strip-2cols">
-      <div class="chart-cell">
-        <div class="chart-head">
-          <h5>Beam depth × slab</h5>
-          <span class="info">Stacked histogram · click bar or legend</span>
-        </div>
-        <div class="chart-body">
+      <!-- Row 2: stacked histograms -->
+      <div class="charts-strip charts-strip-2cols">
+        <chart-cell title="Beam depth × slab" hint="Stacked histogram · click bar or legend">
           <connection-double-chart
             :color="sky"
             :fields="beamFields"
             :query="query"
             @change:searches="changeSearches"
           />
-        </div>
-      </div>
-      <div class="chart-cell">
-        <div class="chart-head">
-          <h5>Column depth × doubler plates</h5>
-          <span class="info">Stacked histogram · click bar or legend</span>
-        </div>
-        <div class="chart-body">
+        </chart-cell>
+        <chart-cell
+          title="Column depth × doubler plates"
+          hint="Stacked histogram · click bar or legend"
+        >
           <connection-double-chart
             :color="plum"
             :fields="[ConnectionField.DC, ConnectionField.NDp]"
             :query="query"
             @change:searches="changeSearches"
           />
-        </div>
+        </chart-cell>
       </div>
-    </div>
 
-    <!-- Charts — row 3: parallel coordinates (full width) -->
-    <div class="charts-strip charts-strip-1col">
-      <div class="chart-cell">
-        <connection-parallel-chart
-          :color="periwinkle"
-          :fields="parallelFields"
-          :query="query"
-          @change:searches="changeSearches"
-        />
+      <!-- Row 3: parallel coordinates (full width) -->
+      <div class="charts-strip charts-strip-1col">
+        <chart-cell>
+          <connection-parallel-chart
+            :color="periwinkle"
+            :fields="parallelFields"
+            :query="query"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
       </div>
-    </div>
+    </template>
 
-    <!-- Detail drawer -->
-    <div class="drawer-scrim" :class="{ open: !!item }" @click="closeDetail" />
-    <aside class="drawer" :class="{ open: !!item }">
+    <template #detail>
       <connection-detail v-if="item" :connection="item" @close="closeDetail" />
-    </aside>
-
-    <!-- Filters overlay drawer -->
-    <div
-      class="drawer-scrim"
-      :class="{ open: filtersOverlayOpen }"
-      @click="filtersOverlayOpen = false"
-    />
-    <aside class="filters-overlay" :class="{ open: filtersOverlayOpen }">
-      <filter-rail
-        as-overlay
-        :groups="railGroups"
-        position="right"
-        :searches="searches"
-        @change:searches="changeSearches"
-        @close="filtersOverlayOpen = false"
-      />
-    </aside>
-  </div>
+    </template>
+  </dashboard-shell>
 </template>
-
-<style scoped>
-/* Single charts carry their own (empty) v-card-title; the strip provides the
-   chart head instead. */
-.chart-cell--quiet :deep(.v-card-title) {
-  display: none;
-}
-.chart-cell :deep(.v-card) {
-  border: 0 !important;
-}
-</style>

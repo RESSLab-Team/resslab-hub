@@ -23,7 +23,8 @@ const columns: Column[] = [
   },
   {
     value: DuctileFractureField.SpecimenType,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'tag'
   },
   {
     value: DuctileFractureField.SectionType,
@@ -63,8 +64,7 @@ const {
     {
       name: 'force-elongation-simulation',
       countKey: 'force_elongation_simulation_count',
-      getCsv: (id) =>
-        ductileFractureApi.getDuctileFracturesForceElongationSimulationCsv(id)
+      getCsv: (id) => ductileFractureApi.getDuctileFracturesForceElongationSimulationCsv(id)
     },
     {
       name: 'force-radial',
@@ -106,6 +106,7 @@ const {
     v-model:search="search"
     v-model:searches="searches"
     :columns="columns"
+    hide-toolbar
     :items="items"
     :loading="loading"
     prefix="ductile_fracture."

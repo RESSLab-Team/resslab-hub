@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import { ResidualStressField, type ResidualStressModel } from '@/backend'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import ChartCell from '@/components/commons/ChartCell.vue'
+import DashboardShell from '@/components/commons/DashboardShell.vue'
+import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import ResidualDoubleChart from '@/components/residuals/charts/ResidualDoubleChart.vue'
 import ResidualParallelChart from '@/components/residuals/charts/ResidualParallelChart.vue'
 import ResidualSingleChart from '@/components/residuals/charts/ResidualSingleChart.vue'
 import ResidualDetail from '@/components/residuals/ResidualDetail.vue'
 import ResidualTable from '@/components/residuals/ResidualTable.vue'
-import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
-import ResetChartButton from '@/components/commons/ResetChartButton.vue'
-
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useCountsStore } from '@/stores/counts'
+import { cobalt, peach, yellowgreen } from '@/utils/vuetify'
+import { mdiCalendarRange, mdiPulse, mdiTune } from '@mdi/js'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import colors from 'vuetify/lib/util/colors'
 
 const route = useRoute()
 const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
   useDashboard<ResidualStressModel>(route, router, ResidualStressField)
+
+const countsStore = useCountsStore()
+onMounted(() => countsStore.fetch())
 
 const parallelFields: ParallelField<ResidualStressField>[] = [
   { id: ResidualStressField.Steel, name: 'Steel Grade' },
@@ -32,97 +37,119 @@ const profileFields: DoubleFields<ResidualStressField> = [
   ResidualStressField.ProfileType
 ]
 
-const profileFieldsReset: ResidualStressField[] = [
-  ResidualStressField.Date,
-  ResidualStressField.ProfileType,
-  ResidualStressField.H,
-  ResidualStressField.ProfileType
+const railGroups: FilterRailGroup[] = [
+  {
+    key: ResidualStressField.Date,
+    label: 'Measurement date',
+    icon: mdiCalendarRange,
+    type: 'range',
+    min: 1950,
+    max: 2026
+  },
+  {
+    key: ResidualStressField.Tf,
+    label: 'Flange thickness tf [mm]',
+    icon: mdiTune,
+    type: 'range'
+  },
+  {
+    key: ResidualStressField.HOverB,
+    label: 'Aspect ratio h/bf',
+    icon: mdiTune,
+    type: 'range'
+  },
+  {
+    key: ResidualStressField.Sigma0F,
+    label: 'Flange residual stress σ0,f [MPa]',
+    icon: mdiPulse,
+    type: 'range'
+  },
+  {
+    key: ResidualStressField.Sigma0W,
+    label: 'Web residual stress σ0,w [MPa]',
+    icon: mdiPulse,
+    type: 'range'
+  }
 ]
-
-const steelField = ResidualStressField.Steel
 </script>
 
 <template>
-  <v-row>
-    <v-col md="6">
-      <v-row>
-        <v-col cols="12">
-          <residual-table
-            v-model:search="search"
-            v-model:searches="searches"
+  <dashboard-shell
+    v-model:search="search"
+    eyebrow="Materials · Database"
+    title="Residual Stresses"
+    :count="countsStore.counts.residuals"
+    count-label="specimens"
+    description="Residual stress measurements on hot-rolled and welded steel profiles, with
+      flange and web distribution data. Filter through the filters panel, the table column
+      filters or the charts below; click a row for the full specimen detail and measured
+      distributions."
+    i18n-prefix="residual."
+    :rail-groups="railGroups"
+    :searches="searches"
+    :detail-open="!!item"
+    @change:searches="changeSearches"
+    @close:detail="closeDetail"
+  >
+    <template #table>
+      <residual-table
+        v-model:search="search"
+        v-model:searches="searches"
+        :query="query"
+        @click:row="clickTableRow"
+        @update:page="updatePage"
+      />
+    </template>
+
+    <template #charts>
+      <div class="charts-strip">
+        <chart-cell quiet title="Steel grade" hint="Click to filter">
+          <residual-single-chart
+            :color="cobalt"
+            :field="ResidualStressField.Steel"
             :query="query"
-            @click:row="clickTableRow"
-            @update:page="updatePage"
+            :show-reset="false"
+            flat
+            @change:searches="changeSearches"
           />
-        </v-col>
-      </v-row>
-      <v-row v-if="!item">
-        <v-col cols="12">
+        </chart-cell>
+        <chart-cell title="Specimens per year × profile type" hint="Click legend to filter">
+          <residual-double-chart
+            :color="peach"
+            :fields="profileFields"
+            :query="query"
+            type="line"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+        <chart-cell
+          title="Section height × profile type"
+          hint="Stacked histogram · click bar or legend"
+        >
+          <residual-double-chart
+            :color="yellowgreen"
+            :fields="[ResidualStressField.H, ResidualStressField.ProfileType]"
+            :query="query"
+            type="bar"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+      </div>
+
+      <div class="charts-strip charts-strip-1col">
+        <chart-cell>
           <residual-parallel-chart
-            :color="colors.orange"
+            :color="cobalt"
             :fields="parallelFields"
             :query="query"
             @change:searches="changeSearches"
-          >
-            <template #title>
-              <info-tooltip>Parallel Axis</info-tooltip>
-            </template>
-          </residual-parallel-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col md="6">
-      <v-row v-if="item">
-        <v-col cols="12">
-          <residual-detail :residual="item" @close="closeDetail" />
-        </v-col>
-      </v-row>
-      <v-row v-else>
-        <v-col cols="12">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              Profile
-              <reset-chart-button
-                :field="profileFieldsReset"
-                :is-filtered="profileFieldsReset.some(field => query.includes((field as string)))"
-                @change:searches="changeSearches"
-              />
-            </v-card-title>
-            <v-card-text>
-              <v-row>
-                <v-col cols="12" md="6">
-                  <residual-double-chart
-                    :fields="profileFields"
-                    :query="query"
-                    type="line"
-                    @change:searches="changeSearches"
-                  />
-                </v-col>
-                <v-col cols="12" md="6">
-                  <residual-double-chart
-                    :fields="[ResidualStressField.H, ResidualStressField.ProfileType]"
-                    :query="query"
-                    type="bar"
-                    @change:searches="changeSearches"
-                  />
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12">
-          <residual-single-chart
-            :color="colors.deepPurple"
-            :field="steelField"
-            :query="query"
-            @change:searches="changeSearches"
-          >
-            <template #title>
-              <steel-type-card-title />
-            </template>
-          </residual-single-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+          />
+        </chart-cell>
+      </div>
+    </template>
+
+    <template #detail>
+      <residual-detail v-if="item" :residual="item" @close="closeDetail" />
+    </template>
+  </dashboard-shell>
 </template>

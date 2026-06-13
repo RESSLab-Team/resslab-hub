@@ -14,7 +14,8 @@ const columns: Column[] = [
   },
   {
     value: ResidualStressField.Profile,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: ResidualStressField.Steel,
@@ -86,6 +87,7 @@ const {
     v-model:search="search"
     v-model:searches="searches"
     :columns="columns"
+    hide-toolbar
     :items="items"
     :loading="loading"
     prefix="residual."

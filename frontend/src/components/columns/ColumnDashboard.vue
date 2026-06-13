@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import { ColumnField, type ColumnModel } from '@/backend'
+import ChartCell from '@/components/commons/ChartCell.vue'
+import DashboardShell from '@/components/commons/DashboardShell.vue'
+import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import ColumnDoubleChart from '@/components/columns/charts/ColumnDoubleChart.vue'
 import ColumnParallelChart from '@/components/columns/charts/ColumnParallelChart.vue'
 import ColumnSingleChart from '@/components/columns/charts/ColumnSingleChart.vue'
 import ColumnDetail from '@/components/columns/ColumnDetail.vue'
 import ColumnTable from '@/components/columns/ColumnTable.vue'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
-import ResetChartButton from '@/components/commons/ResetChartButton.vue'
-
 import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useCountsStore } from '@/stores/counts'
+import { cobalt, mint, plum } from '@/utils/vuetify'
+import { mdiCalendarRange, mdiPulse, mdiTagOutline, mdiTune } from '@mdi/js'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import colors from 'vuetify/lib/util/colors'
 
 const route = useRoute()
 const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
   useDashboard<ColumnModel>(route, router, ColumnField)
+
+const countsStore = useCountsStore()
+onMounted(() => countsStore.fetch())
 
 const parallelFields: ParallelField<ColumnField>[] = [
   { id: ColumnField.Th80 },
@@ -40,109 +45,122 @@ const columnDepthFields: DoubleFields<ColumnField> = [
     ])
   }
 ]
-const steelField = ColumnField.SteelC
+
+const railGroups: FilterRailGroup[] = [
+  {
+    key: ColumnField.Date,
+    label: 'Test date',
+    icon: mdiCalendarRange,
+    type: 'range',
+    min: 1960,
+    max: 2026
+  },
+  {
+    key: ColumnField.BuiltUp,
+    label: 'Fabrication',
+    icon: mdiTagOutline,
+    type: 'chips',
+    options: [
+      { label: 'Hot-rolled', value: 'false' },
+      { label: 'Built-up', value: 'true' }
+    ]
+  },
+  {
+    key: ColumnField.DC,
+    label: 'Column depth dc [mm]',
+    icon: mdiTune,
+    type: 'range'
+  },
+  {
+    key: ColumnField.PGOverPYm,
+    label: 'Axial load ratio Pg/Py',
+    icon: mdiPulse,
+    type: 'range'
+  },
+  {
+    key: ColumnField.LBOverRYc,
+    label: 'Slenderness Lb/ry',
+    icon: mdiTune,
+    type: 'range'
+  }
+]
 </script>
 
 <template>
-  <v-row>
-    <v-col md="6">
-      <v-row>
-        <v-col cols="12">
-          <column-table
-            v-model:search="search"
-            v-model:searches="searches"
+  <dashboard-shell
+    v-model:search="search"
+    eyebrow="Components · Database"
+    title="Columns"
+    :count="countsStore.counts.columns"
+    description="Wide-flange steel column tests under combined axial load and cyclic lateral
+      drift, covering hot-rolled and built-up sections. Filter through the filters panel, the
+      table column filters or the charts below; click a row for the full specimen detail and
+      digitized test data."
+    i18n-prefix="column."
+    :rail-groups="railGroups"
+    :searches="searches"
+    :detail-open="!!item"
+    @change:searches="changeSearches"
+    @close:detail="closeDetail"
+  >
+    <template #table>
+      <column-table
+        v-model:search="search"
+        v-model:searches="searches"
+        :query="query"
+        @click:row="clickTableRow"
+        @update:page="updatePage"
+      />
+    </template>
+
+    <template #charts>
+      <div class="charts-strip">
+        <chart-cell quiet title="Steel grade" hint="Click to filter">
+          <column-single-chart
+            :color="plum"
+            :field="ColumnField.SteelC"
             :query="query"
-            @click:row="clickTableRow"
-            @update:page="updatePage"
+            :show-reset="false"
+            flat
+            @change:searches="changeSearches"
           />
-        </v-col>
-      </v-row>
-      <v-row v-if="!item">
-        <v-col cols="12">
+        </chart-cell>
+        <chart-cell title="Tests per year × boundary condition" hint="Click legend to filter">
+          <column-double-chart
+            :color="mint"
+            :fields="boundaryConditionFields"
+            :query="query"
+            type="line"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+        <chart-cell
+          title="Column depth × fabrication"
+          hint="Stacked histogram · click bar or legend"
+        >
+          <column-double-chart
+            :color="cobalt"
+            :fields="columnDepthFields"
+            :query="query"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+      </div>
+
+      <div class="charts-strip charts-strip-1col">
+        <chart-cell>
           <column-parallel-chart
-            :color="colors.orange"
+            :color="mint"
             :fields="parallelFields"
             :query="query"
             @change:searches="changeSearches"
           />
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col md="6">
-      <v-row v-if="item">
-        <v-col cols="12">
-          <column-detail :column="item" @close="closeDetail" />
-        </v-col>
-      </v-row>
-      <v-row v-else>
-        <v-col cols="12" md="6">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              Boundary Condition
-              <reset-chart-button
-                :field="boundaryConditionFields"
-                :is-filtered="boundaryConditionFields.some(field => query.includes(field as string))"
-                @change:searches="changeSearches"
-            /></v-card-title>
-            <v-card-text>
-              <column-double-chart
-                :fields="boundaryConditionFields"
-                :query="query"
-                type="line"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12" md="6">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              <div>
-                Column Depth [mm]
-                <info-tooltip>
-                  <p>This histogram displays the distribution of column depths in the Database.</p>
-                  How to use?
-                  <ul>
-                    <li>
-                      Filter database for specific column depths, by clicking on a bar or using the
-                      slider below
-                    </li>
-                    <li>
-                      Filter database for built-up or hot-rolled cross sections by clicking on the
-                      appropriate legend
-                    </li>
-                  </ul>
-                </info-tooltip>
-              </div>
-              <reset-chart-button
-                :field="columnDepthFields"
-                :is-filtered="columnDepthFields.some(field => query.includes(field as string))"
-                @change:searches="changeSearches"
-              />
-            </v-card-title>
-            <v-card-text>
-              <column-double-chart
-                :color="colors.green"
-                :fields="columnDepthFields"
-                :query="query"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12">
-          <column-single-chart
-            :color="colors.deepPurple"
-            :field="steelField"
-            :query="query"
-            @change:searches="changeSearches"
-          >
-            <template #title>
-              <steel-type-card-title />
-            </template>
-          </column-single-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+        </chart-cell>
+      </div>
+    </template>
+
+    <template #detail>
+      <column-detail v-if="item" :column="item" @close="closeDetail" />
+    </template>
+  </dashboard-shell>
 </template>

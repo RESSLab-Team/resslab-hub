@@ -22,6 +22,7 @@ const { counts, changeSearches } = useSingleChart<ColumnField>(
   <single-chart
     :color="color"
     :counts="counts"
+    :show-reset="showReset"
     :flat="flat"
     :field="field"
     label-prefix="column."

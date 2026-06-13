@@ -16,12 +16,14 @@ const columns: Column[] = [
   {
     value: EccentricBracedFrameField.SpecId,
     title: 'Specimen Designation',
-    type: 'text'
+    type: 'text',
+    cellVariant: 'strong'
   },
   {
     value: EccentricBracedFrameField.Profile,
     title: 'Link cross-section',
-    type: 'text'
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: EccentricBracedFrameField.LinkLoc,
@@ -83,6 +85,7 @@ const {
     v-model:search="search"
     v-model:searches="searches"
     :columns="columns"
+    hide-toolbar
     :items="items"
     :loading="loading"
     prefix="ebf."

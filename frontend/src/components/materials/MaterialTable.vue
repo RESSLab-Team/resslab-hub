@@ -13,7 +13,8 @@ const columns: Column[] = [
   },
   {
     value: MaterialField.Id,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'strong'
   },
   {
     value: MaterialField.Type,
@@ -72,6 +73,7 @@ const {
     v-model:search="search"
     v-model:searches="searches"
     :columns="columns"
+    hide-toolbar
     :items="items"
     :loading="loading"
     prefix="material."

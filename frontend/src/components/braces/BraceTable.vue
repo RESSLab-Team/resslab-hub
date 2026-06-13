@@ -14,11 +14,13 @@ const columns: Column[] = [
   },
   {
     value: BraceField.SpecimenId,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'strong'
   },
   {
     value: BraceField.CrossSectionSize,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: BraceField.Steel,
@@ -74,6 +76,7 @@ const {
     v-model:search="search"
     v-model:searches="searches"
     :columns="columns"
+    hide-toolbar
     :items="items"
     :loading="loading"
     prefix="brace."
