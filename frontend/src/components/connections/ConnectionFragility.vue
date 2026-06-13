@@ -168,7 +168,7 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
       >.
     </page-header>
     <v-row class="tool-body">
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="4" class="tool-panel">
         <v-card>
           <v-card-title>Steel Type</v-card-title>
           <v-card-text>
@@ -198,11 +198,11 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
           <v-img height="300px" :src="publicPath + 'img/connection/connection_fragility.png'" />
         </v-col>
       </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="4" class="tool-charts">
         <h2>Pre-Northridge</h2>
         <unit-chart :option="preNorthridgeOption" x-unit="rad" />
       </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="4" class="tool-charts">
         <h2>Post-Northridge</h2>
         <unit-chart :option="postNorthridgeOption" x-unit="rad" />
       </v-col>

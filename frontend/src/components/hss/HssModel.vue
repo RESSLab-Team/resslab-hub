@@ -409,7 +409,7 @@ defineExpose({ vars, backbone, envelope })
       <a href="" target="_blank"> Hartloper et al. (2024) </a>
     </page-header>
     <v-row class="tool-body">
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-panel">
         <v-row>
           <v-col>
             <v-card>
@@ -469,10 +469,10 @@ defineExpose({ vars, backbone, envelope })
           </v-col>
         </v-row>
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-charts">
         <v-img height="400px" :src="publicPath + 'img/hss/component.png'" />
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-charts">
         <v-row justify="center">
           <v-col cols="12" lg="8" xl="6">
             <v-card>
@@ -487,7 +487,7 @@ defineExpose({ vars, backbone, envelope })
           </v-col>
         </v-row>
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-charts">
         <v-card>
           <v-card-title>
             Predictive Model for Columns

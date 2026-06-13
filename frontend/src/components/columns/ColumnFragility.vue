@@ -261,7 +261,7 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
       >.
     </page-header>
     <v-row class="tool-body">
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-charts">
         <v-row>
           <v-col cols="12">
             <v-card>
@@ -302,7 +302,7 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
           </v-col>
         </v-row>
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-charts">
         <h2>Surface Fragility Curves</h2>
         <v-row>
           <v-col v-for="(item, index) in surfaceOptions" :key="index" cols="6">

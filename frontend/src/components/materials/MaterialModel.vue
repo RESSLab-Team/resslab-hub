@@ -212,7 +212,7 @@ watch(
       >
     </page-header>
     <v-row class="tool-body">
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-panel">
         <v-card>
           <v-card-title>
             Select Steel Material
@@ -243,7 +243,7 @@ watch(
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-charts">
         <v-row>
           <v-col v-for="item in charts" :key="item.title" cols="12" sm="6">
             <unit-line-chart

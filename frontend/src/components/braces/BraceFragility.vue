@@ -297,18 +297,18 @@ function correlatedBivariate(
       >.
     </page-header>
     <v-row class="tool-body">
-      <v-col cols="12">
+      <v-col cols="12" class="tool-top">
         <simple-toggle v-model="option" :items="options" />
         <info-tooltip>
           Select the appropriate cross sectional shape of the bracing member to visualize the
           corresponding fragility curve.
         </info-tooltip>
       </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="12" md="4" class="tool-charts">
         <h2>Univariate Fragilities</h2>
         <unit-chart :aspect-ratio="2" :option="univariateOptions[option]" x-unit="rad" />
       </v-col>
-      <v-col cols="12" md="8">
+      <v-col cols="12" md="8" class="tool-charts">
         <h2>Multivariate Fragilities</h2>
         <v-row>
           <v-col v-for="(item, i) in multivariateOptions" :key="i" cols="6" md="4">

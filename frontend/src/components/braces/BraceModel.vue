@@ -328,7 +328,7 @@ function getCompressionOption(result: Result): EChartsOption {
       refer to Eurocode 8 Part 3.
     </page-header>
     <v-row class="tool-body">
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-panel">
         <v-card>
           <v-card-title>
             Select Cross Section Type
@@ -429,7 +429,7 @@ function getCompressionOption(result: Result): EChartsOption {
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-charts">
         <v-row class="justify-center">
           <v-col cols="8">
             <v-img :src="publicPath + 'img/brace/I_shaped_Bracing.png'" />

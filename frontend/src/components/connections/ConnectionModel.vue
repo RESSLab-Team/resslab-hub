@@ -572,7 +572,7 @@ defineExpose({ vars, backboneRbs, backboneNonRbs, envelopeRbs, envelopeNonRbs })
       </a>
     </page-header>
     <v-row class="tool-body">
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-panel">
         <v-row>
           <v-col>
             <v-card>
@@ -632,11 +632,11 @@ defineExpose({ vars, backboneRbs, backboneNonRbs, envelopeRbs, envelopeNonRbs })
           </v-col>
         </v-row>
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-charts">
         <v-img height="200px" :src="publicPath + 'img/connection/component-1.png'" />
         <v-img height="200px" :src="publicPath + 'img/connection/component-2.png'" />
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-charts">
         <v-row>
           <v-col cols="12" sm="6">
             <v-card>
@@ -664,7 +664,7 @@ defineExpose({ vars, backboneRbs, backboneNonRbs, envelopeRbs, envelopeNonRbs })
           </v-col>
         </v-row>
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" class="tool-charts">
         <v-card>
           <v-card-title>
             Component Models
