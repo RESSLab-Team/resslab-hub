@@ -8,6 +8,7 @@ import sys
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi_pagination import add_pagination
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -39,7 +40,7 @@ def is_debug_mode():
 
 logger = logging.getLogger()
 
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG if is_debug_mode() else logging.INFO)
 logger.propagate = True
 
 logger.debug("Debug logging enabled")
@@ -50,6 +51,10 @@ app = FastAPI(
     version=__version__,
     root_path=settings.root_path,  # type: ignore
 )
+
+# Compress JSON/CSV responses (highly compressible numeric payloads).
+# minimum_size avoids the overhead of compressing tiny responses.
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 if settings.cors_enabled:
     logging.debug("cors enabled")
