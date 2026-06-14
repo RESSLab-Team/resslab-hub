@@ -4,7 +4,7 @@ import SurfaceGlChart from '@/components/commons/charts/SurfaceGlChart.vue'
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import PageHeader from '@/components/commons/PageHeader.vue'
-import SimpleToggle from '@/components/commons/SimpleToggle.vue'
+import ToolSegmented from '@/components/commons/tools/ToolSegmented.vue'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
 import type { EChartsGlOption } from '@/utils/echarts-gl'
 import { univariateOption, type DamageState } from '@/utils/fragility'
@@ -296,26 +296,44 @@ function correlatedBivariate(
         >Lignos and Karamanci (2013)</a
       >.
     </page-header>
-    <v-row class="tool-body">
-      <v-col cols="12" class="tool-top">
-        <simple-toggle v-model="option" :items="options" />
-        <info-tooltip>
-          Select the appropriate cross sectional shape of the bracing member to visualize the
-          corresponding fragility curve.
-        </info-tooltip>
-      </v-col>
-      <v-col cols="12" md="4" class="tool-charts">
-        <h2>Univariate Fragilities</h2>
-        <unit-chart :aspect-ratio="2" :option="univariateOptions[option]" x-unit="rad" />
-      </v-col>
-      <v-col cols="12" md="8" class="tool-charts">
-        <h2>Multivariate Fragilities</h2>
-        <v-row>
-          <v-col v-for="(item, i) in multivariateOptions" :key="i" cols="6" md="4">
-            <surface-gl-chart :aspect-ratio="1" :option="item" />
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
+    <div class="tool-shell">
+      <div class="frag-a">
+        <aside class="tool-panel">
+          <div class="tool-card">
+            <div class="tool-card-h with-info">
+              Cross Section
+              <info-tooltip>
+                Select the appropriate cross sectional shape of the bracing member to visualize the
+                corresponding fragility curve.
+              </info-tooltip>
+            </div>
+            <tool-segmented
+              full
+              :items="options"
+              :model-value="option"
+              @update:model-value="option = $event as Option"
+            />
+          </div>
+        </aside>
+
+        <section class="tool-chart-col">
+          <div class="mat-focus">
+            <h2 class="tool-chart-h">Univariate Fragilities</h2>
+            <unit-chart :aspect-ratio="2" :option="univariateOptions[option]" x-unit="rad" />
+          </div>
+          <div class="tool-card">
+            <div class="tool-card-h">Multivariate Fragilities</div>
+            <div class="tool-surface-grid">
+              <surface-gl-chart
+                v-for="(item, i) in multivariateOptions"
+                :key="i"
+                :aspect-ratio="1"
+                :option="item"
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
 </template>

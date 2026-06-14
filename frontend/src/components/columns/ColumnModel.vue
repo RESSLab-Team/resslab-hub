@@ -3,12 +3,13 @@
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
-import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
+import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
+import type { Variable } from '@/components/commons/sliders/UnitSlider.vue'
 import PageHeader from '@/components/commons/PageHeader.vue'
 import UnitTableRow, { type UnitTableRowData } from '@/components/commons/UnitTableRow.vue'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
 import { publicPath, type Section } from '@/utils/common'
-import { variableBind, type Point } from '@/utils/model'
+import type { Point } from '@/utils/model'
 import { primaryColor, secondaryColor } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
 import { clamp, omit } from 'lodash'
@@ -402,92 +403,78 @@ defineExpose({ vars, backbone, envelope })
       For further information refer to
       <a href="" target="_blank"> Lignos et al. (2019) </a>
     </page-header>
-    <v-row class="tool-body">
-      <v-col cols="12" md="6" class="tool-panel">
-        <v-row>
-          <v-col>
-            <v-card>
-              <v-card-title>
-                Select Steel Profile
-                <info-tooltip>
-                  Here, you may choose to either select a W-Shape from the AISC database or input
-                  your own dimensions using the sliders below
-                </info-tooltip>
-              </v-card-title>
-              <v-card-text>
-                <section-selector @update:section="onSectionChanged($event)" />
-                <v-row>
-                  <v-col v-for="item in steelShapeDimensions" :key="item.key" v-bind="variableBind">
-                    <unit-slider
-                      v-model="variables[item.key]"
-                      :disabled="!!section"
-                      :label="item.text"
-                      :max="item.max"
-                      :min="item.min"
-                      :unit="item.unit"
-                    />
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <v-card>
-              <v-card-title>
-                Specify Member and Loading Properties
-                <info-tooltip>
-                  Here you need to specify the beam full length (L), the beam unbraced length
-                  (L<sub>b</sub>), which is defined as the distance from the column face to the
-                  nearest lateral brace, the expected yield stress, F<sub>y</sub> of the steel
-                  material, the capping-to-yield ratio <sup>Mc</sup>/<sub>My</sub>, the expected
-                  residual strength ratio, K, and the ultimate rotation &theta;<sub>u</sub> of the
-                  steel component.
-                </info-tooltip>
-              </v-card-title>
-              <v-card-text>
-                <v-row>
-                  <v-col v-for="item in memberProperties" :key="item.key" v-bind="variableBind">
-                    <unit-slider
-                      v-model="variables[item.key]"
-                      :label="item.text"
-                      :max="item.max"
-                      :min="item.min"
-                      :unit="item.unit"
-                    />
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-col>
-      <v-col cols="12" md="6" class="tool-charts">
-        <v-img height="400px" :src="publicPath + 'img/column/component.png'" />
-      </v-col>
-      <v-col cols="12" md="6" class="tool-charts">
-        <v-row justify="center">
-          <v-col cols="12" lg="8" xl="6">
-            <v-card>
-              <v-card-text>
-                <unit-chart
-                  :option="getOption(backboneResult, envelopeResult)"
-                  x-unit="rad"
-                  y-unit="kN⋅mm"
-                />
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-col>
-      <v-col cols="12" md="6" class="tool-charts">
-        <v-card>
-          <v-card-title>
-            Predictive Model for Columns
-            <info-tooltip>Provided that the steel member is in double curvature</info-tooltip>
-          </v-card-title>
-          <v-card-text>
+    <div class="tool-shell">
+      <div class="frag-a">
+        <aside class="tool-panel">
+          <div class="tool-card">
+            <div class="tool-card-h with-info">
+              Select Steel Profile
+              <info-tooltip>
+                Here, you may choose to either select a W-Shape from the AISC database or input your
+                own dimensions using the sliders below
+              </info-tooltip>
+            </div>
+            <div class="tfield">
+              <section-selector @update:section="onSectionChanged($event)" />
+            </div>
+            <div v-for="item in steelShapeDimensions" :key="item.key" class="tfield">
+              <tool-slider
+                v-model="variables[item.key]"
+                :disabled="!!section"
+                :label="item.text"
+                :max="item.max"
+                :min="item.min"
+                :unit="item.unit"
+              />
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-card-h with-info">
+              Specify Member and Loading Properties
+              <info-tooltip>
+                Here you need to specify the beam full length (L), the beam unbraced length
+                (L<sub>b</sub>), which is defined as the distance from the column face to the
+                nearest lateral brace, the expected yield stress, F<sub>y</sub> of the steel
+                material, the capping-to-yield ratio <sup>Mc</sup>/<sub>My</sub>, the expected
+                residual strength ratio, K, and the ultimate rotation &theta;<sub>u</sub> of the
+                steel component.
+              </info-tooltip>
+            </div>
+            <div v-for="item in memberProperties" :key="item.key" class="tfield">
+              <tool-slider
+                v-model="variables[item.key]"
+                :label="item.text"
+                :max="item.max"
+                :min="item.min"
+                :unit="item.unit"
+              />
+            </div>
+          </div>
+
+          <figure class="tool-schematic is-small">
+            <img
+              alt="Wide-flange column component schematic"
+              :src="publicPath + 'img/column/component.png'"
+            />
+          </figure>
+        </aside>
+
+        <section class="tool-chart-col">
+          <div class="mat-focus">
+            <h2 class="tool-chart-h">Backbone Curve</h2>
+            <unit-chart
+              :option="getOption(backboneResult, envelopeResult)"
+              x-unit="rad"
+              y-unit="kN⋅mm"
+            />
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-card-h with-info">
+              Predictive Model for Columns
+              <info-tooltip>Provided that the steel member is in double curvature</info-tooltip>
+            </div>
             <v-table density="compact">
               <thead>
                 <tr>
@@ -509,9 +496,9 @@ defineExpose({ vars, backbone, envelope })
                 />
               </tbody>
             </v-table>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
 </template>

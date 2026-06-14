@@ -5,7 +5,7 @@ import SurfaceGlChart from '@/components/commons/charts/SurfaceGlChart.vue'
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import PageHeader from '@/components/commons/PageHeader.vue'
-import UnitSlider, { type UnitSliderItem } from '@/components/commons/sliders/UnitSlider.vue'
+import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
 import type { EChartsGlOption } from '@/utils/echarts-gl'
 import { univariateOption } from '@/utils/fragility'
 import { subscripts } from '@/utils/unicode'
@@ -13,7 +13,13 @@ import { getColorMap } from '@/utils/vuetify'
 import type { EChartsOption, SeriesOption } from 'echarts'
 import { range } from 'lodash'
 import { computed, reactive, ref } from 'vue'
-const parameters: UnitSliderItem<keyof Variables>[] = [
+const parameters: {
+  key: keyof Variables
+  label: string
+  min: number
+  max: number
+  unit?: string
+}[] = [
   {
     key: 'hTw',
     label: 'h / tw',
@@ -260,56 +266,49 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
         >Elkady et al. (2018)</a
       >.
     </page-header>
-    <v-row class="tool-body">
-      <v-col cols="12" md="6" class="tool-charts">
-        <v-row>
-          <v-col cols="12">
-            <v-card>
-              <v-card-title>
-                Parameters
-                <info-tooltip>
-                  Please provide the imposed gravity-induced axial load ratio, Pg/Pyn and the web
-                  slenderness ratio, h/tw of the wide-flange cross section of the steel column.
-                </info-tooltip>
-              </v-card-title>
-              <v-card-text>
-                <v-row>
-                  <v-col v-for="item in parameters" :key="item.key">
-                    <unit-slider
-                      v-model="variables[item.key]"
-                      :label="item.label"
-                      :max="item.max"
-                      :min="item.min"
-                      :unit="item.unit"
-                    />
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="12">
-            <h2>Fragility Curves</h2>
-            <v-row>
-              <v-col cols="9">
-                <unit-chart :aspect-ratio="2" :option="variateOption" x-unit="rad" />
-              </v-col>
-              <v-col cols="3">
-                <legend-chart v-model="legendItems" :separators-index="[4]" />
-              </v-col>
-            </v-row>
-          </v-col>
-        </v-row>
-      </v-col>
-      <v-col cols="12" md="6" class="tool-charts">
-        <h2>Surface Fragility Curves</h2>
-        <v-row>
-          <v-col v-for="(item, index) in surfaceOptions" :key="index" cols="6">
-            <surface-gl-chart :option="item" />
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
+    <div class="tool-shell">
+      <div class="frag-a">
+        <aside class="tool-panel">
+          <div class="tool-card">
+            <div class="tool-card-h with-info">
+              Parameters
+              <info-tooltip>
+                Please provide the imposed gravity-induced axial load ratio, Pg/Pyn and the web
+                slenderness ratio, h/tw of the wide-flange cross section of the steel column.
+              </info-tooltip>
+            </div>
+            <div v-for="item in parameters" :key="item.key" class="tfield">
+              <tool-slider
+                v-model="variables[item.key]"
+                :label="item.label"
+                :max="item.max"
+                :min="item.min"
+                :unit="item.unit"
+              />
+            </div>
+          </div>
+        </aside>
+
+        <section class="tool-chart-col">
+          <div class="mat-focus">
+            <h2 class="tool-chart-h">Fragility Curves</h2>
+            <div class="tool-chart-legend">
+              <unit-chart :aspect-ratio="2" :option="variateOption" x-unit="rad" />
+              <legend-chart v-model="legendItems" :separators-index="[4]" />
+            </div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-card-h">Surface Fragility Curves</div>
+            <div class="tool-surface-grid">
+              <surface-gl-chart
+                v-for="(item, index) in surfaceOptions"
+                :key="index"
+                :option="item"
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
 </template>

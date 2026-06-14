@@ -3,11 +3,12 @@ import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import PageHeader from '@/components/commons/PageHeader.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
-import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
+import ToolSelect from '@/components/commons/tools/ToolSelect.vue'
+import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
+import type { Variable } from '@/components/commons/sliders/UnitSlider.vue'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
 import { publicPath, type Section } from '@/utils/common'
-import { variableBind } from '@/utils/model'
-import { primaryColor, type SelectItem } from '@/utils/vuetify'
+import { primaryColor, type SelectItem, type SelectItemObject } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
 import { computed, reactive, ref, watch } from 'vue'
 import DisclaimerComponent from '@/components/commons/DisclaimerComponent.vue'
@@ -25,6 +26,7 @@ interface Result {
 }
 
 const steelTypes: SteelType[] = ['S235', 'S275', 'S355', 'S420', 'S460']
+const steelTypeItems = steelTypes.map((value) => ({ title: value, value }))
 const options: SelectItem<Option>[] = [
   {
     title: 'Wide-Flange',
@@ -56,6 +58,11 @@ const options: SelectItem<Option>[] = [
     disabled: true
   }
 ]
+const optionItems = (options as SelectItemObject<Option>[]).map((o) => ({
+  title: String(o.title),
+  value: o.value as string,
+  disabled: o.disabled
+}))
 const steelShapeDimensions: Variable<keyof Variables>[] = [
   {
     key: 'bf',
@@ -327,131 +334,112 @@ function getCompressionOption(result: Result): EChartsOption {
       steel bracings based on their basic material and geometric properties. For further information
       refer to Eurocode 8 Part 3.
     </page-header>
-    <v-row class="tool-body">
-      <v-col cols="12" md="6" class="tool-panel">
-        <v-card>
-          <v-card-title>
-            Select Cross Section Type
-            <info-tooltip> Select the cross-sectional shape of the bracing member </info-tooltip>
-          </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col v-bind="variableBind">
-                <v-select
-                  v-model="option"
-                  clearable
-                  hide-details
-                  :items="options"
-                  label="Select Option"
-                  single-line
-                />
-              </v-col>
-            </v-row>
-          </v-card-text>
-          <v-card-title>
-            Select Steel Profile
-            <info-tooltip>
-              Here, you may choose to either select a W-Shape from the AISC database or input your
-              own dimensions using the sliders below
-            </info-tooltip>
-          </v-card-title>
-          <v-card-text>
-            <section-selector @update:section="onSectionChanged($event)" />
-            <v-row>
-              <v-col v-for="item in steelShapeDimensions" :key="item.key" v-bind="variableBind">
-                <unit-slider
-                  v-model="variables[item.key]"
-                  :disabled="!!section"
-                  :label="item.text"
-                  :max="item.max"
-                  :min="item.min"
-                  :unit="item.unit"
-                />
-              </v-col>
-            </v-row>
-          </v-card-text>
-          <v-card-title>
-            Steel Type
-            <info-tooltip>
-              Select a standard steel grade or specify manually the material overstrength (Omega)
-              and the nominal yield strength, fy)
-            </info-tooltip>
-          </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col v-bind="variableBind">
-                <v-select
-                  v-model="steelType"
-                  clearable
-                  hide-details
-                  :items="steelTypes"
-                  label="Select Steel Type"
-                  single-line
-                />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col v-for="item in steelTypeVariables" :key="item.key" v-bind="variableBind">
-                <unit-slider
-                  v-model="variables[item.key]"
-                  :disabled="!!steelType"
-                  :label="item.text"
-                  :max="item.max"
-                  :min="item.min"
-                  :unit="item.unit"
-                />
-              </v-col>
-            </v-row>
-          </v-card-text>
-          <v-card-title>
-            Associated Member Lengths
-            <info-tooltip>
-              Specify the associated member lengths as defined in the definition in the upper left
-              corner
-            </info-tooltip>
-          </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col
-                v-for="item in additionalParameterVariables"
-                :key="item.key"
-                v-bind="variableBind"
-              >
-                <unit-slider
-                  v-model="variables[item.key]"
-                  :label="item.text"
-                  :max="item.max"
-                  :min="item.min"
-                  :unit="item.unit"
-                />
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="6" class="tool-charts">
-        <v-row class="justify-center">
-          <v-col cols="8">
-            <v-img :src="publicPath + 'img/brace/I_shaped_Bracing.png'" />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-card>
-              <v-card-title>Tension</v-card-title>
-              <v-card-text>
-                <unit-chart :option="getTensionOption(result)" />
-              </v-card-text>
-            </v-card>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-card>
-              <v-card-title>Compression</v-card-title>
-              <v-card-text>
-                <unit-chart :option="getCompressionOption(result)" />
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
+    <div class="tool-shell">
+      <div class="frag-a">
+        <aside class="tool-panel">
+          <div class="tool-card">
+            <div class="tool-card-h with-info">
+              Cross Section Type
+              <info-tooltip> Select the cross-sectional shape of the bracing member </info-tooltip>
+            </div>
+            <tool-select
+              :items="optionItems"
+              :model-value="option"
+              placeholder="Select Option"
+              @update:model-value="option = ($event || 'wide-flange') as Option"
+            />
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-card-h with-info">
+              Select Steel Profile
+              <info-tooltip>
+                Here, you may choose to either select a W-Shape from the AISC database or input your
+                own dimensions using the sliders below
+              </info-tooltip>
+            </div>
+            <div class="tfield">
+              <section-selector @update:section="onSectionChanged($event)" />
+            </div>
+            <div v-for="item in steelShapeDimensions" :key="item.key" class="tfield">
+              <tool-slider
+                v-model="variables[item.key]"
+                :disabled="!!section"
+                :label="item.text"
+                :max="item.max"
+                :min="item.min"
+                :unit="item.unit"
+              />
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-card-h with-info">
+              Steel Type
+              <info-tooltip>
+                Select a standard steel grade or specify manually the material overstrength (Omega)
+                and the nominal yield strength, fy)
+              </info-tooltip>
+            </div>
+            <div class="tfield">
+              <tool-select
+                :items="steelTypeItems"
+                :model-value="steelType"
+                placeholder="Select Steel Type"
+                @update:model-value="steelType = ($event || undefined) as SteelType | undefined"
+              />
+            </div>
+            <div v-for="item in steelTypeVariables" :key="item.key" class="tfield">
+              <tool-slider
+                v-model="variables[item.key]"
+                :disabled="!!steelType"
+                :label="item.text"
+                :max="item.max"
+                :min="item.min"
+                :unit="item.unit"
+              />
+            </div>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-card-h with-info">
+              Associated Member Lengths
+              <info-tooltip>
+                Specify the associated member lengths as defined in the definition in the upper left
+                corner
+              </info-tooltip>
+            </div>
+            <div v-for="item in additionalParameterVariables" :key="item.key" class="tfield">
+              <tool-slider
+                v-model="variables[item.key]"
+                :label="item.text"
+                :max="item.max"
+                :min="item.min"
+                :unit="item.unit"
+              />
+            </div>
+          </div>
+        </aside>
+
+        <section class="tool-chart-col">
+          <figure class="tool-schematic is-small">
+            <img
+              alt="I-shaped bracing schematic"
+              :src="publicPath + 'img/brace/I_shaped_Bracing.png'"
+            />
+          </figure>
+          <div class="tool-chart-grid">
+            <div class="mat-focus">
+              <h2 class="tool-chart-h">Tension</h2>
+              <unit-chart :option="getTensionOption(result)" />
+            </div>
+            <div class="mat-focus">
+              <h2 class="tool-chart-h">Compression</h2>
+              <unit-chart :option="getCompressionOption(result)" />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
 </template>

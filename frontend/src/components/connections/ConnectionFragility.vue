@@ -1,9 +1,16 @@
 <script setup lang="ts">
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_connections
+//
+// Layout: EPFL design handoff "Fragility A" — three-pane (controls + schematic
+// left) with one full-width FOCUS chart and Pre-/Post-Northridge preview
+// thumbnails below. Inputs use the EPFL tool controls (ToolSegmented / ToolSwitch
+// / ToolSlider); the curves stay on the existing ECharts UnitChart wrapper.
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
-import SimpleToggle from '@/components/commons/SimpleToggle.vue'
-import UnitSlider, { type UnitSliderItem } from '@/components/commons/sliders/UnitSlider.vue'
-import type { ToggleItem } from '@/utils/toggle'
+import PageHeader from '@/components/commons/PageHeader.vue'
+import UnitToggle from '@/components/commons/UnitToggle.vue'
+import ToolSegmented from '@/components/commons/tools/ToolSegmented.vue'
+import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
+import ToolSwitch from '@/components/commons/tools/ToolSwitch.vue'
 
 import { publicPath } from '@/utils/common'
 import { fragilityCurve } from '@/utils/fragility'
@@ -12,48 +19,21 @@ import { MAX_ECHARTS_POINTS, sampleArray } from '@/utils/echarts'
 import type { EChartsOption } from 'echarts'
 import { computed, reactive, ref } from 'vue'
 
-import PageHeader from '@/components/commons/PageHeader.vue'
-import UnitToggle from '@/components/commons/UnitToggle.vue'
-
-type Material = 'a36' | 'a572'
+type FocusId = 'pre' | 'post'
 interface Variables {
   l: number
   db: number
 }
 
-const parameters: UnitSliderItem<keyof Variables>[] = [
-  {
-    key: 'l',
-    label: 'L',
-    min: 1000,
-    max: 12000,
-    unit: 'mm'
-  },
-  {
-    key: 'db',
-    label: 'd<sub>b</sub>',
-    min: 100,
-    max: 2000,
-    unit: 'mm'
-  }
-]
-const materials: ToggleItem<Material>[] = [
-  {
-    value: 'a36',
-    text: 'ASTM A36'
-  },
-  {
-    value: 'a572',
-    text: 'ASTM A572'
-  }
+const materials: { value: string; text: string }[] = [
+  { value: 'a36', text: 'ASTM A36' },
+  { value: 'a572', text: 'ASTM A572' }
 ]
 
 const infoAvailable = ref(true)
-const material = ref<Material>('a36')
-const variables = reactive<Variables>({
-  l: 4000,
-  db: 600
-})
+const material = ref('a36')
+const focus = ref<FocusId>('pre')
+const variables = reactive<Variables>({ l: 4000, db: 600 })
 
 const preNorthridgeOption = computed<EChartsOption>(() => {
   const { l, db } = variables
@@ -77,12 +57,8 @@ const preNorthridgeOption = computed<EChartsOption>(() => {
     fractureSigma = 0.47
   }
   return {
-    xAxis: {
-      name: 'SDR'
-    },
-    yAxis: {
-      name: 'P(DS)'
-    },
+    xAxis: { name: 'SDR' },
+    yAxis: { name: 'P(DS)' },
     color: getColorMap(2),
     series: [
       {
@@ -103,20 +79,11 @@ const preNorthridgeOption = computed<EChartsOption>(() => {
 
 const postNorthridgeOption = computed<EChartsOption>(() => {
   return {
-    xAxis: {
-      name: 'SDR'
-    },
-    yAxis: {
-      name: 'P(DS)'
-    },
+    xAxis: { name: 'SDR' },
+    yAxis: { name: 'P(DS)' },
     color: getColorMap(5),
     series: [
-      {
-        type: 'line',
-        name: 'Yielding Anywhere',
-        showSymbol: false,
-        data: fragilityCurve(1, 0.17)
-      },
+      { type: 'line', name: 'Yielding Anywhere', showSymbol: false, data: fragilityCurve(1, 0.17) },
       {
         type: 'line',
         name: 'Yielding @ Panel Zone',
@@ -129,21 +96,30 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
         showSymbol: false,
         data: fragilityCurve(0.96, 0.1)
       },
-      {
-        type: 'line',
-        name: 'Local Buckling',
-        showSymbol: false,
-        data: fragilityCurve(2.16, 0.3)
-      },
-      {
-        type: 'line',
-        name: 'Ductile Tearing',
-        showSymbol: false,
-        data: fragilityCurve(5, 0.31)
-      }
+      { type: 'line', name: 'Local Buckling', showSymbol: false, data: fragilityCurve(2.16, 0.3) },
+      { type: 'line', name: 'Ductile Tearing', showSymbol: false, data: fragilityCurve(5, 0.31) }
     ]
   }
 })
+
+const panels = computed<{ id: FocusId; title: string; option: EChartsOption }[]>(() => [
+  { id: 'pre', title: 'Pre-Northridge', option: preNorthridgeOption.value },
+  { id: 'post', title: 'Post-Northridge', option: postNorthridgeOption.value }
+])
+const activePanel = computed(() => panels.value.find((p) => p.id === focus.value)!)
+
+// Compact, label-free clone for the preview thumbnails; inactive series go grey.
+function thumbOption(option: EChartsOption, active: boolean): EChartsOption {
+  const series = option.series as { type: string }[]
+  return {
+    ...option,
+    grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: false },
+    xAxis: { ...(option.xAxis as object), name: '', axisLabel: { show: false } },
+    yAxis: { ...(option.yAxis as object), name: '', axisLabel: { show: false } },
+    color: active ? (option.color as string[]) : series.map(() => '#c1c1c1'),
+    legend: { show: false }
+  }
+}
 </script>
 
 <template>
@@ -167,45 +143,83 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
         >Ramirez et al. (2012)</a
       >.
     </page-header>
-    <v-row class="tool-body">
-      <v-col cols="12" md="4" class="tool-panel">
-        <v-card>
-          <v-card-title>Steel Type</v-card-title>
-          <v-card-text>
-            <simple-toggle v-model="material" class="my-4" :items="materials" />
-          </v-card-text>
-          <v-card-title>Geometric Parameters</v-card-title>
-          <v-card-text>
-            <v-switch
-              v-model="infoAvailable"
-              color="primary"
-              label="Geometric parameters available"
+
+    <div class="tool-shell">
+      <div class="frag-a">
+        <aside class="tool-panel">
+          <div class="tool-card">
+            <div class="tfield">
+              <div class="tfield-label">Steel Type</div>
+              <tool-segmented v-model="material" full :items="materials" />
+            </div>
+            <div class="tfield">
+              <div class="tfield-label">Geometric Parameters</div>
+              <tool-switch v-model="infoAvailable" label="Parameters available" />
+            </div>
+            <div class="tfield">
+              <tool-slider
+                v-model="variables.l"
+                :disabled="!infoAvailable"
+                label="L"
+                :max="12000"
+                :min="1000"
+                :step="50"
+                unit="mm"
+              />
+            </div>
+            <div class="tfield">
+              <tool-slider
+                v-model="variables.db"
+                :disabled="!infoAvailable"
+                label="d<sub>b</sub>"
+                :max="2000"
+                :min="100"
+                :step="10"
+                unit="mm"
+              />
+            </div>
+            <div class="tfield-ratio">
+              <span>L / d<sub>b</sub></span>
+              <strong>{{ (variables.l / variables.db).toFixed(2) }}</strong>
+            </div>
+          </div>
+          <figure class="tool-schematic">
+            <img
+              alt="Beam-to-column connection fragility schematic"
+              :src="publicPath + 'img/connection/connection_fragility.png'"
             />
-            <unit-slider
-              v-for="item in parameters"
-              :key="item.key"
-              v-model="variables[item.key]"
-              class="my-4"
-              :disabled="!infoAvailable"
-              :label="item.label"
-              :max="item.max"
-              :min="item.min"
-              :unit="item.unit"
-            />
-          </v-card-text>
-        </v-card>
-        <v-col cols="12">
-          <v-img height="300px" :src="publicPath + 'img/connection/connection_fragility.png'" />
-        </v-col>
-      </v-col>
-      <v-col cols="12" md="4" class="tool-charts">
-        <h2>Pre-Northridge</h2>
-        <unit-chart :option="preNorthridgeOption" x-unit="rad" />
-      </v-col>
-      <v-col cols="12" md="4" class="tool-charts">
-        <h2>Post-Northridge</h2>
-        <unit-chart :option="postNorthridgeOption" x-unit="rad" />
-      </v-col>
-    </v-row>
+            <figcaption>
+              Pre-Northridge beam-to-column moment connection — definition of L and d<sub>b</sub>.
+            </figcaption>
+          </figure>
+        </aside>
+
+        <section class="tool-chart-col">
+          <div class="mat-focus">
+            <h2 class="tool-chart-h">{{ activePanel.title }}</h2>
+            <unit-chart :aspect-ratio="2.2" :option="activePanel.option" x-unit="rad" />
+          </div>
+          <div class="mat-thumbs frag-thumbs">
+            <button
+              v-for="panel in panels"
+              :key="panel.id"
+              class="mat-thumb"
+              :class="{ 'is-active': focus === panel.id }"
+              type="button"
+              @click="focus = panel.id"
+            >
+              <div class="mat-thumb-chart">
+                <unit-chart
+                  :aspect-ratio="3"
+                  :option="thumbOption(panel.option, focus === panel.id)"
+                  x-unit="rad"
+                />
+              </div>
+              <span class="mat-thumb-label">{{ panel.title }}</span>
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
 </template>

@@ -1,0 +1,278 @@
+/* ============================================================
+   Tool pages — Fragility Curve & Material Model
+   Ported from the EPFL design handoff (project/tools.css, "A" design:
+   focus chart + switchable previews). Everything lives under
+   `.tool-shell` so it never collides with the global `.tool-page`
+   two-zone rail used by the other tool pages.
+   ============================================================ */
+
+.tool-shell {
+  padding: 28px 32px 56px;
+}
+
+/* ---------- Cards / fields ---------- */
+.tool-shell .tool-card {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: 20px;
+}
+.tool-shell .tool-card + .tool-card,
+.tool-shell .tool-card + .tool-schematic {
+  margin-top: 20px;
+}
+.tool-shell .tool-card-h {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg);
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tool-shell .tool-card-h.with-info {
+  justify-content: space-between;
+}
+
+.tool-shell .tfield {
+  margin-bottom: 18px;
+}
+.tool-shell .tfield:last-child {
+  margin-bottom: 0;
+}
+.tool-shell .tfield-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.tool-shell .tfield-ratio {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+.tool-shell .tfield-ratio strong {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--fg);
+  font-weight: 700;
+}
+
+/* ---------- Parameter groups (material model) ---------- */
+.tool-shell .tool-param-group {
+  margin-bottom: 22px;
+}
+.tool-shell .tool-param-group-h {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--epfl-red);
+  font-weight: 700;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.tool-shell .tool-param-group .tslider {
+  margin-bottom: 16px;
+}
+.tool-shell .tool-param-group .tslider:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- Schematic ---------- */
+.tool-shell .tool-schematic {
+  margin: 0;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+.tool-shell .tool-schematic img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tool-shell .tool-schematic.is-small img {
+  max-height: 220px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+.tool-shell .tool-schematic figcaption {
+  font-size: 11px;
+  color: var(--fg-muted);
+  padding: 10px 14px;
+  line-height: 1.4;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------- Fragility A — three-pane (controls + full-width focus) ---------- */
+.tool-shell .frag-a {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+.tool-shell .tool-panel {
+  min-width: 0;
+}
+.tool-shell .tool-chart-col {
+  min-width: 0;
+}
+/* Reset the global uppercase/bordered `.tool-page h2` — this is a real heading */
+.tool-shell .tool-chart-h {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  padding: 0;
+  border-bottom: 0;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--fg);
+}
+
+/* ---------- Material A — split + grouped rail + focus ---------- */
+.tool-shell .mat-a {
+  display: grid;
+  grid-template-columns: 440px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+.tool-shell .mat-a .tselect {
+  max-width: 280px;
+}
+.tool-shell .mat-a-groups {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-subtle);
+}
+.tool-shell .mat-a-groups .tool-param-group:last-child {
+  margin-bottom: 0;
+}
+.tool-shell .mat-focus-col {
+  min-width: 0;
+}
+
+/* ---------- Focus chart + thumbnails ---------- */
+.tool-shell .mat-focus {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: 18px 20px;
+  min-width: 0;
+}
+.tool-shell .mat-chart-h {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.tool-shell .mat-thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 20px;
+}
+.tool-shell .frag-thumbs {
+  grid-template-columns: 1fr 1fr;
+}
+.tool-shell .mat-thumb {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: 8px 10px 10px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.tool-shell .mat-thumb:hover {
+  border-color: var(--fg);
+}
+.tool-shell .mat-thumb.is-active {
+  border-color: var(--epfl-black);
+  box-shadow: inset 0 -3px 0 var(--epfl-red);
+}
+.tool-shell .mat-thumb-chart {
+  pointer-events: none;
+}
+.tool-shell .mat-thumb-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg);
+  margin-top: 4px;
+}
+
+/* ---------- Multi-output chart column (model pages) ---------- */
+.tool-shell .tool-chart-col > * + * {
+  margin-top: 20px;
+}
+.tool-shell .tool-chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.tool-shell .tool-surface-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.tool-shell .tool-chart-legend {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.tool-shell .tool-chart-legend > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  .tool-shell .tool-chart-legend {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Results table sits flush inside a tool-card (drop Vuetify surface chrome) */
+.tool-shell .tool-card .v-table {
+  background: transparent;
+}
+.tool-shell .tool-card .v-table .v-table__wrapper > table {
+  width: 100%;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .tool-shell .tool-chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 1180px) {
+  .tool-shell .frag-a {
+    grid-template-columns: 280px 1fr;
+  }
+  .tool-shell .mat-a {
+    grid-template-columns: 360px 1fr;
+  }
+}
+@media (max-width: 980px) {
+  .tool-shell .frag-a,
+  .tool-shell .mat-a {
+    grid-template-columns: 1fr;
+  }
+  .tool-shell .mat-thumbs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .tool-shell {
+    padding: 20px 16px 40px;
+  }
+  .tool-shell .mat-thumbs {
+    grid-template-columns: 1fr 1fr;
+  }
+}
