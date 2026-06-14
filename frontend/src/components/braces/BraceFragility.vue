@@ -1,6 +1,5 @@
 <script setup lang="ts">
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_braces
-import SurfaceGlChart from '@/components/commons/charts/SurfaceGlChart.vue'
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleToggle from '@/components/commons/SimpleToggle.vue'
@@ -13,7 +12,13 @@ import cdf from '@stdlib/stats-base-dists-lognormal-cdf'
 import type { EChartsOption } from 'echarts'
 import { range, zip } from 'lodash'
 import { index, Matrix, matrix, max, sum } from 'mathjs'
-import { computed, ref } from 'vue'
+import { computed, defineAsyncComponent, ref } from 'vue'
+
+// Lazy-load the 3D surface so the heavy echarts-gl (WebGL) bundle only loads
+// when a 3D plot is actually rendered.
+const SurfaceGlChart = defineAsyncComponent(
+  () => import('@/components/commons/charts/SurfaceGlChart.vue')
+)
 
 type Option = 'square-hss' | 'round-hss' | 'w-shape' | 'l-shape'
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_columns
 import LegendChart from '@/components/commons/charts/LegendChart.vue'
-import SurfaceGlChart from '@/components/commons/charts/SurfaceGlChart.vue'
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import UnitSlider, { type UnitSliderItem } from '@/components/commons/sliders/UnitSlider.vue'
@@ -12,7 +11,13 @@ import { subscripts } from '@/utils/unicode'
 import { getColorMap } from '@/utils/vuetify'
 import type { EChartsOption, SeriesOption } from 'echarts'
 import { range } from 'lodash'
-import { computed, reactive, ref } from 'vue'
+import { computed, defineAsyncComponent, reactive, ref } from 'vue'
+
+// Lazy-load the 3D surface so the heavy echarts-gl (WebGL) bundle only loads
+// when a 3D plot is actually rendered.
+const SurfaceGlChart = defineAsyncComponent(
+  () => import('@/components/commons/charts/SurfaceGlChart.vue')
+)
 const parameters: UnitSliderItem<keyof Variables>[] = [
   {
     key: 'hTw',

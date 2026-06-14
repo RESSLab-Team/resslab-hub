@@ -7,7 +7,6 @@ import type {
   MaterialField
 } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import OverviewMap from '@/components/map/OverviewMap.vue'
 import {
   analyticsApi,
   bracesApi,
@@ -22,7 +21,11 @@ import {
 } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
 import { chain } from 'lodash'
-import { onMounted, ref, shallowRef, triggerRef } from 'vue'
+import { defineAsyncComponent, onMounted, ref, shallowRef, triggerRef } from 'vue'
+
+// Lazy-load the map so leaflet + d3 + markercluster ship in a separate chunk and
+// don't block the home page's initial render.
+const OverviewMap = defineAsyncComponent(() => import('@/components/map/OverviewMap.vue'))
 
 const carouselImages: {
   src: string

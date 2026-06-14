@@ -7,7 +7,7 @@ import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/compon
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import type { XAXisOption, YAXisOption } from 'echarts/types/dist/shared'
-import { cloneDeep, merge, round } from 'lodash'
+import { merge, round } from 'lodash'
 import { computed } from 'vue'
 import VChart from 'vue-echarts'
 
@@ -37,9 +37,8 @@ const { ratio: xRatio, unitLabel: xUnitLabel } = useUnits(props.xUnit)
 const { ratio: yRatio, unitLabel: yUnitLabel } = useUnits(props.yUnit)
 
 const actualOption = computed<EChartsOption>(() => {
-  const option = cloneDeep(props.option)
-  const xAXisOption: XAXisOption = option.xAxis as XAXisOption
-  const yAXisOption: YAXisOption = option.yAxis as YAXisOption
+  const xAXisOption: XAXisOption = props.option.xAxis as XAXisOption
+  const yAXisOption: YAXisOption = props.option.yAxis as YAXisOption
   const defaultOption: EChartsOption = {
     grid: {
       left: 60,
@@ -106,23 +105,27 @@ const actualOption = computed<EChartsOption>(() => {
     }
   }
 
-  const overrideOption: EChartsOption = {
+  // Merge the caller's config over the defaults WITHOUT the series, so the
+  // (potentially large) data arrays are never deep-cloned or deep-merged.
+  const { series, ...rest } = props.option
+  const merged = merge(defaultOption, rest, {
     xAxis: {
       name: props.xUnit ? `${xAXisOption.name} [${xUnitLabel.value}]` : xAXisOption.name
     },
     yAxis: {
       name: props.yUnit ? `${yAXisOption.name} [${yUnitLabel.value}]` : yAXisOption.name
-    },
-    series: (option.series as SeriesOption[]).map((serie) =>
-      merge(serie, {
-        data: (serie.data as [number, number][]).map((v) => [
-          v[0] / xRatio.value,
-          v[1] / yRatio.value
-        ])
-      })
-    )
-  }
-  return merge(defaultOption, option, overrideOption)
+    }
+  }) as EChartsOption
+
+  // Scale every point exactly once into fresh arrays; never mutate props.option.
+  merged.series = (series as SeriesOption[] | undefined)?.map((serie) => ({
+    ...serie,
+    data: (serie.data as [number, number][] | undefined)?.map((v) => [
+      v[0] / xRatio.value,
+      v[1] / yRatio.value
+    ]) as SeriesOption['data']
+  }))
+  return merged
 })
 </script>
 
