@@ -118,13 +118,15 @@ const actualOption = computed<EChartsOption>(() => {
   }) as EChartsOption
 
   // Scale every point exactly once into fresh arrays; never mutate props.option.
-  merged.series = (series as SeriesOption[] | undefined)?.map((serie) => ({
-    ...serie,
-    data: (serie.data as [number, number][] | undefined)?.map((v) => [
-      v[0] / xRatio.value,
-      v[1] / yRatio.value
-    ]) as SeriesOption['data']
-  }))
+  merged.series = (series as SeriesOption[] | undefined)?.map(
+    (serie) =>
+      ({
+        ...serie,
+        data: (serie.data as [number, number][] | undefined)?.map(
+          (v): [number, number] => [v[0] / xRatio.value, v[1] / yRatio.value]
+        )
+      }) as SeriesOption
+  )
   return merged
 })
 </script>
