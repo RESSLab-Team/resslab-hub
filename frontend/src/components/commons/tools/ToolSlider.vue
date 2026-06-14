@@ -2,7 +2,7 @@
 // EPFL tool-page slider (design: tools.css `.tslider`).
 // Label + monospace value sit above a thin 3px track with a black fill and a
 // white/black-bordered thumb — no surrounding box. Unit conversion (SI/US)
-// is handled through `useUnits`, matching UnitSlider.
+// is handled through `useUnits`.
 import { useUnits } from '@/composables/unit'
 import { computed } from 'vue'
 

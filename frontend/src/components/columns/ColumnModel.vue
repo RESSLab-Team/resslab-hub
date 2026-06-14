@@ -4,7 +4,7 @@ import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
 import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
-import type { Variable } from '@/components/commons/sliders/UnitSlider.vue'
+import type { Variable } from '@/utils/model'
 import PageHeader from '@/components/commons/PageHeader.vue'
 import UnitTableRow, { type UnitTableRowData } from '@/components/commons/UnitTableRow.vue'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
@@ -390,7 +390,7 @@ function getTableColumns(...results: Result[]): Record<string, number | undefine
   return results.map((result) => omit(result, 'points'))
 }
 
-defineExpose({ vars, backbone, envelope })
+defineExpose({ vars, backbone, envelope, variables, onSectionChanged })
 </script>
 
 <template>
