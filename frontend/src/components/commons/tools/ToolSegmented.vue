@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // EPFL tool-page segmented control (design: tools.css `.tseg`).
-// A bordered row of buttons; the active segment fills soft-black with white text.
+// A bordered row of buttons; the active segment inverts (--fg fill, --bg text)
+// so it stays high-contrast in both light and dark mode.
 withDefaults(
   defineProps<{
     modelValue: string
@@ -65,7 +66,7 @@ defineEmits<{
   background: var(--bg-subtle);
 }
 .tseg-btn.is-active {
-  background: var(--epfl-black);
-  color: #fff;
+  background: var(--fg);
+  color: var(--bg);
 }
 </style>

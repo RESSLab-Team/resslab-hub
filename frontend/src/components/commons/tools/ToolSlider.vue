@@ -1,8 +1,9 @@
 <script setup lang="ts">
 // EPFL tool-page slider (design: tools.css `.tslider`).
-// Label + monospace value sit above a thin 3px track with a black fill and a
-// white/black-bordered thumb — no surrounding box. Unit conversion (SI/US)
-// is handled through `useUnits`.
+// Label + monospace value sit above a thin 3px track with a filled portion and
+// a ringed thumb — no surrounding box. Colors use --fg/--bg tokens so the
+// control inverts correctly in dark mode. Unit conversion (SI/US) is handled
+// through `useUnits`.
 import { useUnits } from '@/composables/unit'
 import { computed } from 'vue'
 
@@ -123,7 +124,7 @@ function onInput(event: Event): void {
   position: absolute;
   left: 0;
   height: 3px;
-  background: var(--epfl-black);
+  background: var(--fg);
   border-radius: 2px;
   pointer-events: none;
 }
@@ -144,8 +145,8 @@ function onInput(event: Event): void {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #fff;
-  border: 2px solid var(--epfl-black);
+  background: var(--bg);
+  border: 2px solid var(--fg);
   cursor: pointer;
   transition: border-color var(--t-fast);
 }
@@ -156,8 +157,8 @@ function onInput(event: Event): void {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #fff;
-  border: 2px solid var(--epfl-black);
+  background: var(--bg);
+  border: 2px solid var(--fg);
   cursor: pointer;
 }
 .tslider-track input[type='range']:focus-visible::-webkit-slider-thumb {

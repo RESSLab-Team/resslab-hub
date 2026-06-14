@@ -35,7 +35,8 @@ defineEmits<{
   width: 38px;
   height: 20px;
   border-radius: 10px;
-  background: var(--epfl-gray-300);
+  /* Off state via a token that flips: recedes in dark instead of glowing light */
+  background: var(--border);
   position: relative;
   transition: background var(--t-base);
   flex: 0 0 auto;
