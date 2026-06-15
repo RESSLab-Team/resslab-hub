@@ -23,7 +23,9 @@ import { DATABASES, TOOLS } from '@/utils/navigation'
 import { mdiArrowRight } from '@mdi/js'
 import { chain } from 'lodash'
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const countsStore = useCountsStore()
 const universityCount = ref<number | string>('…')
 const userCount = ref<number | string>('…')
@@ -31,11 +33,11 @@ const userCount = ref<number | string>('…')
 const keyNumbers = computed(() => [
   {
     num: countsStore.total != null ? countsStore.total.toLocaleString('en-CH') : '…',
-    label: 'Experimental tests digitized'
+    label: t('home.keyNumbers.testsDigitized')
   },
-  { num: universityCount.value, label: 'Universities contributed' },
-  { num: userCount.value, label: 'Researchers & engineers worldwide' },
-  { num: DATABASES.length, label: 'Curated databases, one consistent format' }
+  { num: universityCount.value, label: t('home.keyNumbers.universities') },
+  { num: userCount.value, label: t('home.keyNumbers.researchers') },
+  { num: DATABASES.length, label: t('home.keyNumbers.databases') }
 ])
 
 onMounted(() => {
@@ -82,18 +84,23 @@ onMounted(() => {
     <section class="hero">
       <div class="hero-text">
         <div class="hero-eyebrow">EPFL · RESSLab</div>
-        <h1 class="hero-title">Open data for <em>seismic-resilient</em><br />steel structures.</h1>
-        <p class="hero-lede">
-          Curated experimental databases and state-of-the-art component models for performance-based
-          earthquake engineering — assembled worldwide since the 1970s, fully digitized, freely
-          accessible.
-        </p>
+        <h1 class="hero-title">
+          <i18n-t keypath="home.hero.title" tag="span" scope="global">
+            <template #emphasis
+              ><em>{{ t('home.hero.titleEmphasis') }}</em></template
+            >
+            <template #break><br /></template>
+          </i18n-t>
+        </h1>
+        <p class="hero-lede">{{ t('home.hero.lede') }}</p>
         <div class="hero-cta">
           <router-link class="btn btn-primary" to="/connections/database">
-            Browse databases
+            {{ t('home.hero.browseDatabases') }}
             <v-icon :icon="mdiArrowRight" size="14" />
           </router-link>
-          <router-link class="btn btn-secondary" to="/about">About the project</router-link>
+          <router-link class="btn btn-secondary" to="/about">
+            {{ t('home.hero.aboutProject') }}
+          </router-link>
         </div>
       </div>
       <div class="hero-img">
@@ -117,15 +124,12 @@ onMounted(() => {
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="section-eyebrow">Databases</div>
-          <h2 class="section-title">Nine curated datasets, one consistent format.</h2>
-          <p class="section-sub">
-            Digitized experimental data from labs worldwide. Filter by geometry, material and
-            loading protocol; export reproducibly; cite original sources.
-          </p>
+          <div class="section-eyebrow">{{ t('home.databases.eyebrow') }}</div>
+          <h2 class="section-title">{{ t('home.databases.title') }}</h2>
+          <p class="section-sub">{{ t('home.databases.sub') }}</p>
         </div>
         <router-link class="section-link" to="/connections/database">
-          View all databases →
+          {{ t('home.databases.viewAll') }} →
         </router-link>
       </div>
       <div class="cat-grid">
@@ -136,7 +140,7 @@ onMounted(() => {
           <div class="cat-tile-meta">
             <template v-if="countsStore.counts[db.id] != null">
               <strong>{{ countsStore.counts[db.id] }}</strong>
-              <span>tests</span>
+              <span>{{ t('home.databases.tests') }}</span>
             </template>
             <span style="flex: 1" />
             <span class="cat-tab">{{ db.group }}</span>
@@ -150,11 +154,14 @@ onMounted(() => {
     <section class="section section-bg-subtle">
       <div class="section-head">
         <div>
-          <div class="section-eyebrow">Worldwide reach</div>
+          <div class="section-eyebrow">{{ t('home.reach.eyebrow') }}</div>
           <h2 class="section-title">
-            Tests contributed from
-            {{ typeof universityCount === 'number' ? universityCount : 'dozens of' }}
-            universities worldwide.
+            {{
+              t('home.reach.title', {
+                count:
+                  typeof universityCount === 'number' ? universityCount : t('home.reach.dozensOf')
+              })
+            }}
           </h2>
         </div>
       </div>
@@ -166,16 +173,15 @@ onMounted(() => {
           <div class="video-frame">
             <iframe
               src="https://www.youtube.com/embed/5TkO07T16z4"
-              title="Getting started with RESSLab Hub"
+              :title="t('home.tools.videoTitle')"
               allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowfullscreen
             ></iframe>
           </div>
           <div style="margin-top: 24px">
-            <div class="eyebrow" style="margin-bottom: 10px">Modeling tools</div>
+            <div class="eyebrow" style="margin-bottom: 10px">{{ t('home.tools.eyebrow') }}</div>
             <p style="margin: 0 0 16px; color: var(--fg-muted); font-size: 14px; line-height: 1.5">
-              Beyond data: interactive backbone curves and fragility surfaces for direct use in
-              nonlinear analyses.
+              {{ t('home.tools.blurb') }}
             </p>
             <div style="display: flex; gap: 8px; flex-wrap: wrap">
               <router-link
@@ -194,7 +200,7 @@ onMounted(() => {
 
     <!-- Partners -->
     <div class="logos">
-      <div class="logos-eyebrow">Partners &amp; funding</div>
+      <div class="logos-eyebrow">{{ t('home.partners.eyebrow') }}</div>
       <div class="logos-items">
         <a href="https://www.epfl.ch/labs/resslab" target="_blank" rel="noreferrer">
           <img :src="publicPath + 'logo/resslab_logo_v1.svg'" alt="RESSLab" />

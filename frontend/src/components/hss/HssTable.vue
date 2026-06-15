@@ -6,11 +6,14 @@ import { tableProps, useTable, type Column, type TableEmits } from '@/composable
 import { hssApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { toRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const columns: Column[] = [
   {
     value: HSSColumnField.Investigator,
-    title: 'Experimental Program',
+    title: t('table.hss.columns.experimentalProgram'),
     type: 'text'
   },
   {
@@ -80,35 +83,22 @@ const {
     :loading="loading"
     prefix="hss."
     :query="query"
-    title="HSS Columns"
+    :title="$t('table.hss.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"
     @download="downloadFiles"
   >
     <template #title>
-      HSS Columns
+      {{ $t('table.hss.title') }}
       <info-tooltip>
-        <p>
-          The HSS Columns Database presents data from early 1975 on columns under reversed cyclic
-          and monotonic loading. The primary data involve the deduced moment chord rotation of the
-          column.
-        </p>
-        How to use?
+        <p>{{ $t('table.hss.tooltip.intro') }}</p>
+        {{ $t('table.hss.tooltip.howToUse') }}
         <ul>
-          <li>
-            Filter the table by making selections in the various plots around the table, or by using
-            the filters and dropdowns above the table headers.
-          </li>
-          <li>Click on a row to see the data of a single test.</li>
-          <li>
-            Download specific tests results by selecting the test (left-most column) and click
-            "Download" below.
-          </li>
-          <li>
-            Share specific tests results by selecting the test (left-most column) and click "Share"
-            below.
-          </li>
+          <li>{{ $t('table.hss.tooltip.bulletFilter') }}</li>
+          <li>{{ $t('table.hss.tooltip.bulletClick') }}</li>
+          <li>{{ $t('table.hss.tooltip.bulletDownload') }}</li>
+          <li>{{ $t('table.hss.tooltip.bulletShare') }}</li>
         </ul>
       </info-tooltip>
     </template>

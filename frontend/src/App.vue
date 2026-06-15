@@ -56,12 +56,18 @@ watch(
       <div class="sidebar-scrim" :class="{ open: sidebarOpen }" @click="sidebarOpen = false" />
       <div class="app-main">
         <header class="mhdr">
-          <button class="hdr-icon-btn" aria-label="Open navigation" @click="sidebarOpen = true">
+          <button
+            class="hdr-icon-btn"
+            :aria-label="$t('shell.open_navigation')"
+            @click="sidebarOpen = true"
+          >
             <v-icon :icon="mdiMenu" size="18" />
           </button>
           <router-link class="mhdr-brand" to="/">
             <img :src="publicPath + 'logo/EPFL_Logo_184X53.svg'" alt="EPFL" />
-            <span class="mhdr-brand-name">RESSLab Hub<small>Steel structures research</small></span>
+            <span class="mhdr-brand-name"
+              >{{ $t('shell.brand_name') }}<small>{{ $t('shell.brand_tagline') }}</small></span
+            >
           </router-link>
         </header>
         <main class="app-content">

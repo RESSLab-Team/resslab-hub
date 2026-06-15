@@ -104,28 +104,15 @@ const {
     @download="downloadFiles"
   >
     <template #title>
-      Columns
+      {{ $t('table.column.title') }}
       <info-tooltip>
-        <p>
-          The Columns Database presents data from early 1970s on columns under reversed cyclic and
-          monotonic loading. The primary data involve the deduced moment chord rotation of the
-          column and deduced column axial shortening versus chord rotation.
-        </p>
-        How to use?
+        <p>{{ $t('table.column.tooltip.intro') }}</p>
+        {{ $t('table.column.tooltip.howToUse') }}
         <ul>
-          <li>
-            Filter the table by making selections in the various plots around the table, or by using
-            the filters and dropdowns above the table headers.
-          </li>
-          <li>Click on a row to see the data of a single test.</li>
-          <li>
-            Download specific tests results by selecting the test (left-most column) and click
-            "Download" below.
-          </li>
-          <li>
-            Share specific tests results by selecting the test (left-most column) and click "Share"
-            below.
-          </li>
+          <li>{{ $t('table.column.tooltip.bulletFilter') }}</li>
+          <li>{{ $t('table.column.tooltip.bulletClick') }}</li>
+          <li>{{ $t('table.column.tooltip.bulletDownload') }}</li>
+          <li>{{ $t('table.column.tooltip.bulletShare') }}</li>
         </ul>
       </info-tooltip>
     </template>

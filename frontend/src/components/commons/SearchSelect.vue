@@ -2,6 +2,7 @@
 import type { SelectItem } from '@/utils/vuetify'
 import { mdiMagnify } from '@mdi/js'
 import { computed, ref, unref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,6 +23,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value?: V): void
 }>()
 
+const { t } = useI18n()
 const search = ref<string>()
 
 const value = computed<V | undefined>({
@@ -39,7 +41,7 @@ const actualItems = computed<SelectItem[]>(() => {
     return value.toLowerCase().includes(substring)
   })
 })
-const hint = computed<string>(() => `${actualItems.value.length} items`)
+const hint = computed<string>(() => t('commons.search_n_items', { n: actualItems.value.length }))
 
 watch(
   () => props.items,

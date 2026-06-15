@@ -87,28 +87,15 @@ const {
     @download="downloadFiles"
   >
     <template #title>
-      Braces
+      {{ $t('table.brace.title') }}
       <info-tooltip>
-        <p>
-          The Brace Database presents data from mid 1970s on steel braces of various configurations.
-          The braces are subjected to monotonic, symmetric cyclic and other loading histories. The
-          primary data involve the brace axial load versus axial displacement.
-        </p>
-        How to use?
+        <p>{{ $t('table.brace.tooltip.intro') }}</p>
+        {{ $t('table.brace.tooltip.howToUse') }}
         <ul>
-          <li>
-            Filter the table by making selections in the various plots around the table, or by using
-            the filters and dropdowns above the table headers.
-          </li>
-          <li>Click on a row to see the data of a single test.</li>
-          <li>
-            Download specific tests results by selecting the test (left-most column) and click
-            "Download" below.
-          </li>
-          <li>
-            Share specific tests results by selecting the test (left-most column) and click "Share"
-            below.
-          </li>
+          <li>{{ $t('table.brace.tooltip.bulletFilter') }}</li>
+          <li>{{ $t('table.brace.tooltip.bulletClick') }}</li>
+          <li>{{ $t('table.brace.tooltip.bulletDownload') }}</li>
+          <li>{{ $t('table.brace.tooltip.bulletShare') }}</li>
         </ul>
       </info-tooltip>
     </template>

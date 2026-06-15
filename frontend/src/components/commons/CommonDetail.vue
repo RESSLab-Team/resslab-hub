@@ -105,7 +105,7 @@ function nextPage(): void {
       </div>
       <div class="cd-head-actions">
         <slot name="actions" />
-        <button class="hdr-icon-btn" aria-label="Close" @click="emit('close')">
+        <button class="hdr-icon-btn" :aria-label="$t('commons.close')" @click="emit('close')">
           <v-icon :icon="mdiClose" size="16" />
         </button>
       </div>
@@ -113,7 +113,7 @@ function nextPage(): void {
 
     <div class="drawer-body">
       <div class="cd-publication">
-        <div class="cd-publication-label">Publication</div>
+        <div class="cd-publication-label">{{ $t('commons.publication') }}</div>
         <a v-if="link" class="cd-publication-ref" :href="link" target="_blank" rel="noreferrer">
           {{ reference }}
           <v-icon :icon="mdiOpenInNew" size="11" />
@@ -125,11 +125,19 @@ function nextPage(): void {
         <div class="cd-carousel-head">
           <div class="cd-carousel-title">{{ pageTitle }}</div>
           <div v-if="seriesCarouselItems.length > 1" class="cd-carousel-nav">
-            <button class="cd-carousel-btn" aria-label="Previous" @click="previousPage">‹</button>
+            <button
+              class="cd-carousel-btn"
+              :aria-label="$t('commons.previous')"
+              @click="previousPage"
+            >
+              ‹
+            </button>
             <span class="cd-carousel-counter">
               {{ page + 1 }} / {{ seriesCarouselItems.length }}
             </span>
-            <button class="cd-carousel-btn" aria-label="Next" @click="nextPage">›</button>
+            <button class="cd-carousel-btn" :aria-label="$t('commons.next')" @click="nextPage">
+              ›
+            </button>
           </div>
         </div>
         <div class="cd-carousel-body">
@@ -147,9 +155,9 @@ function nextPage(): void {
 
       <slot v-if="$slots.body" name="body" />
       <template v-else>
-        <h3 class="cd-section-h">Loading &amp; geometric parameters</h3>
+        <h3 class="cd-section-h">{{ $t('commons.loading_geometric_parameters') }}</h3>
         <slot name="parameters" />
-        <h3 class="cd-section-h">Steel material designation</h3>
+        <h3 class="cd-section-h">{{ $t('commons.steel_material_designation') }}</h3>
         <slot name="designation" />
       </template>
     </div>

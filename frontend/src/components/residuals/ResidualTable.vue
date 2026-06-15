@@ -92,7 +92,7 @@ const {
     :loading="loading"
     prefix="residual."
     :query="query"
-    title="Residual Stress"
+    :title="$t('table.residual.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"

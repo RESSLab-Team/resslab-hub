@@ -66,12 +66,12 @@ watch(section, (value) => {
         v-model="database"
         hide-details
         :items="databases"
-        label="Select Database"
+        :label="$t('commons.select_database')"
         variant="outlined"
       />
     </v-col>
     <v-col cols="6">
-      <search-select v-model="section" :items="sections" label="Select Section" />
+      <search-select v-model="section" :items="sections" :label="$t('commons.select_section')" />
     </v-col>
   </v-row>
 </template>

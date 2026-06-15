@@ -6,6 +6,9 @@ import { ductileFractureApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { displayLoading } from '@/utils/ductile_fracture'
 import { toRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const columns: Column[] = [
   {
@@ -29,7 +32,7 @@ const columns: Column[] = [
   {
     value: DuctileFractureField.SectionType,
     type: 'text',
-    title: 'Profile Type'
+    title: t('table.ductile_fracture.columns.profileType')
   }
 ]
 
@@ -111,7 +114,7 @@ const {
     :loading="loading"
     prefix="ductile_fracture."
     :query="query"
-    title="Ductile Fracture"
+    :title="$t('table.ductile_fracture.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"

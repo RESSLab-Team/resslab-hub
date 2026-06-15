@@ -49,6 +49,28 @@ import {
 } from 'leaflet'
 import 'leaflet.markercluster'
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
+// Maps an English category identifier (used for logic/comparison) to its
+// translated display label. The identifier itself is never translated.
+const categoryLabelKeys: Record<string, string> = {
+  Connections: 'map.category_connections',
+  Columns: 'map.category_columns',
+  Braces: 'map.category_braces',
+  'Cyclic Coupons': 'map.category_cyclic_coupons',
+  'Residual Stresses': 'map.category_residual_stresses',
+  'HSS Columns': 'map.category_hss_columns',
+  'EBF Links': 'map.category_ebf_links',
+  'Tensile Coupons': 'map.category_tensile_coupons',
+  'Ductile Fracture': 'map.category_ductile_fracture'
+}
+
+function categoryLabel(type: string): string {
+  const key = categoryLabelKeys[type]
+  return key ? t(key) : type
+}
 
 // Reactive references to store various locations from API calls
 const connectionsLocations = ref<LocationConnection[]>([])
@@ -200,7 +222,9 @@ const legend = computed(() => {
       div.innerHTML += `<input id="checkbox_${type.replace(
         /\s/g,
         ''
-      )}" type='checkbox' checked /> <i style='background: ${scaleColor(type)}'> </i> ${type} <br>`
+      )}" type='checkbox' checked /> <i style='background: ${scaleColor(
+        type
+      )}'> </i> ${categoryLabel(type)} <br>`
     }
 
     return div

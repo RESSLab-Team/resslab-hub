@@ -133,8 +133,8 @@ function resetAll(): void {
   >
     <button
       class="dash-filters-collapse-btn"
-      title="Expand filters"
-      aria-label="Expand filters"
+      :title="$t('commons.expand_filters')"
+      :aria-label="$t('commons.expand_filters')"
       @click="emit('update:collapsed', false)"
     >
       <v-icon :icon="position === 'right' ? mdiChevronLeft : mdiChevronRight" size="14" />
@@ -163,7 +163,11 @@ function resetAll(): void {
         >
           <div class="dash-filter-popover-head">
             <span>{{ group.label }}</span>
-            <button class="dash-filter-popover-x" aria-label="Close" @click="openGroup = null">
+            <button
+              class="dash-filter-popover-x"
+              :aria-label="$t('commons.close')"
+              @click="openGroup = null"
+            >
               <v-icon :icon="mdiClose" size="12" />
             </button>
           </div>
@@ -189,13 +193,13 @@ function resetAll(): void {
               <div class="range-row">
                 <input
                   type="number"
-                  :placeholder="group.min != null ? String(group.min) : 'min'"
+                  :placeholder="group.min != null ? String(group.min) : $t('commons.range_min')"
                   :value="rangeBounds(group)[0]"
                   @change="changeRange(group, 0, ($event.target as HTMLInputElement).value)"
                 />
                 <input
                   type="number"
-                  :placeholder="group.max != null ? String(group.max) : 'max'"
+                  :placeholder="group.max != null ? String(group.max) : $t('commons.range_max')"
                   :value="rangeBounds(group)[1]"
                   @change="changeRange(group, 1, ($event.target as HTMLInputElement).value)"
                 />
@@ -208,7 +212,7 @@ function resetAll(): void {
     <button
       v-if="activeCount > 0"
       class="dash-filters-collapsed-reset"
-      title="Reset all filters"
+      :title="$t('commons.reset_all_filters')"
       @click="resetAll"
     >
       <v-icon :icon="mdiClose" size="11" />
@@ -226,16 +230,16 @@ function resetAll(): void {
   >
     <div class="dash-filters-head">
       <div class="dash-filters-head-l">
-        <h6>Filters</h6>
+        <h6>{{ $t('commons.filters') }}</h6>
         <span v-if="activeCount > 0" class="dash-filters-active-count">{{ activeCount }}</span>
       </div>
       <div class="dash-filters-head-r">
-        <button class="reset" @click="resetAll">Reset all</button>
+        <button class="reset" @click="resetAll">{{ $t('commons.reset_all') }}</button>
         <button
           v-if="asOverlay"
           class="dash-filters-collapse-btn"
-          title="Close filters"
-          aria-label="Close filters"
+          :title="$t('commons.close_filters')"
+          :aria-label="$t('commons.close_filters')"
           @click="emit('close')"
         >
           <v-icon :icon="mdiClose" size="14" />
@@ -243,8 +247,8 @@ function resetAll(): void {
         <button
           v-else
           class="dash-filters-collapse-btn"
-          title="Collapse filters"
-          aria-label="Collapse filters"
+          :title="$t('commons.collapse_filters')"
+          :aria-label="$t('commons.collapse_filters')"
           @click="emit('update:collapsed', true)"
         >
           <v-icon :icon="position === 'right' ? mdiChevronRight : mdiChevronLeft" size="14" />
@@ -280,13 +284,13 @@ function resetAll(): void {
         <div class="range-row">
           <input
             type="number"
-            :placeholder="group.min != null ? String(group.min) : 'min'"
+            :placeholder="group.min != null ? String(group.min) : $t('commons.range_min')"
             :value="rangeBounds(group)[0]"
             @change="changeRange(group, 0, ($event.target as HTMLInputElement).value)"
           />
           <input
             type="number"
-            :placeholder="group.max != null ? String(group.max) : 'max'"
+            :placeholder="group.max != null ? String(group.max) : $t('commons.range_max')"
             :value="rangeBounds(group)[1]"
             @change="changeRange(group, 1, ($event.target as HTMLInputElement).value)"
           />

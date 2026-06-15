@@ -1,3 +1,4 @@
+import i18n from '@/plugins/i18n'
 import type { ToggleItem } from '@/utils/toggle'
 
 export type UnitSystem = 'metric' | 'imperial'
@@ -5,11 +6,11 @@ export type UnitSystem = 'metric' | 'imperial'
 export const unitItems: ToggleItem<UnitSystem>[] = [
   {
     value: 'metric',
-    text: 'Metric'
+    text: i18n.global.t('enum.metric')
   },
   {
     value: 'imperial',
-    text: 'Imperial'
+    text: i18n.global.t('enum.imperial')
   }
 ]
 

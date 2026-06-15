@@ -147,29 +147,15 @@ function getImageSource(item: string): string {
     @download="downloadFiles"
   >
     <template #title>
-      Connections
+      {{ $t('table.connection.title') }}
       <info-tooltip>
-        <p>
-          The Connections Database presents data from early 1970s on beam-to-column connections
-          under reversed cyclic and monotonic loading. The primary data involve the global behavior
-          of the connection and the decomposed panel zone shear versus shear distortion, deduced
-          beam end moment versus chord rotation, whenever available.
-        </p>
-        How to use?
+        <p>{{ $t('table.connection.tooltip.intro') }}</p>
+        {{ $t('table.connection.tooltip.howToUse') }}
         <ul>
-          <li>
-            Filter the table by making selections in the various plots around the table, or by using
-            the filters and dropdowns above the table headers.
-          </li>
-          <li>Click on a row to see the data of a single test.</li>
-          <li>
-            Download specific tests results by selecting the test (left-most column) and click
-            "Download" below.
-          </li>
-          <li>
-            Share specific tests results by selecting the test (left-most column) and click "Share"
-            below.
-          </li>
+          <li>{{ $t('table.connection.tooltip.bulletFilter') }}</li>
+          <li>{{ $t('table.connection.tooltip.bulletClick') }}</li>
+          <li>{{ $t('table.connection.tooltip.bulletDownload') }}</li>
+          <li>{{ $t('table.connection.tooltip.bulletShare') }}</li>
         </ul>
       </info-tooltip>
     </template>

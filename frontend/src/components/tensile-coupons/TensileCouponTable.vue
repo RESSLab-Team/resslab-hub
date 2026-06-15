@@ -78,7 +78,7 @@ const {
     :loading="loading"
     prefix="tensile_coupon."
     :query="query"
-    title="Tensile Coupons"
+    :title="$t('table.tensile_coupon.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"

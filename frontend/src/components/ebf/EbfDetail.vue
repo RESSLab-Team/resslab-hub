@@ -7,6 +7,9 @@ import { formatNumber } from '@/utils/formatter'
 import { computed, ref, watch } from 'vue'
 import { linkConfigurationMapping } from '@/utils/ebf'
 import { getEbfImage } from '@/utils/component'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   eccentricBracedFrame: EccentricBracedFrameModel
@@ -26,8 +29,8 @@ watch(
           count: ebf.shear_link_angle_count,
           promise: ebfApi.getEccentricBracedFramesShearLinkAngle(ebf.id),
           title: '', // No title as specified
-          xAxisName: 'Link Rotation [rad]',
-          yAxisName: 'Link Shear [kN]'
+          xAxisName: t('detail.ebf.link_rotation_axis'),
+          yAxisName: t('detail.ebf.link_shear_axis')
         }
       ]
     ]
@@ -61,67 +64,67 @@ const imageSrc = computed(() => {
     <template #body>
       <v-row>
         <v-col class="mt-6" cols="6">
-          <h2 class="mb-2">Loading and Geometric Parameters</h2>
+          <h2 class="mb-2">{{ $t('detail.ebf.loading_geometric_parameters') }}</h2>
           <p class="mb-6">
-            <property-item name="Loading Protocol">
+            <property-item :name="$t('detail.ebf.loading_protocol')">
               {{ eccentricBracedFrame.l_p_typ }}
             </property-item>
-            <property-item name="Link Location">
+            <property-item :name="$t('detail.ebf.link_location')">
               {{ eccentricBracedFrame.link_loc }}
             </property-item>
-            <property-item name="Link Type">
+            <property-item :name="$t('detail.ebf.link_type')">
               {{ eccentricBracedFrame.class_aisc }}
             </property-item>
-            <property-item name="Link Cross Section">
+            <property-item :name="$t('detail.ebf.link_cross_section')">
               {{ eccentricBracedFrame.profile }}
             </property-item>
-            <property-item name="Section Type">
+            <property-item :name="$t('detail.ebf.section_type')">
               {{ eccentricBracedFrame.sec_type }}
             </property-item>
-            <property-item name="Link Length, e" unit="mm">
+            <property-item :name="$t('detail.ebf.link_length')" unit="mm">
               {{ eccentricBracedFrame.e }}
             </property-item>
-            <property-item name="Test Setup">
+            <property-item :name="$t('detail.ebf.test_setup')">
               {{
                 eccentricBracedFrame.l_confi
                   ? linkConfigurationMapping.get(eccentricBracedFrame.l_confi)
                   : 'Not defined'
               }}
             </property-item>
-            <property-item name="Link Connection Type">
+            <property-item :name="$t('detail.ebf.link_connection_type')">
               {{ eccentricBracedFrame.l_con_typ }}
             </property-item>
           </p>
 
-          <h2 class="mb-2">Steel Material Designation</h2>
+          <h2 class="mb-2">{{ $t('detail.ebf.steel_material_designation') }}</h2>
           <v-row>
             <v-col cols="12">
-              <h3>Flange</h3>
-              <property-item name="Steel Type">
+              <h3>{{ $t('detail.ebf.flange') }}</h3>
+              <property-item :name="$t('detail.ebf.steel_type')">
                 {{ eccentricBracedFrame.sg_flg_link }}
               </property-item>
-              <property-item name="Nominal Yield Stress" unit="MPa">
+              <property-item :name="$t('detail.ebf.nominal_yield_stress')" unit="MPa">
                 {{ formatNumber(eccentricBracedFrame.f_y_n_flg) }}
               </property-item>
-              <property-item name="Measured Yield Stress" unit="MPa">
+              <property-item :name="$t('detail.ebf.measured_yield_stress')" unit="MPa">
                 {{ formatNumber(eccentricBracedFrame.f_y_m_flg) }}
               </property-item>
-              <property-item name="Measured Ultimate Stress" unit="MPa">
+              <property-item :name="$t('detail.ebf.measured_ultimate_stress')" unit="MPa">
                 {{ formatNumber(eccentricBracedFrame.f_u_m_flg) }}
               </property-item>
             </v-col>
             <v-col cols="12">
-              <h3>Web</h3>
-              <property-item name="Steel Type">
+              <h3>{{ $t('detail.ebf.web') }}</h3>
+              <property-item :name="$t('detail.ebf.steel_type')">
                 {{ eccentricBracedFrame.sg_web_link }}
               </property-item>
-              <property-item name="Nominal Yield Stress" unit="MPa">
+              <property-item :name="$t('detail.ebf.nominal_yield_stress')" unit="MPa">
                 {{ formatNumber(eccentricBracedFrame.f_y_n_web) }}
               </property-item>
-              <property-item name="Measured Yield Stress" unit="MPa">
+              <property-item :name="$t('detail.ebf.measured_yield_stress')" unit="MPa">
                 {{ formatNumber(eccentricBracedFrame.f_y_m_web) }}
               </property-item>
-              <property-item name="Measured Ultimate Stress" unit="MPa">
+              <property-item :name="$t('detail.ebf.measured_ultimate_stress')" unit="MPa">
                 {{ formatNumber(eccentricBracedFrame.f_u_m_web) }}
               </property-item>
             </v-col>

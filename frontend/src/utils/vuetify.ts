@@ -1,3 +1,4 @@
+import i18n from '@/plugins/i18n'
 import colormap from 'colormap'
 import hexRgb from 'hex-rgb'
 
@@ -25,11 +26,11 @@ export interface DataOptions {
 
 export const booleanOptions: SelectItemObject<boolean>[] = [
   {
-    title: 'True',
+    title: i18n.global.t('enum.true'),
     value: true
   },
   {
-    title: 'False',
+    title: i18n.global.t('enum.false'),
     value: false
   }
 ]

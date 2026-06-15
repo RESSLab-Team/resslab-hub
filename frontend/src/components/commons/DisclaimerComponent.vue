@@ -1,6 +1,12 @@
 <template>
   <v-snackbar v-model="snackbarVisible" :timeout="props.timeout" variant="text">
-    <v-alert title="Alert title" type="warning" variant="flat" density="comfortable" closable>
+    <v-alert
+      :title="$t('commons.alert')"
+      type="warning"
+      variant="flat"
+      density="comfortable"
+      closable
+    >
       <template #title>
         <slot name="title">
           <v-icon left>{{ mdiInformationOutline }}</v-icon>

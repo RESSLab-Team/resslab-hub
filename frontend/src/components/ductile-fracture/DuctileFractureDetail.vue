@@ -77,44 +77,50 @@ const semOpen = ref(false)
       <v-row>
         <v-col cols="6">
           <div class="mb-5">
-            <h2 class="mb-2">Structural Steel Element</h2>
+            <h2 class="mb-2">{{ $t('detail.ductile_fracture.structural_steel_element') }}</h2>
             <p>
-              <property-item name="Coupon location">
+              <property-item :name="$t('detail.ductile_fracture.coupon_location')">
                 {{ ductileFracture.location_coupon }}
               </property-item>
-              <property-item name="Section profile">
+              <property-item :name="$t('detail.ductile_fracture.section_profile')">
                 {{ ductileFracture.section_profile }}
               </property-item>
-              <property-item name="Plate thickness" unit="mm">
+              <property-item :name="$t('detail.ductile_fracture.plate_thickness')" unit="mm">
                 {{ formatNumber(ductileFracture.plate_thickness) }}
               </property-item>
-              <property-item name="Temperature" unit="°C">
+              <property-item :name="$t('detail.ductile_fracture.temperature')" unit="°C">
                 {{ formatNumber(ductileFracture.temperature) }}
               </property-item>
             </p>
           </div>
           <div class="mb-5">
-            <h2 class="mb-2">Steel Material Designation</h2>
+            <h2 class="mb-2">{{ $t('detail.ductile_fracture.steel_material_designation') }}</h2>
             <p>
-              <property-item name="Steel type">
+              <property-item :name="$t('detail.ductile_fracture.steel_type')">
                 {{ ductileFracture.steel_type }}
               </property-item>
-              <property-item name="Nominal yield stress" unit="MPa">
+              <property-item :name="$t('detail.ductile_fracture.nominal_yield_stress')" unit="MPa">
                 {{ formatNumber(ductileFracture.f_yn) }}
               </property-item>
-              <property-item name="Measured yield stress" unit="MPa">
+              <property-item :name="$t('detail.ductile_fracture.measured_yield_stress')" unit="MPa">
                 {{ formatNumber(ductileFracture.fy_m) }}
               </property-item>
-              <property-item name="Nominal ultimate stress" unit="MPa">
+              <property-item
+                :name="$t('detail.ductile_fracture.nominal_ultimate_stress')"
+                unit="MPa"
+              >
                 {{ formatNumber(ductileFracture.f_un) }}
               </property-item>
-              <property-item name="Measured ultimate stress" unit="MPa">
+              <property-item
+                :name="$t('detail.ductile_fracture.measured_ultimate_stress')"
+                unit="MPa"
+              >
                 {{ formatNumber(ductileFracture.fu_m) }}
               </property-item>
             </p>
           </div>
           <div class="mb-5">
-            <h2 class="mb-2">Fracture Model Parameters</h2>
+            <h2 class="mb-2">{{ $t('detail.ductile_fracture.fracture_model_parameters') }}</h2>
             <p>
               <property-item name="SWDFM C">
                 {{ formatNumber(ductileFracture.swdfm_C, 3) }}
@@ -131,7 +137,7 @@ const semOpen = ref(false)
               <property-item name="CVGM λ">
                 {{ formatNumber(ductileFracture.cvgm_lambda, 3) }}
               </property-item>
-              <property-item name="Characteristic length" unit="mm">
+              <property-item :name="$t('detail.ductile_fracture.characteristic_length')" unit="mm">
                 {{ formatNumber(ductileFracture.l_star, 3) }}
               </property-item>
             </p>
@@ -144,7 +150,7 @@ const semOpen = ref(false)
       <v-row v-if="ductileFracture.has_sem">
         <v-col cols="12">
           <v-btn block size="large" :prepend-icon="mdiMagnifyPlusOutline" @click="semOpen = true">
-            Scanning Electron Microscopy (SEM)
+            {{ $t('detail.ductile_fracture.sem_button') }}
           </v-btn>
         </v-col>
       </v-row>

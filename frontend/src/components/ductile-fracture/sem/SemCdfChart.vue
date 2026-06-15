@@ -44,14 +44,14 @@ watch(
 <template>
   <div>
     <unit-line-chart
-      title="Dimple diameter CDF"
-      x-axis-name="Dimple diameter [mm]"
+      :title="$t('sem.cdf_title')"
+      :x-axis-name="$t('sem.cdf_x_axis')"
       y-axis-name="CDF"
       :series="series"
       :aspect-ratio="1.2"
     />
     <v-alert v-if="error" type="warning" density="compact" class="mt-2">
-      Failed to load dimple data ({{ error }}).
+      {{ $t('sem.dimple_load_error', { error }) }}
     </v-alert>
   </div>
 </template>

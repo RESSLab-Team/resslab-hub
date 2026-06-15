@@ -5,6 +5,9 @@ import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { columnsApi } from '@/plugins/axios'
 import { getColumnImage } from '@/utils/component'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   column: ColumnModel
@@ -31,25 +34,25 @@ watch(
         {
           count: column.axial_shortening_count,
           promise: columnsApi.getColumnsAxialShortening(column.id),
-          title: 'Axial Shortening',
-          xAxisName: 'Chord Rotation [rads]',
-          yAxisName: 'Axial Shortening [mm]'
+          title: t('detail.column.chart_axial_shortening'),
+          xAxisName: t('detail.column.axis_chord_rotation'),
+          yAxisName: t('detail.column.axis_axial_shortening')
         }
       ],
       [
         {
           count: column.moment_strong_count,
           promise: columnsApi.getColumnsMomentStrong(column.id),
-          title: 'Moment Rotation',
-          xAxisName: 'Chord Rotation [rads]',
-          yAxisName: 'Moment [kN-mm]'
+          title: t('detail.column.chart_moment_rotation'),
+          xAxisName: t('detail.column.axis_chord_rotation'),
+          yAxisName: t('detail.column.axis_moment')
         },
         {
           count: column.moment_weak_count,
           promise: columnsApi.getColumnsMomentWeak(column.id),
-          title: 'Moment Weak',
-          xAxisName: 'Chord Rotation [rads]',
-          yAxisName: 'Moment [kN-mm]'
+          title: t('detail.column.chart_moment_weak'),
+          xAxisName: t('detail.column.axis_chord_rotation'),
+          yAxisName: t('detail.column.axis_moment')
         }
       ]
     ]
@@ -74,22 +77,22 @@ watch(
     <template #parameters>
       <v-row>
         <v-col cols="6">
-          <property-item name="Loading protocol">
+          <property-item :name="$t('detail.column.loading_protocol')">
             {{ column.lateral_lp }}
           </property-item>
-          <property-item name="Axial load ratio">
+          <property-item :name="$t('detail.column.axial_load_ratio')">
             {{ column.axial_lp }} (Pg/Py = {{ column.p_g_over_p_ym }})
           </property-item>
-          <property-item name="Axis of bending">
+          <property-item :name="$t('detail.column.axis_of_bending')">
             {{ column.axis_of_bending }}
           </property-item>
-          <property-item name="Boundary conditions">
+          <property-item :name="$t('detail.column.boundary_conditions')">
             {{ column.boundary_condition }}
           </property-item>
-          <property-item name="Column cross section">
+          <property-item :name="$t('detail.column.column_cross_section')">
             {{ column.section_c }}
           </property-item>
-          <property-item name="Member slenderness ratio, Lb/ry">
+          <property-item :name="$t('detail.column.member_slenderness_ratio')">
             {{ column.l_b_over_r_yc }}
           </property-item>
         </v-col>
@@ -99,16 +102,16 @@ watch(
       </v-row>
     </template>
     <template #designation>
-      <property-item name="Steel type">
+      <property-item :name="$t('detail.column.steel_type')">
         {{ column.steel_c }}
       </property-item>
-      <property-item name="Nominal yield stress" unit="MPa">
+      <property-item :name="$t('detail.column.nominal_yield_stress')" unit="MPa">
         {{ column.f_yn }}
       </property-item>
-      <property-item name="Nominal yield stress (flange)" unit="MPa">
+      <property-item :name="$t('detail.column.nominal_yield_stress_flange')" unit="MPa">
         {{ column.f_ymf }}
       </property-item>
-      <property-item name="Nominal yield stress (web)" unit="MPa">
+      <property-item :name="$t('detail.column.nominal_yield_stress_web')" unit="MPa">
         {{ column.f_ymw }}
       </property-item>
     </template>

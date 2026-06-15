@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { DuctileFractureModel } from '@/backend'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
-import {
-  ductileFracturePlots,
-  type DuctileFracturePlotId
-} from '@/utils/ductile_fracture'
+import { ductileFracturePlots, type DuctileFracturePlotId } from '@/utils/ductile_fracture'
 import type { LineSeriesOption } from 'echarts'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   model: DuctileFractureModel
@@ -52,8 +52,8 @@ watch(
 
     const next: LineSeriesOption[] = []
     if (testResp && simResp) {
-      next.push({ name: 'Test Data', data: testResp.data })
-      next.push({ name: 'Simulation', data: simResp.data })
+      next.push({ name: t('sem.legend_test_data'), data: testResp.data })
+      next.push({ name: t('sem.legend_simulation'), data: simResp.data })
     } else if (testResp) {
       next.push({ data: testResp.data })
     } else if (simResp) {

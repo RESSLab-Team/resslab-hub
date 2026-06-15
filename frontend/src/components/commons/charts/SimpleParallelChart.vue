@@ -84,8 +84,8 @@ const option = computed<EChartsOption>(() => ({
       typeof field.id === 'string'
         ? field.id
         : isDivision(field.id)
-          ? `${field.id.dividend}/${field.id.divisor}`
-          : field.id.key
+        ? `${field.id.dividend}/${field.id.divisor}`
+        : field.id.key
     const name = field.name ?? i18n.global.t(props.labelPrefix + id).toString()
     const values = getValues(field)
     const option = {
@@ -231,16 +231,13 @@ function reset(): void {
     <v-card-title class="d-flex justify-space-between">
       <div>
         <slot name="title">
-          Parallel View of all Tests
+          {{ $t('commons.parallel_view_title') }}
           <info-tooltip>
-            <p>
-              In this parallel coordinate plots, you can view all available tests in the database,
-              ordered according to key variables. Each line represents a single test.
-            </p>
-            How to use?
+            <p>{{ $t('commons.parallel_view_intro') }}</p>
+            {{ $t('commons.parallel_view_how_to') }}
             <ul>
-              <li>Filter a subset of the data by selecting values on the vertical axis directly</li>
-              <li>Select a specific test by clicking on the respective line.</li>
+              <li>{{ $t('commons.parallel_view_bullet_filter') }}</li>
+              <li>{{ $t('commons.parallel_view_bullet_select') }}</li>
             </ul>
           </info-tooltip>
         </slot>
@@ -270,7 +267,7 @@ function reset(): void {
         :prepend-icon="mdiFilterVariant"
         @click="onApply"
       >
-        Apply selection ({{ selectedIds.length }})
+        {{ $t('commons.apply_selection', { n: selectedIds.length }) }}
       </v-btn>
       <v-btn
         color="primary"
@@ -278,7 +275,7 @@ function reset(): void {
         :prepend-icon="mdiCancel"
         @click="restore"
       >
-        Clear selection
+        {{ $t('commons.clear_selection') }}
       </v-btn>
     </v-card-actions>
   </v-card>

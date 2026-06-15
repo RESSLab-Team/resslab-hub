@@ -1,19 +1,21 @@
+import i18n from '@/plugins/i18n'
+
 export function formatNumber(value?: number, fractionDigits = 0): string {
   if (value === null || value === undefined) {
-    return "Not Applicable";
+    return i18n.global.t('enum.notApplicable')
   } else if (isNaN(value)) {
-    return "Not Reported";
+    return i18n.global.t('enum.notReported')
   } else {
-    return value.toFixed(fractionDigits);
+    return value.toFixed(fractionDigits)
   }
 }
 
 export function formatString(value?: string): string {
   if (value === null || value === undefined) {
-    return "Not Applicable";
-  } else if (value === "NR") {
-    return "Not Reported";
+    return i18n.global.t('enum.notApplicable')
+  } else if (value === 'NR') {
+    return i18n.global.t('enum.notReported')
   } else {
-    return value;
+    return value
   }
 }

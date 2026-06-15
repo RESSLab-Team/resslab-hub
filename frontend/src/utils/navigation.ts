@@ -1,3 +1,4 @@
+import i18n from '@/plugins/i18n'
 import {
   mdiChartBar,
   mdiChartBellCurve,
@@ -6,6 +7,8 @@ import {
   mdiLayersOutline,
   mdiPulse
 } from '@mdi/js'
+
+const t = i18n.global.t
 
 export type DatabaseId =
   | 'connections'
@@ -42,97 +45,97 @@ export interface NavGroup {
 export const NAV_GROUPS: NavGroup[] = [
   {
     id: 'connections',
-    name: 'Connections',
-    desc: 'Beam-to-column moment connections',
+    name: t('nav.connections'),
+    desc: t('nav.connections_desc'),
     icon: mdiCubeOutline,
     group: 'components',
     children: [
-      { name: 'Database', to: '/connections/database', countId: 'connections' },
-      { name: 'Component model', to: '/connections/model' },
-      { name: 'Fragility curves', to: '/connections/fragility-curve' }
+      { name: t('nav.database'), to: '/connections/database', countId: 'connections' },
+      { name: t('nav.component_model'), to: '/connections/model' },
+      { name: t('nav.fragility_curves'), to: '/connections/fragility-curve' }
     ]
   },
   {
     id: 'columns',
-    name: 'Columns',
-    desc: 'Wide-flange steel column tests',
+    name: t('nav.columns'),
+    desc: t('nav.columns_desc'),
     icon: mdiLayersOutline,
     group: 'components',
     children: [
-      { name: 'Database', to: '/columns/database', countId: 'columns' },
-      { name: 'Component model', to: '/columns/model' },
-      { name: 'Fragility curves', to: '/columns/fragility-curve' }
+      { name: t('nav.database'), to: '/columns/database', countId: 'columns' },
+      { name: t('nav.component_model'), to: '/columns/model' },
+      { name: t('nav.fragility_curves'), to: '/columns/fragility-curve' }
     ]
   },
   {
     id: 'braces',
-    name: 'Braces',
-    desc: 'Concentrically braced frame members',
+    name: t('nav.braces'),
+    desc: t('nav.braces_desc'),
     icon: mdiPulse,
     group: 'components',
     children: [
-      { name: 'Database', to: '/braces/database', countId: 'braces' },
-      { name: 'Component model', to: '/braces/model' },
-      { name: 'Fragility curves', to: '/braces/fragility-curve' }
+      { name: t('nav.database'), to: '/braces/database', countId: 'braces' },
+      { name: t('nav.component_model'), to: '/braces/model' },
+      { name: t('nav.fragility_curves'), to: '/braces/fragility-curve' }
     ]
   },
   {
     id: 'hss',
-    name: 'HSS Columns',
-    desc: 'Hollow structural section columns',
+    name: t('nav.hss_columns'),
+    desc: t('nav.hss_columns_desc'),
     icon: mdiCubeOutline,
     group: 'components',
     children: [
-      { name: 'Database', to: '/hss-columns/database', countId: 'hss' },
-      { name: 'Component model', to: '/hss-columns/model' }
+      { name: t('nav.database'), to: '/hss-columns/database', countId: 'hss' },
+      { name: t('nav.component_model'), to: '/hss-columns/model' }
     ]
   },
   {
     id: 'ebf',
-    name: 'EBF Links',
-    desc: 'Eccentrically braced frame links',
+    name: t('nav.ebf_links'),
+    desc: t('nav.ebf_links_desc'),
     icon: mdiPulse,
     group: 'components',
-    children: [{ name: 'Database', to: '/ebf-links/database', countId: 'ebf' }]
+    children: [{ name: t('nav.database'), to: '/ebf-links/database', countId: 'ebf' }]
   },
   {
     id: 'materials',
-    name: 'Materials',
-    desc: 'Steel material characterisation',
+    name: t('nav.materials'),
+    desc: t('nav.materials_desc'),
     icon: mdiChartBar,
     group: 'materials',
     children: [
       {
-        name: 'Cyclic Coupons',
+        name: t('nav.cyclic_coupons'),
         to: '/materials/cyclic-coupons',
         countId: 'cyclic',
         icon: mdiChartBar,
-        desc: 'Cyclic material characterisation'
+        desc: t('nav.cyclic_coupons_desc')
       },
       {
-        name: 'Tensile Coupons',
+        name: t('nav.tensile_coupons'),
         to: '/materials/tensile-coupons',
         countId: 'tensile',
         icon: mdiChartBellCurve,
-        desc: 'Monotonic tensile test coupons'
+        desc: t('nav.tensile_coupons_desc')
       },
       {
-        name: 'Ductile Fracture',
+        name: t('nav.ductile_fracture'),
         to: '/materials/ductile-fracture',
         countId: 'ductile-fracture',
         icon: mdiImageFilterCenterFocus,
-        desc: 'Ductile fracture tests & SEM fractography'
+        desc: t('nav.ductile_fracture_desc')
       },
-      { name: 'Material model', to: '/materials/model' }
+      { name: t('nav.material_model'), to: '/materials/model' }
     ]
   },
   {
     id: 'residuals',
-    name: 'Residual Stresses',
-    desc: 'Cross-sectional residual stresses',
+    name: t('nav.residual_stresses'),
+    desc: t('nav.residual_stresses_desc'),
     icon: mdiLayersOutline,
     group: 'materials',
-    children: [{ name: 'Database', to: '/residuals/database', countId: 'residuals' }]
+    children: [{ name: t('nav.database'), to: '/residuals/database', countId: 'residuals' }]
   }
 ]
 
@@ -151,7 +154,7 @@ export const DATABASES: DatabaseEntry[] = NAV_GROUPS.flatMap((group) =>
     .filter((child) => child.countId != null)
     .map((child) => ({
       id: child.countId as DatabaseId,
-      name: child.name === 'Database' ? group.name : child.name,
+      name: child.name === t('nav.database') ? group.name : child.name,
       desc: child.desc ?? group.desc,
       icon: child.icon ?? group.icon,
       to: child.to,
@@ -167,18 +170,18 @@ export interface ToolEntry {
 
 export const TOOLS: ToolEntry[] = [
   {
-    name: 'Component models',
-    desc: 'Backbone & first-cycle envelope curves',
+    name: t('nav.component_models'),
+    desc: t('nav.component_models_desc'),
     to: '/connections/model'
   },
   {
-    name: 'Fragility curves',
-    desc: 'Univariate / multivariate curves',
+    name: t('nav.fragility_curves'),
+    desc: t('nav.fragility_curves_desc'),
     to: '/connections/fragility-curve'
   },
   {
-    name: 'Material model',
-    desc: 'Voce-Chaboche calibration tool',
+    name: t('nav.material_model'),
+    desc: t('nav.material_model_desc'),
     to: '/materials/model'
   }
 ]

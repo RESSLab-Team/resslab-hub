@@ -102,7 +102,7 @@ watch(dialogOpen, (open) => {
     <v-card rounded="lg">
       <v-card-title class="d-flex align-center pa-4">
         <span class="text-h6">
-          Scanning Electron Microscopy — {{ model.specimen_designation }}
+          {{ $t('sem.dialog_title', { id: model.specimen_designation }) }}
         </span>
         <v-spacer />
         <v-btn :icon="mdiClose" variant="text" density="comfortable" @click="dialogOpen = false" />
@@ -136,7 +136,7 @@ watch(dialogOpen, (open) => {
                 :disabled="isGlobalView"
                 @click="resetToGlobal"
               >
-                Global
+                {{ $t('sem.global') }}
               </v-btn>
               <template v-if="!isGlobalView">
                 <v-divider vertical class="mx-2" />
@@ -159,7 +159,7 @@ watch(dialogOpen, (open) => {
                 </v-btn-toggle>
               </template>
               <span v-else class="text-caption text-medium-emphasis ml-2">
-                Hover a magnifier to pick a zoom level.
+                {{ $t('sem.hover_hint') }}
               </span>
             </div>
             <div class="sem-image-wrap">

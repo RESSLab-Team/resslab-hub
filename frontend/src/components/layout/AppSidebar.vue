@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LanguageToggle from '@/components/layout/LanguageToggle.vue'
 import { useCountsStore } from '@/stores/counts'
 import { publicPath } from '@/utils/common'
 import { NAV_GROUPS, type NavGroup } from '@/utils/navigation'
@@ -53,7 +54,9 @@ function toggleGroup(group: NavGroup) {
   <aside class="sidebar" :class="{ open }">
     <router-link class="sidebar-brand" to="/" @click="emit('close')">
       <img :src="publicPath + 'logo/EPFL_Logo_184X53.svg'" alt="EPFL" />
-      <div class="sidebar-brand-name">RESSLab Hub<small>Steel structures research</small></div>
+      <div class="sidebar-brand-name">
+        {{ $t('shell.brand_name') }}<small>{{ $t('shell.brand_tagline') }}</small>
+      </div>
     </router-link>
 
     <router-link
@@ -63,10 +66,10 @@ function toggleGroup(group: NavGroup) {
       @click="emit('close')"
     >
       <v-icon :icon="mdiHomeOutline" size="16" />
-      Overview
+      {{ $t('shell.overview') }}
     </router-link>
 
-    <div class="sidebar-section">Databases &amp; tools</div>
+    <div class="sidebar-section">{{ $t('shell.databases_and_tools') }}</div>
     <template v-for="group in NAV_GROUPS" :key="group.id">
       <!-- Single-page groups render as a plain link -->
       <router-link
@@ -97,7 +100,11 @@ function toggleGroup(group: NavGroup) {
           <button
             class="sidebar-group-toggle"
             :aria-expanded="isExpanded(group)"
-            :aria-label="(isExpanded(group) ? 'Collapse ' : 'Expand ') + group.name"
+            :aria-label="
+              isExpanded(group)
+                ? $t('shell.collapse_group', { group: group.name })
+                : $t('shell.expand_group', { group: group.name })
+            "
             @click="toggleGroup(group)"
           >
             <v-icon
@@ -125,7 +132,7 @@ function toggleGroup(group: NavGroup) {
       </template>
     </template>
 
-    <div class="sidebar-section">Reference</div>
+    <div class="sidebar-section">{{ $t('shell.reference') }}</div>
     <router-link
       class="sidebar-link"
       :class="{ 'is-active': route.path === '/about' }"
@@ -133,7 +140,7 @@ function toggleGroup(group: NavGroup) {
       @click="emit('close')"
     >
       <v-icon :icon="mdiInformationOutline" size="16" />
-      About &amp; credits
+      {{ $t('shell.about_and_credits') }}
     </router-link>
     <a
       class="sidebar-link"
@@ -142,18 +149,19 @@ function toggleGroup(group: NavGroup) {
       rel="noreferrer"
     >
       <v-icon :icon="mdiBookOpenVariant" size="16" />
-      Documentation
+      {{ $t('shell.documentation') }}
     </a>
 
     <div class="sidebar-foot">
       <button
         class="hdr-icon-btn"
-        :title="dark ? 'Switch to light mode' : 'Switch to dark mode'"
-        :aria-label="dark ? 'Switch to light mode' : 'Switch to dark mode'"
+        :title="dark ? $t('shell.switch_to_light') : $t('shell.switch_to_dark')"
+        :aria-label="dark ? $t('shell.switch_to_light') : $t('shell.switch_to_dark')"
         @click="emit('toggle-theme')"
       >
         <v-icon :icon="dark ? mdiWeatherSunny : mdiWeatherNight" size="16" />
       </button>
+      <language-toggle />
       <span>© EPFL · RESSLab</span>
     </div>
   </aside>

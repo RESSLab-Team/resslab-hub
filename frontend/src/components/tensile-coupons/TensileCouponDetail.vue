@@ -7,6 +7,9 @@ import { getTensileCouponImage } from '@/utils/component'
 import { formatNumber } from '@/utils/formatter'
 import type { LineSeriesOption } from 'echarts'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   tensileCoupon: TensileCouponModel
@@ -28,7 +31,7 @@ watch(
             .getTensileCouponsStressStrain(tensileCoupon.id)
             .then((response) => response.data.map((serie) => [serie[1], serie[0]]))
             .then((data) => [{ data }] as LineSeriesOption[]),
-          title: 'Engineering stress-strain',
+          title: t('detail.tensile_coupon.engineering_stress_strain'),
           xAxisName: 'ε',
           yAxisName: 'σ [MPa]',
           xAxisMin: 0,
@@ -74,44 +77,47 @@ const publicationLink = computed(() => {
       <v-row>
         <v-col cols="6">
           <div class="mb-5">
-            <h2 class="mb-2">Structural Steel Element</h2>
+            <h2 class="mb-2">{{ $t('detail.tensile_coupon.structural_steel_element') }}</h2>
             <p>
-              <property-item name="Profile type">
+              <property-item :name="$t('detail.tensile_coupon.profile_type')">
                 {{ profileTypeWithSource }}
               </property-item>
-              <property-item name="Cross section">
+              <property-item :name="$t('detail.tensile_coupon.cross_section')">
                 {{ tensileCoupon.profile }}
               </property-item>
-              <property-item name="Reference tensile coupon">
+              <property-item :name="$t('detail.tensile_coupon.reference_tensile_coupon')">
                 {{ tensileCoupon.specimen_type }}
               </property-item>
-              <property-item name="Temperature" unit="°C">
+              <property-item :name="$t('detail.tensile_coupon.temperature')" unit="°C">
                 {{ tensileCoupon.t_a__deg_c_ }}
               </property-item>
-              <property-item name="Standard">
+              <property-item :name="$t('detail.tensile_coupon.standard')">
                 {{ tensileCoupon.standard }}
               </property-item>
             </p>
           </div>
           <div class="mb-5">
-            <h2 class="mb-2">Steel Material Designation</h2>
+            <h2 class="mb-2">{{ $t('detail.tensile_coupon.steel_material_designation') }}</h2>
             <p>
-              <property-item name="Steel type">
+              <property-item :name="$t('detail.tensile_coupon.steel_type')">
                 {{ tensileCoupon.steel_grade }}
               </property-item>
-              <property-item name="Nominal yield stress" unit="MPa">
+              <property-item :name="$t('detail.tensile_coupon.nominal_yield_stress')" unit="MPa">
                 {{ formatNumber(tensileCoupon.fy_n__mpa_) }}
               </property-item>
-              <property-item name="Measured yield stress" unit="MPa">
+              <property-item :name="$t('detail.tensile_coupon.measured_yield_stress')" unit="MPa">
                 {{ formatNumber(tensileCoupon.yield_stress_02__mpa_, 1) }}
               </property-item>
-              <property-item name="Nominal ultimate stress" unit="MPa">
+              <property-item :name="$t('detail.tensile_coupon.nominal_ultimate_stress')" unit="MPa">
                 {{ formatNumber(tensileCoupon.fu_n__mpa_) }}
               </property-item>
-              <property-item name="Measured ultimate stress" unit="MPa">
+              <property-item
+                :name="$t('detail.tensile_coupon.measured_ultimate_stress')"
+                unit="MPa"
+              >
                 {{ formatNumber(tensileCoupon.tensile_strength__mpa_, 1) }}
               </property-item>
-              <property-item name="Young's modulus, E" unit="MPa">
+              <property-item :name="$t('detail.tensile_coupon.youngs_modulus_e')" unit="MPa">
                 {{ formatNumber(tensileCoupon.elastic_modulus__mpa_, 1) }}
               </property-item>
               <property-item name="εy">

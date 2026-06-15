@@ -11,57 +11,60 @@ const materials = DATABASES.filter((db) => db.group === 'materials')
     <div class="ftr-top">
       <div class="ftr-logo">
         <img :src="publicPath + 'logo/EPFL_Logo_184X53.svg'" alt="EPFL" />
-        <p class="ftr-tagline">
-          Open-access databases &amp; models for design and assessment of steel structures.
-        </p>
+        <p class="ftr-tagline">{{ $t('shell.footer_tagline') }}</p>
       </div>
       <div class="ftr-col">
-        <h6>Databases</h6>
+        <h6>{{ $t('shell.databases') }}</h6>
         <router-link v-for="db in components" :key="db.id" :to="db.to">{{ db.name }}</router-link>
       </div>
       <div class="ftr-col">
-        <h6>Materials</h6>
+        <h6>{{ $t('shell.materials') }}</h6>
         <router-link v-for="db in materials" :key="db.id" :to="db.to">{{ db.name }}</router-link>
       </div>
       <div class="ftr-col">
-        <h6>Tools</h6>
+        <h6>{{ $t('shell.tools') }}</h6>
         <router-link v-for="tool in TOOLS" :key="tool.to" :to="tool.to">
           {{ tool.name }}
         </router-link>
         <a href="https://github.com/RESSLab-Team/resslab-hub" target="_blank" rel="noreferrer">
-          Documentation
+          {{ $t('shell.documentation') }}
         </a>
       </div>
       <div class="ftr-col">
-        <h6>RESSLab</h6>
+        <h6>{{ $t('shell.resslab') }}</h6>
         <a href="https://www.epfl.ch/labs/resslab" target="_blank" rel="noreferrer">
-          Lab homepage
+          {{ $t('shell.lab_homepage') }}
         </a>
         <a href="https://www.epfl.ch/labs/resslab/people" target="_blank" rel="noreferrer">
-          People
+          {{ $t('shell.people') }}
         </a>
         <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank" rel="noreferrer">
-          Contact
+          {{ $t('shell.contact') }}
         </a>
-        <router-link to="/about">About &amp; credits</router-link>
+        <router-link to="/about">{{ $t('shell.about_and_credits') }}</router-link>
       </div>
     </div>
     <div class="ftr-bot">
       <div>
-        © {{ new Date().getFullYear() }} EPFL — RESSLab Hub. Data under
-        <a
-          href="https://creativecommons.org/licenses/by/2.0/legalcode"
-          target="_blank"
-          rel="noreferrer"
-          >CC-BY 2.0</a
-        >
-        /
-        <a
-          href="https://github.com/amaelkady/Steel-Columns-Test-Data/blob/main/LICENSE"
-          target="_blank"
-          rel="noreferrer"
-          >GPL</a
-        >.
+        <i18n-t keypath="shell.copyright" tag="span">
+          <template #year>{{ new Date().getFullYear() }}</template>
+          <template #ccby>
+            <a
+              href="https://creativecommons.org/licenses/by/2.0/legalcode"
+              target="_blank"
+              rel="noreferrer"
+              >CC-BY 2.0</a
+            >
+          </template>
+          <template #gpl>
+            <a
+              href="https://github.com/amaelkady/Steel-Columns-Test-Data/blob/main/LICENSE"
+              target="_blank"
+              rel="noreferrer"
+              >GPL</a
+            >
+          </template>
+        </i18n-t>
       </div>
       <div>
         <a href="https://www.epfl.ch" target="_blank" rel="noreferrer">EPFL</a>

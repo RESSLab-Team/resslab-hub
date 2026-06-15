@@ -78,7 +78,7 @@ const {
     :loading="loading"
     prefix="material."
     :query="query"
-    title="Cyclic Coupons"
+    :title="$t('table.material.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"

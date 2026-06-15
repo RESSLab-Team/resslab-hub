@@ -8,6 +8,7 @@ import { shareCurrentUrl, type Searches } from '@/utils/common'
 import { booleanOptions, type DataOptions } from '@/utils/vuetify'
 import { mdiDownload, mdiMagnify, mdiShare } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 interface TableHeader {
@@ -80,14 +81,15 @@ const vTheadInputBind = {
   ...vInputBind,
   variant: 'plain' as 'plain'
 }
+const { t } = useI18n()
 const checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
   {
     key: DownloadType.Main,
-    text: 'Master data'
+    text: t('commons.download_master_data')
   },
   {
     key: DownloadType.Test,
-    text: 'Test data'
+    text: t('commons.download_test_data')
   }
 ]
 
@@ -167,7 +169,7 @@ watch(pageCount, (value) => {
 
 watch(selectedItems, (value) => {
   if (value.length >= maxDownloadCount) {
-    notificationStore.notify(`You cannot download more than ${maxDownloadCount} items.`)
+    notificationStore.notify(t('commons.max_download', { max: maxDownloadCount }))
   }
 })
 
@@ -233,12 +235,12 @@ function downloadZip(): void {
           hide-details
           single-line
           :prepend-inner-icon="mdiMagnify"
-          label="Search"
+          :label="$t('commons.search')"
           variant="outlined"
         />
       </v-responsive>
       <button class="btn btn-ghost btn-sm" :disabled="!hasFilters" @click="resetFilters">
-        Reset filters
+        {{ $t('commons.reset_filters') }}
       </button>
     </div>
     <v-data-table-server
@@ -402,7 +404,7 @@ function downloadZip(): void {
               @click="downloadZip"
             >
               <v-icon :icon="mdiDownload" size="14" />
-              Download ({{ selectedItems.length }}/{{ totalCount }})
+              {{ $t('commons.download_n', { n: selectedItems.length, m: totalCount }) }}
             </button>
             <button
               v-if="!hideToolbar"
@@ -411,15 +413,28 @@ function downloadZip(): void {
               @click="shareUrl"
             >
               <v-icon :icon="mdiShare" size="14" />
-              Share
+              {{ $t('commons.share') }}
             </button>
           </div>
           <div class="dash-pager-info">
-            Showing <strong>{{ pageFrom }}–{{ pageTo }}</strong> of
-            <strong>{{ totalFilteredCount }}</strong>
-            <select v-model.number="itemsPerPage" class="pager-size" aria-label="Rows per page">
+            <i18n-t keypath="commons.table_showing" tag="span">
+              <template #from>
+                <strong>{{ pageFrom }}</strong>
+              </template>
+              <template #to>
+                <strong>{{ pageTo }}</strong>
+              </template>
+              <template #total>
+                <strong>{{ totalFilteredCount }}</strong>
+              </template>
+            </i18n-t>
+            <select
+              v-model.number="itemsPerPage"
+              class="pager-size"
+              :aria-label="$t('commons.rows_per_page')"
+            >
               <option v-for="option in itemsPerPageOptions" :key="option" :value="option">
-                {{ option }} / page
+                {{ $t('commons.per_page', { option }) }}
               </option>
             </select>
           </div>
@@ -438,7 +453,7 @@ function downloadZip(): void {
     </v-data-table-server>
     <checkbox-dialog
       ref="downloadDialog"
-      title="Download"
+      :title="$t('commons.download')"
       :items="checkboxDialogItems"
       loading-on-confirm
     />

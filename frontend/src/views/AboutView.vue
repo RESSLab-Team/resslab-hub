@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import AppFooter from '@/components/layout/AppFooter.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 interface Contributor {
   name: string
@@ -91,30 +94,29 @@ function initials(name: string): string {
 <template>
   <div>
     <section class="section about-hero">
-      <div class="eyebrow" style="margin-bottom: 10px">About</div>
-      <h1 class="about-title">A service to the earthquake-engineering community.</h1>
+      <div class="eyebrow" style="margin-bottom: 10px">{{ t('about.eyebrow') }}</div>
+      <h1 class="about-title">{{ t('about.title') }}</h1>
       <p class="about-lede">
-        The databases in RESSLab Hub were assembled as a service to the research and practice
-        communities in earthquake engineering. Data are fully digitized from experimental reports
-        and shared under the
-        <a href="https://creativecommons.org/licenses/by/2.0/legalcode" target="_blank">
-          Creative Commons Attribution 2.0 Generic</a
-        >
-        and the
-        <a
-          href="https://github.com/amaelkady/Steel-Columns-Test-Data/blob/main/LICENSE"
-          target="_blank"
-        >
-          GNU General Public</a
-        >
-        licences. EPFL, and the researchers who performed the experiments, make no warranties to the
-        accuracy of the information collected and provided on this website.
+        <i18n-t keypath="about.lede" tag="span" scope="global">
+          <template #ccLicence>
+            <a href="https://creativecommons.org/licenses/by/2.0/legalcode" target="_blank">{{
+              t('about.ccLicence')
+            }}</a>
+          </template>
+          <template #gplLicence>
+            <a
+              href="https://github.com/amaelkady/Steel-Columns-Test-Data/blob/main/LICENSE"
+              target="_blank"
+              >{{ t('about.gplLicence') }}</a
+            >
+          </template>
+        </i18n-t>
       </p>
     </section>
 
     <section class="section section-bg-subtle">
-      <div class="section-eyebrow">Contributors</div>
-      <h2 class="section-title" style="margin-bottom: 36px">People who built the Hub.</h2>
+      <div class="section-eyebrow">{{ t('about.contributors.eyebrow') }}</div>
+      <h2 class="section-title" style="margin-bottom: 36px">{{ t('about.contributors.title') }}</h2>
       <div class="split-2">
         <div v-for="group in contributorGroups" :key="group.name" class="surface surface-pad">
           <h3 class="about-group-name">
@@ -137,22 +139,20 @@ function initials(name: string): string {
         </div>
       </div>
       <p class="section-sub" style="max-width: 760px">
-        <a href="https://enac-it4r.epfl.ch" target="_blank">ENAC-IT4Research</a> developed the
-        web-based interfaces, visualisation features and search capabilities for the assembled
-        databases. We sincerely thank the many researchers worldwide who generously shared their
-        test data for the development of the structural component databases.
+        <i18n-t keypath="about.contributors.credits" tag="span" scope="global">
+          <template #enac>
+            <a href="https://enac-it4r.epfl.ch" target="_blank">ENAC-IT4Research</a>
+          </template>
+        </i18n-t>
       </p>
     </section>
 
     <section class="section">
       <div class="split-2">
         <div>
-          <div class="section-eyebrow">Citation</div>
-          <h2 class="section-title about-subtitle">Citing RESSLab Hub</h2>
-          <p class="about-note">
-            Database users should cite the original references for each test description in addition
-            to these databases.
-          </p>
+          <div class="section-eyebrow">{{ t('about.citation.eyebrow') }}</div>
+          <h2 class="section-title about-subtitle">{{ t('about.citation.title') }}</h2>
+          <p class="about-note">{{ t('about.citation.note') }}</p>
           <div class="about-citation">
             Lignos, D.G. et al. RESSLab Hub: Open-access databases<br />
             and models for design and assessment of steel structures.<br />
@@ -160,8 +160,8 @@ function initials(name: string): string {
           </div>
         </div>
         <div>
-          <div class="section-eyebrow">Funding &amp; history</div>
-          <h2 class="section-title about-subtitle">Supported by</h2>
+          <div class="section-eyebrow">{{ t('about.funding.eyebrow') }}</div>
+          <h2 class="section-title about-subtitle">{{ t('about.funding.supportedBy') }}</h2>
           <div class="about-funding">
             <a href="https://www.snf.ch" target="_blank" rel="noreferrer">
               Swiss National Science Foundation
@@ -181,38 +181,51 @@ function initials(name: string): string {
             </a>
           </div>
           <p class="about-note" style="margin-top: 18px">
-            An earlier version of the Connections database was assembled by
-            <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank">
-              Prof. Dimitrios Lignos</a
-            >
-            and the late
-            <a href="https://en.wikipedia.org/wiki/Helmut_Krawinkler" target="_blank">
-              Prof. Helmut Krawinkler</a
-            >
-            within the NEES project
-            <a href="https://searchworks.stanford.edu/view/yg701cw5473" target="_blank">
-              “Sidesway collapse of deteriorating structural systems under seismic excitations”</a
-            >, and significantly expanded by Andronikos Skiadopoulos during his doctoral studies at
-            EPFL. The Columns database was assembled by Prof. Ahmed Elkady and Subash Ghimire under
-            the SNSF project
-            <a href="https://data.snf.ch/grants/grant/169248" target="_blank">
-              “Advanced Simulation Platform for Collapse Risk Assessment of Steel Frame
-              Buildings”</a
-            >.
+            <i18n-t keypath="about.funding.historyConnections" tag="span" scope="global">
+              <template #lignos>
+                <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank"
+                  >Prof. Dimitrios Lignos</a
+                >
+              </template>
+              <template #krawinkler>
+                <a href="https://en.wikipedia.org/wiki/Helmut_Krawinkler" target="_blank"
+                  >Prof. Helmut Krawinkler</a
+                >
+              </template>
+              <template #neesProject>
+                <a href="https://searchworks.stanford.edu/view/yg701cw5473" target="_blank"
+                  >“Sidesway collapse of deteriorating structural systems under seismic
+                  excitations”</a
+                >
+              </template>
+              <template #snsfProject>
+                <a href="https://data.snf.ch/grants/grant/169248" target="_blank"
+                  >“Advanced Simulation Platform for Collapse Risk Assessment of Steel Frame
+                  Buildings”</a
+                >
+              </template>
+            </i18n-t>
           </p>
           <p class="about-note">
-            Report technical problems to
-            <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank">
-              Prof. Dimitrios Lignos</a
-            >. See also the
-            <a
-              href="https://www.epfl.ch/about/overview/regulations-and-guidelines/disclaimer/"
-              target="_blank"
-            >
-              disclaimer</a
-            >
-            and
-            <a href="https://go.epfl.ch/privacy-policy/" target="_blank">privacy policy</a>.
+            <i18n-t keypath="about.funding.support" tag="span" scope="global">
+              <template #lignos>
+                <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank"
+                  >Prof. Dimitrios Lignos</a
+                >
+              </template>
+              <template #disclaimer>
+                <a
+                  href="https://www.epfl.ch/about/overview/regulations-and-guidelines/disclaimer/"
+                  target="_blank"
+                  >{{ t('about.funding.disclaimer') }}</a
+                >
+              </template>
+              <template #privacy>
+                <a href="https://go.epfl.ch/privacy-policy/" target="_blank">{{
+                  t('about.funding.privacyPolicy')
+                }}</a>
+              </template>
+            </i18n-t>
           </p>
         </div>
       </div>

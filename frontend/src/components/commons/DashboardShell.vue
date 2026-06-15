@@ -67,10 +67,10 @@ function formatChipValue(value: Value): string {
     if (value.length === 2 && value.every((v) => !isNaN(Number(v)))) {
       return `${value[0]} – ${value[1]}`
     }
-    return `${value.length} selected`
+    return i18n.global.t('commons.n_selected', { n: value.length })
   }
   if (typeof value === 'boolean') {
-    return value ? 'Yes' : 'No'
+    return value ? i18n.global.t('commons.yes') : i18n.global.t('commons.no')
   }
   const text = String(value)
   if (text.includes('<<')) {
@@ -105,14 +105,15 @@ function shareView(): void {
         <h1 class="dash-title">
           {{ title }}
           <span v-if="count != null" class="dash-title-count">
-            {{ count.toLocaleString('en-CH') }} {{ countLabel }}
+            {{ count.toLocaleString('en-CH') }}
+            {{ countLabel === 'tests' ? $t('commons.dash_count_label') : countLabel }}
           </span>
         </h1>
         <div class="dash-head-actions">
           <slot name="head-actions" />
           <button class="btn btn-secondary btn-sm" @click="shareView">
             <v-icon :icon="mdiShare" size="14" />
-            Share view
+            {{ $t('commons.share_view') }}
           </button>
         </div>
       </div>
@@ -123,7 +124,15 @@ function shareView(): void {
     <div class="dash-toolbar">
       <div class="dash-search">
         <v-icon class="dash-search-icon" :icon="mdiMagnify" size="16" />
-        <input v-model="searchModel" type="search" :placeholder="searchPlaceholder" />
+        <input
+          v-model="searchModel"
+          type="search"
+          :placeholder="
+            searchPlaceholder === 'Search all columns…'
+              ? $t('commons.dash_search_placeholder')
+              : searchPlaceholder
+          "
+        />
       </div>
       <div class="dash-toolbar-spacer" />
       <button
@@ -131,7 +140,7 @@ function shareView(): void {
         @click="filtersOverlayOpen = true"
       >
         <v-icon :icon="mdiFilterVariant" size="14" />
-        Filters
+        {{ $t('commons.filters') }}
         <span v-if="railFilterCount > 0" class="dash-filters-trigger-badge">
           {{ railFilterCount }}
         </span>
@@ -140,13 +149,13 @@ function shareView(): void {
 
     <!-- Active filters -->
     <div v-if="activeChips.length > 0" class="dash-active-filters">
-      <strong>Active filters</strong>
+      <strong>{{ $t('commons.active_filters') }}</strong>
       <span v-for="chip in activeChips" :key="chip.key" class="fchip">
         {{ chip.label }}
         <span
           class="fchip-x"
           role="button"
-          :aria-label="`Remove filter ${chip.label}`"
+          :aria-label="$t('commons.remove_filter', { label: chip.label })"
           @click="emit('change:searches', chip.key, undefined)"
         >
           <v-icon :icon="mdiClose" size="10" />
@@ -154,7 +163,7 @@ function shareView(): void {
       </span>
       <button class="chip-clear" @click="clearAll">
         <v-icon :icon="mdiClose" size="10" />
-        Clear all
+        {{ $t('commons.clear_all') }}
       </button>
     </div>
 

@@ -9,6 +9,9 @@ import { computeUvcStress } from '@/utils/material'
 import type { LineSeriesOption } from 'echarts'
 import { zip } from 'lodash'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   material: MaterialModel
@@ -44,8 +47,7 @@ watch(
   () => props.material,
   (material) => {
     if (!hasValidUvcParameters.value) {
-      errorMessage.value =
-        'The graph cannot be displayed because the input material model parameters are not available.'
+      errorMessage.value = t('detail.material.error_message')
       return
     } else {
       errorMessage.value = ''
@@ -83,16 +85,16 @@ watch(
                 )
                 return [
                   {
-                    name: 'Test Data',
+                    name: t('detail.material.test_data'),
                     data: stressStrain
                   },
                   {
-                    name: 'Simulation',
+                    name: t('detail.material.simulation'),
                     data: uvc
                   }
                 ] as LineSeriesOption[]
               }),
-            title: 'True Stress Strain',
+            title: t('detail.material.true_stress_strain'),
             xAxisName: 'ε',
             yAxisName: 'σ [MPa]'
           }
@@ -126,70 +128,70 @@ watch(
       <v-row>
         <v-col cols="6">
           <div class="mb-5">
-            <h2 class="mb-2">Structural Steel Element</h2>
+            <h2 class="mb-2">{{ $t('detail.material.structural_steel_element') }}</h2>
             <p>
-              <property-item name="Profile type">
+              <property-item :name="$t('detail.material.profile_type')">
                 {{ material.profile_type }}
               </property-item>
-              <property-item name="Cross section">
+              <property-item :name="$t('detail.material.cross_section')">
                 {{ material.profile }} {{ material.source }}
               </property-item>
-              <property-item name="Reference round coupon">
+              <property-item :name="$t('detail.material.reference_round_coupon')">
                 {{ material.size }}
               </property-item>
-              <property-item name="Temperature" unit="°C">
+              <property-item :name="$t('detail.material.temperature')" unit="°C">
                 {{ material.t_a__deg_c_ }}
               </property-item>
             </p>
           </div>
           <div class="mb-5">
-            <h2 class="mb-2">Steel Material Designation</h2>
+            <h2 class="mb-2">{{ $t('detail.material.steel_material_designation') }}</h2>
             <p>
-              <property-item name="Steel type">
+              <property-item :name="$t('detail.material.steel_type')">
                 {{ material.grade }} {{ material.spec }}
               </property-item>
-              <property-item name="Nominal yield stress" unit="MPa">
+              <property-item :name="$t('detail.material.nominal_yield_stress')" unit="MPa">
                 {{ formatNumber(material.fy_n__mpa_) }}
               </property-item>
-              <property-item name="Measured yield stress" unit="MPa">
+              <property-item :name="$t('detail.material.measured_yield_stress')" unit="MPa">
                 {{ formatNumber(material.yield_stress__mpa_, 1) }}
               </property-item>
-              <property-item name="Nominal ultimate stress" unit="MPa">
+              <property-item :name="$t('detail.material.nominal_ultimate_stress')" unit="MPa">
                 {{ formatNumber(material.fu_n__mpa_) }}
               </property-item>
             </p>
           </div>
           <div class="mb-5">
-            <h2 class="mb-2">Material Model Parameters *</h2>
+            <h2 class="mb-2">{{ $t('detail.material.material_model_parameters') }}</h2>
             <p>
-              <property-item name="Young's modulus, E" unit="MPa">
+              <property-item :name="$t('detail.material.youngs_modulus')" unit="MPa">
                 {{ formatNumber((material.uvc_e__mpa_ ?? 0) * 1000, 1) }}
               </property-item>
-              <property-item name="Initial yield stress, σyo" unit="MPa">
+              <property-item :name="$t('detail.material.initial_yield_stress')" unit="MPa">
                 {{ formatNumber(material.uvc_sigma__mpa_, 1) }}
               </property-item>
-              <property-item name="Parameter for magnitude of isotropic hardening, Q" unit="MPa">
+              <property-item :name="$t('detail.material.isotropic_hardening_magnitude')" unit="MPa">
                 {{ formatNumber(material.uvc_q__mpa_, 1) }}
               </property-item>
-              <property-item name="Rate of isotropic hardening, b">
+              <property-item :name="$t('detail.material.isotropic_hardening_rate')">
                 {{ formatNumber(material.uvc_b, 1) }}
               </property-item>
-              <property-item name="Parameter for discount yielding, D" unit="MPa">
+              <property-item :name="$t('detail.material.discount_yielding_parameter')" unit="MPa">
                 {{ formatNumber(material.uvc_d__mpa_, 1) }}
               </property-item>
-              <property-item name="Rate of decrease for discount yielding, a">
+              <property-item :name="$t('detail.material.discount_yielding_rate')">
                 {{ formatNumber(material.uvc_a, 1) }}
               </property-item>
-              <property-item name="Magnitude of backstress 1, C1" unit="MPa">
+              <property-item :name="$t('detail.material.backstress_magnitude_1')" unit="MPa">
                 {{ formatNumber(material.uvc_c1__mpa_, 1) }}
               </property-item>
-              <property-item name="Magnitude of backstress 2, C2" unit="MPa">
+              <property-item :name="$t('detail.material.backstress_magnitude_2')" unit="MPa">
                 {{ formatNumber(material.uvc_c2__mpa_, 1) }}
               </property-item>
-              <property-item name="Rate of backstress 1, γ1">
+              <property-item :name="$t('detail.material.backstress_rate_1')">
                 {{ formatNumber(material.uvc_g1, 1) }}
               </property-item>
-              <property-item name="Rate of backstress 2, γ2">
+              <property-item :name="$t('detail.material.backstress_rate_2')">
                 {{ formatNumber(material.uvc_g2, 1) }}
               </property-item>
             </p>
@@ -201,7 +203,7 @@ watch(
       </v-row>
       <v-row>
         <v-col>
-          * The material model is based on
+          {{ $t('detail.material.model_footnote') }}
           <a
             href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
             target="_blank"
