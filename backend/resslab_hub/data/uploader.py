@@ -24,6 +24,7 @@ from sqlalchemy import (
     String,
     create_engine,
     delete,
+    insert,
 )
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
@@ -354,17 +355,20 @@ class CsvFileUploader(Uploader):
 
     def __init__(
         self,
+        base_model: Any,
         get_delete: Callable[[str], delete],
-        get_instance: Callable[[str, int, dict[str, str]], Any],
+        get_instance: Callable[[str, int, dict[str, str]], dict[str, Any]],
         filename_prefix="",
         filename_suffix="",
     ) -> None:
         """
         Initialize uploader for measurement data
+        - base_model: SQLAlchemy model defining the measurement table schema
         - get_delete: Function to remove existing measurements
-        - get_instance: Function to create new measurement records
+        - get_instance: Function returning a column->value mapping for one row
         - filename_prefix/suffix: For extracting parent ID from filename
         """
+        self.base_model = base_model
         self.get_delete = get_delete
         self.get_instance = get_instance
         self.filename_prefix = filename_prefix
@@ -394,14 +398,16 @@ class CsvFileUploader(Uploader):
                 reader = DictReader(file, strict=True)
                 session.execute(self.get_delete(id))
                 # The parent's rows are deleted and fully re-inserted, so there
-                # is no merge/identity to resolve -- skip the per-row unit-of-work
-                # and bulk insert every row in a single executemany.
-                instances = [
+                # is no merge/identity to resolve. Build plain column->value
+                # mappings (no ORM objects) and let Core batch them into
+                # multi-row INSERTs via insertmanyvalues.
+                mappings = [
                     self.get_instance(id, index, value)
                     for index, value in enumerate(reader)
                 ]
                 try:
-                    session.bulk_save_objects(instances)
+                    if mappings:
+                        session.execute(insert(self.base_model), mappings)
                     session.commit()
                     return path.basename(file_path)
                 except IntegrityError as e:
@@ -456,10 +462,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 uploader = TableUploader(TensileCoupon)
             case Type.TENSILE_COUPON_STRESS_STRAIN:
                 uploader = CsvFileUploader(
+                    TensileCouponStressStrain,
                     lambda id: delete(TensileCouponStressStrain).where(
                         TensileCouponStressStrain.tensile_coupon_id == id
                     ),
-                    lambda id, index, value: TensileCouponStressStrain(
+                    lambda id, index, value: dict(
                         tensile_coupon_id=id,
                         id=index,
                         stress=value.get("Sigma_true"),
@@ -468,11 +475,12 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE:
                 uploader = CsvFileUploader(
+                    EccentricBracedFrameShearLinkAngle,
                     lambda id: delete(EccentricBracedFrameShearLinkAngle).where(
                         EccentricBracedFrameShearLinkAngle.eccentric_braced_frame_id
                         == id
                     ),
-                    lambda id, index, value: EccentricBracedFrameShearLinkAngle(
+                    lambda id, index, value: dict(
                         eccentric_braced_frame_id=id,
                         id=index,
                         gamma_t=value.get("gamma_t"),
@@ -482,10 +490,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.BRACE_DISPLACEMENT:
                 uploader = CsvFileUploader(
+                    BraceDisplacement,
                     lambda id: delete(BraceDisplacement).where(
                         BraceDisplacement.brace_id == id
                     ),
-                    lambda id, index, value: BraceDisplacement(
+                    lambda id, index, value: dict(
                         brace_id=id,
                         id=index,
                         displacement=value.get("Displacement [mm]"),
@@ -494,10 +503,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.COLUMN_AXIAL_SHORTENING:
                 uploader = CsvFileUploader(
+                    ColumnAxialShortening,
                     lambda id: delete(ColumnAxialShortening).where(
                         ColumnAxialShortening.column_id == id
                     ),
-                    lambda id, index, value: ColumnAxialShortening(
+                    lambda id, index, value: dict(
                         column_id=id,
                         id=index,
                         chord_rotation=value.get("Chord Rotation [rads]"),
@@ -506,10 +516,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.COLUMN_MOMENT_STRONG:
                 uploader = CsvFileUploader(
+                    ColumnMomentStrong,
                     lambda id: delete(ColumnMomentStrong).where(
                         ColumnMomentStrong.column_id == id
                     ),
-                    lambda id, index, value: ColumnMomentStrong(
+                    lambda id, index, value: dict(
                         column_id=id,
                         id=index,
                         chord_rotation=value.get("Chord Rotation [rads]"),
@@ -518,10 +529,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.COLUMN_MOMENT_WEAK:
                 uploader = CsvFileUploader(
+                    ColumnMomentWeak,
                     lambda id: delete(ColumnMomentWeak).where(
                         ColumnMomentWeak.column_id == id
                     ),
-                    lambda id, index, value: ColumnMomentWeak(
+                    lambda id, index, value: dict(
                         column_id=id,
                         id=index,
                         chord_rotation=value.get("Chord Rotation [rads]"),
@@ -530,10 +542,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.CONNECTION_BEAM:
                 uploader = CsvFileUploader(
+                    ConnectionBeam,
                     lambda id: delete(ConnectionBeam).where(
                         ConnectionBeam.connection_id == id
                     ),
-                    lambda id, index, value: ConnectionBeam(
+                    lambda id, index, value: dict(
                         connection_id=id,
                         id=index,
                         chord_rotation=value.get("Chord Rotation [rads]")
@@ -543,10 +556,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.CONNECTION_BEAM_WEST:
                 uploader = CsvFileUploader(
+                    ConnectionBeamWest,
                     lambda id: delete(ConnectionBeamWest).where(
                         ConnectionBeamWest.connection_id == id
                     ),
-                    lambda id, index, value: ConnectionBeamWest(
+                    lambda id, index, value: dict(
                         connection_id=id,
                         id=index,
                         chord_rotation=value.get("Chord Rotation [rads]")
@@ -556,10 +570,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.CONNECTION_GLOBAL:
                 uploader = CsvFileUploader(
+                    ConnectionGlobal,
                     lambda id: delete(ConnectionGlobal).where(
                         ConnectionGlobal.connection_id == id
                     ),
-                    lambda id, index, value: ConnectionGlobal(
+                    lambda id, index, value: dict(
                         connection_id=id,
                         id=index,
                         story_drift_angle=value.get("Total story drift angle (rad)"),
@@ -568,10 +583,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.CONNECTION_GLOBAL_WEST:
                 uploader = CsvFileUploader(
+                    ConnectionGlobalWest,
                     lambda id: delete(ConnectionGlobalWest).where(
                         ConnectionGlobalWest.connection_id == id
                     ),
-                    lambda id, index, value: ConnectionGlobalWest(
+                    lambda id, index, value: dict(
                         connection_id=id,
                         id=index,
                         story_drift_angle=value.get("Total story drift angle (rad)"),
@@ -580,10 +596,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.CONNECTION_PANEL_ZONE:
                 uploader = CsvFileUploader(
+                    ConnectionPanelZone,
                     lambda id: delete(ConnectionPanelZone).where(
                         ConnectionPanelZone.connection_id == id
                     ),
-                    lambda id, index, value: ConnectionPanelZone(
+                    lambda id, index, value: dict(
                         connection_id=id,
                         id=index,
                         shear_distortion=value.get("panel zone shear distortion (rad)"),
@@ -592,10 +609,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.MATERIAL_STRESS_STRAIN:
                 uploader = CsvFileUploader(
+                    MaterialStressStrain,
                     lambda id: delete(MaterialStressStrain).where(
                         MaterialStressStrain.material_id == id
                     ),
-                    lambda id, index, value: MaterialStressStrain(
+                    lambda id, index, value: dict(
                         material_id=id,
                         id=index,
                         stress=value.get("Sigma_true"),
@@ -604,10 +622,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
                 uploader = CsvFileUploader(
+                    ResidualStressDistributionF1,
                     lambda id: delete(ResidualStressDistributionF1).where(
                         ResidualStressDistributionF1.residual_stress_id == id
                     ),
-                    lambda id, index, value: ResidualStressDistributionF1(
+                    lambda id, index, value: dict(
                         residual_stress_id=id,
                         id=index,
                         coordinate=value.get("coordinate"),
@@ -616,10 +635,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.RESIDUAL_STRESS_DISTRIBUTION_F2:
                 uploader = CsvFileUploader(
+                    ResidualStressDistributionF2,
                     lambda id: delete(ResidualStressDistributionF2).where(
                         ResidualStressDistributionF2.residual_stress_id == id
                     ),
-                    lambda id, index, value: ResidualStressDistributionF2(
+                    lambda id, index, value: dict(
                         residual_stress_id=id,
                         id=index,
                         coordinate=value.get("coordinate"),
@@ -628,10 +648,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.RESIDUAL_STRESS_DISTRIBUTION_W1:
                 uploader = CsvFileUploader(
+                    ResidualStressDistributionW1,
                     lambda id: delete(ResidualStressDistributionW1).where(
                         ResidualStressDistributionW1.residual_stress_id == id
                     ),
-                    lambda id, index, value: ResidualStressDistributionW1(
+                    lambda id, index, value: dict(
                         residual_stress_id=id,
                         id=index,
                         coordinate=value.get("coordinate"),
@@ -640,10 +661,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.RESIDUAL_STRESS_QP_COEFFICIENT:
                 uploader = CsvFileUploader(
+                    ResidualStressQPCoefficient,
                     lambda id: delete(ResidualStressQPCoefficient).where(
                         ResidualStressQPCoefficient.residual_stress_id == id
                     ),
-                    lambda id, index, value: ResidualStressQPCoefficient(
+                    lambda id, index, value: dict(
                         residual_stress_id=id,
                         id=index,
                         qp_coefficient=value.get("qp_coefficient"),
@@ -651,10 +673,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.HSS_COLUMN_MOMENT_ROTATION:
                 uploader = CsvFileUploader(
+                    HSSColumnMomentRotation,
                     lambda id: delete(HSSColumnMomentRotation).where(
                         HSSColumnMomentRotation.hss_column_id == id
                     ),
-                    lambda id, index, value: HSSColumnMomentRotation(
+                    lambda id, index, value: dict(
                         hss_column_id=id,
                         id=index,
                         rotation=value.get("rotation (rad)"),
@@ -665,10 +688,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 uploader = TableUploader(DuctileFracture)
             case Type.DUCTILE_FRACTURE_FORCE_ELONGATION:
                 uploader = CsvFileUploader(
+                    DuctileFractureForceElongation,
                     lambda id: delete(DuctileFractureForceElongation).where(
                         DuctileFractureForceElongation.ductile_fracture_id == id
                     ),
-                    lambda id, index, value: DuctileFractureForceElongation(
+                    lambda id, index, value: dict(
                         ductile_fracture_id=id,
                         id=index,
                         elongation=value.get("Elongation [mm]"),
@@ -677,11 +701,12 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.DUCTILE_FRACTURE_FORCE_ELONGATION_SIMULATION:
                 uploader = CsvFileUploader(
+                    DuctileFractureForceElongationSimulation,
                     lambda id: delete(DuctileFractureForceElongationSimulation).where(
                         DuctileFractureForceElongationSimulation.ductile_fracture_id
                         == id
                     ),
-                    lambda id, index, value: DuctileFractureForceElongationSimulation(
+                    lambda id, index, value: dict(
                         ductile_fracture_id=id,
                         id=index,
                         elongation=value.get("Elongation [mm]"),
@@ -690,10 +715,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.DUCTILE_FRACTURE_FORCE_RADIAL:
                 uploader = CsvFileUploader(
+                    DuctileFractureForceRadial,
                     lambda id: delete(DuctileFractureForceRadial).where(
                         DuctileFractureForceRadial.ductile_fracture_id == id
                     ),
-                    lambda id, index, value: DuctileFractureForceRadial(
+                    lambda id, index, value: dict(
                         ductile_fracture_id=id,
                         id=index,
                         elongation=value.get("Radial elongation [mm]"),
@@ -702,10 +728,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.DUCTILE_FRACTURE_FORCE_RADIAL_SIMULATION:
                 uploader = CsvFileUploader(
+                    DuctileFractureForceRadialSimulation,
                     lambda id: delete(DuctileFractureForceRadialSimulation).where(
                         DuctileFractureForceRadialSimulation.ductile_fracture_id == id
                     ),
-                    lambda id, index, value: DuctileFractureForceRadialSimulation(
+                    lambda id, index, value: dict(
                         ductile_fracture_id=id,
                         id=index,
                         elongation=value.get("Radial elongation [mm]"),
@@ -714,10 +741,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.DUCTILE_FRACTURE_EPEQ_SIMULATION:
                 uploader = CsvFileUploader(
+                    DuctileFractureEpeqSimulation,
                     lambda id: delete(DuctileFractureEpeqSimulation).where(
                         DuctileFractureEpeqSimulation.ductile_fracture_id == id
                     ),
-                    lambda id, index, value: DuctileFractureEpeqSimulation(
+                    lambda id, index, value: dict(
                         ductile_fracture_id=id,
                         id=index,
                         elongation=value.get("Elongation [mm]"),
@@ -726,10 +754,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.DUCTILE_FRACTURE_LODE_SIMULATION:
                 uploader = CsvFileUploader(
+                    DuctileFractureLodeSimulation,
                     lambda id: delete(DuctileFractureLodeSimulation).where(
                         DuctileFractureLodeSimulation.ductile_fracture_id == id
                     ),
-                    lambda id, index, value: DuctileFractureLodeSimulation(
+                    lambda id, index, value: dict(
                         ductile_fracture_id=id,
                         id=index,
                         elongation=value.get("Elongation [mm]"),
@@ -738,10 +767,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.DUCTILE_FRACTURE_TRIAX_SIMULATION:
                 uploader = CsvFileUploader(
+                    DuctileFractureTriaxSimulation,
                     lambda id: delete(DuctileFractureTriaxSimulation).where(
                         DuctileFractureTriaxSimulation.ductile_fracture_id == id
                     ),
-                    lambda id, index, value: DuctileFractureTriaxSimulation(
+                    lambda id, index, value: dict(
                         ductile_fracture_id=id,
                         id=index,
                         elongation=value.get("Elongation [mm]"),
