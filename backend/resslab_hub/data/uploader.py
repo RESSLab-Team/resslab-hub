@@ -9,6 +9,7 @@ from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from glob import iglob
+from io import StringIO
 from logging import debug, error, getLogger, info, warning
 from multiprocessing import get_context
 from os import path
@@ -24,9 +25,7 @@ from sqlalchemy import (
     String,
     create_engine,
     delete,
-    insert,
 )
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
 from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
@@ -341,6 +340,26 @@ class TableUploader(Uploader):
         return str(value)
 
 
+def _copy_encode(value: Any) -> str:
+    """
+    Encode one value for a ``COPY ... FROM STDIN`` text-format stream.
+
+    ``None`` becomes the NULL marker (``\\N``); an empty string stays an empty
+    field, so it still fails a numeric column exactly as the previous INSERT
+    did -- keeping skip behaviour identical. Backslash and the field/record
+    separators are escaped per the COPY text format.
+    """
+    if value is None:
+        return r"\N"
+    return (
+        str(value)
+        .replace("\\", "\\\\")
+        .replace("\t", "\\t")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+    )
+
+
 # Handles measurement data that belongs to parent records
 class CsvFileUploader(Uploader):
     """
@@ -399,24 +418,43 @@ class CsvFileUploader(Uploader):
                 session.execute(self.get_delete(id))
                 # The parent's rows are deleted and fully re-inserted, so there
                 # is no merge/identity to resolve. Build plain column->value
-                # mappings (no ORM objects) and let Core batch them into
-                # multi-row INSERTs via insertmanyvalues.
+                # mappings (no ORM objects) and stream them in with a single
+                # COPY -- far cheaper than batched INSERTs.
                 mappings = [
                     self.get_instance(id, index, value)
                     for index, value in enumerate(reader)
                 ]
                 try:
                     if mappings:
-                        session.execute(insert(self.base_model), mappings)
+                        self.__copy(connection, mappings)
                     session.commit()
                     return path.basename(file_path)
-                except IntegrityError as e:
+                except Exception:
                     session.rollback()
-                    raise Exception(e.orig)
+                    raise
         except Exception as e:
             error_message = f"skiping {file_path} due to error {e}"
             error(error_message)
             return error_message
+
+    def __copy(self, connection, mappings: List[dict]) -> None:
+        """
+        Bulk-load row mappings into the table with a single COPY ... FROM STDIN,
+        running on the session's existing transaction so it commits/rolls back
+        together with the preceding delete.
+        """
+        columns = list(mappings[0].keys())
+        buffer = StringIO()
+        for row in mappings:
+            buffer.write("\t".join(_copy_encode(row[column]) for column in columns))
+            buffer.write("\n")
+        buffer.seek(0)
+        column_list = ", ".join(f'"{column}"' for column in columns)
+        table_name = self.base_model.__table__.name
+        statement = f'COPY "{table_name}" ({column_list}) FROM STDIN'
+        dbapi_connection = connection.connection.driver_connection
+        with dbapi_connection.cursor() as cursor:
+            cursor.copy_expert(statement, buffer)
 
     @staticmethod
     def __get_filename(file_path: str) -> str:
