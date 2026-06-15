@@ -14,6 +14,7 @@ const props = defineProps<{
   ductileFractureId: string
   location?: SemLocation
   magnification?: SemMagnification
+  surface?: number
 }>()
 
 const series = ref<LineSeriesOption[]>([])
@@ -21,13 +22,13 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 
 watch(
-  () => [props.ductileFractureId, props.location, props.magnification] as const,
-  async ([id, location, magnification]) => {
+  () => [props.ductileFractureId, props.location, props.magnification, props.surface] as const,
+  async ([id, location, magnification, surface]) => {
     loading.value = true
     error.value = null
     series.value = []
     try {
-      const url = semDimplesUrl(id, location, magnification)
+      const url = semDimplesUrl(id, location, magnification, surface)
       const diameters = await fetchDimples(url)
       series.value = [{ data: computeCdf(diameters) }]
     } catch (e) {
