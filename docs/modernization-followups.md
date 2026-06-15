@@ -14,6 +14,41 @@ Status of the dependency-modernization pass on `perf/performance-improvements`
 | Frontend framework | Vue 3.3 → **3.5**, Vuetify 3.3 → **3.12**, vue-router/pinia/echarts/axios bumped; `vuetify/labs/VDataTable` → `vuetify/components` |
 | Backend API | FastAPI 0.95 → **0.115**, **Pydantic v1 → v2**, uvicorn 0.22 → 0.49, Python 3.13 unblocked (`requires-python <3.14`) |
 
+## Upload ingestion perf (done on this branch)
+
+`make upload-data` / the `/upload` endpoint, profiled and optimized against the
+live local DB (resslab-hub-data, ~11.3M measurement rows). End-to-end wall time
+**3:44.8 → 1:22.6 (−63%)**, with per-table row counts and the skipped-file set
+**identical at every step** (16 pre-existing data issues reproduced exactly).
+
+| Step | Commit | Wall | Change |
+|---|---|---|---|
+| Original (per-row ORM `merge`/`add`) | — | 3:44.8 | — |
+| `bulk_save_objects` + UTF-8 encoding fast-path | `58484a7` | 2:28.8 | −34% |
+| Core `insert()` + dict mappings | `72825bb` | 1:50.8 | −51% |
+| `COPY FROM STDIN` (text format) | `86c34a7` | 1:22.6 | −63% |
+
+What the profiling showed (`backend/resslab_hub/data/uploader.py`,
+`common.py`):
+- **Encoding** (`get_file_encoding`): strict full-file `utf-8-sig` decode first,
+  `chardet` only on fallback — every byte still checked, no sampling. Was ~real,
+  now 0.3% of the work.
+- **Core insert's win came from dropping ORM object construction** (build-rows
+  phase 251s → 27s), *not* faster inserts — `insertmanyvalues` batching only cut
+  the insert itself ~11%. That left INSERT at **93%** of measurement work, which
+  justified COPY.
+- **COPY** streams each file in one op (vs ~1 statement per 1,000 rows). Text
+  format keeps skip behaviour identical: `None` → `\N` (NULL), empty string
+  stays empty (still fails numeric columns → same files skipped); runs on the
+  session's transaction so delete + COPY commit/roll back together.
+- The `TableUploader` per-row `merge` → upsert idea was **dropped**: entity
+  tables total ~1.6k rows (~6s), not worth it.
+
+Remaining headroom is **parallelism-bound** — with 15 cores the wall is now the
+critical path of the single largest file, not total insert work. Further gains
+would need load-balancing the few giant files across workers (diminishing
+returns), not a different insert mechanism.
+
 ## Required follow-up (created by this work)
 
 - **`make api` — regenerate the frontend client under OpenAPI 3.1.**
