@@ -1,11 +1,10 @@
 import { createVuetify } from 'vuetify'
+import { VDataTableServer } from 'vuetify/components'
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
-import { VDataTableFooter, VDataTableServer } from 'vuetify/labs/VDataTable'
 import 'vuetify/styles'
 
 export default createVuetify({
   components: {
-    VDataTableFooter,
     VDataTableServer
   },
   icons: {
