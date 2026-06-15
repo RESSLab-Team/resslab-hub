@@ -36,7 +36,8 @@ import {
   type LocationTensileCoupon
 } from '@/utils/overviewmap'
 import { PieChart, scaleColor, scaleRadius } from '@/utils/piechart'
-import { rollups, select } from 'd3'
+import { rollups } from 'd3-array'
+import { select } from 'd3-selection'
 import {
   Control,
   DivIcon,
