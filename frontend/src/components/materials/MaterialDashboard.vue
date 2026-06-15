@@ -13,8 +13,11 @@ import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { apricot, periwinkle, plum } from '@/utils/vuetify'
 import { mdiCalendarRange, mdiPulse, mdiTune } from '@mdi/js'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -42,10 +45,10 @@ const profileThicknessFields: DoubleFields<MaterialField> = [
   MaterialField.ProfileType
 ]
 
-const railGroups: FilterRailGroup[] = [
+const railGroups = computed<FilterRailGroup[]>(() => [
   {
     key: MaterialField.Year,
-    label: 'Test year',
+    label: t('dashboards.material.rail_test_year'),
     icon: mdiCalendarRange,
     type: 'range',
     min: 1970,
@@ -53,35 +56,33 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: MaterialField.YieldStressMpa,
-    label: 'Yield stress [MPa]',
+    label: t('dashboards.material.rail_yield_stress'),
     icon: mdiPulse,
     type: 'range'
   },
   {
     key: MaterialField.FractureStrain,
-    label: 'Fracture strain',
+    label: t('dashboards.material.rail_fracture_strain'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: MaterialField.Thickness,
-    label: 'Thickness [mm]',
+    label: t('dashboards.material.rail_thickness'),
     icon: mdiTune,
     type: 'range'
   }
-]
+])
 </script>
 
 <template>
   <dashboard-shell
     v-model:search="search"
-    eyebrow="Materials · Database"
-    title="Cyclic Coupons"
+    :eyebrow="$t('dashboards.common.eyebrow_materials')"
+    :title="$t('dashboards.material.title')"
     :count="countsStore.counts.cyclic"
     count-label="coupons"
-    description="Cyclic coupon tests on structural steels with calibrated Updated Voce-Chaboche
-      material model parameters. Filter through the filters panel, the table column filters or
-      the charts below; click a row for the full coupon detail and digitized stress-strain data."
+    :description="$t('dashboards.material.description')"
     i18n-prefix="material."
     :rail-groups="railGroups"
     :searches="searches"
@@ -101,7 +102,11 @@ const railGroups: FilterRailGroup[] = [
 
     <template #charts>
       <div class="charts-strip">
-        <chart-cell quiet title="Steel type" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.material.chart_steel_type')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <material-single-chart
             :color="plum"
             :field="MaterialField.Type"
@@ -111,7 +116,10 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell title="Coupons per year × profile type" hint="Click legend to filter">
+        <chart-cell
+          :title="$t('dashboards.material.chart_coupons_per_year_profile')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+        >
           <material-double-chart
             :color="periwinkle"
             :fields="profileFields"
@@ -120,7 +128,10 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell title="Thickness × profile type" hint="Stacked histogram · click bar or legend">
+        <chart-cell
+          :title="$t('dashboards.material.chart_thickness_profile')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
+        >
           <material-double-chart
             :color="apricot"
             :fields="profileThicknessFields"

@@ -14,8 +14,11 @@ import { useCountsStore } from '@/stores/counts'
 import { sectionTypeMapping } from '@/utils/ebf'
 import { cobalt, mauve, mint, peach, sky } from '@/utils/vuetify'
 import { mdiCalendarRange, mdiPulse, mdiTagOutline, mdiTune } from '@mdi/js'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -52,10 +55,10 @@ const yearLinkFields: DoubleFields<EccentricBracedFrameField> = [
   }
 ]
 
-const railGroups: FilterRailGroup[] = [
+const railGroups = computed<FilterRailGroup[]>(() => [
   {
     key: EccentricBracedFrameField.Year,
-    label: 'Test year',
+    label: t('dashboards.ebf.rail_test_year'),
     icon: mdiCalendarRange,
     type: 'range',
     min: 1970,
@@ -63,13 +66,13 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: EccentricBracedFrameField.E,
-    label: 'Link length e [mm]',
+    label: t('dashboards.ebf.rail_link_length'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: EccentricBracedFrameField.ClassAisc,
-    label: 'Link classification (AISC)',
+    label: t('dashboards.ebf.rail_link_classification'),
     icon: mdiTagOutline,
     type: 'chips',
     options: [
@@ -80,23 +83,20 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: EccentricBracedFrameField.OvAisc,
-    label: 'Overstrength Ω (AISC)',
+    label: t('dashboards.ebf.rail_overstrength'),
     icon: mdiPulse,
     type: 'range'
   }
-]
+])
 </script>
 
 <template>
   <dashboard-shell
     v-model:search="search"
-    eyebrow="Components · Database"
-    title="EBF Links"
+    :eyebrow="$t('dashboards.common.eyebrow_components')"
+    :title="$t('dashboards.ebf.title')"
     :count="countsStore.counts.ebf"
-    description="Eccentrically braced frame link tests, classified per AISC-341 link length
-      categories across isolated, frame and system test configurations. Filter through the
-      filters panel, the table column filters or the charts below; click a row for the full
-      specimen detail and digitized test data."
+    :description="$t('dashboards.ebf.description')"
     i18n-prefix="ebf."
     :rail-groups="railGroups"
     :searches="searches"
@@ -116,7 +116,10 @@ const railGroups: FilterRailGroup[] = [
 
     <template #charts>
       <div class="charts-strip charts-strip-2cols">
-        <chart-cell title="Tests per year × section type" hint="Click legend to filter">
+        <chart-cell
+          :title="$t('dashboards.ebf.chart_tests_per_year_section')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+        >
           <ebf-double-chart
             :color="peach"
             :fields="yearSectionFields"
@@ -125,7 +128,10 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell title="Tests per year × link classification" hint="Click legend to filter">
+        <chart-cell
+          :title="$t('dashboards.ebf.chart_tests_per_year_classification')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+        >
           <ebf-double-chart
             :color="mauve"
             :fields="yearLinkFields"
@@ -137,7 +143,11 @@ const railGroups: FilterRailGroup[] = [
       </div>
 
       <div class="charts-strip">
-        <chart-cell quiet title="Loading protocol" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.ebf.chart_loading_protocol')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <ebf-single-chart
             :color="cobalt"
             :field="EccentricBracedFrameField.LPTyp"
@@ -147,7 +157,11 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell quiet title="Test configuration" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.ebf.chart_test_configuration')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <ebf-single-chart
             :color="mint"
             :field="EccentricBracedFrameField.LConfi"
@@ -157,7 +171,11 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell quiet title="Steel grade" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.ebf.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <ebf-single-chart
             :color="sky"
             :field="EccentricBracedFrameField.SgFlgLink"

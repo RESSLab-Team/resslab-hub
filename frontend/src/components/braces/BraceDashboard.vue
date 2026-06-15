@@ -13,8 +13,11 @@ import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { apricot, mauve, sky } from '@/utils/vuetify'
 import { mdiCalendarRange, mdiPulse, mdiTune } from '@mdi/js'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -40,10 +43,10 @@ const boundaryConditionFields: DoubleFields<BraceField> = [
   BraceField.BoundaryCondition
 ]
 
-const railGroups: FilterRailGroup[] = [
+const railGroups = computed<FilterRailGroup[]>(() => [
   {
     key: BraceField.Date,
-    label: 'Test date',
+    label: t('dashboards.brace.rail_test_date'),
     icon: mdiCalendarRange,
     type: 'range',
     min: 1970,
@@ -51,29 +54,26 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: BraceField.KlR,
-    label: 'Slenderness kL/r',
+    label: t('dashboards.brace.rail_slenderness'),
     icon: mdiPulse,
     type: 'range'
   },
   {
     key: BraceField.DBr,
-    label: 'Section depth d [mm]',
+    label: t('dashboards.brace.rail_section_depth'),
     icon: mdiTune,
     type: 'range'
   }
-]
+])
 </script>
 
 <template>
   <dashboard-shell
     v-model:search="search"
-    eyebrow="Components · Database"
-    title="Braces"
+    :eyebrow="$t('dashboards.common.eyebrow_components')"
+    :title="$t('dashboards.brace.title')"
     :count="countsStore.counts.braces"
-    description="Steel brace tests under reversed cyclic axial loading, covering a range of
-      cross-section shapes, slenderness ratios and boundary conditions. Filter through the
-      filters panel, the table column filters or the charts below; click a row for the full
-      specimen detail and digitized test data."
+    :description="$t('dashboards.brace.description')"
     i18n-prefix="brace."
     :rail-groups="railGroups"
     :searches="searches"
@@ -93,7 +93,11 @@ const railGroups: FilterRailGroup[] = [
 
     <template #charts>
       <div class="charts-strip">
-        <chart-cell quiet title="Loading protocol" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.brace.chart_loading_protocol')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <brace-single-chart
             :color="apricot"
             :field="BraceField.LoadingProtocol"
@@ -103,7 +107,10 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell title="Tests per year × boundary condition" hint="Click legend to filter">
+        <chart-cell
+          :title="$t('dashboards.brace.chart_tests_per_year_bc')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+        >
           <brace-double-chart
             :color="sky"
             :fields="boundaryConditionFields"
@@ -112,7 +119,11 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell quiet title="Steel grade" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.brace.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <brace-single-chart
             :color="mauve"
             :field="BraceField.Steel"

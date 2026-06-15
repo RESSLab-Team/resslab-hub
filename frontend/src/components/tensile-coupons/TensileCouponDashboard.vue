@@ -13,8 +13,11 @@ import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { mauve, mint, sky } from '@/utils/vuetify'
 import { mdiCalendarRange, mdiPulse, mdiTune } from '@mdi/js'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -52,10 +55,10 @@ const profileThicknessFields: DoubleFields<TensileCouponField> = [
   TensileCouponField.ProfileType
 ]
 
-const railGroups: FilterRailGroup[] = [
+const railGroups = computed<FilterRailGroup[]>(() => [
   {
     key: TensileCouponField.Year,
-    label: 'Test year',
+    label: t('dashboards.tensile_coupon.rail_test_year'),
     icon: mdiCalendarRange,
     type: 'range',
     min: 1970,
@@ -63,42 +66,39 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: TensileCouponField.YieldStress02Mpa,
-    label: 'Yield stress (0.2%) [MPa]',
+    label: t('dashboards.tensile_coupon.rail_yield_stress'),
     icon: mdiPulse,
     type: 'range'
   },
   {
     key: TensileCouponField.ElongationAtFracture,
-    label: 'Elongation at fracture',
+    label: t('dashboards.tensile_coupon.rail_elongation_at_fracture'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: TensileCouponField.ReductionOfArea,
-    label: 'Reduction of area',
+    label: t('dashboards.tensile_coupon.rail_reduction_of_area'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: TensileCouponField.AvgInitReducedThicknessMm,
-    label: 'Thickness [mm]',
+    label: t('dashboards.tensile_coupon.rail_thickness'),
     icon: mdiTune,
     type: 'range'
   }
-]
+])
 </script>
 
 <template>
   <dashboard-shell
     v-model:search="search"
-    eyebrow="Materials · Database"
-    title="Tensile Coupons"
+    :eyebrow="$t('dashboards.common.eyebrow_materials')"
+    :title="$t('dashboards.tensile_coupon.title')"
     :count="countsStore.counts.tensile"
     count-label="coupons"
-    description="Monotonic tensile coupon tests on structural steels, with engineering
-      stress-strain curves and standardized mechanical properties. Filter through the filters
-      panel, the table column filters or the charts below; click a row for the full coupon
-      detail and digitized stress-strain data."
+    :description="$t('dashboards.tensile_coupon.description')"
     i18n-prefix="tensile_coupon."
     :rail-groups="railGroups"
     :searches="searches"
@@ -118,7 +118,11 @@ const railGroups: FilterRailGroup[] = [
 
     <template #charts>
       <div class="charts-strip">
-        <chart-cell quiet title="Steel grade" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.tensile_coupon.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <tensile-coupon-single-chart
             :color="sky"
             :field="TensileCouponField.SteelGrade"
@@ -128,7 +132,10 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell title="Coupons per year × profile type" hint="Click legend to filter">
+        <chart-cell
+          :title="$t('dashboards.tensile_coupon.chart_coupons_per_year_profile')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+        >
           <tensile-coupon-double-chart
             :color="mint"
             :fields="profileYearFields"
@@ -137,7 +144,10 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell title="Thickness × profile type" hint="Stacked histogram · click bar or legend">
+        <chart-cell
+          :title="$t('dashboards.tensile_coupon.chart_thickness_profile')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
+        >
           <tensile-coupon-double-chart
             :color="mauve"
             :fields="profileThicknessFields"

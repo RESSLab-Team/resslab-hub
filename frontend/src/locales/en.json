@@ -309,5 +309,131 @@
       "series_local_buckling": "Local Buckling",
       "series_ductile_tearing": "Ductile Tearing"
     }
+  },
+  "dashboards": {
+    "common": {
+      "eyebrow_components": "Components · Database",
+      "eyebrow_materials": "Materials · Database",
+      "hint_click_to_filter": "Click to filter",
+      "hint_click_legend_to_filter": "Click legend to filter",
+      "hint_click_tile_to_filter": "Click a tile to filter",
+      "hint_stacked_histogram": "Stacked histogram · click bar or legend"
+    },
+    "brace": {
+      "title": "Braces",
+      "description": "Steel brace tests under reversed cyclic axial loading, covering a range of cross-section shapes, slenderness ratios and boundary conditions. Filter through the filters panel, the table column filters or the charts below; click a row for the full specimen detail and digitized test data.",
+      "rail_test_date": "Test date",
+      "rail_slenderness": "Slenderness kL/r",
+      "rail_section_depth": "Section depth d [mm]",
+      "chart_loading_protocol": "Loading protocol",
+      "chart_tests_per_year_bc": "Tests per year × boundary condition",
+      "chart_steel_grade": "Steel grade"
+    },
+    "column": {
+      "title": "Columns",
+      "description": "Wide-flange steel column tests under combined axial load and cyclic lateral drift, covering hot-rolled and built-up sections. Filter through the filters panel, the table column filters or the charts below; click a row for the full specimen detail and digitized test data.",
+      "rail_test_date": "Test date",
+      "rail_fabrication": "Fabrication",
+      "rail_column_depth": "Column depth dc [mm]",
+      "rail_axial_load_ratio": "Axial load ratio Pg/Py",
+      "rail_slenderness": "Slenderness Lb/ry",
+      "chart_steel_grade": "Steel grade",
+      "chart_tests_per_year_bc": "Tests per year × boundary condition",
+      "chart_column_depth_fabrication": "Column depth × fabrication"
+    },
+    "connection": {
+      "title": "Connections",
+      "description": "Beam-to-column moment connection tests under reversed cyclic and monotonic loading, categorized per AISC-358-16. Filter through the filters panel, the table column filters or the charts below; click a row for the full specimen detail and digitized test data.",
+      "rail_connection_type": "Connection type",
+      "rail_test_date": "Test date",
+      "rail_northridge": "Northridge",
+      "rail_specimen_type": "Specimen type",
+      "rail_composite_slab": "Composite slab",
+      "rail_doubler_plates": "Doubler plates",
+      "rail_beam_depth": "Beam depth db [mm]",
+      "rail_column_flange": "Column flange tcf [mm]",
+      "rail_panel_zone": "Panel-zone γmax/γy",
+      "chart_connection_type": "Connection type",
+      "chart_tests_per_year_type": "Tests per year × type",
+      "chart_beam_steel_grade": "Beam steel grade",
+      "chart_beam_depth_slab": "Beam depth × slab",
+      "chart_column_depth_doubler_plates": "Column depth × doubler plates"
+    },
+    "hss": {
+      "title": "HSS Columns",
+      "description": "Hollow structural section column tests under combined axial load and cyclic lateral loading, covering a range of depth-to-thickness ratios and loading angles. Filter through the filters panel, the table column filters or the charts below; click a row for the full specimen detail and digitized test data.",
+      "rail_test_date": "Test date",
+      "rail_depth_to_thickness": "Depth-to-thickness D/t",
+      "rail_axial_load_ratio": "Axial load ratio Pg/Py",
+      "rail_loading_angle": "Loading angle [°]",
+      "rail_failure_mode": "Failure mode",
+      "chart_loading_protocol": "Loading protocol",
+      "chart_tests_per_year_failure_mode": "Tests per year × failure mode",
+      "chart_steel_grade": "Steel grade"
+    },
+    "ebf": {
+      "title": "EBF Links",
+      "description": "Eccentrically braced frame link tests, classified per AISC-341 link length categories across isolated, frame and system test configurations. Filter through the filters panel, the table column filters or the charts below; click a row for the full specimen detail and digitized test data.",
+      "rail_test_year": "Test year",
+      "rail_link_length": "Link length e [mm]",
+      "rail_link_classification": "Link classification (AISC)",
+      "rail_overstrength": "Overstrength Ω (AISC)",
+      "chart_tests_per_year_section": "Tests per year × section type",
+      "chart_tests_per_year_classification": "Tests per year × link classification",
+      "chart_loading_protocol": "Loading protocol",
+      "chart_test_configuration": "Test configuration",
+      "chart_steel_grade": "Steel grade"
+    },
+    "material": {
+      "title": "Cyclic Coupons",
+      "description": "Cyclic coupon tests on structural steels with calibrated Updated Voce-Chaboche material model parameters. Filter through the filters panel, the table column filters or the charts below; click a row for the full coupon detail and digitized stress-strain data.",
+      "rail_test_year": "Test year",
+      "rail_yield_stress": "Yield stress [MPa]",
+      "rail_fracture_strain": "Fracture strain",
+      "rail_thickness": "Thickness [mm]",
+      "chart_steel_type": "Steel type",
+      "chart_coupons_per_year_profile": "Coupons per year × profile type",
+      "chart_thickness_profile": "Thickness × profile type"
+    },
+    "tensile_coupon": {
+      "title": "Tensile Coupons",
+      "description": "Monotonic tensile coupon tests on structural steels, with engineering stress-strain curves and standardized mechanical properties. Filter through the filters panel, the table column filters or the charts below; click a row for the full coupon detail and digitized stress-strain data.",
+      "rail_test_year": "Test year",
+      "rail_yield_stress": "Yield stress (0.2%) [MPa]",
+      "rail_elongation_at_fracture": "Elongation at fracture",
+      "rail_reduction_of_area": "Reduction of area",
+      "rail_thickness": "Thickness [mm]",
+      "chart_steel_grade": "Steel grade",
+      "chart_coupons_per_year_profile": "Coupons per year × profile type",
+      "chart_thickness_profile": "Thickness × profile type"
+    },
+    "ductile_fracture": {
+      "title": "Ductile Fracture",
+      "description": "Ductile fracture tests on notched steel coupons with simulated stress-state histories (triaxiality, Lode angle) and calibrated fracture model parameters. Filter through the filters panel, the table column filters or the charts below; click a row for the full specimen detail, test data and SEM imagery.",
+      "rail_test_date": "Test date",
+      "rail_nominal_yield_stress": "Nominal yield stress [MPa]",
+      "rail_avg_triaxiality": "Avg triaxiality to fracture",
+      "rail_avg_lode_angle": "Avg Lode angle to fracture",
+      "rail_sem_imagery": "SEM imagery",
+      "rail_sem_with": "With SEM",
+      "rail_sem_without": "Without",
+      "chart_specimen_type": "Specimen type",
+      "chart_tests_per_year": "Tests per year × specimen type",
+      "chart_steel_type": "Steel type",
+      "chart_triaxiality": "Triaxiality × specimen type",
+      "chart_lode_angle": "Lode angle × specimen type"
+    },
+    "residual": {
+      "title": "Residual Stresses",
+      "description": "Residual stress measurements on hot-rolled and welded steel profiles, with flange and web distribution data. Filter through the filters panel, the table column filters or the charts below; click a row for the full specimen detail and measured distributions.",
+      "rail_measurement_date": "Measurement date",
+      "rail_flange_thickness": "Flange thickness tf [mm]",
+      "rail_aspect_ratio": "Aspect ratio h/bf",
+      "rail_flange_residual_stress": "Flange residual stress σ0,f [MPa]",
+      "rail_web_residual_stress": "Web residual stress σ0,w [MPa]",
+      "chart_steel_grade": "Steel grade",
+      "chart_specimens_per_year_profile": "Specimens per year × profile type",
+      "chart_section_height_profile": "Section height × profile type"
+    }
   }
 }

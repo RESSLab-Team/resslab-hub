@@ -22,8 +22,11 @@ import {
   mdiTune,
   mdiViewGridOutline
 } from '@mdi/js'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -75,10 +78,10 @@ const beamFields: DoubleFields<ConnectionField> = [
   }
 ]
 
-const railGroups: FilterRailGroup[] = [
+const railGroups = computed<FilterRailGroup[]>(() => [
   {
     key: ConnectionField.ConnectionType,
-    label: 'Connection type',
+    label: t('dashboards.connection.rail_connection_type'),
     icon: mdiTagOutline,
     type: 'chips',
     redChips: true,
@@ -86,7 +89,7 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: ConnectionField.Date,
-    label: 'Test date',
+    label: t('dashboards.connection.rail_test_date'),
     icon: mdiCalendarRange,
     type: 'range',
     min: 1970,
@@ -94,7 +97,7 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: ConnectionField.Northridge,
-    label: 'Northridge',
+    label: t('dashboards.connection.rail_northridge'),
     icon: mdiHistory,
     type: 'chips',
     options: [
@@ -104,7 +107,7 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: ConnectionField.SpecimenType,
-    label: 'Specimen type',
+    label: t('dashboards.connection.rail_specimen_type'),
     icon: mdiViewGridOutline,
     type: 'chips',
     options: [
@@ -114,7 +117,7 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: ConnectionField.Slab,
-    label: 'Composite slab',
+    label: t('dashboards.connection.rail_composite_slab'),
     icon: mdiLayersOutline,
     type: 'chips',
     options: [
@@ -124,7 +127,7 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: ConnectionField.NDp,
-    label: 'Doubler plates',
+    label: t('dashboards.connection.rail_doubler_plates'),
     icon: mdiLayersTriple,
     type: 'chips',
     options: [
@@ -134,34 +137,32 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: ConnectionField.DB,
-    label: 'Beam depth db [mm]',
+    label: t('dashboards.connection.rail_beam_depth'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: ConnectionField.TCf,
-    label: 'Column flange tcf [mm]',
+    label: t('dashboards.connection.rail_column_flange'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: ConnectionField.GMaxGY,
-    label: 'Panel-zone γmax/γy',
+    label: t('dashboards.connection.rail_panel_zone'),
     icon: mdiPulse,
     type: 'range'
   }
-]
+])
 </script>
 
 <template>
   <dashboard-shell
     v-model:search="search"
-    eyebrow="Components · Database"
-    title="Connections"
+    :eyebrow="$t('dashboards.common.eyebrow_components')"
+    :title="$t('dashboards.connection.title')"
     :count="countsStore.counts.connections"
-    description="Beam-to-column moment connection tests under reversed cyclic and monotonic loading,
-      categorized per AISC-358-16. Filter through the filters panel, the table column filters or
-      the charts below; click a row for the full specimen detail and digitized test data."
+    :description="$t('dashboards.connection.description')"
     i18n-prefix="connection."
     :rail-groups="railGroups"
     :searches="searches"
@@ -182,7 +183,11 @@ const railGroups: FilterRailGroup[] = [
     <template #charts>
       <!-- Row 1: distributions -->
       <div class="charts-strip">
-        <chart-cell quiet title="Connection type" hint="Click a tile to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.connection.chart_connection_type')"
+          :hint="$t('dashboards.common.hint_click_tile_to_filter')"
+        >
           <connection-single-chart
             :color="peach"
             :field="ConnectionField.ConnectionType"
@@ -192,7 +197,10 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell title="Tests per year × type" hint="Click legend to filter">
+        <chart-cell
+          :title="$t('dashboards.connection.chart_tests_per_year_type')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+        >
           <connection-double-chart
             :color="periwinkle"
             :fields="[ConnectionField.Date, ConnectionField.ConnectionType]"
@@ -201,7 +209,11 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell quiet title="Beam steel grade" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.connection.chart_beam_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <connection-single-chart
             :color="cobalt"
             :field="ConnectionField.SteelB"
@@ -215,7 +227,10 @@ const railGroups: FilterRailGroup[] = [
 
       <!-- Row 2: stacked histograms -->
       <div class="charts-strip charts-strip-2cols">
-        <chart-cell title="Beam depth × slab" hint="Stacked histogram · click bar or legend">
+        <chart-cell
+          :title="$t('dashboards.connection.chart_beam_depth_slab')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
+        >
           <connection-double-chart
             :color="sky"
             :fields="beamFields"
@@ -224,8 +239,8 @@ const railGroups: FilterRailGroup[] = [
           />
         </chart-cell>
         <chart-cell
-          title="Column depth × doubler plates"
-          hint="Stacked histogram · click bar or legend"
+          :title="$t('dashboards.connection.chart_column_depth_doubler_plates')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
         >
           <connection-double-chart
             :color="plum"

@@ -13,8 +13,11 @@ import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { apricot, mauve, mint, periwinkle, sky } from '@/utils/vuetify'
 import { mdiCalendarRange, mdiImageOutline, mdiPulse, mdiTune } from '@mdi/js'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -66,10 +69,10 @@ const lodeSpecimenFields: DoubleFields<DuctileFractureField> = [
   DuctileFractureField.SpecimenType
 ]
 
-const railGroups: FilterRailGroup[] = [
+const railGroups = computed<FilterRailGroup[]>(() => [
   {
     key: DuctileFractureField.Date,
-    label: 'Test date',
+    label: t('dashboards.ductile_fracture.rail_test_date'),
     icon: mdiCalendarRange,
     type: 'range',
     min: 1990,
@@ -77,45 +80,42 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: DuctileFractureField.FYn,
-    label: 'Nominal yield stress [MPa]',
+    label: t('dashboards.ductile_fracture.rail_nominal_yield_stress'),
     icon: mdiPulse,
     type: 'range'
   },
   {
     key: DuctileFractureField.TriaxAvgTillFr,
-    label: 'Avg triaxiality to fracture',
+    label: t('dashboards.ductile_fracture.rail_avg_triaxiality'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: DuctileFractureField.LodeAvgTillFr,
-    label: 'Avg Lode angle to fracture',
+    label: t('dashboards.ductile_fracture.rail_avg_lode_angle'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: DuctileFractureField.HasSem,
-    label: 'SEM imagery',
+    label: t('dashboards.ductile_fracture.rail_sem_imagery'),
     icon: mdiImageOutline,
     type: 'chips',
     options: [
-      { label: 'With SEM', value: 'true' },
-      { label: 'Without', value: 'false' }
+      { label: t('dashboards.ductile_fracture.rail_sem_with'), value: 'true' },
+      { label: t('dashboards.ductile_fracture.rail_sem_without'), value: 'false' }
     ]
   }
-]
+])
 </script>
 
 <template>
   <dashboard-shell
     v-model:search="search"
-    eyebrow="Materials · Database"
-    title="Ductile Fracture"
+    :eyebrow="$t('dashboards.common.eyebrow_materials')"
+    :title="$t('dashboards.ductile_fracture.title')"
     :count="countsStore.counts['ductile-fracture']"
-    description="Ductile fracture tests on notched steel coupons with simulated stress-state
-      histories (triaxiality, Lode angle) and calibrated fracture model parameters. Filter
-      through the filters panel, the table column filters or the charts below; click a row for
-      the full specimen detail, test data and SEM imagery."
+    :description="$t('dashboards.ductile_fracture.description')"
     i18n-prefix="ductile_fracture."
     :rail-groups="railGroups"
     :searches="searches"
@@ -135,7 +135,11 @@ const railGroups: FilterRailGroup[] = [
 
     <template #charts>
       <div class="charts-strip">
-        <chart-cell quiet title="Specimen type" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.ductile_fracture.chart_specimen_type')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <ductile-fracture-single-chart
             :color="mauve"
             :field="DuctileFractureField.SpecimenType"
@@ -145,7 +149,10 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell title="Tests per year × specimen type" hint="Click legend to filter">
+        <chart-cell
+          :title="$t('dashboards.ductile_fracture.chart_tests_per_year')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+        >
           <ductile-fracture-double-chart
             :color="apricot"
             :fields="dateSpecimenFields"
@@ -154,7 +161,11 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell quiet title="Steel type" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.ductile_fracture.chart_steel_type')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <ductile-fracture-single-chart
             :color="periwinkle"
             :field="DuctileFractureField.SteelType"
@@ -168,8 +179,8 @@ const railGroups: FilterRailGroup[] = [
 
       <div class="charts-strip charts-strip-2cols">
         <chart-cell
-          title="Triaxiality × specimen type"
-          hint="Stacked histogram · click bar or legend"
+          :title="$t('dashboards.ductile_fracture.chart_triaxiality')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
         >
           <ductile-fracture-double-chart
             :color="mint"
@@ -180,8 +191,8 @@ const railGroups: FilterRailGroup[] = [
           />
         </chart-cell>
         <chart-cell
-          title="Lode angle × specimen type"
-          hint="Stacked histogram · click bar or legend"
+          :title="$t('dashboards.ductile_fracture.chart_lode_angle')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
         >
           <ductile-fracture-double-chart
             :color="sky"

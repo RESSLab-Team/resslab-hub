@@ -13,8 +13,11 @@ import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { cobalt, mint, plum } from '@/utils/vuetify'
 import { mdiCalendarRange, mdiPulse, mdiTagOutline, mdiTune } from '@mdi/js'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -46,10 +49,10 @@ const columnDepthFields: DoubleFields<ColumnField> = [
   }
 ]
 
-const railGroups: FilterRailGroup[] = [
+const railGroups = computed<FilterRailGroup[]>(() => [
   {
     key: ColumnField.Date,
-    label: 'Test date',
+    label: t('dashboards.column.rail_test_date'),
     icon: mdiCalendarRange,
     type: 'range',
     min: 1960,
@@ -57,7 +60,7 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: ColumnField.BuiltUp,
-    label: 'Fabrication',
+    label: t('dashboards.column.rail_fabrication'),
     icon: mdiTagOutline,
     type: 'chips',
     options: [
@@ -67,35 +70,32 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: ColumnField.DC,
-    label: 'Column depth dc [mm]',
+    label: t('dashboards.column.rail_column_depth'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: ColumnField.PGOverPYm,
-    label: 'Axial load ratio Pg/Py',
+    label: t('dashboards.column.rail_axial_load_ratio'),
     icon: mdiPulse,
     type: 'range'
   },
   {
     key: ColumnField.LBOverRYc,
-    label: 'Slenderness Lb/ry',
+    label: t('dashboards.column.rail_slenderness'),
     icon: mdiTune,
     type: 'range'
   }
-]
+])
 </script>
 
 <template>
   <dashboard-shell
     v-model:search="search"
-    eyebrow="Components · Database"
-    title="Columns"
+    :eyebrow="$t('dashboards.common.eyebrow_components')"
+    :title="$t('dashboards.column.title')"
     :count="countsStore.counts.columns"
-    description="Wide-flange steel column tests under combined axial load and cyclic lateral
-      drift, covering hot-rolled and built-up sections. Filter through the filters panel, the
-      table column filters or the charts below; click a row for the full specimen detail and
-      digitized test data."
+    :description="$t('dashboards.column.description')"
     i18n-prefix="column."
     :rail-groups="railGroups"
     :searches="searches"
@@ -115,7 +115,11 @@ const railGroups: FilterRailGroup[] = [
 
     <template #charts>
       <div class="charts-strip">
-        <chart-cell quiet title="Steel grade" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.column.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <column-single-chart
             :color="plum"
             :field="ColumnField.SteelC"
@@ -125,7 +129,10 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell title="Tests per year × boundary condition" hint="Click legend to filter">
+        <chart-cell
+          :title="$t('dashboards.column.chart_tests_per_year_bc')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+        >
           <column-double-chart
             :color="mint"
             :fields="boundaryConditionFields"
@@ -135,8 +142,8 @@ const railGroups: FilterRailGroup[] = [
           />
         </chart-cell>
         <chart-cell
-          title="Column depth × fabrication"
-          hint="Stacked histogram · click bar or legend"
+          :title="$t('dashboards.column.chart_column_depth_fabrication')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
         >
           <column-double-chart
             :color="cobalt"

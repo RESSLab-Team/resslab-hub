@@ -13,8 +13,11 @@ import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { cobalt, peach, yellowgreen } from '@/utils/vuetify'
 import { mdiCalendarRange, mdiPulse, mdiTune } from '@mdi/js'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -37,10 +40,10 @@ const profileFields: DoubleFields<ResidualStressField> = [
   ResidualStressField.ProfileType
 ]
 
-const railGroups: FilterRailGroup[] = [
+const railGroups = computed<FilterRailGroup[]>(() => [
   {
     key: ResidualStressField.Date,
-    label: 'Measurement date',
+    label: t('dashboards.residual.rail_measurement_date'),
     icon: mdiCalendarRange,
     type: 'range',
     min: 1950,
@@ -48,42 +51,39 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: ResidualStressField.Tf,
-    label: 'Flange thickness tf [mm]',
+    label: t('dashboards.residual.rail_flange_thickness'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: ResidualStressField.HOverB,
-    label: 'Aspect ratio h/bf',
+    label: t('dashboards.residual.rail_aspect_ratio'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: ResidualStressField.Sigma0F,
-    label: 'Flange residual stress σ0,f [MPa]',
+    label: t('dashboards.residual.rail_flange_residual_stress'),
     icon: mdiPulse,
     type: 'range'
   },
   {
     key: ResidualStressField.Sigma0W,
-    label: 'Web residual stress σ0,w [MPa]',
+    label: t('dashboards.residual.rail_web_residual_stress'),
     icon: mdiPulse,
     type: 'range'
   }
-]
+])
 </script>
 
 <template>
   <dashboard-shell
     v-model:search="search"
-    eyebrow="Materials · Database"
-    title="Residual Stresses"
+    :eyebrow="$t('dashboards.common.eyebrow_materials')"
+    :title="$t('dashboards.residual.title')"
     :count="countsStore.counts.residuals"
     count-label="specimens"
-    description="Residual stress measurements on hot-rolled and welded steel profiles, with
-      flange and web distribution data. Filter through the filters panel, the table column
-      filters or the charts below; click a row for the full specimen detail and measured
-      distributions."
+    :description="$t('dashboards.residual.description')"
     i18n-prefix="residual."
     :rail-groups="railGroups"
     :searches="searches"
@@ -103,7 +103,11 @@ const railGroups: FilterRailGroup[] = [
 
     <template #charts>
       <div class="charts-strip">
-        <chart-cell quiet title="Steel grade" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.residual.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <residual-single-chart
             :color="cobalt"
             :field="ResidualStressField.Steel"
@@ -113,7 +117,10 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell title="Specimens per year × profile type" hint="Click legend to filter">
+        <chart-cell
+          :title="$t('dashboards.residual.chart_specimens_per_year_profile')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+        >
           <residual-double-chart
             :color="peach"
             :fields="profileFields"
@@ -123,8 +130,8 @@ const railGroups: FilterRailGroup[] = [
           />
         </chart-cell>
         <chart-cell
-          title="Section height × profile type"
-          hint="Stacked histogram · click bar or legend"
+          :title="$t('dashboards.residual.chart_section_height_profile')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
         >
           <residual-double-chart
             :color="yellowgreen"

@@ -14,8 +14,11 @@ import { useCountsStore } from '@/stores/counts'
 import { testConfigurationNameMapping } from '@/utils/hss'
 import { periwinkle, plum, sky, yellowgreen } from '@/utils/vuetify'
 import { mdiCalendarRange, mdiPulse, mdiTagOutline, mdiTune } from '@mdi/js'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -47,10 +50,10 @@ const failureModeFields: DoubleFields<HSSColumnField> = [
   }
 ]
 
-const railGroups: FilterRailGroup[] = [
+const railGroups = computed<FilterRailGroup[]>(() => [
   {
     key: HSSColumnField.Date,
-    label: 'Test date',
+    label: t('dashboards.hss.rail_test_date'),
     icon: mdiCalendarRange,
     type: 'range',
     min: 1970,
@@ -58,25 +61,25 @@ const railGroups: FilterRailGroup[] = [
   },
   {
     key: HSSColumnField.DepthOverT,
-    label: 'Depth-to-thickness D/t',
+    label: t('dashboards.hss.rail_depth_to_thickness'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: HSSColumnField.AxialLoadRatio,
-    label: 'Axial load ratio Pg/Py',
+    label: t('dashboards.hss.rail_axial_load_ratio'),
     icon: mdiPulse,
     type: 'range'
   },
   {
     key: HSSColumnField.LoadingAngle,
-    label: 'Loading angle [°]',
+    label: t('dashboards.hss.rail_loading_angle'),
     icon: mdiTune,
     type: 'range'
   },
   {
     key: HSSColumnField.FlexuralBuckling,
-    label: 'Failure mode',
+    label: t('dashboards.hss.rail_failure_mode'),
     icon: mdiTagOutline,
     type: 'chips',
     options: [
@@ -84,19 +87,16 @@ const railGroups: FilterRailGroup[] = [
       { label: 'Flexural buckling', value: 'true' }
     ]
   }
-]
+])
 </script>
 
 <template>
   <dashboard-shell
     v-model:search="search"
-    eyebrow="Components · Database"
-    title="HSS Columns"
+    :eyebrow="$t('dashboards.common.eyebrow_components')"
+    :title="$t('dashboards.hss.title')"
     :count="countsStore.counts.hss"
-    description="Hollow structural section column tests under combined axial load and cyclic
-      lateral loading, covering a range of depth-to-thickness ratios and loading angles. Filter
-      through the filters panel, the table column filters or the charts below; click a row for
-      the full specimen detail and digitized test data."
+    :description="$t('dashboards.hss.description')"
     i18n-prefix="hss."
     :rail-groups="railGroups"
     :searches="searches"
@@ -116,7 +116,11 @@ const railGroups: FilterRailGroup[] = [
 
     <template #charts>
       <div class="charts-strip">
-        <chart-cell quiet title="Loading protocol" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.hss.chart_loading_protocol')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <hss-single-chart
             :color="yellowgreen"
             :field="HSSColumnField.LoadingProtocol"
@@ -126,7 +130,10 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell title="Tests per year × failure mode" hint="Click legend to filter">
+        <chart-cell
+          :title="$t('dashboards.hss.chart_tests_per_year_failure_mode')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+        >
           <hss-double-chart
             :color="periwinkle"
             :fields="failureModeFields"
@@ -135,7 +142,11 @@ const railGroups: FilterRailGroup[] = [
             @change:searches="changeSearches"
           />
         </chart-cell>
-        <chart-cell quiet title="Steel grade" hint="Click to filter">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.hss.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+        >
           <hss-single-chart
             :color="plum"
             :field="HSSColumnField.SteelType"
