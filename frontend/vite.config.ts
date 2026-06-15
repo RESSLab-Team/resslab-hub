@@ -20,6 +20,43 @@ function stripCookieConsentInDev() {
   }
 }
 
+// vite-plugin-vuetify rewrites every <v-...> in a template into a deep import
+// (e.g. vuetify/components/VCard). Vite's dep optimizer discovers these lazily
+// as each page first renders, and every newly-seen batch triggers a re-optimize
+// followed by a full-page reload — the cascade that makes the first dev load
+// crawl (and throws transient "chunk does not exist" 404s mid-reload). Listing
+// the component MODULES the app uses up front folds them into the initial cold
+// pass, so none is discovered late. Sub-components share their parent's module
+// (VCardText -> VCard, VCol/VRow/VSpacer -> VGrid, VListItem -> VList,
+// VDataTableServer -> VDataTable). We list only used components on purpose:
+// blindly including all of vuetify pulls in modules that fail to optimize (e.g.
+// the deprecated VOverflowBtn has a broken CSS import). When a new <v-...> tag
+// is added, add its module here too; until then it just costs one extra reload.
+const VUETIFY_COMPONENTS = [
+  'VAlert',
+  'VApp',
+  'VBtn',
+  'VBtnGroup',
+  'VBtnToggle',
+  'VCard',
+  'VCheckbox',
+  'VDataTable',
+  'VDialog',
+  'VDivider',
+  'VGrid',
+  'VIcon',
+  'VImg',
+  'VList',
+  'VMenu',
+  'VRangeSlider',
+  'VResponsive',
+  'VSelect',
+  'VSnackbar',
+  'VTable',
+  'VTextField',
+  'VTooltip'
+].map((name) => `vuetify/components/${name}`)
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -48,6 +85,35 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
+  // Dev-only startup tuning. Pre-bundle the heavy deps in a single cold pass so
+  // Vite never discovers one mid-session and forces a full-page reload, and warm
+  // the entry/home modules on boot so the first page is ready sooner. No effect
+  // on `vite build`.
+  optimizeDeps: {
+    include: [
+      'vue',
+      'vue-router',
+      'pinia',
+      'axios',
+      'vue-i18n',
+      'vue-echarts',
+      'echarts',
+      'mathjs',
+      'lodash',
+      // Home renders the overview map (lazily), so pre-bundle leaflet too.
+      'leaflet',
+      'leaflet.markercluster',
+      // Every Vuetify component the app uses — the main source of the reload
+      // cascade (see VUETIFY_COMPONENTS above). echarts-gl is intentionally left
+      // out: it's only on 3D-fragility pages and optimizes on demand there.
+      ...VUETIFY_COMPONENTS
+    ]
+  },
+  server: {
+    warmup: {
+      clientFiles: ['./src/main.ts', './src/App.vue', './src/views/HomeView.vue']
     }
   }
 })
