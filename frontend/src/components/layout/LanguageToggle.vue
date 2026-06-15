@@ -7,7 +7,7 @@ import { SUPPORTED_LOCALES } from '@/plugins/i18n'
 import { LocalStorageKey } from '@/utils/localStorage'
 import { useI18n } from 'vue-i18n'
 
-const { locale } = useI18n()
+const { locale } = useI18n({ useScope: 'global' })
 
 function setLocale(value: string): void {
   if (value === locale.value) return

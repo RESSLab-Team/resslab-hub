@@ -51,7 +51,7 @@ import 'leaflet.markercluster'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 // Maps an English category identifier (used for logic/comparison) to its
 // translated display label. The identifier itself is never translated.

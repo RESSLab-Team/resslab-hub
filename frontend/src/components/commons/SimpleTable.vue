@@ -81,7 +81,7 @@ const vTheadInputBind = {
   ...vInputBind,
   variant: 'plain' as 'plain'
 }
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 const checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
   {
     key: DownloadType.Main,
@@ -417,7 +417,7 @@ function downloadZip(): void {
             </button>
           </div>
           <div class="dash-pager-info">
-            <i18n-t keypath="commons.table_showing" tag="span">
+            <i18n-t keypath="commons.table_showing" tag="span" scope="global">
               <template #from>
                 <strong>{{ pageFrom }}</strong>
               </template>

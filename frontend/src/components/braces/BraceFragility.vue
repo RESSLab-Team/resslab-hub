@@ -17,7 +17,7 @@ import { index, Matrix, matrix, max, sum } from 'mathjs'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 type Option = 'square-hss' | 'round-hss' | 'w-shape' | 'l-shape'
 

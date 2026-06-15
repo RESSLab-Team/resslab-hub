@@ -19,6 +19,7 @@ import type {
   TensileCouponModel
 } from '@/backend'
 import TooltipContent from '@/components/map/TooltipContent.vue'
+import i18n from '@/plugins/i18n'
 import { typesNames, type Type } from '@/utils/backend'
 import { MarkerSVG, scaleColor } from '@/utils/piechart'
 import { divIcon, Marker } from 'leaflet'
@@ -178,8 +179,10 @@ export function createMarkers(data: LocationGlobal[], type: Type) {
     // Create a container element to mount the Vue tooltip component
     const container = document.createElement('div')
 
-    // Create the Vue app with your TooltipContent component and pass props
-    createApp(TooltipContent, { data: d, type }).mount(container)
+    // Create the Vue app with your TooltipContent component and pass props.
+    // Install the shared i18n instance so $t / useI18n resolve inside this
+    // detached popup app (it is not part of the main app's component tree).
+    createApp(TooltipContent, { data: d, type }).use(i18n).mount(container)
 
     // Create a marker with a popup bound to the container's innerHTML
     const marker = new Marker([d.latitude, d.longitude], {

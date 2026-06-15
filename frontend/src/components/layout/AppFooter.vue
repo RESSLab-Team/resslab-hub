@@ -46,7 +46,7 @@ const materials = DATABASES.filter((db) => db.group === 'materials')
     </div>
     <div class="ftr-bot">
       <div>
-        <i18n-t keypath="shell.copyright" tag="span">
+        <i18n-t keypath="shell.copyright" tag="span" scope="global">
           <template #year>{{ new Date().getFullYear() }}</template>
           <template #ccby>
             <a

@@ -20,7 +20,7 @@ import type { EChartsOption } from 'echarts'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 type FocusId = 'pre' | 'post'
 interface Variables {

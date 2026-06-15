@@ -23,7 +23,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value?: V): void
 }>()
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 const search = ref<string>()
 
 const value = computed<V | undefined>({

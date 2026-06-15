@@ -9,7 +9,7 @@ import { linkConfigurationMapping } from '@/utils/ebf'
 import { getEbfImage } from '@/utils/component'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 const props = defineProps<{
   eccentricBracedFrame: EccentricBracedFrameModel

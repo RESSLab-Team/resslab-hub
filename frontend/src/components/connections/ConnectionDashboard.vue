@@ -26,7 +26,7 @@ import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 const route = useRoute()
 const router = useRouter()

@@ -7,7 +7,7 @@ import { getColumnImage } from '@/utils/component'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 const props = defineProps<{
   column: ColumnModel

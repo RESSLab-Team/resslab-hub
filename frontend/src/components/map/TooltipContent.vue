@@ -12,7 +12,9 @@ import {
 import { testConfigurationNameMapping } from '@/utils/hss'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+// Rendered in a detached popup app (see overviewmap.ts), so it has no parent
+// i18n scope — bind explicitly to the global scope to avoid the scope warning.
+const { t } = useI18n({ useScope: 'global' })
 
 const { data, type } = defineProps<{
   data: any

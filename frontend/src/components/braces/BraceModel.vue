@@ -14,7 +14,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DisclaimerComponent from '@/components/commons/DisclaimerComponent.vue'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 type SteelType = 'S235' | 'S275' | 'S355' | 'S420' | 'S460'
 type Option = 'wide-flange' | 'double-c' | 'double-l' | 'round' | 'square' | 'l-shape'

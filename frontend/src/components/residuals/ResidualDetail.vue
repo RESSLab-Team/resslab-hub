@@ -11,7 +11,7 @@ import { createLineSeries, validateResidualModelParams } from '@/utils/residual'
 import type { LineSeriesOption } from 'echarts'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 const props = defineProps<{
   residual: ResidualStressModel

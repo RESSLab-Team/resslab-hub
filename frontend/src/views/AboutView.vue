@@ -2,7 +2,7 @@
 import AppFooter from '@/components/layout/AppFooter.vue'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 interface Contributor {
   name: string
