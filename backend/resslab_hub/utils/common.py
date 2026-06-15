@@ -22,7 +22,7 @@ from resslab_hub.models.api import (
     MatrixModel,
     RangeModel,
 )
-from resslab_hub.utils.database import Base
+from resslab_hub.utils.database import Base, async_session
 from resslab_hub.utils.fastapi import HttpHeader, MediaType, attachment
 from resslab_hub.utils.pagination import paginate
 
@@ -100,7 +100,7 @@ class Component(ABC, Generic[D, M]):
         self.id_column = id_column
         self.ignored_columns = ignored_columns
 
-        model_keys: Set[str] = set(model_type.__fields__.keys())
+        model_keys: Set[str] = set(model_type.model_fields.keys())
         self.model_columns: Dict[str, Column] = {
             key: column
             for key, column in database_type.__dict__.items()
@@ -131,6 +131,9 @@ class Component(ABC, Generic[D, M]):
             .order_by(*order_clauses),
             self.model_type,
             self.__get_non_nan,
+            count_query=select(func.count())
+            .select_from(self.database_type)
+            .where(and_(*where_clauses)),
         )
         return page
 
@@ -281,9 +284,11 @@ class Component(ABC, Generic[D, M]):
         headers: List[str],
         filename: str,
     ) -> StreamingResponse:
+        # The request-scoped `session` is closed as soon as this handler returns
+        # the StreamingResponse, before the body generator runs. The generator
+        # therefore opens and owns its own session (see __get_csv_stream).
         return StreamingResponse(
             Component.__get_csv_stream(
-                session,
                 statement,
                 headers,
             ),
@@ -385,16 +390,21 @@ class Component(ABC, Generic[D, M]):
 
     @staticmethod
     async def __get_csv_stream(
-        session: AsyncSession,
         statement: Select,
         headers: List[str],
         partition_size=128,
         separator=",",
     ):
         yield separator.join(headers) + "\n"
-        result = await session.stream(statement)
-        async for partition in result.partitions(partition_size):  # type: ignore
-            for row in partition:
-                yield separator.join(
-                    [str(Component.__format_value(item)) for item in row]
-                ) + "\n"
+        # Own a dedicated session: the request-scoped one is already closed by
+        # the time Starlette consumes this generator.
+        async with async_session() as session:
+            result = await session.stream(statement)
+            async for partition in result.partitions(partition_size):  # type: ignore
+                for row in partition:
+                    yield (
+                        separator.join(
+                            [str(Component.__format_value(item)) for item in row]
+                        )
+                        + "\n"
+                    )

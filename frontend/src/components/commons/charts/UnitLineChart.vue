@@ -14,7 +14,7 @@ const props = withDefaults(
     aspectRatio?: number
     axisPointerType?: string
     maxWidth?: number
-    title: string
+    title?: string
     xAxisName: string
     yAxisName: string
     xUnit?: string

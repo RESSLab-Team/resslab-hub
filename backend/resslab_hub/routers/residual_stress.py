@@ -1,6 +1,7 @@
 """
 Handle /residual-stress requests
 """
+
 from decimal import Decimal
 from typing import List, Optional
 

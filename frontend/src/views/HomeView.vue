@@ -7,7 +7,6 @@ import type {
   MaterialField
 } from '@/backend'
 import AppFooter from '@/components/layout/AppFooter.vue'
-import OverviewMap from '@/components/map/OverviewMap.vue'
 import {
   analyticsApi,
   bracesApi,
@@ -22,8 +21,12 @@ import { publicPath } from '@/utils/common'
 import { DATABASES, TOOLS } from '@/utils/navigation'
 import { mdiArrowRight } from '@mdi/js'
 import { chain } from 'lodash'
-import { computed, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+// Lazy-load the map so leaflet + d3 + markercluster ship in a separate chunk and
+// don't block the home page's initial render.
+const OverviewMap = defineAsyncComponent(() => import('@/components/map/OverviewMap.vue'))
 
 const { t } = useI18n({ useScope: 'global' })
 const countsStore = useCountsStore()

@@ -36,7 +36,8 @@ import {
   type LocationTensileCoupon
 } from '@/utils/overviewmap'
 import { PieChart, scaleColor, scaleRadius } from '@/utils/piechart'
-import { rollups, select } from 'd3'
+import { rollups } from 'd3-array'
+import { select } from 'd3-selection'
 import {
   Control,
   DivIcon,
@@ -74,58 +75,46 @@ function categoryLabel(type: string): string {
 
 // Reactive references to store various locations from API calls
 const connectionsLocations = ref<LocationConnection[]>([])
-connectionsApi.getConnectionsFields([...locationConnectionFields]).then((res) => {
-  connectionsLocations.value = (res.data as LocationConnection[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const columnsLocations = ref<LocationColumn[]>([])
-columnsApi.getColumnsFields(locationColumnFields).then((res) => {
-  columnsLocations.value = (res.data as LocationColumn[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const bracesLocations = ref<LocationBrace[]>([])
-bracesApi.getBracesFields(locationBraceFields).then((res) => {
-  bracesLocations.value = (res.data as LocationBrace[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const materialsLocations = ref<LocationMaterial[]>([])
-materialsApi.getMaterialsFields(locationMaterialFields).then((res) => {
-  materialsLocations.value = (res.data as LocationMaterial[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const residualStressesLocations = ref<LocationResidualStress[]>([])
-residualsApi.getResidualStressesFields(locationResidualStressFields).then((res) => {
-  residualStressesLocations.value = (res.data as LocationResidualStress[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const hssColumnsLocations = ref<LocationHSSColumn[]>([])
-hssApi.getHssColumnsFields(locationHSSColumnFields).then((res) => {
-  hssColumnsLocations.value = (res.data as LocationHSSColumn[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const ebfLocations = ref<LocationEbf[]>([])
-ebfApi.getEccentricBracedFramesFields(locationEbfFields).then((res) => {
-  ebfLocations.value = (res.data as LocationEbf[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const tensileCouponLocations = ref<LocationTensileCoupon[]>([])
-tensileCouponApi.getTensileCouponsFields(locationTensileCouponFields).then((res) => {
-  tensileCouponLocations.value = (res.data as LocationTensileCoupon[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const ductileFractureLocations = ref<LocationDuctileFracture[]>([])
-ductileFractureApi.getDuctileFracturesFields(locationDuctileFractureFields).then((res) => {
-  ductileFractureLocations.value = (res.data as LocationDuctileFracture[]).filter(hasCoordinates)
-  updateMap()
-})
+
+// Fetch every component type's locations in parallel and rebuild the map a single
+// time once they all resolve, instead of rebuilding it on each of the 9 responses.
+Promise.all([
+  connectionsApi.getConnectionsFields([...locationConnectionFields]).then((res) => {
+    connectionsLocations.value = (res.data as LocationConnection[]).filter(hasCoordinates)
+  }),
+  columnsApi.getColumnsFields(locationColumnFields).then((res) => {
+    columnsLocations.value = (res.data as LocationColumn[]).filter(hasCoordinates)
+  }),
+  bracesApi.getBracesFields(locationBraceFields).then((res) => {
+    bracesLocations.value = (res.data as LocationBrace[]).filter(hasCoordinates)
+  }),
+  materialsApi.getMaterialsFields(locationMaterialFields).then((res) => {
+    materialsLocations.value = (res.data as LocationMaterial[]).filter(hasCoordinates)
+  }),
+  residualsApi.getResidualStressesFields(locationResidualStressFields).then((res) => {
+    residualStressesLocations.value = (res.data as LocationResidualStress[]).filter(hasCoordinates)
+  }),
+  hssApi.getHssColumnsFields(locationHSSColumnFields).then((res) => {
+    hssColumnsLocations.value = (res.data as LocationHSSColumn[]).filter(hasCoordinates)
+  }),
+  ebfApi.getEccentricBracedFramesFields(locationEbfFields).then((res) => {
+    ebfLocations.value = (res.data as LocationEbf[]).filter(hasCoordinates)
+  }),
+  tensileCouponApi.getTensileCouponsFields(locationTensileCouponFields).then((res) => {
+    tensileCouponLocations.value = (res.data as LocationTensileCoupon[]).filter(hasCoordinates)
+  }),
+  ductileFractureApi.getDuctileFracturesFields(locationDuctileFractureFields).then((res) => {
+    ductileFractureLocations.value = (res.data as LocationDuctileFracture[]).filter(hasCoordinates)
+  })
+]).then(() => updateMap())
 
 // Computed property to get the total number of markers
 const dataLength = computed(

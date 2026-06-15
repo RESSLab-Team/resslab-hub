@@ -1,6 +1,7 @@
 """
 Tensile Coupon Database Models
 """
+
 from sqlalchemy import (
     BigInteger,
     Boolean,

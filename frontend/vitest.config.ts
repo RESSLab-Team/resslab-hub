@@ -11,8 +11,10 @@ export default mergeConfig(
       mainFields: ['module']
     },
     test: {
-      deps: {
-        inline: ['echarts', 'vuetify']
+      server: {
+        deps: {
+          inline: ['echarts', 'vuetify']
+        }
       },
       environment: 'jsdom',
       exclude: [...configDefaults.exclude, 'e2e/*'],

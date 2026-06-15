@@ -161,7 +161,7 @@ function getImageSource(item: string): string {
     </template>
     <!-- eslint-disable-next-line vue/no-template-shadow -->
     <template #[`header-select-item.connection_type`]="{ props }">
-      <v-list-item v-bind="props" @click="props.onClick">
+      <v-list-item v-bind="props" @click="props.onClick as VoidFunction">
         <template #prepend="{ isSelected }">
           <v-checkbox hide-details :model-value="isSelected" :ripple="false" />
           <v-img max-height="128" width="128" :src="getImageSource(props.value as string)" />

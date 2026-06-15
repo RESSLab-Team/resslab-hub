@@ -337,7 +337,7 @@ class CsvFileValidator(Validator):
                         0,
                         "headers",
                         csv_reader.fieldnames,
-                        f"Missing required columns" f": {', '.join(missing_columns)}",
+                        f"Missing required columns: {', '.join(missing_columns)}",
                     )
                     return result
 

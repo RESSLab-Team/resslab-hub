@@ -28,6 +28,7 @@ Environment:
     CDN_PREFIX        Defaults to "resslab-hub". Matches VITE_SEM_CDN_BASE_URL
                       in frontend/.env.production.
 """
+
 from __future__ import annotations
 
 import io
