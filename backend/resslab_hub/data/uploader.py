@@ -1049,12 +1049,23 @@ def upload_parallel(upload_args, cpu=None):
     if root_logger.handlers and hasattr(root_logger.handlers[0], "formatter"):
         if root_logger.handlers[0].formatter:
             current_log_format = root_logger.handlers[0].formatter._fmt
+
+    # Longest-processing-time-first scheduling: hand out the biggest files first
+    # and one at a time (chunksize=1) so a handful of huge files fan out across
+    # workers instead of landing in the same starmap chunk and serializing.
+    def _size(arg):
+        try:
+            return path.getsize(arg[1])
+        except OSError:
+            return 0
+
+    upload_args = sorted(upload_args, key=_size, reverse=True)
     with get_context("spawn").Pool(
         n_workers,
         initializer=initializer,
         initargs=(current_log_level, current_log_format),
     ) as pool:
-        return pool.starmap(upload_one, upload_args)
+        return pool.starmap(upload_one, upload_args, chunksize=1)
 
 
 def upload_all(input_type: Type, filenames: List[str]):
