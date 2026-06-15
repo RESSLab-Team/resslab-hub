@@ -393,9 +393,15 @@ class CsvFileUploader(Uploader):
             ):
                 reader = DictReader(file, strict=True)
                 session.execute(self.get_delete(id))
-                for index, value in enumerate(reader):
-                    session.add(self.get_instance(id, index, value))
+                # The parent's rows are deleted and fully re-inserted, so there
+                # is no merge/identity to resolve -- skip the per-row unit-of-work
+                # and bulk insert every row in a single executemany.
+                instances = [
+                    self.get_instance(id, index, value)
+                    for index, value in enumerate(reader)
+                ]
                 try:
+                    session.bulk_save_objects(instances)
                     session.commit()
                     return path.basename(file_path)
                 except IntegrityError as e:
