@@ -18,6 +18,9 @@ import { getColorMap } from '@/utils/vuetify'
 import { MAX_ECHARTS_POINTS, sampleArray } from '@/utils/echarts'
 import type { EChartsOption } from 'echarts'
 import { computed, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 type FocusId = 'pre' | 'post'
 interface Variables {
@@ -63,13 +66,13 @@ const preNorthridgeOption = computed<EChartsOption>(() => {
     series: [
       {
         type: 'line',
-        name: 'Yielding',
+        name: t('tools.connection_fragility.series_yielding'),
         showSymbol: false,
         data: sampleArray(fragilityCurve(yieldingMedian, yieldingSigma), MAX_ECHARTS_POINTS)
       },
       {
         type: 'line',
-        name: 'Brittle Fracture',
+        name: t('tools.connection_fragility.series_brittle_fracture'),
         showSymbol: false,
         data: sampleArray(fragilityCurve(fractureMedian, fractureSigma), MAX_ECHARTS_POINTS)
       }
@@ -83,28 +86,51 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
     yAxis: { name: 'P(DS)' },
     color: getColorMap(5),
     series: [
-      { type: 'line', name: 'Yielding Anywhere', showSymbol: false, data: fragilityCurve(1, 0.17) },
       {
         type: 'line',
-        name: 'Yielding @ Panel Zone',
+        name: t('tools.connection_fragility.series_yielding_anywhere'),
+        showSymbol: false,
+        data: fragilityCurve(1, 0.17)
+      },
+      {
+        type: 'line',
+        name: t('tools.connection_fragility.series_yielding_panel_zone'),
         showSymbol: false,
         data: fragilityCurve(1, 0.15)
       },
       {
         type: 'line',
-        name: 'Yielding @ Flanges',
+        name: t('tools.connection_fragility.series_yielding_flanges'),
         showSymbol: false,
         data: fragilityCurve(0.96, 0.1)
       },
-      { type: 'line', name: 'Local Buckling', showSymbol: false, data: fragilityCurve(2.16, 0.3) },
-      { type: 'line', name: 'Ductile Tearing', showSymbol: false, data: fragilityCurve(5, 0.31) }
+      {
+        type: 'line',
+        name: t('tools.connection_fragility.series_local_buckling'),
+        showSymbol: false,
+        data: fragilityCurve(2.16, 0.3)
+      },
+      {
+        type: 'line',
+        name: t('tools.connection_fragility.series_ductile_tearing'),
+        showSymbol: false,
+        data: fragilityCurve(5, 0.31)
+      }
     ]
   }
 })
 
 const panels = computed<{ id: FocusId; title: string; option: EChartsOption }[]>(() => [
-  { id: 'pre', title: 'Pre-Northridge', option: preNorthridgeOption.value },
-  { id: 'post', title: 'Post-Northridge', option: postNorthridgeOption.value }
+  {
+    id: 'pre',
+    title: t('tools.connection_fragility.panel_pre_northridge'),
+    option: preNorthridgeOption.value
+  },
+  {
+    id: 'post',
+    title: t('tools.connection_fragility.panel_post_northridge'),
+    option: postNorthridgeOption.value
+  }
 ])
 const activePanel = computed(() => panels.value.find((p) => p.id === focus.value)!)
 
@@ -125,23 +151,26 @@ function thumbOption(option: EChartsOption, active: boolean): EChartsOption {
 <template>
   <div class="tool-page">
     <page-header
-      eyebrow="Tools · Fragility curves"
-      title="Fragility Curve Plotter for Steel Components"
+      :eyebrow="$t('tools.common.fragility_eyebrow')"
+      :title="$t('tools.connection_fragility.title')"
     >
       <template #actions><unit-toggle /></template>
-      This tab introduces a web-based interactive module for visualizing fragility curves of Pre-
-      and Post-Northridge beam-to-column connections. For further information refer to
-      <a
-        href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0000214"
-        target="_blank"
-        >Lignos et al. (2010)</a
-      >
-      and
-      <a
-        href="https://www.sciencedirect.com/science/article/abs/pii/S0141029612003689"
-        target="_blank"
-        >Ramirez et al. (2012)</a
-      >.
+      <i18n-t keypath="tools.connection_fragility.intro" tag="span" scope="global">
+        <template #lignos>
+          <a
+            href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0000214"
+            target="_blank"
+            >{{ $t('tools.connection_fragility.intro_lignos') }}</a
+          >
+        </template>
+        <template #ramirez>
+          <a
+            href="https://www.sciencedirect.com/science/article/abs/pii/S0141029612003689"
+            target="_blank"
+            >{{ $t('tools.connection_fragility.intro_ramirez') }}</a
+          >
+        </template>
+      </i18n-t>
     </page-header>
 
     <div class="tool-shell">
@@ -149,12 +178,17 @@ function thumbOption(option: EChartsOption, active: boolean): EChartsOption {
         <aside class="tool-panel">
           <div class="tool-card">
             <div class="tfield">
-              <div class="tfield-label">Steel Type</div>
+              <div class="tfield-label">{{ $t('tools.connection_fragility.steel_type') }}</div>
               <tool-segmented v-model="material" full :items="materials" />
             </div>
             <div class="tfield">
-              <div class="tfield-label">Geometric Parameters</div>
-              <tool-switch v-model="infoAvailable" label="Parameters available" />
+              <div class="tfield-label">
+                {{ $t('tools.connection_fragility.geometric_parameters') }}
+              </div>
+              <tool-switch
+                v-model="infoAvailable"
+                :label="$t('tools.connection_fragility.parameters_available')"
+              />
             </div>
             <div class="tfield">
               <tool-slider
@@ -185,11 +219,14 @@ function thumbOption(option: EChartsOption, active: boolean): EChartsOption {
           </div>
           <figure class="tool-schematic">
             <img
-              alt="Beam-to-column connection fragility schematic"
+              :alt="$t('tools.connection_fragility.schematic_alt')"
               :src="publicPath + 'img/connection/connection_fragility.png'"
             />
             <figcaption>
-              Pre-Northridge beam-to-column moment connection — definition of L and d<sub>b</sub>.
+              <i18n-t keypath="tools.connection_fragility.figcaption" tag="span" scope="global">
+                <template #l>L</template>
+                <template #db>d<sub>b</sub></template>
+              </i18n-t>
             </figcaption>
           </figure>
         </aside>

@@ -1,4 +1,5 @@
 import ColumnModel from '@/components/columns/ColumnModel.vue'
+import i18n from '@/plugins/i18n'
 import { shallowMount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
@@ -8,7 +9,7 @@ describe('ColumnModel.vue', () => {
     const radPrecision = 1
     const mmPrecision = -1
 
-    const wrapper = shallowMount(ColumnModel)
+    const wrapper = shallowMount(ColumnModel, { global: { plugins: [i18n] } })
     // Drive the inputs the way the UI does: selecting a section syncs the
     // bf/d/tf/tw sliders, then the member/loading sliders are set directly.
     wrapper.vm.onSectionChanged({

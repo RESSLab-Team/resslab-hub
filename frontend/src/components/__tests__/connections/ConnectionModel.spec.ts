@@ -1,4 +1,5 @@
 import ConnectionModel from '@/components/connections/ConnectionModel.vue'
+import i18n from '@/plugins/i18n'
 import { shallowMount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
@@ -8,7 +9,7 @@ describe('ConnectionModel.vue', () => {
     const radPrecision = 4
     const mmPrecision = 0
 
-    const wrapper = shallowMount(ConnectionModel)
+    const wrapper = shallowMount(ConnectionModel, { global: { plugins: [i18n] } })
     // Drive the inputs the way the UI does: selecting a section syncs the
     // bf/d/tf/tw sliders, then the member sliders are set directly.
     wrapper.vm.onSectionChanged({

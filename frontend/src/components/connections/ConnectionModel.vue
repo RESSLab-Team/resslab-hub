@@ -14,6 +14,9 @@ import { primaryColor, secondaryColor } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
 import { clamp, omit } from 'lodash'
 import { computed, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 interface Variables {
   bf: number
@@ -534,21 +537,21 @@ function getResult(output: Envelope | Backbone): Result {
 function option(backbone: Result, envelope: Result): EChartsOption {
   return {
     xAxis: {
-      name: 'Chord Rotation, θ'
+      name: t('tools.connection_model.chart_x_axis')
     },
     yAxis: {
-      name: 'Moment, M'
+      name: t('tools.connection_model.chart_y_axis')
     },
     series: [
       {
         type: 'line',
-        name: 'Monotonic Backbone',
+        name: t('tools.connection_model.series_monotonic_backbone'),
         data: backbone.points,
         color: primaryColor.base
       },
       {
         type: 'line',
-        name: 'First-Cycle Envelope',
+        name: t('tools.connection_model.series_first_cycle_envelope'),
         data: envelope.points,
         color: secondaryColor.base
       }
@@ -570,26 +573,30 @@ defineExpose({
 <template>
   <div class="tool-page">
     <page-header
-      eyebrow="Tools · Component model"
-      title="Backbone Curve Plotter for Steel Components"
+      :eyebrow="$t('tools.common.model_eyebrow')"
+      :title="$t('tools.connection_model.title')"
     >
       <template #actions><unit-toggle /></template>
-      Construct the backbone curve of beams with RBS and beams other-than-RBS. For further
-      information refer to
-      <a href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376" target="_blank">
-        Lignos and Krawinkler (2011)
-      </a>
+      <i18n-t keypath="tools.connection_model.intro" tag="span" scope="global">
+        <template #reference>
+          <a
+            href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376"
+            target="_blank"
+          >
+            {{ $t('tools.connection_model.intro_reference') }}
+          </a>
+        </template>
+      </i18n-t>
     </page-header>
     <div class="tool-shell">
       <div class="frag-a">
         <aside class="tool-panel">
           <div class="tool-card">
             <div class="tool-card-h with-info">
-              Select Steel Profile
-              <info-tooltip>
-                Here, you may choose to either select a W-Shape from the AISC database or input your
-                own dimensions using the sliders below
-              </info-tooltip>
+              {{ $t('tools.connection_model.select_steel_profile') }}
+              <info-tooltip>{{
+                $t('tools.connection_model.select_steel_profile_help')
+              }}</info-tooltip>
             </div>
             <div class="tfield">
               <section-selector @update:section="onSectionChanged($event)" />
@@ -608,15 +615,10 @@ defineExpose({
 
           <div class="tool-card">
             <div class="tool-card-h with-info">
-              Specify Member Properties
-              <info-tooltip>
-                Here you need to specify the beam full length (L), the beam unbraced length
-                (L<sub>b</sub>), which is defined as the distance from the column face to the
-                nearest lateral brace, the expected yield stress, F<sub>y</sub> of the steel
-                material, the capping-to-yield ratio <sup>Mc</sup>/<sub>My</sub>, the expected
-                residual strength ratio, K, and the ultimate rotation &theta;<sub>u</sub> of the
-                steel component.
-              </info-tooltip>
+              {{ $t('tools.connection_model.specify_member_properties') }}
+              <info-tooltip>{{
+                $t('tools.connection_model.specify_member_properties_help')
+              }}</info-tooltip>
             </div>
             <div v-for="item in memberProperties" :key="item.key" class="tfield">
               <tool-slider
@@ -631,11 +633,11 @@ defineExpose({
 
           <figure class="tool-schematic is-small">
             <img
-              alt="Connection component schematic"
+              :alt="$t('tools.connection_model.schematic_alt')"
               :src="publicPath + 'img/connection/component-1.png'"
             />
             <img
-              alt="Connection component schematic"
+              :alt="$t('tools.connection_model.schematic_alt')"
               :src="publicPath + 'img/connection/component-2.png'"
             />
           </figure>
@@ -644,7 +646,7 @@ defineExpose({
         <section class="tool-chart-col">
           <div class="tool-chart-grid">
             <div class="mat-focus">
-              <h2 class="tool-chart-h">Beams with RBS</h2>
+              <h2 class="tool-chart-h">{{ $t('tools.connection_model.chart_beams_with_rbs') }}</h2>
               <unit-chart
                 :option="option(backboneWithRbs, envelopeWithRbs)"
                 x-unit="rad"
@@ -652,7 +654,9 @@ defineExpose({
               />
             </div>
             <div class="mat-focus">
-              <h2 class="tool-chart-h">Beams without RBS</h2>
+              <h2 class="tool-chart-h">
+                {{ $t('tools.connection_model.chart_beams_without_rbs') }}
+              </h2>
               <unit-chart
                 :option="option(backboneWithoutRbs, envelopeWithoutRbs)"
                 x-unit="rad"
@@ -663,22 +667,38 @@ defineExpose({
 
           <div class="tool-card">
             <div class="tool-card-h with-info">
-              Component Models
-              <info-tooltip>Provided that the steel member is in double curvature</info-tooltip>
+              {{ $t('tools.connection_model.component_models') }}
+              <info-tooltip>{{ $t('tools.connection_model.component_models_help') }}</info-tooltip>
             </div>
             <v-table density="compact">
               <thead>
                 <tr>
-                  <th class="text-center" rowspan="2">Parameter</th>
-                  <th class="text-center" rowspan="2">Unit</th>
-                  <th class="text-center" colspan="2">Beams with RBS</th>
-                  <th class="text-center" colspan="2">Beams without RBS</th>
+                  <th class="text-center" rowspan="2">
+                    {{ $t('tools.connection_model.table_parameter') }}
+                  </th>
+                  <th class="text-center" rowspan="2">
+                    {{ $t('tools.connection_model.table_unit') }}
+                  </th>
+                  <th class="text-center" colspan="2">
+                    {{ $t('tools.connection_model.table_beams_with_rbs') }}
+                  </th>
+                  <th class="text-center" colspan="2">
+                    {{ $t('tools.connection_model.table_beams_without_rbs') }}
+                  </th>
                 </tr>
                 <tr>
-                  <th class="text-center">Monotonic Backbone</th>
-                  <th class="text-center">First Cycle Envelope</th>
-                  <th class="text-center">Monotonic Backbone</th>
-                  <th class="text-center">First Cycle Envelope</th>
+                  <th class="text-center">
+                    {{ $t('tools.connection_model.table_monotonic_backbone') }}
+                  </th>
+                  <th class="text-center">
+                    {{ $t('tools.connection_model.table_first_cycle_envelope') }}
+                  </th>
+                  <th class="text-center">
+                    {{ $t('tools.connection_model.table_monotonic_backbone') }}
+                  </th>
+                  <th class="text-center">
+                    {{ $t('tools.connection_model.table_first_cycle_envelope') }}
+                  </th>
                 </tr>
               </thead>
               <tbody>

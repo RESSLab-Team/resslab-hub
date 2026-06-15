@@ -20,6 +20,9 @@ import type { SelectItemObject } from '@/utils/vuetify'
 import type { EChartsOption, LineSeriesOption } from 'echarts'
 import { zip } from 'lodash'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 interface Material {
   e: number
@@ -68,22 +71,22 @@ const materialVariables: Variable<keyof Material>[] = [
 ]
 
 // Grouped parameter rail.
-const variableGroups: { name: string; keys: (keyof Material)[] }[] = [
-  { name: 'Elastic', keys: ['e'] },
-  { name: 'Isotropic hardening', keys: ['sigma', 'q', 'b', 'd', 'a'] },
-  { name: 'Kinematic hardening', keys: ['c1', 'gamma1', 'c2', 'gamma2'] }
-]
+const variableGroups = computed<{ name: string; keys: (keyof Material)[] }[]>(() => [
+  { name: t('tools.material_model.group_elastic'), keys: ['e'] },
+  { name: t('tools.material_model.group_isotropic'), keys: ['sigma', 'q', 'b', 'd', 'a'] },
+  { name: t('tools.material_model.group_kinematic'), keys: ['c1', 'gamma1', 'c2', 'gamma2'] }
+])
 function variableByKey(key: keyof Material): Variable<keyof Material> {
   return materialVariables.find((v) => v.key === key)!
 }
 
 type testId = 'LP1_S1_C' | 'LP6_S1_C' | 'LP9_S1_D' | 'LP5_S1_D'
-const charts: { title: string; id: testId }[] = [
-  { title: 'Monotonic Tensile', id: 'LP1_S1_C' },
-  { title: 'Symmetric Cyclic', id: 'LP6_S1_C' },
-  { title: 'Random', id: 'LP9_S1_D' },
-  { title: 'Constant Amplitude', id: 'LP5_S1_D' }
-]
+const charts = computed<{ title: string; id: testId }[]>(() => [
+  { title: t('tools.material_model.protocol_monotonic_tensile'), id: 'LP1_S1_C' },
+  { title: t('tools.material_model.protocol_symmetric_cyclic'), id: 'LP6_S1_C' },
+  { title: t('tools.material_model.protocol_random'), id: 'LP9_S1_D' },
+  { title: t('tools.material_model.protocol_constant_amplitude'), id: 'LP5_S1_D' }
+])
 
 const FOCUS_COLOR = '#a5add8'
 const MUTED_COLOR = '#c1c1c1'
@@ -129,7 +132,7 @@ const chartSeries = computed<Record<testId, LineSeriesOption>>(() => {
   ) as Record<testId, LineSeriesOption>
 })
 
-const focusTitle = computed(() => charts.find((c) => c.id === focus.value)!.title)
+const focusTitle = computed(() => charts.value.find((c) => c.id === focus.value)!.title)
 
 // Series with explicit colour: active focus is periwinkle, previews muted grey.
 function styledSeries(id: testId, active: boolean): LineSeriesOption {
@@ -176,21 +179,27 @@ watch(
 
 <template>
   <div class="tool-page">
-    <page-header eyebrow="Tools · Component model" title="Material Model">
+    <page-header
+      :eyebrow="$t('tools.common.model_eyebrow')"
+      :title="$t('tools.material_model.title')"
+    >
       <template #actions><unit-toggle /></template>
-      This web based interactive interface computes the hysteretic behavior of typical steels under
-      inelastic cyclic straining. For further information refer to
-      <a
-        href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
-        target="_blank"
-        >Hartloper et al. (2021)</a
-      >
-      The uniaxial loading protocols are based on work by
-      <a
-        href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29EM.1943-7889.0001922"
-        target="_blank"
-        >de Castro e Sousa et al. (2020)</a
-      >
+      <i18n-t keypath="tools.material_model.intro" tag="span" scope="global">
+        <template #hartloper>
+          <a
+            href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
+            target="_blank"
+            >{{ $t('tools.material_model.intro_hartloper') }}</a
+          >
+        </template>
+        <template #castro>
+          <a
+            href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29EM.1943-7889.0001922"
+            target="_blank"
+            >{{ $t('tools.material_model.intro_castro') }}</a
+          >
+        </template>
+      </i18n-t>
     </page-header>
 
     <div class="tool-shell">
@@ -198,13 +207,10 @@ watch(
         <section class="tool-panel">
           <div class="tool-card">
             <div class="tool-card-h with-info">
-              Select Steel Material
-              <info-tooltip>
-                Here you can select a steel material from the available list and with the sliders
-                below you can check the sensitivity of the updated Voce and Chaboche constitutive
-                model to the input material model parameters. The model is displayed based on four
-                selected strain-based protocols for the same set of input model parameters.
-              </info-tooltip>
+              {{ $t('tools.material_model.select_steel_material') }}
+              <info-tooltip>{{
+                $t('tools.material_model.select_steel_material_help')
+              }}</info-tooltip>
             </div>
             <tool-select v-model="selectedSteel" :items="materialOptions" />
             <div class="mat-a-groups">

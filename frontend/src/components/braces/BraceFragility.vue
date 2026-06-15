@@ -15,6 +15,9 @@ import type { EChartsOption } from 'echarts'
 import { range, zip } from 'lodash'
 import { index, Matrix, matrix, max, sum } from 'mathjs'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 type Option = 'square-hss' | 'round-hss' | 'w-shape' | 'l-shape'
 
@@ -76,24 +79,24 @@ const damageStates: Record<Option, DamageState[]> = {
     }
   ]
 }
-const options: ToggleItem<Option>[] = [
+const options = computed<ToggleItem<Option>[]>(() => [
   {
     value: 'square-hss',
-    text: 'Square HSS'
+    text: t('tools.brace_fragility.opt_square_hss')
   },
   {
     value: 'round-hss',
-    text: 'Round HSS'
+    text: t('tools.brace_fragility.opt_round_hss')
   },
   {
     value: 'w-shape',
-    text: 'Wide-Flange'
+    text: t('tools.brace_fragility.opt_w_shape')
   },
   {
     value: 'l-shape',
-    text: 'Angle (L-shape)'
+    text: t('tools.brace_fragility.opt_l_shape')
   }
-]
+])
 /**
  * Global slenderness KL/r
  */
@@ -283,29 +286,27 @@ function correlatedBivariate(
 <template>
   <div class="tool-page">
     <page-header
-      eyebrow="Tools · Fragility curves"
-      title="Fragility Curve Plotter for Steel Bracings"
+      :eyebrow="$t('tools.common.fragility_eyebrow')"
+      :title="$t('tools.brace_fragility.title')"
     >
       <template #actions><unit-toggle /></template>
-      This interactive module plots univariate and multivariate fragility curves for steel bracings
-      of various types of cross sections. the multivariate curves depict the dependence of the
-      fragility curve on member slenderness. For further information refer to
-      <a
-        href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
-        target="_blank"
-        >Lignos and Karamanci (2013)</a
-      >.
+      <i18n-t keypath="tools.brace_fragility.intro" tag="span" scope="global">
+        <template #reference>
+          <a
+            href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
+            target="_blank"
+            >{{ $t('tools.brace_fragility.intro_reference') }}</a
+          >
+        </template>
+      </i18n-t>
     </page-header>
     <div class="tool-shell">
       <div class="frag-a">
         <aside class="tool-panel">
           <div class="tool-card">
             <div class="tool-card-h with-info">
-              Cross Section
-              <info-tooltip>
-                Select the appropriate cross sectional shape of the bracing member to visualize the
-                corresponding fragility curve.
-              </info-tooltip>
+              {{ $t('tools.brace_fragility.cross_section') }}
+              <info-tooltip>{{ $t('tools.brace_fragility.cross_section_help') }}</info-tooltip>
             </div>
             <tool-segmented
               full
@@ -318,11 +319,13 @@ function correlatedBivariate(
 
         <section class="tool-chart-col">
           <div class="mat-focus">
-            <h2 class="tool-chart-h">Univariate Fragilities</h2>
+            <h2 class="tool-chart-h">{{ $t('tools.brace_fragility.univariate_fragilities') }}</h2>
             <unit-chart :aspect-ratio="2" :option="univariateOptions[option]" x-unit="rad" />
           </div>
           <div class="tool-card">
-            <div class="tool-card-h">Multivariate Fragilities</div>
+            <div class="tool-card-h">
+              {{ $t('tools.brace_fragility.multivariate_fragilities') }}
+            </div>
             <div class="tool-surface-grid">
               <surface-gl-chart
                 v-for="(item, i) in multivariateOptions"

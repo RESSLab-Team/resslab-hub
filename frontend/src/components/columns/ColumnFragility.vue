@@ -13,6 +13,10 @@ import { getColorMap } from '@/utils/vuetify'
 import type { EChartsOption, SeriesOption } from 'echarts'
 import { range } from 'lodash'
 import { computed, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 const parameters: {
   key: keyof Variables
   label: string
@@ -49,6 +53,7 @@ const variables = reactive<Variables>({
 const alphaColorPalette = getColorMap(alphas.length)
 const legendItems = ref([
   ...alphas.map((_, index) => ({
+    id: `DS${index + 1}`,
     label: `DS${index + 1}`,
     indexToFilter: index,
     color: alphaColorPalette[index],
@@ -56,14 +61,16 @@ const legendItems = ref([
     selected: true
   })),
   {
-    label: 'Univariate',
+    id: 'univariate',
+    label: t('tools.column_fragility.legend_univariate'),
     color: 'black',
     icon: 'mdi-rectangle',
     selected: true,
     indexToFilter: -1
   },
   {
-    label: 'Multivariate',
+    id: 'multivariate',
+    label: t('tools.column_fragility.legend_multivariate'),
     color: 'black',
     icon: 'mdi-dots-horizontal',
     selected: true,
@@ -74,10 +81,10 @@ const indexSelected = computed<number[]>(() =>
   legendItems.value.filter((d) => d.indexToFilter >= 0 && d.selected).map((d) => d.indexToFilter)
 )
 const univariateSelected = computed<boolean>(
-  () => legendItems.value.find((d) => d.label === 'Univariate')?.selected || false
+  () => legendItems.value.find((d) => d.id === 'univariate')?.selected || false
 )
 const multivariateSelected = computed<boolean>(
-  () => legendItems.value.find((d) => d.label === 'Multivariate')?.selected || false
+  () => legendItems.value.find((d) => d.id === 'multivariate')?.selected || false
 )
 const variateOption = computed<EChartsOption>(() => {
   const series: SeriesOption[] = []
@@ -102,7 +109,7 @@ const variateOption = computed<EChartsOption>(() => {
         }
       ],
       maxSdr,
-      'Univariate '
+      `${t('tools.column_fragility.legend_univariate')} `
     )
     const selectedUnivariateSeries: SeriesOption[] = (option.series as SeriesOption[]).filter(
       (_, index) => indexSelected.value.includes(index)
@@ -121,7 +128,9 @@ const variateOption = computed<EChartsOption>(() => {
       },
       series: alphas.map((alpha, index) => ({
         type: 'line',
-        name: `Multivariate P(DS≥ds${subscripts[(index + 1).toString()]})`,
+        name: `${t('tools.column_fragility.legend_multivariate')} P(DS≥ds${
+          subscripts[(index + 1).toString()]
+        })`,
         showSymbol: false,
         animation: false,
         itemStyle: {
@@ -254,27 +263,27 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
 <template>
   <div class="tool-page">
     <page-header
-      eyebrow="Tools · Fragility curves"
-      title="Fragility Curve Plotter for Wide-Flange Steel Columns"
+      :eyebrow="$t('tools.common.fragility_eyebrow')"
+      :title="$t('tools.column_fragility.title')"
     >
-      This module plots univariate and multivariate fragility curves for wide-flange steel columns
-      depending on their primary loading and geometric characteristics. For further information
-      please refer to
-      <a
-        target="_blank"
-        href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
-        >Elkady et al. (2018)</a
-      >.
+      <i18n-t keypath="tools.column_fragility.intro" tag="span" scope="global">
+        <template #reference>
+          <a
+            target="_blank"
+            href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
+            >{{ $t('tools.column_fragility.intro_reference') }}</a
+          >
+        </template>
+      </i18n-t>
     </page-header>
     <div class="tool-shell">
       <div class="frag-a">
         <aside class="tool-panel">
           <div class="tool-card">
             <div class="tool-card-h with-info">
-              Parameters
+              {{ $t('tools.column_fragility.parameters') }}
               <info-tooltip>
-                Please provide the imposed gravity-induced axial load ratio, Pg/Pyn and the web
-                slenderness ratio, h/tw of the wide-flange cross section of the steel column.
+                {{ $t('tools.column_fragility.parameters_help') }}
               </info-tooltip>
             </div>
             <div v-for="item in parameters" :key="item.key" class="tfield">
@@ -291,14 +300,16 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
 
         <section class="tool-chart-col">
           <div class="mat-focus">
-            <h2 class="tool-chart-h">Fragility Curves</h2>
+            <h2 class="tool-chart-h">{{ $t('tools.column_fragility.fragility_curves') }}</h2>
             <div class="tool-chart-legend">
               <unit-chart :aspect-ratio="2" :option="variateOption" x-unit="rad" />
               <legend-chart v-model="legendItems" :separators-index="[4]" />
             </div>
           </div>
           <div class="tool-card">
-            <div class="tool-card-h">Surface Fragility Curves</div>
+            <div class="tool-card-h">
+              {{ $t('tools.column_fragility.surface_fragility_curves') }}
+            </div>
             <div class="tool-surface-grid">
               <surface-gl-chart
                 v-for="(item, index) in surfaceOptions"

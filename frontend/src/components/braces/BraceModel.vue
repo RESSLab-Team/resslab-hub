@@ -8,10 +8,13 @@ import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
 import type { Variable } from '@/utils/model'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
 import { publicPath, type Section } from '@/utils/common'
-import { primaryColor, type SelectItem, type SelectItemObject } from '@/utils/vuetify'
+import { primaryColor } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
 import { computed, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import DisclaimerComponent from '@/components/commons/DisclaimerComponent.vue'
+
+const { t } = useI18n()
 
 type SteelType = 'S235' | 'S275' | 'S355' | 'S420' | 'S460'
 type Option = 'wide-flange' | 'double-c' | 'double-l' | 'round' | 'square' | 'l-shape'
@@ -27,42 +30,21 @@ interface Result {
 
 const steelTypes: SteelType[] = ['S235', 'S275', 'S355', 'S420', 'S460']
 const steelTypeItems = steelTypes.map((value) => ({ title: value, value }))
-const options: SelectItem<Option>[] = [
-  {
-    title: 'Wide-Flange',
-    value: 'wide-flange'
-  },
-  {
-    title: 'Double C-shape',
-    value: 'double-c',
-    disabled: true
-  },
-  {
-    title: 'Double L-shape',
-    value: 'double-l',
-    disabled: true
-  },
-  {
-    title: 'Round',
-    value: 'round',
-    disabled: true
-  },
-  {
-    title: 'Square or Rectangular',
-    value: 'square',
-    disabled: true
-  },
-  {
-    title: 'L-shape',
-    value: 'l-shape',
-    disabled: true
-  }
+const optionDefs: { value: Option; titleKey: string; disabled?: boolean }[] = [
+  { value: 'wide-flange', titleKey: 'opt_wide_flange' },
+  { value: 'double-c', titleKey: 'opt_double_c', disabled: true },
+  { value: 'double-l', titleKey: 'opt_double_l', disabled: true },
+  { value: 'round', titleKey: 'opt_round', disabled: true },
+  { value: 'square', titleKey: 'opt_square', disabled: true },
+  { value: 'l-shape', titleKey: 'opt_l_shape', disabled: true }
 ]
-const optionItems = (options as SelectItemObject<Option>[]).map((o) => ({
-  title: String(o.title),
-  value: o.value as string,
-  disabled: o.disabled
-}))
+const optionItems = computed(() =>
+  optionDefs.map((o) => ({
+    title: t(`tools.brace_model.${o.titleKey}`),
+    value: o.value as string,
+    disabled: o.disabled
+  }))
+)
 const steelShapeDimensions: Variable<keyof Variables>[] = [
   {
     key: 'bf',
@@ -248,11 +230,11 @@ function onSectionChanged(value?: Section): void {
 function getTensionOption(result: Result): EChartsOption {
   return {
     xAxis: {
-      name: 'Normalized Axial Displacement, δ / δy',
+      name: t('tools.brace_model.tension_x_axis'),
       max: 1.2 * result.delta_ut
     },
     yAxis: {
-      name: 'Normalized Axial Resistance, Nt / N',
+      name: t('tools.brace_model.tension_y_axis'),
       max: 1.2 * result.Nple
     },
     series: [
@@ -283,11 +265,11 @@ function getTensionOption(result: Result): EChartsOption {
 function getCompressionOption(result: Result): EChartsOption {
   return {
     xAxis: {
-      name: 'Normalized Axial Displacement, δ / δb',
+      name: t('tools.brace_model.compression_x_axis'),
       max: 1.2 * result.delta_ub
     },
     yAxis: {
-      name: 'Normalized Axial Resistance, Nc / N',
+      name: t('tools.brace_model.compression_y_axis'),
       max: 1.2 * result.Nbe
     },
     series: [
@@ -319,44 +301,42 @@ function getCompressionOption(result: Result): EChartsOption {
 <template>
   <div class="tool-page">
     <disclaimer-component>
-      <template #title>Under development</template>
-      This section is under construction. Please report any bugs
-      <a
-        href="https://github.com/RESSLab-Team/resslab-hub/issues"
-        target="_blank"
-        rel="noopener noreferrer"
-        >here</a
-      >.
+      <template #title>{{ $t('tools.common.disclaimer_title') }}</template>
+      <i18n-t keypath="tools.common.disclaimer_text" tag="span" scope="global">
+        <template #link>
+          <a
+            href="https://github.com/RESSLab-Team/resslab-hub/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            >{{ $t('tools.common.disclaimer_link') }}</a
+          >
+        </template>
+      </i18n-t>
     </disclaimer-component>
-    <page-header eyebrow="Tools · Component model" title="Component Model for Steel Bracings">
+    <page-header :eyebrow="$t('tools.common.model_eyebrow')" :title="$t('tools.brace_model.title')">
       <template #actions><unit-toggle /></template>
-      This web-based interactive interface computes the basic parameters for predictive modeling of
-      steel bracings based on their basic material and geometric properties. For further information
-      refer to Eurocode 8 Part 3.
+      {{ $t('tools.brace_model.intro') }}
     </page-header>
     <div class="tool-shell">
       <div class="frag-a">
         <aside class="tool-panel">
           <div class="tool-card">
             <div class="tool-card-h with-info">
-              Cross Section Type
-              <info-tooltip> Select the cross-sectional shape of the bracing member </info-tooltip>
+              {{ $t('tools.brace_model.cross_section_type') }}
+              <info-tooltip>{{ $t('tools.brace_model.cross_section_type_help') }}</info-tooltip>
             </div>
             <tool-select
               :items="optionItems"
               :model-value="option"
-              placeholder="Select Option"
+              :placeholder="$t('tools.brace_model.select_option')"
               @update:model-value="option = ($event || 'wide-flange') as Option"
             />
           </div>
 
           <div class="tool-card">
             <div class="tool-card-h with-info">
-              Select Steel Profile
-              <info-tooltip>
-                Here, you may choose to either select a W-Shape from the AISC database or input your
-                own dimensions using the sliders below
-              </info-tooltip>
+              {{ $t('tools.brace_model.select_steel_profile') }}
+              <info-tooltip>{{ $t('tools.brace_model.select_steel_profile_help') }}</info-tooltip>
             </div>
             <div class="tfield">
               <section-selector @update:section="onSectionChanged($event)" />
@@ -375,17 +355,14 @@ function getCompressionOption(result: Result): EChartsOption {
 
           <div class="tool-card">
             <div class="tool-card-h with-info">
-              Steel Type
-              <info-tooltip>
-                Select a standard steel grade or specify manually the material overstrength (Omega)
-                and the nominal yield strength, fy)
-              </info-tooltip>
+              {{ $t('tools.brace_model.steel_type') }}
+              <info-tooltip>{{ $t('tools.brace_model.steel_type_help') }}</info-tooltip>
             </div>
             <div class="tfield">
               <tool-select
                 :items="steelTypeItems"
                 :model-value="steelType"
-                placeholder="Select Steel Type"
+                :placeholder="$t('tools.brace_model.select_steel_type')"
                 @update:model-value="steelType = ($event || undefined) as SteelType | undefined"
               />
             </div>
@@ -403,11 +380,10 @@ function getCompressionOption(result: Result): EChartsOption {
 
           <div class="tool-card">
             <div class="tool-card-h with-info">
-              Associated Member Lengths
-              <info-tooltip>
-                Specify the associated member lengths as defined in the definition in the upper left
-                corner
-              </info-tooltip>
+              {{ $t('tools.brace_model.associated_member_lengths') }}
+              <info-tooltip>{{
+                $t('tools.brace_model.associated_member_lengths_help')
+              }}</info-tooltip>
             </div>
             <div v-for="item in additionalParameterVariables" :key="item.key" class="tfield">
               <tool-slider
@@ -424,17 +400,17 @@ function getCompressionOption(result: Result): EChartsOption {
         <section class="tool-chart-col">
           <figure class="tool-schematic is-small">
             <img
-              alt="I-shaped bracing schematic"
+              :alt="$t('tools.brace_model.schematic_alt')"
               :src="publicPath + 'img/brace/I_shaped_Bracing.png'"
             />
           </figure>
           <div class="tool-chart-grid">
             <div class="mat-focus">
-              <h2 class="tool-chart-h">Tension</h2>
+              <h2 class="tool-chart-h">{{ $t('tools.brace_model.tension') }}</h2>
               <unit-chart :option="getTensionOption(result)" />
             </div>
             <div class="mat-focus">
-              <h2 class="tool-chart-h">Compression</h2>
+              <h2 class="tool-chart-h">{{ $t('tools.brace_model.compression') }}</h2>
               <unit-chart :option="getCompressionOption(result)" />
             </div>
           </div>
