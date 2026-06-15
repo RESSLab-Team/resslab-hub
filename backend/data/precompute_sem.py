@@ -47,18 +47,37 @@ DEFAULT_S3_ENDPOINT = "https://s3.epfl.ch"
 DEFAULT_CDN_PREFIX = "resslab-hub"
 WEBP_QUALITY = 85
 EXIF_PIXEL_SIZE_TAG = "Image Tag 0x8546"
-# Filename convention: "<location>_<magnification>.tif" or "global.tif".
-LOCAL_FILENAME = re.compile(r"^(?P<location>[a-zA-Z]+)_(?P<mag>\d+)\.tif$")
+# Filename convention: "<location>_<magnification>[_<surface>].tif" or
+# "global[_<surface>].tif". The optional trailing "_<n>" denotes the fracture
+# surface: absent means surface 1, "_2" means the opposite surface of the
+# ruptured bar (Ozden et al. coupons image both surfaces).
+LOCAL_FILENAME = re.compile(
+    r"^(?P<location>[a-zA-Z]+)_(?P<mag>\d+)(?:_(?P<surface>\d+))?\.tif$"
+)
+GLOBAL_FILENAME = re.compile(r"^global(?:_(?P<surface>\d+))?\.tif$")
 
 
-def parse_filename(name: str) -> Optional[Tuple[str, Optional[int]]]:
-    """Return (location, magnification) or None if the filename doesn't match."""
-    if name == "global.tif":
-        return "global", None
+def parse_filename(name: str) -> Optional[Tuple[str, Optional[int], int]]:
+    """Return (location, magnification, surface) or None if name doesn't match.
+
+    ``surface`` defaults to 1 when no ``_<n>`` suffix is present.
+    """
+    g = GLOBAL_FILENAME.match(name)
+    if g:
+        return "global", None, int(g.group("surface") or 1)
     m = LOCAL_FILENAME.match(name)
     if m:
-        return m.group("location").lower(), int(m.group("mag"))
+        return (
+            m.group("location").lower(),
+            int(m.group("mag")),
+            int(m.group("surface") or 1),
+        )
     return None
+
+
+def surface_subpath(surface: int) -> str:
+    """CDN/local subpath prefix for a surface. Surface 1 stays flat."""
+    return "" if surface == 1 else f"s{surface}/"
 
 
 def read_pixel_size_mm(tif_path: Path) -> Optional[float]:
@@ -137,39 +156,57 @@ def process_specimen(sem_dir: Path, specimen_id: str, dry_run: bool) -> None:
         out_dir = sem_dir / "_webp" / specimen_id
         out_dir.mkdir(parents=True, exist_ok=True)
 
-    pooled_diameters: List[float] = []
-    per_image_paths: List[Tuple[str, List[float]]] = []
+    def emit(rel_path: str, body: bytes, content_type: str) -> None:
+        """Write an artifact to the local _webp dir or upload it to the CDN.
+
+        ``rel_path`` is relative to the specimen root (e.g. "global.webp" or
+        "s2/north_250.webp").
+        """
+        if dry_run:
+            dest = out_dir / rel_path
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(body)
+        else:
+            _upload(
+                s3,
+                bucket,
+                f"{cdn_prefix}/sem/{specimen_id}/{rel_path}",
+                body,
+                content_type,
+            )
+
     tif_files = sorted(p for p in folder.iterdir() if p.suffix.lower() == ".tif")
     if not tif_files:
         print(f"[skip] {specimen_id}: no .tif files")
         return
+
+    # Per-surface accumulators, plus manifest metadata gathered across surfaces.
+    pooled: dict[int, List[float]] = {}
+    per_image: dict[int, List[Tuple[str, List[float]]]] = {}
+    surfaces: set[int] = set()
+    locations: set[str] = set()
+    magnifications: set[int] = set()
 
     for tif in tif_files:
         parsed = parse_filename(tif.name)
         if parsed is None:
             print(f"[skip] {tif.name}: unrecognized name")
             continue
-        location, magnification = parsed
+        location, magnification, surface = parsed
+        surfaces.add(surface)
+        sub = surface_subpath(surface)
 
         webp_name = (
             "global.webp"
             if location == "global"
             else f"{location}_{magnification}.webp"
         )
-        webp_bytes = tif_to_webp_bytes(tif)
-        if dry_run:
-            (out_dir / webp_name).write_bytes(webp_bytes)
-        else:
-            _upload(
-                s3,
-                bucket,
-                f"{cdn_prefix}/sem/{specimen_id}/{webp_name}",
-                webp_bytes,
-                "image/webp",
-            )
+        emit(f"{sub}{webp_name}", tif_to_webp_bytes(tif), "image/webp")
 
         if location == "global":
             continue
+        locations.add(location)
+        magnifications.add(magnification)
 
         pixel_size_mm = read_pixel_size_mm(tif)
         if pixel_size_mm is None:
@@ -177,40 +214,38 @@ def process_specimen(sem_dir: Path, specimen_id: str, dry_run: bool) -> None:
             continue
         diameters = extract_dimples_mm(tif, pixel_size_mm)
         diameters.sort()
-        per_image_paths.append((f"dimples_{location}_{magnification}.json", diameters))
-        pooled_diameters.extend(diameters)
+        per_image.setdefault(surface, []).append(
+            (f"dimples_{location}_{magnification}.json", diameters)
+        )
+        pooled.setdefault(surface, []).extend(diameters)
 
-    pooled_diameters.sort()
-
-    for name, diameters in per_image_paths:
-        body = json.dumps(diameters).encode("utf-8")
-        if dry_run:
-            (out_dir / name).write_bytes(body)
-        else:
-            _upload(
-                s3,
-                bucket,
-                f"{cdn_prefix}/sem/{specimen_id}/{name}",
-                body,
+    n_dimple_files = 0
+    for surface in sorted(surfaces):
+        sub = surface_subpath(surface)
+        for name, diameters in per_image.get(surface, []):
+            emit(
+                f"{sub}{name}",
+                json.dumps(diameters).encode("utf-8"),
                 "application/json",
             )
-
-    pooled_body = json.dumps(pooled_diameters).encode("utf-8")
-    if dry_run:
-        (out_dir / "dimples_all.json").write_bytes(pooled_body)
-    else:
-        _upload(
-            s3,
-            bucket,
-            f"{cdn_prefix}/sem/{specimen_id}/dimples_all.json",
-            pooled_body,
+            n_dimple_files += 1
+        pooled_surface = sorted(pooled.get(surface, []))
+        emit(
+            f"{sub}dimples_all.json",
+            json.dumps(pooled_surface).encode("utf-8"),
             "application/json",
         )
 
+    manifest = {
+        "surfaces": len(surfaces),
+        "locations": sorted(locations),
+        "magnifications": sorted(magnifications),
+    }
+    emit("manifest.json", json.dumps(manifest).encode("utf-8"), "application/json")
+
     print(
         f"[done] {specimen_id}: {len(tif_files)} tifs, "
-        f"{len(per_image_paths)} per-image dimple files, "
-        f"{len(pooled_diameters)} pooled dimples"
+        f"{len(surfaces)} surface(s), {n_dimple_files} per-image dimple files"
     )
     print(f"        Set has_sem=True for {specimen_id} in ductile_fracture.csv.")
 

@@ -11,6 +11,7 @@ import { computed } from 'vue'
 
 const props = defineProps<{
   specimenType: string
+  locations?: SemLocation[]
 }>()
 
 const emit = defineEmits<{
@@ -18,7 +19,7 @@ const emit = defineEmits<{
 }>()
 
 const hotspots = computed(
-  () => hotspotsFor(props.specimenType) as Record<SemLocation, HotspotPosition>
+  () => hotspotsFor(props.specimenType, props.locations) as Record<SemLocation, HotspotPosition>
 )
 </script>
 

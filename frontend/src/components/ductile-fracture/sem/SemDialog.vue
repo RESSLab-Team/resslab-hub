@@ -3,10 +3,12 @@ import type { DuctileFractureModel } from '@/backend'
 import SemCdfChart from '@/components/ductile-fracture/sem/SemCdfChart.vue'
 import SemHotspots from '@/components/ductile-fracture/sem/SemHotspots.vue'
 import {
+  fetchSemManifest,
   SEM_MAGNIFICATIONS,
   semGlobalImageUrl,
   semLocalImageUrl,
   type SemLocation,
+  type SemManifest,
   type SemMagnification
 } from '@/utils/sem'
 import { mdiArrowLeft, mdiClose } from '@mdi/js'
@@ -27,11 +29,22 @@ const dialogOpen = computed({
 
 const selectedLocation = ref<SemLocation | undefined>(undefined)
 const selectedMagnification = ref<SemMagnification | undefined>(undefined)
+const selectedSurface = ref(1)
+const manifest = ref<SemManifest | undefined>(undefined)
+
+// Ruptured-bar coupons (Ozden et al.) are imaged on both fracture surfaces; the
+// manifest reports how many and which locations exist for this specimen.
+const surfaceCount = computed(() => manifest.value?.surfaces ?? 1)
 
 const imageUrl = computed(() =>
   selectedLocation.value && selectedMagnification.value
-    ? semLocalImageUrl(props.model.id, selectedLocation.value, selectedMagnification.value)
-    : semGlobalImageUrl(props.model.id)
+    ? semLocalImageUrl(
+        props.model.id,
+        selectedLocation.value,
+        selectedMagnification.value,
+        selectedSurface.value
+      )
+    : semGlobalImageUrl(props.model.id, selectedSurface.value)
 )
 
 const isGlobalView = computed(() => !selectedLocation.value)
@@ -50,12 +63,37 @@ function onMagnification(mag: SemMagnification) {
   selectedMagnification.value = mag
 }
 
+function onSurface(surface: number) {
+  selectedSurface.value = surface
+  resetToGlobal()
+}
+
+async function loadManifest(id: string) {
+  manifest.value = undefined
+  try {
+    manifest.value = await fetchSemManifest(id)
+  } catch {
+    // Older single-surface specimens may predate the manifest; treat as one
+    // surface with the full hotspot set for the specimen type.
+    manifest.value = undefined
+  }
+}
+
 watch(
   () => props.model.id,
-  () => resetToGlobal()
+  (id) => {
+    selectedSurface.value = 1
+    resetToGlobal()
+    if (dialogOpen.value) loadManifest(id)
+  }
 )
 watch(dialogOpen, (open) => {
-  if (!open) resetToGlobal()
+  if (open) {
+    loadManifest(props.model.id)
+  } else {
+    selectedSurface.value = 1
+    resetToGlobal()
+  }
 })
 </script>
 
@@ -73,6 +111,22 @@ watch(dialogOpen, (open) => {
       <v-card-text class="pa-6">
         <v-row dense>
           <v-col cols="12" md="6">
+            <div v-if="surfaceCount > 1" class="d-flex align-center flex-wrap ga-2 mb-3">
+              <span class="text-body-2 font-weight-medium">Fracture surface</span>
+              <v-btn-toggle
+                :model-value="selectedSurface"
+                density="compact"
+                mandatory
+                divided
+                color="primary"
+                variant="outlined"
+                @update:model-value="onSurface"
+              >
+                <v-btn v-for="s in surfaceCount" :key="s" :value="s" size="small">
+                  {{ s }}
+                </v-btn>
+              </v-btn-toggle>
+            </div>
             <div class="d-flex align-center flex-wrap ga-2 mb-3" style="min-height: 36px">
               <v-btn
                 variant="tonal"
@@ -118,6 +172,7 @@ watch(dialogOpen, (open) => {
               <sem-hotspots
                 v-if="isGlobalView"
                 :specimen-type="model.specimen_type"
+                :locations="manifest?.locations"
                 @select="onHotspot"
               />
             </div>
@@ -127,6 +182,7 @@ watch(dialogOpen, (open) => {
               :ductile-fracture-id="model.id"
               :location="selectedLocation"
               :magnification="selectedMagnification"
+              :surface="selectedSurface"
             />
           </v-col>
         </v-row>
