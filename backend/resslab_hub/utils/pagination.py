@@ -1,6 +1,7 @@
 """
 https://uriyyo-fastapi-pagination.netlify.app/customization/
 """
+
 from typing import Any, Callable, Generic, Optional, Type, TypeVar
 
 from fastapi import Query

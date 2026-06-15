@@ -1,6 +1,7 @@
 """
 Ductile Fracture Database Models
 """
+
 from sqlalchemy import (
     BigInteger,
     Boolean,

@@ -402,6 +402,9 @@ class Component(ABC, Generic[D, M]):
             result = await session.stream(statement)
             async for partition in result.partitions(partition_size):  # type: ignore
                 for row in partition:
-                    yield separator.join(
-                        [str(Component.__format_value(item)) for item in row]
-                    ) + "\n"
+                    yield (
+                        separator.join(
+                            [str(Component.__format_value(item)) for item in row]
+                        )
+                        + "\n"
+                    )

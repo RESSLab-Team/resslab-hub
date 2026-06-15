@@ -1,6 +1,7 @@
 """
 Handle /ductile-fracture requests
 """
+
 from decimal import Decimal
 from typing import List, Optional
 

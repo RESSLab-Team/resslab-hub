@@ -1,6 +1,7 @@
 """
 Dynaconf Settings
 """
+
 from dynaconf import Dynaconf, Validator
 
 settings = Dynaconf(

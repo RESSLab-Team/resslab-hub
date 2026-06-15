@@ -1,6 +1,7 @@
 """
 Connection Database Models
 """
+
 from sqlalchemy import (
     BigInteger,
     Boolean,

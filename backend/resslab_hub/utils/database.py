@@ -1,6 +1,7 @@
 """
 Database Service
 """
+
 from typing import AsyncIterator
 from urllib.parse import quote_plus
 

@@ -1,6 +1,7 @@
 """
 HSS Columns Database Models
 """
+
 from sqlalchemy import (
     BigInteger,
     Column,
