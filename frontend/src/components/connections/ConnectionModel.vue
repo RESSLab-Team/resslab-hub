@@ -554,7 +554,15 @@ function option(backbone: Result, envelope: Result): EChartsOption {
   }
 }
 
-defineExpose({ vars, backboneRbs, backboneNonRbs, envelopeRbs, envelopeNonRbs })
+defineExpose({
+  vars,
+  backboneRbs,
+  backboneNonRbs,
+  envelopeRbs,
+  envelopeNonRbs,
+  variables,
+  onSectionChanged
+})
 </script>
 
 <template>

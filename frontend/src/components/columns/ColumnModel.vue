@@ -388,7 +388,7 @@ function getTableColumns(...results: Result[]): Record<string, number | undefine
   return results.map((result) => omit(result, 'points'))
 }
 
-defineExpose({ vars, backbone, envelope })
+defineExpose({ vars, backbone, envelope, variables, onSectionChanged })
 </script>
 
 <template>
