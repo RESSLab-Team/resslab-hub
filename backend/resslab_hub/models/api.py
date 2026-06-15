@@ -8,7 +8,7 @@ from enum import Enum
 from math import isnan
 from typing import Any, Dict, List, Optional, Union, get_args, get_origin
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_serializer
 
 
 def _change_nan_to_none(v: Optional[Decimal]) -> Optional[Decimal]:
@@ -39,7 +39,40 @@ class OrmModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ConnectionModel(BaseModel):
+def _decimals_to_numbers(value: Any) -> Any:
+    """Recursively convert ``Decimal`` leaves to JSON numbers (NaN -> None).
+
+    Recurses through ``list`` so nested structures (e.g. ``MatrixModel.data``,
+    a ``List[List[Decimal | str]]``) are handled; all other values pass through.
+    """
+    if isinstance(value, Decimal):
+        return None if isnan(value) else float(value)
+    if isinstance(value, list):
+        return [_decimals_to_numbers(item) for item in value]
+    return value
+
+
+class ApiModel(BaseModel):
+    """Base for response models.
+
+    Pydantic v2 serializes ``Decimal`` as a JSON *string*, but the OpenAPI
+    contract and the frontend expect a number. Emit Decimals as JSON numbers
+    (NaN -> null) at serialization time, leaving the field *types* as ``Decimal``
+    so the type introspection in this module (the ``_field_base_type`` checks)
+    keeps working.
+    """
+
+    @model_serializer(mode="wrap")
+    def _decimals_as_numbers(self, handler: Any) -> Any:
+        data = handler(self)
+        if isinstance(data, dict):
+            for name, value in self:
+                if name in data and isinstance(value, (Decimal, list)):
+                    data[name] = _decimals_to_numbers(value)
+        return data
+
+
+class ConnectionModel(ApiModel):
     """
     Connection
     """
@@ -224,7 +257,7 @@ class CountModel(BaseModel):
     value: int
 
 
-class RangeModel(BaseModel):
+class RangeModel(ApiModel):
     """
     Range
     """
@@ -245,7 +278,7 @@ class DateRangeModel(BaseModel):
 FieldsModel = Dict[str, Any]
 
 
-class MatrixModel(BaseModel):
+class MatrixModel(ApiModel):
     ids: List[str]
     data: List[List[Optional[Union[Decimal, str]]]]
 
@@ -269,7 +302,7 @@ ConnectionNumberField = Enum(
 )
 
 
-class ColumnModel(BaseModel):
+class ColumnModel(ApiModel):
     @field_validator("th_80")
     @classmethod
     def change_nan_to_none(cls, v) -> Optional[Decimal]:
@@ -400,7 +433,7 @@ ColumnNumberField = Enum(
 )
 
 
-class BraceModel(BaseModel):
+class BraceModel(ApiModel):
     # START_OF_GENERATED_CODE_brace
     id: str
     investigator: str
@@ -497,7 +530,7 @@ BraceNumberField = Enum(
 )
 
 
-class MaterialModel(BaseModel):
+class MaterialModel(ApiModel):
     # START_OF_GENERATED_CODE_material
     hidden_index: int
     experimental_program: str
@@ -615,7 +648,7 @@ MaterialDateField = Enum(
 )
 
 
-class ResidualStressModel(BaseModel):
+class ResidualStressModel(ApiModel):
     # START_OF_GENERATED_CODE_residual_stress
     id: str
     experimental_program: str
@@ -672,7 +705,7 @@ ResidualStressNumberField = Enum(
 )
 
 
-class HSSColumnModel(BaseModel):
+class HSSColumnModel(ApiModel):
     # START_OF_GENERATED_CODE_hss_column
     id: str
     date: int
@@ -758,7 +791,7 @@ HSSColumnNumberField = Enum(
 )
 
 
-class EccentricBracedFrameModel(BaseModel):
+class EccentricBracedFrameModel(ApiModel):
     # START_OF_GENERATED_CODE_eccentric_braced_frame
     id: str
     investigator: str
@@ -882,7 +915,7 @@ EccentricBracedFrameNumberField = Enum(
 )
 
 
-class TensileCouponModel(BaseModel):
+class TensileCouponModel(ApiModel):
     # START_OF_GENERATED_CODE_tensile_coupon
     experimental_program: str
     standard: str
@@ -978,7 +1011,7 @@ TensileCouponNumberField = Enum(
 )
 
 
-class DuctileFractureModel(BaseModel):
+class DuctileFractureModel(ApiModel):
     # START_OF_GENERATED_CODE_ductile_fracture
     id: str
     specimen_designation: str
