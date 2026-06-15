@@ -18,7 +18,7 @@ Status of the dependency-modernization pass on `perf/performance-improvements`
 
 `make upload-data` / the `/upload` endpoint, profiled and optimized against the
 live local DB (resslab-hub-data, ~11.3M measurement rows). End-to-end wall time
-**3:44.8 → 1:22.6 (−63%)**, with per-table row counts and the skipped-file set
+**3:44.8 → 1:00.4 (−73%)**, with per-table row counts and the skipped-file set
 **identical at every step** (16 pre-existing data issues reproduced exactly).
 
 | Step | Commit | Wall | Change |
@@ -27,6 +27,7 @@ live local DB (resslab-hub-data, ~11.3M measurement rows). End-to-end wall time
 | `bulk_save_objects` + UTF-8 encoding fast-path | `58484a7` | 2:28.8 | −34% |
 | Core `insert()` + dict mappings | `72825bb` | 1:50.8 | −51% |
 | `COPY FROM STDIN` (text format) | `86c34a7` | 1:22.6 | −63% |
+| LPT scheduling (biggest-first, `chunksize=1`) | `3873024` | 1:00.4 | −73% |
 
 What the profiling showed (`backend/resslab_hub/data/uploader.py`,
 `common.py`):
@@ -43,11 +44,17 @@ What the profiling showed (`backend/resslab_hub/data/uploader.py`,
   session's transaction so delete + COPY commit/roll back together.
 - The `TableUploader` per-row `merge` → upsert idea was **dropped**: entity
   tables total ~1.6k rows (~6s), not worth it.
+- **LPT scheduling** (`upload_parallel`): `starmap`'s default chunksize batched
+  the 5 consecutive 300k-row `moment_rotation_strong` files onto one worker
+  (~26s serial tail). Sorting args biggest-first + `chunksize=1` fans them out
+  across 5 workers; verified via worker-PID assignment in the run log. −22s.
 
-Remaining headroom is **parallelism-bound** — with 15 cores the wall is now the
-critical path of the single largest file, not total insert work. Further gains
-would need load-balancing the few giant files across workers (diminishing
-returns), not a different insert mechanism.
+Remaining headroom is now **aggregate-throughput-bound**, not single-file-bound:
+the largest file is ~6.6s in-worker against a ~60s wall, and the 5 giants run in
+parallel. Splitting a single file's rows across workers would **not** help
+(its time is already far below the wall) and adds real complexity (chunked COPY
++ coordinating the one delete). Going below ~60s needs faster per-row throughput
+(COPY is already near-optimal) or more cores — not a different scheme.
 
 ## Required follow-up (created by this work)
 
