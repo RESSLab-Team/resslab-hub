@@ -100,7 +100,7 @@ class Component(ABC, Generic[D, M]):
         self.id_column = id_column
         self.ignored_columns = ignored_columns
 
-        model_keys: Set[str] = set(model_type.__fields__.keys())
+        model_keys: Set[str] = set(model_type.model_fields.keys())
         self.model_columns: Dict[str, Column] = {
             key: column
             for key, column in database_type.__dict__.items()

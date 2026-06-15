@@ -6,9 +6,9 @@ from datetime import date
 from decimal import Decimal
 from enum import Enum
 from math import isnan
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, get_args, get_origin
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 def _change_nan_to_none(v: Optional[Decimal]) -> Optional[Decimal]:
@@ -17,13 +17,26 @@ def _change_nan_to_none(v: Optional[Decimal]) -> Optional[Decimal]:
     return v
 
 
+def _field_base_type(field: Any) -> Any:
+    """Underlying type of a model field, unwrapping ``Optional[...]``.
+
+    Pydantic v2 exposes the full annotation (e.g. ``Optional[Decimal]``) on
+    ``FieldInfo.annotation``; v1 exposed the unwrapped inner type on ``.type_``.
+    """
+    annotation = field.annotation
+    if get_origin(annotation) is Union:
+        args = [arg for arg in get_args(annotation) if arg is not type(None)]
+        if len(args) == 1:
+            return args[0]
+    return annotation
+
+
 class OrmModel(BaseModel):
     """
     Parent class for all API models
     """
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ConnectionModel(BaseModel):
@@ -31,7 +44,8 @@ class ConnectionModel(BaseModel):
     Connection
     """
 
-    @validator("f_ybw", "f_ybf", "f_ycw", "f_ycf")
+    @field_validator("f_ybw", "f_ybf", "f_ycw", "f_ycf")
+    @classmethod
     def change_nan_to_none(cls, v) -> Optional[Decimal]:
         return _change_nan_to_none(v)
 
@@ -238,7 +252,7 @@ class MatrixModel(BaseModel):
 
 ConnectionField = Enum(
     "ConnectionField",
-    {key: key for key in ConnectionModel.__fields__},
+    {key: key for key in ConnectionModel.model_fields},
     module=__name__,
     type=str,
 )
@@ -247,8 +261,8 @@ ConnectionNumberField = Enum(
     "ConnectionNumberField",
     {
         key: key
-        for key, field in ConnectionModel.__fields__.items()
-        if field.type_ in [Decimal, int]
+        for key, field in ConnectionModel.model_fields.items()
+        if _field_base_type(field) in [Decimal, int]
     },
     module=__name__,
     type=str,
@@ -256,7 +270,8 @@ ConnectionNumberField = Enum(
 
 
 class ColumnModel(BaseModel):
-    @validator("th_80")
+    @field_validator("th_80")
+    @classmethod
     def change_nan_to_none(cls, v) -> Optional[Decimal]:
         return _change_nan_to_none(v)
 
@@ -368,7 +383,7 @@ class ColumnModel(BaseModel):
 
 ColumnField = Enum(
     "ColumnField",
-    {key: key for key in ColumnModel.__fields__},
+    {key: key for key in ColumnModel.model_fields},
     module=__name__,
     type=str,
 )
@@ -377,8 +392,8 @@ ColumnNumberField = Enum(
     "ColumnNumberField",
     {
         key: key
-        for key, field in ColumnModel.__fields__.items()
-        if field.type_ in [Decimal, int]
+        for key, field in ColumnModel.model_fields.items()
+        if _field_base_type(field) in [Decimal, int]
     },
     module=__name__,
     type=str,
@@ -465,7 +480,7 @@ class BraceModel(BaseModel):
 
 BraceField = Enum(
     "BraceField",
-    {key: key for key in BraceModel.__fields__},
+    {key: key for key in BraceModel.model_fields},
     module=__name__,
     type=str,
 )
@@ -474,8 +489,8 @@ BraceNumberField = Enum(
     "BraceNumberField",
     {
         key: key
-        for key, field in BraceModel.__fields__.items()
-        if field.type_ in [Decimal, int]
+        for key, field in BraceModel.model_fields.items()
+        if _field_base_type(field) in [Decimal, int]
     },
     module=__name__,
     type=str,
@@ -572,7 +587,7 @@ class MaterialModel(BaseModel):
 
 MaterialField = Enum(
     "MaterialField",
-    {key: key for key in MaterialModel.__fields__},
+    {key: key for key in MaterialModel.model_fields},
     module=__name__,
     type=str,
 )
@@ -581,8 +596,8 @@ MaterialNumberField = Enum(
     "MaterialNumberField",
     {
         key: key
-        for key, field in MaterialModel.__fields__.items()
-        if field.type_ in [Decimal, int]
+        for key, field in MaterialModel.model_fields.items()
+        if _field_base_type(field) in [Decimal, int]
     },
     module=__name__,
     type=str,
@@ -592,8 +607,8 @@ MaterialDateField = Enum(
     "MaterialDateField",
     {
         key: key
-        for key, field in MaterialModel.__fields__.items()
-        if field.type_ in [date]
+        for key, field in MaterialModel.model_fields.items()
+        if _field_base_type(field) in [date]
     },
     module=__name__,
     type=str,
@@ -640,7 +655,7 @@ class ResidualStressModel(BaseModel):
 
 ResidualStressField = Enum(
     "ResidualStressField",
-    {key: key for key in ResidualStressModel.__fields__},
+    {key: key for key in ResidualStressModel.model_fields},
     module=__name__,
     type=str,
 )
@@ -649,8 +664,8 @@ ResidualStressNumberField = Enum(
     "ResidualStressNumberField",
     {
         key: key
-        for key, field in ResidualStressModel.__fields__.items()
-        if field.type_ in [Decimal, int]
+        for key, field in ResidualStressModel.model_fields.items()
+        if _field_base_type(field) in [Decimal, int]
     },
     module=__name__,
     type=str,
@@ -726,7 +741,7 @@ class HSSColumnModel(BaseModel):
 
 HSSColumnField = Enum(
     "HSSColumnField",
-    {key: key for key in HSSColumnModel.__fields__},
+    {key: key for key in HSSColumnModel.model_fields},
     module=__name__,
     type=str,
 )
@@ -735,8 +750,8 @@ HSSColumnNumberField = Enum(
     "HSSColumnNumberField",
     {
         key: key
-        for key, field in HSSColumnModel.__fields__.items()
-        if field.type_ in [Decimal, int]
+        for key, field in HSSColumnModel.model_fields.items()
+        if _field_base_type(field) in [Decimal, int]
     },
     module=__name__,
     type=str,
@@ -850,7 +865,7 @@ class EccentricBracedFrameModel(BaseModel):
 
 EccentricBracedFrameField = Enum(
     "EccentricBracedFrameField",
-    {key: key for key in EccentricBracedFrameModel.__fields__},
+    {key: key for key in EccentricBracedFrameModel.model_fields},
     module=__name__,
     type=str,
 )
@@ -859,8 +874,8 @@ EccentricBracedFrameNumberField = Enum(
     "EccentricBracedFrameNumberField",
     {
         key: key
-        for key, field in EccentricBracedFrameModel.__fields__.items()
-        if field.type_ in [Decimal, int]
+        for key, field in EccentricBracedFrameModel.model_fields.items()
+        if _field_base_type(field) in [Decimal, int]
     },
     module=__name__,
     type=str,
@@ -946,7 +961,7 @@ class TensileCouponModel(BaseModel):
 
 TensileCouponField = Enum(
     "TensileCouponField",
-    {key: key for key in TensileCouponModel.__fields__},
+    {key: key for key in TensileCouponModel.model_fields},
     module=__name__,
     type=str,
 )
@@ -955,8 +970,8 @@ TensileCouponNumberField = Enum(
     "TensileCouponNumberField",
     {
         key: key
-        for key, field in TensileCouponModel.__fields__.items()
-        if field.type_ in [Decimal, int]
+        for key, field in TensileCouponModel.model_fields.items()
+        if _field_base_type(field) in [Decimal, int]
     },
     module=__name__,
     type=str,
@@ -1056,7 +1071,7 @@ class DuctileFractureModel(BaseModel):
 
 DuctileFractureField = Enum(
     "DuctileFractureField",
-    {key: key for key in DuctileFractureModel.__fields__},
+    {key: key for key in DuctileFractureModel.model_fields},
     module=__name__,
     type=str,
 )
@@ -1065,8 +1080,8 @@ DuctileFractureNumberField = Enum(
     "DuctileFractureNumberField",
     {
         key: key
-        for key, field in DuctileFractureModel.__fields__.items()
-        if field.type_ in [Decimal, int]
+        for key, field in DuctileFractureModel.model_fields.items()
+        if _field_base_type(field) in [Decimal, int]
     },
     module=__name__,
     type=str,
