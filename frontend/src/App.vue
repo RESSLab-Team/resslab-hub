@@ -23,7 +23,7 @@ const theme = useTheme()
 const dark = ref(localStorage.getItem(THEME_STORAGE_KEY) === 'dark')
 
 function applyTheme(): void {
-  theme.global.name.value = dark.value ? 'dark' : 'light'
+  theme.change(dark.value ? 'dark' : 'light')
   document.body.classList.toggle('theme-dark', dark.value)
 }
 function toggleTheme(): void {

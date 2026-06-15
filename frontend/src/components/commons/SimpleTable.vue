@@ -183,8 +183,9 @@ function resetFilters(): void {
 }
 
 // https://vuetifyjs.com/en/api/v-data-table-server/#events-click:row
-function click(_: Event, value: { item: { raw: M } }): void {
-  emit('click:row', value.item.raw)
+// Vuetify 3.4+ emits the raw row as `item` (3.3 labs wrapped it as `item.raw`).
+function click(_: Event, value: { item: M }): void {
+  emit('click:row', value.item)
 }
 
 function shareUrl(): void {
@@ -267,10 +268,12 @@ function downloadZip(): void {
       <template
         v-for="header in tableHeaders"
         :key="`item-${header.key}`"
-        #[`item.${header.key}`]="{ item }"
+        #[`item.${header.key}`]="{ internalItem }"
       >
-        <span v-if="header.cellVariant === 'tag' && item.columns[header.key]" class="tag">{{
-          header.format ? header.format(item.columns[header.key]) : item.columns[header.key]
+        <span v-if="header.cellVariant === 'tag' && internalItem.columns[header.key]" class="tag">{{
+          header.format
+            ? header.format(internalItem.columns[header.key])
+            : internalItem.columns[header.key]
         }}</span>
         <span
           v-else
@@ -279,7 +282,9 @@ function downloadZip(): void {
             'cell-strong': header.cellVariant === 'strong'
           }"
           >{{
-            header.format ? header.format(item.columns[header.key]) : item.columns[header.key]
+            header.format
+              ? header.format(internalItem.columns[header.key])
+              : internalItem.columns[header.key]
           }}</span
         >
       </template>
