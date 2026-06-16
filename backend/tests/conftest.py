@@ -55,9 +55,13 @@ def _maintenance_url() -> str:
     )
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def _database():
-    """Create the throwaway test database + schema; drop it at the end."""
+    """Create the throwaway test database + schema; drop it at the end.
+
+    Pulled in only by ``sync_engine``, so a run containing only pure-unit tests
+    (the value conversions) never creates a database.
+    """
     admin = create_engine(_maintenance_url(), isolation_level="AUTOCOMMIT")
     with admin.connect() as conn:
         conn.execute(text(f'DROP DATABASE IF EXISTS "{TEST_DB}"'))
@@ -86,24 +90,6 @@ def _database():
     admin.dispose()
 
 
-@pytest_asyncio.fixture(autouse=True)
-async def _reset_async_engine():
-    """
-    Dispose the app's module-level asyncpg engine after each test.
-
-    The engine (and its connection pool) is created once at import and binds to
-    the first event loop that uses it. pytest-asyncio gives each test a fresh
-    loop, so without disposing, the pooled connections from a previous loop
-    raise ``InterfaceError`` in later tests. Disposing lets each test re-acquire
-    connections on its own loop -- avoiding a session-scoped ``event_loop``
-    override (deprecated in pytest-asyncio).
-    """
-    yield
-    from resslab_hub.utils.database import engine
-
-    await engine.dispose()
-
-
 @pytest.fixture(scope="session")
 def sync_engine(_database):
     engine = create_engine(url)
@@ -111,9 +97,10 @@ def sync_engine(_database):
     engine.dispose()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def _clean_tables(sync_engine):
-    """Empty every table before each test for isolation."""
+    """Empty every table before a DB-touching test (requested via db_session /
+    client, so pure-unit tests skip the TRUNCATE entirely)."""
     tables = ", ".join(
         f'"{table.name}"' for table in reversed(Base.metadata.sorted_tables)
     )
@@ -123,7 +110,7 @@ def _clean_tables(sync_engine):
 
 
 @pytest.fixture
-def db_session(sync_engine):
+def db_session(sync_engine, _clean_tables):
     """A sync session for seeding fixtures and inspecting persisted rows."""
     from sqlalchemy.orm import Session
 
@@ -132,7 +119,7 @@ def db_session(sync_engine):
 
 
 @pytest_asyncio.fixture
-async def client():
+async def client(_clean_tables):
     """httpx client wired to the FastAPI app over the in-process ASGI app."""
     import httpx
 
@@ -143,6 +130,12 @@ async def client():
         transport=transport, base_url="http://test"
     ) as async_client:
         yield async_client
+    # Dispose the module-level asyncpg engine so its pooled connections don't
+    # leak across pytest-asyncio's per-test event loops (which would raise
+    # InterfaceError); each client test re-acquires on its own loop.
+    from resslab_hub.utils.database import engine
+
+    await engine.dispose()
 
 
 # ---------------------------------------------------------------------------
