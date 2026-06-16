@@ -5,7 +5,7 @@ dev:
 	npm run dev
 
 test:
-	npm run test:unit
+	npm run test:unit -- run
 
 lint:
 	npm run lint
