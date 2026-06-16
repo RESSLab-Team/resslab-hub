@@ -86,14 +86,22 @@ def _database():
     admin.dispose()
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Session-scoped loop so the module-level asyncpg engine stays bound."""
-    import asyncio
+@pytest_asyncio.fixture(autouse=True)
+async def _reset_async_engine():
+    """
+    Dispose the app's module-level asyncpg engine after each test.
 
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+    The engine (and its connection pool) is created once at import and binds to
+    the first event loop that uses it. pytest-asyncio gives each test a fresh
+    loop, so without disposing, the pooled connections from a previous loop
+    raise ``InterfaceError`` in later tests. Disposing lets each test re-acquire
+    connections on its own loop -- avoiding a session-scoped ``event_loop``
+    override (deprecated in pytest-asyncio).
+    """
+    yield
+    from resslab_hub.utils.database import engine
+
+    await engine.dispose()
 
 
 @pytest.fixture(scope="session")
