@@ -24,7 +24,7 @@ describe('hotspotsFor', () => {
     expect(Object.keys(hotspotsFor('CNT'))).toEqual(['north', 'south', 'east', 'west', 'middle'])
   })
 
-  it('returns no hotspots for GP (deferred)', () => {
-    expect(hotspotsFor('GP')).toEqual({})
+  it('returns 3 GP hotspots for specimen_type=GP', () => {
+    expect(Object.keys(hotspotsFor('GP'))).toEqual(['west', 'middle', 'east'])
   })
 })

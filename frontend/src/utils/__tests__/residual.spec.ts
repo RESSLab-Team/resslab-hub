@@ -18,9 +18,9 @@ describe('residual.validateResidualModelParams', () => {
   })
 
   it('fails when a required field is missing or null', () => {
-    expect(validateResidualModelParams({ ...validParams, tw: null } as ResidualStressModel)).toBe(
-      false
-    )
+    expect(
+      validateResidualModelParams({ ...validParams, tw: null } as unknown as ResidualStressModel)
+    ).toBe(false)
     expect(validateResidualModelParams({} as ResidualStressModel)).toBe(false)
   })
 })
