@@ -28,6 +28,36 @@ jobs:
       - run: npm run type-check
       - run: npm run lint
       - run: npm run build
+  check-api-client:
+    # Guards against a stale generated client: regenerate frontend/src/backend
+    # from the committed openapi.json and fail if it differs from what's checked in.
+    # Java is needed only here (openapi-generator is a JVM tool), so the main
+    # build-frontend job stays Node-only.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: npm ci
+      - name: Regenerate API client from committed openapi.json
+        run: npm run api
+      - name: Verify generated client is in sync with openapi.json
+        run: |
+          git add -N src/backend
+          if ! git diff --exit-code -- src/backend; then
+            echo "::error::frontend/src/backend is out of sync with openapi.json. Run 'make api' and commit the result."
+            exit 1
+          fi
   build-backend:
     runs-on: ubuntu-latest
     defaults:
