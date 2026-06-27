@@ -1,3 +1,5 @@
+.PHONY: install hooks dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api upload-data upload-data-test backup-dump
+
 install:
 	npm install
 	$(MAKE) -C backend install
@@ -23,6 +25,13 @@ dev-database:
 test:
 	$(MAKE) -C backend test
 	$(MAKE) -C frontend test
+
+test-cov:
+	$(MAKE) -C backend test-cov
+	$(MAKE) -C frontend test-coverage
+
+benchmark:
+	$(MAKE) -C backend benchmark
 
 lint:
 	$(MAKE) -C backend lint

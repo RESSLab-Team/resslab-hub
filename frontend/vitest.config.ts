@@ -18,7 +18,24 @@ export default mergeConfig(
       },
       environment: 'jsdom',
       exclude: [...configDefaults.exclude, 'e2e/*'],
-      root: fileURLToPath(new URL('./', import.meta.url))
+      root: fileURLToPath(new URL('./', import.meta.url)),
+      coverage: {
+        provider: 'v8',
+        // text -> terminal summary, html -> browsable report, lcov -> CI tools
+        reporter: ['text', 'html', 'lcov'],
+        reportsDirectory: './coverage',
+        // Count every source file, even ones no test imports, so the percentage
+        // reflects the real codebase rather than only what's already covered.
+        all: true,
+        include: ['src/**/*.{ts,js,vue}'],
+        exclude: [
+          'src/backend/**', // generated OpenAPI client
+          'src/**/*.spec.ts',
+          'src/**/__tests__/**',
+          'src/main.ts',
+          'src/**/*.d.ts'
+        ]
+      }
     }
   })
 )

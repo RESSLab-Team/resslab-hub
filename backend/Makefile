@@ -1,3 +1,7 @@
+# `benchmark` collides with the benchmark/ directory; mark targets phony so make
+# always runs the recipe instead of treating the directory as an up-to-date file.
+.PHONY: install dev test test-cov benchmark lint update
+
 install:
 	uv sync
 
@@ -6,6 +10,17 @@ dev:
 
 test:
 	uv run pytest
+
+# Coverage: terminal summary + browsable HTML report in backend/htmlcov/index.html
+test-cov:
+	uv run pytest --cov --cov-report=term-missing --cov-report=html
+
+# Performance benchmark against a throwaway DB (needs `make dev-database`).
+# Override defaults with ROWS/ROUNDS, e.g. `make benchmark ROWS=20000 ROUNDS=100`.
+ROWS ?= 5000
+ROUNDS ?= 50
+benchmark:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m benchmark.benchmark --rows $(ROWS) --rounds $(ROUNDS)
 
 lint:
 	uv run pre-commit run --all-files
