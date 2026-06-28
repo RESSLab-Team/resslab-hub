@@ -44,6 +44,17 @@ const props = withDefaults(
 
 use([TitleComponent])
 
+// ECharts reads a literal font string (CSS vars don't resolve); mirror the
+// mono stack + muted ink from epfl-tokens.css for the axis-name labels.
+const MONO = "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace"
+const NAME = '#6e6e73' // muted axis-name ink
+
+// Keep the gridded layout + default name placement; only restyle the axis names
+// to mono grey so they sit quieter against the data.
+const responseAxis = {
+  nameTextStyle: { color: NAME, fontFamily: MONO, fontWeight: 'normal' as const, fontSize: 11 }
+}
+
 const option = computed<EChartsOption>(
   () =>
     ({
@@ -60,11 +71,13 @@ const option = computed<EChartsOption>(
         show: props.series.length > 1
       },
       xAxis: {
+        ...responseAxis,
         name: props.xAxisName,
         min: props.xAxisMin,
         max: props.xAxisMax
       },
       yAxis: {
+        ...responseAxis,
         name: props.yAxisName,
         min: props.yAxisMin,
         max: props.yAxisMax
