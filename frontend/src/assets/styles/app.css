@@ -5,9 +5,15 @@
 .v-application {
   font-family: var(--font-sans) !important;
   color: var(--fg);
-  background: var(--bg);
+  background: var(--bg-app);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Links are never underlined (EPFL DS underlines them by default; the redesign
+   rejects that). Underline only where explicitly opted back in. */
+a {
+  text-decoration: none;
 }
 .v-application .v-card {
   border-radius: var(--radius);
@@ -17,7 +23,7 @@
 .app-shell {
   min-height: 100vh;
   display: flex;
-  background: var(--bg);
+  background: var(--bg-app);
   width: 100%;
 }
 .app-main {
@@ -90,7 +96,7 @@
   color: var(--fg);
   text-decoration: none;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   position: relative;
   cursor: pointer;
   border-left: 3px solid transparent;
@@ -102,9 +108,16 @@
 }
 .sidebar-link.is-active {
   color: var(--epfl-red);
-  background: var(--bg-subtle);
-  border-left-color: var(--epfl-red);
-  font-weight: 700;
+}
+/* Active = short inset red tab (handoff .ed-link.on), no background fill. */
+.sidebar-link.is-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background: var(--epfl-red);
 }
 .sidebar-group {
   display: flex;
@@ -115,7 +128,15 @@
 }
 .sidebar-group.is-active .sidebar-group-link {
   color: var(--epfl-red);
-  font-weight: 700;
+}
+.sidebar-group.is-active .sidebar-group-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background: var(--epfl-red);
 }
 .sidebar-group-toggle {
   display: flex;
@@ -137,17 +158,36 @@
 .sidebar-group-toggle .chevron-open {
   transform: rotate(180deg);
 }
+/* Nested group: the sub-links share one continuous vertical rule, built from a
+   per-child left border so the active child can recolour its own segment red —
+   rather than drawing a second bar beside a separate container rule. */
+.sidebar-children {
+  margin: 2px 0 6px 24px;
+}
 .sidebar-child {
-  padding-left: 40px;
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
   font-size: 13px;
   font-weight: 400;
 }
+/* The rule itself turns red on the active sub-link — and the top-level inset
+   bar (inherited via .sidebar-link.is-active::before) is suppressed here. */
+.sidebar-child.is-active {
+  border-left-color: var(--epfl-red);
+}
+.sidebar-child.is-active::before {
+  display: none;
+}
 .sidebar-link .count {
   margin-left: auto;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--fg-muted);
   font-weight: 400;
   font-feature-settings: 'tnum';
+}
+.sidebar-link.is-active .count {
+  color: var(--epfl-red);
 }
 .sidebar-foot {
   margin-top: auto;
@@ -768,7 +808,7 @@ body.theme-dark .logos img {
   font-family: inherit;
 }
 .dash-filters-head .reset:hover {
-  text-decoration: underline;
+  color: var(--epfl-red-dark);
 }
 .dash-filters-collapse-btn {
   width: 24px;

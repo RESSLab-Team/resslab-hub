@@ -18,7 +18,7 @@ export default createVuetify({
     themes: {
       light: {
         colors: {
-          primary: '#FF0000', // EPFL rouge
+          primary: '#E30713', // EPFL rouge (print red — softer-contrast UI target)
           secondary: '#413D3A', // EPFL ardoise
           accent: '#00A79F', // EPFL leman
           background: '#FFFFFF',
@@ -28,7 +28,7 @@ export default createVuetify({
       dark: {
         dark: true,
         colors: {
-          primary: '#FF0000',
+          primary: '#E30713',
           secondary: '#A8A8AC',
           accent: '#00A79F',
           background: '#0E0E10',

@@ -49,7 +49,7 @@ export type SelectItem<V = string | number | object> = string | SelectItemObject
 
 /* ============================================================
    EPFL chart palette — soft pastels (see assets/styles/chart-colors.css).
-   Brand red #FF0000 is reserved for primary actions and selection
+   Brand red #E30713 is reserved for primary actions and selection
    emphasis; it never appears as a series color.
    ============================================================ */
 
@@ -80,6 +80,7 @@ function family(shades: [string, string, string, string, string]): Color {
   }
 }
 
+export const okabeBlue = family(['#0072B2', '#3A93C7', '#6FB2D8', '#A6D0E8', '#D2E7F4'])
 export const periwinkle = family(['#A5ADD8', '#BAC0E4', '#CFD4EE', '#D9DEE9', '#E3E8F4'])
 export const peach = family(['#FDD279', '#FFDF96', '#FFEBB5', '#FFF4D4', '#FFFBE8'])
 export const plum = family(['#C19ACD', '#CFB0DA', '#DDC6E6', '#EADCF1', '#F3ECF7'])
@@ -104,28 +105,34 @@ export const ink: Color = {
   darken4: '#080808'
 }
 
-/** Test data series lead with periwinkle; model overlays follow in ink. */
-export const primaryColor = periwinkle
+/** Test data series lead with Okabe–Ito blue; model overlays follow in ink.
+    (Categorical chart hues use the Okabe–Ito colorblind-safe palette.) */
+export const primaryColor = okabeBlue
 export const secondaryColor = ink
 
-export const primaryColors = [periwinkle, ink, peach, plum, sky, mint, apricot, mauve, yellowgreen]
+export const primaryColors = [
+  okabeBlue,
+  ink,
+  periwinkle,
+  plum,
+  sky,
+  mint,
+  apricot,
+  mauve,
+  yellowgreen
+]
 
-/** Multi-hue categorical palette ("darker" shade of each hue family). */
+/** Multi-hue categorical palette — Okabe–Ito (colorblind-safe), handoff order.
+    Brand red stays reserved for selection/emphasis and is never a series color. */
 export const colorPalette: string[] = [
-  '#FDD279', // peach
-  '#C19ACD', // plum
-  '#FABF75', // apricot
-  '#A5ADD8', // periwinkle
-  '#A4D6D5', // mint
-  '#ABCF84', // yellowgreen
-  '#BBA3CE', // mauve
-  '#B0B7DE', // cobalt
-  '#A4BCE3', // sky
-  '#A2CBED', // baby
-  '#A1D9F7', // aqua
-  '#A8D3AE', // green
-  '#A69CCC', // lavender
-  '#C1C1C1' // gray
+  '#0072B2', // blue
+  '#E69F00', // amber
+  '#009E73', // green
+  '#CC79A7', // reddish purple
+  '#56B4E9', // sky
+  '#D55E00', // vermillion
+  '#5B6B78', // slate
+  '#332288' // indigo
 ]
 
 export function getColorPalette(color: Color, count: number): string[] {
@@ -136,12 +143,20 @@ export function getColorPalette(color: Color, count: number): string[] {
   return Array.from({ length: count }, (_, index) => colorPalette[index % colorPalette.length])
 }
 
-export function getColorMap(count: number): string[] {
-  return colormap<'hex'>({
-    colormap: [
-      { index: 0, rgb: hexRgb(periwinkle.base, { format: 'array' }) },
-      { index: 1, rgb: hexRgb(ink.base, { format: 'array' }) }
-    ],
-    nshades: count
-  })
+/** Perceptually-uniform sequential scales for continuous/ordered data
+    (fragility families, density ramps). Defaults to viridis; magma/inferno/
+    plasma available. `colormap` requires ≥9 shades for these, so we oversample
+    and pick `count` evenly-spaced stops (dark → light). */
+export type SequentialScale = 'viridis' | 'magma' | 'inferno' | 'plasma'
+
+export function getColorMap(count: number, scale: SequentialScale = 'viridis'): string[] {
+  if (count <= 0) return []
+  const n = Math.max(count, 16)
+  const ramp = colormap<'hex'>({ colormap: scale, nshades: n, format: 'hex' })
+  if (count >= n) return ramp
+  if (count === 1) return [ramp[0]]
+  return Array.from(
+    { length: count },
+    (_, index) => ramp[Math.round((index * (n - 1)) / (count - 1))]
+  )
 }

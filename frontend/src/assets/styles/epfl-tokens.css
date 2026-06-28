@@ -12,8 +12,10 @@
 :root {
   /* ──────────── COLOR — RAW PALETTE ──────────── */
 
-  /* Brand red — the EPFL signature */
-  --epfl-red: #ff0000;
+  /* Brand red — the EPFL signature.
+     UI target is the print red #E30713 (softer than the on-screen #FF0000),
+     per the design handoff's softer-contrast spec. */
+  --epfl-red: #e30713;
   --epfl-red-dark: #b51f1f;
   --epfl-leman: #00a79f;
   --epfl-canard: #007480;
@@ -22,11 +24,16 @@
   /* Neutrals */
   --epfl-white: #ffffff;
   --epfl-gray-100: #e6e6e6;
+  --epfl-gray-150: #cfcfcf; /* structural hairline (handoff softer-contrast) */
   --epfl-gray-200: #d5d5d5;
   --epfl-gray-300: #c1c1c1;
   --epfl-gray-500: #8e8e8e;
   --epfl-gray-600: #707070;
   --epfl-black: #212121; /* Soft black, never pure */
+
+  /* Softer-contrast controls (handoff): dark fills/outlines softened off black */
+  --epfl-control-fill: #3d3d3d;
+  --epfl-control-outline: #a6a6a6;
 
   /* Status */
   --epfl-blue: #4a90e2;
@@ -38,6 +45,7 @@
 
   /* Surfaces */
   --bg: var(--epfl-white);
+  --bg-app: #fcfcfc; /* off-white app shell (handoff); cards stay pure white */
   --bg-muted: var(--epfl-gray-100);
   --bg-subtle: #f5f5f5;
   --bg-dark: var(--epfl-black);
@@ -55,6 +63,10 @@
   --border-strong: var(--epfl-gray-500);
   --border-subtle: var(--epfl-gray-100);
   --border-hairline: rgba(33, 33, 33, 0.1);
+  /* Data-table grid rules — intentionally lighter than the handoff hairline
+     (per design-adjustment: dashboard gridlines read too heavy). Tune here. */
+  --table-gridline: #ededed;
+  --table-gridline-strong: var(--epfl-gray-100);
 
   /* Brand intent */
   --primary: var(--epfl-red);
@@ -79,7 +91,7 @@
   --shadow-sm: 0 1px 2px rgba(33, 33, 33, 0.075);
   --shadow: 0 0.5rem 1rem rgba(33, 33, 33, 0.175);
   --shadow-lg: 0 1rem 2rem rgba(33, 33, 33, 0.2);
-  --focus-ring: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+  --focus-ring: 0 0 0 0.2rem rgba(227, 7, 19, 0.25);
   --t-fast: 0.15s ease-in-out;
   --t-base: 0.2s ease-in-out;
 }
@@ -87,6 +99,7 @@
 /* ──────────── DARK MODE ──────────── */
 body.theme-dark {
   --bg: #0e0e10;
+  --bg-app: #0b0b0d;
   --bg-muted: #1a1a1d;
   --bg-subtle: #141417;
   --fg: #f5f5f5;
@@ -95,5 +108,7 @@ body.theme-dark {
   --border: #2a2a2e;
   --border-subtle: #1f1f22;
   --border-strong: #3a3a40;
+  --table-gridline: #1f1f22;
+  --table-gridline-strong: #2a2a2e;
   --link: #f5f5f5;
 }

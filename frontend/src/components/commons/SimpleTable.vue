@@ -513,14 +513,14 @@ function downloadZip(): void {
   letter-spacing: 0.04em;
   font-weight: 700;
   color: var(--fg-muted);
-  border-bottom: 1px solid var(--border) !important;
+  border-bottom: 1px solid var(--table-gridline-strong) !important;
   white-space: nowrap;
 }
 
 /* Filter row (custom thead slot) — design-handoff bordered inputs */
 :deep(.v-table__wrapper) > table > thead > tr > td {
   background: var(--bg);
-  border-bottom: 1px solid var(--border) !important;
+  border-bottom: 1px solid var(--table-gridline-strong) !important;
   padding: 6px 6px;
 }
 :deep(.v-table__wrapper) > table > thead > tr > td .v-field {
@@ -551,7 +551,7 @@ function downloadZip(): void {
 
 /* Body rows */
 :deep(.v-table__wrapper) > table > tbody > tr > td {
-  border-bottom: 1px solid var(--border-subtle) !important;
+  border-bottom: 1px solid var(--table-gridline) !important;
   white-space: nowrap;
 }
 :deep(.v-table__wrapper) > table > tbody > tr:hover {
@@ -560,7 +560,7 @@ function downloadZip(): void {
 }
 :deep(.v-table__wrapper) > table > tbody > tr.v-data-table__tr--clickable:focus-visible,
 :deep(.v-table__wrapper) > table > tbody > tr:has(.v-selection-control--dirty) {
-  background: rgba(255, 0, 0, 0.05);
+  background: rgba(227, 7, 19, 0.05);
   box-shadow: inset 3px 0 0 var(--epfl-red);
 }
 
