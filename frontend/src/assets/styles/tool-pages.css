@@ -51,20 +51,30 @@
   font-weight: var(--title-panel-weight);
   margin-bottom: 8px;
 }
+/* Ratio readout — dark emphasis bar (handoff .tfield-ratio). It is the last
+   child of its tool-card, so negative margins bleed it to the card edges to
+   match the full-width bar in the handoff. */
 .tool-shell .tfield-ratio {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-subtle);
+  margin: 16px -20px -20px;
+  padding: 13px 20px;
+  background: var(--epfl-control-fill);
+  color: var(--fg-inverse);
   font-size: 13px;
-  color: var(--fg-muted);
+  font-style: italic;
+}
+.tool-shell .tfield-ratio span {
+  opacity: 0.85;
 }
 .tool-shell .tfield-ratio strong {
   font-family: var(--font-mono);
   font-size: 18px;
-  color: var(--fg);
-  font-weight: 700;
+  color: var(--fg-inverse);
+  font-weight: 600;
+  font-style: normal;
+  font-feature-settings: 'tnum';
 }
 
 /* ---------- Parameter groups (material model) ---------- */

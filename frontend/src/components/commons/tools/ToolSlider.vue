@@ -44,6 +44,12 @@ const fillPercent = computed(() => {
 const valueText = computed(() =>
   displayedValue.value.toLocaleString(undefined, { maximumFractionDigits: 2 })
 )
+const minText = computed(() =>
+  displayedMin.value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+)
+const maxText = computed(() =>
+  displayedMax.value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+)
 
 function onInput(event: Event): void {
   emit('update:modelValue', Number((event.target as HTMLInputElement).value) * ratio.value)
@@ -71,6 +77,10 @@ function onInput(event: Event): void {
         @input="onInput"
       />
     </div>
+    <div class="tslider-ends">
+      <span>{{ minText }}</span>
+      <span>{{ maxText }}</span>
+    </div>
   </div>
 </template>
 
@@ -86,8 +96,9 @@ function onInput(event: Event): void {
   margin-bottom: 7px;
 }
 .tslider-label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
+  font-style: italic; /* math-variable labels read as italic in the handoff */
   color: var(--fg);
 }
 .tslider-label :deep(sub) {
@@ -95,7 +106,7 @@ function onInput(event: Event): void {
 }
 .tslider-val {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   color: var(--fg);
   font-feature-settings: 'tnum';
 }
@@ -124,9 +135,19 @@ function onInput(event: Event): void {
   position: absolute;
   left: 0;
   height: 3px;
-  background: var(--fg);
+  background: var(--epfl-red); /* handoff: filled portion is brand red (value = active) */
   border-radius: 2px;
   pointer-events: none;
+}
+/* min / max end labels under the track (handoff .tslider-ends) */
+.tslider-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-subtle);
+  font-feature-settings: 'tnum';
 }
 .tslider-track input[type='range'] {
   -webkit-appearance: none;
@@ -144,21 +165,21 @@ function onInput(event: Event): void {
   appearance: none;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: 50%; /* circular knob kept per logged deviation */
   background: var(--bg);
-  border: 2px solid var(--fg);
+  border: 2px solid var(--epfl-red); /* handoff: red-ringed thumb */
   cursor: pointer;
   transition: border-color var(--t-fast);
 }
 .tslider-track input[type='range']::-webkit-slider-thumb:hover {
-  border-color: var(--epfl-red);
+  border-color: var(--epfl-red-dark);
 }
 .tslider-track input[type='range']::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
   background: var(--bg);
-  border: 2px solid var(--fg);
+  border: 2px solid var(--epfl-red);
   cursor: pointer;
 }
 .tslider-track input[type='range']:focus-visible::-webkit-slider-thumb {

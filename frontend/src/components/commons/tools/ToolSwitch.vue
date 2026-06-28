@@ -1,6 +1,7 @@
 <script setup lang="ts">
-// EPFL tool-page switch (design: tools.css `.tswitch`).
-// A small pill track that turns brand-red when on, with a white thumb.
+// EPFL tool-page switch (design: tool-screens.css `.tswitch`).
+// A square hairline-bordered track with a square knob (dark when off, white
+// when on); the track turns brand-red when on. Brutalist: no pill, no radius.
 defineProps<{
   modelValue: boolean
   label?: string
@@ -32,31 +33,30 @@ defineEmits<{
   user-select: none;
 }
 .tswitch-track {
-  width: 38px;
+  width: 40px;
   height: 20px;
-  border-radius: 10px;
-  /* Off state via a token that flips: recedes in dark instead of glowing light */
-  background: var(--border);
+  border: 1px solid var(--epfl-control-outline);
+  background: var(--bg);
   position: relative;
-  transition: background var(--t-base);
+  transition: background var(--t-base), border-color var(--t-base);
   flex: 0 0 auto;
 }
 .tswitch-track.on {
   background: var(--epfl-red);
+  border-color: var(--epfl-red);
 }
 .tswitch-thumb {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 1px;
+  left: 1px;
   width: 16px;
   height: 16px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform var(--t-base);
-  box-shadow: var(--shadow-sm);
+  background: var(--epfl-control-fill);
+  transition: transform var(--t-base), background var(--t-base);
 }
 .tswitch-track.on .tswitch-thumb {
-  transform: translateX(18px);
+  transform: translateX(20px);
+  background: #fff;
 }
 .tswitch-label {
   font-size: 13px;
