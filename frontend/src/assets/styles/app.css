@@ -1307,8 +1307,8 @@ body.theme-dark .logos img {
   grid-template-columns: 1fr;
 }
 .chart-cell {
-  padding: 18px 22px 22px;
-  border-right: 1px solid var(--border-subtle);
+  padding: 18px 22px 16px;
+  border-right: 1px solid var(--border);
   min-height: 220px;
   display: flex;
   flex-direction: column;
@@ -1330,10 +1330,14 @@ body.theme-dark .logos img {
   font-weight: var(--title-card-weight);
   letter-spacing: var(--title-card-tracking);
 }
+/* Per-cell meta / hint → brutalist monospace kicker, matching the handoff
+   chart-system .cs-stripcell .ch / .cs-card .ck meta (eyebrow role tokens). */
 .chart-head .info {
-  font-size: 11px;
+  font-family: var(--title-eyebrow-font);
+  font-size: var(--title-eyebrow-size);
+  font-weight: var(--title-eyebrow-weight);
+  letter-spacing: var(--title-eyebrow-tracking);
   color: var(--fg-muted);
-  letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
 }
