@@ -1677,17 +1677,20 @@ a.cd-publication-ref:hover {
 }
 .cd-carousel-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  padding: 14px 18px 12px;
-  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
   gap: 16px;
 }
+/* Card-title bar reads as an uppercase muted label on the grey head (handoff). */
 .cd-carousel-title {
-  font-size: var(--title-card-size);
-  font-weight: var(--title-card-weight);
-  letter-spacing: var(--title-card-tracking);
-  color: var(--fg);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
 }
 .cd-carousel-nav {
   display: flex;
@@ -1712,7 +1715,7 @@ a.cd-publication-ref:hover {
   border-radius: var(--radius);
 }
 .cd-carousel-btn:hover {
-  border-color: var(--fg);
+  border-color: var(--epfl-red);
   color: var(--epfl-red);
 }
 .cd-carousel-counter {
@@ -1767,49 +1770,59 @@ a.cd-publication-ref:hover {
   margin-top: 12px;
 }
 
-/* Property list */
+/* Property list — hairline-ruled key/value rows (handoff .cd-prop). */
 .cd-prop-block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
 .cd-prop-block-row {
   flex-direction: row;
   flex-wrap: wrap;
   gap: 8px 24px;
 }
+/* Sub-section label (e.g. BEAM / COLUMN) — red, borderless, well ventilated. */
 .cd-prop-sub {
-  font-size: var(--title-subhead-size);
-  font-weight: var(--title-subhead-weight);
-  letter-spacing: var(--title-subhead-tracking);
-  color: var(--fg);
-  margin-bottom: 2px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--border-subtle);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--epfl-red);
+  margin-bottom: 6px;
 }
 .prop-item {
-  display: grid;
-  grid-template-columns: minmax(140px, 44%) 1fr;
-  gap: 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
   font-size: 13px;
   line-height: 1.4;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+/* Composite-slab variant stays a compact inline wrap, not a ruled list. */
+.cd-prop-block-row .prop-item {
   padding: 2px 0;
+  border-bottom: 0;
+  gap: 6px;
 }
 .prop-name {
   color: var(--fg-muted);
 }
 .prop-val {
+  font-weight: 500;
+  text-align: right;
   color: var(--fg);
   font-feature-settings: 'tnum';
 }
 .prop-val.mono {
   font-family: var(--font-mono);
-  font-size: 12px;
 }
 .prop-unit {
-  color: var(--fg-muted);
-  margin-left: 4px;
+  color: var(--fg-subtle);
+  font-weight: 400;
   font-size: 11px;
+  margin-left: 3px;
 }
 
 /* Schematic column */
