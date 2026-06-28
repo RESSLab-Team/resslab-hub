@@ -1544,13 +1544,8 @@ body.theme-dark .logos img {
   background: var(--bg);
   border: 1px solid var(--border);
 }
-/* Signature red top accent (handoff .cd::before) — softer 3px bar. */
-.detail-panel {
-  border-top: 3px solid var(--epfl-red);
-}
 .drawer .detail-panel {
   border: 0;
-  border-top: 3px solid var(--epfl-red);
 }
 .drawer-head {
   display: flex;
@@ -1635,15 +1630,14 @@ body.theme-dark .logos img {
   flex: 0 0 auto;
 }
 
-/* Publication ref row — boxed on a faint surface (handoff .cd-publication) */
+/* Publication ref row — a quiet hairline-ruled row, not a boxed panel. */
 .cd-publication {
   display: flex;
   align-items: baseline;
   gap: 14px;
-  padding: 12px 16px;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  margin-bottom: 24px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 18px;
 }
 .cd-publication-label {
   font-size: var(--title-panel-size);
@@ -1661,11 +1655,12 @@ body.theme-dark .logos img {
   display: inline;
 }
 a.cd-publication-ref {
-  color: var(--epfl-red); /* a linked DOI reference reads red (handoff) */
-  border-bottom: 1px solid transparent;
+  color: var(--fg); /* quiet ink link; red is reserved for the hover affordance */
+  border-bottom: 1px solid var(--border);
   padding-bottom: 1px;
 }
 a.cd-publication-ref:hover {
+  color: var(--epfl-red);
   border-bottom-color: var(--epfl-red);
 }
 .cd-publication-ref .v-icon {
