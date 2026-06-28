@@ -93,7 +93,8 @@ const option = computed<EChartsOption>(() => ({
       dim: index,
       name: name,
       nameTextStyle: {
-        fontWeight: 'bold' as ZRFontWeight,
+        color: '#6e6e73',
+        fontWeight: 'normal' as ZRFontWeight,
         verticalAlign: 'middle' as VerticalAlign
       },
       nameGap: 20

@@ -42,21 +42,25 @@ const actualOption = computed<EChartsOption>(() => {
   const defaultOption: EChartsOption = {
     grid: {
       left: 60,
-      top: props.legendSide ? 10 : 40,
+      top: props.legendSide ? 10 : 16,
       right: props.legendSide ? 200 : 20,
-      bottom: 40
+      bottom: props.legendSide ? 40 : 64
     },
     legend: {
       type: 'scroll',
-      top: props.legendSide ? 80 : 0,
-      right: props.legendSide ? 0 : undefined,
-      orient: props.legendSide ? 'vertical' : 'horizontal'
+      // Legend sits below the plot (handoff); many-series charts keep a vertical
+      // legend on the right. A thin, wide swatch reads as a line — not a square —
+      // which suits these line charts.
+      ...(props.legendSide
+        ? { top: 80, right: 0, orient: 'vertical' as const }
+        : { bottom: 0, left: 'center' as const, orient: 'horizontal' as const }),
+      icon: 'rect',
+      itemWidth: 18,
+      itemHeight: 2
     },
     xAxis: {
+      // Axis-name styling (grey/mono/regular) comes from the global theme.
       nameLocation: 'middle',
-      nameTextStyle: {
-        fontWeight: 'bold'
-      },
       nameGap: 26,
       max: xAXisOption?.max,
       axisLabel: {
@@ -65,10 +69,8 @@ const actualOption = computed<EChartsOption>(() => {
       }
     },
     yAxis: {
+      // Name rides along the axis (rotated, mid-height) — never above the plot.
       nameLocation: 'middle',
-      nameTextStyle: {
-        fontWeight: 'bold'
-      },
       nameGap: 50,
       max: yAXisOption?.max,
       axisLabel: {
@@ -122,10 +124,11 @@ const actualOption = computed<EChartsOption>(() => {
     (serie) =>
       ({
         ...serie,
-        data: (serie.data as [number, number][] | undefined)?.map(
-          (v): [number, number] => [v[0] / xRatio.value, v[1] / yRatio.value]
-        )
-      }) as SeriesOption
+        data: (serie.data as [number, number][] | undefined)?.map((v): [number, number] => [
+          v[0] / xRatio.value,
+          v[1] / yRatio.value
+        ])
+      } as SeriesOption)
   )
   return merged
 })

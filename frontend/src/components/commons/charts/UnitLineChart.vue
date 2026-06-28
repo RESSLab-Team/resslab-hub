@@ -44,17 +44,6 @@ const props = withDefaults(
 
 use([TitleComponent])
 
-// ECharts reads a literal font string (CSS vars don't resolve); mirror the
-// mono stack + muted ink from epfl-tokens.css for the axis-name labels.
-const MONO = "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace"
-const NAME = '#6e6e73' // muted axis-name ink
-
-// Keep the gridded layout + default name placement; only restyle the axis names
-// to mono grey so they sit quieter against the data.
-const responseAxis = {
-  nameTextStyle: { color: NAME, fontFamily: MONO, fontWeight: 'normal' as const, fontSize: 11 }
-}
-
 const option = computed<EChartsOption>(
   () =>
     ({
@@ -62,22 +51,20 @@ const option = computed<EChartsOption>(
         text: props.title,
         left: 'center'
       },
+      // Leave headroom for the title when present; otherwise inherit UnitChart's
+      // compact top (legend now lives below the plot, not above it).
       grid: {
-        //If there are more than 2 series, the legend will be on the right so we don't need to leave more space for it
-        top: props.series.length > 2 ? 40 : 60
+        top: props.title ? 36 : undefined
       },
       legend: {
-        top: 30,
         show: props.series.length > 1
       },
       xAxis: {
-        ...responseAxis,
         name: props.xAxisName,
         min: props.xAxisMin,
         max: props.xAxisMax
       },
       yAxis: {
-        ...responseAxis,
         name: props.yAxisName,
         min: props.yAxisMin,
         max: props.yAxisMax

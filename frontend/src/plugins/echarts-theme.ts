@@ -22,6 +22,7 @@ const MONO = "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, 
 const AXIS = '#c1c1c1' // hairline axis line
 const GRID = '#ececec' // very light gridline
 const TICK = '#8e8e8e' // mono tick label
+const NAME = '#6e6e73' // muted axis-name ink (uniform across every chart)
 const INK = '#212121' // soft black
 
 // Categorical series palette — Okabe–Ito (colorblind-safe), handoff order.
@@ -42,7 +43,9 @@ const axisCommon = {
   axisTick: { lineStyle: { color: AXIS, width: 1 } },
   axisLabel: { color: TICK, fontFamily: MONO, fontSize: 11 },
   splitLine: { lineStyle: { color: GRID, width: 1, type: 'solid' } },
-  nameTextStyle: { color: INK, fontFamily: SANS, fontWeight: 'bold' as const }
+  // Axis names (titles): one treatment everywhere — muted grey, mono, regular
+  // weight (never black/bold), matching the mono tick labels above.
+  nameTextStyle: { color: NAME, fontFamily: MONO, fontWeight: 'normal' as const, fontSize: 11 }
 }
 
 export const echartsTheme = {

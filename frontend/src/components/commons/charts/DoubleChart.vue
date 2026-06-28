@@ -145,18 +145,21 @@ const option = computed<EChartsOption>(() => {
     },
     legend: {
       type: 'scroll',
-      top: 20
+      // Legend below the plot; line series read better with a thin line swatch,
+      // bars keep the square swatch (theme default).
+      bottom: 0,
+      icon: 'rect',
+      itemWidth: props.type === 'line' ? 18 : 10,
+      itemHeight: props.type === 'line' ? 2 : 10
     },
     grid: {
-      bottom: 42
+      top: 40,
+      bottom: 56
     },
     xAxis: {
       type: 'category',
       name: i18n.global.t(props.labelPrefix + props.fields[0]).toString(),
       nameLocation: 'middle',
-      nameTextStyle: {
-        fontWeight: 'bold'
-      },
       nameGap: 28,
       boundaryGap: props.type === 'bar',
       axisTick: {
