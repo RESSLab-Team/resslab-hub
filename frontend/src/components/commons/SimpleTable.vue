@@ -558,6 +558,10 @@ function downloadZip(): void {
   cursor: pointer;
   background: var(--bg-subtle);
 }
+/* Handoff .ed-table tr:hover .nm — the strong identifier cell reds on hover */
+:deep(.v-table__wrapper) > table > tbody > tr:hover .cell-strong {
+  color: var(--epfl-red);
+}
 :deep(.v-table__wrapper) > table > tbody > tr.v-data-table__tr--clickable:focus-visible,
 :deep(.v-table__wrapper) > table > tbody > tr:has(.v-selection-control--dirty) {
   background: rgba(227, 7, 19, 0.05);

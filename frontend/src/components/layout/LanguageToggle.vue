@@ -34,29 +34,37 @@ function setLocale(value: string): void {
 </template>
 
 <style scoped>
+/* Handoff .ed-foot .lang: a plain mono switch with "/" separators; the active
+   locale is red + bold, no background pill (brutalist — flat). */
 .lang-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
 }
 .lang-btn {
   font: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 2px 6px;
+  padding: 0;
   border: 0;
-  border-radius: var(--radius-sm, 4px);
   background: transparent;
   color: var(--fg-muted);
   cursor: pointer;
-  transition: color var(--t-fast), background var(--t-fast);
+  transition: color var(--t-fast);
+}
+/* Slash divider between locales. */
+.lang-btn:not(:last-child)::after {
+  content: '/';
+  margin-left: 6px;
+  color: var(--fg-subtle);
+  pointer-events: none;
 }
 .lang-btn:hover {
   color: var(--fg);
 }
 .lang-btn.is-active {
-  color: var(--bg);
-  background: var(--fg);
+  color: var(--epfl-red);
+  font-weight: 700;
 }
 </style>

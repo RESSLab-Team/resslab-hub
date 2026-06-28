@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import EyebrowText from '@/components/commons/EyebrowText.vue'
+
 /**
  * EPFL design-system page header for the tool pages (component models, fragility
  * curves), mirroring the dash-head of `DashboardShell.vue`: eyebrow, title, an
@@ -12,7 +14,7 @@ defineProps<{
 
 <template>
   <div class="dash-head">
-    <div class="eyebrow" style="margin-bottom: 6px">{{ eyebrow }}</div>
+    <div class="eyebrow" style="margin-bottom: 6px"><eyebrow-text :text="eyebrow" /></div>
     <div class="dash-head-row">
       <h1 class="dash-title">{{ title }}</h1>
       <div v-if="$slots.actions" class="dash-head-actions">

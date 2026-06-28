@@ -132,10 +132,12 @@
   --title-panel-weight: var(--w-bold);
   --title-panel-tracking: 0.06em;
 
-  /* Eyebrow / kicker — the category line above a title. */
+  /* Eyebrow / kicker — the category line above a title. Handoff .ed-eyebrow is a
+     fine monospace regular (not bold), two-tone red + muted; see app.css. */
   --title-eyebrow-size: 0.6875rem; /* 11 */
-  --title-eyebrow-weight: var(--w-bold);
-  --title-eyebrow-tracking: 0.12em;
+  --title-eyebrow-weight: var(--w-normal);
+  --title-eyebrow-tracking: 0.08em;
+  --title-eyebrow-font: var(--font-mono);
 
   /* Subhead — small ruled field-group label (a notch below panel header). */
   --title-subhead-size: var(--fs-xs); /* 12 */
@@ -143,8 +145,13 @@
   --title-subhead-tracking: 0.02em;
 
   /* ──────────── SHAPE / MOTION ──────────── */
-  --radius: 2px; /* deliberately tight — Swiss/sharp */
-  --radius-lg: 4px;
+  /* Brutalist: square corners everywhere. The radius tokens are kept (rather
+     than purged from every consumer) and pinned to 0 so the whole app flattens
+     from one place. Genuine circles (dot markers, slider thumbs) set their own
+     border-radius:50% locally and are unaffected. */
+  --radius: 0; /* was 2px — flattened for the Swiss-brutalist direction */
+  --radius-lg: 0; /* was 4px */
+  --radius-sm: 0; /* legacy fallback name still referenced in a few components */
   --shadow-sm: 0 1px 2px rgba(33, 33, 33, 0.075);
   --shadow: 0 0.5rem 1rem rgba(33, 33, 33, 0.175);
   --shadow-lg: 0 1rem 2rem rgba(33, 33, 33, 0.2);

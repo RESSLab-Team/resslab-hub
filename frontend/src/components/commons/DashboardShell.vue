@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import EyebrowText from '@/components/commons/EyebrowText.vue'
 import FilterRail, { type FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import i18n from '@/plugins/i18n'
 import { useNotificationStore } from '@/stores/notification'
@@ -100,7 +101,7 @@ function shareView(): void {
   <div class="dash">
     <!-- Page header -->
     <div class="dash-head">
-      <div class="eyebrow" style="margin-bottom: 6px">{{ eyebrow }}</div>
+      <div class="eyebrow" style="margin-bottom: 6px"><eyebrow-text :text="eyebrow" /></div>
       <div class="dash-head-row">
         <h1 class="dash-title">
           {{ title }}

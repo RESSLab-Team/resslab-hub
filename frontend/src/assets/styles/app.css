@@ -15,8 +15,31 @@
 a {
   text-decoration: none;
 }
+/* ================ BRUTALIST: FLAT CORNERS + NO ELEVATION ================
+   Square every corner across the app and Vuetify's own components, from one
+   broad rule rather than per-component overrides. Genuine circles (legend /
+   status dots, slider thumbs, toggle knobs) opt back in with border-radius:50%
+   locally and are not matched here. Custom classes inherit 0 via --radius. */
+.v-application .v-card,
+.v-application .v-btn,
+.v-application .v-btn__overlay,
+.v-application .v-field,
+.v-application .v-field__outline__start,
+.v-application .v-field__outline__end,
+.v-application .v-chip,
+.v-application .v-sheet,
+.v-application .v-list,
+.v-application .v-menu > .v-overlay__content,
+.v-application .v-overlay__content > .v-card,
+.v-application .v-tooltip > .v-overlay__content,
+.v-application .v-snackbar__wrapper,
+.v-application .v-alert,
+.v-application .v-input__control {
+  border-radius: 0 !important;
+}
+/* Flat, hairline-bordered surfaces — no card elevation shadows anywhere. */
 .v-application .v-card {
-  border-radius: var(--radius);
+  box-shadow: none !important;
 }
 
 /* ================ TITLE ROLES ================
@@ -57,6 +80,27 @@ a {
   font-weight: var(--title-subhead-weight);
   letter-spacing: var(--title-subhead-tracking);
   color: var(--fg);
+}
+
+/* Eyebrows render in the finer monospace of the handoff (.ed-eyebrow). One rule
+   so every eyebrow variant picks it up from the shared role. */
+.t-eyebrow,
+.eyebrow,
+.hero-eyebrow,
+.section-eyebrow,
+.logos-eyebrow,
+.cd-eyebrow,
+.cd-section-h,
+.drawer-body h2 {
+  font-family: var(--title-eyebrow-font);
+}
+/* Two-tone split (EyebrowText.vue): primary segment red, qualifier muted —
+   matches the handoff's `<span class="red">…</span><span class="mut">…</span>`. */
+.ey-red {
+  color: var(--epfl-red);
+}
+.ey-mut {
+  color: var(--fg-subtle);
 }
 
 /* ================ APP SHELL (SIDEBAR LAYOUT) ================ */
@@ -241,6 +285,11 @@ a {
   position: sticky;
   bottom: 0;
   background: var(--bg);
+}
+/* Compact dark-mode square to match the handoff footer scale (.ed-foot .sq). */
+.sidebar-foot .hdr-icon-btn {
+  width: 26px;
+  height: 26px;
 }
 
 /* Mobile top bar + sidebar overlay */
@@ -829,7 +878,7 @@ body.theme-dark .logos img {
   color: #fff;
   font-size: 10px;
   font-weight: 700;
-  border-radius: 9px;
+  border-radius: 0;
   font-feature-settings: 'tnum';
 }
 .dash-filters-head-r {
@@ -1036,7 +1085,7 @@ body.theme-dark .logos img {
   color: #fff;
   font-size: 10px;
   font-weight: 700;
-  border-radius: 9px;
+  border-radius: 0;
 }
 
 /* Filter groups */

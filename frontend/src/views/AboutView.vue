@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import EyebrowText from '@/components/commons/EyebrowText.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import { useI18n } from 'vue-i18n'
 
@@ -94,7 +95,9 @@ function initials(name: string): string {
 <template>
   <div>
     <section class="section about-hero">
-      <div class="eyebrow" style="margin-bottom: 10px">{{ t('about.eyebrow') }}</div>
+      <div class="eyebrow" style="margin-bottom: 10px">
+        <eyebrow-text :text="t('about.eyebrow')" />
+      </div>
       <h1 class="about-title">{{ t('about.title') }}</h1>
       <p class="about-lede">
         <i18n-t keypath="about.lede" tag="span" scope="global">
@@ -115,7 +118,7 @@ function initials(name: string): string {
     </section>
 
     <section class="section section-bg-subtle">
-      <div class="section-eyebrow">{{ t('about.contributors.eyebrow') }}</div>
+      <div class="section-eyebrow"><eyebrow-text :text="t('about.contributors.eyebrow')" /></div>
       <h2 class="section-title" style="margin-bottom: 36px">{{ t('about.contributors.title') }}</h2>
       <div class="split-2">
         <div v-for="group in contributorGroups" :key="group.name" class="surface surface-pad">
@@ -150,7 +153,7 @@ function initials(name: string): string {
     <section class="section">
       <div class="split-2">
         <div>
-          <div class="section-eyebrow">{{ t('about.citation.eyebrow') }}</div>
+          <div class="section-eyebrow"><eyebrow-text :text="t('about.citation.eyebrow')" /></div>
           <h2 class="section-title about-subtitle">{{ t('about.citation.title') }}</h2>
           <p class="about-note">{{ t('about.citation.note') }}</p>
           <div class="about-citation">
@@ -160,7 +163,7 @@ function initials(name: string): string {
           </div>
         </div>
         <div>
-          <div class="section-eyebrow">{{ t('about.funding.eyebrow') }}</div>
+          <div class="section-eyebrow"><eyebrow-text :text="t('about.funding.eyebrow')" /></div>
           <h2 class="section-title about-subtitle">{{ t('about.funding.supportedBy') }}</h2>
           <div class="about-funding">
             <a href="https://www.snf.ch" target="_blank" rel="noreferrer">

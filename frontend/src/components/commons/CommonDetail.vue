@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import EyebrowText from '@/components/commons/EyebrowText.vue'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
 import { mdiClose, mdiOpenInNew } from '@mdi/js'
 import type { AxiosResponse } from 'axios'
@@ -99,7 +100,7 @@ function nextPage(): void {
   <div class="detail-panel">
     <div class="drawer-head">
       <div class="cd-title-block">
-        <div v-if="eyebrow" class="cd-eyebrow">{{ eyebrow }}</div>
+        <div v-if="eyebrow" class="cd-eyebrow"><eyebrow-text :text="eyebrow" /></div>
         <h2 class="cd-title"><slot name="title" /></h2>
         <div v-if="specimenId" class="cd-title-id">{{ specimenId }}</div>
       </div>

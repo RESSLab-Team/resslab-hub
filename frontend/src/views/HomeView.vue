@@ -6,6 +6,7 @@ import type {
   HSSColumnField,
   MaterialField
 } from '@/backend'
+import EyebrowText from '@/components/commons/EyebrowText.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import {
   analyticsApi,
@@ -86,7 +87,7 @@ onMounted(() => {
     <!-- Hero — overlapping white text panel breaking the media edge -->
     <section class="hero">
       <div class="hero-text">
-        <div class="hero-eyebrow">EPFL · RESSLab</div>
+        <div class="hero-eyebrow"><eyebrow-text text="EPFL · RESSLab" /></div>
         <h1 class="hero-title">
           <i18n-t keypath="home.hero.title" tag="span" scope="global">
             <template #emphasis
@@ -127,7 +128,7 @@ onMounted(() => {
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="section-eyebrow">{{ t('home.databases.eyebrow') }}</div>
+          <div class="section-eyebrow"><eyebrow-text :text="t('home.databases.eyebrow')" /></div>
           <h2 class="section-title">{{ t('home.databases.title') }}</h2>
           <p class="section-sub">{{ t('home.databases.sub') }}</p>
         </div>
@@ -157,7 +158,7 @@ onMounted(() => {
     <section class="section section-bg-subtle">
       <div class="section-head">
         <div>
-          <div class="section-eyebrow">{{ t('home.reach.eyebrow') }}</div>
+          <div class="section-eyebrow"><eyebrow-text :text="t('home.reach.eyebrow')" /></div>
           <h2 class="section-title">
             {{
               t('home.reach.title', {
@@ -182,7 +183,9 @@ onMounted(() => {
             ></iframe>
           </div>
           <div style="margin-top: 24px">
-            <div class="eyebrow" style="margin-bottom: 10px">{{ t('home.tools.eyebrow') }}</div>
+            <div class="eyebrow" style="margin-bottom: 10px">
+              <eyebrow-text :text="t('home.tools.eyebrow')" />
+            </div>
             <p style="margin: 0 0 16px; color: var(--fg-muted); font-size: 14px; line-height: 1.5">
               {{ t('home.tools.blurb') }}
             </p>
