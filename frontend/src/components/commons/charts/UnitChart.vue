@@ -36,6 +36,14 @@ const axisLabelMaxDigits = 2
 const { ratio: xRatio, unitLabel: xUnitLabel } = useUnits(props.xUnit)
 const { ratio: yRatio, unitLabel: yUnitLabel } = useUnits(props.yUnit)
 
+// A bottom legend (multi-series, not the right-rail variant) gets a hairline
+// fence and extra padding below the x-axis label; single-series charts don't.
+const seriesCount = computed(() => {
+  const s = props.option.series
+  return Array.isArray(s) ? s.length : s ? 1 : 0
+})
+const showLegendRule = computed(() => !props.legendSide && seriesCount.value > 1)
+
 const actualOption = computed<EChartsOption>(() => {
   const xAXisOption: XAXisOption = props.option.xAxis as XAXisOption
   const yAXisOption: YAXisOption = props.option.yAxis as YAXisOption
@@ -44,7 +52,8 @@ const actualOption = computed<EChartsOption>(() => {
       left: 60,
       top: props.legendSide ? 10 : 16,
       right: props.legendSide ? 200 : 20,
-      bottom: props.legendSide ? 40 : 64
+      // Reserve a legend band only when the legend actually sits below the plot.
+      bottom: props.legendSide ? 40 : showLegendRule.value ? 78 : 40
     },
     legend: {
       type: 'scroll',
@@ -53,7 +62,7 @@ const actualOption = computed<EChartsOption>(() => {
       // which suits these line charts.
       ...(props.legendSide
         ? { top: 80, right: 0, orient: 'vertical' as const }
-        : { bottom: 0, left: 'center' as const, orient: 'horizontal' as const }),
+        : { bottom: 4, left: 'center' as const, orient: 'horizontal' as const }),
       icon: 'rect',
       itemWidth: 18,
       itemHeight: 2
@@ -136,11 +145,33 @@ const actualOption = computed<EChartsOption>(() => {
 
 <template>
   <v-responsive :aspect-ratio="aspectRatio" :max-width="maxWidth">
-    <v-chart
-      autoresize
-      :init-options="initOptions"
-      :option="actualOption"
-      :update-options="updateOptions"
-    />
+    <div class="uc-wrap">
+      <v-chart
+        autoresize
+        :init-options="initOptions"
+        :option="actualOption"
+        :update-options="updateOptions"
+      />
+      <span v-if="showLegendRule" class="uc-legend-rule" />
+    </div>
   </v-responsive>
 </template>
+
+<style scoped>
+.uc-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+/* Hairline that fences the bottom legend off from the plot + x-axis label
+   (handoff). Offsets track the grid (left 60 / right 20) and the legend band —
+   all fixed in px, so the rule stays put at any chart height. */
+.uc-legend-rule {
+  position: absolute;
+  left: 60px;
+  right: 20px;
+  bottom: 32px;
+  border-top: 1px solid var(--border);
+  pointer-events: none;
+}
+</style>
