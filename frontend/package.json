@@ -40,7 +40,6 @@
     "vuetify": "^3.3.15"
   },
   "devDependencies": {
-    "@fontsource/roboto": "^5.0.1",
     "@intlify/unplugin-vue-i18n": "^0.10.0",
     "@mdi/js": "^7.1.96",
     "@openapitools/openapi-generator-cli": "^2.5.2",

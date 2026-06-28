@@ -1048,11 +1048,11 @@ body.theme-dark .logos img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: var(--title-panel-size);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--title-panel-tracking);
   color: var(--fg-muted);
-  font-weight: 700;
+  font-weight: var(--title-panel-weight);
   margin-bottom: 10px;
 }
 .filter-group-head .count {
@@ -1587,10 +1587,10 @@ body.theme-dark .logos img {
   margin-bottom: 18px;
 }
 .cd-publication-label {
-  font-size: 10px;
+  font-size: var(--title-panel-size);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 700;
+  letter-spacing: var(--title-panel-tracking);
+  font-weight: var(--title-panel-weight);
   color: var(--fg-muted);
   flex: 0 0 88px;
 }
@@ -1692,9 +1692,9 @@ a.cd-publication-ref:hover {
   width: 100%;
 }
 .cd-chart-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: var(--title-panel-size);
+  font-weight: var(--title-panel-weight);
+  letter-spacing: var(--title-panel-tracking);
   text-transform: uppercase;
   color: var(--fg-muted);
   margin-bottom: 4px;

@@ -31,3 +31,7 @@ docker-compose.override.yml
 
 # Lefthook local overrides
 lefthook-local.yml
+
+# Design / chart handoff bundles (kept locally, never committed)
+design_handoff_resslab_hub/
+handoff_dashboard_charts/
