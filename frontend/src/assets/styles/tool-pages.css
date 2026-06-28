@@ -21,10 +21,10 @@
   margin-top: 20px;
 }
 .tool-shell .tool-card-h {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--title-panel-size);
+  font-weight: var(--title-panel-weight);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--title-panel-tracking);
   color: var(--fg);
   padding-bottom: 12px;
   margin-bottom: 14px;
@@ -44,11 +44,11 @@
   margin-bottom: 0;
 }
 .tool-shell .tfield-label {
-  font-size: 11px;
+  font-size: var(--title-panel-size);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--fg-muted);
-  font-weight: 700;
+  letter-spacing: var(--title-panel-tracking);
+  color: var(--fg); /* panel header — uniform dark ink across all tool screens */
+  font-weight: var(--title-panel-weight);
   margin-bottom: 8px;
 }
 .tool-shell .tfield-ratio {
@@ -72,11 +72,11 @@
   margin-bottom: 22px;
 }
 .tool-shell .tool-param-group-h {
-  font-size: 11px;
+  font-size: var(--title-panel-size);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--epfl-red);
-  font-weight: 700;
+  letter-spacing: var(--title-panel-tracking);
+  color: var(--fg); /* panel header — uniform dark ink (red is reserved for selection) */
+  font-weight: var(--title-panel-weight);
   margin-bottom: 14px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border-subtle);
@@ -125,15 +125,15 @@
 .tool-shell .tool-chart-col {
   min-width: 0;
 }
-/* Reset the global uppercase/bordered `.tool-page h2` — this is a real heading */
+/* Chart-card title (sentence case) — card-title role. */
 .tool-shell .tool-chart-h {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
   margin: 0 0 10px;
   padding: 0;
   border-bottom: 0;
   text-transform: none;
-  letter-spacing: normal;
   color: var(--fg);
 }
 
@@ -167,8 +167,9 @@
   min-width: 0;
 }
 .tool-shell .mat-chart-h {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
   margin-bottom: 6px;
 }
 .tool-shell .mat-thumbs {

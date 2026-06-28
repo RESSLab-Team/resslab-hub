@@ -485,9 +485,9 @@ function downloadZip(): void {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.005em;
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
 }
 .stbl-search :deep(.v-field) {
   border-radius: var(--radius);
@@ -510,7 +510,7 @@ function downloadZip(): void {
   background: var(--bg-subtle) !important;
   text-transform: uppercase;
   font-size: 11px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   font-weight: 700;
   color: var(--fg-muted);
   border-bottom: 1px solid var(--table-gridline-strong) !important;

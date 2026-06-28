@@ -3,10 +3,10 @@
    Source: github.com/epfl-si/elements (charte graphique Web EPFL)
    Brand reference: EPFL Brand Guidelines (2019)
 
-   Note on fonts: the official EPFL face is Suisse Int'l, whose
-   license restricts hosting to *.epfl.ch — the font files are
-   therefore NOT bundled in this public repository. As in EPFL's
-   public stylesheet, the stack falls back to Arial/Helvetica.
+   Note on fonts: the official EPFL face is Suisse Int'l, self-hosted
+   via @font-face in styles/fonts.css (weights 300–700). The stack
+   still falls back to Arial/Helvetica where the face is unavailable.
+   See fonts.css for the licensing caveat.
    ============================================================ */
 
 :root {
@@ -84,6 +84,63 @@
   --font-sans: "Suisse Int'l", 'SuisseIntl', 'Suisse Intl', Arial, 'Helvetica Neue', Helvetica,
     sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+
+  /* Type scale — verbatim from the EPFL handoff (colors_and_type.css). */
+  --fs-h1: 3rem; /* 48 */
+  --fs-h2: 2.375rem; /* 38 — page titles */
+  --fs-h3: 1.75rem; /* 28 */
+  --fs-h4: 1.5rem; /* 24 */
+  --fs-h5: 1.25rem; /* 20 */
+  --fs-h6: 1.125rem; /* 18 */
+  --fs-lead: 1.125rem; /* 18 */
+  --fs-body: 1rem; /* 16 */
+  --fs-sm: 0.875rem; /* 14 */
+  --fs-xs: 0.75rem; /* 12 */
+
+  /* Weights */
+  --w-light: 300;
+  --w-normal: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
+  --w-bold: 700;
+
+  /* Line heights */
+  --lh-tight: 1.1;
+  --lh-snug: 1.2;
+  --lh-normal: 1.35;
+  --lh-relaxed: 1.5;
+
+  /* ──────────── TITLE ROLES ────────────
+     Every card / section / panel / eyebrow title in the app resolves to one of
+     these five roles (see the .t-* utility classes + role consumers in app.css).
+     Change a value here once and it propagates everywhere — this is what keeps
+     title typography uniform across views. */
+
+  /* Page title — the per-view H1. Handoff h2: large, regular weight, sentence case. */
+  --title-page-size: var(--fs-h2);
+  --title-page-weight: var(--w-normal);
+  --title-page-lh: var(--lh-snug);
+  --title-page-tracking: -0.01em;
+
+  /* Card title — chart / table / carousel card headings. Sentence case, medium. */
+  --title-card-size: 0.9375rem; /* 15 */
+  --title-card-weight: var(--w-semibold);
+  --title-card-tracking: -0.005em;
+
+  /* Panel header — uppercase data / control panel headings. */
+  --title-panel-size: var(--fs-xs); /* 12 */
+  --title-panel-weight: var(--w-bold);
+  --title-panel-tracking: 0.06em;
+
+  /* Eyebrow / kicker — the category line above a title. */
+  --title-eyebrow-size: 0.6875rem; /* 11 */
+  --title-eyebrow-weight: var(--w-bold);
+  --title-eyebrow-tracking: 0.12em;
+
+  /* Subhead — small ruled field-group label (a notch below panel header). */
+  --title-subhead-size: var(--fs-xs); /* 12 */
+  --title-subhead-weight: var(--w-bold);
+  --title-subhead-tracking: 0.02em;
 
   /* ──────────── SHAPE / MOTION ──────────── */
   --radius: 2px; /* deliberately tight — Swiss/sharp */

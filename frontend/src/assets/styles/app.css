@@ -19,6 +19,46 @@ a {
   border-radius: var(--radius);
 }
 
+/* ================ TITLE ROLES ================
+   Five canonical title treatments, driven by the --title-* tokens in
+   epfl-tokens.css. Use these classes directly on new markup; existing
+   component classes below are rewritten to consume the same tokens, so
+   every card / section / panel / eyebrow title stays uniform app-wide. */
+.t-page {
+  margin: 0;
+  font-size: var(--title-page-size);
+  font-weight: var(--title-page-weight);
+  line-height: var(--title-page-lh);
+  letter-spacing: var(--title-page-tracking);
+}
+.t-card {
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
+  line-height: 1.3;
+  color: var(--fg);
+}
+.t-panel {
+  font-size: var(--title-panel-size);
+  font-weight: var(--title-panel-weight);
+  letter-spacing: var(--title-panel-tracking);
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.t-eyebrow {
+  font-size: var(--title-eyebrow-size);
+  font-weight: var(--title-eyebrow-weight);
+  letter-spacing: var(--title-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--epfl-red);
+}
+.t-subhead {
+  font-size: var(--title-subhead-size);
+  font-weight: var(--title-subhead-weight);
+  letter-spacing: var(--title-subhead-tracking);
+  color: var(--fg);
+}
+
 /* ================ APP SHELL (SIDEBAR LAYOUT) ================ */
 .app-shell {
   min-height: 100vh;
@@ -313,11 +353,11 @@ a {
   padding: 80px 0 80px 64px;
 }
 .hero-eyebrow {
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
   text-transform: uppercase;
   color: var(--epfl-red);
-  font-weight: 700;
+  font-weight: var(--title-eyebrow-weight);
   margin-bottom: 18px;
 }
 .hero-title {
@@ -486,11 +526,11 @@ a {
   gap: 32px;
 }
 .section-eyebrow {
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
   text-transform: uppercase;
   color: var(--epfl-red);
-  font-weight: 700;
+  font-weight: var(--title-eyebrow-weight);
   margin-bottom: 8px;
 }
 .section-title {
@@ -651,11 +691,11 @@ a {
   border-top: 1px solid var(--border);
 }
 .logos-eyebrow {
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
   text-transform: uppercase;
-  color: var(--fg-muted);
-  font-weight: 700;
+  color: var(--fg-muted); /* muted variant — this is a strip label, not a kicker */
+  font-weight: var(--title-eyebrow-weight);
   flex: 0 0 auto;
 }
 .logos-items {
@@ -692,7 +732,7 @@ body.theme-dark .logos img {
 
 /* Result tables (model pages) */
 .tool-page table thead th {
-  font-size: 10px !important;
+  font-size: 11px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
   color: var(--fg-muted) !important;
@@ -772,11 +812,11 @@ body.theme-dark .logos img {
 }
 .dash-filters-head h6 {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--title-panel-size);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--title-panel-tracking);
   color: var(--fg);
-  font-weight: 700;
+  font-weight: var(--title-panel-weight);
 }
 .dash-filters-active-count {
   display: inline-flex;
@@ -1116,10 +1156,10 @@ body.theme-dark .logos img {
 }
 .dash-title {
   margin: 0;
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  font-size: var(--title-page-size);
+  font-weight: var(--title-page-weight);
+  line-height: var(--title-page-lh);
+  letter-spacing: var(--title-page-tracking);
 }
 .dash-title-count {
   color: var(--fg-muted);
@@ -1135,11 +1175,11 @@ body.theme-dark .logos img {
   line-height: 1.5;
 }
 .eyebrow {
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
   text-transform: uppercase;
   color: var(--epfl-red);
-  font-weight: 700;
+  font-weight: var(--title-eyebrow-weight);
 }
 
 /* Active filter bar */
@@ -1237,8 +1277,9 @@ body.theme-dark .logos img {
 }
 .chart-head h5 {
   margin: 0;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
 }
 .chart-head .info {
   font-size: 11px;
@@ -1476,40 +1517,39 @@ body.theme-dark .logos img {
    cd-section-h until each detail component is migrated. */
 .drawer-body h2,
 .cd-section-h {
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
   text-transform: uppercase;
   color: var(--epfl-red);
-  font-weight: 700;
+  font-weight: var(--title-eyebrow-weight);
   margin: 28px 0 12px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
 }
 .drawer-body h3 {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: var(--title-subhead-size);
+  font-weight: var(--title-subhead-weight);
+  letter-spacing: var(--title-subhead-tracking);
   color: var(--fg);
   margin: 0 0 6px;
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border-subtle);
 }
 .cd-section-h-sub {
-  color: var(--fg);
+  color: var(--fg); /* ink + lighter rule distinguishes the sub-divider; size inherited */
   border-bottom-color: var(--border-subtle);
   margin-top: 18px;
-  font-size: 10px;
 }
 
 .cd-title-block {
   min-width: 0;
 }
 .cd-eyebrow {
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
   text-transform: uppercase;
   color: var(--epfl-red);
-  font-weight: 700;
+  font-weight: var(--title-eyebrow-weight);
   margin: 0 0 6px;
 }
 .cd-title {
@@ -1589,9 +1629,9 @@ a.cd-publication-ref:hover {
   gap: 16px;
 }
 .cd-carousel-title {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.005em;
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
   color: var(--fg);
 }
 .cd-carousel-nav {
@@ -1684,9 +1724,9 @@ a.cd-publication-ref:hover {
   gap: 8px 24px;
 }
 .cd-prop-sub {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: var(--title-subhead-size);
+  font-weight: var(--title-subhead-weight);
+  letter-spacing: var(--title-subhead-tracking);
   color: var(--fg);
   margin-bottom: 2px;
   padding-bottom: 4px;
@@ -1970,6 +2010,9 @@ a.cd-publication-ref:hover {
   }
   .dash-head {
     padding: 20px 16px 16px;
+  }
+  .dash-title {
+    font-size: 28px;
   }
   .dash-active-filters {
     padding: 10px 16px;

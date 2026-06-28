@@ -280,3 +280,14 @@ function reset(): void {
     </v-card-actions>
   </v-card>
 </template>
+
+<style scoped>
+/* Chart title → card-title role (matches ChartCell's .chart-head h5), so a
+   standalone chart card reads the same as a dashboard-strip chart. */
+:deep(.v-card-title) {
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
+  line-height: 1.3;
+}
+</style>
