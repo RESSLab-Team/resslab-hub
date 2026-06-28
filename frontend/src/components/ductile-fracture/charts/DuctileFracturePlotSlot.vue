@@ -77,7 +77,7 @@ watch(
       class="mb-2"
     />
     <unit-line-chart
-      :title="config.title"
+      :title="options.length > 1 ? undefined : config.title"
       :x-axis-name="config.xAxisName"
       :y-axis-name="config.yAxisName"
       :series="series"
