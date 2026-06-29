@@ -119,6 +119,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.ebf.chart_tests_per_year_section')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="yearSectionFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <ebf-double-chart
             :color="peach"
@@ -131,6 +134,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.ebf.chart_tests_per_year_classification')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="yearLinkFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <ebf-double-chart
             :color="mauve"
@@ -147,6 +153,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.ebf.chart_loading_protocol')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="EccentricBracedFrameField.LPTyp"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <ebf-single-chart
             :color="cobalt"
@@ -161,6 +170,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.ebf.chart_test_configuration')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="EccentricBracedFrameField.LConfi"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <ebf-single-chart
             :color="mint"
@@ -175,6 +187,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.ebf.chart_steel_grade')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="EccentricBracedFrameField.SgFlgLink"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <ebf-single-chart
             :color="sky"

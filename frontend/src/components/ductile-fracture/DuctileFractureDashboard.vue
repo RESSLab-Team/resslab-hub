@@ -139,6 +139,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.ductile_fracture.chart_specimen_type')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="DuctileFractureField.SpecimenType"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <ductile-fracture-single-chart
             :color="mauve"
@@ -152,6 +155,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.ductile_fracture.chart_tests_per_year')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="dateSpecimenFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <ductile-fracture-double-chart
             :color="apricot"
@@ -165,6 +171,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.ductile_fracture.chart_steel_type')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="DuctileFractureField.SteelType"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <ductile-fracture-single-chart
             :color="periwinkle"
@@ -181,6 +190,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.ductile_fracture.chart_triaxiality')"
           :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="triaxSpecimenFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <ductile-fracture-double-chart
             :color="mint"
@@ -193,6 +205,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.ductile_fracture.chart_lode_angle')"
           :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="lodeSpecimenFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <ductile-fracture-double-chart
             :color="sky"

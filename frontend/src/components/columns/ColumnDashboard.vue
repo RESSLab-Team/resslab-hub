@@ -119,6 +119,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.column.chart_steel_grade')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="ColumnField.SteelC"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <column-single-chart
             :color="plum"
@@ -132,6 +135,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.column.chart_tests_per_year_bc')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="boundaryConditionFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <column-double-chart
             :color="mint"
@@ -144,6 +150,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.column.chart_column_depth_fabrication')"
           :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="columnDepthFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <column-double-chart
             :color="cobalt"

@@ -1338,12 +1338,29 @@ body.theme-dark .logos img {
    chart-system .cs-stripcell .ch / .cs-card .ck meta (eyebrow role tokens). */
 .chart-head .info {
   font-family: var(--title-eyebrow-font);
-  font-size: var(--title-eyebrow-size);
+  /* One notch below the shared eyebrow size — these per-cell hints read as fine
+     print, not page eyebrows. */
+  font-size: 0.625rem; /* 10 */
   font-weight: var(--title-eyebrow-weight);
   letter-spacing: var(--title-eyebrow-tracking);
   color: var(--fg-muted);
   text-transform: uppercase;
   white-space: nowrap;
+}
+/* Filtered state: the hint becomes an actionable "remove filter" affordance —
+   same kicker type, but accent-colored with a cross icon to read as a button. */
+.chart-head .info--clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--epfl-red);
+}
+.chart-head .info--clear:hover {
+  text-decoration: underline;
 }
 .chart-cell .v-card {
   box-shadow: none !important;

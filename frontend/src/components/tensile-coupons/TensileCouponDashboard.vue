@@ -122,6 +122,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.tensile_coupon.chart_steel_grade')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="TensileCouponField.SteelGrade"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <tensile-coupon-single-chart
             :color="sky"
@@ -135,6 +138,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.tensile_coupon.chart_coupons_per_year_profile')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="profileYearFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <tensile-coupon-double-chart
             :color="mint"
@@ -147,6 +153,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.tensile_coupon.chart_thickness_profile')"
           :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="profileThicknessFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <tensile-coupon-double-chart
             :color="mauve"

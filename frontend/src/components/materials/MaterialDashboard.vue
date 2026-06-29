@@ -106,6 +106,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.material.chart_steel_type')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="MaterialField.Type"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <material-single-chart
             :color="plum"
@@ -119,6 +122,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.material.chart_coupons_per_year_profile')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="profileFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <material-double-chart
             :color="periwinkle"
@@ -131,6 +137,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.material.chart_thickness_profile')"
           :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="profileThicknessFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <material-double-chart
             :color="apricot"

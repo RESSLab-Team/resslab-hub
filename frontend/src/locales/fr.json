@@ -6,7 +6,8 @@
       "hint_click_to_filter": "Cliquer pour filtrer",
       "hint_click_legend_to_filter": "Cliquer sur la légende pour filtrer",
       "hint_click_tile_to_filter": "Cliquer sur une tuile pour filtrer",
-      "hint_stacked_histogram": "Histogramme empilé · cliquer sur une barre ou la légende"
+      "hint_stacked_histogram": "Cliquer sur une barre ou la légende pour filtrer",
+      "remove_filter": "Retirer le filtre"
     },
     "brace": {
       "title": "Contreventements",

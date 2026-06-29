@@ -120,6 +120,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.hss.chart_loading_protocol')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="HSSColumnField.LoadingProtocol"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <hss-single-chart
             :color="yellowgreen"
@@ -133,6 +136,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.hss.chart_tests_per_year_failure_mode')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="failureModeFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <hss-double-chart
             :color="periwinkle"
@@ -146,6 +152,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.hss.chart_steel_grade')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="HSSColumnField.SteelType"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <hss-single-chart
             :color="plum"

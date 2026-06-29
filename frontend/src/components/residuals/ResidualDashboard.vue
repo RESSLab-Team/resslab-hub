@@ -107,6 +107,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.residual.chart_steel_grade')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="ResidualStressField.Steel"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <residual-single-chart
             :color="cobalt"
@@ -120,6 +123,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.residual.chart_specimens_per_year_profile')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="profileFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <residual-double-chart
             :color="peach"
@@ -132,6 +138,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.residual.chart_section_height_profile')"
           :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="[ResidualStressField.H, ResidualStressField.ProfileType]"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <residual-double-chart
             :color="yellowgreen"

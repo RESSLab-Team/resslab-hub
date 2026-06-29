@@ -317,7 +317,8 @@
       "hint_click_to_filter": "Click to filter",
       "hint_click_legend_to_filter": "Click legend to filter",
       "hint_click_tile_to_filter": "Click a tile to filter",
-      "hint_stacked_histogram": "Stacked histogram · click bar or legend"
+      "hint_stacked_histogram": "Click bar or legend to filter",
+      "remove_filter": "Remove filter"
     },
     "brace": {
       "title": "Braces",

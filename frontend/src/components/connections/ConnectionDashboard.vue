@@ -187,6 +187,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.connection.chart_connection_type')"
           :hint="$t('dashboards.common.hint_click_tile_to_filter')"
+          :field="ConnectionField.ConnectionType"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <connection-single-chart
             :color="peach"
@@ -200,6 +203,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.connection.chart_tests_per_year_type')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="[ConnectionField.Date, ConnectionField.ConnectionType]"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <connection-double-chart
             :color="periwinkle"
@@ -213,6 +219,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           quiet
           :title="$t('dashboards.connection.chart_beam_steel_grade')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="ConnectionField.SteelB"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <connection-single-chart
             :color="cobalt"
@@ -230,6 +239,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.connection.chart_beam_depth_slab')"
           :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="beamFields"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <connection-double-chart
             :color="sky"
@@ -241,6 +253,9 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.connection.chart_column_depth_doubler_plates')"
           :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="[ConnectionField.DC, ConnectionField.NDp]"
+          :searches="searches"
+          @change:searches="changeSearches"
         >
           <connection-double-chart
             :color="plum"
