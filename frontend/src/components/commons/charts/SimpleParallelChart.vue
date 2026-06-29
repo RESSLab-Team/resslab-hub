@@ -115,7 +115,13 @@ const option = computed<EChartsOption>(() => ({
       if (type === 'number') {
         return merge(option, {
           type: 'value',
-          scale: true
+          scale: true,
+          // Parallel coordinates needs a spine on every dimension. The global
+          // brutalist theme hides axisLine/axisTick on value axes (gridlines
+          // instead), which is right for cartesian charts but drops the spine
+          // here — re-enable it locally so numeric dimensions keep their line.
+          axisLine: { show: true },
+          axisTick: { show: true }
         })
       } else {
         const sortedValues = field.sortValues || chain(values).uniq().sort().value()
