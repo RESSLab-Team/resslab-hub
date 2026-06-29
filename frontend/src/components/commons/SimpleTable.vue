@@ -7,7 +7,7 @@ import { useNotificationStore } from '@/stores/notification'
 import { shareCurrentUrl, type Searches } from '@/utils/common'
 import { booleanOptions, type DataOptions } from '@/utils/vuetify'
 import { mdiDownload, mdiMagnify, mdiShare } from '@mdi/js'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -101,6 +101,64 @@ const selectedItemsIds = ref<string[]>([])
 const selectedItems = ref<M[]>([])
 const page = ref<number>(1)
 const itemsPerPage = ref<number>(5)
+
+// Keep the loading bar on screen for a minimum time so a very fast fetch reads as
+// a deliberate reload rather than a flicker. Matches the 1s march below so an
+// immediate fetch still shows one full traversal (the bar reaches the far edge)
+// before fading. Once it shows it stays at least MIN_LOADING_MS even if `loading`
+// already went false; a new fetch in the meantime cancels the timer and persists.
+const MIN_LOADING_MS = 1000
+const showLoading = ref<boolean>(false)
+let loadingShownAt = 0
+let hideLoadingTimer: ReturnType<typeof setTimeout> | undefined
+watch(
+  () => props.loading,
+  (isLoading) => {
+    if (isLoading) {
+      if (hideLoadingTimer) {
+        clearTimeout(hideLoadingTimer)
+        hideLoadingTimer = undefined
+      }
+      if (!showLoading.value) {
+        showLoading.value = true
+        loadingShownAt = Date.now()
+      }
+    } else if (showLoading.value) {
+      const remaining = MIN_LOADING_MS - (Date.now() - loadingShownAt)
+      if (remaining <= 0) {
+        showLoading.value = false
+      } else {
+        hideLoadingTimer = setTimeout(() => {
+          showLoading.value = false
+          hideLoadingTimer = undefined
+        }, remaining)
+      }
+    }
+  },
+  { immediate: true }
+)
+// Size the loading shimmer to the table head only (it covered the whole body
+// before, which felt too heavy). The header height is stable per dashboard but
+// varies between them, so measure the real <thead> and track it via ResizeObserver.
+const bodyEl = ref<HTMLElement>()
+const headHeight = ref<string>('86px')
+let headObserver: ResizeObserver | undefined
+function measureHead(): void {
+  const thead = bodyEl.value?.querySelector('.v-table__wrapper thead') as HTMLElement | null
+  if (thead) headHeight.value = `${thead.offsetHeight}px`
+}
+onMounted(() => {
+  measureHead()
+  const thead = bodyEl.value?.querySelector('.v-table__wrapper thead') as HTMLElement | null
+  if (thead && 'ResizeObserver' in window) {
+    headObserver = new ResizeObserver(measureHead)
+    headObserver.observe(thead)
+  }
+})
+onUnmounted(() => {
+  if (hideLoadingTimer) clearTimeout(hideLoadingTimer)
+  headObserver?.disconnect()
+})
 
 watch(selectedItemsIds, (newIdList, oldIdList) => {
   const oldList = selectedItems.value
@@ -220,7 +278,7 @@ function downloadZip(): void {
 </script>
 
 <template>
-  <v-card class="stbl" flat>
+  <v-card class="stbl" flat :style="{ '--stbl-rows': String(itemsPerPage) }">
     <div v-if="!hideToolbar" class="stbl-toolbar">
       <div class="stbl-title">
         <slot name="title">
@@ -244,218 +302,235 @@ function downloadZip(): void {
         {{ $t('commons.reset_filters') }}
       </button>
     </div>
-    <v-data-table-server
-      v-model="selectedItemsIds"
-      v-model:page="page"
-      v-model:items-per-page="itemsPerPage"
-      density="compact"
-      fixed-header
-      :headers="tableHeaders"
-      :items="items"
-      :items-length="totalFilteredCount"
-      :loading="loading"
-      must-sort
-      :search="search"
-      :item-selectable="isItemSelectable"
-      show-select
-      :item-value="(item) => item.id"
-      @click:row="click"
-      @update:options="emit('update:options', $event)"
-    >
-      <template v-for="header in tableHeaders" :key="header.key" #[`column.${header.key}`]>
-        <text-subscript :text="header.title" />
-      </template>
-      <template
-        v-for="header in tableHeaders"
-        :key="`item-${header.key}`"
-        #[`item.${header.key}`]="{ internalItem }"
+    <div ref="bodyEl" class="stbl-body">
+      <v-data-table-server
+        v-model="selectedItemsIds"
+        v-model:page="page"
+        v-model:items-per-page="itemsPerPage"
+        density="compact"
+        fixed-header
+        :headers="tableHeaders"
+        :items="items"
+        :items-length="totalFilteredCount"
+        :loading="loading"
+        must-sort
+        :search="search"
+        :item-selectable="isItemSelectable"
+        show-select
+        :item-value="(item) => item.id"
+        @click:row="click"
+        @update:options="emit('update:options', $event)"
       >
-        <span v-if="header.cellVariant === 'tag' && internalItem.columns[header.key]" class="tag">{{
-          header.format
-            ? header.format(internalItem.columns[header.key])
-            : internalItem.columns[header.key]
-        }}</span>
-        <span
-          v-else
-          :class="{
-            'cell-mono': header.cellVariant === 'mono',
-            'cell-strong': header.cellVariant === 'strong'
-          }"
-          >{{
-            header.format
-              ? header.format(internalItem.columns[header.key])
-              : internalItem.columns[header.key]
-          }}</span
-        >
-      </template>
-
-      <template v-if="!hideFilterOnly && filterHeaders.length" #top>
-        <v-row class="px-4 pb-4">
-          <v-col v-for="header in filterHeaders" :key="header.key">
-            <v-select
-              v-if="header.options"
-              v-bind="vInputBind"
-              :model-value="(columnSearches[header.key] as string)"
-              :multiple="header.multiple"
-              :items="header.options"
-              @update:model-value="columnSearches[header.key] = $event"
-            >
-              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-            </v-select>
-            <v-text-field
-              v-else-if="header.type === 'text'"
-              v-bind="vInputBind"
-              v-model="columnSearches[header.key]"
-            >
-              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-            </v-text-field>
-            <v-select
-              v-else-if="header.type === 'boolean'"
-              v-bind="vInputBind"
-              v-model="columnSearches[header.key]"
-              :items="booleanOptions"
-            >
-              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-            </v-select>
-            <v-text-field
-              v-else-if="header.type === 'number'"
-              v-bind="vInputBind"
-              v-model="columnSearches[header.key]"
-              type="number"
-            >
-              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-            </v-text-field>
-          </v-col>
-        </v-row>
-      </template>
-      <template #thead>
-        <tr>
-          <td>
-            <!-- select -->
-            <v-icon :icon="mdiMagnify" />
-          </td>
-          <td v-for="header in tableHeaders" :key="header.key">
-            <v-select
-              v-if="header.options"
-              v-bind="vTheadInputBind"
-              :model-value="(columnSearches[header.key] as string)"
-              :label="header.title"
-              :multiple="header.multiple"
-              :items="header.options"
-              @update:model-value="columnSearches[header.key] = $event"
-            >
-              <!-- eslint-disable vue/no-template-shadow -->
-              <template
-                v-if="$slots[`header-select-item.${header.key}`]"
-                #item="{ item, index, props }"
-              >
-                <!-- eslint-enable vue/no-template-shadow -->
-                <slot
-                  :name="`header-select-item.${header.key}`"
-                  :item="item"
-                  :index="index"
-                  :props="props"
-                  style="color: blue"
-                />
-              </template>
-            </v-select>
-            <v-text-field
-              v-else-if="header.type === 'text'"
-              v-bind="vTheadInputBind"
-              v-model="columnSearches[header.key]"
-              :label="header.title"
-            >
-              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-            </v-text-field>
-            <v-select
-              v-else-if="header.type === 'boolean'"
-              v-bind="vTheadInputBind"
-              v-model="columnSearches[header.key]"
-              :label="header.title"
-              :items="booleanOptions"
-            >
-              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-            </v-select>
-            <v-text-field
-              v-else-if="header.type === 'number'"
-              v-bind="vTheadInputBind"
-              v-model="columnSearches[header.key]"
-              :label="header.title"
-              type="number"
-            >
-              <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-            </v-text-field>
-          </td>
-        </tr>
-      </template>
-      <template #[`item.t_dp_tot`]="{ item }">
+        <template v-for="header in tableHeaders" :key="header.key" #[`column.${header.key}`]>
+          <text-subscript :text="header.title" />
+        </template>
         <template
-          v-if="
-            //@ts-ignore
-            item.t_dp_tot
-          "
-          >{{
-            //@ts-ignore
-            item.t_dp_tot
-          }}</template
+          v-for="header in tableHeaders"
+          :key="`item-${header.key}`"
+          #[`item.${header.key}`]="{ internalItem }"
         >
-      </template>
-      <template #bottom>
-        <div class="dash-pager">
-          <div class="dash-pager-actions">
-            <button
-              class="btn btn-secondary btn-sm"
-              :disabled="selectedItems.length === 0 || selectedItems.length > maxDownloadCount"
-              @click="downloadZip"
-            >
-              <v-icon :icon="mdiDownload" size="14" />
-              {{ $t('commons.download_n', { n: selectedItems.length, m: totalCount }) }}
-            </button>
-            <button
-              v-if="!hideToolbar"
-              class="btn btn-secondary btn-sm"
-              :disabled="!hasFilters"
-              @click="shareUrl"
-            >
-              <v-icon :icon="mdiShare" size="14" />
-              {{ $t('commons.share') }}
-            </button>
-          </div>
-          <div class="dash-pager-info">
-            <i18n-t keypath="commons.table_showing" tag="span" scope="global">
-              <template #from>
-                <strong>{{ pageFrom }}</strong>
-              </template>
-              <template #to>
-                <strong>{{ pageTo }}</strong>
-              </template>
-              <template #total>
-                <strong>{{ totalFilteredCount }}</strong>
-              </template>
-            </i18n-t>
-            <select
-              v-model.number="itemsPerPage"
-              class="pager-size"
-              :aria-label="$t('commons.rows_per_page')"
-            >
-              <option v-for="option in itemsPerPageOptions" :key="option" :value="option">
-                {{ $t('commons.per_page', { option }) }}
-              </option>
-            </select>
-          </div>
-          <div class="pager-btns">
-            <button class="pager-btn" :disabled="page <= 1" @click="page--">‹</button>
-            <template v-for="(item, index) in pageItems" :key="`${index}-${item}`">
-              <span v-if="item === '…'" class="pager-ellipsis">…</span>
-              <button v-else class="pager-btn" :class="{ on: item === page }" @click="page = item">
-                {{ item }}
+          <span
+            v-if="header.cellVariant === 'tag' && internalItem.columns[header.key]"
+            class="tag"
+            >{{
+              header.format
+                ? header.format(internalItem.columns[header.key])
+                : internalItem.columns[header.key]
+            }}</span
+          >
+          <span
+            v-else
+            :class="{
+              'cell-mono': header.cellVariant === 'mono',
+              'cell-strong': header.cellVariant === 'strong'
+            }"
+            >{{
+              header.format
+                ? header.format(internalItem.columns[header.key])
+                : internalItem.columns[header.key]
+            }}</span
+          >
+        </template>
+
+        <template v-if="!hideFilterOnly && filterHeaders.length" #top>
+          <v-row class="px-4 pb-4">
+            <v-col v-for="header in filterHeaders" :key="header.key">
+              <v-select
+                v-if="header.options"
+                v-bind="vInputBind"
+                :model-value="(columnSearches[header.key] as string)"
+                :multiple="header.multiple"
+                :items="header.options"
+                @update:model-value="columnSearches[header.key] = $event"
+              >
+                <template #label> <text-subscript :text="header.title"></text-subscript> </template>
+              </v-select>
+              <v-text-field
+                v-else-if="header.type === 'text'"
+                v-bind="vInputBind"
+                v-model="columnSearches[header.key]"
+              >
+                <template #label> <text-subscript :text="header.title"></text-subscript> </template>
+              </v-text-field>
+              <v-select
+                v-else-if="header.type === 'boolean'"
+                v-bind="vInputBind"
+                v-model="columnSearches[header.key]"
+                :items="booleanOptions"
+              >
+                <template #label> <text-subscript :text="header.title"></text-subscript> </template>
+              </v-select>
+              <v-text-field
+                v-else-if="header.type === 'number'"
+                v-bind="vInputBind"
+                v-model="columnSearches[header.key]"
+                type="number"
+              >
+                <template #label> <text-subscript :text="header.title"></text-subscript> </template>
+              </v-text-field>
+            </v-col>
+          </v-row>
+        </template>
+        <template #thead>
+          <tr>
+            <td>
+              <!-- select -->
+              <v-icon :icon="mdiMagnify" />
+            </td>
+            <td v-for="header in tableHeaders" :key="header.key">
+              <v-select
+                v-if="header.options"
+                v-bind="vTheadInputBind"
+                :model-value="(columnSearches[header.key] as string)"
+                :label="header.title"
+                :multiple="header.multiple"
+                :items="header.options"
+                @update:model-value="columnSearches[header.key] = $event"
+              >
+                <!-- eslint-disable vue/no-template-shadow -->
+                <template
+                  v-if="$slots[`header-select-item.${header.key}`]"
+                  #item="{ item, index, props }"
+                >
+                  <!-- eslint-enable vue/no-template-shadow -->
+                  <slot
+                    :name="`header-select-item.${header.key}`"
+                    :item="item"
+                    :index="index"
+                    :props="props"
+                    style="color: blue"
+                  />
+                </template>
+              </v-select>
+              <v-text-field
+                v-else-if="header.type === 'text'"
+                v-bind="vTheadInputBind"
+                v-model="columnSearches[header.key]"
+                :label="header.title"
+              >
+                <template #label> <text-subscript :text="header.title"></text-subscript> </template>
+              </v-text-field>
+              <v-select
+                v-else-if="header.type === 'boolean'"
+                v-bind="vTheadInputBind"
+                v-model="columnSearches[header.key]"
+                :label="header.title"
+                :items="booleanOptions"
+              >
+                <template #label> <text-subscript :text="header.title"></text-subscript> </template>
+              </v-select>
+              <v-text-field
+                v-else-if="header.type === 'number'"
+                v-bind="vTheadInputBind"
+                v-model="columnSearches[header.key]"
+                :label="header.title"
+                type="number"
+              >
+                <template #label> <text-subscript :text="header.title"></text-subscript> </template>
+              </v-text-field>
+            </td>
+          </tr>
+        </template>
+        <template #[`item.t_dp_tot`]="{ item }">
+          <template
+            v-if="
+              //@ts-ignore
+              item.t_dp_tot
+            "
+            >{{
+              //@ts-ignore
+              item.t_dp_tot
+            }}</template
+          >
+        </template>
+        <template #bottom>
+          <div class="dash-pager">
+            <div class="dash-pager-actions">
+              <button
+                class="btn btn-secondary btn-sm"
+                :disabled="selectedItems.length === 0 || selectedItems.length > maxDownloadCount"
+                @click="downloadZip"
+              >
+                <v-icon :icon="mdiDownload" size="14" />
+                {{ $t('commons.download_n', { n: selectedItems.length, m: totalCount }) }}
               </button>
-            </template>
-            <button class="pager-btn" :disabled="page >= pageCount" @click="page++">›</button>
+              <button
+                v-if="!hideToolbar"
+                class="btn btn-secondary btn-sm"
+                :disabled="!hasFilters"
+                @click="shareUrl"
+              >
+                <v-icon :icon="mdiShare" size="14" />
+                {{ $t('commons.share') }}
+              </button>
+            </div>
+            <div class="dash-pager-info">
+              <i18n-t keypath="commons.table_showing" tag="span" scope="global">
+                <template #from>
+                  <strong>{{ pageFrom }}</strong>
+                </template>
+                <template #to>
+                  <strong>{{ pageTo }}</strong>
+                </template>
+                <template #total>
+                  <strong>{{ totalFilteredCount }}</strong>
+                </template>
+              </i18n-t>
+              <select
+                v-model.number="itemsPerPage"
+                class="pager-size"
+                :aria-label="$t('commons.rows_per_page')"
+              >
+                <option v-for="option in itemsPerPageOptions" :key="option" :value="option">
+                  {{ $t('commons.per_page', { option }) }}
+                </option>
+              </select>
+            </div>
+            <div class="pager-btns">
+              <button class="pager-btn" :disabled="page <= 1" @click="page--">‹</button>
+              <template v-for="(item, index) in pageItems" :key="`${index}-${item}`">
+                <span v-if="item === '…'" class="pager-ellipsis">…</span>
+                <button
+                  v-else
+                  class="pager-btn"
+                  :class="{ on: item === page }"
+                  @click="page = item"
+                >
+                  {{ item }}
+                </button>
+              </template>
+              <button class="pager-btn" :disabled="page >= pageCount" @click="page++">›</button>
+            </div>
           </div>
-        </div>
-      </template>
-    </v-data-table-server>
+        </template>
+      </v-data-table-server>
+      <div
+        class="stbl-loading"
+        :class="{ 'is-loading': showLoading }"
+        :style="{ height: headHeight }"
+        aria-hidden="true"
+      />
+    </div>
     <checkbox-dialog
       ref="downloadDialog"
       :title="$t('commons.download')"
@@ -472,6 +547,9 @@ function downloadZip(): void {
   border: 1px solid var(--border);
   border-radius: 0;
   background: var(--bg);
+  /* Isolate the table's internal reflow/repaint from the rest of the page, so a
+     filter-driven re-render here doesn't invalidate the chart strips below. */
+  contain: layout;
 }
 
 .stbl-toolbar {
@@ -501,8 +579,72 @@ function downloadZip(): void {
 }
 
 :deep(.v-table__wrapper) {
+  /* Reserve a stable height sized to a *full* page (rows + the two header rows),
+     capped at the 50vh scroll limit. Without a floor, filtering to fewer rows
+     than the page size collapsed the body and shoved the charts below it. The
+     allowance slightly overshoots a full page so the wrapper never has to grow
+     (which would itself be a shift) — leftover space shows as quiet padding. */
+  min-height: min(calc(var(--stbl-rows, 5) * 38px + 96px), 50vh);
   max-height: 50vh;
   overflow-y: auto;
+}
+
+/* Drop Vuetify's built-in loading bar entirely. It was rendered as an extra <tr>
+   injected into the (sticky) thead only while loading, which nudged the header
+   height on every filter. We replace it with the full-table shimmer below. */
+:deep(.v-data-table-progress) {
+  display: none !important;
+}
+
+/* Loading indicator — a single EPFL-red segment with square ends marching along
+   the header's bottom hairline, linear and looping. Swiss/EPFL language: a crisp,
+   deterministic red accent rather than a soft gradient shimmer. Scoped to the
+   table head (height measured from the real <thead> in script) and absolutely
+   positioned, so it never affects layout; pointer-events stay off. */
+.stbl-body {
+  position: relative;
+}
+.stbl-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.stbl-loading.is-loading {
+  opacity: 1;
+}
+.stbl-loading::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -26%;
+  width: 26%;
+  height: 2px;
+  background: var(--epfl-red);
+}
+.stbl-loading.is-loading::after {
+  animation: stbl-march 1s linear infinite;
+}
+@keyframes stbl-march {
+  from {
+    left: -26%;
+  }
+  to {
+    left: 100%;
+  }
+}
+/* No motion: hold a static full-width red hairline so the loading state still reads. */
+@media (prefers-reduced-motion: reduce) {
+  .stbl-loading.is-loading::after {
+    animation: none;
+    left: 0;
+    width: 100%;
+  }
 }
 
 /* Column header row */

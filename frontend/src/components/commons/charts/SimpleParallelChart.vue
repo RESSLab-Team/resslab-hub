@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { initOptions, updateOptions } from '@/components/commons/charts/utils'
+import { updateOptions } from '@/components/commons/charts/utils'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import { isDivision, type ParallelField } from '@/composables/chart'
 import i18n from '@/plugins/i18n'
@@ -11,14 +11,18 @@ import type { EChartsOption } from 'echarts'
 import { ParallelChart } from 'echarts/charts'
 import { BrushComponent, ToolboxComponent } from 'echarts/components'
 import { use, type ECharts } from 'echarts/core'
-import { SVGRenderer } from 'echarts/renderers'
+import { CanvasRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { chain, merge, zip } from 'lodash'
 import { computed, ref, unref } from 'vue'
 import VChart from 'vue-echarts'
 import ResetChartButton from '@/components/commons/ResetChartButton.vue'
 
-use([SVGRenderer, ParallelChart, BrushComponent, ToolboxComponent])
+// Canvas (not the app-wide SVG) for this one chart: it draws one polyline per
+// filtered record, so element count scales with the result set — canvas keeps
+// that cheap where SVG's DOM cost would not. devicePixelRatio keeps it crisp.
+use([CanvasRenderer, ParallelChart, BrushComponent, ToolboxComponent])
+const canvasInitOptions = { renderer: 'canvas' as const }
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
 type F = string
@@ -51,6 +55,13 @@ const selectedIds = ref<string[]>([])
 
 const transposedData = computed<(string | number)[][]>(
   () => zip(...props.data) as (string | number)[][]
+)
+
+// Position of each request field, precomputed once — the data projection and
+// getValues below run per row × field, so an O(1) lookup replaces repeated
+// requestFields.indexOf(...) (was O(rows × fields × requestFields) per recompute).
+const fieldIndex = computed<Map<F, number>>(
+  () => new Map(props.requestFields.map((f, i) => [f, i]))
 )
 
 const chartHeight = computed(() => {
@@ -127,19 +138,18 @@ const option = computed<EChartsOption>(() => ({
 
     data: props.data.map((d) =>
       props.fields.map((f) => {
-        const requestFieldsValue = props.requestFields
+        const idx = unref(fieldIndex)
         if (typeof f.id === 'string') {
-          const value = d[requestFieldsValue.indexOf(f.id)]
+          const value = d[idx.get(f.id) ?? -1]
           if (f.mapping && typeof value === 'string') return f.mapping.get(value) || value
           else return value
         } else if (isDivision(f.id)) {
           return (
-            (d[requestFieldsValue.indexOf(f.id.dividend)] as number) /
-            (d[requestFieldsValue.indexOf(f.id.divisor)] as number)
+            (d[idx.get(f.id.dividend) ?? -1] as number) / (d[idx.get(f.id.divisor) ?? -1] as number)
           )
         } else {
           const values = f.id.fields.map((field) => {
-            const v = d[requestFieldsValue.indexOf(field)]
+            const v = d[idx.get(field) ?? -1]
             return v == null ? null : (v as number)
           })
           return f.id.compute(values) as number
@@ -158,9 +168,9 @@ const option = computed<EChartsOption>(() => ({
 
 function getValues(field: ParallelField): (string | number)[] {
   const transposedDataValue = unref(transposedData)
-  const requestFieldsValue = props.requestFields
+  const idx = unref(fieldIndex)
   if (typeof field.id === 'string') {
-    const values = transposedDataValue[requestFieldsValue.indexOf(field.id)]
+    const values = transposedDataValue[idx.get(field.id) ?? -1]
     if (field.mapping && values)
       return values.map((d) =>
         typeof d == 'string' ? (field.mapping as Map<string, string>).get(d) || d : d
@@ -168,16 +178,14 @@ function getValues(field: ParallelField): (string | number)[] {
     else return values
   } else if (isDivision(field.id)) {
     return zip(
-      transposedDataValue[requestFieldsValue.indexOf(field.id.dividend)],
-      transposedDataValue[requestFieldsValue.indexOf(field.id.divisor)]
+      transposedDataValue[idx.get(field.id.dividend) ?? -1],
+      transposedDataValue[idx.get(field.id.divisor) ?? -1]
     )
       .map((v) => v as [number, number])
       .map((v) => v[0] / v[1])
   } else {
     const computed = field.id
-    const columns = computed.fields.map(
-      (f) => transposedDataValue[requestFieldsValue.indexOf(f)] ?? []
-    )
+    const columns = computed.fields.map((f) => transposedDataValue[idx.get(f) ?? -1] ?? [])
     const rowCount = columns[0]?.length ?? 0
     const values: (number | null)[] = []
     for (let i = 0; i < rowCount; i++) {
@@ -254,7 +262,7 @@ function reset(): void {
       <v-chart
         ref="chart"
         autoresize
-        :init-options="initOptions"
+        :init-options="canvasInitOptions"
         :option="option"
         :update-options="updateOptions"
         @click="onClick"

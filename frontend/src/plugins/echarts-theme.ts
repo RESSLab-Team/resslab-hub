@@ -53,6 +53,18 @@ export const echartsTheme = {
   backgroundColor: 'transparent',
   textStyle: { fontFamily: SANS },
 
+  // Snappy filter updates: a short, linear transition instead of ECharts' default
+  // ~1s elasticOut ENTER animation, which (under setOption notMerge) replayed in
+  // full on every chart on every filter tick — the main source of perceived lag.
+  // Set in the theme so it applies to every <v-chart> and survives notMerge
+  // (which discards only the user option, not the theme).
+  animation: true,
+  animationDuration: 300,
+  animationDurationUpdate: 300,
+  animationEasing: 'cubicOut' as const,
+  animationEasingUpdate: 'cubicOut' as const,
+  animationThreshold: 1000, // skip animation entirely past 1000 elements (parallel safety net)
+
   title: {
     textStyle: { color: INK, fontFamily: SANS, fontWeight: 'normal' as const }
   },

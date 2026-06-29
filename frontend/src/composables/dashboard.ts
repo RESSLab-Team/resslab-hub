@@ -1,5 +1,12 @@
 import type { Page } from '@/utils/backend'
-import { filterColumnValue, globalSearchKey, type Searches, type Value } from '@/utils/common'
+import {
+  debounceAPITime,
+  filterColumnValue,
+  globalSearchKey,
+  type Searches,
+  type Value
+} from '@/utils/common'
+import { debounce } from 'lodash'
 import { computed, ref, triggerRef, unref, watch } from 'vue'
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router'
 
@@ -50,19 +57,25 @@ export function useDashboard<M>(
     return queries.join(queryFieldSeparator)
   })
 
-  watch(
-    () => [searches.value, search.value],
-    () => {
-      const query = {
-        ...searches.value,
-        ...(search.value ? { [globalSearchKey]: search.value } : {})
-      }
-      if (router) {
-        router.push({ query })
-      }
-    },
-    { immediate: true, deep: true }
-  )
+  // Mirror the filter state into the URL, but debounced and via replace (not
+  // push): a slider drag mutates searches on every tick, which previously fired
+  // an un-debounced router.push per tick — flooding the history stack and
+  // re-running the route.query → searches write-back below each time. Debouncing
+  // coalesces a drag into a single navigation; replace keeps the back button
+  // returning to the pre-filter view instead of stepping through every tick.
+  const syncQueryToRouter = debounce(() => {
+    if (!router) return
+    const query = {
+      ...searches.value,
+      ...(search.value ? { [globalSearchKey]: search.value } : {})
+    }
+    router.replace({ query })
+  }, debounceAPITime)
+
+  watch(() => [searches.value, search.value], syncQueryToRouter, {
+    immediate: true,
+    deep: true
+  })
 
   watch(
     () => route.query,

@@ -20,7 +20,7 @@ import {
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
-import { chain, clone, isEqual, range } from 'lodash'
+import { chain, clone, range } from 'lodash'
 import { computed, unref, watch } from 'vue'
 import VChart from 'vue-echarts'
 
@@ -120,6 +120,17 @@ const firstKeys = computed<string[]>(() =>
     .sort()
     .value()
 )
+// Index counts by (first, second) once per recompute so each grid cell is an
+// O(1) lookup — getCount was scanning all counts with a deep isEqual per cell
+// (≈ O(firstKeys × secondKeys × counts)). The \u0001 separator cannot appear in
+// a category name, so composite keys never collide.
+const countByKey = computed<Map<string, number>>(() => {
+  const map = new Map<string, number>()
+  for (const count of props.counts) {
+    map.set(`${count.names[0]}\u0001${count.names[1]}`, count.value)
+  }
+  return map
+})
 const isHistogram = computed<boolean>(() => actualnNumberRange.value !== undefined)
 const option = computed<EChartsOption>(() => {
   const secondKeys: string[] = chain(props.counts)
@@ -275,7 +286,7 @@ function getSerie(secondKeys: string[]): {
   }
 }
 function getCount(firstKey: string, secondKey: string): number | undefined {
-  return props.counts.find((c) => isEqual(c.names, [firstKey, secondKey]))?.value
+  return countByKey.value.get(`${firstKey}\u0001${secondKey}`)
 }
 function click(params: CallbackDataParams): void {
   if (props.type === 'bar') {
