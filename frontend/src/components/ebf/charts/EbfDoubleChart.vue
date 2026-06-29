@@ -10,23 +10,33 @@ const props = defineProps(doubleChartProps<EccentricBracedFrameField>())
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { counts, changeSearches, dateMax, dateMin, dateRange, numberMax, numberMin, numberRange } =
-  useDoubleChart<EccentricBracedFrameField, EccentricBracedFrameNumberField>(
-    emit,
-    props.fields,
-    toRef(props, 'query'),
-    (fields, query) => ebfApi.getEccentricBracedFramesCounts(fields, query),
-    {
-      field: EccentricBracedFrameNumberField,
-      getRange: (field) => ebfApi.getEccentricBracedFramesRange(field)
-    }
-  )
+const {
+  counts,
+  allCounts,
+  changeSearches,
+  dateMax,
+  dateMin,
+  dateRange,
+  numberMax,
+  numberMin,
+  numberRange
+} = useDoubleChart<EccentricBracedFrameField, EccentricBracedFrameNumberField>(
+  emit,
+  props.fields,
+  toRef(props, 'query'),
+  (fields, query) => ebfApi.getEccentricBracedFramesCounts(fields, query),
+  {
+    field: EccentricBracedFrameNumberField,
+    getRange: (field) => ebfApi.getEccentricBracedFramesRange(field)
+  }
+)
 </script>
 
 <template>
   <double-chart
     v-model:date-range="dateRange"
     v-model:number-range="numberRange"
+    :all-counts="allCounts"
     :color="color"
     :counts="counts"
     :date-max="dateMax"

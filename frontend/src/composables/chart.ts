@@ -128,6 +128,9 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
   const requestFields = getRequestFields(fields)
 
   const counts = ref<CountModel[]>([])
+  // Full unfiltered counts for the distribution brush background — must stay
+  // constant regardless of the active filter so the shape never shrinks.
+  const allCounts = ref<CountModel[]>([])
   const dateMin = ref<string>()
   const dateMax = ref<string>()
   const dateRange = ref<[string, string]>()
@@ -168,6 +171,18 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
     debounceAPIParameters
   )
 
+  // Fetch once, without any query filter, to build the stable distribution.
+  const debouncedGetAllCounts = debounce(
+    () =>
+      getCounts(requestFields, undefined)
+        .then((response) => response.data)
+        .then((values) => {
+          allCounts.value = values
+        }),
+    debounceAPITime,
+    debounceAPIParameters
+  )
+
   watch(
     query,
     (newQuery, oldQuery) => {
@@ -175,6 +190,9 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
     },
     { immediate: true }
   )
+
+  // allCounts only needs to be fetched once (unfiltered, stable per chart).
+  debouncedGetAllCounts()
 
   const numberField = getField<NF>(numberRangeOption.field, fields[0].toString())
   if (numberField) {
@@ -201,6 +219,7 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
 
   return {
     counts,
+    allCounts,
     dateMin,
     dateMax,
     dateRange,

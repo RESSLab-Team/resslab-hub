@@ -10,23 +10,33 @@ const props = defineProps(doubleChartProps<ColumnField>())
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { counts, changeSearches, dateMax, dateMin, dateRange, numberMax, numberMin, numberRange } =
-  useDoubleChart<ColumnField, ColumnNumberField>(
-    emit,
-    props.fields,
-    toRef(props, 'query'),
-    (fields, query) => columnsApi.getColumnsCounts(fields, query),
-    {
-      field: ColumnNumberField,
-      getRange: (field) => columnsApi.getColumnsRange(field)
-    }
-  )
+const {
+  counts,
+  allCounts,
+  changeSearches,
+  dateMax,
+  dateMin,
+  dateRange,
+  numberMax,
+  numberMin,
+  numberRange
+} = useDoubleChart<ColumnField, ColumnNumberField>(
+  emit,
+  props.fields,
+  toRef(props, 'query'),
+  (fields, query) => columnsApi.getColumnsCounts(fields, query),
+  {
+    field: ColumnNumberField,
+    getRange: (field) => columnsApi.getColumnsRange(field)
+  }
+)
 </script>
 
 <template>
   <double-chart
     v-model:date-range="dateRange"
     v-model:number-range="numberRange"
+    :all-counts="allCounts"
     :color="color"
     :counts="counts"
     :date-max="dateMax"

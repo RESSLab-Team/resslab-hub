@@ -10,27 +10,37 @@ const props = defineProps(doubleChartProps<MaterialField>())
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { counts, changeSearches, dateMax, dateMin, dateRange, numberMax, numberMin, numberRange } =
-  useDoubleChart<MaterialField, MaterialNumberField, MaterialDateField>(
-    emit,
-    props.fields,
-    toRef(props, 'query'),
-    (fields, query) => materialsApi.getMaterialsCounts(fields, query),
-    {
-      field: MaterialNumberField,
-      getRange: (field) => materialsApi.getMaterialsRange(field)
-    },
-    {
-      field: MaterialDateField,
-      getRange: (field) => materialsApi.getMaterialsDateRange(field)
-    }
-  )
+const {
+  counts,
+  allCounts,
+  changeSearches,
+  dateMax,
+  dateMin,
+  dateRange,
+  numberMax,
+  numberMin,
+  numberRange
+} = useDoubleChart<MaterialField, MaterialNumberField, MaterialDateField>(
+  emit,
+  props.fields,
+  toRef(props, 'query'),
+  (fields, query) => materialsApi.getMaterialsCounts(fields, query),
+  {
+    field: MaterialNumberField,
+    getRange: (field) => materialsApi.getMaterialsRange(field)
+  },
+  {
+    field: MaterialDateField,
+    getRange: (field) => materialsApi.getMaterialsDateRange(field)
+  }
+)
 </script>
 
 <template>
   <double-chart
     v-model:date-range="dateRange"
     v-model:number-range="numberRange"
+    :all-counts="allCounts"
     :color="color"
     :counts="counts"
     :date-max="dateMax"

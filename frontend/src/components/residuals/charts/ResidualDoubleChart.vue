@@ -11,17 +11,26 @@ const props = defineProps(doubleChartProps<ResidualStressField>())
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { counts, changeSearches, dateMax, dateMin, dateRange, numberMax, numberMin, numberRange } =
-  useDoubleChart<ResidualStressField, ResidualStressNumberField>(
-    emit,
-    props.fields,
-    toRef(props, 'query'),
-    (fields, query) => residualsApi.getResidualStressesCounts(fields, query),
-    {
-      field: ResidualStressNumberField,
-      getRange: (field) => residualsApi.getResidualStressesRange(field)
-    }
-  )
+const {
+  counts,
+  allCounts,
+  changeSearches,
+  dateMax,
+  dateMin,
+  dateRange,
+  numberMax,
+  numberMin,
+  numberRange
+} = useDoubleChart<ResidualStressField, ResidualStressNumberField>(
+  emit,
+  props.fields,
+  toRef(props, 'query'),
+  (fields, query) => residualsApi.getResidualStressesCounts(fields, query),
+  {
+    field: ResidualStressNumberField,
+    getRange: (field) => residualsApi.getResidualStressesRange(field)
+  }
+)
 </script>
 
 <template>
@@ -29,6 +38,7 @@ const { counts, changeSearches, dateMax, dateMin, dateRange, numberMax, numberMi
     v-model:date-range="dateRange"
     v-model:number-range="numberRange"
     :color="color"
+    :all-counts="allCounts"
     :counts="counts"
     :date-max="dateMax"
     :date-min="dateMin"

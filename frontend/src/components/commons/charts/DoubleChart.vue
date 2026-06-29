@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { CountModel } from '@/backend'
 import { initOptions, updateOptions } from '@/components/commons/charts/utils'
-import DateRangeSlider from '@/components/commons/sliders/DateRangeSlider.vue'
-import RangeSlider from '@/components/commons/sliders/RangeSlider.vue'
+import DateDistributionBrush from '@/components/commons/sliders/DateDistributionBrush.vue'
+import DistributionBrush from '@/components/commons/sliders/DistributionBrush.vue'
 import type { DoubleField, DoubleFields } from '@/composables/chart'
 import i18n from '@/plugins/i18n'
 import { sum, type Value } from '@/utils/common'
+import { mapDateToNumber } from '@/utils/date'
 import { toBins, type BinData } from '@/utils/statistics'
 import type { Color } from '@/utils/vuetify'
 import { getColorPalette, primaryColor } from '@/utils/vuetify'
@@ -38,6 +39,8 @@ const props = withDefaults(
   defineProps<{
     color?: Color
     counts?: CountModel[]
+    // Full unfiltered counts for the distribution brush — never changes shape.
+    allCounts?: CountModel[]
     dateMin?: string
     dateMax?: string
     dateRange?: [string, string]
@@ -50,6 +53,7 @@ const props = withDefaults(
   }>(),
   {
     color: () => primaryColor,
+    allCounts: () => [],
     counts: () => [],
     dateMin: undefined,
     dateMax: undefined,
@@ -132,6 +136,28 @@ const countByKey = computed<Map<string, number>>(() => {
   return map
 })
 const isHistogram = computed<boolean>(() => actualnNumberRange.value !== undefined)
+// Aggregate the counts by their numeric first-key into a [value, total] shape
+// that feeds the brush's distribution overview (summed across the stacked
+// categories). Dates are positioned on the same day-number axis the date brush
+// uses.
+const numberDistribution = computed<[number, number][]>(() => {
+  const totals = new Map<number, number>()
+  for (const count of props.allCounts) {
+    const value = Number(count.names[0])
+    if (isNaN(value)) continue
+    totals.set(value, (totals.get(value) ?? 0) + count.value)
+  }
+  return [...totals.entries()].sort((a, b) => a[0] - b[0])
+})
+const dateDistribution = computed<[number, number][]>(() => {
+  const totals = new Map<number, number>()
+  for (const count of props.allCounts) {
+    const day = mapDateToNumber(count.names[0])
+    if (isNaN(day)) continue
+    totals.set(day, (totals.get(day) ?? 0) + count.value)
+  }
+  return [...totals.entries()].sort((a, b) => a[0] - b[0])
+})
 const option = computed<EChartsOption>(() => {
   const secondKeys: string[] = chain(props.counts)
     .groupBy((count) => count.names[1])
@@ -312,20 +338,24 @@ function click(params: CallbackDataParams): void {
         @click="click"
       />
     </v-responsive>
-    <range-slider
+    <distribution-brush
       v-if="numberMin && numberMax"
       v-model="actualnNumberRange"
       :color="color"
+      :distribution="numberDistribution"
       :step="1"
       :min="roundedMin"
       :max="roundedMax"
+      :type="type"
     />
-    <date-range-slider
+    <date-distribution-brush
       v-if="dateMin && dateMax"
       v-model="actualDateRange"
       :color="color"
+      :distribution="dateDistribution"
       :min="dateMin"
       :max="dateMax"
+      :type="type"
     />
   </div>
 </template>

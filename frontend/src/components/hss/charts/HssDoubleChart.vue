@@ -10,23 +10,33 @@ const props = defineProps(doubleChartProps<HSSColumnField>())
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { counts, changeSearches, dateMax, dateMin, dateRange, numberMax, numberMin, numberRange } =
-  useDoubleChart<HSSColumnField, HSSColumnNumberField>(
-    emit,
-    props.fields,
-    toRef(props, 'query'),
-    (fields, query) => hssApi.getHssColumnsCounts(fields, query),
-    {
-      field: HSSColumnNumberField,
-      getRange: (field) => hssApi.getHssColumnsRange(field)
-    }
-  )
+const {
+  counts,
+  allCounts,
+  changeSearches,
+  dateMax,
+  dateMin,
+  dateRange,
+  numberMax,
+  numberMin,
+  numberRange
+} = useDoubleChart<HSSColumnField, HSSColumnNumberField>(
+  emit,
+  props.fields,
+  toRef(props, 'query'),
+  (fields, query) => hssApi.getHssColumnsCounts(fields, query),
+  {
+    field: HSSColumnNumberField,
+    getRange: (field) => hssApi.getHssColumnsRange(field)
+  }
+)
 </script>
 
 <template>
   <double-chart
     v-model:date-range="dateRange"
     v-model:number-range="numberRange"
+    :all-counts="allCounts"
     :color="color"
     :counts="counts"
     :date-max="dateMax"

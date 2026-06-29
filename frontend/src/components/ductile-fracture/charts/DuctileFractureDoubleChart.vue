@@ -10,23 +10,33 @@ const props = defineProps(doubleChartProps<DuctileFractureField>())
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { counts, changeSearches, dateMax, dateMin, dateRange, numberMax, numberMin, numberRange } =
-  useDoubleChart<DuctileFractureField, DuctileFractureNumberField>(
-    emit,
-    props.fields,
-    toRef(props, 'query'),
-    (fields, query) => ductileFractureApi.getDuctileFracturesCounts(fields, query),
-    {
-      field: DuctileFractureNumberField,
-      getRange: (field) => ductileFractureApi.getDuctileFracturesRange(field)
-    }
-  )
+const {
+  counts,
+  allCounts,
+  changeSearches,
+  dateMax,
+  dateMin,
+  dateRange,
+  numberMax,
+  numberMin,
+  numberRange
+} = useDoubleChart<DuctileFractureField, DuctileFractureNumberField>(
+  emit,
+  props.fields,
+  toRef(props, 'query'),
+  (fields, query) => ductileFractureApi.getDuctileFracturesCounts(fields, query),
+  {
+    field: DuctileFractureNumberField,
+    getRange: (field) => ductileFractureApi.getDuctileFracturesRange(field)
+  }
+)
 </script>
 
 <template>
   <double-chart
     v-model:date-range="dateRange"
     v-model:number-range="numberRange"
+    :all-counts="allCounts"
     :color="color"
     :counts="counts"
     :date-max="dateMax"
