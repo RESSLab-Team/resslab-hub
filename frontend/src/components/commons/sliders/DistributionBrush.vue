@@ -2,46 +2,63 @@
 /**
  * A "context" range filter: a slim overview of the whole distribution with two
  * draggable handles that define the active window — the focus+context idiom
- * from Observable/Tableau. Built on an ECharts `dataZoom` slider whose
- * `dataBackground` draws the full distribution faintly and whose
- * `selectedDataBackground` highlights the part inside the window.
+ * from Observable/Tableau. The distribution is drawn with ECharts (bars/area);
+ * the "[ ]" brackets and the veil over the active window are markLine/markArea.
+ *
+ * Dragging is handled by a transparent pointer overlay (not ECharts dataZoom),
+ * which splits the *current window* into thirds: the left third grabs the left
+ * handle, the right third the right handle, and the middle third moves the whole
+ * window. This makes each target a large, predictable hit-area instead of the
+ * fiddly fixed-pixel handles a dataZoom slider gives.
  *
  * The x-axis spans the *stable* full extent [min, max] (the data bounds, which
  * don't shrink when a filter is applied), so the handles always have room to be
  * dragged back out. The flanking number inputs keep precise values typeable.
  */
-import { useColor } from '@/composables/color'
 import { initOptions } from '@/components/commons/charts/utils'
-import type { Color } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
 import { BarChart, LineChart } from 'echarts/charts'
-import { DataZoomComponent, GridComponent } from 'echarts/components'
+import { GridComponent, MarkAreaComponent, MarkLineComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import VChart from 'vue-echarts'
 
-use([SVGRenderer, LineChart, BarChart, GridComponent, DataZoomComponent])
+use([SVGRenderer, LineChart, BarChart, GridComponent, MarkLineComponent, MarkAreaComponent])
+
+/** One stacked series of the overview: its exact main-chart colour and its
+ *  [value, count] points. All series share the same x positions so they stack. */
+export interface BrushSeries {
+  color: string
+  data: [number, number][]
+}
 
 const props = withDefaults(
   defineProps<{
     modelValue?: [number, number]
     min: number
     max: number
-    // The distribution shape as [value, count] pairs, sorted by value.
-    distribution?: [number, number][]
+    // The distribution as one or more stacked series, each carrying the exact
+    // colour of the matching main-chart series (sorted by value, shared x).
+    series?: BrushSeries[]
     step?: number
-    color?: Color
     type?: 'bar' | 'line'
+    // Bin boundaries [e0…eN] for bar histograms. When given, the brush positions
+    // bars in *bin-index* space — each bin an equal slot, exactly like the main
+    // chart's category axis — so they line up pixel-for-pixel even though d3's
+    // first/last bins are partial-width. Filter values stay in real units
+    // (converted through the edges). Omit for line/date series, which use a plain
+    // value axis.
+    binEdges?: number[]
     // Render the handle/bound values through a formatter (used by the date variant).
     formatter?: (value: number) => string
   }>(),
   {
     modelValue: undefined,
-    distribution: () => [],
+    series: () => [],
     step: 1,
-    color: undefined,
     type: 'bar',
+    binEdges: undefined,
     formatter: undefined
   }
 )
@@ -49,166 +66,316 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: [number, number]): void
 }>()
 
-const { baseColor, darkenColor } = useColor(props.color)
+// Track the chart's pixel width so the bracket feet can be drawn at a constant
+// pixel length (data-unit lengths would grow with the chart and look heavy when
+// it's wide). Reactive so the option recomputes on resize.
+const chartEl = ref<HTMLElement>()
+const chartWidth = ref(0)
+let widthObserver: ResizeObserver | undefined
+onMounted(() => {
+  if (chartEl.value && 'ResizeObserver' in window) {
+    widthObserver = new ResizeObserver(() => {
+      chartWidth.value = chartEl.value?.clientWidth ?? 0
+    })
+    widthObserver.observe(chartEl.value)
+  }
+})
+onUnmounted(() => widthObserver?.disconnect())
 
 const actualMin = computed<number>(() => props.min - (props.min % props.step))
 const actualMax = computed<number>(() => Math.ceil(props.max / props.step) * props.step)
-const span = computed<number>(() => Math.max(actualMax.value - actualMin.value, props.step))
 
-const range = computed<[number, number]>({
-  get: () => props.modelValue ?? [actualMin.value, actualMax.value],
-  set: (value) =>
-    emit('update:modelValue', [
-      Math.max(actualMin.value, value[0]),
-      Math.min(actualMax.value, value[1])
-    ])
-})
+// Bar histograms position in *bin-index* space so they match the main chart's
+// (equal-width) category axis; everything else uses a plain value axis. `hasBins`
+// switches between the two. Coordinates handed to ECharts (axis min/max, bar x,
+// markLine/markArea) are "axis coordinates": a bin index in [0, N] when binned,
+// else the real value. Filter values (range, modelValue, fields) stay real.
+const hasBins = computed<boolean>(() => (props.binEdges?.length ?? 0) >= 2)
+const binCount = computed<number>(() => (props.binEdges?.length ?? 1) - 1)
 
-// Handle positions as percentages of the stable [min, max] extent.
-const startEnd = computed<[number, number]>(() => {
-  const [lo, hi] = range.value
-  const toPct = (v: number) => ((v - actualMin.value) / span.value) * 100
-  return [toPct(lo), toPct(hi)]
-})
+// Real-value clamp bounds for the filter window.
+const realLo = computed<number>(() => (hasBins.value ? props.binEdges![0] : actualMin.value))
+const realHi = computed<number>(() =>
+  hasBins.value ? props.binEdges![binCount.value] : actualMax.value
+)
 
-function rgba(hex: string | undefined, alpha: number): string {
-  if (!hex) return `rgba(0,0,0,${alpha})`
-  const h = hex.replace('#', '')
-  const full =
-    h.length === 3
-      ? h
-          .split('')
-          .map((c) => c + c)
-          .join('')
-      : h
-  const n = parseInt(full, 16)
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`
+// Axis-coordinate extent the ECharts x-axis spans.
+const axisLo = computed<number>(() => (hasBins.value ? 0 : realLo.value))
+const axisHi = computed<number>(() => (hasBins.value ? binCount.value : realHi.value))
+const axisSpan = computed<number>(() =>
+  Math.max(axisHi.value - axisLo.value, hasBins.value ? 1 : props.step)
+)
+
+// real value ⇄ axis coordinate. Binned: piecewise-linear through the bin edges so
+// each bin fills one equal slot (a value inside bin i lands at i + its fraction
+// across that bin; a bin centre lands exactly at i + 0.5, matching the category
+// axis). Unbinned: identity.
+function toAxis(value: number): number {
+  if (!hasBins.value) return value
+  const edges = props.binEdges!
+  const last = binCount.value
+  if (value <= edges[0]) return 0
+  if (value >= edges[last]) return last
+  for (let i = 0; i < last; i++) {
+    if (value <= edges[i + 1]) {
+      const width = edges[i + 1] - edges[i]
+      return width > 0 ? i + (value - edges[i]) / width : i
+    }
+  }
+  return last
+}
+function toReal(axis: number): number {
+  if (!hasBins.value) return axis
+  const edges = props.binEdges!
+  const last = binCount.value
+  if (axis <= 0) return edges[0]
+  if (axis >= last) return edges[last]
+  const i = Math.floor(axis)
+  return edges[i] + (axis - i) * (edges[i + 1] - edges[i])
+}
+
+// Local copy of the window so a drag clamps/orders *immediately* (the v-model
+// round-trip through the parent is too slow to correct an out-of-bounds drag
+// live). applyRange/commitRange keep it valid; the parent stays in sync via emit.
+const localRange = ref<[number, number]>(props.modelValue ?? [realLo.value, realHi.value])
+watch(
+  () => props.modelValue,
+  (value) => {
+    if (value) localRange.value = [value[0], value[1]]
+  }
+)
+const range = computed<[number, number]>(() => localRange.value)
+
+// Low-level setter: order defensively (handles can never cross into lo > hi) and
+// emit. Callers are responsible for clamping to [axisLo, axisHi] in the way that
+// suits their gesture (edge drags clamp each end; a move-drag clamps as a unit so
+// the window keeps its width instead of being squashed at a wall).
+function applyRange(value: [number, number]): void {
+  const next: [number, number] = value[0] <= value[1] ? [value[0], value[1]] : [value[1], value[0]]
+  if (next[0] === localRange.value[0] && next[1] === localRange.value[1]) return
+  localRange.value = next
+  emit('update:modelValue', next)
+}
+
+function commitRange(value: [number, number]): void {
+  // Clamp each end to the real data extent so the handles can reach the very ends
+  // of the chart — "fully open" sits at the chart edges.
+  const clamp = (v: number) => Math.min(Math.max(v, realLo.value), realHi.value)
+  applyRange([clamp(value[0]), clamp(value[1])])
 }
 
 const option = computed<EChartsOption>(() => {
   const isLine = props.type === 'line'
+  const [lo, hi] = range.value
+  const inWindow = (x: number) => x >= lo && x <= hi
+  // Neutral theme greys for the chrome (brackets + veil/fog) so they read as
+  // structure, not data. Picked by theme since ECharts can't resolve CSS vars.
+  const dark = typeof document !== 'undefined' && document.body.classList.contains('theme-dark')
+  const bracketColor = dark ? '#a8a8ac' : '#707070' // --fg-muted
+  const veilColor = dark ? 'rgba(245,245,245,0.06)' : 'rgba(33,33,33,0.05)' // faint --fg wash
+  // Out-of-window context is muted: bars drop opacity per slice; area series can't
+  // be split per-segment, so the excluded zones are fogged with a bg-coloured
+  // markArea instead (both leave the in-window data at the exact chart colour).
+  const fogColor = dark ? 'rgba(11,11,13,0.55)' : 'rgba(255,255,255,0.55)' // --bg-app wash
+
+  // Stacked height per x = sum across series; the bracket geometry uses the peak.
+  const totals = new Map<number, number>()
+  for (const serie of props.series) {
+    for (const [x, count] of serie.data) totals.set(x, (totals.get(x) ?? 0) + count)
+  }
+  const maxCount = totals.size ? Math.max(...totals.values(), 1) : 1
+
+  // Each window edge is a plain "[" / "]": a full-height rule with short inward
+  // feet top and bottom. Geometry is in y-axis (count) units, so the y-axis is
+  // pinned to [0, maxCount] below.
+  // Foot length: a constant 5px in data units (falls back to a small span
+  // fraction before the width is measured), so feet stay slim on wide charts.
+  const FOOT_PX = 5
+  const foot =
+    chartWidth.value > 0 ? (FOOT_PX / chartWidth.value) * axisSpan.value : axisSpan.value * 0.02
+  const seg = (
+    a: [number, number],
+    b: [number, number]
+  ): [{ coord: [number, number] }, { coord: [number, number] }] => [{ coord: a }, { coord: b }]
+  const bracket = (x: number, dir: number) => [
+    seg([x, 0], [x, maxCount]), // full-height rule
+    seg([x, maxCount], [x + dir, maxCount]), // top foot
+    seg([x, 0], [x + dir, 0]) // bottom foot
+  ]
+  // Chrome (brackets + veil + line fog) is attached to the first visible series.
+  // The veil is a faint wash over the active window; for line series the excluded
+  // zones are additionally fogged (an area series can't drop opacity per-segment
+  // the way bars can). Per-item itemStyle lets the two colours coexist.
+  const chrome = {
+    markLine: {
+      silent: true,
+      symbol: 'none',
+      label: { show: false },
+      lineStyle: { color: bracketColor, width: 1.5, type: 'solid' },
+      data: [...bracket(toAxis(lo), foot), ...bracket(toAxis(hi), -foot)]
+    },
+    markArea: {
+      silent: true,
+      data: [
+        [{ xAxis: toAxis(lo), itemStyle: { color: veilColor } }, { xAxis: toAxis(hi) }],
+        ...(isLine
+          ? [
+              [{ xAxis: axisLo.value, itemStyle: { color: fogColor } }, { xAxis: toAxis(lo) }],
+              [{ xAxis: toAxis(hi), itemStyle: { color: fogColor } }, { xAxis: axisHi.value }]
+            ]
+          : [])
+      ]
+    }
+  }
+
+  const visibleSeries = props.series.map((serie, index) => ({
+    type: props.type,
+    xAxisIndex: 0,
+    stack: 'total',
+    smooth: false,
+    symbol: isLine ? 'none' : undefined,
+    silent: true,
+    ...(index === 0 ? chrome : {}),
+    ...(isLine
+      ? {
+          lineStyle: { width: 0 },
+          // Each series keeps its exact colour; the area is fogged outside the
+          // window (above) rather than recoloured. 0.7 matches the main chart's
+          // default areaStyle opacity.
+          areaStyle: { color: serie.color, opacity: 0.7 },
+          data: serie.data
+        }
+      : {
+          // 80% of the band matches the main chart's default barCategoryGap, so
+          // brush bars are the same width as the chart's, not just same position.
+          barWidth: '80%',
+          // Exact main-chart colour; out-of-window slices recede via opacity.
+          // x is mapped to axis (bin-index) space so bars sit in equal slots.
+          data: serie.data.map(([value, count]) => ({
+            value: [toAxis(value), count],
+            itemStyle: { color: serie.color, opacity: inWindow(value) ? 1 : 0.28 }
+          }))
+        })
+  }))
+
   return {
     animation: false,
-    grid: { left: 2, right: 2, top: 4, bottom: 4 },
-    xAxis: [
-      {
-        // Visible axis — series renders here; range is fixed so it never zooms.
-        type: 'value',
-        min: actualMin.value,
-        max: actualMax.value,
-        show: false,
-        boundaryGap: !isLine
-      },
-      {
-        // Hidden axis — hosts the dataZoom slider so its geometry works,
-        // but zooming this axis clips nothing because no series maps to it.
-        type: 'value',
-        min: actualMin.value,
-        max: actualMax.value,
-        show: false
-      }
-    ],
-    yAxis: { type: 'value', show: false },
-    series: [
-      {
-        // Visible distribution shape (bars or area).
-        type: props.type,
-        xAxisIndex: 0,
-        smooth: isLine,
-        symbol: isLine ? 'none' : undefined,
-        silent: true,
-        ...(isLine
-          ? {
-              lineStyle: { width: 0 },
-              areaStyle: { color: rgba(baseColor.value, 0.45) }
-            }
-          : {
-              barWidth: '80%',
-              itemStyle: {
-                color: rgba(baseColor.value, 0.55)
-              }
-            }),
-        data: props.distribution
-      },
-      {
-        // Hidden series on the dataZoom axis — gives the slider the geometry
-        // it needs to render handles, even though it's visually invisible.
-        type: 'line',
-        xAxisIndex: 1,
-        smooth: false,
-        symbol: 'none',
-        silent: true,
-        lineStyle: { color: 'transparent', width: 0 },
-        areaStyle: { opacity: 0 },
-        data: props.distribution
-      }
-    ],
-    dataZoom: [
-      {
-        type: 'slider',
-        // Attach to the hidden second axis so slider handles render
-        // correctly, but zooming it has no visual effect on anything.
-        xAxisIndex: 1,
-        filterMode: 'none',
-        realtime: true,
-        showDataShadow: false,
-        showDetail: false,
-        left: 2,
-        right: 2,
-        top: 0,
-        bottom: 0,
-        height: '100%',
-        start: startEnd.value[0],
-        end: startEnd.value[1],
-        backgroundColor: 'transparent',
-        borderColor: 'transparent',
-        dataBackground: {
-          lineStyle: { opacity: 0 },
-          areaStyle: { opacity: 0 }
-        },
-        selectedDataBackground: {
-          lineStyle: { opacity: 0 },
-          areaStyle: { opacity: 0 }
-        },
-        fillerColor: rgba(baseColor.value, 0.15),
-        handleSize: '110%',
-        handleStyle: {
-          color: '#fff',
-          borderColor: darkenColor.value,
-          borderWidth: 1,
-          shadowBlur: 3,
-          shadowColor: 'rgba(0,0,0,0.2)'
-        },
-        moveHandleSize: 5,
-        moveHandleStyle: { color: rgba(darkenColor.value, 0.6) },
-        brushSelect: false
-      }
-    ]
+    // Plot fills its container edge-to-edge; the bracket rules (drawn across the
+    // full y-range) then span the same band as the veil so the two read as one
+    // height. The flanking number fields are what align this plot's width with
+    // the main chart, whose grid is pinned to a matching inset.
+    grid: { left: 0, right: 0, top: 1, bottom: 1 },
+    xAxis: {
+      // Series renders here; range is fixed to the visual extent so it never zooms.
+      type: 'value',
+      min: axisLo.value,
+      max: axisHi.value,
+      show: false,
+      boundaryGap: !isLine
+    },
+    yAxis: { type: 'value', show: false, min: 0, max: maxCount },
+    series: visibleSeries as EChartsOption['series']
   }
 })
 
-function onZoom(params: unknown): void {
-  // vue-echarts forwards the raw datazoom event; single-zoom payloads carry
-  // start/end directly, batched ones nest them under `batch[0]`.
-  const p = params as { start?: number; end?: number; batch?: { start: number; end: number }[] }
-  const z = p.batch?.[0] ?? p
-  if (z.start === undefined || z.end === undefined) return
-  const snap = (pct: number) => {
-    const raw = actualMin.value + (pct / 100) * span.value
-    return Math.round(raw / props.step) * props.step
-  }
-  const next: [number, number] = [snap(z.start), snap(z.end)]
-  if (next[0] !== range.value[0] || next[1] !== range.value[1]) {
-    range.value = next
+// ── Drag: a pointer overlay that splits the current window into thirds ────────
+// Left third → drag the left handle, right third → drag the right handle, middle
+// third → move the whole window. Each target scales with the window, so they
+// stay easy to hit at any width (the old fixed-pixel handles did not).
+const dragMode = ref<null | 'lo' | 'hi' | 'move'>(null)
+const hoverCursor = ref('grab')
+let dragStartX = 0
+let dragStartRange: [number, number] = [0, 0]
+
+function snap(v: number): number {
+  return Math.round(v / props.step) * props.step
+}
+// Pointer x → real value (through axis space, so binned charts invert the bin
+// mapping back to a real value).
+function valueAt(clientX: number, rect: DOMRect): number {
+  const ratio = rect.width > 0 ? (clientX - rect.left) / rect.width : 0
+  return toReal(axisLo.value + ratio * axisSpan.value)
+}
+// Which third of the current window a client-x falls in. Anything left of the
+// window counts as the left handle, anything right of it as the right handle, so
+// the whole plot is covered.
+function zoneAt(clientX: number, rect: DOMRect): 'lo' | 'hi' | 'move' {
+  const [lo, hi] = range.value
+  const toPx = (v: number) => rect.left + ((toAxis(v) - axisLo.value) / axisSpan.value) * rect.width
+  const loPx = toPx(lo)
+  const hiPx = toPx(hi)
+  const third = (hiPx - loPx) / 3
+  if (clientX <= loPx + third) return 'lo'
+  if (clientX >= hiPx - third) return 'hi'
+  return 'move'
+}
+
+// Apply the active gesture for a pointer position. Edge gestures move that handle
+// to the pointer (clamped so it can't cross the other); the move gesture shifts
+// the window as a unit by the snapped delta, preserving its width.
+function updateDrag(clientX: number, rect: DOMRect): void {
+  const [startLo, startHi] = dragStartRange
+  if (dragMode.value === 'lo') {
+    applyRange([Math.min(Math.max(snap(valueAt(clientX, rect)), realLo.value), startHi), startHi])
+  } else if (dragMode.value === 'hi') {
+    applyRange([startLo, Math.max(Math.min(snap(valueAt(clientX, rect)), realHi.value), startLo)])
+  } else {
+    // Move in axis space so the window keeps its pixel width regardless of the
+    // (possibly non-uniform) bin widths, then convert the ends back to real.
+    const aWidth = toAxis(startHi) - toAxis(startLo)
+    let a = toAxis(startLo) + ((clientX - dragStartX) / rect.width) * axisSpan.value
+    let b = a + aWidth
+    if (a < axisLo.value) {
+      a = axisLo.value
+      b = a + aWidth
+    }
+    if (b > axisHi.value) {
+      b = axisHi.value
+      a = b - aWidth
+    }
+    applyRange([snap(toReal(a)), snap(toReal(b))])
   }
 }
 
+function onPointerDown(event: PointerEvent): void {
+  const el = event.currentTarget as HTMLElement
+  const rect = el.getBoundingClientRect()
+  dragMode.value = zoneAt(event.clientX, rect)
+  dragStartX = event.clientX
+  dragStartRange = [...range.value] as [number, number]
+  el.setPointerCapture(event.pointerId)
+  event.preventDefault()
+  // A single click acts immediately: the chosen handle jumps to the click point
+  // (a drag isn't required). For 'move' this is a zero-delta no-op, so clicking
+  // in the middle never teleports the whole window.
+  updateDrag(event.clientX, rect)
+}
+
+function onPointerMove(event: PointerEvent): void {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  if (!dragMode.value) {
+    hoverCursor.value = zoneAt(event.clientX, rect) === 'move' ? 'grab' : 'ew-resize'
+    return
+  }
+  updateDrag(event.clientX, rect)
+}
+
+function onPointerUp(event: PointerEvent): void {
+  if (!dragMode.value) return
+  dragMode.value = null
+  ;(event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId)
+}
+
+const overlayCursor = computed(() =>
+  dragMode.value === 'move' ? 'grabbing' : dragMode.value ? 'ew-resize' : hoverCursor.value
+)
+
 const fieldClass = 'mt-0 pt-0'
 function onMinChanged(event: Event): void {
-  range.value = [Number((event.target as HTMLInputElement).value), range.value[1]]
+  commitRange([Number((event.target as HTMLInputElement).value), range.value[1]])
 }
 function onMaxChanged(event: Event): void {
-  range.value = [range.value[0], Number((event.target as HTMLInputElement).value)]
+  commitRange([range.value[0], Number((event.target as HTMLInputElement).value)])
 }
 const displayMin = computed(() =>
   props.formatter ? props.formatter(range.value[0]) : range.value[0]
@@ -234,14 +401,24 @@ const displayMax = computed(() =>
       @change="onMinChanged"
     />
     <span v-else class="dist-brush__bound">{{ displayMin }}</span>
-    <v-chart
-      class="dist-brush__chart"
-      :init-options="initOptions"
-      :option="option"
-      :update-options="{ notMerge: false }"
-      autoresize
-      @datazoom="onZoom"
-    />
+    <div ref="chartEl" class="dist-brush__chart">
+      <v-chart
+        class="dist-brush__canvas"
+        :init-options="initOptions"
+        :option="option"
+        :update-options="{ notMerge: false }"
+        autoresize
+      />
+      <!-- Transparent drag surface: thirds-based handle/move hit-testing. -->
+      <div
+        class="dist-brush__overlay"
+        :style="{ cursor: overlayCursor }"
+        @pointercancel="onPointerUp"
+        @pointerdown="onPointerDown"
+        @pointermove="onPointerMove"
+        @pointerup="onPointerUp"
+      />
+    </div>
     <v-text-field
       v-if="!formatter"
       :class="fieldClass"
@@ -262,23 +439,76 @@ const displayMax = computed(() =>
 <style scoped>
 .dist-brush {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: stretch;
+  gap: 10px;
 }
 .dist-brush__chart {
+  position: relative;
   flex: 1 1 auto;
-  height: 40px;
+  min-width: 0;
+  height: 44px;
+  /* Structural baseline the bars sit on — a single Swiss hairline rule. */
+  border-bottom: 1px solid var(--border, #d5d5d5);
 }
+.dist-brush__canvas {
+  width: 100%;
+  height: 100%;
+}
+/* Drag surface over the plot: spans exactly the grid (left:0/right:0), so client
+   coordinates map linearly to the axis extent. touch-action:none keeps a drag
+   from scrolling the page on touch devices. */
+.dist-brush__overlay {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+/* Compact numeric fields. Width is mirrored by DoubleChart's brushFlank (40 + the
+   10px gap) to keep the brush plot aligned with the main chart. Bottom-aligned so
+   the field's underline sits on the chart's baseline rule. */
 .dist-brush :deep(.v-text-field) {
-  flex: 0 0 60px;
-  width: 60px;
+  flex: 0 0 40px;
+  width: 40px;
+  align-self: flex-end;
+  margin-bottom: 0;
 }
-.dist-brush__bound {
-  flex: 0 0 auto;
-  min-width: 60px;
-  font-size: 0.8125rem;
+/* Strip the Vuetify chrome down to a flat, tabular, hairline-ruled field, with
+   the value sitting just above the underline (close to the chart baseline). */
+.dist-brush :deep(.v-field__field) {
+  align-items: flex-end;
+}
+.dist-brush :deep(.v-field__input) {
+  padding: 0 0 1px;
+  min-height: 0;
+  font-size: var(--fs-sm, 0.875rem);
   font-variant-numeric: tabular-nums;
-  color: rgba(0, 0, 0, 0.7);
+  letter-spacing: -0.01em;
   text-align: center;
+  color: var(--fg, #212121);
+}
+.dist-brush :deep(.v-field__input input) {
+  text-align: center;
+}
+/* Hide the number spinners — Swiss fields stay clean. */
+.dist-brush :deep(input[type='number']::-webkit-inner-spin-button),
+.dist-brush :deep(input[type='number']::-webkit-outer-spin-button) {
+  appearance: none;
+  margin: 0;
+}
+.dist-brush :deep(input[type='number']) {
+  -moz-appearance: textfield;
+}
+/* Date bounds need room for an ISO date; width is mirrored by DoubleChart's
+   brushFlank (84 + the 10px gap). */
+.dist-brush__bound {
+  flex: 0 0 84px;
+  width: 84px;
+  align-self: flex-end;
+  padding-bottom: 2px;
+  font-size: var(--fs-sm, 0.875rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--fg-muted, #707070);
+  text-align: center;
+  white-space: nowrap;
 }
 </style>

@@ -2,7 +2,9 @@
 import type { CountModel } from '@/backend'
 import { initOptions, updateOptions } from '@/components/commons/charts/utils'
 import DateDistributionBrush from '@/components/commons/sliders/DateDistributionBrush.vue'
-import DistributionBrush from '@/components/commons/sliders/DistributionBrush.vue'
+import DistributionBrush, {
+  type BrushSeries
+} from '@/components/commons/sliders/DistributionBrush.vue'
 import type { DoubleField, DoubleFields } from '@/composables/chart'
 import i18n from '@/plugins/i18n'
 import { sum, type Value } from '@/utils/common'
@@ -74,11 +76,20 @@ const emit = defineEmits<{
 const roundedMin = computed<number>(() => Math.floor(props.numberMin ?? 0))
 const roundedMax = computed<number>(() => Math.ceil(props.numberMax ?? 0))
 
+// Horizontal inset that lines the main plot up with the distribution brush below
+// it. The brush's chart fills the gap between its flanking bound labels, so this
+// must equal that flank width = bound width + the 10px flex gap. The two brush
+// variants use different bound widths (DistributionBrush.vue): 40px for the
+// editable numeric fields, 84px for the wider date labels.
+const brushFlank = computed<number>(() => (props.dateMin && props.dateMax ? 94 : 50))
+
 const actualnNumberRange = computed({
   get: () => {
     if (props.numberRange !== undefined) return props.numberRange
     else if (props.numberMin !== undefined && props.numberMax !== undefined)
-      return [roundedMin.value, roundedMax.value] as [number, number]
+      // Fully-open = the brush's full extent (bin edges for histograms), so the
+      // handles rest at the chart edges and this state reads as "no filter".
+      return numberExtent.value
     else return undefined
   },
   set: (value) => {
@@ -136,27 +147,86 @@ const countByKey = computed<Map<string, number>>(() => {
   return map
 })
 const isHistogram = computed<boolean>(() => actualnNumberRange.value !== undefined)
-// Aggregate the counts by their numeric first-key into a [value, total] shape
-// that feeds the brush's distribution overview (summed across the stacked
-// categories). Dates are positioned on the same day-number axis the date brush
-// uses.
-const numberDistribution = computed<[number, number][]>(() => {
-  const totals = new Map<number, number>()
-  for (const count of props.allCounts) {
-    const value = Number(count.names[0])
-    if (isNaN(value)) continue
-    totals.set(value, (totals.get(value) ?? 0) + count.value)
+// The brush overview replicates the main chart's stacked series — same category
+// order, same palette colours (getColorPalette), same counting — but built from
+// the stable unfiltered allCounts so it never collapses as filters apply. When
+// nothing is filtered, allCounts === counts, so the brush is pixel-for-pixel the
+// chart's distribution.
+const brushSecondKeys = computed<string[]>(() =>
+  chain(props.allCounts)
+    .groupBy((count) => count.names[1])
+    .map((values, key) => ({ key, value: values.map((count) => count.value).reduce(sum) }))
+    .sortBy(
+      (item) => -item.value,
+      (item) => item.key
+    )
+    .map((item) => item.key)
+    .value()
+)
+const brushColors = computed<string[]>(() =>
+  getColorPalette(props.color, brushSecondKeys.value.length)
+)
+// Unique sorted x positions (numeric values / day numbers) across all series, so
+// stacked area series line up on a shared axis.
+function sortedUnique(values: number[]): number[] {
+  return [...new Set(values.filter((v) => !isNaN(v)))].sort((a, b) => a - b)
+}
+function stackByKey(toX: (name: string) => number): BrushSeries[] {
+  const keys = brushSecondKeys.value
+  const colors = brushColors.value
+  const xs = sortedUnique(props.allCounts.map((count) => toX(count.names[0])))
+  return keys.map((key, index) => {
+    const byX = new Map<number, number>()
+    for (const count of props.allCounts) {
+      if (count.names[1] !== key) continue
+      const x = toX(count.names[0])
+      if (isNaN(x)) continue
+      byX.set(x, (byX.get(x) ?? 0) + count.value)
+    }
+    return { color: colors[index], data: xs.map((x) => [x, byX.get(x) ?? 0] as [number, number]) }
+  })
+}
+// Bar histograms bin per series with the SAME d3/Sturges rule the main chart uses
+// (toBins shares one set of bin edges across all category names), placing each bar
+// at its bin centre and exposing the full bin-edge list. The brush positions bars
+// in bin-index space from those edges, so they land exactly under the main chart's
+// (equal-width) category bins despite d3's partial first/last bins. Line charts
+// plot per value on a shared x axis.
+const numberBins = computed<{
+  series: BrushSeries[]
+  min?: number
+  max?: number
+  edges?: number[]
+}>(() => {
+  if (props.type === 'line') return { series: stackByKey((name) => Number(name)) }
+  const binData = props.allCounts
+    .map((count) => ({ name: count.names[1], value: Number(count.names[0]), count: count.value }))
+    .filter((d) => !isNaN(d.value))
+  if (!binData.length) return { series: [] }
+  const bins = toBins(brushSecondKeys.value, binData)
+  const rows = bins[0].data
+  // Boundaries [e0…eN] = the first bin's left edge then every bin's right edge.
+  const edges = rows.length ? [rows[0][2], ...rows.map((d) => d[3])] : undefined
+  return {
+    series: bins.map((bin, index) => ({
+      color: brushColors.value[index],
+      data: bin.data.map(
+        (d) => [(d[2] + d[3]) / 2, typeof d[1] === 'number' ? d[1] : 0] as [number, number]
+      )
+    })),
+    min: edges?.[0],
+    max: edges?.[edges.length - 1],
+    edges
   }
-  return [...totals.entries()].sort((a, b) => a[0] - b[0])
 })
-const dateDistribution = computed<[number, number][]>(() => {
-  const totals = new Map<number, number>()
-  for (const count of props.allCounts) {
-    const day = mapDateToNumber(count.names[0])
-    if (isNaN(day)) continue
-    totals.set(day, (totals.get(day) ?? 0) + count.value)
-  }
-  return [...totals.entries()].sort((a, b) => a[0] - b[0])
+const numberSeries = computed<BrushSeries[]>(() => numberBins.value.series)
+const dateSeries = computed<BrushSeries[]>(() => stackByKey(mapDateToNumber))
+// The brush's full extent: the bin-edge range for histograms (so handles reach
+// the chart edges), else the rounded data extent. Used as the "fully open" /
+// no-filter range too.
+const numberExtent = computed<[number, number]>(() => {
+  const { min, max } = numberBins.value
+  return min !== undefined && max !== undefined ? [min, max] : [roundedMin.value, roundedMax.value]
 })
 const option = computed<EChartsOption>(() => {
   const secondKeys: string[] = chain(props.counts)
@@ -191,7 +261,11 @@ const option = computed<EChartsOption>(() => {
     },
     grid: {
       top: 40,
-      bottom: 56
+      bottom: 56,
+      // Pin the horizontal insets to the distribution brush's flank so the main
+      // plot and the brush overview below it line up exactly (see brushFlank).
+      left: brushFlank.value,
+      right: brushFlank.value
     },
     xAxis: {
       type: 'category',
@@ -238,9 +312,10 @@ watch(actualnNumberRange, (value) => {
   } else {
     searchValue = undefined
   }
-  //if search value equals to min/max value, then there's no search value
+  //if the window covers the full extent (bin edges), there's no search value
   if (props.numberMin !== undefined && props.numberMax !== undefined) {
-    if (value && value[0] === roundedMin.value && value[1] === roundedMax.value) {
+    const [min, max] = numberExtent.value
+    if (value && value[0] === min && value[1] === max) {
       searchValue = undefined
     }
   }
@@ -341,18 +416,17 @@ function click(params: CallbackDataParams): void {
     <distribution-brush
       v-if="numberMin && numberMax"
       v-model="actualnNumberRange"
-      :color="color"
-      :distribution="numberDistribution"
+      :series="numberSeries"
       :step="1"
       :min="roundedMin"
       :max="roundedMax"
+      :bin-edges="numberBins.edges"
       :type="type"
     />
     <date-distribution-brush
       v-if="dateMin && dateMax"
       v-model="actualDateRange"
-      :color="color"
-      :distribution="dateDistribution"
+      :series="dateSeries"
       :min="dateMin"
       :max="dateMax"
       :type="type"

@@ -3,9 +3,10 @@
  * Date-range variant of {@link DistributionBrush}: maps date strings to day
  * numbers for the underlying numeric brush and formats the bounds back to dates.
  */
-import DistributionBrush from '@/components/commons/sliders/DistributionBrush.vue'
+import DistributionBrush, {
+  type BrushSeries
+} from '@/components/commons/sliders/DistributionBrush.vue'
 import { mapDateToNumber, mapNumberToDate } from '@/utils/date'
-import type { Color } from '@/utils/vuetify'
 import { computed } from 'vue'
 
 const props = withDefaults(
@@ -13,15 +14,13 @@ const props = withDefaults(
     modelValue?: [string, string]
     min: string
     max: string
-    // Distribution shape as [dayNumber, count] pairs (already numeric positions).
-    distribution?: [number, number][]
-    color?: Color
+    // Stacked series with [dayNumber, count] points (already numeric positions).
+    series?: BrushSeries[]
     type?: 'bar' | 'line'
   }>(),
   {
     modelValue: undefined,
-    distribution: () => [],
-    color: undefined,
+    series: () => [],
     type: 'bar'
   }
 )
@@ -43,12 +42,11 @@ const rangeNumber = computed<[number, number] | undefined>({
 
 <template>
   <distribution-brush
-    :color="color"
-    :distribution="distribution"
     :formatter="mapNumberToDate"
     :max="maxNumber"
     :min="minNumber"
     :model-value="rangeNumber"
+    :series="series"
     :step="1"
     :type="type"
     @update:model-value="rangeNumber = $event"
