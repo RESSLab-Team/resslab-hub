@@ -1,4 +1,4 @@
-import { filterRows, formatValue, inferFieldTypes, type Row } from '@/utils/queryEngine'
+import { compileQuery, filterRows, formatValue, inferFieldTypes, type Row } from '@/utils/queryEngine'
 import { describe, expect, it } from 'vitest'
 
 const rows: Row[] = [
@@ -90,5 +90,29 @@ describe('queryEngine.formatValue', () => {
     expect(formatValue(2005)).toBe('2005')
     expect(formatValue(1.5)).toBe('1.5')
     expect(formatValue('WUF-W')).toBe('WUF-W')
+  })
+})
+
+describe('queryEngine.compileQuery memoization', () => {
+  it('returns the same predicate for a repeated (query, fieldTypes) pair', () => {
+    const first = compileQuery('connection_type:WUF', types)
+    const second = compileQuery('connection_type:WUF', types)
+    expect(second).toBe(first)
+  })
+
+  it('recompiles when the query or the fieldTypes object changes', () => {
+    const base = compileQuery('connection_type:WUF', types)
+    const otherQuery = compileQuery('connection_type:RBS', types)
+    expect(otherQuery).not.toBe(base)
+    const otherTypes = inferFieldTypes(rows)
+    const otherTypesPredicate = compileQuery('connection_type:WUF', otherTypes)
+    expect(otherTypesPredicate).not.toBe(base)
+  })
+
+  it('memoized predicates filter identically to fresh compiles', () => {
+    const memoized = compileQuery('date:2000<<2010', types)
+    expect(rows.filter(memoized).map((row) => row.id)).toEqual(['1', '2'])
+    // Reusable: a second pass over the same predicate gives the same result.
+    expect(rows.filter(memoized).map((row) => row.id)).toEqual(['1', '2'])
   })
 })

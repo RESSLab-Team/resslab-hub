@@ -1,5 +1,5 @@
 import { useDataset } from '@/composables/useDataset'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 interface TestModel {
   id: string
@@ -61,5 +61,89 @@ describe('useDataset.pageSync', () => {
     await dataset.ready()
     const response = await dataset.getPage(undefined, ['t_dp_tot'], [true], 1, 3)
     expect(dataset.pageSync(undefined, ['t_dp_tot'], [true], 1, 3)).toEqual(response.data.items)
+  })
+})
+
+describe('useDataset crossfilter sync functions', () => {
+  it('countsSync returns [] before the dataset has loaded', () => {
+    const { countsSync } = bind()
+    expect(countsSync(['connection_type'])).toEqual([])
+  })
+
+  it('countsSync groups and filters once loaded', async () => {
+    const dataset = bind()
+    await dataset.ready()
+    expect(dataset.countsSync(['connection_type'])).toEqual(
+      expect.arrayContaining([
+        { names: ['WUF-W'], value: 2 },
+        { names: ['RBS'], value: 1 },
+        { names: ['BFP'], value: 1 }
+      ])
+    )
+    expect(dataset.countsSync(['connection_type'], 't_dp_tot:>15')).toEqual(
+      expect.arrayContaining([
+        { names: ['WUF-W'], value: 1 },
+        { names: ['RBS'], value: 1 }
+      ])
+    )
+  })
+
+  it('countRowsSync counts the filtered set', async () => {
+    const dataset = bind()
+    await dataset.ready()
+    expect(dataset.countRowsSync()).toBe(4)
+    expect(dataset.countRowsSync('connection_type:WUF-W')).toBe(2)
+  })
+
+  it('matrixSync projects the requested fields with ids', async () => {
+    const dataset = bind()
+    await dataset.ready()
+    const model = dataset.matrixSync(['t_dp_tot'], 'connection_type:WUF-W')
+    expect(model.ids).toEqual(['1', '3'])
+    expect(model.data).toEqual([[10], [20]])
+  })
+
+  it('countsSync matches the async getCounts', async () => {
+    const dataset = bind()
+    await dataset.ready()
+    const response = await dataset.getCounts(['connection_type'], 't_dp_tot:>15')
+    expect(dataset.countsSync(['connection_type'], 't_dp_tot:>15')).toEqual(response.data)
+  })
+})
+
+describe('useDataset cache behaviour', () => {
+  it('keeps datasets with different keys isolated', async () => {
+    const ds1 = useDataset(`iso-a-${keySeq++}`, async () => [rows[0]])
+    const ds2 = useDataset(`iso-b-${keySeq++}`, async () => rows)
+    await ds1.ready()
+    await ds2.ready()
+    expect(ds1.countRowsSync()).toBe(1)
+    expect(ds2.countRowsSync()).toBe(4)
+  })
+
+  it('dedupes the fetch across bindings of the same key', async () => {
+    const fetchAll = vi.fn(async () => rows)
+    const key = `dedupe-${keySeq++}`
+    const ds1 = useDataset(key, fetchAll)
+    const ds2 = useDataset(key, fetchAll)
+    await ds1.ready()
+    await ds2.ready()
+    expect(fetchAll).toHaveBeenCalledTimes(1)
+    expect(ds2.countRowsSync()).toBe(4)
+  })
+
+  it('evicts a failed fetch so the next binding retries', async () => {
+    const key = `retry-${keySeq++}`
+    const failing = useDataset(key, async (): Promise<TestModel[]> => {
+      throw new Error('network down')
+    })
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    await expect(failing.ready()).rejects.toThrow('network down')
+    consoleError.mockRestore()
+
+    // Same key, working fetcher: the poisoned entry must have been evicted.
+    const retried = useDataset(key, async () => rows)
+    await retried.ready()
+    expect(retried.countRowsSync()).toBe(4)
   })
 })

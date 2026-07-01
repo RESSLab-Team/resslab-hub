@@ -58,3 +58,21 @@ describe('aggregate.matrix', () => {
     })
   })
 })
+
+describe('aggregate edge cases', () => {
+  it('handles an empty row array', () => {
+    expect(counts([], ['connection_type'])).toEqual([])
+    expect(totalCount([])).toEqual([{ names: [], value: 0 }])
+    expect(range([], 't_dp')).toEqual({ min: 0, max: 0 })
+    expect(dateRange([], 'date')).toEqual({ min: '', max: '' })
+    expect(matrix([], 'id', ['t_dp'])).toEqual({ ids: [], data: [] })
+  })
+
+  it('groups all-null fields under NA', () => {
+    const nullRows: Row[] = [
+      { id: '1', type: null },
+      { id: '2', type: null }
+    ]
+    expect(counts(nullRows, ['type'])).toEqual([{ names: ['NA'], value: 2 }])
+  })
+})
