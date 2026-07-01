@@ -2,11 +2,10 @@
 import { MaterialField, type MaterialModel } from '@/backend'
 import SimpleParallelChart from '@/components/commons/charts/SimpleParallelChart.vue'
 import { parallelChartProps, useParallelChart, type ChartEmits } from '@/composables/chart'
-import { subscribeCrossfilter } from '@/composables/crossfilterBus'
 import { dashboardQueryKey } from '@/composables/dashboard'
 import { useDataset } from '@/composables/useDataset'
 import { MATERIAL_KEY, fetchMaterials } from '@/components/materials/data'
-import { inject, onUnmounted, toRef } from 'vue'
+import { inject, toRef } from 'vue'
 
 const props = defineProps(parallelChartProps<MaterialField>())
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -21,22 +20,9 @@ const { changeSearches, data, ids, requestFields, isFiltered } = useParallelChar
   MaterialField.Id,
   props.fields,
   query,
-  getMatrix
+  getMatrix,
+  matrixSync // live crossfilter drag frames (see useParallelChart)
 )
-
-// Live crossfilter during a drag: recompute the matrix from the in-memory dataset
-// and feed the existing reactive data/ids refs (kept reactive — the per-frame cost
-// is the N-polyline canvas redraw, identical either way, and this leaves the chart's
-// brush-select untouched). The reactive commit refreshes these on pointer-up.
-const unsubscribe = subscribeCrossfilter({
-  onLive: (liveQuery) => {
-    const model = matrixSync(requestFields.value, liveQuery)
-    ids.value = model.ids
-    data.value = model.data as unknown as (string | number)[][]
-  },
-  onSettle: () => {}
-})
-onUnmounted(unsubscribe)
 </script>
 
 <template>

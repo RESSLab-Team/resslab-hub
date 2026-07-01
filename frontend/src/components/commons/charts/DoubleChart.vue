@@ -127,7 +127,7 @@ const roundedMax = computed<number>(() => Math.ceil(props.numberMax ?? 0))
 // editable numeric fields, 84px for the wider date labels.
 const brushFlank = computed<number>(() => (props.dateMin && props.dateMax ? 94 : 50))
 
-const actualnNumberRange = computed({
+const actualNumberRange = computed({
   get: () => {
     if (props.numberRange !== undefined) return props.numberRange
     else if (props.numberMin !== undefined && props.numberMax !== undefined)
@@ -194,7 +194,7 @@ function buildCountMap(countsData: CountModel[]): Map<string, number> {
   }
   return map
 }
-const isHistogram = computed<boolean>(() => actualnNumberRange.value !== undefined)
+const isHistogram = computed<boolean>(() => actualNumberRange.value !== undefined)
 // The brush overview replicates the main chart's stacked series — same category
 // order, same palette colours (getColorPalette), same counting — but built from
 // the stable unfiltered allCounts so it never collapses as filters apply. When
@@ -504,7 +504,7 @@ function dateSearchValue(value?: [string, string]): string | undefined {
 
 // During a crossfilter drag, publish the live query to the bus (no commit → the
 // table stays put). Otherwise (server mode, number-field edits) commit reactively.
-watch(actualnNumberRange, (value) => {
+watch(actualNumberRange, (value) => {
   const searchValue = numberSearchValue(value)
   if (isBrushDragging.value && props.liveCounts) {
     publishLive(withFieldClause(props.fields[0], searchValue))
@@ -525,7 +525,7 @@ watch(actualDateRange, (value) => {
 // once) and settle the bus so every chart unfreezes. Fires regardless of whether
 // the final value changed, so charts can never get stuck frozen.
 function onNumberDragEnd(): void {
-  emit('change:searches', props.fields[0], numberSearchValue(actualnNumberRange.value))
+  emit('change:searches', props.fields[0], numberSearchValue(actualNumberRange.value))
   publishSettle()
 }
 function onDateDragEnd(): void {
@@ -605,7 +605,7 @@ function click(params: CallbackDataParams): void {
     <div ref="chartEl" class="double-chart__canvas" />
     <distribution-brush
       v-if="numberMin && numberMax"
-      v-model="actualnNumberRange"
+      v-model="actualNumberRange"
       class="chart-brush"
       :series="numberSeries"
       :step="1"

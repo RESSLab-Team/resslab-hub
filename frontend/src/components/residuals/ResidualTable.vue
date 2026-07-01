@@ -2,13 +2,12 @@
 import { ResidualStressField, type ResidualStressModel } from '@/backend'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
-import { subscribeCrossfilter } from '@/composables/crossfilterBus'
 import { useDataset } from '@/composables/useDataset'
 import { RESIDUAL_KEY, fetchResiduals } from '@/components/residuals/data'
 import { residualsApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { formatNumber } from '@/utils/formatter'
-import { onUnmounted, ref, toRef } from 'vue'
+import { toRef } from 'vue'
 
 const columns: Column[] = [
   {
@@ -51,6 +50,8 @@ const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -83,35 +84,9 @@ const {
   getTotal,
   getPage,
   (ids) => residualsApi.getResidualStressesCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
-
-// Live crossfilter: during a brush drag, stream the table's current page live from
-// the in-memory dataset — the light-DOM virtualized body re-renders its visible
-// rows in a few ms, so rows can track the drag frame-for-frame like the charts.
-// `liveItems` replaces the body rows and `liveCount` drives the footer text; both
-// are display-only (pagination still rides the committed totalFilteredCount, so no
-// page-clamp refetch). Both clear on pointer-up, when the reactive commit settles.
-const liveCount = ref<number>()
-const liveItems = ref<ResidualStressModel[]>()
-const unsubscribeCrossfilter = subscribeCrossfilter({
-  onLive: (liveQuery) => {
-    liveCount.value = countRowsSync(liveQuery)
-    const opts = options.value
-    liveItems.value = pageSync(
-      liveQuery,
-      opts?.sortBy?.map((sort) => sort.key),
-      opts?.sortBy?.map((sort) => sort.order === 'desc'),
-      opts?.page,
-      opts?.itemsPerPage === -1 ? 1000 : opts?.itemsPerPage
-    )
-  },
-  onSettle: () => {
-    liveCount.value = undefined
-    liveItems.value = undefined
-  }
-})
-onUnmounted(unsubscribeCrossfilter)
 </script>
 
 <template>

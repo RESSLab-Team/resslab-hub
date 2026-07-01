@@ -1,31 +1,14 @@
 /**
- * Materials dataset source for the in-browser query layer (`useDataset`).
- *
- * Fetches the full materials table once via the existing paginated list
- * endpoint, then all filtering/aggregation happens client-side.
+ * Materials dataset source for the in-browser query layer (`useDataset`):
+ * the full table, fetched once through the existing paginated list endpoint.
  */
 import type { MaterialModel } from '@/backend'
 import { materialsApi } from '@/plugins/axios'
+import { fetchAllPages } from '@/utils/backend'
 
 export const MATERIAL_KEY = 'material'
 
-const PAGE_SIZE = 1000
-
-export async function fetchMaterials(): Promise<MaterialModel[]> {
-  const all: MaterialModel[] = []
-  let page = 1
-  for (;;) {
-    const { data } = await materialsApi.getMaterials(
-      undefined,
-      undefined,
-      undefined,
-      page,
-      PAGE_SIZE
-    )
-    all.push(...data.items)
-    const total = data.total ?? all.length
-    if (data.items.length === 0 || all.length >= total) break
-    page += 1
-  }
-  return all
-}
+export const fetchMaterials = (): Promise<MaterialModel[]> =>
+  fetchAllPages((page, size) =>
+    materialsApi.getMaterials(undefined, undefined, undefined, page, size)
+  )

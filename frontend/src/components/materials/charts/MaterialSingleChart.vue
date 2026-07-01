@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MaterialField, MaterialModel } from '@/backend'
 import SingleChart from '@/components/commons/charts/SingleChart.vue'
-import { singleChartProps, useSingleChart, type ChartEmits } from '@/composables/chart'
+import { singleChartProps, toSingleCounts, useSingleChart, type ChartEmits } from '@/composables/chart'
 import { dashboardQueryKey } from '@/composables/dashboard'
 import { useDataset } from '@/composables/useDataset'
 import { MATERIAL_KEY, fetchMaterials } from '@/components/materials/data'
@@ -18,12 +18,9 @@ const query = inject(dashboardQueryKey, toRef(props, 'query'))
 const { getCounts, countsSync } = useDataset<MaterialModel>(MATERIAL_KEY, fetchMaterials)
 const { counts, changeSearches } = useSingleChart<MaterialField>(emit, props.field, query, getCounts)
 
-// Synchronous counts for the crossfilter drag path — mapped/sorted to match the
-// composable's reactive `counts` so live frames are pixel-identical.
-const getLiveCounts = (liveQuery?: string) =>
-  countsSync([props.field], liveQuery)
-    .map((count) => ({ name: count.names[0], value: count.value }))
-    .sort((a, b) => (a.name < b.name ? -1 : 1))
+// Synchronous counts for the crossfilter drag path — same mapping as the
+// composable's reactive `counts`, so live frames are pixel-identical.
+const getLiveCounts = (liveQuery?: string) => toSingleCounts(countsSync([props.field], liveQuery))
 </script>
 
 <template>

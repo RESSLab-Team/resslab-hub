@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="M extends { id: string }">
 import CheckboxDialog, { type CheckBoxDialogItem } from '@/components/commons/CheckboxDialog.vue'
 import TextSubscript from '@/components/commons/TextSubscript.vue'
 import { DownloadType, type Column, type ColumnType } from '@/composables/table'
@@ -9,7 +9,7 @@ import { shareCurrentUrl, type Searches } from '@/utils/common'
 import type { DataOptions } from '@/utils/vuetify'
 import { booleanOptions } from '@/utils/vuetify'
 import { mdiDownload, mdiMagnify, mdiMenuDown, mdiMenuUp, mdiShare } from '@mdi/js'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -25,9 +25,6 @@ interface TableHeader {
   align?: 'start' | 'end'
 }
 
-// TODO add genericity https://github.com/vuejs/rfcs/discussions/436
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type M = any
 const props = withDefaults(
   defineProps<{
     title?: string
@@ -113,7 +110,9 @@ const notificationStore = useNotificationStore()
 
 const downloadDialog = ref<InstanceType<typeof CheckboxDialog>>()
 const selectedItemsIds = ref<string[]>([])
-const selectedItems = ref<M[]>([])
+// shallowRef, and not just for performance: a deep ref would unwrap the generic
+// M (UnwrapRefSimple<M>) and break the typing of everything touching it.
+const selectedItems = shallowRef<M[]>([])
 const page = ref<number>(1)
 const itemsPerPage = ref<number>(5)
 const sortBy = ref<{ key: string; order: 'asc' | 'desc' }>()
@@ -228,7 +227,7 @@ watch(selectedItemsIds, (newIdList, oldIdList) => {
             displayItems.value.find((item) => item.id === id) ??
             props.items.find((item) => item.id === id)
         )
-        .filter(Boolean)
+        .filter((item): item is M => item !== undefined)
     )
   selectedItems.value = newList
 })
@@ -365,7 +364,7 @@ function toggleSelectAll(): void {
 }
 
 function cellText(header: TableHeader, item: M): string {
-  const value = item[header.key]
+  const value = (item as Record<string, unknown>)[header.key]
   if (value === null || value === undefined) return ''
   return header.format ? header.format(value) : String(value)
 }
@@ -853,7 +852,8 @@ function downloadZip(): void {
   padding-top: 2px;
 }
 
-/* Body rows */
+/* Body rows. Height must stay in sync with ROW_HEIGHT in useVirtualRows.ts —
+   the virtual window's scroll math assumes exactly this many px per row. */
 .stbl-row {
   height: 38px;
 }

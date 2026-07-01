@@ -5,6 +5,7 @@ import type { Color } from '@/utils/vuetify'
 import type { AxiosResponse } from 'axios'
 import { chain, debounce } from 'lodash'
 import { computed, onScopeDispose, ref, shallowRef, watch, type Ref } from 'vue'
+import { subscribeCrossfilter } from './crossfilterBus'
 import { queryFieldSeparator, queryKeyValueSeparator } from './dashboard'
 import { cancelScheduled, scheduleFrameUpdate } from './frameScheduler'
 
@@ -39,6 +40,17 @@ function getSearchValueFromQuery(query: string | undefined, field: string): stri
 export interface Count {
   name: string
   value: number
+}
+
+/**
+ * Map/sort raw counts into the shape `useSingleChart`'s reactive `counts` holds.
+ * Exported for the crossfilter wrappers: building their live drag frames through
+ * the same function keeps them pixel-identical to the committed render.
+ */
+export function toSingleCounts(values: CountModel[]): Count[] {
+  return values
+    .map((count) => ({ name: count.names[0], value: count.value }))
+    .sort((c1, c2) => (c1.name < c2.name ? -1 : 1))
 }
 
 export function singleChartProps<F extends string>() {
@@ -79,14 +91,7 @@ export function useSingleChart<F>(
       getCounts([field], query.value)
         .then((response) => response.data)
         .then((values) => {
-          const next = values
-            .map((count) => {
-              return {
-                name: count.names[0],
-                value: count.value
-              }
-            })
-            .sort((c1, c2) => (c1.name < c2.name ? -1 : 1))
+          const next = toSingleCounts(values)
           // Stagger the write so N charts don't all flush in one long task.
           scheduleFrameUpdate(updateKey, () => (counts.value = next))
         }),
@@ -306,7 +311,13 @@ export function useParallelChart<F extends string>(
   idField: F,
   fields: ParallelField<F>[],
   query: Ref<string | undefined>,
-  getMatrix: (fields: F[], query?: string) => Promise<AxiosResponse<MatrixModel>>
+  getMatrix: (fields: F[], query?: string) => Promise<AxiosResponse<MatrixModel>>,
+  // Optional crossfilter drag source. When given, a live drag frame recomputes
+  // the matrix synchronously from the in-memory dataset and feeds the same
+  // reactive ids/data refs. Deliberately reactive (unlike the bar charts): the
+  // per-frame cost is the N-polyline canvas redraw either way, and it leaves the
+  // chart's brush-select machinery untouched. The commit refreshes on pointer-up.
+  matrixSync?: (fields: F[], query?: string) => MatrixModel
 ) {
   const ids = shallowRef<string[]>([])
   const data = shallowRef<(string | number)[][]>([])
@@ -360,6 +371,19 @@ export function useParallelChart<F extends string>(
     },
     { immediate: true }
   )
+
+  if (matrixSync) {
+    const unsubscribe = subscribeCrossfilter({
+      onLive: (liveQuery) => {
+        const model = matrixSync(requestFields.value, liveQuery)
+        ids.value = model.ids
+        data.value = model.data as unknown as (string | number)[][]
+      },
+      onSettle: () => {}
+    })
+    onScopeDispose(unsubscribe)
+  }
+
   const isFiltered = computed(() => query.value?.includes(idField) ?? false)
 
   return { ids, data, requestFields, isFiltered, changeSearches }

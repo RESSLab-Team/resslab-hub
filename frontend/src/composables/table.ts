@@ -8,6 +8,7 @@ import download from 'downloadjs'
 import JSZip from 'jszip'
 import { debounce } from 'lodash'
 import { computed, onScopeDispose, ref, shallowRef, unref, watch, type Ref } from 'vue'
+import { subscribeCrossfilter } from './crossfilterBus'
 import { cancelScheduled, scheduleFrameUpdate } from './frameScheduler'
 
 // Unique per table instance for the frame scheduler's latest-wins coalescing.
@@ -65,7 +66,21 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
     size?: number
   ) => Promise<AxiosResponse<P>>,
   getMainCsv: (ids: string[]) => Promise<AxiosResponse>,
-  notify: (message: string) => void
+  notify: (message: string) => void,
+  // Optional crossfilter drag source (the sync half of useDataset). When given,
+  // a brush drag streams the current page live from the in-memory dataset into
+  // `liveItems`/`liveCount` — display-only overlays for SimpleTable; pagination
+  // keeps riding the committed totalFilteredCount. Both clear on pointer-up.
+  live?: {
+    countRowsSync: (query?: string) => number
+    pageSync: (
+      query?: string,
+      sortBy?: string[],
+      sortDesc?: boolean[],
+      page?: number,
+      size?: number
+    ) => M[]
+  }
 ) {
   const loading = ref<boolean>(false)
   // shallowRef: rows are replaced wholesale each page and each ConnectionModel
@@ -181,6 +196,31 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
 
   watch(() => [query.value, options], debouncedGetPage, { immediate: true, deep: true })
 
+  // Live crossfilter rows: the light-DOM virtualized body re-renders its visible
+  // rows in a few ms, so the table can track a drag frame-for-frame like the charts.
+  const liveCount = ref<number>()
+  const liveItems = shallowRef<M[]>()
+  if (live) {
+    const unsubscribe = subscribeCrossfilter({
+      onLive: (liveQuery) => {
+        liveCount.value = live.countRowsSync(liveQuery)
+        const opts = options.value
+        liveItems.value = live.pageSync(
+          liveQuery,
+          opts?.sortBy?.map((sort) => sort.key),
+          opts?.sortBy?.map((sort) => sort.order === 'desc'),
+          opts?.page,
+          opts?.itemsPerPage === -1 ? 1000 : opts?.itemsPerPage
+        )
+      },
+      onSettle: () => {
+        liveCount.value = undefined
+        liveItems.value = undefined
+      }
+    })
+    onScopeDispose(unsubscribe)
+  }
+
   return {
     items,
     loading,
@@ -190,6 +230,8 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
     search,
     searches,
     clickRow,
-    downloadFiles
+    downloadFiles,
+    liveCount,
+    liveItems
   }
 }

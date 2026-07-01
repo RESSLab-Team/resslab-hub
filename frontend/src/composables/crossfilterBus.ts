@@ -23,6 +23,20 @@
  * called back directly, off the scheduler. Live publishes are coalesced to one
  * per animation frame (latest-wins); settle flushes any pending live frame first
  * so the last drag position is never dropped.
+ *
+ * LIFECYCLE (one drag gesture)
+ * ----------------------------
+ *   idle ──pointer-down──▶ dragging ──pointer-up──▶ settled (= idle)
+ *
+ *   1. Pointer-down on a brush sets `isBrushDragging` (interactionState.ts).
+ *   2. Each drag frame the brush's host chart calls `publishLive(query)`;
+ *      subscribers get `onLive` once per rAF and repaint imperatively.
+ *   3. Pointer-up (DistributionBrush emits `dragend`): the host chart FIRST
+ *      commits the final range through Vue (`change:searches`) and THEN calls
+ *      `publishSettle()`. That order matters — the commit's reactive recompute
+ *      flushes after settle (microtask), so it lands with charts unfrozen and
+ *      becomes the reconciling render. `dragend` fires even for a no-op click,
+ *      so subscribers can never get stuck frozen.
  */
 
 export interface CrossfilterListener {
