@@ -125,9 +125,7 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         >
           <ebf-double-chart
             :color="peach"
-            :fields="yearSectionFields"
-            :query="query"
-            type="line"
+            :fields="yearSectionFields"            type="line"
             @change:searches="changeSearches"
           />
         </chart-cell>
@@ -140,9 +138,7 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         >
           <ebf-double-chart
             :color="mauve"
-            :fields="yearLinkFields"
-            :query="query"
-            type="line"
+            :fields="yearLinkFields"            type="line"
             @change:searches="changeSearches"
           />
         </chart-cell>
@@ -159,9 +155,7 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         >
           <ebf-single-chart
             :color="cobalt"
-            :field="EccentricBracedFrameField.LPTyp"
-            :query="query"
-            :show-reset="false"
+            :field="EccentricBracedFrameField.LPTyp"            :show-reset="false"
             flat
             @change:searches="changeSearches"
           />
@@ -176,9 +170,7 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         >
           <ebf-single-chart
             :color="mint"
-            :field="EccentricBracedFrameField.LConfi"
-            :query="query"
-            :show-reset="false"
+            :field="EccentricBracedFrameField.LConfi"            :show-reset="false"
             flat
             @change:searches="changeSearches"
           />
@@ -193,9 +185,7 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         >
           <ebf-single-chart
             :color="sky"
-            :field="EccentricBracedFrameField.SgFlgLink"
-            :query="query"
-            :show-reset="false"
+            :field="EccentricBracedFrameField.SgFlgLink"            :show-reset="false"
             flat
             @change:searches="changeSearches"
           />
@@ -206,9 +196,7 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell>
           <ebf-parallel-chart
             :color="peach"
-            :fields="parallelFields"
-            :query="query"
-            @change:searches="changeSearches"
+            :fields="parallelFields"            @change:searches="changeSearches"
           />
         </chart-cell>
       </div>

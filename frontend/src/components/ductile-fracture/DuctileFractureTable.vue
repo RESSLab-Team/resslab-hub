@@ -2,10 +2,13 @@
 import { DuctileFractureField, type DuctileFractureModel } from '@/backend'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { subscribeCrossfilter } from '@/composables/crossfilterBus'
+import { useDataset } from '@/composables/useDataset'
+import { DUCTILE_FRACTURE_KEY, fetchDuctileFractures } from '@/components/ductile-fracture/data'
 import { ductileFractureApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { displayLoading } from '@/utils/ductile_fracture'
-import { toRef } from 'vue'
+import { onUnmounted, ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n({ useScope: 'global' })
@@ -42,6 +45,10 @@ interface Emits extends TableEmits<DuctileFractureModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<DuctileFractureModel>(
+  DUCTILE_FRACTURE_KEY,
+  fetchDuctileFractures
+)
 const {
   clickRow,
   downloadFiles,
@@ -95,12 +102,38 @@ const {
       getCsv: (id) => ductileFractureApi.getDuctileFracturesTriaxSimulationCsv(id)
     }
   ],
-  () => ductileFractureApi.getDuctileFracturesCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    ductileFractureApi.getDuctileFractures(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => ductileFractureApi.getDuctileFracturesCsv(ids),
   (message) => notificationStore.notify(message)
 )
+
+// Live crossfilter: during a brush drag, stream the table's current page live from
+// the in-memory dataset — the light-DOM virtualized body re-renders its visible
+// rows in a few ms, so rows can track the drag frame-for-frame like the charts.
+// `liveItems` replaces the body rows and `liveCount` drives the footer text; both
+// are display-only (pagination still rides the committed totalFilteredCount, so no
+// page-clamp refetch). Both clear on pointer-up, when the reactive commit settles.
+const liveCount = ref<number>()
+const liveItems = ref<DuctileFractureModel[]>()
+const unsubscribeCrossfilter = subscribeCrossfilter({
+  onLive: (liveQuery) => {
+    liveCount.value = countRowsSync(liveQuery)
+    const opts = options.value
+    liveItems.value = pageSync(
+      liveQuery,
+      opts?.sortBy?.map((sort) => sort.key),
+      opts?.sortBy?.map((sort) => sort.order === 'desc'),
+      opts?.page,
+      opts?.itemsPerPage === -1 ? 1000 : opts?.itemsPerPage
+    )
+  },
+  onSettle: () => {
+    liveCount.value = undefined
+    liveItems.value = undefined
+  }
+})
+onUnmounted(unsubscribeCrossfilter)
 </script>
 
 <template>
@@ -110,7 +143,10 @@ const {
     v-model:searches="searches"
     :columns="columns"
     hide-toolbar
+    :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
+    instant
     :loading="loading"
     prefix="ductile_fracture."
     :query="query"

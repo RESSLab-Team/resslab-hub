@@ -146,7 +146,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <ductile-fracture-single-chart
             :color="mauve"
             :field="DuctileFractureField.SpecimenType"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -162,7 +161,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <ductile-fracture-double-chart
             :color="apricot"
             :fields="dateSpecimenFields"
-            :query="query"
             type="bar"
             @change:searches="changeSearches"
           />
@@ -178,7 +176,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <ductile-fracture-single-chart
             :color="periwinkle"
             :field="DuctileFractureField.SteelType"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -197,7 +194,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <ductile-fracture-double-chart
             :color="mint"
             :fields="triaxSpecimenFields"
-            :query="query"
             type="bar"
             @change:searches="changeSearches"
           />
@@ -212,7 +208,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <ductile-fracture-double-chart
             :color="sky"
             :fields="lodeSpecimenFields"
-            :query="query"
             type="bar"
             @change:searches="changeSearches"
           />
@@ -224,7 +219,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <ductile-fracture-parallel-chart
             :color="mauve"
             :fields="parallelFields"
-            :query="query"
             @change:searches="changeSearches"
           />
         </chart-cell>

@@ -131,12 +131,15 @@ const MIN_LOADING_MS = 1000
 const showLoading = ref<boolean>(false)
 let loadingShownAt = 0
 let hideLoadingTimer: ReturnType<typeof setTimeout> | undefined
+// Instant (in-browser) tables fetch the whole dataset once, then filter locally.
+// The loading bar should still mark that initial fetch, but the synchronous filter
+// re-slices afterwards must not flash it (they'd trip the 1s minimum on every
+// keystroke). So suppress the bar only AFTER the first load has completed.
+let initialLoadDone = false
 watch(
   () => props.loading,
-  (isLoading) => {
-    // Local filtering resolves synchronously; the loading bar would just flash
-    // its 1s minimum on every keystroke, so suppress it entirely.
-    if (props.instant) return
+  (isLoading, wasLoading) => {
+    if (props.instant && initialLoadDone) return
     if (isLoading) {
       if (hideLoadingTimer) {
         clearTimeout(hideLoadingTimer)
@@ -146,15 +149,20 @@ watch(
         showLoading.value = true
         loadingShownAt = Date.now()
       }
-    } else if (showLoading.value) {
-      const remaining = MIN_LOADING_MS - (Date.now() - loadingShownAt)
-      if (remaining <= 0) {
-        showLoading.value = false
-      } else {
-        hideLoadingTimer = setTimeout(() => {
+    } else {
+      // A load just finished (true → false): the initial fetch is done, so
+      // instant tables suppress the bar from here on.
+      if (wasLoading) initialLoadDone = true
+      if (showLoading.value) {
+        const remaining = MIN_LOADING_MS - (Date.now() - loadingShownAt)
+        if (remaining <= 0) {
           showLoading.value = false
-          hideLoadingTimer = undefined
-        }, remaining)
+        } else {
+          hideLoadingTimer = setTimeout(() => {
+            showLoading.value = false
+            hideLoadingTimer = undefined
+          }, remaining)
+        }
       }
     }
   },

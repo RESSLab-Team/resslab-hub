@@ -127,7 +127,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <hss-single-chart
             :color="yellowgreen"
             :field="HSSColumnField.LoadingProtocol"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -143,7 +142,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <hss-double-chart
             :color="periwinkle"
             :fields="failureModeFields"
-            :query="query"
             type="line"
             @change:searches="changeSearches"
           />
@@ -159,7 +157,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <hss-single-chart
             :color="plum"
             :field="HSSColumnField.SteelType"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -172,7 +169,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <hss-parallel-chart
             :color="sky"
             :fields="parallelFields"
-            :query="query"
             @change:searches="changeSearches"
           />
         </chart-cell>

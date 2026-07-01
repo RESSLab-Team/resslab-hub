@@ -1,27 +1,42 @@
 <script setup lang="ts">
-import type { HSSColumnField } from '@/backend'
+import type { HSSColumnField, HSSColumnModel } from '@/backend'
 import SingleChart from '@/components/commons/charts/SingleChart.vue'
 import { singleChartProps, useSingleChart, type ChartEmits } from '@/composables/chart'
-import { hssApi } from '@/plugins/axios'
-import { toRef } from 'vue'
+import { dashboardQueryKey } from '@/composables/dashboard'
+import { useDataset } from '@/composables/useDataset'
+import { HSS_KEY, fetchHsss } from '@/components/hss/data'
+import { inject, toRef } from 'vue'
 
 const props = defineProps(singleChartProps<HSSColumnField>())
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
+// query via inject (not prop) so a filter change doesn't re-render this chart —
+// it updates only when its own counts change. See dashboardQueryKey.
+const query = inject(dashboardQueryKey, toRef(props, 'query'))
+const { getCounts, countsSync } = useDataset<HSSColumnModel>(HSS_KEY, fetchHsss)
 const { counts, changeSearches } = useSingleChart<HSSColumnField>(
   emit,
   props.field,
-  toRef(props, 'query'),
-  (fields, query) => hssApi.getHssColumnsCounts(fields, query)
+  query,
+  getCounts
 )
+
+// Synchronous counts for the crossfilter drag path — mapped/sorted to match the
+// composable's reactive `counts` so live frames are pixel-identical.
+const getLiveCounts = (liveQuery?: string) =>
+  countsSync([props.field], liveQuery)
+    .map((count) => ({ name: count.names[0], value: count.value }))
+    .sort((a, b) => (a.name < b.name ? -1 : 1))
 </script>
 
 <template>
   <single-chart
+    :animate="false"
     :color="color"
     :counts="counts"
+    :live-counts="getLiveCounts"
     :flat="flat"
     :field="field"
     :show-reset="showReset"

@@ -14,8 +14,8 @@
  * Loading is deduped per key: every chart on a dashboard triggers the same
  * in-flight fetch, so a dashboard visit costs a single network request.
  */
-import type { CountModel, MatrixModel, RangeModel } from '@/backend'
-import { counts, matrix, range, totalCount } from '@/utils/aggregate'
+import type { CountModel, DateRangeModel, MatrixModel, RangeModel } from '@/backend'
+import { counts, dateRange, matrix, range, totalCount } from '@/utils/aggregate'
 import type { Page } from '@/utils/backend'
 import { filterRows, inferFieldTypes, type FieldTypes, type Row } from '@/utils/queryEngine'
 import type { AxiosResponse } from 'axios'
@@ -109,6 +109,12 @@ export function useDataset<M extends { id: string }>(
     return asResponse(range(entry.rows, field))
   }
 
+  async function getDateRange(field: string): Promise<AxiosResponse<DateRangeModel>> {
+    const entry = load()
+    await entry.ready
+    return asResponse(dateRange(entry.rows, field))
+  }
+
   async function getMatrix(fields: string[], query?: string): Promise<AxiosResponse<MatrixModel>> {
     const entry = load()
     await entry.ready
@@ -192,6 +198,7 @@ export function useDataset<M extends { id: string }>(
     countsSync,
     getTotal,
     getRange,
+    getDateRange,
     getMatrix,
     matrixSync,
     countRowsSync,

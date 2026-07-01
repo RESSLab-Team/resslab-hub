@@ -129,7 +129,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <tensile-coupon-single-chart
             :color="sky"
             :field="TensileCouponField.SteelGrade"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -145,7 +144,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <tensile-coupon-double-chart
             :color="mint"
             :fields="profileYearFields"
-            :query="query"
             type="line"
             @change:searches="changeSearches"
           />
@@ -160,7 +158,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <tensile-coupon-double-chart
             :color="mauve"
             :fields="profileThicknessFields"
-            :query="query"
             type="bar"
             @change:searches="changeSearches"
           />
@@ -172,7 +169,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <tensile-coupon-parallel-chart
             :color="mint"
             :fields="parallelFields"
-            :query="query"
             @change:searches="changeSearches"
           />
         </chart-cell>

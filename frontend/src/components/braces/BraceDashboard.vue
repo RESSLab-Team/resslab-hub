@@ -104,7 +104,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <brace-single-chart
             :color="apricot"
             :field="BraceField.LoadingProtocol"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -120,7 +119,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <brace-double-chart
             :color="sky"
             :fields="boundaryConditionFields"
-            :query="query"
             type="line"
             @change:searches="changeSearches"
           />
@@ -136,7 +134,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <brace-single-chart
             :color="mauve"
             :field="BraceField.Steel"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -149,7 +146,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <brace-parallel-chart
             :color="apricot"
             :fields="parallelFields"
-            :query="query"
             @change:searches="changeSearches"
           />
         </chart-cell>
