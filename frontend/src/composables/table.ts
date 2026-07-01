@@ -7,7 +7,11 @@ import type { AxiosResponse } from 'axios'
 import download from 'downloadjs'
 import JSZip from 'jszip'
 import { debounce } from 'lodash'
-import { computed, ref, unref, watch, type Ref } from 'vue'
+import { computed, ref, shallowRef, unref, watch, type Ref } from 'vue'
+import { scheduleFrameUpdate } from './frameScheduler'
+
+// Unique per table instance for the frame scheduler's latest-wins coalescing.
+let tableInstanceId = 0
 
 export enum DownloadType {
   Main = 'main',
@@ -64,7 +68,12 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
   notify: (message: string) => void
 ) {
   const loading = ref<boolean>(false)
-  const items = ref<M[]>([]) as Ref<M[]>
+  // shallowRef: rows are replaced wholesale each page and each ConnectionModel
+  // carries ~100 fields — deep reactivity would proxy-wrap every field, which
+  // Vuetify's transformItems then pays a getter tax on for every cell. The rows
+  // are read-only here, so a shallow ref keeps them as plain objects.
+  const items = shallowRef<M[]>([])
+  const updateKey = `table-${tableInstanceId++}`
   const options = ref<DataOptions>()
   const totalCount = ref<number>()
   const totalFilteredCount = ref<number>()
@@ -147,9 +156,13 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
         )
           .then((response) => response.data)
           .then((page) => {
-            items.value = page.items
-            totalFilteredCount.value = page.total || 0
-            emit('update:page', page)
+            // Stagger the write so the table doesn't share a flush with the
+            // charts (all recompute on the same filter change).
+            scheduleFrameUpdate(updateKey, () => {
+              items.value = page.items
+              totalFilteredCount.value = page.total || 0
+              emit('update:page', page)
+            })
           })
           .finally(() => {
             loading.value = false

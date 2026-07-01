@@ -42,6 +42,12 @@ const props = withDefaults(
     hideFilterOnly?: boolean
     /** Hide the title/search toolbar (when the dashboard provides its own toolbar) */
     hideToolbar?: boolean
+    /** In-browser filtering is instant — skip the loading bar that reads as a fetch. */
+    instant?: boolean
+    /** Provisional filtered count shown live during a crossfilter drag. Display-only:
+     *  it feeds the footer text but NOT pagination or the row list, so the heavy
+     *  data rows don't re-render mid-drag. Cleared (undefined) when not dragging. */
+    liveCount?: number
   }>(),
   {
     title: undefined,
@@ -55,7 +61,9 @@ const props = withDefaults(
     searches: () => ({}),
     search: '',
     hideFilterOnly: false,
-    hideToolbar: false
+    hideToolbar: false,
+    instant: false,
+    liveCount: undefined
   }
 )
 const emit = defineEmits<{
@@ -114,6 +122,9 @@ let hideLoadingTimer: ReturnType<typeof setTimeout> | undefined
 watch(
   () => props.loading,
   (isLoading) => {
+    // Local filtering resolves synchronously; the loading bar would just flash
+    // its 1s minimum on every keystroke, so suppress it entirely.
+    if (props.instant) return
     if (isLoading) {
       if (hideLoadingTimer) {
         clearTimeout(hideLoadingTimer)
@@ -194,6 +205,12 @@ const pageFrom = computed<number>(() =>
 )
 const pageTo = computed<number>(() =>
   Math.min(page.value * itemsPerPage.value, props.totalFilteredCount)
+)
+// Footer "showing X to Y of Z" values, overridden by the live drag count when set
+// (display-only — pagination above still uses the committed totalFilteredCount).
+const displayTotal = computed<number>(() => props.liveCount ?? props.totalFilteredCount)
+const displayTo = computed<number>(() =>
+  props.liveCount != null ? Math.min(pageTo.value, props.liveCount) : pageTo.value
 )
 // Design-handoff pager: 1 … around current … last, with ellipsis gaps
 const pageItems = computed<(number | '…')[]>(() => {
@@ -312,7 +329,7 @@ function downloadZip(): void {
         :headers="tableHeaders"
         :items="items"
         :items-length="totalFilteredCount"
-        :loading="loading"
+        :loading="instant ? false : loading"
         must-sort
         :search="search"
         :item-selectable="isItemSelectable"
@@ -490,10 +507,10 @@ function downloadZip(): void {
                   <strong>{{ pageFrom }}</strong>
                 </template>
                 <template #to>
-                  <strong>{{ pageTo }}</strong>
+                  <strong>{{ displayTo }}</strong>
                 </template>
                 <template #total>
-                  <strong>{{ totalFilteredCount }}</strong>
+                  <strong>{{ displayTotal }}</strong>
                 </template>
               </i18n-t>
               <select

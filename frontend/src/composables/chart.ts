@@ -4,8 +4,13 @@ import { debounceAPIParameters, debounceAPITime } from '@/utils/common'
 import type { Color } from '@/utils/vuetify'
 import type { AxiosResponse } from 'axios'
 import { chain, debounce } from 'lodash'
-import { computed, ref, watch, type Ref } from 'vue'
+import { computed, ref, shallowRef, watch, type Ref } from 'vue'
 import { queryFieldSeparator, queryKeyValueSeparator } from './dashboard'
+import { scheduleFrameUpdate } from './frameScheduler'
+
+// Unique per chart instance, so the frame scheduler can coalesce repeated
+// updates from the same chart (latest-wins) without conflating separate charts.
+let chartInstanceId = 0
 const chartProps = {
   color: Object as () => Color,
   query: String
@@ -59,7 +64,11 @@ export function useSingleChart<F>(
   query: Ref<string | undefined>,
   getCounts: (fields?: F[], query?: string) => Promise<AxiosResponse<CountModel[]>>
 ) {
-  const counts = ref<Count[]>([])
+  // shallowRef throughout: these arrays are always replaced wholesale (never
+  // mutated in place), so deep reactivity would only add proxy overhead that
+  // the chart option computeds pay on every filter tick.
+  const counts = shallowRef<Count[]>([])
+  const updateKey = `chart-${chartInstanceId++}`
 
   function changeSearches(key: string, value?: Value) {
     emit('change:searches', key, value)
@@ -70,7 +79,7 @@ export function useSingleChart<F>(
       getCounts([field], query.value)
         .then((response) => response.data)
         .then((values) => {
-          counts.value = values
+          const next = values
             .map((count) => {
               return {
                 name: count.names[0],
@@ -78,6 +87,8 @@ export function useSingleChart<F>(
               }
             })
             .sort((c1, c2) => (c1.name < c2.name ? -1 : 1))
+          // Stagger the write so N charts don't all flush in one long task.
+          scheduleFrameUpdate(updateKey, () => (counts.value = next))
         }),
     debounceAPITime,
     debounceAPIParameters
@@ -127,10 +138,11 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
 ) {
   const requestFields = getRequestFields(fields)
 
-  const counts = ref<CountModel[]>([])
+  const counts = shallowRef<CountModel[]>([])
+  const updateKey = `chart-${chartInstanceId++}`
   // Full unfiltered counts for the distribution brush background — must stay
   // constant regardless of the active filter so the shape never shrinks.
-  const allCounts = ref<CountModel[]>([])
+  const allCounts = shallowRef<CountModel[]>([])
   const dateMin = ref<string>()
   const dateMax = ref<string>()
   const dateRange = ref<[string, string]>()
@@ -165,7 +177,7 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
       getCounts(requestFields, query.value)
         .then((response) => response.data)
         .then((values) => {
-          counts.value = values
+          scheduleFrameUpdate(updateKey, () => (counts.value = values))
         }),
     debounceAPITime,
     debounceAPIParameters
@@ -233,7 +245,7 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
 function getField<F extends string>(f: Record<string, F>, field: string): F | undefined {
   return Object.values<F>(f).find((numberField) => field === numberField.toString())
 }
-function getRequestFields<F>(fields: DoubleFields<F>): [F, F] {
+export function getRequestFields<F>(fields: DoubleFields<F>): [F, F] {
   const secondField: DoubleField<F> = fields[1]
   if (typeof secondField === 'object') {
     return [fields[0], (secondField as MappingField<F>).id]
@@ -283,8 +295,9 @@ export function useParallelChart<F extends string>(
   query: Ref<string | undefined>,
   getMatrix: (fields: F[], query?: string) => Promise<AxiosResponse<MatrixModel>>
 ) {
-  const ids = ref<string[]>([])
-  const data = ref<(string | number)[][]>([])
+  const ids = shallowRef<string[]>([])
+  const data = shallowRef<(string | number)[][]>([])
+  const updateKey = `chart-${chartInstanceId++}`
 
   const requestFields = computed<F[]>(() =>
     chain(fields)
@@ -310,8 +323,12 @@ export function useParallelChart<F extends string>(
       getMatrix(requestFields.value, query.value)
         .then((response) => response.data)
         .then((matrixModel) => {
-          ids.value = matrixModel.ids
-          data.value = matrixModel.data as (string | number)[][]
+          const nextIds = matrixModel.ids
+          const nextData = matrixModel.data as (string | number)[][]
+          scheduleFrameUpdate(updateKey, () => {
+            ids.value = nextIds
+            data.value = nextData
+          })
         }),
     debounceAPITime,
     debounceAPIParameters

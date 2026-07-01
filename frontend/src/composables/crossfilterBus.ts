@@ -1,0 +1,75 @@
+/**
+ * Crossfilter bus — a plain, **non-reactive** pub/sub that drives the charts
+ * during a brush drag *without touching Vue's reactivity*.
+ *
+ * THE PROBLEM
+ * -----------
+ * A brush drag cross-filters the whole dashboard. Routed through Vue (mutate the
+ * `query` ref → recompute → re-render every chart *and the table*), every
+ * pointermove collapses into a `flushJobs` long task. The table (≈100 fields per
+ * row) is the heaviest thing in it, yet nobody is looking at the table mid-drag.
+ *
+ * THE MODEL (what the user asked for)
+ * -----------------------------------
+ *   · DURING the drag  → publish the live query here. Charts recompute their own
+ *     aggregates from the in-memory dataset and repaint imperatively. Vue's
+ *     `query` ref is NOT touched, so the table / URL sync / everything reactive
+ *     stays put. Zero `flushJobs`.
+ *   · ON pointer-up     → the dragged chart commits once through the normal Vue
+ *     path (`change:searches` → `query`), and `publishSettle()` unfreezes the
+ *     charts. Now reactivity updates the table and the rest — exactly once.
+ *
+ * This module deliberately uses no `ref`/`computed`/`watch`: subscribers are
+ * called back directly, off the scheduler. Live publishes are coalesced to one
+ * per animation frame (latest-wins); settle flushes any pending live frame first
+ * so the last drag position is never dropped.
+ */
+
+export interface CrossfilterListener {
+  /** A live drag frame: the full query string as it stands mid-drag. */
+  onLive: (query: string | undefined) => void
+  /** The drag ended: stop freezing, fall back to the committed/reactive state. */
+  onSettle: () => void
+}
+
+const listeners = new Set<CrossfilterListener>()
+
+let frameHandle = 0
+let pendingQuery: string | undefined
+let hasPending = false
+
+function flushLive(): void {
+  frameHandle = 0
+  if (!hasPending) return
+  hasPending = false
+  const query = pendingQuery
+  for (const listener of listeners) listener.onLive(query)
+}
+
+/** Subscribe a chart to live/settle frames. Returns an unsubscribe fn. */
+export function subscribeCrossfilter(listener: CrossfilterListener): () => void {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+/** Publish the live query for the current drag frame (coalesced per rAF). */
+export function publishLive(query: string | undefined): void {
+  pendingQuery = query
+  hasPending = true
+  if (frameHandle) return
+  if (typeof requestAnimationFrame === 'undefined') {
+    // SSR / test fallback: fire synchronously.
+    flushLive()
+    return
+  }
+  frameHandle = requestAnimationFrame(flushLive)
+}
+
+/** End the drag: deliver any pending live frame, then notify settle. */
+export function publishSettle(): void {
+  if (frameHandle) {
+    cancelAnimationFrame(frameHandle)
+    flushLive()
+  }
+  for (const listener of listeners) listener.onSettle()
+}

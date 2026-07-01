@@ -16,6 +16,7 @@
  * dragged back out. The flanking number inputs keep precise values typeable.
  */
 import { initOptions } from '@/components/commons/charts/utils'
+import { isBrushDragging } from '@/composables/interactionState'
 import type { EChartsOption } from 'echarts'
 import { BarChart, LineChart } from 'echarts/charts'
 import { GridComponent, MarkAreaComponent, MarkLineComponent } from 'echarts/components'
@@ -64,6 +65,9 @@ const props = withDefaults(
 )
 const emit = defineEmits<{
   (e: 'update:modelValue', value: [number, number]): void
+  // Fires once when a drag gesture ends (pointer up / cancel). The parent uses it
+  // to commit the crossfilter drag reactively and settle the live overlay.
+  (e: 'dragend'): void
 }>()
 
 // Track the chart's pixel width so the bracket feet can be drawn at a constant
@@ -285,8 +289,9 @@ const option = computed<EChartsOption>(() => {
       type: 'value',
       min: axisLo.value,
       max: axisHi.value,
-      show: false,
-      boundaryGap: !isLine
+      show: false
+      // No boundaryGap: it's invalid (boolean) on a value axis and moot here
+      // anyway since min/max pin the range explicitly.
     },
     yAxis: { type: 'value', show: false, min: 0, max: maxCount },
     series: visibleSeries as EChartsOption['series']
@@ -306,12 +311,9 @@ let dragStartRange: [number, number] = [0, 0]
 let dragRect: DOMRect | null = null
 let dragRaf = 0
 let pendingX = 0
-// Throttle for the parent emit during a drag: the brush's own brackets follow the
-// pointer every frame, but the expensive parent update (main-chart re-render +
-// refilter) fires at most every LIVE_EMIT_MS, so the chart follows a few times a
-// second instead of every frame. didLiveEmit records whether this gesture pushed.
-const LIVE_EMIT_MS = 150
-let lastLiveEmit = 0
+// Whether this gesture pushed any live value to the parent (used on pointer-up to
+// decide whether a final commit is needed). No time-throttle any more: the parent
+// update is a cheap imperative repaint (crossfilter bus), so we publish every frame.
 let didLiveEmit = false
 
 // Set the window locally *without* emitting — the brackets track the pointer
@@ -384,12 +386,10 @@ function scheduleDrag(clientX: number): void {
     dragRaf = 0
     if (!dragRect) return
     updateDrag(pendingX, dragRect)
-    const now = performance.now()
-    if (now - lastLiveEmit >= LIVE_EMIT_MS) {
-      lastLiveEmit = now
-      didLiveEmit = true
-      emitRange([localRange.value[0], localRange.value[1]])
-    }
+    // Publish every frame — emitRange dedups when the snapped window is unchanged,
+    // so holding the pointer still costs nothing.
+    didLiveEmit = true
+    emitRange([localRange.value[0], localRange.value[1]])
   })
 }
 
@@ -397,10 +397,10 @@ function onPointerDown(event: PointerEvent): void {
   const el = event.currentTarget as HTMLElement
   dragRect = el.getBoundingClientRect()
   dragMode.value = zoneAt(event.clientX, dragRect)
+  if (dragMode.value) isBrushDragging.value = true
   dragStartX = event.clientX
   dragStartRange = [...range.value] as [number, number]
   didLiveEmit = false
-  lastLiveEmit = performance.now()
   el.setPointerCapture(event.pointerId)
   event.preventDefault()
   // A single click acts immediately: the chosen handle jumps to the click point
@@ -426,6 +426,7 @@ function onPointerUp(event: PointerEvent): void {
   }
   dragMode.value = null
   dragRect = null
+  isBrushDragging.value = false
   ;(event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId)
   // Commit the final window (emitRange dedups a value already pushed mid-drag).
   // Emit when it changed from the drag start, or to correct the parent if we
@@ -433,6 +434,9 @@ function onPointerUp(event: PointerEvent): void {
   // middle zone (no change, no live emit) stays silent.
   const cur: [number, number] = [localRange.value[0], localRange.value[1]]
   if (cur[0] !== dragStartRange[0] || cur[1] !== dragStartRange[1] || didLiveEmit) emitRange(cur)
+  // Always signal drag end (even for a no-op click), so a crossfilter parent can
+  // commit + unfreeze and the charts never get stuck in the frozen live state.
+  emit('dragend')
 }
 
 const overlayCursor = computed(() =>

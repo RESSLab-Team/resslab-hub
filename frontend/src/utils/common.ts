@@ -44,7 +44,12 @@ export interface HSSSection {
 }
 
 export const debounceAPITime = 80
-export const debounceAPIParameters = { leading: false, trailing: true }
+// Fire on the LEADING edge: the first filter action of a burst runs immediately
+// (instant feel) instead of waiting out the window, while a rapid burst still
+// coalesces to leading + one trailing. For the client-side dashboards the compute
+// is local, so this is effectively zero-latency; for the server ones it just means
+// the first request goes out at once instead of after `debounceAPITime`.
+export const debounceAPIParameters = { leading: true, trailing: true }
 
 /**
  * Share the current view URL (filters round-trip through the router query):

@@ -3,10 +3,13 @@ import { ConnectionField, type ConnectionModel } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { subscribeCrossfilter } from '@/composables/crossfilterBus'
+import { useDataset } from '@/composables/useDataset'
+import { CONNECTION_KEY, fetchConnections } from '@/components/connections/data'
 import { connectionsApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { publicPath } from '@/utils/common'
-import { toRef } from 'vue'
+import { onUnmounted, ref, toRef } from 'vue'
 
 const columns: Column[] = [
   {
@@ -74,6 +77,10 @@ interface Emits extends TableEmits<ConnectionModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync } = useDataset<ConnectionModel>(
+  CONNECTION_KEY,
+  fetchConnections
+)
 const {
   clickRow,
   downloadFiles,
@@ -117,12 +124,27 @@ const {
       getCsv: (id) => connectionsApi.getConnectionsPanelZonesCsv(id)
     }
   ],
-  () => connectionsApi.getConnectionsCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    connectionsApi.getConnections(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => connectionsApi.getConnectionsCsv(ids),
   (message) => notificationStore.notify(message)
 )
+
+// Live crossfilter: surface ONLY a provisional filtered count during a drag, via a
+// display-only `liveCount` that feeds the footer text but NOT pagination/items —
+// re-rendering the data rows per frame is a ~40-70ms Vuetify patch (a long task),
+// and touching the real count could make the server-table clamp the page and
+// refetch mid-drag. The rows + real count settle on pointer-up (reactive commit).
+const liveCount = ref<number>()
+const unsubscribeCrossfilter = subscribeCrossfilter({
+  onLive: (liveQuery) => {
+    liveCount.value = countRowsSync(liveQuery)
+  },
+  onSettle: () => {
+    liveCount.value = undefined
+  }
+})
+onUnmounted(unsubscribeCrossfilter)
 
 function getImageSource(item: string): string {
   return publicPath + 'img/connection-type/' + item.toLowerCase() + '.svg'
@@ -137,6 +159,8 @@ function getImageSource(item: string): string {
     :columns="columns"
     hide-filter-only
     hide-toolbar
+    instant
+    :live-count="liveCount"
     :items="items"
     :loading="loading"
     prefix="connection."

@@ -7,11 +7,18 @@ import {
   type Value
 } from '@/utils/common'
 import { debounce } from 'lodash'
-import { computed, ref, triggerRef, unref, watch } from 'vue'
+import { computed, provide, ref, triggerRef, unref, watch, type InjectionKey, type Ref } from 'vue'
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router'
 
 export const queryFieldSeparator = ';'
 export const queryKeyValueSeparator = ':'
+
+// Charts read the active filter query through provide/inject rather than a prop.
+// A prop change re-renders every chart on each filter tick (their heaviest work
+// is i18n + option rebuild); injecting keeps `query` off their prop list, so the
+// dashboard's re-render skips the charts and they update only via their own
+// (staggered) counts. See useDashboard's provide below.
+export const dashboardQueryKey: InjectionKey<Ref<string | undefined>> = Symbol('dashboardQuery')
 
 export function useDashboard<M>(
   route: RouteLocationNormalizedLoaded,
@@ -56,6 +63,9 @@ export function useDashboard<M>(
     }
     return queries.join(queryFieldSeparator)
   })
+
+  // Expose query to descendant charts without prop-drilling (see dashboardQueryKey).
+  provide(dashboardQueryKey, query)
 
   // Mirror the filter state into the URL, but debounced and via replace (not
   // push): a slider drag mutates searches on every tick, which previously fired
