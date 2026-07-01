@@ -132,6 +132,25 @@ export function useDataset<M extends { id: string }>(
     return filterRows(entry.rows, query, entry.fieldTypes).length
   }
 
+  // Shared filter → sort → slice for a page request. Returns the page items plus
+  // the pre-slice filtered total (for the pager).
+  function slicePage(
+    entry: DatasetEntry,
+    query?: string,
+    sortBy?: string[],
+    sortDesc?: boolean[],
+    page?: number,
+    size?: number
+  ): { items: M[]; total: number; pageNumber: number; pageSize: number } {
+    const filtered = filterRows(entry.rows, query, entry.fieldTypes)
+    const sorted = sortRows(filtered, sortBy, sortDesc)
+    const pageNumber = page ?? 1
+    const pageSize = size && size > 0 ? size : sorted.length
+    const start = (pageNumber - 1) * pageSize
+    const items = sorted.slice(start, start + pageSize) as unknown as M[]
+    return { items, total: filtered.length, pageNumber, pageSize }
+  }
+
   async function getPage(
     query?: string,
     sortBy?: string[],
@@ -141,13 +160,31 @@ export function useDataset<M extends { id: string }>(
   ): Promise<AxiosResponse<Page<M>>> {
     const entry = load()
     await entry.ready
-    const filtered = filterRows(entry.rows, query, entry.fieldTypes)
-    const sorted = sortRows(filtered, sortBy, sortDesc)
-    const pageNumber = page ?? 1
-    const pageSize = size && size > 0 ? size : sorted.length
-    const start = (pageNumber - 1) * pageSize
-    const items = sorted.slice(start, start + pageSize) as unknown as M[]
-    return asResponse({ items, total: filtered.length, page: pageNumber, size: pageSize })
+    const { items, total, pageNumber, pageSize } = slicePage(
+      entry,
+      query,
+      sortBy,
+      sortDesc,
+      page,
+      size
+    )
+    return asResponse({ items, total, page: pageNumber, size: pageSize })
+  }
+
+  // Synchronous page slice for the crossfilter drag path (see countsSync). The
+  // light-DOM virtualized table can re-render its visible rows per frame, so a
+  // brush drag repaints the table's current page inline from the in-memory rows.
+  // Returns [] before the dataset has loaded — the reactive path covers that.
+  function pageSync(
+    query?: string,
+    sortBy?: string[],
+    sortDesc?: boolean[],
+    page?: number,
+    size?: number
+  ): M[] {
+    const entry = load()
+    if (!entry.rows.length) return []
+    return slicePage(entry, query, sortBy, sortDesc, page, size).items
   }
 
   return {
@@ -159,6 +196,7 @@ export function useDataset<M extends { id: string }>(
     matrixSync,
     countRowsSync,
     getPage,
+    pageSync,
     ready: () => load().ready
   }
 }

@@ -1,12 +1,8 @@
 import { createVuetify } from 'vuetify'
-import { VDataTableServer } from 'vuetify/components'
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
 import 'vuetify/styles'
 
 export default createVuetify({
-  components: {
-    VDataTableServer
-  },
   icons: {
     defaultSet: 'mdi',
     aliases,

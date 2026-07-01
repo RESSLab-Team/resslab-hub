@@ -77,7 +77,7 @@ interface Emits extends TableEmits<ConnectionModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
-const { getTotal, getPage, countRowsSync } = useDataset<ConnectionModel>(
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<ConnectionModel>(
   CONNECTION_KEY,
   fetchConnections
 )
@@ -130,18 +130,29 @@ const {
   (message) => notificationStore.notify(message)
 )
 
-// Live crossfilter: surface ONLY a provisional filtered count during a drag, via a
-// display-only `liveCount` that feeds the footer text but NOT pagination/items —
-// re-rendering the data rows per frame is a ~40-70ms Vuetify patch (a long task),
-// and touching the real count could make the server-table clamp the page and
-// refetch mid-drag. The rows + real count settle on pointer-up (reactive commit).
+// Live crossfilter: during a brush drag, stream the table's current page live from
+// the in-memory dataset — the light-DOM virtualized body re-renders its visible
+// rows in a few ms, so rows can track the drag frame-for-frame like the charts.
+// `liveItems` replaces the body rows and `liveCount` drives the footer text; both
+// are display-only (pagination still rides the committed totalFilteredCount, so no
+// page-clamp refetch). Both clear on pointer-up, when the reactive commit settles.
 const liveCount = ref<number>()
+const liveItems = ref<ConnectionModel[]>()
 const unsubscribeCrossfilter = subscribeCrossfilter({
   onLive: (liveQuery) => {
     liveCount.value = countRowsSync(liveQuery)
+    const opts = options.value
+    liveItems.value = pageSync(
+      liveQuery,
+      opts?.sortBy?.map((sort) => sort.key),
+      opts?.sortBy?.map((sort) => sort.order === 'desc'),
+      opts?.page,
+      opts?.itemsPerPage === -1 ? 1000 : opts?.itemsPerPage
+    )
   },
   onSettle: () => {
     liveCount.value = undefined
+    liveItems.value = undefined
   }
 })
 onUnmounted(unsubscribeCrossfilter)
@@ -161,6 +172,7 @@ function getImageSource(item: string): string {
     hide-toolbar
     instant
     :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
     :loading="loading"
     prefix="connection."
