@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { CountModel } from '@/backend'
-import { initOptions, updateOptions } from '@/components/commons/charts/utils'
+import { initOptions, measureTextWidth, updateOptions } from '@/components/commons/charts/utils'
 import DateDistributionBrush from '@/components/commons/sliders/DateDistributionBrush.vue'
 import DistributionBrush, {
   type BrushSeries
 } from '@/components/commons/sliders/DistributionBrush.vue'
 import type { DoubleField, DoubleFields } from '@/composables/chart'
+import { SANS } from '@/plugins/echarts-theme'
 import i18n from '@/plugins/i18n'
 import { sum, type Value } from '@/utils/common'
 import { mapDateToNumber } from '@/utils/date'
@@ -24,7 +25,7 @@ import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { chain, clone, range } from 'lodash'
-import { computed, unref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
 import VChart from 'vue-echarts'
 
 use([
@@ -72,6 +73,22 @@ const emit = defineEmits<{
   (e: 'update:dateRange', value?: [string, string]): void
   (e: 'update:numberRange', value?: [number, number]): void
 }>()
+
+// Chart pixel width, tracked so the header (title + inline legend) can be
+// centered as a group — ECharts has no flow layout that would centre a title
+// and legend together, so we measure their widths and place them by hand.
+const rootEl = ref<HTMLElement>()
+const chartWidth = ref(0)
+let resizeObserver: ResizeObserver | undefined
+onMounted(() => {
+  if (!rootEl.value) return
+  resizeObserver = new ResizeObserver((entries) => {
+    const width = Math.round(entries[0].contentRect.width)
+    if (width !== chartWidth.value) chartWidth.value = width
+  })
+  resizeObserver.observe(rootEl.value)
+})
+onBeforeUnmount(() => resizeObserver?.disconnect())
 
 const roundedMin = computed<number>(() => Math.floor(props.numberMin ?? 0))
 const roundedMax = computed<number>(() => Math.ceil(props.numberMax ?? 0))
@@ -242,26 +259,60 @@ const option = computed<EChartsOption>(() => {
     .map((item) => item.key)
     .value()
   const mapSecondNameValue = unref(mapSecondName)
+  // Header row: the variable the colour encodes (e.g. "Number of doubler plates")
+  // followed inline by the legend, centred as a group above the plot. Both use
+  // the chart's own font (Suisse Int'l SANS, 12px, normal weight — matching the
+  // ECharts theme) so measurements line up with what ECharts actually renders.
+  const headerFont = `12px ${SANS}`
+  const titleText = i18n.global.t(props.labelPrefix + secondField.value).toString()
+  const titleWidth = measureTextWidth(titleText, headerFont)
+  const titleGap = 12 // space between the title and the first legend item
+  // Estimate the legend's rendered width so the whole group can be centred.
+  // Per item ECharts lays out: marker (itemWidth) + ~5px marker-to-text gap +
+  // label; consecutive items are separated by itemGap (10).
+  const markerWidth = props.type === 'line' ? 18 : 10
+  const legendWidth = secondKeys.reduce((width, key, index) => {
+    const label = measureTextWidth(mapSecondNameValue(key), headerFont)
+    return width + markerWidth + 5 + label + (index > 0 ? 10 : 0)
+  }, 0)
+  const groupWidth = titleWidth + titleGap + legendWidth
+  // Left edge of the centred group; falls back to a small inset before the
+  // container has been measured, or when the group is wider than the chart.
+  const groupLeft = Math.max(8, Math.round((chartWidth.value - groupWidth) / 2))
   const option: EChartsOption = {
     title: {
-      text: i18n.global.t(props.labelPrefix + secondField.value).toString(),
+      text: titleText,
+      // fontWeight/family/colour come from the theme (normal weight); only the
+      // compact 12px size is set here (theme title default is larger).
       textStyle: {
         fontSize: 12
       },
-      left: 'center'
+      left: groupLeft,
+      // The title text is drawn dominant-baseline:central, so its top === its
+      // vertical centre; ECharts centres legend content at legendTop + 7.5. These
+      // two offsets are picked to put the title and the legend on one shared
+      // vertical centre (≈12.5px) — otherwise the name rides above the swatches.
+      top: 12,
+      padding: 0
     },
     legend: {
       type: 'scroll',
-      // Legend below the plot; line series read better with a thin line swatch,
-      // bars keep the square swatch (theme default).
-      bottom: 0,
+      // Legend sits inline, right after the title, as a centred header row above
+      // the plot (was below it). Its left edge is the title's right edge plus a
+      // gap, computed here since ECharts has no flow layout between the two. Line
+      // series read better with a thin line swatch; bars keep the square swatch.
+      top: 5, // paired with title top:12 so both share a ~12.5px vertical centre
+      left: groupLeft + titleWidth + titleGap,
       icon: 'rect',
-      itemWidth: props.type === 'line' ? 18 : 10,
+      itemWidth: markerWidth,
       itemHeight: props.type === 'line' ? 2 : 10
     },
     grid: {
-      top: 40,
-      bottom: 56,
+      // Header row (title + inline legend) lives at the top; the bottom must still
+      // clear the x-axis name (nameGap 28 + its label) so it stays inside the
+      // canvas and doesn't ride into the distribution brush rendered below.
+      top: 44,
+      bottom: 48,
       // Pin the horizontal insets to the distribution brush's flank so the main
       // plot and the brush overview below it line up exactly (see brushFlank).
       left: brushFlank.value,
@@ -403,7 +454,7 @@ function click(params: CallbackDataParams): void {
 </script>
 
 <template>
-  <div>
+  <div ref="rootEl">
     <v-responsive aspect-ratio="2.5" min-height="200">
       <v-chart
         autoresize
@@ -416,6 +467,7 @@ function click(params: CallbackDataParams): void {
     <distribution-brush
       v-if="numberMin && numberMax"
       v-model="actualnNumberRange"
+      class="chart-brush"
       :series="numberSeries"
       :step="1"
       :min="roundedMin"
@@ -426,6 +478,7 @@ function click(params: CallbackDataParams): void {
     <date-distribution-brush
       v-if="dateMin && dateMax"
       v-model="actualDateRange"
+      class="chart-brush"
       :series="dateSeries"
       :min="dateMin"
       :max="dateMax"
@@ -433,3 +486,11 @@ function click(params: CallbackDataParams): void {
     />
   </div>
 </template>
+
+<style scoped>
+/* Breathing room between the main plot (whose x-axis name sits just inside its
+   bottom edge) and the distribution brush, so the two never touch. */
+.chart-brush {
+  margin-top: 8px;
+}
+</style>

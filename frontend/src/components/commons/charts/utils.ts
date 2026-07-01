@@ -20,3 +20,16 @@ export const updateOptions: SetOptionOpts = {
 interface InitOptions {
   renderer: 'canvas' | 'svg'
 }
+
+// Reused offscreen 2d context for measuring rendered text width. Used to lay the
+// legend out inline, right after a variable-width (i18n) chart title, since
+// ECharts has no flow layout between the title and the legend.
+let measureCtx: CanvasRenderingContext2D | null | undefined
+export function measureTextWidth(text: string, font: string): number {
+  if (measureCtx === undefined) {
+    measureCtx = document.createElement('canvas').getContext('2d')
+  }
+  if (!measureCtx) return text.length * 7 // fallback estimate if no 2d context
+  measureCtx.font = font
+  return measureCtx.measureText(text).width
+}
