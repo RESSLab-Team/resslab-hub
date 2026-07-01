@@ -87,6 +87,9 @@ onMounted(() => {
 onUnmounted(() => {
   widthObserver?.disconnect()
   if (dragRaf) cancelAnimationFrame(dragRaf)
+  // Unmounting mid-drag (e.g. a route change while the pointer is down) must
+  // release the global drag flag, or every chart stays frozen forever.
+  if (dragMode.value) isBrushDragging.value = false
 })
 
 const actualMin = computed<number>(() => props.min - (props.min % props.step))

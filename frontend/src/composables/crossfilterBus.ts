@@ -54,6 +54,7 @@ export function subscribeCrossfilter(listener: CrossfilterListener): () => void 
 
 /** Publish the live query for the current drag frame (coalesced per rAF). */
 export function publishLive(query: string | undefined): void {
+  if (listeners.size === 0) return // nobody to paint — don't schedule rAFs
   pendingQuery = query
   hasPending = true
   if (frameHandle) return

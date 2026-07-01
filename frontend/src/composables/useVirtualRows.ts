@@ -81,6 +81,11 @@ export function useVirtualRows(scrollEl: Ref<HTMLElement | undefined>, total: Re
   onMounted(() => {
     const el = scrollEl.value
     if (!el) return
+    // clientHeight includes the sticky <thead>. That's fine: the header offsets
+    // the row region by its own height in content coordinates, so
+    // floor(scrollTop / rowHeight) still lands on the right first row; counting
+    // the header band as row space only mounts a couple of extra rows — cheap,
+    // deliberate slack on top of OVERSCAN.
     viewportHeight.value = el.clientHeight
     el.addEventListener('scroll', onScroll, { passive: true })
     if ('ResizeObserver' in window) {

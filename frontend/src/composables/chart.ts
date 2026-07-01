@@ -4,9 +4,9 @@ import { debounceAPIParameters, debounceAPITime } from '@/utils/common'
 import type { Color } from '@/utils/vuetify'
 import type { AxiosResponse } from 'axios'
 import { chain, debounce } from 'lodash'
-import { computed, ref, shallowRef, watch, type Ref } from 'vue'
+import { computed, onScopeDispose, ref, shallowRef, watch, type Ref } from 'vue'
 import { queryFieldSeparator, queryKeyValueSeparator } from './dashboard'
-import { scheduleFrameUpdate } from './frameScheduler'
+import { cancelScheduled, scheduleFrameUpdate } from './frameScheduler'
 
 // Unique per chart instance, so the frame scheduler can coalesce repeated
 // updates from the same chart (latest-wins) without conflating separate charts.
@@ -93,6 +93,12 @@ export function useSingleChart<F>(
     debounceAPITime,
     debounceAPIParameters
   )
+  // A trailing debounce fire or queued frame task must not write refs of a
+  // disposed component.
+  onScopeDispose(() => {
+    debouncedGetCounts.cancel()
+    cancelScheduled(updateKey)
+  })
 
   watch(
     query,
@@ -194,6 +200,13 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
     debounceAPITime,
     debounceAPIParameters
   )
+  // A trailing debounce fire or queued frame task must not write refs of a
+  // disposed component.
+  onScopeDispose(() => {
+    debouncedGetCounts.cancel()
+    debouncedGetAllCounts.cancel()
+    cancelScheduled(updateKey)
+  })
 
   watch(
     query,
@@ -333,6 +346,12 @@ export function useParallelChart<F extends string>(
     debounceAPITime,
     debounceAPIParameters
   )
+  // A trailing debounce fire or queued frame task must not write refs of a
+  // disposed component.
+  onScopeDispose(() => {
+    debouncedGetMatrix.cancel()
+    cancelScheduled(updateKey)
+  })
 
   watch(
     query,

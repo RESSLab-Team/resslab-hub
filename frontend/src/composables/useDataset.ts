@@ -26,16 +26,27 @@ interface DatasetEntry {
   ready: Promise<void>
 }
 
+// Never expires: these are small, static research datasets — a page reload is
+// the (acceptable) way to pick up new data.
 const cache = new Map<string, DatasetEntry>()
 
 function ensure(key: string, fetchAll: () => Promise<Row[]>): DatasetEntry {
   const existing = cache.get(key)
   if (existing) return existing
   const entry: DatasetEntry = { rows: [], fieldTypes: {}, ready: Promise.resolve() }
-  entry.ready = fetchAll().then((rows) => {
-    entry.rows = rows
-    entry.fieldTypes = inferFieldTypes(rows)
-  })
+  entry.ready = fetchAll().then(
+    (rows) => {
+      entry.rows = rows
+      entry.fieldTypes = inferFieldTypes(rows)
+    },
+    (error) => {
+      // Evict the poisoned entry so the next visit retries the fetch instead of
+      // replaying this rejection forever.
+      cache.delete(key)
+      console.error(`useDataset: failed to load dataset '${key}'`, error)
+      throw error
+    }
+  )
   cache.set(key, entry)
   return entry
 }

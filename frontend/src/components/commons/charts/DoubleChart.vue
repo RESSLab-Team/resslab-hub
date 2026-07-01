@@ -439,9 +439,15 @@ const { render } = useEChart(chartEl, () => option.value, { click })
 
 // Reactive renders (commit / tile click / rail), skipped while a drag is frozen —
 // during a drag the bus is authoritative, so we mustn't let a stale reactive frame
-// (old counts, unfrozen axis) overwrite the live one.
+// (old counts, unfrozen axis) overwrite the live one. A skipped frame is replayed
+// on settle (see onSettle) so a mid-drag commit is never lost.
+let skippedWhileFrozen = false
 watch(option, (value) => {
-  if (!frozen) render(value)
+  if (frozen) {
+    skippedWhileFrozen = true
+    return
+  }
+  render(value)
 })
 
 // ── Crossfilter: drive every chart imperatively during a drag ────────────────
@@ -459,8 +465,11 @@ const unsubscribe = subscribeCrossfilter({
     if (!props.liveCounts) return
     frozen = false
     // Repaint the last drag frame with the axis unfrozen; the reactive commit then
-    // reconciles to the exact committed counts (usually an identical frame).
-    render(buildOption(lastLiveCounts ?? props.counts))
+    // reconciles to the exact committed counts (usually an identical frame). If a
+    // reactive update landed mid-drag and was skipped, replay the committed option
+    // instead — it is the newer truth.
+    render(skippedWhileFrozen ? option.value : buildOption(lastLiveCounts ?? props.counts))
+    skippedWhileFrozen = false
     lastLiveCounts = null
   }
 })

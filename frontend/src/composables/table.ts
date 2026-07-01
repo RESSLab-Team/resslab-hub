@@ -7,8 +7,8 @@ import type { AxiosResponse } from 'axios'
 import download from 'downloadjs'
 import JSZip from 'jszip'
 import { debounce } from 'lodash'
-import { computed, ref, shallowRef, unref, watch, type Ref } from 'vue'
-import { scheduleFrameUpdate } from './frameScheduler'
+import { computed, onScopeDispose, ref, shallowRef, unref, watch, type Ref } from 'vue'
+import { cancelScheduled, scheduleFrameUpdate } from './frameScheduler'
 
 // Unique per table instance for the frame scheduler's latest-wins coalescing.
 let tableInstanceId = 0
@@ -172,6 +172,12 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
     debounceAPITime,
     debounceAPIParameters
   )
+  // A trailing debounce fire or queued frame task must not write refs of a
+  // disposed component.
+  onScopeDispose(() => {
+    debouncedGetPage.cancel()
+    cancelScheduled(updateKey)
+  })
 
   watch(() => [query.value, options], debouncedGetPage, { immediate: true, deep: true })
 

@@ -103,24 +103,37 @@ const chartEl = ref<HTMLElement>()
 const { render } = useEChart(chartEl, () => option.value, { click, mouseover, mouseout })
 
 // A filter change repaints via setOption, skipped while a drag is frozen so a
-// stale reactive frame can't overwrite the live one.
+// stale reactive frame can't overwrite the live one. A skipped frame is replayed
+// on settle (see onSettle) so a mid-drag commit is never lost.
 let frozen = false
+let skippedWhileFrozen = false
 watch(option, (value) => {
-  if (!frozen) render(value)
+  if (frozen) {
+    skippedWhileFrozen = true
+    return
+  }
+  render(value)
 })
 
 // Live crossfilter: every chart repaints from the in-memory dataset during a drag,
 // then reconciles on settle. No-op in server mode (no liveCounts).
+let lastLiveCounts: Count[] | null = null
 const unsubscribe = subscribeCrossfilter({
   onLive: (liveQuery) => {
     if (!props.liveCounts) return
     frozen = true
-    render(buildOption(props.liveCounts(liveQuery)))
+    lastLiveCounts = props.liveCounts(liveQuery)
+    render(buildOption(lastLiveCounts))
   },
   onSettle: () => {
     if (!props.liveCounts) return
     frozen = false
-    render(buildOption(props.counts))
+    // Repaint the last drag frame (visually identical to the commit that follows,
+    // so no flicker back to the pre-drag state) — unless a reactive update landed
+    // mid-drag and was skipped: then the committed option is the newer truth.
+    render(skippedWhileFrozen ? option.value : buildOption(lastLiveCounts ?? props.counts))
+    skippedWhileFrozen = false
+    lastLiveCounts = null
   }
 })
 onUnmounted(unsubscribe)

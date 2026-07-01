@@ -38,6 +38,13 @@ function drain(): void {
   }
 }
 
+/** Drop a queued update (call on unmount so a task never runs against dead refs). */
+export function cancelScheduled(key: string): void {
+  if (!pending.delete(key)) return
+  const index = queue.indexOf(key)
+  if (index !== -1) queue.splice(index, 1)
+}
+
 export function scheduleFrameUpdate(key: string, task: () => void): void {
   // Non-DOM environments (unit tests, SSR) have no rAF — just run immediately.
   if (typeof requestAnimationFrame === 'undefined') {

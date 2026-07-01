@@ -218,7 +218,18 @@ watch(selectedItemsIds, (newIdList, oldIdList) => {
     removedIds = oldIdList.filter((id) => !newIdList.includes(id))
   const newList = oldList
     .filter((item) => !removedIds.includes(item.id))
-    .concat(newIds.map((id) => props.items.find((item) => item.id === id)).filter(Boolean))
+    .concat(
+      newIds
+        // Resolve against what is actually rendered (live drag rows when set),
+        // falling back to the committed page — a row selected mid-drag may not
+        // exist in `props.items` yet and would otherwise be silently dropped.
+        .map(
+          (id) =>
+            displayItems.value.find((item) => item.id === id) ??
+            props.items.find((item) => item.id === id)
+        )
+        .filter(Boolean)
+    )
   selectedItems.value = newList
 })
 
