@@ -43,14 +43,28 @@ export function inferFieldTypes(rows: Row[]): FieldTypes {
   return types
 }
 
+// Single-entry memo: during a crossfilter drag every chart on a dashboard filters
+// with the SAME query string against the SAME dataset each frame, so remembering
+// the last compiled predicate turns ~9 parses (and regex compiles) per frame into
+// one. Keyed on the exact (query, fieldTypes) pair — fieldTypes is a stable
+// per-dataset object, so an identity check is enough; any other input recompiles.
+let memoQuery: string | undefined
+let memoTypes: FieldTypes | undefined
+let memoPredicate: RowPredicate | undefined
+
 /** Compile a query string into a reusable per-row predicate (parsed once). */
 export function compileQuery(query: string | undefined, fieldTypes: FieldTypes): RowPredicate {
   if (!query) return () => true
+  if (query === memoQuery && fieldTypes === memoTypes && memoPredicate) return memoPredicate
   const clauses = query
     .split(queryFieldSeparator)
     .filter((clause) => clause.length > 0)
     .map((clause) => compileClause(clause, fieldTypes))
-  return (row) => clauses.every((predicate) => predicate(row))
+  const predicate: RowPredicate = (row) => clauses.every((p) => p(row))
+  memoQuery = query
+  memoTypes = fieldTypes
+  memoPredicate = predicate
+  return predicate
 }
 
 /** Filter rows by a query string, compiling the predicate once. */

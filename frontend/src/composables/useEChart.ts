@@ -68,6 +68,9 @@ export function useEChart(
 
   onBeforeUnmount(() => {
     resizeObserver?.disconnect()
+    // Detach handlers before dispose so a callback queued mid-teardown can't
+    // fire into a disposed instance.
+    for (const event of Object.keys(handlers)) chart?.off(event)
     chart?.dispose()
     chart = undefined
   })
