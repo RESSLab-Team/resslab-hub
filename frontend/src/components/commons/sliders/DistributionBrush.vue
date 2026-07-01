@@ -80,7 +80,10 @@ onMounted(() => {
     widthObserver.observe(chartEl.value)
   }
 })
-onUnmounted(() => widthObserver?.disconnect())
+onUnmounted(() => {
+  widthObserver?.disconnect()
+  if (dragRaf) cancelAnimationFrame(dragRaf)
+})
 
 const actualMin = computed<number>(() => props.min - (props.min % props.step))
 const actualMax = computed<number>(() => Math.ceil(props.max / props.step) * props.step)
@@ -141,20 +144,32 @@ const localRange = ref<[number, number]>(props.modelValue ?? [realLo.value, real
 watch(
   () => props.modelValue,
   (value) => {
-    if (value) localRange.value = [value[0], value[1]]
+    // Ignore echoes of our own emits while dragging, and no-op when unchanged, so
+    // the round-trip through the parent can't cause an extra mid-drag re-render.
+    if (!value || dragMode.value) return
+    if (value[0] === localRange.value[0] && value[1] === localRange.value[1]) return
+    localRange.value = [value[0], value[1]]
   }
 )
 const range = computed<[number, number]>(() => localRange.value)
 
-// Low-level setter: order defensively (handles can never cross into lo > hi) and
-// emit. Callers are responsible for clamping to [axisLo, axisHi] in the way that
-// suits their gesture (edge drags clamp each end; a move-drag clamps as a unit so
-// the window keeps its width instead of being squashed at a wall).
+// Last value we emitted, so throttled drag emits and the final commit can dedup
+// and avoid re-notifying the parent with a range it already holds.
+let lastEmitted: [number, number] | null = null
+function emitRange(value: [number, number]): void {
+  if (lastEmitted && lastEmitted[0] === value[0] && lastEmitted[1] === value[1]) return
+  lastEmitted = value
+  emit('update:modelValue', value)
+}
+
+// Order defensively (handles can never cross into lo > hi), update locally and
+// emit. Used by the number fields via commitRange; drags update locally (setLocal)
+// and emit on a throttle. No-ops when the window is unchanged.
 function applyRange(value: [number, number]): void {
   const next: [number, number] = value[0] <= value[1] ? [value[0], value[1]] : [value[1], value[0]]
   if (next[0] === localRange.value[0] && next[1] === localRange.value[1]) return
   localRange.value = next
-  emit('update:modelValue', next)
+  emitRange([next[0], next[1]])
 }
 
 function commitRange(value: [number, number]): void {
@@ -286,6 +301,28 @@ const dragMode = ref<null | 'lo' | 'hi' | 'move'>(null)
 const hoverCursor = ref('grab')
 let dragStartX = 0
 let dragStartRange: [number, number] = [0, 0]
+// The plot rect captured at drag start (it can't change mid-drag) and a single
+// queued rAF, so a burst of pointermove samples collapses to one update per frame.
+let dragRect: DOMRect | null = null
+let dragRaf = 0
+let pendingX = 0
+// Throttle for the parent emit during a drag: the brush's own brackets follow the
+// pointer every frame, but the expensive parent update (main-chart re-render +
+// refilter) fires at most every LIVE_EMIT_MS, so the chart follows a few times a
+// second instead of every frame. didLiveEmit records whether this gesture pushed.
+const LIVE_EMIT_MS = 150
+let lastLiveEmit = 0
+let didLiveEmit = false
+
+// Set the window locally *without* emitting — the brackets track the pointer
+// cheaply while the parent emit is throttled separately (see scheduleDrag). Orders
+// defensively so the handles can never cross into lo > hi; no-ops when unchanged so
+// pointer moves within the same snapped bin don't re-render the brush.
+function setLocal(value: [number, number]): void {
+  const next: [number, number] = value[0] <= value[1] ? [value[0], value[1]] : [value[1], value[0]]
+  if (next[0] === localRange.value[0] && next[1] === localRange.value[1]) return
+  localRange.value = next
+}
 
 function snap(v: number): number {
   return Math.round(v / props.step) * props.step
@@ -310,15 +347,15 @@ function zoneAt(clientX: number, rect: DOMRect): 'lo' | 'hi' | 'move' {
   return 'move'
 }
 
-// Apply the active gesture for a pointer position. Edge gestures move that handle
-// to the pointer (clamped so it can't cross the other); the move gesture shifts
-// the window as a unit by the snapped delta, preserving its width.
+// Apply the active gesture for a pointer position (local-only; committed on
+// pointer-up). Edge gestures move that handle to the pointer (clamped so it can't
+// cross the other); the move gesture shifts the window as a unit, keeping width.
 function updateDrag(clientX: number, rect: DOMRect): void {
   const [startLo, startHi] = dragStartRange
   if (dragMode.value === 'lo') {
-    applyRange([Math.min(Math.max(snap(valueAt(clientX, rect)), realLo.value), startHi), startHi])
+    setLocal([Math.min(Math.max(snap(valueAt(clientX, rect)), realLo.value), startHi), startHi])
   } else if (dragMode.value === 'hi') {
-    applyRange([startLo, Math.max(Math.min(snap(valueAt(clientX, rect)), realHi.value), startLo)])
+    setLocal([startLo, Math.max(Math.min(snap(valueAt(clientX, rect)), realHi.value), startLo)])
   } else {
     // Move in axis space so the window keeps its pixel width regardless of the
     // (possibly non-uniform) bin widths, then convert the ends back to real.
@@ -333,37 +370,69 @@ function updateDrag(clientX: number, rect: DOMRect): void {
       b = axisHi.value
       a = b - aWidth
     }
-    applyRange([snap(toReal(a)), snap(toReal(b))])
+    setLocal([snap(toReal(a)), snap(toReal(b))])
   }
+}
+
+// Coalesce pointermove samples to at most one brush re-render per frame, and emit
+// to the parent on a slower time throttle so the main chart follows without a
+// re-render + refilter on every frame.
+function scheduleDrag(clientX: number): void {
+  pendingX = clientX
+  if (dragRaf || !dragRect) return
+  dragRaf = requestAnimationFrame(() => {
+    dragRaf = 0
+    if (!dragRect) return
+    updateDrag(pendingX, dragRect)
+    const now = performance.now()
+    if (now - lastLiveEmit >= LIVE_EMIT_MS) {
+      lastLiveEmit = now
+      didLiveEmit = true
+      emitRange([localRange.value[0], localRange.value[1]])
+    }
+  })
 }
 
 function onPointerDown(event: PointerEvent): void {
   const el = event.currentTarget as HTMLElement
-  const rect = el.getBoundingClientRect()
-  dragMode.value = zoneAt(event.clientX, rect)
+  dragRect = el.getBoundingClientRect()
+  dragMode.value = zoneAt(event.clientX, dragRect)
   dragStartX = event.clientX
   dragStartRange = [...range.value] as [number, number]
+  didLiveEmit = false
+  lastLiveEmit = performance.now()
   el.setPointerCapture(event.pointerId)
   event.preventDefault()
   // A single click acts immediately: the chosen handle jumps to the click point
   // (a drag isn't required). For 'move' this is a zero-delta no-op, so clicking
   // in the middle never teleports the whole window.
-  updateDrag(event.clientX, rect)
+  updateDrag(event.clientX, dragRect)
 }
 
 function onPointerMove(event: PointerEvent): void {
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
   if (!dragMode.value) {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
     hoverCursor.value = zoneAt(event.clientX, rect) === 'move' ? 'grab' : 'ew-resize'
     return
   }
-  updateDrag(event.clientX, rect)
+  scheduleDrag(event.clientX)
 }
 
 function onPointerUp(event: PointerEvent): void {
   if (!dragMode.value) return
+  if (dragRaf) {
+    cancelAnimationFrame(dragRaf)
+    dragRaf = 0
+  }
   dragMode.value = null
+  dragRect = null
   ;(event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId)
+  // Commit the final window (emitRange dedups a value already pushed mid-drag).
+  // Emit when it changed from the drag start, or to correct the parent if we
+  // pushed intermediate values but ended back where we began. A plain click in the
+  // middle zone (no change, no live emit) stays silent.
+  const cur: [number, number] = [localRange.value[0], localRange.value[1]]
+  if (cur[0] !== dragStartRange[0] || cur[1] !== dragStartRange[1] || didLiveEmit) emitRange(cur)
 }
 
 const overlayCursor = computed(() =>
