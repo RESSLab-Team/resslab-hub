@@ -67,6 +67,16 @@ export function compileQuery(query: string | undefined, fieldTypes: FieldTypes):
   return predicate
 }
 
+// Filtered-result memo (single entry, same reasoning as the predicate memo):
+// during a drag frame every chart AND the table filter the same rows with the
+// same query, so remembering the last result turns ~10 O(n) passes per frame
+// into one. Identity-keyed on the rows array; callers never mutate the result
+// (they map/slice/copy-sort it), so sharing one array is safe.
+let memoRows: Row[] | undefined
+let memoFilterQuery: string | undefined
+let memoFilterTypes: FieldTypes | undefined
+let memoFiltered: Row[] | undefined
+
 /** Filter rows by a query string, compiling the predicate once. */
 export function filterRows<T extends Row>(
   rows: T[],
@@ -74,8 +84,16 @@ export function filterRows<T extends Row>(
   fieldTypes: FieldTypes
 ): T[] {
   if (!query) return rows
+  if (rows === memoRows && query === memoFilterQuery && fieldTypes === memoFilterTypes) {
+    return memoFiltered as T[]
+  }
   const predicate = compileQuery(query, fieldTypes)
-  return rows.filter(predicate)
+  const filtered = rows.filter(predicate)
+  memoRows = rows
+  memoFilterQuery = query
+  memoFilterTypes = fieldTypes
+  memoFiltered = filtered
+  return filtered
 }
 
 function compileClause(clause: string, fieldTypes: FieldTypes): RowPredicate {

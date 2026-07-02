@@ -32,11 +32,12 @@ describe('frameScheduler', () => {
     scheduleFrameUpdate('a', () => ran.push('a'))
     scheduleFrameUpdate('b', () => ran.push('b'))
     scheduleFrameUpdate('c', () => ran.push('c'))
+    scheduleFrameUpdate('d', () => ran.push('d'))
     expect(ran).toEqual([])
     flushFrame()
-    expect(ran).toEqual(['a', 'b']) // batch of 2 per frame
+    expect(ran).toEqual(['a', 'b', 'c']) // BATCH_PER_FRAME (3) per frame
     flushFrame()
-    expect(ran).toEqual(['a', 'b', 'c'])
+    expect(ran).toEqual(['a', 'b', 'c', 'd'])
   })
 
   it('coalesces per key, latest task wins', () => {

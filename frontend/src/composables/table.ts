@@ -1,7 +1,7 @@
 import type { CountModel } from '@/backend'
 import type { Page } from '@/utils/backend'
 import type { Searches } from '@/utils/common'
-import { debounceAPIParameters, debounceAPITime } from '@/utils/common'
+import { debounceAPIParameters, debounceDataTime } from '@/utils/common'
 import type { DataOptions } from '@/utils/vuetify'
 import type { AxiosResponse } from 'axios'
 import download from 'downloadjs'
@@ -184,7 +184,7 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
           })
       }
     },
-    debounceAPITime,
+    debounceDataTime,
     debounceAPIParameters
   )
   // A trailing debounce fire or queued frame task must not write refs of a

@@ -14,10 +14,11 @@
  * always renders the newest value for each chart.
  */
 
-// A few updates per frame: each chart write is only a few ms, so a small batch
-// keeps every frame within budget while letting the whole dashboard settle in a
-// handful of frames rather than one long task.
-const BATCH_PER_FRAME = 2
+// A few updates per frame: each chart write is a few ms (Vue flush + canvas
+// setOption), so 3 per batch ≈ 9–12 ms — inside a 60 fps budget with headroom —
+// and a 9-chart dashboard settles in ~3 frames instead of one long task.
+// Lower this first if INP regresses on slow hardware.
+const BATCH_PER_FRAME = 3
 
 const pending = new Map<string, () => void>()
 const queue: string[] = []

@@ -63,9 +63,18 @@ function compare(a: unknown, b: unknown): number {
   return String(a).localeCompare(String(b))
 }
 
+// Single-entry sort memo: filterRows memoizes its result array (stable identity
+// within a drag frame), so the table's pageSync re-sorts once per frame instead
+// of once per call. The input is copied before sorting — never mutated.
+let memoSortInput: Row[] | undefined
+let memoSortKey: string | undefined
+let memoSorted: Row[] | undefined
+
 function sortRows(rows: Row[], sortBy?: string[], sortDesc?: boolean[]): Row[] {
   if (!sortBy || sortBy.length === 0) return rows
-  return [...rows].sort((a, b) => {
+  const key = JSON.stringify([sortBy, sortDesc])
+  if (rows === memoSortInput && key === memoSortKey && memoSorted) return memoSorted
+  const sorted = [...rows].sort((a, b) => {
     for (let i = 0; i < sortBy.length; i++) {
       const direction = sortDesc?.[i] ? -1 : 1
       const comparison = compare(a[sortBy[i]], b[sortBy[i]])
@@ -73,6 +82,10 @@ function sortRows(rows: Row[], sortBy?: string[], sortDesc?: boolean[]): Row[] {
     }
     return 0
   })
+  memoSortInput = rows
+  memoSortKey = key
+  memoSorted = sorted
+  return sorted
 }
 
 /**

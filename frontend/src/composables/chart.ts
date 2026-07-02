@@ -1,6 +1,6 @@
 import type { CountModel, DateRangeModel, MatrixModel, RangeModel } from '@/backend'
 import type { Value } from '@/utils/common'
-import { debounceAPIParameters, debounceAPITime } from '@/utils/common'
+import { debounceAPIParameters, debounceDataTime } from '@/utils/common'
 import type { Color } from '@/utils/vuetify'
 import type { AxiosResponse } from 'axios'
 import { chain, debounce } from 'lodash'
@@ -95,7 +95,7 @@ export function useSingleChart<F>(
           // Stagger the write so N charts don't all flush in one long task.
           scheduleFrameUpdate(updateKey, () => (counts.value = next))
         }),
-    debounceAPITime,
+    debounceDataTime,
     debounceAPIParameters
   )
   // A trailing debounce fire or queued frame task must not write refs of a
@@ -190,7 +190,7 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
         .then((values) => {
           scheduleFrameUpdate(updateKey, () => (counts.value = values))
         }),
-    debounceAPITime,
+    debounceDataTime,
     debounceAPIParameters
   )
 
@@ -202,7 +202,7 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
         .then((values) => {
           allCounts.value = values
         }),
-    debounceAPITime,
+    debounceDataTime,
     debounceAPIParameters
   )
   // A trailing debounce fire or queued frame task must not write refs of a
@@ -354,7 +354,7 @@ export function useParallelChart<F extends string>(
             data.value = nextData
           })
         }),
-    debounceAPITime,
+    debounceDataTime,
     debounceAPIParameters
   )
   // A trailing debounce fire or queued frame task must not write refs of a

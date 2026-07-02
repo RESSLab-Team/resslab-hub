@@ -116,3 +116,21 @@ describe('queryEngine.compileQuery memoization', () => {
     expect(rows.filter(memoized).map((row) => row.id)).toEqual(['1', '2'])
   })
 })
+
+describe('queryEngine.filterRows memoization', () => {
+  it('returns the identical array for a repeated (rows, query) pair', () => {
+    const first = filterRows(rows, 'connection_type:WUF', types)
+    const second = filterRows(rows, 'connection_type:WUF', types)
+    expect(second).toBe(first)
+    // a different query recomputes
+    expect(filterRows(rows, 'connection_type:RBS', types)).not.toBe(first)
+  })
+
+  it('recomputes when the rows array identity changes', () => {
+    const first = filterRows(rows, 'connection_type:WUF', types)
+    const otherRows = [...rows]
+    const second = filterRows(otherRows, 'connection_type:WUF', types)
+    expect(second).not.toBe(first)
+    expect(second).toEqual(first)
+  })
+})
