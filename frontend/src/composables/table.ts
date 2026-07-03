@@ -5,7 +5,6 @@ import { debounceAPIParameters, debounceDataTime } from '@/utils/common'
 import type { DataOptions } from '@/utils/vuetify'
 import type { AxiosResponse } from 'axios'
 import download from 'downloadjs'
-import JSZip from 'jszip'
 import { debounce } from 'lodash'
 import { computed, onScopeDispose, ref, shallowRef, unref, watch, type Ref } from 'vue'
 import { subscribeCrossfilter } from './crossfilterBus'
@@ -130,11 +129,14 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
         : []
     ].flat()
     Promise.all(filePromises)
-      .then((files) => {
+      .then(async (files) => {
         if (files.length === 0) {
           notify('Nothing to download')
           return null
         }
+        // Lazy: jszip is ~100 kB and only needed when the export button is
+        // actually used — keep it out of the dashboard chunks.
+        const { default: JSZip } = await import('jszip')
         const zip = new JSZip()
         files.forEach((file) => {
           zip.file(file.filename, file.content)

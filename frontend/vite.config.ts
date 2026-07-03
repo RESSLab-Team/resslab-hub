@@ -115,5 +115,31 @@ export default defineConfig({
     warmup: {
       clientFiles: ['./src/main.ts', './src/App.vue', './src/views/HomeView.vue']
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        // Pin the heavy, rarely-updated libraries into their own chunks so an
+        // app-code edit doesn't rename (and re-download) half a megabyte of
+        // framework on every deploy. Without this, rollup smears echarts across
+        // whichever app chunks first import it (SimpleTable, UnitChart, ...).
+        // echarts-gl/claygl are NOT pinned: they already isolate into the lazy
+        // 3D-chart chunk, and pinning them here would load them eagerly with
+        // every chart page.
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return undefined
+          if (/node_modules\/(echarts|zrender|vue-echarts|resize-detector)\//.test(id)) {
+            return 'echarts'
+          }
+          // Vuetify is deliberately NOT pinned: rollup already splits the
+          // route-only components (VSelect, ...) into lazy chunks, and pinning
+          // it would pull them all into the eager path.
+          if (/node_modules\/(@vue|vue|vue-router|pinia|vue-i18n|@intlify|vue-demi)\//.test(id)) {
+            return 'vendor'
+          }
+          return undefined
+        }
+      }
+    }
   }
 })
