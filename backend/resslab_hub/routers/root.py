@@ -16,6 +16,7 @@ from resslab_hub.config import settings
 from resslab_hub.data.uploader import Type, upload_all
 from resslab_hub.data.validator import validate_all
 from resslab_hub.models import Info
+from resslab_hub.utils.caching import bump_data_version
 
 router = APIRouter()
 
@@ -62,6 +63,8 @@ async def create_upload_file(
             with open(fileobj=file.file, mode="r:gz") as tar_file:
                 tar_file.extractall(tmpdir)
             [primary_uploads, secondary_uploads] = upload_all(type, [tmpdir])
+            # New data is live: expire every browser-cached data response.
+            bump_data_version()
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={

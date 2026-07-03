@@ -29,6 +29,7 @@ from resslab_hub.routers import (
     root,
     tensile_coupon,
 )
+from resslab_hub.utils.caching import HTTPCacheMiddleware
 from resslab_hub.utils.database import upgrade_database
 from resslab_hub.utils.fastapi import use_route_names_as_operation_ids
 
@@ -55,6 +56,13 @@ app = FastAPI(
 # Compress JSON/CSV responses (highly compressible numeric payloads).
 # minimum_size avoids the overhead of compressing tiny responses.
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Let browsers cache the read-only data endpoints (see utils/caching.py).
+# Added after GZip but before CORS so CORS stays outermost and its headers
+# also cover the short-circuited 304s. Dev sets cache_max_age = 0 so local
+# data reloads show up immediately.
+if settings.cache_max_age > 0:
+    app.add_middleware(HTTPCacheMiddleware, max_age=settings.cache_max_age)
 
 if settings.cors_enabled:
     logging.debug("cors enabled")

@@ -7,6 +7,8 @@ api_password = "changeit"
 # Vite dev server (:5173) calls the backend (:8000) cross-origin, so CORS must
 # be on locally. Prod is same-origin behind Traefik and leaves this off.
 cors_enabled = true
+# No browser caching in dev: local data reloads must show up immediately.
+cache_max_age = 0
 
 [production]
 postgres_host = "resslab-hub.epfl.ch"

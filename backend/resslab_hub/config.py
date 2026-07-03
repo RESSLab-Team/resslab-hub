@@ -18,6 +18,7 @@ settings = Dynaconf(
         Validator("postgres_password", must_exist=True),
         Validator("postgres_db", default="postgres"),
         Validator("database_upgrade", default=True),
+        Validator("cache_max_age", default=3600),
         Validator("sql_echo", default=False),
         Validator("db_pool_size", default=5),
         Validator("db_max_overflow", default=10),
