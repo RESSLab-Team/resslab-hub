@@ -304,14 +304,14 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
         </aside>
 
         <section class="tool-chart-col">
-          <div class="mat-focus">
+          <div class="mat-focus tool-fit-primary">
             <h2 class="tool-chart-h">{{ $t('tools.column_fragility.fragility_curves') }}</h2>
             <div class="tool-chart-legend">
-              <unit-chart :aspect-ratio="2" :option="variateOption" x-unit="rad" />
+              <unit-chart fit :aspect-ratio="2" :option="variateOption" x-unit="rad" />
               <legend-chart v-model="legendItems" :separators-index="[4]" />
             </div>
           </div>
-          <div class="tool-card">
+          <div class="tool-card tool-fit-scroll">
             <div class="tool-card-h">
               {{ $t('tools.column_fragility.surface_fragility_curves') }}
             </div>

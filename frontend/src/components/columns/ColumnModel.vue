@@ -459,16 +459,17 @@ defineExpose({ vars, backbone, envelope, variables, onSectionChanged })
         </aside>
 
         <section class="tool-chart-col">
-          <div class="mat-focus">
+          <div class="mat-focus tool-fit-primary">
             <h2 class="tool-chart-h">{{ $t('tools.column_model.backbone_curve') }}</h2>
             <unit-chart
+              fit
               :option="getOption(backboneResult, envelopeResult)"
               x-unit="rad"
               y-unit="kN⋅mm"
             />
           </div>
 
-          <div class="tool-card">
+          <div class="tool-card tool-fit-scroll">
             <div class="tool-card-h with-info">
               {{ $t('tools.column_model.predictive_model') }}
               <info-tooltip>{{ $t('tools.column_model.predictive_model_help') }}</info-tooltip>

@@ -404,14 +404,14 @@ function getCompressionOption(result: Result): EChartsOption {
               :src="publicPath + 'img/brace/I_shaped_Bracing.png'"
             />
           </figure>
-          <div class="tool-chart-grid">
+          <div class="tool-chart-grid tool-fit-primary">
             <div class="mat-focus">
               <h2 class="tool-chart-h">{{ $t('tools.brace_model.tension') }}</h2>
-              <unit-chart :option="getTensionOption(result)" />
+              <unit-chart fit :option="getTensionOption(result)" />
             </div>
             <div class="mat-focus">
               <h2 class="tool-chart-h">{{ $t('tools.brace_model.compression') }}</h2>
-              <unit-chart :option="getCompressionOption(result)" />
+              <unit-chart fit :option="getCompressionOption(result)" />
             </div>
           </div>
         </section>

@@ -644,10 +644,11 @@ defineExpose({
         </aside>
 
         <section class="tool-chart-col">
-          <div class="tool-chart-grid">
+          <div class="tool-chart-grid tool-fit-primary">
             <div class="mat-focus">
               <h2 class="tool-chart-h">{{ $t('tools.connection_model.chart_beams_with_rbs') }}</h2>
               <unit-chart
+                fit
                 :option="option(backboneWithRbs, envelopeWithRbs)"
                 x-unit="rad"
                 y-unit="kN⋅mm"
@@ -658,6 +659,7 @@ defineExpose({
                 {{ $t('tools.connection_model.chart_beams_without_rbs') }}
               </h2>
               <unit-chart
+                fit
                 :option="option(backboneWithoutRbs, envelopeWithoutRbs)"
                 x-unit="rad"
                 y-unit="kN⋅mm"
@@ -665,7 +667,7 @@ defineExpose({
             </div>
           </div>
 
-          <div class="tool-card">
+          <div class="tool-card tool-fit-scroll">
             <div class="tool-card-h with-info">
               {{ $t('tools.connection_model.component_models') }}
               <info-tooltip>{{ $t('tools.connection_model.component_models_help') }}</info-tooltip>

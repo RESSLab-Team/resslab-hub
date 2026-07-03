@@ -21,13 +21,18 @@ const props = withDefaults(
     aspectRatio?: number
     maxWidth?: number
     legendSide?: boolean
+    // Fill the parent's height instead of locking to `aspectRatio`. Use inside a
+    // height-bounded flex container (the fit-in-viewport tool pages) so the chart
+    // tracks the available height rather than growing with its column width.
+    fit?: boolean
   }>(),
   {
     xUnit: undefined,
     yUnit: undefined,
     aspectRatio: 1,
     maxWidth: undefined,
-    legendSide: false
+    legendSide: false,
+    fit: false
   }
 )
 
@@ -144,7 +149,18 @@ const actualOption = computed<EChartsOption>(() => {
 </script>
 
 <template>
-  <v-responsive :aspect-ratio="aspectRatio" :max-width="maxWidth">
+  <div v-if="fit" class="uc-fill">
+    <div class="uc-wrap">
+      <v-chart
+        autoresize
+        :init-options="initOptions"
+        :option="actualOption"
+        :update-options="updateOptions"
+      />
+      <span v-if="showLegendRule" class="uc-legend-rule" />
+    </div>
+  </div>
+  <v-responsive v-else :aspect-ratio="aspectRatio" :max-width="maxWidth">
     <div class="uc-wrap">
       <v-chart
         autoresize
@@ -158,6 +174,14 @@ const actualOption = computed<EChartsOption>(() => {
 </template>
 
 <style scoped>
+/* Fill mode: take the full height the flex parent grants us (min-height:0 lets
+   the box shrink below the chart's intrinsic size). vue-echarts' root is
+   100%×100%, so the canvas tracks this box via `autoresize`. */
+.uc-fill {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
 .uc-wrap {
   position: relative;
   width: 100%;

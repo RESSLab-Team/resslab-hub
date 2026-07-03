@@ -231,9 +231,10 @@ watch(
         </section>
 
         <section class="mat-focus-col">
-          <div class="mat-focus">
+          <div class="mat-focus tool-fit-primary">
             <div class="mat-chart-h">{{ focusTitle }}</div>
             <unit-line-chart
+              fit
               :aspect-ratio="2"
               :series="[styledSeries(focus, true)]"
               x-axis-name="ε"

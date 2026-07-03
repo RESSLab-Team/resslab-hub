@@ -287,3 +287,126 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ============================================================
+   Fit-in-viewport (desktop ≥ 1024px)
+   ------------------------------------------------------------
+   On desktop the app shell is a lateral sidebar with no top bar, so the
+   whole 100dvh is available. We turn each tool page into a viewport-bounded
+   flex column: the header + input rail + primary chart are always co-visible
+   and never scroll, so a user can drag a slider and watch the curve update.
+   Secondary content (result tables, 3D surface grids) scrolls inside its own
+   region; a tall input rail scrolls inside itself.
+
+   Below 1024px the mobile top bar appears and the .frag-a / .mat-a grids
+   collapse to a single column, so we keep the natural stacked, scrolling
+   layout and none of these rules apply.
+   ============================================================ */
+@media (min-width: 1024px) {
+  .tool-page {
+    height: 100dvh;
+    min-height: 0; /* override the calc(100vh - 56px) floor from app.css */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  /* Header pinned at the top; drop its divider and tighten the gap to content. */
+  .tool-page > .dash-head {
+    flex: none;
+    border-bottom: 0;
+    padding-bottom: 12px;
+  }
+
+  .tool-shell {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding-top: 20px;
+    padding-bottom: 24px;
+  }
+
+  /* The grid fills the shell; stretch both columns to the full height
+     (the base rule aligns them to `start`, which would collapse them). */
+  .tool-shell .frag-a,
+  .tool-shell .mat-a {
+    height: 100%;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  /* Input rail scrolls internally when its controls exceed the height. */
+  .tool-shell .tool-panel {
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+  }
+
+  /* Chart column distributes the available height to its children. */
+  .tool-shell .tool-chart-col,
+  .tool-shell .mat-focus-col {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .tool-shell .tool-chart-col > * + *,
+  .tool-shell .mat-focus-col > * + * {
+    margin-top: 0; /* spacing now comes from `gap` */
+  }
+
+  /* Primary region: fills leftover height, never scrolls, keeps a floor so it
+     can't be squeezed away by tall secondary content. */
+  .tool-shell .tool-fit-primary {
+    flex: 1 1 0;
+    min-height: 220px;
+  }
+  .tool-shell .tool-chart-grid.tool-fit-primary {
+    grid-auto-rows: minmax(0, 1fr);
+  }
+
+  /* A focus card (single, or each cell of a 2-up grid) becomes a flex column:
+     the title stays fixed and the chart fills the rest. The single card keeps
+     the 220px floor from .tool-fit-primary (no min-height:0 override); the grid
+     cells take min-height:0 so they shrink to their track. */
+  .tool-shell .tool-fit-primary.mat-focus {
+    display: flex;
+    flex-direction: column;
+  }
+  .tool-shell .tool-chart-grid.tool-fit-primary > .mat-focus {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .tool-shell .tool-fit-primary .tool-chart-h,
+  .tool-shell .tool-fit-primary .mat-chart-h {
+    flex: none;
+  }
+  .tool-shell .tool-fit-primary .uc-fill {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  /* Chart + side-legend row (column fragility): stretch so the chart fills. */
+  .tool-shell .tool-fit-primary .tool-chart-legend {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch;
+  }
+  .tool-shell .tool-fit-primary .tool-chart-legend > :first-child {
+    min-height: 0;
+  }
+
+  /* Secondary region: result tables / 3D surface grids scroll within themselves. */
+  .tool-shell .tool-fit-scroll {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  /* Fixed aux (brace schematic, material / connection thumbnails) keep their
+     natural height below the primary chart. */
+  .tool-shell .tool-chart-col > .tool-schematic,
+  .tool-shell .mat-focus-col > .mat-thumbs,
+  .tool-shell .tool-chart-col > .mat-thumbs {
+    flex: none;
+  }
+}

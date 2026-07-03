@@ -12,6 +12,7 @@ const props = withDefaults(
     colors?: Color[]
     series?: LineSeriesOption[]
     aspectRatio?: number
+    fit?: boolean
     axisPointerType?: string
     maxWidth?: number
     title?: string
@@ -28,6 +29,7 @@ const props = withDefaults(
     colors: () => primaryColors,
     series: () => [],
     aspectRatio: 1,
+    fit: false,
     axisPointerType: 'x',
     maxWidth: undefined,
     title: undefined,
@@ -95,6 +97,7 @@ const option = computed<EChartsOption>(
 <template>
   <unit-chart
     :aspect-ratio="aspectRatio"
+    :fit="fit"
     :legend-side="props.series.length > 2"
     :max-width="maxWidth"
     :option="option"

@@ -323,11 +323,11 @@ function correlatedBivariate(
         </aside>
 
         <section class="tool-chart-col">
-          <div class="mat-focus">
+          <div class="mat-focus tool-fit-primary">
             <h2 class="tool-chart-h">{{ $t('tools.brace_fragility.univariate_fragilities') }}</h2>
-            <unit-chart :aspect-ratio="2" :option="univariateOptions[option]" x-unit="rad" />
+            <unit-chart fit :aspect-ratio="2" :option="univariateOptions[option]" x-unit="rad" />
           </div>
-          <div class="tool-card">
+          <div class="tool-card tool-fit-scroll">
             <div class="tool-card-h">
               {{ $t('tools.brace_fragility.multivariate_fragilities') }}
             </div>

@@ -232,9 +232,9 @@ function thumbOption(option: EChartsOption, active: boolean): EChartsOption {
         </aside>
 
         <section class="tool-chart-col">
-          <div class="mat-focus">
+          <div class="mat-focus tool-fit-primary">
             <h2 class="tool-chart-h">{{ activePanel.title }}</h2>
-            <unit-chart :aspect-ratio="2.2" :option="activePanel.option" x-unit="rad" />
+            <unit-chart fit :aspect-ratio="2.2" :option="activePanel.option" x-unit="rad" />
           </div>
           <div class="mat-thumbs frag-thumbs">
             <button
