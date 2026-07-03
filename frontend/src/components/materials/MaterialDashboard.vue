@@ -103,22 +103,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     <template #charts>
       <div class="charts-strip">
         <chart-cell
-          quiet
-          :title="$t('dashboards.material.chart_steel_type')"
-          :hint="$t('dashboards.common.hint_click_to_filter')"
-          :field="MaterialField.Type"
-          :searches="searches"
-          @change:searches="changeSearches"
-        >
-          <material-single-chart
-            :color="plum"
-            :field="MaterialField.Type"
-            :show-reset="false"
-            flat
-            @change:searches="changeSearches"
-          />
-        </chart-cell>
-        <chart-cell
           :title="$t('dashboards.material.chart_coupons_per_year_profile')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
           :field="profileFields"
@@ -143,6 +127,22 @@ const railGroups = computed<FilterRailGroup[]>(() => [
             :color="apricot"
             :fields="profileThicknessFields"
             type="bar"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.material.chart_steel_type')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="MaterialField.Type"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <material-single-chart
+            :color="plum"
+            :field="MaterialField.Type"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
           />
         </chart-cell>

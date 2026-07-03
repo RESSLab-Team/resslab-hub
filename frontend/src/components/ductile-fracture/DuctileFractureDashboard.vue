@@ -136,6 +136,20 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     <template #charts>
       <div class="charts-strip">
         <chart-cell
+          :title="$t('dashboards.ductile_fracture.chart_tests_per_year')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="dateSpecimenFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <ductile-fracture-double-chart
+            :color="apricot"
+            :fields="dateSpecimenFields"
+            type="bar"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+        <chart-cell
           quiet
           :title="$t('dashboards.ductile_fracture.chart_specimen_type')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
@@ -164,20 +178,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
             :field="DuctileFractureField.SteelType"
             :show-reset="false"
             flat
-            @change:searches="changeSearches"
-          />
-        </chart-cell>
-        <chart-cell
-          :title="$t('dashboards.ductile_fracture.chart_tests_per_year')"
-          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
-          :field="dateSpecimenFields"
-          :searches="searches"
-          @change:searches="changeSearches"
-        >
-          <ductile-fracture-double-chart
-            :color="apricot"
-            :fields="dateSpecimenFields"
-            type="bar"
             @change:searches="changeSearches"
           />
         </chart-cell>

@@ -119,22 +119,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     <template #charts>
       <div class="charts-strip">
         <chart-cell
-          quiet
-          :title="$t('dashboards.tensile_coupon.chart_steel_grade')"
-          :hint="$t('dashboards.common.hint_click_to_filter')"
-          :field="TensileCouponField.SteelGrade"
-          :searches="searches"
-          @change:searches="changeSearches"
-        >
-          <tensile-coupon-single-chart
-            :color="sky"
-            :field="TensileCouponField.SteelGrade"
-            :show-reset="false"
-            flat
-            @change:searches="changeSearches"
-          />
-        </chart-cell>
-        <chart-cell
           :title="$t('dashboards.tensile_coupon.chart_coupons_per_year_profile')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
           :field="profileYearFields"
@@ -159,6 +143,22 @@ const railGroups = computed<FilterRailGroup[]>(() => [
             :color="mauve"
             :fields="profileThicknessFields"
             type="bar"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.tensile_coupon.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="TensileCouponField.SteelGrade"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <tensile-coupon-single-chart
+            :color="sky"
+            :field="TensileCouponField.SteelGrade"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
           />
         </chart-cell>

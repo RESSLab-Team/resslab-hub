@@ -116,22 +116,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     <template #charts>
       <div class="charts-strip">
         <chart-cell
-          quiet
-          :title="$t('dashboards.column.chart_steel_grade')"
-          :hint="$t('dashboards.common.hint_click_to_filter')"
-          :field="ColumnField.SteelC"
-          :searches="searches"
-          @change:searches="changeSearches"
-        >
-          <column-single-chart
-            :color="plum"
-            :field="ColumnField.SteelC"
-            :show-reset="false"
-            flat
-            @change:searches="changeSearches"
-          />
-        </chart-cell>
-        <chart-cell
           :title="$t('dashboards.column.chart_tests_per_year_bc')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
           :field="boundaryConditionFields"
@@ -155,6 +139,22 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <column-double-chart
             :color="cobalt"
             :fields="columnDepthFields"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.column.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="ColumnField.SteelC"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <column-single-chart
+            :color="plum"
+            :field="ColumnField.SteelC"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
           />
         </chart-cell>

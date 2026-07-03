@@ -94,6 +94,20 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     <template #charts>
       <div class="charts-strip">
         <chart-cell
+          :title="$t('dashboards.brace.chart_tests_per_year_bc')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="boundaryConditionFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <brace-double-chart
+            :color="sky"
+            :fields="boundaryConditionFields"
+            type="line"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+        <chart-cell
           quiet
           :title="$t('dashboards.brace.chart_loading_protocol')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
@@ -122,20 +136,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
             :field="BraceField.Steel"
             :show-reset="false"
             flat
-            @change:searches="changeSearches"
-          />
-        </chart-cell>
-        <chart-cell
-          :title="$t('dashboards.brace.chart_tests_per_year_bc')"
-          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
-          :field="boundaryConditionFields"
-          :searches="searches"
-          @change:searches="changeSearches"
-        >
-          <brace-double-chart
-            :color="sky"
-            :fields="boundaryConditionFields"
-            type="line"
             @change:searches="changeSearches"
           />
         </chart-cell>

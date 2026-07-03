@@ -104,22 +104,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     <template #charts>
       <div class="charts-strip">
         <chart-cell
-          quiet
-          :title="$t('dashboards.residual.chart_steel_grade')"
-          :hint="$t('dashboards.common.hint_click_to_filter')"
-          :field="ResidualStressField.Steel"
-          :searches="searches"
-          @change:searches="changeSearches"
-        >
-          <residual-single-chart
-            :color="cobalt"
-            :field="ResidualStressField.Steel"
-            :show-reset="false"
-            flat
-            @change:searches="changeSearches"
-          />
-        </chart-cell>
-        <chart-cell
           :title="$t('dashboards.residual.chart_specimens_per_year_profile')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
           :field="profileFields"
@@ -144,6 +128,22 @@ const railGroups = computed<FilterRailGroup[]>(() => [
             :color="yellowgreen"
             :fields="[ResidualStressField.H, ResidualStressField.ProfileType]"
             type="bar"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.residual.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="ResidualStressField.Steel"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <residual-single-chart
+            :color="cobalt"
+            :field="ResidualStressField.Steel"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
           />
         </chart-cell>

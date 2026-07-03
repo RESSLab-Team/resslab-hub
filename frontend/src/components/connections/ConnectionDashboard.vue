@@ -195,6 +195,20 @@ const railGroups = computed<FilterRailGroup[]>(() => [
       <!-- Row 1: distributions -->
       <div class="charts-strip">
         <chart-cell
+          :title="$t('dashboards.connection.chart_tests_per_year_type')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="typeYearFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <connection-double-chart
+            :color="periwinkle"
+            :fields="typeYearFields"
+            type="line"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+        <chart-cell
           quiet
           :title="$t('dashboards.connection.chart_connection_type')"
           :hint="$t('dashboards.common.hint_click_tile_to_filter')"
@@ -223,20 +237,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
             :field="ConnectionField.SteelB"
             :show-reset="false"
             flat
-            @change:searches="changeSearches"
-          />
-        </chart-cell>
-        <chart-cell
-          :title="$t('dashboards.connection.chart_tests_per_year_type')"
-          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
-          :field="typeYearFields"
-          :searches="searches"
-          @change:searches="changeSearches"
-        >
-          <connection-double-chart
-            :color="periwinkle"
-            :fields="typeYearFields"
-            type="line"
             @change:searches="changeSearches"
           />
         </chart-cell>
