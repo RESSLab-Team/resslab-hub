@@ -133,20 +133,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           />
         </chart-cell>
         <chart-cell
-          :title="$t('dashboards.hss.chart_tests_per_year_failure_mode')"
-          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
-          :field="failureModeFields"
-          :searches="searches"
-          @change:searches="changeSearches"
-        >
-          <hss-double-chart
-            :color="periwinkle"
-            :fields="failureModeFields"
-            type="line"
-            @change:searches="changeSearches"
-          />
-        </chart-cell>
-        <chart-cell
           quiet
           :title="$t('dashboards.hss.chart_steel_grade')"
           :hint="$t('dashboards.common.hint_click_to_filter')"
@@ -159,6 +145,20 @@ const railGroups = computed<FilterRailGroup[]>(() => [
             :field="HSSColumnField.SteelType"
             :show-reset="false"
             flat
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+        <chart-cell
+          :title="$t('dashboards.hss.chart_tests_per_year_failure_mode')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="failureModeFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <hss-double-chart
+            :color="periwinkle"
+            :fields="failureModeFields"
+            type="line"
             @change:searches="changeSearches"
           />
         </chart-cell>
