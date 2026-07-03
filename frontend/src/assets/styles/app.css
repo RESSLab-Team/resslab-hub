@@ -1292,31 +1292,39 @@ body.theme-dark .logos img {
   border-color: var(--epfl-red);
 }
 
-/* Charts strip */
-.charts-strip {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+/* Charts strip: flex (not grid), so cell width follows content rather than a
+   fixed column ratio. A distribution/date brush (DoubleChart) needs real room
+   for the brush + legend to read — below ~450px it wraps to its own line
+   rather than cramping — while a treemap tile (SingleChart) is comfortable
+   narrower. Flex-wrap grows per line, so a cell left alone on a line (wrapped,
+   or the odd one out) stretches to fill it instead of leaving a void. */
+.charts-strip,
+.charts-strip-2cols,
+.charts-strip-1col {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
 }
-.charts-strip-2cols {
-  grid-template-columns: 1fr 1fr;
-}
-.charts-strip-1col {
-  grid-template-columns: 1fr;
-}
 .chart-cell {
+  flex: 1 1 260px;
+  min-width: 260px;
   padding: 18px 22px 16px;
   border-right: 1px solid var(--border);
   min-height: 220px;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  /* Each cell is a fixed-size box (min-height above + grid track width), so
+  /* Each cell is a fixed-size box (min-height above + flex-basis width), so
      contain its layout: a chart re-rendering on a filter change can't reflow its
      sibling cells or the rest of the page. */
   contain: layout;
+}
+/* Charts with a distribution/date brush (DoubleChart) claim a wider, more
+   growable share so the brush never cramps under ~450px. */
+.chart-cell:has(.double-chart__canvas) {
+  flex: 2 1 450px;
+  min-width: 450px;
 }
 .chart-cell:last-child {
   border-right: 0;
@@ -1369,6 +1377,24 @@ body.theme-dark .logos img {
 .chart-body {
   flex: 1;
   min-height: 0;
+}
+/* Single (treemap) tiles: fill the cell's full height instead of sitting at
+   their min-height with blank space below — the double/parallel charts size
+   themselves (aspect-ratio / explicit px height) so are left alone here. */
+.chart-cell .v-card:has(.single-chart__canvas) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.chart-cell .v-card:has(.single-chart__canvas) .v-card-text {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.chart-cell .single-chart__canvas {
+  flex: 1;
+  min-height: 100px;
 }
 
 /* Toolbar row: global search + filters trigger (design handoff dash-toolbar) */
@@ -2044,15 +2070,6 @@ a.cd-publication-ref:hover {
   .cat-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .charts-strip {
-    grid-template-columns: 1fr 1fr;
-  }
-  .charts-strip-2cols {
-    grid-template-columns: 1fr 1fr;
-  }
-  .charts-strip-1col {
-    grid-template-columns: 1fr;
-  }
   .split-7-5 {
     grid-template-columns: 1fr;
   }
@@ -2109,12 +2126,9 @@ a.cd-publication-ref:hover {
   .dash-table {
     padding: 0 8px 16px;
   }
-  .charts-strip,
-  .charts-strip-2cols,
-  .charts-strip-1col {
-    grid-template-columns: 1fr !important;
-  }
   .chart-cell {
+    flex-basis: 100% !important;
+    min-width: 0 !important;
     border-right: 0;
     border-bottom: 1px solid var(--border-subtle);
   }
