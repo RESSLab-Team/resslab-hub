@@ -114,7 +114,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <residual-single-chart
             :color="cobalt"
             :field="ResidualStressField.Steel"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -130,7 +129,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <residual-double-chart
             :color="peach"
             :fields="profileFields"
-            :query="query"
             type="line"
             @change:searches="changeSearches"
           />
@@ -145,7 +143,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <residual-double-chart
             :color="yellowgreen"
             :fields="[ResidualStressField.H, ResidualStressField.ProfileType]"
-            :query="query"
             type="bar"
             @change:searches="changeSearches"
           />
@@ -157,7 +154,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <residual-parallel-chart
             :color="cobalt"
             :fields="parallelFields"
-            :query="query"
             @change:searches="changeSearches"
           />
         </chart-cell>

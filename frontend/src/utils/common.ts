@@ -43,8 +43,17 @@ export interface HSSSection {
   h: number
 }
 
+// URL-sync coalescing (router.replace churn during typing) — see useDashboard.
+// Not on the data path any more.
 export const debounceAPITime = 80
-export const debounceAPIParameters = { leading: false, trailing: true }
+// Data-path wait: every dashboard computes results in-browser now, so there is
+// no request to sit on — 0 keeps lodash-debounce's burst coalescing (calls in
+// the same tick still fold into leading + one trailing) with no timer lag.
+export const debounceDataTime = 0
+// Fire on the LEADING edge: the first filter action of a burst runs immediately
+// (instant feel) instead of waiting out the window, while a rapid burst still
+// coalesces to leading + one trailing.
+export const debounceAPIParameters = { leading: true, trailing: true }
 
 /**
  * Share the current view URL (filters round-trip through the router query):

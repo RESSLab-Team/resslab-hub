@@ -35,6 +35,10 @@ const props = withDefaults(
     labelPrefix?: string
     requestFields: F[]
     isFiltered: boolean
+    // Local (in-browser) filtering is instant, so disable ECharts animation
+    // entirely — the enter/update/exit transitions otherwise read as a load and
+    // cost frames on every filter tick.
+    animate?: boolean
   }>(),
   {
     color: () => primaryColor,
@@ -43,6 +47,7 @@ const props = withDefaults(
     counts: () => [],
     ids: () => [],
     labelPrefix: '',
+    animate: true,
     requestFields: () => []
   }
 )
@@ -83,6 +88,7 @@ const chartHeight = computed(() => {
 })
 
 const option = computed<EChartsOption>(() => ({
+  animation: props.animate,
   parallel: {
     left: 60,
     top: 40,

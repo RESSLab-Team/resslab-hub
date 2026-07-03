@@ -3,6 +3,8 @@ import { ConnectionField, type ConnectionModel } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { CONNECTION_KEY, fetchConnections } from '@/components/connections/data'
 import { connectionsApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { publicPath } from '@/utils/common'
@@ -74,10 +76,16 @@ interface Emits extends TableEmits<ConnectionModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<ConnectionModel>(
+  CONNECTION_KEY,
+  fetchConnections
+)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -117,11 +125,11 @@ const {
       getCsv: (id) => connectionsApi.getConnectionsPanelZonesCsv(id)
     }
   ],
-  () => connectionsApi.getConnectionsCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    connectionsApi.getConnections(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => connectionsApi.getConnectionsCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 
 function getImageSource(item: string): string {
@@ -137,6 +145,9 @@ function getImageSource(item: string): string {
     :columns="columns"
     hide-filter-only
     hide-toolbar
+    instant
+    :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
     :loading="loading"
     prefix="connection."

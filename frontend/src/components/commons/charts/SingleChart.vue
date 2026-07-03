@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { initOptions, updateOptions } from '@/components/commons/charts/utils'
 import type { Count } from '@/composables/chart'
+import { subscribeCrossfilter } from '@/composables/crossfilterBus'
+import { useEChart } from '@/composables/useEChart'
 import i18n from '@/plugins/i18n'
 import type { Value } from '@/utils/common'
 import { getColorPalette, primaryColor, type Color } from '@/utils/vuetify'
@@ -8,13 +9,12 @@ import type { EChartsOption } from 'echarts'
 import { TreemapChart } from 'echarts/charts'
 import { TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
-import { SVGRenderer } from 'echarts/renderers'
+import { CanvasRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
-import { computed } from 'vue'
-import VChart from 'vue-echarts'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import ResetChartButton from '@/components/commons/ResetChartButton.vue'
 
-use([SVGRenderer, TreemapChart, TooltipComponent])
+use([CanvasRenderer, TreemapChart, TooltipComponent])
 
 const props = withDefaults(
   defineProps<{
@@ -25,14 +25,24 @@ const props = withDefaults(
     flat?: boolean
     mapping?: Map<string, string>
     showReset?: boolean
+    // Local (in-browser) filtering is instant, so disable ECharts animation
+    // entirely — the enter/update/exit transitions otherwise read as a load and
+    // cost frames on every filter tick.
+    animate?: boolean
+    // Client-side (crossfilter) mode: when provided, a brush drag anywhere on the
+    // dashboard repaints this treemap live from the in-memory dataset via the bus,
+    // off Vue's reactivity. Omitted ⇒ updates only via reactive `counts`.
+    liveCounts?: (query?: string) => Count[]
   }>(),
   {
     color: () => primaryColor,
     counts: () => [],
     flat: false,
     showReset: true,
+    animate: true,
     mapping: () => new Map<string, string>(),
-    labelPrefix: ''
+    labelPrefix: '',
+    liveCounts: undefined
   }
 )
 const emit = defineEmits<{
@@ -49,36 +59,84 @@ const reverseMapping = computed(() => {
   return reverse
 })
 
-const option = computed<EChartsOption>(() => ({
-  tooltip: {
-    trigger: 'item',
-    confine: true
+// Plain builder shared by the reactive path and the imperative bus frames.
+function buildOption(countsData: Count[]): EChartsOption {
+  return {
+    animation: props.animate,
+    tooltip: {
+      trigger: 'item',
+      confine: true
+    },
+    series: [
+      {
+        type: 'treemap',
+        // Treemap layout transitions ignore the root `animation` flag in ECharts
+        // 5.4, so disable animation on the series itself for instant local filters.
+        animation: props.animate,
+        id: props.field,
+        name: i18n.global.t(props.labelPrefix + props.field).toString(),
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        data: countsData.map((count) => {
+          const label = props.mapping.get(count.name) ?? count.name
+          return {
+            name: label,
+            value: count.value,
+            originalName: count.name
+          }
+        }),
+        breadcrumb: {
+          show: false
+        },
+        roam: false
+      }
+    ],
+    color: getColorPalette(props.color, countsData.length)
+  }
+}
+const option = computed<EChartsOption>(() => buildOption(props.counts))
+
+// Imperative renderer (off Vue's vnode graph); see useEChart / crossfilterBus.
+const chartEl = ref<HTMLElement>()
+const { render } = useEChart(chartEl, () => option.value, { click, mouseover, mouseout })
+
+// A filter change repaints via setOption, skipped while a drag is frozen so a
+// stale reactive frame can't overwrite the live one. A skipped frame is replayed
+// on settle (see onSettle) so a mid-drag commit is never lost.
+let frozen = false
+let skippedWhileFrozen = false
+watch(option, (value) => {
+  if (frozen) {
+    skippedWhileFrozen = true
+    return
+  }
+  render(value)
+})
+
+// Live crossfilter: every chart repaints from the in-memory dataset during a drag,
+// then reconciles on settle. No-op in server mode (no liveCounts).
+let lastLiveCounts: Count[] | null = null
+const unsubscribe = subscribeCrossfilter({
+  onLive: (liveQuery) => {
+    if (!props.liveCounts) return
+    frozen = true
+    lastLiveCounts = props.liveCounts(liveQuery)
+    render(buildOption(lastLiveCounts))
   },
-  series: [
-    {
-      type: 'treemap',
-      id: props.field,
-      name: i18n.global.t(props.labelPrefix + props.field).toString(),
-      left: 0,
-      top: 0,
-      right: 0,
-      bottom: 0,
-      data: props.counts.map((count) => {
-        const label = props.mapping.get(count.name) ?? count.name
-        return {
-          name: label,
-          value: count.value,
-          originalName: count.name
-        }
-      }),
-      breadcrumb: {
-        show: false
-      },
-      roam: false
-    }
-  ],
-  color: getColorPalette(props.color, props.counts.length)
-}))
+  onSettle: () => {
+    if (!props.liveCounts) return
+    frozen = false
+    // Repaint the last drag frame (visually identical to the commit that follows,
+    // so no flicker back to the pre-drag state) — unless a reactive update landed
+    // mid-drag and was skipped: then the committed option is the newer truth.
+    render(skippedWhileFrozen ? option.value : buildOption(lastLiveCounts ?? props.counts))
+    skippedWhileFrozen = false
+    lastLiveCounts = null
+  }
+})
+onUnmounted(unsubscribe)
 
 function click(params: CallbackDataParams): void {
   if (params.seriesId) {
@@ -90,6 +148,13 @@ function click(params: CallbackDataParams): void {
 
     emit('change:searches', params.seriesId as string, valueToEmit)
   }
+}
+
+function mouseover(params: CallbackDataParams): void {
+  emit('mouseover', params)
+}
+function mouseout(): void {
+  emit('mouseout')
 }
 
 function changeSearches(key: string, value?: Value) {
@@ -109,23 +174,20 @@ function changeSearches(key: string, value?: Value) {
       />
     </v-card-title>
     <v-card-text :class="[flat ? 'pa-0' : '']">
-      <v-responsive min-height="100">
-        <v-chart
-          autoresize
-          :init-options="initOptions"
-          :option="option"
-          :update-options="updateOptions"
-          @click="click"
-          @mouseover="emit('mouseover', $event)"
-          @mouseout="emit('mouseout')"
-        />
-      </v-responsive>
+      <!-- Plain div, CSS-sized; ECharts mounted imperatively (useEChart). -->
+      <div ref="chartEl" class="single-chart__canvas" />
       <slot></slot>
     </v-card-text>
   </v-card>
 </template>
 
 <style scoped>
+/* Matches the old <v-responsive min-height="100">: the treemap fills this box,
+   kept sized by ResizeObserver in useEChart. */
+.single-chart__canvas {
+  width: 100%;
+  min-height: 100px;
+}
 /* Chart title → card-title role (matches ChartCell's .chart-head h5), so a
    standalone chart card reads the same as a dashboard-strip chart. */
 :deep(.v-card-title) {

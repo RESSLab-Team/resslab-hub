@@ -1,26 +1,33 @@
 <script setup lang="ts">
-import { HSSColumnField } from '@/backend'
+import { HSSColumnField, type HSSColumnModel } from '@/backend'
 import SimpleParallelChart from '@/components/commons/charts/SimpleParallelChart.vue'
 import { parallelChartProps, useParallelChart, type ChartEmits } from '@/composables/chart'
-import { hssApi } from '@/plugins/axios'
-import { toRef } from 'vue'
+import { dashboardQueryKey } from '@/composables/dashboard'
+import { useDataset } from '@/composables/useDataset'
+import { HSS_KEY, fetchHsss } from '@/components/hss/data'
+import { inject, toRef } from 'vue'
 
 const props = defineProps(parallelChartProps<HSSColumnField>())
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
+// query via inject (not prop) so a filter change doesn't re-render this chart.
+const query = inject(dashboardQueryKey, toRef(props, 'query'))
+const { getMatrix, matrixSync } = useDataset<HSSColumnModel>(HSS_KEY, fetchHsss)
 const { changeSearches, data, ids, requestFields, isFiltered } = useParallelChart<HSSColumnField>(
   emit,
   HSSColumnField.Id,
   props.fields,
-  toRef(props, 'query'),
-  (fields, query) => hssApi.getHssColumnsMatrix(fields, query)
+  query,
+  getMatrix,
+  matrixSync // live crossfilter drag frames (see useParallelChart)
 )
 </script>
 
 <template>
   <simple-parallel-chart
+    :animate="false"
     :color="color"
     :data="data"
     :fields="fields"

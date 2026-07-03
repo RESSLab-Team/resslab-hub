@@ -1,27 +1,37 @@
 <script setup lang="ts">
-import { DuctileFractureField } from '@/backend'
+import { DuctileFractureField, type DuctileFractureModel } from '@/backend'
 import SimpleParallelChart from '@/components/commons/charts/SimpleParallelChart.vue'
 import { parallelChartProps, useParallelChart, type ChartEmits } from '@/composables/chart'
-import { ductileFractureApi } from '@/plugins/axios'
-import { toRef } from 'vue'
+import { dashboardQueryKey } from '@/composables/dashboard'
+import { useDataset } from '@/composables/useDataset'
+import { DUCTILE_FRACTURE_KEY, fetchDuctileFractures } from '@/components/ductile-fracture/data'
+import { inject, toRef } from 'vue'
 
 const props = defineProps(parallelChartProps<DuctileFractureField>())
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
+// query via inject (not prop) so a filter change doesn't re-render this chart.
+const query = inject(dashboardQueryKey, toRef(props, 'query'))
+const { getMatrix, matrixSync } = useDataset<DuctileFractureModel>(
+  DUCTILE_FRACTURE_KEY,
+  fetchDuctileFractures
+)
 const { changeSearches, data, ids, requestFields, isFiltered } =
   useParallelChart<DuctileFractureField>(
     emit,
     DuctileFractureField.Id,
     props.fields,
-    toRef(props, 'query'),
-    (fields, query) => ductileFractureApi.getDuctileFracturesMatrix(fields, query)
+    query,
+    getMatrix,
+    matrixSync // live crossfilter drag frames (see useParallelChart)
   )
 </script>
 
 <template>
   <simple-parallel-chart
+    :animate="false"
     :color="color"
     :data="data"
     :fields="fields"

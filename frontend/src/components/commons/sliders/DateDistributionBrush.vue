@@ -26,6 +26,7 @@ const props = withDefaults(
 )
 const emit = defineEmits<{
   (e: 'update:modelValue', value: [string, string]): void
+  (e: 'dragend'): void
 }>()
 
 const minNumber = computed(() => mapDateToNumber(props.min))
@@ -49,6 +50,7 @@ const rangeNumber = computed<[number, number] | undefined>({
     :series="series"
     :step="1"
     :type="type"
+    @dragend="$emit('dragend')"
     @update:model-value="rangeNumber = $event"
   />
 </template>

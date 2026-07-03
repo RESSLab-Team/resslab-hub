@@ -3,6 +3,8 @@ import { EccentricBracedFrameField, type EccentricBracedFrameModel } from '@/bac
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { EBF_KEY, fetchEbfs } from '@/components/ebf/data'
 import { ebfApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { toRef } from 'vue'
@@ -51,10 +53,16 @@ interface Emits extends TableEmits<EccentricBracedFrameModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<EccentricBracedFrameModel>(
+  EBF_KEY,
+  fetchEbfs
+)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -74,11 +82,11 @@ const {
       getCsv: (id) => ebfApi.getEccentricBracedFramesShearLinkAngleCsv(id)
     }
   ],
-  () => ebfApi.getEccentricBracedFramesCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    ebfApi.getEccentricBracedFrames(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => ebfApi.getEccentricBracedFramesCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 </script>
 
@@ -89,7 +97,10 @@ const {
     v-model:searches="searches"
     :columns="columns"
     hide-toolbar
+    :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
+    instant
     :loading="loading"
     prefix="ebf."
     :query="query"

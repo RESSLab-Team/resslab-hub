@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CountModel } from '@/backend'
-import { initOptions, measureTextWidth, updateOptions } from '@/components/commons/charts/utils'
+import { measureTextWidth } from '@/components/commons/charts/utils'
+import { useEChart } from '@/composables/useEChart'
 import DateDistributionBrush from '@/components/commons/sliders/DateDistributionBrush.vue'
 import DistributionBrush, {
   type BrushSeries
@@ -22,14 +23,16 @@ import {
   TooltipComponent
 } from 'echarts/components'
 import { use } from 'echarts/core'
-import { SVGRenderer } from 'echarts/renderers'
+import { CanvasRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { chain, clone, range } from 'lodash'
-import { computed, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
-import VChart from 'vue-echarts'
+import { isBrushDragging } from '@/composables/interactionState'
+import { publishLive, publishSettle, subscribeCrossfilter } from '@/composables/crossfilterBus'
+import { dashboardQueryKey, queryFieldSeparator, queryKeyValueSeparator } from '@/composables/dashboard'
+import { computed, inject, onBeforeUnmount, onMounted, onUnmounted, ref, unref, watch } from 'vue'
 
 use([
-  SVGRenderer,
+  CanvasRenderer,
   BarChart,
   LineChart,
   GridComponent,
@@ -53,6 +56,16 @@ const props = withDefaults(
     numberMax?: number
     numberRange?: [number, number]
     type?: 'bar' | 'line'
+    // Local (in-browser) filtering is instant, so disable ECharts animation
+    // entirely — the enter/update/exit transitions otherwise read as a load and
+    // cost frames on every filter tick.
+    animate?: boolean
+    // Client-side (crossfilter) mode. When provided, a brush drag drives every
+    // chart imperatively from the in-memory dataset via the crossfilter bus —
+    // Vue's `query`/`searches` (and thus the table) stay put until pointer-up.
+    // Omitted ⇒ server-side mode: the current reactive path (freeze via the
+    // global drag flag, counts arrive over the network). See crossfilterBus.ts.
+    liveCounts?: (query?: string) => CountModel[]
   }>(),
   {
     color: () => primaryColor,
@@ -65,7 +78,9 @@ const props = withDefaults(
     numberMin: undefined,
     numberMax: undefined,
     numberRange: undefined,
-    type: 'bar'
+    animate: true,
+    type: 'bar',
+    liveCounts: undefined
   }
 )
 const emit = defineEmits<{
@@ -90,6 +105,18 @@ onMounted(() => {
 })
 onBeforeUnmount(() => resizeObserver?.disconnect())
 
+// The committed dashboard query (provide/inject, not a prop — see dashboardQueryKey).
+// Frozen for the duration of a drag: in crossfilter mode we don't commit to it
+// until pointer-up, so the table and everything reactive stay put.
+const query = inject(dashboardQueryKey, ref<string | undefined>(undefined))
+
+// Freeze flag for the value axis. In crossfilter mode it's a plain (non-reactive)
+// let driven by the bus, so flipping it never triggers a Vue re-render — the drag
+// stays entirely off the scheduler. In server mode we fall back to the global drag
+// flag (the reactive path still drives those charts). See isFrozen().
+let frozen = false
+const isFrozen = () => (props.liveCounts ? frozen : isBrushDragging.value)
+
 const roundedMin = computed<number>(() => Math.floor(props.numberMin ?? 0))
 const roundedMax = computed<number>(() => Math.ceil(props.numberMax ?? 0))
 
@@ -100,7 +127,7 @@ const roundedMax = computed<number>(() => Math.ceil(props.numberMax ?? 0))
 // editable numeric fields, 84px for the wider date labels.
 const brushFlank = computed<number>(() => (props.dateMin && props.dateMax ? 94 : 50))
 
-const actualnNumberRange = computed({
+const actualNumberRange = computed({
   get: () => {
     if (props.numberRange !== undefined) return props.numberRange
     else if (props.numberMin !== undefined && props.numberMax !== undefined)
@@ -145,25 +172,29 @@ const mapSecondName = computed<(name: string) => string>(() => {
     return (name) => secondField.mapping.get(name) ?? name
   }
 })
-const firstKeys = computed<string[]>(() =>
-  chain(props.counts)
+// While a brush is being dragged, derive the x categories/bins from the
+// *unfiltered* distribution so the x axis stays static; the bar heights still
+// come from the (live) filtered counts, so the bars shrink against a fixed axis.
+// Reverts to the filtered set — and rescales — on release.
+function deriveFirstKeys(countsData: CountModel[]): string[] {
+  return chain(isFrozen() ? props.allCounts : countsData)
     .map((count) => count.names[0])
     .uniq()
     .sort()
     .value()
-)
+}
 // Index counts by (first, second) once per recompute so each grid cell is an
 // O(1) lookup — getCount was scanning all counts with a deep isEqual per cell
 // (≈ O(firstKeys × secondKeys × counts)). The \u0001 separator cannot appear in
 // a category name, so composite keys never collide.
-const countByKey = computed<Map<string, number>>(() => {
+function buildCountMap(countsData: CountModel[]): Map<string, number> {
   const map = new Map<string, number>()
-  for (const count of props.counts) {
+  for (const count of countsData) {
     map.set(`${count.names[0]}\u0001${count.names[1]}`, count.value)
   }
   return map
-})
-const isHistogram = computed<boolean>(() => actualnNumberRange.value !== undefined)
+}
+const isHistogram = computed<boolean>(() => actualNumberRange.value !== undefined)
 // The brush overview replicates the main chart's stacked series — same category
 // order, same palette colours (getColorPalette), same counting — but built from
 // the stable unfiltered allCounts so it never collapses as filters apply. When
@@ -245,8 +276,45 @@ const numberExtent = computed<[number, number]>(() => {
   const { min, max } = numberBins.value
   return min !== undefined && max !== undefined ? [min, max] : [roundedMin.value, roundedMax.value]
 })
-const option = computed<EChartsOption>(() => {
-  const secondKeys: string[] = chain(props.counts)
+
+// Ceiling for the pinned axis: the value the *unfiltered* distribution would
+// reach, computed the same way each chart type stacks so it never clips. Any
+// filtered subset is ≤ this, so pinning here is safe; ×1.05 mimics the headroom
+// ECharts' auto axis leaves, so freezing from an unfiltered view barely moves.
+const unfilteredYMax = computed<number | undefined>(() => {
+  if (!props.allCounts.length) return undefined
+  let rawMax: number
+  if (props.type === 'line') {
+    // Cumulative stacked line: the top-right point is the grand total.
+    rawMax = props.allCounts.reduce((sum, count) => sum + count.value, 0)
+  } else if (isHistogram.value) {
+    // Binned stacked bars: sum the (unfiltered) brush series per bin.
+    const series = props.dateMin && props.dateMax ? dateSeries.value : numberSeries.value
+    const perBin = new Map<number, number>()
+    for (const serie of series) {
+      for (const [x, value] of serie.data) {
+        perBin.set(x, (perBin.get(x) ?? 0) + (typeof value === 'number' ? value : 0))
+      }
+    }
+    rawMax = perBin.size ? Math.max(...perBin.values()) : 0
+  } else {
+    // Plain category bars: sum the series stacked on each category.
+    const perCategory = new Map<string, number>()
+    for (const count of props.allCounts) {
+      perCategory.set(count.names[0], (perCategory.get(count.names[0]) ?? 0) + count.value)
+    }
+    rawMax = perCategory.size ? Math.max(...perCategory.values()) : 0
+  }
+  return rawMax > 0 ? Math.ceil(rawMax * 1.05) : undefined
+})
+// Build the full ECharts option from a given counts array. Kept a plain function
+// (not a closure over props.counts) so it serves two callers with the same code:
+// the reactive `option` computed (normal filter changes) and the crossfilter bus
+// (live drag frames, built imperatively from the in-memory dataset).
+function buildOption(countsData: CountModel[]): EChartsOption {
+  const firstKeysValue = deriveFirstKeys(countsData)
+  const countMap = buildCountMap(countsData)
+  const secondKeys: string[] = chain(countsData)
     .groupBy((count) => count.names[1])
     .map((values, key) => ({
       key: key,
@@ -280,6 +348,7 @@ const option = computed<EChartsOption>(() => {
   // container has been measured, or when the group is wider than the chart.
   const groupLeft = Math.max(8, Math.round((chartWidth.value - groupWidth) / 2))
   const option: EChartsOption = {
+    animation: props.animate,
     title: {
       text: titleText,
       // fontWeight/family/colour come from the theme (normal weight); only the
@@ -330,7 +399,10 @@ const option = computed<EChartsOption>(() => {
     },
     yAxis: {
       type: 'value',
-      minInterval: 1
+      minInterval: 1,
+      // Freeze the scale while a brush is being dragged so the bars move against a
+      // fixed axis; undefined lets ECharts auto-fit again on release.
+      max: isFrozen() ? unfilteredYMax.value : undefined
     },
     tooltip: {
       trigger: 'axis',
@@ -339,7 +411,7 @@ const option = computed<EChartsOption>(() => {
       },
       confine: true
     },
-    series: getSerie(secondKeys).map((serie) => ({
+    series: getSerie(secondKeys, firstKeysValue, countMap).map((serie) => ({
       id: serie.name,
       name: mapSecondNameValue(serie.name),
       type: props.type,
@@ -354,47 +426,123 @@ const option = computed<EChartsOption>(() => {
     color: getColorPalette(props.color, secondKeys.length)
   }
   return option
+}
+// Reactive option for the normal (non-drag) path: tile clicks, rail filters, and
+// the pointer-up commit all flow through here.
+const option = computed<EChartsOption>(() => buildOption(props.counts))
+
+// Imperative renderer. The option is NOT bound as a reactive <v-chart :option>;
+// instead we push updates via `render`, so a filter tick repaints the canvas
+// without re-rendering this component's vnodes.
+const chartEl = ref<HTMLElement>()
+const { render } = useEChart(chartEl, () => option.value, { click })
+
+// Reactive renders (commit / tile click / rail), skipped while a drag is frozen —
+// during a drag the bus is authoritative, so we mustn't let a stale reactive frame
+// (old counts, unfrozen axis) overwrite the live one. A skipped frame is replayed
+// on settle (see onSettle) so a mid-drag commit is never lost.
+let skippedWhileFrozen = false
+watch(option, (value) => {
+  if (frozen) {
+    skippedWhileFrozen = true
+    return
+  }
+  render(value)
 })
 
-watch(actualnNumberRange, (value) => {
-  let searchValue: string | undefined
-  if (value && !isNaN(value[0]) && !isNaN(value[1])) {
-    searchValue = `${value[0]}<<${value[1]}`
-  } else {
-    searchValue = undefined
+// ── Crossfilter: drive every chart imperatively during a drag ────────────────
+// Only the dragged chart's brush changes its range, so only it publishes; every
+// chart (this one included) subscribes and repaints from the in-memory dataset.
+let lastLiveCounts: CountModel[] | null = null
+const unsubscribe = subscribeCrossfilter({
+  onLive: (liveQuery) => {
+    if (!props.liveCounts) return // server mode: reactive path handles the drag
+    frozen = true
+    lastLiveCounts = props.liveCounts(liveQuery)
+    render(buildOption(lastLiveCounts))
+  },
+  onSettle: () => {
+    if (!props.liveCounts) return
+    frozen = false
+    // Repaint the last drag frame with the axis unfrozen; the reactive commit then
+    // reconciles to the exact committed counts (usually an identical frame). If a
+    // reactive update landed mid-drag and was skipped, replay the committed option
+    // instead — it is the newer truth.
+    render(skippedWhileFrozen ? option.value : buildOption(lastLiveCounts ?? props.counts))
+    skippedWhileFrozen = false
+    lastLiveCounts = null
   }
-  //if the window covers the full extent (bin edges), there's no search value
+})
+onUnmounted(unsubscribe)
+
+// Build the `field:value` clause for the dragged range and splice it into the
+// committed query (replacing any prior clause for this field), so a live frame
+// filters by the current drag *plus* every already-applied filter.
+function withFieldClause(field: string, value?: string): string | undefined {
+  const base = query.value ? query.value.split(queryFieldSeparator) : []
+  const clauses = base.filter((clause) => !clause.startsWith(field + queryKeyValueSeparator))
+  if (value) clauses.push(`${field}${queryKeyValueSeparator}${value}`)
+  return clauses.length ? clauses.join(queryFieldSeparator) : undefined
+}
+
+function numberSearchValue(value?: [number, number]): string | undefined {
+  if (!value || isNaN(value[0]) || isNaN(value[1])) return undefined
+  // A window covering the full extent (bin edges) means "no filter".
   if (props.numberMin !== undefined && props.numberMax !== undefined) {
     const [min, max] = numberExtent.value
-    if (value && value[0] === min && value[1] === max) {
-      searchValue = undefined
-    }
+    if (value[0] === min && value[1] === max) return undefined
   }
-  emit('change:searches', props.fields[0], searchValue)
+  return `${value[0]}<<${value[1]}`
+}
+function dateSearchValue(value?: [string, string]): string | undefined {
+  if (!value) return undefined
+  if (props.dateMin !== undefined && props.dateMax !== undefined) {
+    if (value[0] === props.dateMin && value[1] === props.dateMax) return undefined
+  }
+  return `${value[0]}<<${value[1]}`
+}
+
+// During a crossfilter drag, publish the live query to the bus (no commit → the
+// table stays put). Otherwise (server mode, number-field edits) commit reactively.
+watch(actualNumberRange, (value) => {
+  const searchValue = numberSearchValue(value)
+  if (isBrushDragging.value && props.liveCounts) {
+    publishLive(withFieldClause(props.fields[0], searchValue))
+  } else {
+    emit('change:searches', props.fields[0], searchValue)
+  }
 })
 watch(actualDateRange, (value) => {
-  let searchValue: string | undefined
-  if (value) {
-    searchValue = `${value[0]}<<${value[1]}`
+  const searchValue = dateSearchValue(value)
+  if (isBrushDragging.value && props.liveCounts) {
+    publishLive(withFieldClause(props.fields[0], searchValue))
   } else {
-    searchValue = undefined
+    emit('change:searches', props.fields[0], searchValue)
   }
-
-  //if search value equals to min/max value, then there's no search value
-  if (props.dateMin !== undefined && props.dateMax !== undefined) {
-    if (value && value[0] === props.dateMin && value[1] === props.dateMax) {
-      searchValue = undefined
-    }
-  }
-
-  emit('change:searches', props.fields[0], searchValue)
 })
 
-function getSerie(secondKeys: string[]): {
+// Pointer-up: commit the final range through Vue (updating the table and the rest,
+// once) and settle the bus so every chart unfreezes. Fires regardless of whether
+// the final value changed, so charts can never get stuck frozen.
+function onNumberDragEnd(): void {
+  emit('change:searches', props.fields[0], numberSearchValue(actualNumberRange.value))
+  publishSettle()
+}
+function onDateDragEnd(): void {
+  emit('change:searches', props.fields[0], dateSearchValue(actualDateRange.value))
+  publishSettle()
+}
+
+function getSerie(
+  secondKeys: string[],
+  firstKeysValue: string[],
+  countMap: Map<string, number>
+): {
   name: string
   data: (string | number)[][]
 }[] {
-  const firstKeysValue = unref(firstKeys)
+  const getCount = (firstKey: string, secondKey: string): number | undefined =>
+    countMap.get(`${firstKey}\u0001${secondKey}`)
   if (isHistogram.value) {
     if (props.type === 'line') {
       return secondKeys.map((secondKey) => {
@@ -437,9 +585,6 @@ function getSerie(secondKeys: string[]): {
     }))
   }
 }
-function getCount(firstKey: string, secondKey: string): number | undefined {
-  return countByKey.value.get(`${firstKey}\u0001${secondKey}`)
-}
 function click(params: CallbackDataParams): void {
   if (props.type === 'bar') {
     if (isHistogram.value) {
@@ -455,18 +600,12 @@ function click(params: CallbackDataParams): void {
 
 <template>
   <div ref="rootEl">
-    <v-responsive aspect-ratio="2.5" min-height="200">
-      <v-chart
-        autoresize
-        :init-options="initOptions"
-        :option="option"
-        :update-options="updateOptions"
-        @click="click"
-      />
-    </v-responsive>
+    <!-- Plain div, sized by CSS; ECharts is mounted imperatively (useEChart) so
+         filter ticks repaint the canvas without a Vue re-render of this tile. -->
+    <div ref="chartEl" class="double-chart__canvas" />
     <distribution-brush
       v-if="numberMin && numberMax"
-      v-model="actualnNumberRange"
+      v-model="actualNumberRange"
       class="chart-brush"
       :series="numberSeries"
       :step="1"
@@ -474,6 +613,7 @@ function click(params: CallbackDataParams): void {
       :max="roundedMax"
       :bin-edges="numberBins.edges"
       :type="type"
+      @dragend="onNumberDragEnd"
     />
     <date-distribution-brush
       v-if="dateMin && dateMax"
@@ -483,6 +623,7 @@ function click(params: CallbackDataParams): void {
       :min="dateMin"
       :max="dateMax"
       :type="type"
+      @dragend="onDateDragEnd"
     />
   </div>
 </template>
@@ -492,5 +633,13 @@ function click(params: CallbackDataParams): void {
    bottom edge) and the distribution brush, so the two never touch. */
 .chart-brush {
   margin-top: 8px;
+}
+
+/* Match the old <v-responsive aspect-ratio="2.5" min-height="200">. The canvas
+   fills this box; ResizeObserver in useEChart keeps ECharts sized to it. */
+.double-chart__canvas {
+  width: 100%;
+  aspect-ratio: 2.5;
+  min-height: 200px;
 }
 </style>

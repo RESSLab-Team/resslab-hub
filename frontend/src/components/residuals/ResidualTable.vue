@@ -2,6 +2,8 @@
 import { ResidualStressField, type ResidualStressModel } from '@/backend'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { RESIDUAL_KEY, fetchResiduals } from '@/components/residuals/data'
 import { residualsApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { formatNumber } from '@/utils/formatter'
@@ -40,10 +42,16 @@ interface Emits extends TableEmits<ResidualStressModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<ResidualStressModel>(
+  RESIDUAL_KEY,
+  fetchResiduals
+)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -73,11 +81,11 @@ const {
       getCsv: (id) => residualsApi.getResidualStressesDistributionW1Csv(id)
     }
   ],
-  () => residualsApi.getResidualStressesCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    residualsApi.getResidualStresses(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => residualsApi.getResidualStressesCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 </script>
 
@@ -88,7 +96,10 @@ const {
     v-model:searches="searches"
     :columns="columns"
     hide-toolbar
+    :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
+    instant
     :loading="loading"
     prefix="residual."
     :query="query"

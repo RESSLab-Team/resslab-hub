@@ -3,6 +3,8 @@ import { HSSColumnField, type HSSColumnModel } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { HSS_KEY, fetchHsss } from '@/components/hss/data'
 import { hssApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { toRef } from 'vue'
@@ -41,10 +43,16 @@ interface Emits extends TableEmits<HSSColumnModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<HSSColumnModel>(
+  HSS_KEY,
+  fetchHsss
+)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -64,11 +72,11 @@ const {
       getCsv: (id) => hssApi.getHssColumnsMomentRotationCsv(id)
     }
   ],
-  () => hssApi.getHssColumnsCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    hssApi.getHssColumns(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => hssApi.getHssColumnsCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 </script>
 
@@ -80,6 +88,9 @@ const {
     :columns="columns"
     hide-toolbar
     :items="items"
+    :live-count="liveCount"
+    :live-items="liveItems"
+    instant
     :loading="loading"
     prefix="hss."
     :query="query"

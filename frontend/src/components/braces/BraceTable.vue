@@ -3,6 +3,8 @@ import { BraceField, type BraceModel } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { BRACE_KEY, fetchBraces } from '@/components/braces/data'
 import { bracesApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { toRef } from 'vue'
@@ -40,10 +42,13 @@ interface Emits extends TableEmits<BraceModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<BraceModel>(BRACE_KEY, fetchBraces)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -63,10 +68,11 @@ const {
       getCsv: (id) => bracesApi.getBracesDisplacementCsv(id)
     }
   ],
-  () => bracesApi.getBracesCounts(),
-  (query, sortBy, sortDesc, page, size) => bracesApi.getBraces(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => bracesApi.getBracesCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 </script>
 
@@ -77,7 +83,10 @@ const {
     v-model:searches="searches"
     :columns="columns"
     hide-toolbar
+    :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
+    instant
     :loading="loading"
     prefix="brace."
     :query="query"

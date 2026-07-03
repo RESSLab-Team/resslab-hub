@@ -1,14 +1,38 @@
 <script setup lang="ts">
-import { DuctileFractureField, DuctileFractureNumberField } from '@/backend'
+import {
+  DuctileFractureField,
+  DuctileFractureNumberField,
+  type CountModel,
+  type DuctileFractureModel
+} from '@/backend'
 import DoubleChart from '@/components/commons/charts/DoubleChart.vue'
-import { doubleChartProps, useDoubleChart, type ChartEmits } from '@/composables/chart'
-import { ductileFractureApi } from '@/plugins/axios'
-import { toRef } from 'vue'
+import {
+  doubleChartProps,
+  getRequestFields,
+  useDoubleChart,
+  type ChartEmits
+} from '@/composables/chart'
+import { dashboardQueryKey } from '@/composables/dashboard'
+import { useDataset } from '@/composables/useDataset'
+import { DUCTILE_FRACTURE_KEY, fetchDuctileFractures } from '@/components/ductile-fracture/data'
+import { inject, toRef } from 'vue'
 
 const props = defineProps(doubleChartProps<DuctileFractureField>())
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
+
+// query via inject (not prop) so a filter change doesn't re-render this chart.
+const query = inject(dashboardQueryKey, toRef(props, 'query'))
+const { getCounts, countsSync, getRange } = useDataset<DuctileFractureModel>(
+  DUCTILE_FRACTURE_KEY,
+  fetchDuctileFractures
+)
+
+// Synchronous counts for the crossfilter drag path — bound to this chart's request
+// fields so DoubleChart can repaint imperatively (off Vue's reactivity) mid-drag.
+const getLiveCounts = (liveQuery?: string): CountModel[] =>
+  countsSync(getRequestFields(props.fields), liveQuery)
 
 const {
   counts,
@@ -23,11 +47,11 @@ const {
 } = useDoubleChart<DuctileFractureField, DuctileFractureNumberField>(
   emit,
   props.fields,
-  toRef(props, 'query'),
-  (fields, query) => ductileFractureApi.getDuctileFracturesCounts(fields, query),
+  query,
+  getCounts,
   {
     field: DuctileFractureNumberField,
-    getRange: (field) => ductileFractureApi.getDuctileFracturesRange(field)
+    getRange
   }
 )
 </script>
@@ -36,7 +60,9 @@ const {
   <double-chart
     v-model:date-range="dateRange"
     v-model:number-range="numberRange"
+    :animate="false"
     :all-counts="allCounts"
+    :live-counts="getLiveCounts"
     :color="color"
     :counts="counts"
     :date-max="dateMax"

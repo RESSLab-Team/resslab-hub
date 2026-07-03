@@ -2,6 +2,8 @@
 import { TensileCouponField, type TensileCouponModel } from '@/backend'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { TENSILE_COUPON_KEY, fetchTensileCoupons } from '@/components/tensile-coupons/data'
 import { tensileCouponApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { toRef } from 'vue'
@@ -36,10 +38,16 @@ interface Emits extends TableEmits<TensileCouponModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<TensileCouponModel>(
+  TENSILE_COUPON_KEY,
+  fetchTensileCoupons
+)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -59,11 +67,11 @@ const {
       getCsv: (id) => tensileCouponApi.getTensileCouponsStressStrainCsv(id)
     }
   ],
-  () => tensileCouponApi.getTensileCouponsCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    tensileCouponApi.getTensileCoupons(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => tensileCouponApi.getTensileCouponsCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 </script>
 
@@ -74,7 +82,10 @@ const {
     v-model:searches="searches"
     :columns="columns"
     hide-toolbar
+    :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
+    instant
     :loading="loading"
     prefix="tensile_coupon."
     :query="query"

@@ -3,6 +3,12 @@ import type { SetOptionOpts } from 'echarts'
 export const initOptions: InitOptions = {
   renderer: 'svg'
 }
+// Canvas for charts that re-render on every filter tick (dashboard SingleChart /
+// DoubleChart): canvas repaints far cheaper than SVG's DOM diffing, and nothing
+// exports these as SVG. Static views (UnitChart, model/fragility) keep crisp SVG.
+export const canvasInitOptions: InitOptions = {
+  renderer: 'canvas'
+}
 // Diff-merge each filter update instead of tearing down and re-instantiating the
 // whole chart (notMerge:true was a full rebuild every tick). Merge animates the
 // change as a cheap *update*; replaceMerge:['series'] drops series whose ids

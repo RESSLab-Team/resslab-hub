@@ -78,6 +78,17 @@ const beamFields: DoubleFields<ConnectionField> = [
   }
 ]
 
+// Hoisted to stable references so the double-charts that consume them don't get
+// a fresh array prop (and thus re-render) on every dashboard re-render.
+const typeYearFields: [ConnectionField, ConnectionField] = [
+  ConnectionField.Date,
+  ConnectionField.ConnectionType
+]
+const columnDoublerFields: [ConnectionField, ConnectionField] = [
+  ConnectionField.DC,
+  ConnectionField.NDp
+]
+
 const railGroups = computed<FilterRailGroup[]>(() => [
   {
     key: ConnectionField.ConnectionType,
@@ -194,7 +205,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <connection-single-chart
             :color="peach"
             :field="ConnectionField.ConnectionType"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -203,14 +213,13 @@ const railGroups = computed<FilterRailGroup[]>(() => [
         <chart-cell
           :title="$t('dashboards.connection.chart_tests_per_year_type')"
           :hint="$t('dashboards.common.hint_click_legend_to_filter')"
-          :field="[ConnectionField.Date, ConnectionField.ConnectionType]"
+          :field="typeYearFields"
           :searches="searches"
           @change:searches="changeSearches"
         >
           <connection-double-chart
             :color="periwinkle"
-            :fields="[ConnectionField.Date, ConnectionField.ConnectionType]"
-            :query="query"
+            :fields="typeYearFields"
             type="line"
             @change:searches="changeSearches"
           />
@@ -226,7 +235,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <connection-single-chart
             :color="cobalt"
             :field="ConnectionField.SteelB"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -246,21 +254,19 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <connection-double-chart
             :color="sky"
             :fields="beamFields"
-            :query="query"
             @change:searches="changeSearches"
           />
         </chart-cell>
         <chart-cell
           :title="$t('dashboards.connection.chart_column_depth_doubler_plates')"
           :hint="$t('dashboards.common.hint_stacked_histogram')"
-          :field="[ConnectionField.DC, ConnectionField.NDp]"
+          :field="columnDoublerFields"
           :searches="searches"
           @change:searches="changeSearches"
         >
           <connection-double-chart
             :color="plum"
-            :fields="[ConnectionField.DC, ConnectionField.NDp]"
-            :query="query"
+            :fields="columnDoublerFields"
             @change:searches="changeSearches"
           />
         </chart-cell>
@@ -272,7 +278,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <connection-parallel-chart
             :color="periwinkle"
             :fields="parallelFields"
-            :query="query"
             @change:searches="changeSearches"
           />
         </chart-cell>

@@ -113,7 +113,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <material-single-chart
             :color="plum"
             :field="MaterialField.Type"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -129,7 +128,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <material-double-chart
             :color="periwinkle"
             :fields="profileFields"
-            :query="query"
             type="line"
             @change:searches="changeSearches"
           />
@@ -144,7 +142,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <material-double-chart
             :color="apricot"
             :fields="profileThicknessFields"
-            :query="query"
             type="bar"
             @change:searches="changeSearches"
           />
@@ -156,7 +153,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <material-parallel-chart
             :color="plum"
             :fields="parallelFields"
-            :query="query"
             @change:searches="changeSearches"
           />
         </chart-cell>

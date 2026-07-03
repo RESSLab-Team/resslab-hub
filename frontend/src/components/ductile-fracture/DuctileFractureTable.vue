@@ -2,6 +2,8 @@
 import { DuctileFractureField, type DuctileFractureModel } from '@/backend'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { DUCTILE_FRACTURE_KEY, fetchDuctileFractures } from '@/components/ductile-fracture/data'
 import { ductileFractureApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { displayLoading } from '@/utils/ductile_fracture'
@@ -42,10 +44,16 @@ interface Emits extends TableEmits<DuctileFractureModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<DuctileFractureModel>(
+  DUCTILE_FRACTURE_KEY,
+  fetchDuctileFractures
+)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -95,11 +103,11 @@ const {
       getCsv: (id) => ductileFractureApi.getDuctileFracturesTriaxSimulationCsv(id)
     }
   ],
-  () => ductileFractureApi.getDuctileFracturesCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    ductileFractureApi.getDuctileFractures(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => ductileFractureApi.getDuctileFracturesCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 </script>
 
@@ -110,7 +118,10 @@ const {
     v-model:searches="searches"
     :columns="columns"
     hide-toolbar
+    :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
+    instant
     :loading="loading"
     prefix="ductile_fracture."
     :query="query"

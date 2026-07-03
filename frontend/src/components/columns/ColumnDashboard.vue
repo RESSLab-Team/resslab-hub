@@ -126,7 +126,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <column-single-chart
             :color="plum"
             :field="ColumnField.SteelC"
-            :query="query"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -142,7 +141,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <column-double-chart
             :color="mint"
             :fields="boundaryConditionFields"
-            :query="query"
             type="line"
             @change:searches="changeSearches"
           />
@@ -157,7 +155,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <column-double-chart
             :color="cobalt"
             :fields="columnDepthFields"
-            :query="query"
             @change:searches="changeSearches"
           />
         </chart-cell>
@@ -168,7 +165,6 @@ const railGroups = computed<FilterRailGroup[]>(() => [
           <column-parallel-chart
             :color="mint"
             :fields="parallelFields"
-            :query="query"
             @change:searches="changeSearches"
           />
         </chart-cell>
