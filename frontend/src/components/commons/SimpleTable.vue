@@ -121,14 +121,17 @@ const sortBy = ref<{ key: string; order: 'asc' | 'desc' }>()
 // brush is being dragged, otherwise the reactive page from the server/dataset.
 const displayItems = computed<M[]>(() => props.liveItems ?? props.items)
 
-// Keep the loading bar on screen for a minimum time so a very fast fetch reads as
-// a deliberate reload rather than a flicker. Matches the 1s march below so an
-// immediate fetch still shows one full traversal (the bar reaches the far edge)
-// before fading. Once it shows it stays at least MIN_LOADING_MS even if `loading`
-// already went false; a new fetch in the meantime cancels the timer and persists.
+// The loading bar only appears if the fetch outlives SHOW_DELAY_MS — a load
+// served from cache (browser HTTP cache, or the in-memory dataset cache on SPA
+// back-navigation) resolves faster than that and must not flash a bar at all.
+// Once shown it stays at least MIN_LOADING_MS (one full 1s march below, so the
+// bar reaches the far edge before fading) even if `loading` already went false;
+// a new fetch in the meantime cancels the hide timer and persists the bar.
+const SHOW_DELAY_MS = 150
 const MIN_LOADING_MS = 1000
 const showLoading = ref<boolean>(false)
 let loadingShownAt = 0
+let showLoadingTimer: ReturnType<typeof setTimeout> | undefined
 let hideLoadingTimer: ReturnType<typeof setTimeout> | undefined
 // Instant (in-browser) tables fetch the whole dataset once, then filter locally.
 // The loading bar should still mark that initial fetch, but the synchronous filter
@@ -144,11 +147,19 @@ watch(
         clearTimeout(hideLoadingTimer)
         hideLoadingTimer = undefined
       }
-      if (!showLoading.value) {
-        showLoading.value = true
-        loadingShownAt = Date.now()
+      if (!showLoading.value && !showLoadingTimer) {
+        showLoadingTimer = setTimeout(() => {
+          showLoadingTimer = undefined
+          showLoading.value = true
+          loadingShownAt = Date.now()
+        }, SHOW_DELAY_MS)
       }
     } else {
+      // Load finished before the bar appeared: a cache hit — never show it.
+      if (showLoadingTimer) {
+        clearTimeout(showLoadingTimer)
+        showLoadingTimer = undefined
+      }
       // A load just finished (true → false): the initial fetch is done, so
       // instant tables suppress the bar from here on.
       if (wasLoading) initialLoadDone = true
@@ -199,6 +210,7 @@ onMounted(() => {
   }
 })
 onUnmounted(() => {
+  if (showLoadingTimer) clearTimeout(showLoadingTimer)
   if (hideLoadingTimer) clearTimeout(hideLoadingTimer)
   headObserver?.disconnect()
 })
