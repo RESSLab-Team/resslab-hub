@@ -19,7 +19,7 @@
 // Exported so components can measure text in the exact font ECharts renders
 // (e.g. laying the legend out inline after a title — see DoubleChart.vue).
 export const SANS = "'Suisse Int\\'l', 'SuisseIntl', Arial, 'Helvetica Neue', Helvetica, sans-serif"
-const MONO = "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace"
+export const MONO = "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace"
 
 const AXIS = '#c1c1c1' // hairline axis line
 const GRID = '#ececec' // very light gridline
