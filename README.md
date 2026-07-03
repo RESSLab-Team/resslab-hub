@@ -13,9 +13,8 @@ Prerequisites:
 
 - [uv](https://docs.astral.sh/uv/) (manages Python automatically)
 - [Make](https://www.gnu.org/software/make/)
-- [Node.js](https://nodejs.org/) 16.x
-- [Docker](https://www.docker.com/)
-  - [Docker Compose](https://docs.docker.com/compose/) 1.27.0+
+- [Node.js](https://nodejs.org/) ≥ 18 (CI uses the current LTS)
+- [Docker](https://www.docker.com/) with the [Compose v2 plugin](https://docs.docker.com/compose/)
 
 ### Secrets
 
