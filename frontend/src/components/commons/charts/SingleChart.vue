@@ -208,19 +208,33 @@ function changeSearches(key: string, value?: Value) {
       />
     </v-card-title>
     <v-card-text :class="[flat ? 'pa-0' : '']">
-      <!-- Plain div, CSS-sized; ECharts mounted imperatively (useEChart). -->
-      <div ref="chartEl" class="single-chart__canvas" />
+      <!-- The frame is the sized box; the canvas fills it absolutely so ECharts
+           mounted imperatively (useEChart) can't feed its own height back into
+           the layout — see the scoped styles for why. -->
+      <div class="single-chart__frame">
+        <div ref="chartEl" class="single-chart__canvas" />
+      </div>
       <slot></slot>
     </v-card-text>
   </v-card>
 </template>
 
 <style scoped>
-/* Matches the old <v-responsive min-height="100">: the treemap fills this box,
-   kept sized by ResizeObserver in useEChart. */
-.single-chart__canvas {
+/* The frame owns the height (it fills the flex cell, or falls back to its own
+   min-height when nothing stretches it); the canvas fills the frame absolutely.
+   Because the canvas is out of flow it never adds to the frame's content height,
+   so ECharts sizing its <canvas> to the container's clientHeight (via the
+   ResizeObserver in useEChart) can't ratchet the tile taller every tick — the
+   infinite-growth loop the old plain min-height div caused. Replaces the old
+   <v-responsive min-height="100">. */
+.single-chart__frame {
+  position: relative;
   width: 100%;
   min-height: 100px;
+}
+.single-chart__canvas {
+  position: absolute;
+  inset: 0;
 }
 /* Chart title → card-title role (matches ChartCell's .chart-head h5), so a
    standalone chart card reads the same as a dashboard-strip chart. */

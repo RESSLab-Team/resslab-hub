@@ -1392,7 +1392,7 @@ body.theme-dark .logos img {
   display: flex;
   flex-direction: column;
 }
-.chart-cell .single-chart__canvas {
+.chart-cell .single-chart__frame {
   flex: 1;
   min-height: 100px;
 }
