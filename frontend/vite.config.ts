@@ -15,7 +15,11 @@ function stripCookieConsentInDev() {
     name: 'strip-cookie-consent-dev',
     apply: 'serve' as const,
     transformIndexHtml(html: string) {
-      return html.replace(/^.*epfl-cookie-consent\.(css|js).*\n?/gm, '')
+      // Match the complete tags (the <link> spans several lines), not single
+      // lines, so a partial strip can't leave broken markup behind.
+      return html
+        .replace(/<link[^>]*epfl-cookie-consent\.css[\s\S]*?\/>\s*/g, '')
+        .replace(/<script[^>]*epfl-cookie-consent\.js[^>]*><\/script>\s*/g, '')
     }
   }
 }
@@ -105,15 +109,39 @@ export default defineConfig({
       // Home renders the overview map (lazily), so pre-bundle leaflet too.
       'leaflet',
       'leaflet.markercluster',
+      // Every other bare specifier imported under src/, including the echarts
+      // subpath imports and echarts-gl (3D fragility pages): folding them all
+      // into the one cold pass means no navigation can ever discover a dep
+      // mid-session and force a re-optimize + full reload. The .vite cache
+      // persists across restarts, so the cold pass is a one-time cost.
+      '@mdi/js',
+      '@stdlib/stats-base-dists-lognormal-cdf',
+      'colormap',
+      'd3-array',
+      'd3-scale',
+      'd3-selection',
+      'd3-shape',
+      'downloadjs',
+      'echarts/charts',
+      'echarts/components',
+      'echarts/core',
+      'echarts/renderers',
+      'echarts-gl/charts',
+      'echarts-gl/components',
+      'hex-rgb',
+      'vue-gtag',
       // Every Vuetify component the app uses — the main source of the reload
-      // cascade (see VUETIFY_COMPONENTS above). echarts-gl is intentionally left
-      // out: it's only on 3D-fragility pages and optimizes on demand there.
+      // cascade (see VUETIFY_COMPONENTS above).
       ...VUETIFY_COMPONENTS
     ]
   },
   server: {
     warmup: {
-      clientFiles: ['./src/main.ts', './src/App.vue', './src/views/HomeView.vue']
+      // Warm every route view; Vite transforms their whole import graphs in the
+      // background right after boot, so first navigation to any route is instant
+      // instead of paying an on-demand transform waterfall (incl. the 15k-line
+      // generated backend client).
+      clientFiles: ['./src/main.ts', './src/App.vue', './src/views/**/*.vue']
     }
   },
   build: {
