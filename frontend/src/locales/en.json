@@ -949,6 +949,14 @@
       "eyebrow": "Modeling tools",
       "blurb": "Beyond data: interactive backbone curves and fragility surfaces for direct use in nonlinear analyses."
     },
+    "gallery": {
+      "eyebrow": "From the lab",
+      "title": "Behind the data: full-scale testing at RESSLab.",
+      "credits": "Credits: {credit}",
+      "goTo": "Show photo {n}",
+      "previous": "Previous photo",
+      "next": "Next photo"
+    },
     "partners": {
       "eyebrow": "Partners & funding"
     }

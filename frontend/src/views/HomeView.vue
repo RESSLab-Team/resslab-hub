@@ -7,21 +7,12 @@ import type {
   MaterialField
 } from '@/backend'
 import EyebrowText from '@/components/commons/EyebrowText.vue'
+import PhotoCarousel from '@/components/home/PhotoCarousel.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
-import {
-  analyticsApi,
-  bracesApi,
-  columnsApi,
-  connectionsApi,
-  hssApi,
-  materialsApi,
-  residualsApi
-} from '@/plugins/axios'
 import { useCountsStore } from '@/stores/counts'
 import { publicPath } from '@/utils/common'
 import { DATABASES, TOOLS } from '@/utils/navigation'
 import { mdiArrowRight } from '@mdi/js'
-import { chain } from 'lodash'
 import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -31,6 +22,21 @@ const OverviewMap = defineAsyncComponent(() => import('@/components/map/Overview
 
 const { t } = useI18n({ useScope: 'global' })
 const countsStore = useCountsStore()
+
+// Lab photos + credits carried over from the pre-redesign home carousel.
+const galleryImages = [
+  'El Jisr and Lignos (2022)',
+  'Elkady and Lignos (2018)',
+  'Prof. Dimitrios Lignos, EPFL',
+  'Andronikos Skiadopoulos, EPFL',
+  'Suzuki and Lignos (2021)',
+  'Skiadopoulos and Lignos (2022)',
+  'Elkady and Lignos (2018)',
+  'Andronikos Skiadopoulos, EPFL'
+].map((credit, index) => ({
+  src: publicPath + `img/home/Photo${index + 1}.webp`,
+  credit
+}))
 const universityCount = ref<number | string>('…')
 const userCount = ref<number | string>('…')
 
@@ -44,8 +50,21 @@ const keyNumbers = computed(() => [
   { num: DATABASES.length, label: t('home.keyNumbers.databases') }
 ])
 
-onMounted(() => {
+onMounted(async () => {
   countsStore.fetch()
+
+  // The API client loads lazily, same as in stores/counts: a static import here
+  // would pull axios + the generated client into the home chunk ahead of the
+  // first paint, for numbers that only fill in after mount.
+  const {
+    analyticsApi,
+    bracesApi,
+    columnsApi,
+    connectionsApi,
+    hssApi,
+    materialsApi,
+    residualsApi
+  } = await import('@/plugins/axios')
 
   // Get university count
   const latLngFields: (BraceField &
@@ -61,12 +80,9 @@ onMounted(() => {
     residualsApi.getResidualStressesCounts(latLngFields),
     hssApi.getHssColumnsCounts(latLngFields)
   ])
-    .then((responses) =>
-      chain(responses)
-        .flatMap((response) => response.data)
-        .uniqBy((count) => count.names)
-        .size()
-        .value()
+    .then(
+      (responses) =>
+        new Set(responses.flatMap((response) => response.data.map((c) => c.names))).size
     )
     .then((count) => {
       universityCount.value = count
@@ -108,7 +124,17 @@ onMounted(() => {
         </div>
       </div>
       <div class="hero-img">
-        <video autoplay loop muted playsinline preload="auto">
+        <!-- The poster paints the hero immediately; preload=metadata keeps the
+             ~1 MB video from competing with the critical CSS/JS/font downloads
+             (autoplay still starts the full fetch right after mount). -->
+        <video
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="metadata"
+          :poster="publicPath + 'video/steel-mrf-front-page-poster.webp'"
+        >
           <source :src="publicPath + 'video/steel-mrf-front-page.mp4'" type="video/mp4" />
         </video>
         <div class="hero-img-credit">RESSLab, EPFL</div>
@@ -202,6 +228,17 @@ onMounted(() => {
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- From the lab -->
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow"><eyebrow-text :text="t('home.gallery.eyebrow')" /></div>
+          <h2 class="section-title">{{ t('home.gallery.title') }}</h2>
+        </div>
+      </div>
+      <photo-carousel :images="galleryImages" />
     </section>
 
     <!-- Partners -->

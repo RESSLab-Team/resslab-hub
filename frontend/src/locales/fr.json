@@ -949,6 +949,14 @@
       "eyebrow": "Outils de modélisation",
       "blurb": "Au-delà des données : courbes enveloppes et surfaces de fragilité interactives, prêtes à l'emploi dans les analyses non linéaires."
     },
+    "gallery": {
+      "eyebrow": "Depuis le laboratoire",
+      "title": "Derrière les données : des essais à grande échelle au RESSLab.",
+      "credits": "Crédits : {credit}",
+      "goTo": "Afficher la photo {n}",
+      "previous": "Photo précédente",
+      "next": "Photo suivante"
+    },
     "partners": {
       "eyebrow": "Partenaires et financement"
     }
