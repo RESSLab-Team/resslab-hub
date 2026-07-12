@@ -8,7 +8,7 @@ import materialParameters from '@/assets/material/parameter-material-list.csv'
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import PageHeader from '@/components/commons/PageHeader.vue'
+import ToolShell from '@/components/commons/ToolShell.vue'
 import type { Variable } from '@/utils/model'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
 import ToolSelect from '@/components/commons/tools/ToolSelect.vue'
@@ -175,15 +175,21 @@ watch(
   },
   { immediate: true }
 )
+
+const paramCount = computed(() =>
+  variableGroups.value.reduce((n, group) => n + group.keys.length, 0)
+)
 </script>
 
 <template>
-  <div class="tool-page">
-    <page-header
-      :eyebrow="$t('tools.common.model_eyebrow')"
-      :title="$t('tools.material_model.title')"
-    >
-      <template #actions><unit-toggle /></template>
+  <tool-shell
+    :eyebrow="$t('tools.common.model_eyebrow')"
+    :title="$t('tools.material_model.title')"
+    :param-count="paramCount"
+    stage-class="stage-d"
+  >
+    <template #actions><unit-toggle /></template>
+    <template #intro>
       <i18n-t keypath="tools.material_model.intro" tag="span" scope="global">
         <template #hartloper>
           <a
@@ -200,64 +206,62 @@ watch(
           >
         </template>
       </i18n-t>
-    </page-header>
+    </template>
 
-    <div class="tool-shell">
-      <div class="mat-a">
-        <section class="tool-panel">
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.material_model.select_steel_material') }}
-              <info-tooltip>{{
-                $t('tools.material_model.select_steel_material_help')
-              }}</info-tooltip>
-            </div>
-            <tool-select v-model="selectedSteel" :items="materialOptions" />
-            <div class="mat-a-groups">
-              <div v-for="group in variableGroups" :key="group.name" class="tool-param-group">
-                <div class="tool-param-group-h">{{ group.name }}</div>
-                <tool-slider
-                  v-for="key in group.keys"
-                  :key="key"
-                  v-model="variables[key]"
-                  :label="variableByKey(key).text"
-                  :max="variableByKey(key).max"
-                  :min="variableByKey(key).min"
-                  :unit="variableByKey(key).unit"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="mat-focus-col">
-          <div class="mat-focus">
-            <div class="mat-chart-h">{{ focusTitle }}</div>
-            <unit-line-chart
-              :aspect-ratio="2"
-              :series="[styledSeries(focus, true)]"
-              x-axis-name="ε"
-              y-axis-name="σ"
-              y-unit="MPa"
+    <template #rail>
+      <div class="tool-card">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.material_model.select_steel_material') }}
+          <info-tooltip>{{ $t('tools.material_model.select_steel_material_help') }}</info-tooltip>
+        </div>
+        <tool-select v-model="selectedSteel" :items="materialOptions" />
+        <div class="mat-a-groups">
+          <div v-for="group in variableGroups" :key="group.name" class="tool-param-group">
+            <div class="tool-param-group-h">{{ group.name }}</div>
+            <tool-slider
+              v-for="key in group.keys"
+              :key="key"
+              v-model="variables[key]"
+              :label="variableByKey(key).text"
+              :max="variableByKey(key).max"
+              :min="variableByKey(key).min"
+              :unit="variableByKey(key).unit"
             />
           </div>
-          <div class="mat-thumbs">
-            <button
-              v-for="item in charts"
-              :key="item.id"
-              class="mat-thumb"
-              :class="{ 'is-active': focus === item.id }"
-              type="button"
-              @click="focus = item.id"
-            >
-              <div class="mat-thumb-chart">
-                <unit-chart :aspect-ratio="1.9" :option="thumbOption(item.id, focus === item.id)" />
-              </div>
-              <span class="mat-thumb-label">{{ item.title }}</span>
-            </button>
-          </div>
-        </section>
+        </div>
       </div>
-    </div>
-  </div>
+    </template>
+
+    <template #stage>
+      <div class="st-block st-chart">
+        <div class="chart-cap">
+          <h2 class="chart-h">{{ focusTitle }}</h2>
+        </div>
+        <div class="tchart h-chart">
+          <unit-line-chart
+            fill
+            :series="[styledSeries(focus, true)]"
+            x-axis-name="ε"
+            y-axis-name="σ"
+            y-unit="MPa"
+          />
+        </div>
+        <div class="mat-thumbs">
+          <button
+            v-for="item in charts"
+            :key="item.id"
+            class="mat-thumb"
+            :class="{ 'is-active': focus === item.id }"
+            type="button"
+            @click="focus = item.id"
+          >
+            <div class="mat-thumb-chart">
+              <unit-chart :aspect-ratio="1.9" :option="thumbOption(item.id, focus === item.id)" />
+            </div>
+            <span class="mat-thumb-label">{{ item.title }}</span>
+          </button>
+        </div>
+      </div>
+    </template>
+  </tool-shell>
 </template>

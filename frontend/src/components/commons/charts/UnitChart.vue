@@ -21,13 +21,18 @@ const props = withDefaults(
     aspectRatio?: number
     maxWidth?: number
     legendSide?: boolean
+    /** Fill the parent's height instead of sizing by aspect ratio.
+        Used by the Rail+Stage tool layout, where the containing block
+        sets an explicit height (.h-chart / grid cell) and ECharts tracks it. */
+    fill?: boolean
   }>(),
   {
     xUnit: undefined,
     yUnit: undefined,
     aspectRatio: 1,
     maxWidth: undefined,
-    legendSide: false
+    legendSide: false,
+    fill: false
   }
 )
 
@@ -144,7 +149,16 @@ const actualOption = computed<EChartsOption>(() => {
 </script>
 
 <template>
-  <v-responsive :aspect-ratio="aspectRatio" :max-width="maxWidth">
+  <div v-if="fill" class="uc-wrap uc-fill">
+    <v-chart
+      autoresize
+      :init-options="initOptions"
+      :option="actualOption"
+      :update-options="updateOptions"
+    />
+    <span v-if="showLegendRule" class="uc-legend-rule" />
+  </div>
+  <v-responsive v-else :aspect-ratio="aspectRatio" :max-width="maxWidth">
     <div class="uc-wrap">
       <v-chart
         autoresize
@@ -160,6 +174,15 @@ const actualOption = computed<EChartsOption>(() => {
 <style scoped>
 .uc-wrap {
   position: relative;
+  width: 100%;
+  height: 100%;
+}
+/* Fill mode: the wrapper takes the block's full height (no aspect-ratio box);
+   vue-echarts autoresize tracks the container. */
+.uc-fill {
+  min-height: 0;
+}
+.uc-fill > :deep(.echarts) {
   width: 100%;
   height: 100%;
 }

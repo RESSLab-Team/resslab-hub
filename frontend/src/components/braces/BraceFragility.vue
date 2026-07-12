@@ -1,8 +1,7 @@
 <script setup lang="ts">
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_braces
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import PageHeader from '@/components/commons/PageHeader.vue'
+import ToolShell from '@/components/commons/ToolShell.vue'
 import ToolSegmented from '@/components/commons/tools/ToolSegmented.vue'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
 import type { EChartsGlOption } from '@/utils/echarts-gl'
@@ -289,12 +288,13 @@ function correlatedBivariate(
 </script>
 
 <template>
-  <div class="tool-page">
-    <page-header
-      :eyebrow="$t('tools.common.fragility_eyebrow')"
-      :title="$t('tools.brace_fragility.title')"
-    >
-      <template #actions><unit-toggle /></template>
+  <tool-shell
+    :eyebrow="$t('tools.common.fragility_eyebrow')"
+    :title="$t('tools.brace_fragility.title')"
+    layout="parambar"
+  >
+    <template #actions><unit-toggle /></template>
+    <template #intro>
       <i18n-t keypath="tools.brace_fragility.intro" tag="span" scope="global">
         <template #reference>
           <a
@@ -304,44 +304,38 @@ function correlatedBivariate(
           >
         </template>
       </i18n-t>
-    </page-header>
-    <div class="tool-shell">
-      <div class="frag-a">
-        <aside class="tool-panel">
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.brace_fragility.cross_section') }}
-              <info-tooltip>{{ $t('tools.brace_fragility.cross_section_help') }}</info-tooltip>
-            </div>
-            <tool-segmented
-              full
-              :items="options"
-              :model-value="option"
-              @update:model-value="option = $event as Option"
-            />
-          </div>
-        </aside>
+    </template>
 
-        <section class="tool-chart-col">
-          <div class="mat-focus">
-            <h2 class="tool-chart-h">{{ $t('tools.brace_fragility.univariate_fragilities') }}</h2>
-            <unit-chart :aspect-ratio="2" :option="univariateOptions[option]" x-unit="rad" />
-          </div>
-          <div class="tool-card">
-            <div class="tool-card-h">
-              {{ $t('tools.brace_fragility.multivariate_fragilities') }}
-            </div>
-            <div class="tool-surface-grid">
-              <surface-gl-chart
-                v-for="(item, i) in multivariateOptions"
-                :key="i"
-                :aspect-ratio="1"
-                :option="item"
-              />
-            </div>
-          </div>
-        </section>
+    <template #parambar>
+      <div class="pb-group pb-seg">
+        <span class="pb-lbl">{{ $t('tools.brace_fragility.cross_section') }}</span>
+        <tool-segmented
+          full
+          :items="options"
+          :model-value="option"
+          @update:model-value="option = $event as Option"
+        />
       </div>
-    </div>
-  </div>
+    </template>
+
+    <template #stage>
+      <div class="st-chart">
+        <div class="chart-cap">
+          <h2 class="chart-h">{{ $t('tools.brace_fragility.univariate_fragilities') }}</h2>
+        </div>
+        <div class="tchart h-chart">
+          <unit-chart fill :option="univariateOptions[option]" x-unit="rad" />
+        </div>
+      </div>
+
+      <div class="e-surfaces-head">
+        <h3 class="chart-h">{{ $t('tools.brace_fragility.multivariate_fragilities') }}</h3>
+      </div>
+      <div class="st-surfaces">
+        <div v-for="(item, i) in multivariateOptions" :key="i" class="tchart h-surface">
+          <surface-gl-chart fill :option="item" />
+        </div>
+      </div>
+    </template>
+  </tool-shell>
 </template>

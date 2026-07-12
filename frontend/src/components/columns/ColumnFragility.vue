@@ -2,8 +2,7 @@
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_columns
 import LegendChart from '@/components/commons/charts/LegendChart.vue'
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import PageHeader from '@/components/commons/PageHeader.vue'
+import ToolShell from '@/components/commons/ToolShell.vue'
 import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
 import type { EChartsGlOption } from '@/utils/echarts-gl'
 import { univariateOption } from '@/utils/fragility'
@@ -266,11 +265,12 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
 </script>
 
 <template>
-  <div class="tool-page">
-    <page-header
-      :eyebrow="$t('tools.common.fragility_eyebrow')"
-      :title="$t('tools.column_fragility.title')"
-    >
+  <tool-shell
+    :eyebrow="$t('tools.common.fragility_eyebrow')"
+    :title="$t('tools.column_fragility.title')"
+    layout="parambar"
+  >
+    <template #intro>
       <i18n-t keypath="tools.column_fragility.intro" tag="span" scope="global">
         <template #reference>
           <a
@@ -280,51 +280,41 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
           >
         </template>
       </i18n-t>
-    </page-header>
-    <div class="tool-shell">
-      <div class="frag-a">
-        <aside class="tool-panel">
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.column_fragility.parameters') }}
-              <info-tooltip>
-                {{ $t('tools.column_fragility.parameters_help') }}
-              </info-tooltip>
-            </div>
-            <div v-for="item in parameters" :key="item.key" class="tfield">
-              <tool-slider
-                v-model="variables[item.key]"
-                :label="item.label"
-                :max="item.max"
-                :min="item.min"
-                :unit="item.unit"
-              />
-            </div>
-          </div>
-        </aside>
+    </template>
 
-        <section class="tool-chart-col">
-          <div class="mat-focus">
-            <h2 class="tool-chart-h">{{ $t('tools.column_fragility.fragility_curves') }}</h2>
-            <div class="tool-chart-legend">
-              <unit-chart :aspect-ratio="2" :option="variateOption" x-unit="rad" />
-              <legend-chart v-model="legendItems" :separators-index="[4]" />
-            </div>
-          </div>
-          <div class="tool-card">
-            <div class="tool-card-h">
-              {{ $t('tools.column_fragility.surface_fragility_curves') }}
-            </div>
-            <div class="tool-surface-grid">
-              <surface-gl-chart
-                v-for="(item, index) in surfaceOptions"
-                :key="index"
-                :option="item"
-              />
-            </div>
-          </div>
-        </section>
+    <template #parambar>
+      <div v-for="item in parameters" :key="item.key" class="pb-group pb-slider">
+        <tool-slider
+          v-model="variables[item.key]"
+          :label="item.label"
+          :max="item.max"
+          :min="item.min"
+          :unit="item.unit"
+        />
       </div>
-    </div>
-  </div>
+    </template>
+
+    <template #stage>
+      <div class="st-chart">
+        <div class="chart-cap">
+          <h2 class="chart-h">{{ $t('tools.column_fragility.fragility_curves') }}</h2>
+        </div>
+        <div class="curve-row">
+          <div class="tchart h-chart">
+            <unit-chart fill :option="variateOption" x-unit="rad" />
+          </div>
+          <legend-chart v-model="legendItems" :separators-index="[4]" />
+        </div>
+      </div>
+
+      <div class="e-surfaces-head">
+        <h3 class="chart-h">{{ $t('tools.column_fragility.surface_fragility_curves') }}</h3>
+      </div>
+      <div class="st-surfaces">
+        <div v-for="(item, index) in surfaceOptions" :key="index" class="tchart h-surface">
+          <surface-gl-chart fill :option="item" />
+        </div>
+      </div>
+    </template>
+  </tool-shell>
 </template>

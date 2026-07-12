@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import PageHeader from '@/components/commons/PageHeader.vue'
+import ToolShell from '@/components/commons/ToolShell.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
 import ToolSelect from '@/components/commons/tools/ToolSelect.vue'
 import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
@@ -296,126 +296,142 @@ function getCompressionOption(result: Result): EChartsOption {
     ]
   }
 }
+
+const paramCount = computed(
+  () =>
+    steelShapeDimensions.length + steelTypeVariables.length + additionalParameterVariables.length
+)
 </script>
 
 <template>
-  <div class="tool-page">
-    <disclaimer-component>
-      <template #title>{{ $t('tools.common.disclaimer_title') }}</template>
-      <i18n-t keypath="tools.common.disclaimer_text" tag="span" scope="global">
-        <template #link>
-          <a
-            href="https://github.com/RESSLab-Team/resslab-hub/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-            >{{ $t('tools.common.disclaimer_link') }}</a
-          >
-        </template>
-      </i18n-t>
-    </disclaimer-component>
-    <page-header :eyebrow="$t('tools.common.model_eyebrow')" :title="$t('tools.brace_model.title')">
-      <template #actions><unit-toggle /></template>
-      {{ $t('tools.brace_model.intro') }}
-    </page-header>
-    <div class="tool-shell">
-      <div class="frag-a">
-        <aside class="tool-panel">
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.brace_model.cross_section_type') }}
-              <info-tooltip>{{ $t('tools.brace_model.cross_section_type_help') }}</info-tooltip>
-            </div>
-            <tool-select
-              :items="optionItems"
-              :model-value="option"
-              :placeholder="$t('tools.brace_model.select_option')"
-              @update:model-value="option = ($event || 'wide-flange') as Option"
-            />
-          </div>
+  <tool-shell
+    :eyebrow="$t('tools.common.model_eyebrow')"
+    :title="$t('tools.brace_model.title')"
+    :param-count="paramCount"
+  >
+    <template #actions><unit-toggle /></template>
+    <template #intro>{{ $t('tools.brace_model.intro') }}</template>
 
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.brace_model.select_steel_profile') }}
-              <info-tooltip>{{ $t('tools.brace_model.select_steel_profile_help') }}</info-tooltip>
-            </div>
-            <div class="tfield">
-              <section-selector @update:section="onSectionChanged($event)" />
-            </div>
-            <div v-for="item in steelShapeDimensions" :key="item.key" class="tfield">
-              <tool-slider
-                v-model="variables[item.key]"
-                :disabled="!!section"
-                :label="item.text"
-                :max="item.max"
-                :min="item.min"
-                :unit="item.unit"
-              />
-            </div>
-          </div>
-
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.brace_model.steel_type') }}
-              <info-tooltip>{{ $t('tools.brace_model.steel_type_help') }}</info-tooltip>
-            </div>
-            <div class="tfield">
-              <tool-select
-                :items="steelTypeItems"
-                :model-value="steelType"
-                :placeholder="$t('tools.brace_model.select_steel_type')"
-                @update:model-value="steelType = ($event || undefined) as SteelType | undefined"
-              />
-            </div>
-            <div v-for="item in steelTypeVariables" :key="item.key" class="tfield">
-              <tool-slider
-                v-model="variables[item.key]"
-                :disabled="!!steelType"
-                :label="item.text"
-                :max="item.max"
-                :min="item.min"
-                :unit="item.unit"
-              />
-            </div>
-          </div>
-
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.brace_model.associated_member_lengths') }}
-              <info-tooltip>{{
-                $t('tools.brace_model.associated_member_lengths_help')
-              }}</info-tooltip>
-            </div>
-            <div v-for="item in additionalParameterVariables" :key="item.key" class="tfield">
-              <tool-slider
-                v-model="variables[item.key]"
-                :label="item.text"
-                :max="item.max"
-                :min="item.min"
-                :unit="item.unit"
-              />
-            </div>
-          </div>
-        </aside>
-
-        <section class="tool-chart-col">
-          <figure class="tool-schematic is-small">
-            <img
-              :alt="$t('tools.brace_model.schematic_alt')"
-              :src="publicPath + 'img/brace/I_shaped_Bracing.png'"
-            />
-          </figure>
-          <div class="tool-chart-grid">
-            <div class="mat-focus">
-              <h2 class="tool-chart-h">{{ $t('tools.brace_model.tension') }}</h2>
-              <unit-chart :option="getTensionOption(result)" />
-            </div>
-            <div class="mat-focus">
-              <h2 class="tool-chart-h">{{ $t('tools.brace_model.compression') }}</h2>
-              <unit-chart :option="getCompressionOption(result)" />
-            </div>
-          </div>
-        </section>
+    <template #rail>
+      <div class="tool-card">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.brace_model.cross_section_type') }}
+          <info-tooltip>{{ $t('tools.brace_model.cross_section_type_help') }}</info-tooltip>
+        </div>
+        <tool-select
+          :items="optionItems"
+          :model-value="option"
+          :placeholder="$t('tools.brace_model.select_option')"
+          @update:model-value="option = ($event || 'wide-flange') as Option"
+        />
       </div>
-    </div>
-  </div>
+
+      <div class="tool-card">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.brace_model.select_steel_profile') }}
+          <info-tooltip>{{ $t('tools.brace_model.select_steel_profile_help') }}</info-tooltip>
+        </div>
+        <div class="tfield">
+          <section-selector @update:section="onSectionChanged($event)" />
+        </div>
+        <div v-for="item in steelShapeDimensions" :key="item.key" class="tfield">
+          <tool-slider
+            v-model="variables[item.key]"
+            :disabled="!!section"
+            :label="item.text"
+            :max="item.max"
+            :min="item.min"
+            :unit="item.unit"
+          />
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.brace_model.steel_type') }}
+          <info-tooltip>{{ $t('tools.brace_model.steel_type_help') }}</info-tooltip>
+        </div>
+        <div class="tfield">
+          <tool-select
+            :items="steelTypeItems"
+            :model-value="steelType"
+            :placeholder="$t('tools.brace_model.select_steel_type')"
+            @update:model-value="steelType = ($event || undefined) as SteelType | undefined"
+          />
+        </div>
+        <div v-for="item in steelTypeVariables" :key="item.key" class="tfield">
+          <tool-slider
+            v-model="variables[item.key]"
+            :disabled="!!steelType"
+            :label="item.text"
+            :max="item.max"
+            :min="item.min"
+            :unit="item.unit"
+          />
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.brace_model.associated_member_lengths') }}
+          <info-tooltip>{{ $t('tools.brace_model.associated_member_lengths_help') }}</info-tooltip>
+        </div>
+        <div v-for="item in additionalParameterVariables" :key="item.key" class="tfield">
+          <tool-slider
+            v-model="variables[item.key]"
+            :label="item.text"
+            :max="item.max"
+            :min="item.min"
+            :unit="item.unit"
+          />
+        </div>
+      </div>
+    </template>
+
+    <template #stage>
+      <div class="st-block">
+        <div class="st-charts-2">
+          <div class="st-chart">
+            <div class="chart-cap">
+              <h2 class="chart-h">{{ $t('tools.brace_model.tension') }}</h2>
+            </div>
+            <div class="tchart h-chart">
+              <unit-chart fill :option="getTensionOption(result)" />
+            </div>
+          </div>
+          <div class="st-chart">
+            <div class="chart-cap">
+              <h2 class="chart-h">{{ $t('tools.brace_model.compression') }}</h2>
+            </div>
+            <div class="tchart h-chart">
+              <unit-chart fill :option="getCompressionOption(result)" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="st-block st-schem">
+        <figure class="tool-schematic">
+          <img
+            :alt="$t('tools.brace_model.schematic_alt')"
+            :src="publicPath + 'img/brace/I_shaped_Bracing.png'"
+          />
+        </figure>
+      </div>
+    </template>
+  </tool-shell>
+
+  <disclaimer-component>
+    <template #title>{{ $t('tools.common.disclaimer_title') }}</template>
+    <i18n-t keypath="tools.common.disclaimer_text" tag="span" scope="global">
+      <template #link>
+        <a
+          href="https://github.com/RESSLab-Team/resslab-hub/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+          >{{ $t('tools.common.disclaimer_link') }}</a
+        >
+      </template>
+    </i18n-t>
+  </disclaimer-component>
 </template>

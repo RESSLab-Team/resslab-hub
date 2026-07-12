@@ -16,9 +16,13 @@ const props = withDefaults(
   defineProps<{
     option: EChartsGlOption
     aspectRatio?: number
+    /** Fill the parent's height instead of sizing by aspect ratio
+        (Rail+Stage tool layout — the block sets an explicit height). */
+    fill?: boolean
   }>(),
   {
-    aspectRatio: 1
+    aspectRatio: 1,
+    fill: false
   }
 )
 
@@ -61,7 +65,22 @@ const actualOption = computed<EChartsGlOption>(() => {
 </script>
 
 <template>
-  <v-responsive :aspect-ratio="aspectRatio">
+  <div v-if="fill" class="sgl-fill">
+    <v-chart autoresize :option="actualOption" :update-options="updateOptions" />
+  </div>
+  <v-responsive v-else :aspect-ratio="aspectRatio">
     <v-chart autoresize :option="actualOption" :update-options="updateOptions" />
   </v-responsive>
 </template>
+
+<style scoped>
+.sgl-fill {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.sgl-fill > :deep(.echarts) {
+  width: 100%;
+  height: 100%;
+}
+</style>

@@ -6,7 +6,7 @@
 // thumbnails below. Inputs use the EPFL tool controls (ToolSegmented / ToolSwitch
 // / ToolSlider); the curves stay on the existing ECharts UnitChart wrapper.
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
-import PageHeader from '@/components/commons/PageHeader.vue'
+import ToolShell from '@/components/commons/ToolShell.vue'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
 import ToolSegmented from '@/components/commons/tools/ToolSegmented.vue'
 import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
@@ -149,12 +149,14 @@ function thumbOption(option: EChartsOption, active: boolean): EChartsOption {
 </script>
 
 <template>
-  <div class="tool-page">
-    <page-header
-      :eyebrow="$t('tools.common.fragility_eyebrow')"
-      :title="$t('tools.connection_fragility.title')"
-    >
-      <template #actions><unit-toggle /></template>
+  <tool-shell
+    :eyebrow="$t('tools.common.fragility_eyebrow')"
+    :title="$t('tools.connection_fragility.title')"
+    :param-count="2"
+    stage-class="stage-d"
+  >
+    <template #actions><unit-toggle /></template>
+    <template #intro>
       <i18n-t keypath="tools.connection_fragility.intro" tag="span" scope="global">
         <template #lignos>
           <a
@@ -171,92 +173,92 @@ function thumbOption(option: EChartsOption, active: boolean): EChartsOption {
           >
         </template>
       </i18n-t>
-    </page-header>
+    </template>
 
-    <div class="tool-shell">
-      <div class="frag-a">
-        <aside class="tool-panel">
-          <div class="tool-card">
-            <div class="tfield">
-              <div class="tfield-label">{{ $t('tools.connection_fragility.steel_type') }}</div>
-              <tool-segmented v-model="material" full :items="materials" />
-            </div>
-            <div class="tfield">
-              <div class="tfield-label">
-                {{ $t('tools.connection_fragility.geometric_parameters') }}
-              </div>
-              <tool-switch
-                v-model="infoAvailable"
-                :label="$t('tools.connection_fragility.parameters_available')"
-              />
-            </div>
-            <div class="tfield">
-              <tool-slider
-                v-model="variables.l"
-                :disabled="!infoAvailable"
-                label="L"
-                :max="12000"
-                :min="1000"
-                :step="50"
-                unit="mm"
-              />
-            </div>
-            <div class="tfield">
-              <tool-slider
-                v-model="variables.db"
-                :disabled="!infoAvailable"
-                label="d<sub>b</sub>"
-                :max="2000"
-                :min="100"
-                :step="10"
-                unit="mm"
-              />
-            </div>
-            <div class="tfield-ratio">
-              <span>L / d<sub>b</sub></span>
-              <strong>{{ (variables.l / variables.db).toFixed(2) }}</strong>
-            </div>
+    <template #rail>
+      <div class="tool-card">
+        <div class="tfield">
+          <div class="tfield-label">{{ $t('tools.connection_fragility.steel_type') }}</div>
+          <tool-segmented v-model="material" full :items="materials" />
+        </div>
+        <div class="tfield">
+          <div class="tfield-label">
+            {{ $t('tools.connection_fragility.geometric_parameters') }}
           </div>
-          <figure class="tool-schematic">
-            <img
-              :alt="$t('tools.connection_fragility.schematic_alt')"
-              :src="publicPath + 'img/connection/connection_fragility.png'"
-            />
-            <figcaption>
-              <i18n-t keypath="tools.connection_fragility.figcaption" tag="span" scope="global">
-                <template #l>L</template>
-                <template #db>d<sub>b</sub></template>
-              </i18n-t>
-            </figcaption>
-          </figure>
-        </aside>
-
-        <section class="tool-chart-col">
-          <div class="mat-focus">
-            <h2 class="tool-chart-h">{{ activePanel.title }}</h2>
-            <unit-chart :aspect-ratio="2.2" :option="activePanel.option" x-unit="rad" />
-          </div>
-          <div class="mat-thumbs frag-thumbs">
-            <button
-              v-for="panel in panels"
-              :key="panel.id"
-              class="mat-thumb"
-              :class="{ 'is-active': focus === panel.id }"
-              type="button"
-              @click="focus = panel.id"
-            >
-              <div class="mat-thumb-chart">
-                <unit-chart
-                  :aspect-ratio="3"
-                  :option="thumbOption(panel.option, focus === panel.id)"
-                  x-unit="rad"
-                />
-              </div>
-              <span class="mat-thumb-label">{{ panel.title }}</span>
-            </button>
-          </div>
-        </section>
+          <tool-switch
+            v-model="infoAvailable"
+            :label="$t('tools.connection_fragility.parameters_available')"
+          />
+        </div>
+        <div class="tfield">
+          <tool-slider
+            v-model="variables.l"
+            :disabled="!infoAvailable"
+            label="L"
+            :max="12000"
+            :min="1000"
+            :step="50"
+            unit="mm"
+          />
+        </div>
+        <div class="tfield">
+          <tool-slider
+            v-model="variables.db"
+            :disabled="!infoAvailable"
+            label="d<sub>b</sub>"
+            :max="2000"
+            :min="100"
+            :step="10"
+            unit="mm"
+          />
+        </div>
+        <div class="tfield-ratio">
+          <span>L / d<sub>b</sub></span>
+          <strong>{{ (variables.l / variables.db).toFixed(2) }}</strong>
+        </div>
       </div>
-    </div>
-  </div>
+      <figure class="tool-schematic">
+        <img
+          :alt="$t('tools.connection_fragility.schematic_alt')"
+          :src="publicPath + 'img/connection/connection_fragility.png'"
+        />
+        <figcaption>
+          <i18n-t keypath="tools.connection_fragility.figcaption" tag="span" scope="global">
+            <template #l>L</template>
+            <template #db>d<sub>b</sub></template>
+          </i18n-t>
+        </figcaption>
+      </figure>
+    </template>
+
+    <template #stage>
+      <div class="st-block st-chart">
+        <div class="chart-cap">
+          <h2 class="chart-h">{{ activePanel.title }}</h2>
+        </div>
+        <div class="tchart h-chart">
+          <unit-chart fill :option="activePanel.option" x-unit="rad" />
+        </div>
+        <div class="mat-thumbs frag-thumbs">
+          <button
+            v-for="panel in panels"
+            :key="panel.id"
+            class="mat-thumb"
+            :class="{ 'is-active': focus === panel.id }"
+            type="button"
+            @click="focus = panel.id"
+          >
+            <div class="mat-thumb-chart">
+              <unit-chart
+                :aspect-ratio="3"
+                :option="thumbOption(panel.option, focus === panel.id)"
+                x-unit="rad"
+              />
+            </div>
+            <span class="mat-thumb-label">{{ panel.title }}</span>
+          </button>
+        </div>
+      </div>
+    </template>
+  </tool-shell>
 </template>

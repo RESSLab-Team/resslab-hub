@@ -153,6 +153,7 @@
     "common": {
       "model_eyebrow": "Tools · Component model",
       "fragility_eyebrow": "Tools · Fragility curves",
+      "parameters": "Parameters",
       "disclaimer_title": "Under development",
       "disclaimer_text": "This section is under construction. Please report any bugs {link}.",
       "disclaimer_link": "here"

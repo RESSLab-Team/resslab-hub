@@ -4,7 +4,7 @@ import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
 import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
 import type { Variable } from '@/utils/model'
-import PageHeader from '@/components/commons/PageHeader.vue'
+import ToolShell from '@/components/commons/ToolShell.vue'
 import UnitTableRow, { type UnitTableRowData } from '@/components/commons/UnitTableRow.vue'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
 import { publicPath, type Section, type HSSSection } from '@/utils/common'
@@ -399,109 +399,115 @@ function getTableColumns(...results: Result[]): Record<string, number | undefine
   return results.map((result) => omit(result, 'points'))
 }
 
+const paramCount = computed(() => steelShapeDimensions.length + memberProperties.length)
+
 defineExpose({ vars, backbone, envelope })
 </script>
 
 <template>
-  <div class="tool-page">
-    <page-header :eyebrow="$t('tools.common.model_eyebrow')" :title="$t('tools.hss_model.title')">
-      <template #actions><unit-toggle /></template>
+  <tool-shell
+    :eyebrow="$t('tools.common.model_eyebrow')"
+    :title="$t('tools.hss_model.title')"
+    :param-count="paramCount"
+  >
+    <template #actions><unit-toggle /></template>
+    <template #intro>
       <i18n-t keypath="tools.hss_model.intro" tag="span" scope="global">
         <template #link>
           <a href="" target="_blank">{{ $t('tools.hss_model.intro_link') }}</a>
         </template>
       </i18n-t>
-    </page-header>
-    <div class="tool-shell">
-      <div class="frag-a">
-        <aside class="tool-panel">
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.hss_model.select_hss_profile') }}
-              <info-tooltip>{{ $t('tools.hss_model.select_hss_profile_help') }}</info-tooltip>
-            </div>
-            <div class="tfield">
-              <section-selector source="hss" @update:section="onSectionChanged($event)" />
-            </div>
-            <div v-for="item in steelShapeDimensions" :key="item.key" class="tfield">
-              <tool-slider
-                v-model="variables[item.key]"
-                :disabled="!!section"
-                :label="item.text"
-                :max="item.max"
-                :min="item.min"
-                :unit="item.unit"
-              />
-            </div>
-          </div>
+    </template>
 
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.hss_model.member_loading_properties') }}
-              <info-tooltip>{{
-                $t('tools.hss_model.member_loading_properties_help')
-              }}</info-tooltip>
-            </div>
-            <div v-for="item in memberProperties" :key="item.key" class="tfield">
-              <tool-slider
-                v-model="variables[item.key]"
-                :label="item.text"
-                :max="item.max"
-                :min="item.min"
-                :unit="item.unit"
-              />
-            </div>
-          </div>
-
-          <figure class="tool-schematic is-small">
-            <img
-              :alt="$t('tools.hss_model.schematic_alt')"
-              :src="publicPath + 'img/hss/component.png'"
-            />
-          </figure>
-        </aside>
-
-        <section class="tool-chart-col">
-          <div class="mat-focus">
-            <h2 class="tool-chart-h">{{ $t('tools.hss_model.backbone_curve') }}</h2>
-            <unit-chart
-              :option="getOption(backboneResult, envelopeResult)"
-              x-unit="rad"
-              y-unit="kN⋅mm"
-            />
-          </div>
-
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.hss_model.predictive_model_columns') }}
-              <info-tooltip>{{ $t('tools.hss_model.predictive_model_columns_help') }}</info-tooltip>
-            </div>
-            <v-table density="compact">
-              <thead>
-                <tr>
-                  <th class="text-center">{{ $t('tools.hss_model.table_parameter') }}</th>
-                  <th class="text-center">{{ $t('tools.hss_model.table_unit') }}</th>
-                  <th class="text-center">{{ $t('tools.hss_model.table_monotonic_backbone') }}</th>
-                  <th class="text-center">
-                    {{ $t('tools.hss_model.table_first_cycle_envelope') }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <unit-table-row
-                  v-for="item in rows"
-                  :key="item.key"
-                  :field="item.key"
-                  :text="item.text"
-                  :unit="item.unit"
-                  :fraction-digit="item.fractionDigit"
-                  :columns="getTableColumns(backboneResult, envelopeResult)"
-                />
-              </tbody>
-            </v-table>
-          </div>
-        </section>
+    <template #rail>
+      <div class="tool-card">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.hss_model.select_hss_profile') }}
+          <info-tooltip>{{ $t('tools.hss_model.select_hss_profile_help') }}</info-tooltip>
+        </div>
+        <div class="tfield">
+          <section-selector source="hss" @update:section="onSectionChanged($event)" />
+        </div>
+        <div v-for="item in steelShapeDimensions" :key="item.key" class="tfield">
+          <tool-slider
+            v-model="variables[item.key]"
+            :disabled="!!section"
+            :label="item.text"
+            :max="item.max"
+            :min="item.min"
+            :unit="item.unit"
+          />
+        </div>
       </div>
-    </div>
-  </div>
+
+      <div class="tool-card">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.hss_model.member_loading_properties') }}
+          <info-tooltip>{{ $t('tools.hss_model.member_loading_properties_help') }}</info-tooltip>
+        </div>
+        <div v-for="item in memberProperties" :key="item.key" class="tfield">
+          <tool-slider
+            v-model="variables[item.key]"
+            :label="item.text"
+            :max="item.max"
+            :min="item.min"
+            :unit="item.unit"
+          />
+        </div>
+      </div>
+    </template>
+
+    <template #stage>
+      <div class="st-block st-chart">
+        <div class="chart-cap">
+          <h2 class="chart-h">{{ $t('tools.hss_model.backbone_curve') }}</h2>
+        </div>
+        <div class="tchart h-chart">
+          <unit-chart
+            fill
+            :option="getOption(backboneResult, envelopeResult)"
+            x-unit="rad"
+            y-unit="kN⋅mm"
+          />
+        </div>
+      </div>
+
+      <div class="st-block st-table">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.hss_model.predictive_model_columns') }}
+          <info-tooltip>{{ $t('tools.hss_model.predictive_model_columns_help') }}</info-tooltip>
+        </div>
+        <v-table density="compact">
+          <thead>
+            <tr>
+              <th class="text-center">{{ $t('tools.hss_model.table_parameter') }}</th>
+              <th class="text-center">{{ $t('tools.hss_model.table_unit') }}</th>
+              <th class="text-center">{{ $t('tools.hss_model.table_monotonic_backbone') }}</th>
+              <th class="text-center">{{ $t('tools.hss_model.table_first_cycle_envelope') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <unit-table-row
+              v-for="item in rows"
+              :key="item.key"
+              :field="item.key"
+              :text="item.text"
+              :unit="item.unit"
+              :fraction-digit="item.fractionDigit"
+              :columns="getTableColumns(backboneResult, envelopeResult)"
+            />
+          </tbody>
+        </v-table>
+      </div>
+
+      <div class="st-block st-schem">
+        <figure class="tool-schematic">
+          <img
+            :alt="$t('tools.hss_model.schematic_alt')"
+            :src="publicPath + 'img/hss/component.png'"
+          />
+        </figure>
+      </div>
+    </template>
+  </tool-shell>
 </template>

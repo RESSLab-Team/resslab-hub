@@ -23,12 +23,14 @@ const props = withDefaults(
     yAxisMin?: number
     xAxisMax?: number
     yAxisMax?: number
+    fill?: boolean
   }>(),
   {
     colors: () => primaryColors,
     series: () => [],
     aspectRatio: 1,
     axisPointerType: 'x',
+    fill: false,
     maxWidth: undefined,
     title: undefined,
     xAxisName: undefined,
@@ -95,6 +97,7 @@ const option = computed<EChartsOption>(
 <template>
   <unit-chart
     :aspect-ratio="aspectRatio"
+    :fill="fill"
     :legend-side="props.series.length > 2"
     :max-width="maxWidth"
     :option="option"

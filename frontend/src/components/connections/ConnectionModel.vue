@@ -5,7 +5,7 @@ import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
 import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
 import type { Variable } from '@/utils/model'
-import PageHeader from '@/components/commons/PageHeader.vue'
+import ToolShell from '@/components/commons/ToolShell.vue'
 import UnitTableRow, { type UnitTableRowData } from '@/components/commons/UnitTableRow.vue'
 import UnitToggle from '@/components/commons/UnitToggle.vue'
 import { publicPath, type Section } from '@/utils/common'
@@ -559,6 +559,8 @@ function option(backbone: Result, envelope: Result): EChartsOption {
   }
 }
 
+const paramCount = computed(() => steelShapeDimensions.length + memberProperties.length)
+
 defineExpose({
   vars,
   backboneRbs,
@@ -571,12 +573,13 @@ defineExpose({
 </script>
 
 <template>
-  <div class="tool-page">
-    <page-header
-      :eyebrow="$t('tools.common.model_eyebrow')"
-      :title="$t('tools.connection_model.title')"
-    >
-      <template #actions><unit-toggle /></template>
+  <tool-shell
+    :eyebrow="$t('tools.common.model_eyebrow')"
+    :title="$t('tools.connection_model.title')"
+    :param-count="paramCount"
+  >
+    <template #actions><unit-toggle /></template>
+    <template #intro>
       <i18n-t keypath="tools.connection_model.intro" tag="span" scope="global">
         <template #reference>
           <a
@@ -587,140 +590,147 @@ defineExpose({
           </a>
         </template>
       </i18n-t>
-    </page-header>
-    <div class="tool-shell">
-      <div class="frag-a">
-        <aside class="tool-panel">
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.connection_model.select_steel_profile') }}
-              <info-tooltip>{{
-                $t('tools.connection_model.select_steel_profile_help')
-              }}</info-tooltip>
-            </div>
-            <div class="tfield">
-              <section-selector @update:section="onSectionChanged($event)" />
-            </div>
-            <div v-for="item in steelShapeDimensions" :key="item.key" class="tfield">
-              <tool-slider
-                v-model="variables[item.key]"
-                :disabled="!!section"
-                :label="item.text"
-                :max="item.max"
-                :min="item.min"
-                :unit="item.unit"
-              />
-            </div>
-          </div>
+    </template>
 
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.connection_model.specify_member_properties') }}
-              <info-tooltip>{{
-                $t('tools.connection_model.specify_member_properties_help')
-              }}</info-tooltip>
-            </div>
-            <div v-for="item in memberProperties" :key="item.key" class="tfield">
-              <tool-slider
-                v-model="variables[item.key]"
-                :label="item.text"
-                :max="item.max"
-                :min="item.min"
-                :unit="item.unit"
-              />
-            </div>
-          </div>
+    <template #rail>
+      <div class="tool-card">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.connection_model.select_steel_profile') }}
+          <info-tooltip>{{ $t('tools.connection_model.select_steel_profile_help') }}</info-tooltip>
+        </div>
+        <div class="tfield">
+          <section-selector @update:section="onSectionChanged($event)" />
+        </div>
+        <div v-for="item in steelShapeDimensions" :key="item.key" class="tfield">
+          <tool-slider
+            v-model="variables[item.key]"
+            :disabled="!!section"
+            :label="item.text"
+            :max="item.max"
+            :min="item.min"
+            :unit="item.unit"
+          />
+        </div>
+      </div>
 
-          <figure class="tool-schematic is-small">
-            <img
-              :alt="$t('tools.connection_model.schematic_alt')"
-              :src="publicPath + 'img/connection/component-1.png'"
-            />
-            <img
-              :alt="$t('tools.connection_model.schematic_alt')"
-              :src="publicPath + 'img/connection/component-2.png'"
-            />
-          </figure>
-        </aside>
+      <div class="tool-card">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.connection_model.specify_member_properties') }}
+          <info-tooltip>{{
+            $t('tools.connection_model.specify_member_properties_help')
+          }}</info-tooltip>
+        </div>
+        <div v-for="item in memberProperties" :key="item.key" class="tfield">
+          <tool-slider
+            v-model="variables[item.key]"
+            :label="item.text"
+            :max="item.max"
+            :min="item.min"
+            :unit="item.unit"
+          />
+        </div>
+      </div>
+    </template>
 
-        <section class="tool-chart-col">
-          <div class="tool-chart-grid">
-            <div class="mat-focus">
-              <h2 class="tool-chart-h">{{ $t('tools.connection_model.chart_beams_with_rbs') }}</h2>
+    <template #stage>
+      <div class="st-block">
+        <div class="st-charts-2">
+          <div class="st-chart">
+            <div class="chart-cap">
+              <h2 class="chart-h">{{ $t('tools.connection_model.chart_beams_with_rbs') }}</h2>
+            </div>
+            <div class="tchart h-chart">
               <unit-chart
+                fill
                 :option="option(backboneWithRbs, envelopeWithRbs)"
                 x-unit="rad"
                 y-unit="kN⋅mm"
               />
             </div>
-            <div class="mat-focus">
-              <h2 class="tool-chart-h">
-                {{ $t('tools.connection_model.chart_beams_without_rbs') }}
-              </h2>
+          </div>
+          <div class="st-chart">
+            <div class="chart-cap">
+              <h2 class="chart-h">{{ $t('tools.connection_model.chart_beams_without_rbs') }}</h2>
+            </div>
+            <div class="tchart h-chart">
               <unit-chart
+                fill
                 :option="option(backboneWithoutRbs, envelopeWithoutRbs)"
                 x-unit="rad"
                 y-unit="kN⋅mm"
               />
             </div>
           </div>
-
-          <div class="tool-card">
-            <div class="tool-card-h with-info">
-              {{ $t('tools.connection_model.component_models') }}
-              <info-tooltip>{{ $t('tools.connection_model.component_models_help') }}</info-tooltip>
-            </div>
-            <v-table density="compact">
-              <thead>
-                <tr>
-                  <th class="text-center" rowspan="2">
-                    {{ $t('tools.connection_model.table_parameter') }}
-                  </th>
-                  <th class="text-center" rowspan="2">
-                    {{ $t('tools.connection_model.table_unit') }}
-                  </th>
-                  <th class="text-center" colspan="2">
-                    {{ $t('tools.connection_model.table_beams_with_rbs') }}
-                  </th>
-                  <th class="text-center" colspan="2">
-                    {{ $t('tools.connection_model.table_beams_without_rbs') }}
-                  </th>
-                </tr>
-                <tr>
-                  <th class="text-center">
-                    {{ $t('tools.connection_model.table_monotonic_backbone') }}
-                  </th>
-                  <th class="text-center">
-                    {{ $t('tools.connection_model.table_first_cycle_envelope') }}
-                  </th>
-                  <th class="text-center">
-                    {{ $t('tools.connection_model.table_monotonic_backbone') }}
-                  </th>
-                  <th class="text-center">
-                    {{ $t('tools.connection_model.table_first_cycle_envelope') }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <unit-table-row
-                  v-for="item in rows"
-                  :key="item.key"
-                  :field="item.key"
-                  :text="item.text"
-                  :unit="item.unit"
-                  :fraction-digit="item.fractionDigit"
-                  :columns="[
-                    omit(backboneWithRbs, 'points'),
-                    omit(envelopeWithRbs, 'points'),
-                    omit(backboneWithoutRbs, 'points'),
-                    omit(envelopeWithoutRbs, 'points')
-                  ]"
-                />
-              </tbody>
-            </v-table>
-          </div>
-        </section>
+        </div>
       </div>
-    </div>
-  </div>
+
+      <div class="st-block st-table">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.connection_model.component_models') }}
+          <info-tooltip>{{ $t('tools.connection_model.component_models_help') }}</info-tooltip>
+        </div>
+        <v-table density="compact">
+          <thead>
+            <tr>
+              <th class="text-center" rowspan="2">
+                {{ $t('tools.connection_model.table_parameter') }}
+              </th>
+              <th class="text-center" rowspan="2">
+                {{ $t('tools.connection_model.table_unit') }}
+              </th>
+              <th class="text-center" colspan="2">
+                {{ $t('tools.connection_model.table_beams_with_rbs') }}
+              </th>
+              <th class="text-center" colspan="2">
+                {{ $t('tools.connection_model.table_beams_without_rbs') }}
+              </th>
+            </tr>
+            <tr>
+              <th class="text-center">
+                {{ $t('tools.connection_model.table_monotonic_backbone') }}
+              </th>
+              <th class="text-center">
+                {{ $t('tools.connection_model.table_first_cycle_envelope') }}
+              </th>
+              <th class="text-center">
+                {{ $t('tools.connection_model.table_monotonic_backbone') }}
+              </th>
+              <th class="text-center">
+                {{ $t('tools.connection_model.table_first_cycle_envelope') }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <unit-table-row
+              v-for="item in rows"
+              :key="item.key"
+              :field="item.key"
+              :text="item.text"
+              :unit="item.unit"
+              :fraction-digit="item.fractionDigit"
+              :columns="[
+                omit(backboneWithRbs, 'points'),
+                omit(envelopeWithRbs, 'points'),
+                omit(backboneWithoutRbs, 'points'),
+                omit(envelopeWithoutRbs, 'points')
+              ]"
+            />
+          </tbody>
+        </v-table>
+      </div>
+
+      <div class="st-block st-schem">
+        <figure class="tool-schematic">
+          <img
+            :alt="$t('tools.connection_model.schematic_alt')"
+            :src="publicPath + 'img/connection/component-1.png'"
+          />
+          <img
+            :alt="$t('tools.connection_model.schematic_alt')"
+            :src="publicPath + 'img/connection/component-2.png'"
+          />
+        </figure>
+      </div>
+    </template>
+  </tool-shell>
 </template>

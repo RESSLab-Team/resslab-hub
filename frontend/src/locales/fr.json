@@ -760,6 +760,7 @@
     "common": {
       "model_eyebrow": "Outils · Modèle de composant",
       "fragility_eyebrow": "Outils · Courbes de fragilité",
+      "parameters": "Paramètres",
       "disclaimer_title": "En développement",
       "disclaimer_text": "Cette section est en construction. Veuillez signaler tout bug {link}.",
       "disclaimer_link": "ici"
