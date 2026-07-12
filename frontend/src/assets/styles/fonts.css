@@ -1,8 +1,10 @@
 /* ============================================================
    Suisse Int'l — the canonical EPFL face, self-hosted.
-   Files ship in the design handoff bundle (_ds/fonts) and are
-   copied into src/assets/fonts. Weights 300/400/500/600/700 cover
-   every weight the UI uses (thin numerals → bold labels).
+   Files ship in the design handoff bundle (_ds/fonts) as TTF and
+   are converted to WOFF2 (fonttools) into public/fonts — ~72%
+   smaller, and the stable /fonts/ URLs let index.html preload the
+   two first-paint weights (400/700). Weights 300/400/500/600/700
+   cover every weight the UI uses (thin numerals → bold labels).
 
    LICENSE NOTE: Suisse Int'l is a commercial typeface. EPFL's web
    license restricts hosting to EPFL properties; bundle it only in
@@ -12,35 +14,35 @@
 
 @font-face {
   font-family: "Suisse Int'l";
-  src: url('../fonts/SuisseIntl-Light.ttf') format('truetype');
+  src: url('/fonts/SuisseIntl-Light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Suisse Int'l";
-  src: url('../fonts/SuisseIntl-Regular.ttf') format('truetype');
+  src: url('/fonts/SuisseIntl-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Suisse Int'l";
-  src: url('../fonts/SuisseIntl-Medium.ttf') format('truetype');
+  src: url('/fonts/SuisseIntl-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Suisse Int'l";
-  src: url('../fonts/SuisseIntl-SemiBold.ttf') format('truetype');
+  src: url('/fonts/SuisseIntl-SemiBold.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Suisse Int'l";
-  src: url('../fonts/SuisseIntl-Bold.ttf') format('truetype');
+  src: url('/fonts/SuisseIntl-Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;

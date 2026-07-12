@@ -5,8 +5,34 @@
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RESSLab Hub</title>
-    <link rel="stylesheet" href="https://www.epfl.ch/css/epfl-cookie-consent.css" />
-    <script src="https://www.epfl.ch/js/epfl-cookie-consent.js"></script>
+    <!-- The two first-paint font weights (body 400, headings/labels 700); the
+         other weights load on use via @font-face in src/assets/styles/fonts.css. -->
+    <link
+      rel="preload"
+      href="/fonts/SuisseIntl-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/SuisseIntl-Bold.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <!-- EPFL cookie consent, kept off the critical path: preconnect warms the
+         third-party origin, the stylesheet loads without blocking render
+         (media=print until loaded), and the script is deferred. The banner only
+         renders once the deferred script runs, so nothing flashes unstyled. -->
+    <link rel="preconnect" href="https://www.epfl.ch" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://www.epfl.ch/css/epfl-cookie-consent.css"
+      media="print"
+      onload="this.media='all'"
+    />
+    <script defer src="https://www.epfl.ch/js/epfl-cookie-consent.js"></script>
   </head>
   <body>
     <div id="app"></div>
