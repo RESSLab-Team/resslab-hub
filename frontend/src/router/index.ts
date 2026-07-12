@@ -1,3 +1,8 @@
+// The landing page ships with the entry chunk: statically importing it saves a
+// router-resolve → fetch round trip on every first visit. Its heavy pieces
+// (map, API client) already load lazily from within the view. Every other
+// route stays a dynamic import.
+import HomeView from '@/views/HomeView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -6,7 +11,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'Home',
-      component: () => import('@/views/HomeView.vue')
+      component: HomeView
     },
     {
       path: '/about',
