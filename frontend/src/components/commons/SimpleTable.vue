@@ -691,10 +691,13 @@ function downloadZip(): void {
               <td :colspan="tableHeaders.length + 1"></td>
             </tr>
             <tr
-              v-for="item in visibleRows"
+              v-for="(item, index) in visibleRows"
               :key="item.id"
               class="stbl-row"
-              :class="{ 'is-selected': isRowSelected(item) }"
+              :class="{
+                'is-selected': isRowSelected(item),
+                'is-stripe': (rowWindow.startIndex + index) % 2 === 1
+              }"
               @click="rowClick(item)"
             >
               <td class="stbl-col-select" @click.stop>
@@ -1012,6 +1015,13 @@ function downloadZip(): void {
    the virtual window's scroll math assumes exactly this many px per row. */
 .stbl-row {
   height: 38px;
+}
+/* Zebra striping. Parity is computed from the absolute row index in the template
+   (not :nth-child) because the body is virtualized — spacer rows and a shifting
+   render window make DOM position unreliable. Declared before :hover/.is-selected
+   so those states still win. */
+.stbl-row.is-stripe {
+  background: var(--table-row-stripe);
 }
 .stbl-table tbody td {
   border-bottom: 1px solid var(--table-gridline);
