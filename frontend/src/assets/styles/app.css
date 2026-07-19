@@ -1191,6 +1191,20 @@ body.theme-dark .logos img {
   padding: 24px 32px 18px;
   border-bottom: 1px solid var(--border);
 }
+/* Database pages (DashboardShell, root `.dash`) run the header straight into the
+   filters/table below, so the rule reads as clutter. Tool pages (ToolShell, root
+   `.tool-page`) keep it — there the header separates unrelated content. */
+.dash > .dash-head {
+  border-bottom: none;
+}
+
+/* Squares the toolbar's bottom padding to its 32px sides, giving the search band
+   room to breathe above the divider (the .dash-head border is gone on these
+   pages, so this rule carries the first horizontal line). */
+.dash > .dash-toolbar {
+  padding-bottom: 32px;
+}
+
 .dash-head-row {
   display: flex;
   align-items: center;
