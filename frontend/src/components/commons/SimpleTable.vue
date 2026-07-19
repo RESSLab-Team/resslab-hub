@@ -8,7 +8,17 @@ import { useNotificationStore } from '@/stores/notification'
 import { shareCurrentUrl, type Searches } from '@/utils/common'
 import type { DataOptions } from '@/utils/vuetify'
 import { booleanOptions } from '@/utils/vuetify'
-import { mdiDownload, mdiMagnify, mdiMenuDown, mdiMenuUp, mdiShare } from '@mdi/js'
+import {
+  mdiChevronDown,
+  mdiClose,
+  mdiDownload,
+  mdiMagnify,
+  mdiMenuDown,
+  mdiMenuUp,
+  mdiShare,
+  mdiSortAscending,
+  mdiSortDescending
+} from '@mdi/js'
 import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -88,11 +98,6 @@ const vInputBind = {
   singleLine: true,
   variant: 'underlined' as 'underlined'
 }
-// Design-handoff bordered inputs for the in-thead filter row (border comes from CSS)
-const vTheadInputBind = {
-  ...vInputBind,
-  variant: 'plain' as 'plain'
-}
 const { t } = useI18n({ useScope: 'global' })
 const checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
   {
@@ -116,6 +121,9 @@ const selectedItems = shallowRef<M[]>([])
 const page = ref<number>(1)
 const itemsPerPage = ref<number>(5)
 const sortBy = ref<{ key: string; order: 'asc' | 'desc' }>()
+// Which column's header menu (sort + filter popover) is open, keyed by column.
+// Sort actions close it; filter edits keep it open.
+const openMenuKey = ref<string>()
 
 // Rows shown in the body: live drag frames replace the committed page while a
 // brush is being dragged, otherwise the reactive page from the server/dataset.
@@ -183,7 +191,7 @@ watch(
 // per dashboard but varies between them, so measure the real <thead> and track it
 // via ResizeObserver. (The header sticks as a whole unit — no per-row offset.)
 const scrollEl = ref<HTMLElement>()
-const headHeight = ref<string>('86px')
+const headHeight = ref<string>('44px')
 let headObserver: ResizeObserver | undefined
 function measureHead(): void {
   const thead = scrollEl.value?.querySelector('thead') as HTMLElement | null
@@ -331,14 +339,45 @@ function emitOptions(): void {
   })
 }
 
-function toggleSort(header: TableHeader): void {
-  // `must-sort`: a column is never returned to the unsorted state — clicking the
-  // active column flips direction, a new column sorts ascending.
-  if (sortBy.value?.key === header.key) {
-    sortBy.value = { key: header.key, order: sortBy.value.order === 'asc' ? 'desc' : 'asc' }
-  } else {
-    sortBy.value = { key: header.key, order: 'asc' }
-  }
+// The menu opens on hover, so a pointer that drifts off while the user is typing
+// in the filter input must not close it. Track focus inside the popover and veto
+// the hover-out close for as long as it's there.
+const menuHasFocus = ref(false)
+function toggleMenu(header: TableHeader, open: boolean): void {
+  if (!open && menuHasFocus.value) return
+  openMenuKey.value = open ? header.key : undefined
+}
+function onMenuFocusOut(event: FocusEvent): void {
+  const root = event.currentTarget as HTMLElement
+  const next = event.relatedTarget as Node | null
+  // focusout also fires when moving between elements *inside* the popover.
+  if (!next || !root.contains(next)) menuHasFocus.value = false
+}
+function closeMenu(): void {
+  menuHasFocus.value = false
+  openMenuKey.value = undefined
+}
+
+// Sort is chosen explicitly from the per-column header menu (not a click-to-cycle
+// on the header), so both directions are always reachable in one action and the
+// menu closes once a direction is picked.
+function setSort(header: TableHeader, order: 'asc' | 'desc'): void {
+  sortBy.value = { key: header.key, order }
+  closeMenu()
+}
+// Return to the unsorted (natural) order — emitOptions sends an empty sortBy,
+// which useTable maps to empty sort params.
+function clearSort(): void {
+  sortBy.value = undefined
+  closeMenu()
+}
+
+// A column carries an active filter when its search value is a non-empty string
+// or a non-empty multi-select array — drives the dot marker on the header.
+function hasColumnFilter(header: TableHeader): boolean {
+  const value = columnSearches.value[header.key]
+  if (Array.isArray(value)) return value.length > 0
+  return value !== undefined && value !== null && value !== ''
 }
 
 function isItemSelectable(item: M): boolean {
@@ -521,80 +560,134 @@ function downloadZip(): void {
                 v-for="header in tableHeaders"
                 :key="header.key"
                 class="stbl-th"
-                :class="{ 'text-end': header.align === 'end', 'is-sorted': sortBy?.key === header.key }"
-                :title="headerTitle(header.title)"
-                @click="toggleSort(header)"
+                :class="{
+                  'text-end': header.align === 'end',
+                  'is-sorted': sortBy?.key === header.key
+                }"
               >
-                <span class="stbl-th-inner">
-                  <span class="stbl-th-label"><text-subscript :text="header.title" /></span>
-                  <v-icon
-                    v-if="sortBy?.key === header.key"
-                    class="stbl-sort"
-                    size="14"
-                    :icon="sortBy?.order === 'asc' ? mdiMenuUp : mdiMenuDown"
-                  />
-                </span>
-              </th>
-            </tr>
-            <tr class="stbl-head-filters">
-              <td class="stbl-col-select">
-                <v-icon :icon="mdiMagnify" />
-              </td>
-              <td v-for="header in tableHeaders" :key="header.key">
-                <v-select
-                  v-if="header.options"
-                  v-bind="vTheadInputBind"
-                  :model-value="(columnSearches[header.key] as string)"
-                  :label="header.title"
-                  :multiple="header.multiple"
-                  :items="header.options"
-                  @update:model-value="columnSearches[header.key] = $event"
+                <!-- Per-column menu: sort direction + this column's filter, opened
+                     from the header itself so the header stays a single row. -->
+                <v-menu
+                  :model-value="openMenuKey === header.key"
+                  :close-on-content-click="false"
+                  :transition="false"
+                  open-on-hover
+                  :open-delay="90"
+                  :close-delay="220"
+                  :offset="0"
+                  location="bottom start"
+                  @update:model-value="toggleMenu(header, $event)"
                 >
-                  <!-- eslint-disable vue/no-template-shadow -->
-                  <template
-                    v-if="$slots[`header-select-item.${header.key}`]"
-                    #item="{ item, index, props }"
-                  >
-                    <!-- eslint-enable vue/no-template-shadow -->
-                    <slot
-                      :name="`header-select-item.${header.key}`"
-                      :item="item"
-                      :index="index"
-                      :props="props"
-                    />
+                  <template #activator="{ props: activatorProps }">
+                    <button
+                      v-bind="activatorProps"
+                      type="button"
+                      class="stbl-th-inner"
+                      :title="headerTitle(header.title)"
+                      :aria-label="`${headerTitle(header.title)} – ${$t('commons.column_options')}`"
+                    >
+                      <span class="stbl-th-label"><text-subscript :text="header.title" /></span>
+                      <v-icon
+                        v-if="sortBy?.key === header.key"
+                        class="stbl-sort"
+                        size="14"
+                        :icon="sortBy?.order === 'asc' ? mdiMenuUp : mdiMenuDown"
+                      />
+                      <span v-if="hasColumnFilter(header)" class="stbl-th-dot" />
+                      <v-icon class="stbl-th-caret" size="12" :icon="mdiChevronDown" />
+                    </button>
                   </template>
-                </v-select>
-                <v-text-field
-                  v-else-if="header.type === 'text'"
-                  v-bind="vTheadInputBind"
-                  v-model="columnSearches[header.key]"
-                  :label="header.title"
-                >
-                  <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-                </v-text-field>
-                <v-select
-                  v-else-if="header.type === 'boolean'"
-                  v-bind="vTheadInputBind"
-                  v-model="columnSearches[header.key]"
-                  :label="header.title"
-                  :items="booleanOptions"
-                >
-                  <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-                </v-select>
-                <v-text-field
-                  v-else-if="header.type === 'number'"
-                  v-bind="vTheadInputBind"
-                  v-model="columnSearches[header.key]"
-                  :label="header.title"
-                  type="number"
-                >
-                  <template #label> <text-subscript :text="header.title"></text-subscript> </template>
-                </v-text-field>
-              </td>
+
+                  <div class="stbl-menu" @focusin="menuHasFocus = true" @focusout="onMenuFocusOut">
+                    <button
+                      type="button"
+                      class="stbl-menu-item"
+                      :class="{ on: sortBy?.key === header.key && sortBy?.order === 'asc' }"
+                      @click="setSort(header, 'asc')"
+                    >
+                      <v-icon size="16" :icon="mdiSortAscending" />
+                      {{ $t('commons.sort_asc') }}
+                    </button>
+                    <button
+                      type="button"
+                      class="stbl-menu-item"
+                      :class="{ on: sortBy?.key === header.key && sortBy?.order === 'desc' }"
+                      @click="setSort(header, 'desc')"
+                    >
+                      <v-icon size="16" :icon="mdiSortDescending" />
+                      {{ $t('commons.sort_desc') }}
+                    </button>
+                    <button
+                      v-if="sortBy?.key === header.key"
+                      type="button"
+                      class="stbl-menu-item"
+                      @click="clearSort()"
+                    >
+                      <v-icon size="16" :icon="mdiClose" />
+                      {{ $t('commons.clear_sort') }}
+                    </button>
+                    <div class="stbl-menu-sep" />
+                    <div class="stbl-menu-filter">
+                      <v-select
+                        v-if="header.options"
+                        v-bind="vInputBind"
+                        :model-value="(columnSearches[header.key] as string)"
+                        :label="$t('commons.filter')"
+                        :multiple="header.multiple"
+                        :items="header.options"
+                        @update:model-value="columnSearches[header.key] = $event"
+                      >
+                        <!-- eslint-disable vue/no-template-shadow -->
+                        <template
+                          v-if="$slots[`header-select-item.${header.key}`]"
+                          #item="{ item, index, props }"
+                        >
+                          <!-- eslint-enable vue/no-template-shadow -->
+                          <slot
+                            :name="`header-select-item.${header.key}`"
+                            :item="item"
+                            :index="index"
+                            :props="props"
+                          />
+                        </template>
+                      </v-select>
+                      <!-- Native inputs for the common text/number columns: a
+                           Vuetify field mounts on first hover of every column and
+                           that cost is what reads as hover lag. Matches the
+                           light-DOM approach used by the body and the pager. -->
+                      <input
+                        v-else-if="header.type === 'text'"
+                        v-model="columnSearches[header.key]"
+                        class="stbl-menu-input"
+                        type="search"
+                        :placeholder="$t('commons.filter')"
+                      />
+                      <input
+                        v-else-if="header.type === 'number'"
+                        v-model="columnSearches[header.key]"
+                        class="stbl-menu-input"
+                        type="number"
+                        :placeholder="$t('commons.filter')"
+                      />
+                      <v-select
+                        v-else-if="header.type === 'boolean'"
+                        v-bind="vInputBind"
+                        v-model="columnSearches[header.key]"
+                        :label="$t('commons.filter')"
+                        :items="booleanOptions"
+                      />
+                    </div>
+                  </div>
+                </v-menu>
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-if="rowWindow.padTop" class="stbl-spacer" :style="{ height: `${rowWindow.padTop}px` }">
+            <tr
+              v-if="rowWindow.padTop"
+              class="stbl-spacer"
+              :style="{ height: `${rowWindow.padTop}px` }"
+            >
               <td :colspan="tableHeaders.length + 1"></td>
             </tr>
             <tr
@@ -619,11 +712,9 @@ function downloadZip(): void {
                 :title="cellText(header, item)"
                 :class="{ 'text-end': header.align === 'end' }"
               >
-                <span
-                  v-if="header.cellVariant === 'tag' && cellText(header, item)"
-                  class="tag"
-                  >{{ cellText(header, item) }}</span
-                >
+                <span v-if="header.cellVariant === 'tag' && cellText(header, item)" class="tag">{{
+                  cellText(header, item)
+                }}</span>
                 <span
                   v-else
                   :class="{
@@ -749,11 +840,11 @@ function downloadZip(): void {
   font-size: 14px;
 }
 
-/* Scroll viewport — sized to a *full* page (rows + the two header rows), capped
+/* Scroll viewport — sized to a *full* page (rows + the single header row), capped
    at the 50vh scroll limit. Without a floor, filtering to fewer rows than the
    page size collapsed the body and shoved the charts below it. */
 .stbl-scroll {
-  min-height: min(calc(var(--stbl-rows, 5) * 38px + 96px), 50vh);
+  min-height: min(calc(var(--stbl-rows, 5) * 38px + 52px), 50vh);
   max-height: 50vh;
   overflow-y: auto;
   overflow-x: auto;
@@ -779,8 +870,7 @@ function downloadZip(): void {
   text-align: center;
 }
 
-/* Sticky two-row header pinned as a single unit — no per-row offset, so the two
-   header rows can never drift apart. */
+/* Sticky single-row header. */
 .stbl-table thead {
   position: sticky;
   top: 0;
@@ -788,9 +878,6 @@ function downloadZip(): void {
 }
 .stbl-head-titles th {
   background: var(--bg-subtle);
-}
-.stbl-head-filters td {
-  background: var(--bg);
 }
 
 /* Column header row */
@@ -801,20 +888,33 @@ function downloadZip(): void {
   font-weight: 700;
   color: var(--fg-muted);
   border-bottom: 1px solid var(--table-gridline-strong);
-  cursor: pointer;
   user-select: none;
-  padding: 6px 16px;
+  padding: 0;
   text-align: start;
 }
-.stbl-th.text-end {
-  text-align: end;
-}
-/* Title + sort icon on one line; the title truncates with an ellipsis while the
-   icon stays visible (full title on hover via the cell's title attribute). */
+/* The whole header cell is the menu activator — a real <button> so the column
+   menu is keyboard-reachable and announced as a control. */
 .stbl-th-inner {
   display: flex;
   align-items: center;
   gap: 2px;
+  width: 100%;
+  padding: 8px 16px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+}
+.stbl-th-inner:hover {
+  background: var(--bg);
+}
+.stbl-th-inner:focus-visible {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -2px;
 }
 .stbl-th.text-end .stbl-th-inner {
   justify-content: flex-end;
@@ -832,36 +932,80 @@ function downloadZip(): void {
   color: var(--epfl-red);
   flex: none;
 }
-
-/* Filter row (design-handoff bordered inputs) */
-.stbl-head-filters td {
-  border-bottom: 1px solid var(--table-gridline-strong);
-  padding: 6px 6px;
+/* Marks a column whose filter is set — the filter input now lives behind the
+   menu, so this is what keeps an active filter visible at a glance. */
+.stbl-th-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--epfl-red);
 }
-.stbl-head-filters td .v-field {
+/* Menu affordance: muted until the header is hovered/focused. */
+.stbl-th-caret {
+  flex: none;
+  margin-inline-start: auto;
+  opacity: 0.35;
+}
+.stbl-th.text-end .stbl-th-caret {
+  margin-inline-start: 2px;
+}
+.stbl-th-inner:hover .stbl-th-caret,
+.stbl-th-inner:focus-visible .stbl-th-caret {
+  opacity: 1;
+}
+
+/* Per-column header menu (sort + filter) */
+.stbl-menu {
+  min-width: 220px;
+  padding: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 12%);
+}
+.stbl-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--fg);
+  text-align: start;
+}
+.stbl-menu-item:hover {
+  background: var(--bg-subtle);
+}
+.stbl-menu-item.on {
+  color: var(--epfl-red);
+  font-weight: 600;
+}
+.stbl-menu-sep {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border);
+}
+.stbl-menu-filter {
+  padding: 2px 10px 6px;
+}
+.stbl-menu-input {
+  width: 100%;
+  padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg);
-  font-size: 12px;
-  padding-inline-start: 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg);
 }
-.stbl-head-filters td .v-field--focused {
+.stbl-menu-input:focus {
   outline: 2px solid var(--epfl-red);
   outline-offset: -1px;
-}
-.stbl-head-filters td .v-field--variant-plain .v-field__input {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  min-height: 28px;
-  font-size: 12px;
-  opacity: 1;
-}
-.stbl-head-filters td .v-field--variant-plain .v-label {
-  font-size: 12px;
-}
-.stbl-head-filters td .v-field__clearable,
-.stbl-head-filters td .v-field__append-inner {
-  padding-top: 2px;
 }
 
 /* Body rows. Height must stay in sync with ROW_HEIGHT in useVirtualRows.ts —
