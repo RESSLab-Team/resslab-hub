@@ -27,7 +27,7 @@ export interface Column {
   options?: string[]
   filterOnly?: boolean
   format?: (value: any) => string
-  /** Design-system cell treatment: monospace section names, tag pill, bold identifier */
+  /** Design-system cell treatment: 'mono' = smaller section-name text, tag pill, bold identifier */
   cellVariant?: 'mono' | 'tag' | 'strong'
 }
 

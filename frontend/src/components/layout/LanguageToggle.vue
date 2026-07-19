@@ -34,13 +34,13 @@ function setLocale(value: string): void {
 </template>
 
 <style scoped>
-/* Handoff .ed-foot .lang: a plain mono switch with "/" separators; the active
+/* Handoff .ed-foot .lang: a plain switch with "/" separators; the active
    locale is red + bold, no background pill (brutalist — flat). */
 .lang-toggle {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 11px;
   letter-spacing: 0.04em;
 }

@@ -82,8 +82,8 @@ a {
   color: var(--fg);
 }
 
-/* Eyebrows render in the finer monospace of the handoff (.ed-eyebrow). One rule
-   so every eyebrow variant picks it up from the shared role. */
+/* Eyebrows share one font role (the eyebrow token). One rule so every eyebrow
+   variant picks it up. */
 .t-eyebrow,
 .eyebrow,
 .hero-eyebrow,
@@ -264,7 +264,7 @@ a {
 }
 .sidebar-link .count {
   margin-left: auto;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 11px;
   color: var(--fg-muted);
   font-weight: 400;
@@ -1356,7 +1356,7 @@ body.theme-dark .logos img {
   font-weight: var(--title-card-weight);
   letter-spacing: var(--title-card-tracking);
 }
-/* Per-cell meta / hint → brutalist monospace kicker, matching the handoff
+/* Per-cell meta / hint → eyebrow-role kicker, matching the handoff
    chart-system .cs-stripcell .ch / .cs-card .ck meta (eyebrow role tokens). */
 .chart-head .info {
   font-family: var(--title-eyebrow-font);
@@ -1679,7 +1679,7 @@ body.theme-dark .logos img {
   color: var(--fg-muted);
 }
 .cd-title-id {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 12px;
   color: var(--fg-muted);
   margin-top: 4px;
@@ -1780,7 +1780,7 @@ a.cd-publication-ref:hover {
   color: var(--epfl-red);
 }
 .cd-carousel-counter {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 11px;
   color: var(--fg-muted);
   min-width: 36px;
@@ -1877,7 +1877,7 @@ a.cd-publication-ref:hover {
   font-feature-settings: 'tnum';
 }
 .prop-val.mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
 }
 .prop-unit {
   color: var(--fg-subtle);
@@ -1945,7 +1945,7 @@ a.cd-publication-ref:hover {
 .cd-kpi-lbl {
   font-size: 12px;
   font-weight: 700;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   color: var(--fg);
   margin-bottom: 2px;
 }

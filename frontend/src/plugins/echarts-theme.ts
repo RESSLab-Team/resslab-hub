@@ -6,24 +6,23 @@
    Design language (from the handoff's charts-lib.js):
      · hairline axes  (#C1C1C1)
      · very light, solid gridlines  (#ECECEC)
-     · mono tick labels  (#8E8E8E)
+     · muted grey tick labels  (#8E8E8E)
      · square markers  (symbol: 'rect') — circles are never used
      · square bar corners
      · restrained red reserved for selection/emphasis, not series fills
 
    NOTE: ECharts measures/renders text from a literal font string — CSS
-   custom properties (var(--font-mono)) do NOT resolve here, so the Suisse/
-   mono stacks are inlined to mirror epfl-tokens.css.
+   custom properties (var(--font-sans)) do NOT resolve here, so the Suisse
+   stack is inlined to mirror epfl-tokens.css.
    ============================================================ */
 
 // Exported so components can measure text in the exact font ECharts renders
 // (e.g. laying the legend out inline after a title — see DoubleChart.vue).
 export const SANS = "'Suisse Int\\'l', 'SuisseIntl', Arial, 'Helvetica Neue', Helvetica, sans-serif"
-export const MONO = "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace"
 
 const AXIS = '#c1c1c1' // hairline axis line
 const GRID = '#ececec' // very light gridline
-const TICK = '#8e8e8e' // mono tick label
+const TICK = '#8e8e8e' // tick label ink
 const NAME = '#6e6e73' // muted axis-name ink (uniform across every chart)
 const INK = '#212121' // soft black
 
@@ -43,11 +42,11 @@ const SERIES = [
 const axisCommon = {
   axisLine: { lineStyle: { color: AXIS, width: 1 } },
   axisTick: { lineStyle: { color: AXIS, width: 1 } },
-  axisLabel: { color: TICK, fontFamily: MONO, fontSize: 11 },
+  axisLabel: { color: TICK, fontFamily: SANS, fontSize: 11 },
   splitLine: { lineStyle: { color: GRID, width: 1, type: 'solid' } },
-  // Axis names (titles): one treatment everywhere — muted grey, mono, regular
-  // weight (never black/bold), matching the mono tick labels above.
-  nameTextStyle: { color: NAME, fontFamily: MONO, fontWeight: 'normal' as const, fontSize: 11 }
+  // Axis names (titles): one treatment everywhere — muted grey, regular weight
+  // (never black/bold), matching the tick labels above.
+  nameTextStyle: { color: NAME, fontFamily: SANS, fontWeight: 'normal' as const, fontSize: 11 }
 }
 
 export const echartsTheme = {

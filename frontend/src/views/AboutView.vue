@@ -319,7 +319,7 @@ function initials(name: string): string {
   background: var(--bg-subtle);
   border: 1px solid var(--border);
   padding: 18px;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 12.5px;
   line-height: 1.6;
   color: var(--fg);

@@ -1088,7 +1088,7 @@ function downloadZip(): void {
 
 /* Cell treatments (design tbl) */
 .cell-mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 12px;
 }
 .cell-strong {

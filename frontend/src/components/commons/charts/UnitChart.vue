@@ -73,7 +73,7 @@ const actualOption = computed<EChartsOption>(() => {
       itemHeight: 2
     },
     xAxis: {
-      // Axis-name styling (grey/mono/regular) comes from the global theme.
+      // Axis-name styling (grey/regular) comes from the global theme.
       nameLocation: 'middle',
       nameGap: 26,
       max: xAXisOption?.max,

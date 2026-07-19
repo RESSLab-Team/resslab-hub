@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // EPFL tool-page slider (design: tools.css `.tslider`).
-// Label + monospace value sit above a thin 3px track with a filled portion and
+// Label + value sit above a thin 3px track with a filled portion and
 // a ringed thumb — no surrounding box. Colors use --fg/--bg tokens so the
 // control inverts correctly in dark mode. Unit conversion (SI/US) is handled
 // through `useUnits`.
@@ -105,7 +105,7 @@ function onInput(event: Event): void {
   font-size: 9px;
 }
 .tslider-val {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 13px;
   color: var(--fg);
   font-feature-settings: 'tnum';
@@ -144,7 +144,7 @@ function onInput(event: Event): void {
   display: flex;
   justify-content: space-between;
   margin-top: 2px;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 10px;
   color: var(--fg-subtle);
   font-feature-settings: 'tnum';

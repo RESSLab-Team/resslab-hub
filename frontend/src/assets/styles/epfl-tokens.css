@@ -86,7 +86,6 @@
   /* ──────────── TYPE ──────────── */
   --font-sans: "Suisse Int'l", 'SuisseIntl', 'Suisse Intl', Arial, 'Helvetica Neue', Helvetica,
     sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
 
   /* Type scale — verbatim from the EPFL handoff (colors_and_type.css). */
   --fs-h1: 3rem; /* 48 */
@@ -135,12 +134,13 @@
   --title-panel-weight: var(--w-bold);
   --title-panel-tracking: 0.06em;
 
-  /* Eyebrow / kicker — the category line above a title. Handoff .ed-eyebrow is a
-     fine monospace regular (not bold), two-tone red + muted; see app.css. */
+  /* Eyebrow / kicker — the category line above a title. Regular weight, wide
+     tracking, uppercase, two-tone red + muted (see app.css). Originally a fine
+     monospace in the handoff; now the brand sans, kept distinct by case + color. */
   --title-eyebrow-size: 0.6875rem; /* 11 */
   --title-eyebrow-weight: var(--w-normal);
   --title-eyebrow-tracking: 0.08em;
-  --title-eyebrow-font: var(--font-mono);
+  --title-eyebrow-font: var(--font-sans);
 
   /* Subhead — small ruled field-group label (a notch below panel header). */
   --title-subhead-size: var(--fs-xs); /* 12 */

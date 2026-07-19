@@ -5,7 +5,7 @@ import { useEChart } from '@/composables/useEChart'
 import i18n from '@/plugins/i18n'
 import type { Value } from '@/utils/common'
 import { getColorPalette, primaryColor, type Color } from '@/utils/vuetify'
-import { MONO, SANS } from '@/plugins/echarts-theme'
+import { SANS } from '@/plugins/echarts-theme'
 import type { EChartsOption } from 'echarts'
 import { TreemapChart } from 'echarts/charts'
 import { TooltipComponent } from 'echarts/components'
@@ -99,14 +99,15 @@ function buildOption(countsData: Count[]): EChartsOption {
           borderWidth: 1,
           gapWidth: 0
         },
-        // Label anchored top-left: bold sans name, mono count right below it
+        // Label anchored top-left: bold name, count right below it
         // (handoff charts-lib.js `treemap()`), instead of ECharts' centered name.
         label: {
           show: true,
           position: 'insideTopLeft',
           padding: [7, 8],
           lineHeight: 16,
-          formatter: (params: CallbackDataParams) => `{name|${params.name}}\n{value|${params.value}}`,
+          formatter: (params: CallbackDataParams) =>
+            `{name|${params.name}}\n{value|${params.value}}`,
           rich: {
             name: {
               color: '#fff',
@@ -118,7 +119,7 @@ function buildOption(countsData: Count[]): EChartsOption {
             },
             value: {
               color: 'rgba(255, 255, 255, 0.85)',
-              fontFamily: MONO,
+              fontFamily: SANS,
               fontSize: 11,
               lineHeight: 14,
               align: 'left'

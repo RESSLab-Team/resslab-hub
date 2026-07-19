@@ -79,7 +79,7 @@
   color: var(--fg);
 }
 .tool-page .chart-sub {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 10.5px;
   color: var(--fg-subtle);
   text-transform: uppercase;
@@ -275,7 +275,7 @@
   opacity: 0.85;
 }
 .tool-page .tfield-ratio strong {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 18px;
   color: var(--fg-inverse);
   font-weight: 600;
@@ -460,7 +460,7 @@
     cursor: pointer;
   }
   .tool-page .tool-params-trigger .ct {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     font-size: 10px;
     color: var(--fg-inverse);
     background: var(--epfl-red);
