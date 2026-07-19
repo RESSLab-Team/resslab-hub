@@ -27,11 +27,16 @@
   align-items: start;
 }
 
-/* input rail — sticky column that stays put (mirrors .dash-filters) */
+/* input rail — sticky column that stays put (mirrors .dash-filters).
+   `align-self: stretch` fills the grid row (whose height the stage's real content
+   drives) and `max-height: 100vh` caps it to the viewport — instead of a hard
+   `height: 100vh`, which would force the row (and thus the whole page, below the
+   header) taller than the viewport and scroll even when the content fits. */
 .tool-page .rail {
   position: sticky;
   top: 0;
-  height: 100vh;
+  align-self: stretch;
+  max-height: 100vh;
   overflow-y: auto;
   border-right: 1px solid var(--border);
   background: var(--bg);
