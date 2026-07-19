@@ -328,7 +328,7 @@
       "rail_slenderness": "Slenderness kL/r",
       "rail_section_depth": "Section depth d [mm]",
       "chart_loading_protocol": "Loading protocol",
-      "chart_tests_per_year_bc": "Tests per year × boundary condition",
+      "chart_tests_per_year_bc": "Tests per year by boundary condition",
       "chart_steel_grade": "Steel grade"
     },
     "column": {
@@ -340,8 +340,8 @@
       "rail_axial_load_ratio": "Axial load ratio Pg/Py",
       "rail_slenderness": "Slenderness Lb/ry",
       "chart_steel_grade": "Steel grade",
-      "chart_tests_per_year_bc": "Tests per year × boundary condition",
-      "chart_column_depth_fabrication": "Column depth × fabrication"
+      "chart_tests_per_year_bc": "Tests per year by boundary condition",
+      "chart_column_depth_fabrication": "Column depth by fabrication"
     },
     "connection": {
       "title": "Connections",
@@ -356,10 +356,10 @@
       "rail_column_flange": "Column flange tcf [mm]",
       "rail_panel_zone": "Panel-zone γmax/γy",
       "chart_connection_type": "Connection type",
-      "chart_tests_per_year_type": "Tests per year × type",
+      "chart_tests_per_year_type": "Tests per year by type",
       "chart_beam_steel_grade": "Beam steel grade",
-      "chart_beam_depth_slab": "Beam depth × slab",
-      "chart_column_depth_doubler_plates": "Column depth × doubler plates"
+      "chart_beam_depth_slab": "Beam depth by slab",
+      "chart_column_depth_doubler_plates": "Column depth by doubler plates"
     },
     "hss": {
       "title": "HSS Columns",
@@ -370,7 +370,7 @@
       "rail_loading_angle": "Loading angle [°]",
       "rail_failure_mode": "Failure mode",
       "chart_loading_protocol": "Loading protocol",
-      "chart_tests_per_year_failure_mode": "Tests per year × failure mode",
+      "chart_tests_per_year_failure_mode": "Tests per year by failure mode",
       "chart_steel_grade": "Steel grade"
     },
     "ebf": {
@@ -380,8 +380,8 @@
       "rail_link_length": "Link length e [mm]",
       "rail_link_classification": "Link classification (AISC)",
       "rail_overstrength": "Overstrength Ω (AISC)",
-      "chart_tests_per_year_section": "Tests per year × section type",
-      "chart_tests_per_year_classification": "Tests per year × link classification",
+      "chart_tests_per_year_section": "Tests per year by section type",
+      "chart_tests_per_year_classification": "Tests per year by link classification",
       "chart_loading_protocol": "Loading protocol",
       "chart_test_configuration": "Test configuration",
       "chart_steel_grade": "Steel grade"
@@ -394,8 +394,8 @@
       "rail_fracture_strain": "Fracture strain",
       "rail_thickness": "Thickness [mm]",
       "chart_steel_type": "Steel type",
-      "chart_coupons_per_year_profile": "Coupons per year × profile type",
-      "chart_thickness_profile": "Thickness × profile type"
+      "chart_coupons_per_year_profile": "Coupons per year by profile type",
+      "chart_thickness_profile": "Thickness by profile type"
     },
     "tensile_coupon": {
       "title": "Tensile Coupons",
@@ -406,8 +406,8 @@
       "rail_reduction_of_area": "Reduction of area",
       "rail_thickness": "Thickness [mm]",
       "chart_steel_grade": "Steel grade",
-      "chart_coupons_per_year_profile": "Coupons per year × profile type",
-      "chart_thickness_profile": "Thickness × profile type"
+      "chart_coupons_per_year_profile": "Coupons per year by profile type",
+      "chart_thickness_profile": "Thickness by profile type"
     },
     "ductile_fracture": {
       "title": "Ductile Fracture",
@@ -420,10 +420,10 @@
       "rail_sem_with": "With SEM",
       "rail_sem_without": "Without",
       "chart_specimen_type": "Specimen type",
-      "chart_tests_per_year": "Tests per year × specimen type",
+      "chart_tests_per_year": "Tests per year by specimen type",
       "chart_steel_type": "Steel type",
-      "chart_triaxiality": "Triaxiality × specimen type",
-      "chart_lode_angle": "Lode angle × specimen type"
+      "chart_triaxiality": "Triaxiality by specimen type",
+      "chart_lode_angle": "Lode angle by specimen type"
     },
     "residual": {
       "title": "Residual Stresses",
@@ -434,8 +434,8 @@
       "rail_flange_residual_stress": "Flange residual stress σ0,f [MPa]",
       "rail_web_residual_stress": "Web residual stress σ0,w [MPa]",
       "chart_steel_grade": "Steel grade",
-      "chart_specimens_per_year_profile": "Specimens per year × profile type",
-      "chart_section_height_profile": "Section height × profile type"
+      "chart_specimens_per_year_profile": "Specimens per year by profile type",
+      "chart_section_height_profile": "Section height by profile type"
     }
   },
   "shell": {

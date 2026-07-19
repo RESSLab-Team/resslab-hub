@@ -16,7 +16,7 @@
       "rail_slenderness": "Élancement kL/r",
       "rail_section_depth": "Hauteur de section d [mm]",
       "chart_loading_protocol": "Protocole de chargement",
-      "chart_tests_per_year_bc": "Essais par an × condition d'appui",
+      "chart_tests_per_year_bc": "Essais par an, par condition d'appui",
       "chart_steel_grade": "Nuance d'acier"
     },
     "column": {
@@ -28,8 +28,8 @@
       "rail_axial_load_ratio": "Rapport de charge axiale Pg/Py",
       "rail_slenderness": "Élancement Lb/ry",
       "chart_steel_grade": "Nuance d'acier",
-      "chart_tests_per_year_bc": "Essais par an × condition d'appui",
-      "chart_column_depth_fabrication": "Hauteur de poteau × fabrication"
+      "chart_tests_per_year_bc": "Essais par an, par condition d'appui",
+      "chart_column_depth_fabrication": "Hauteur de poteau par fabrication"
     },
     "connection": {
       "title": "Assemblages",
@@ -44,10 +44,10 @@
       "rail_column_flange": "Semelle de poteau tcf [mm]",
       "rail_panel_zone": "Zone nodale γmax/γy",
       "chart_connection_type": "Type d'assemblage",
-      "chart_tests_per_year_type": "Essais par an × type",
+      "chart_tests_per_year_type": "Essais par an, par type",
       "chart_beam_steel_grade": "Nuance d'acier de poutre",
-      "chart_beam_depth_slab": "Hauteur de poutre × dalle",
-      "chart_column_depth_doubler_plates": "Hauteur de poteau × plaques de renfort"
+      "chart_beam_depth_slab": "Hauteur de poutre par dalle",
+      "chart_column_depth_doubler_plates": "Hauteur de poteau par plaques de renfort"
     },
     "hss": {
       "title": "Poteaux HSS",
@@ -58,7 +58,7 @@
       "rail_loading_angle": "Angle de chargement [°]",
       "rail_failure_mode": "Mode de rupture",
       "chart_loading_protocol": "Protocole de chargement",
-      "chart_tests_per_year_failure_mode": "Essais par an × mode de rupture",
+      "chart_tests_per_year_failure_mode": "Essais par an, par mode de rupture",
       "chart_steel_grade": "Nuance d'acier"
     },
     "ebf": {
@@ -68,8 +68,8 @@
       "rail_link_length": "Longueur du tronçon e [mm]",
       "rail_link_classification": "Classification du tronçon (AISC)",
       "rail_overstrength": "Surrésistance Ω (AISC)",
-      "chart_tests_per_year_section": "Essais par an × type de section",
-      "chart_tests_per_year_classification": "Essais par an × classification du tronçon",
+      "chart_tests_per_year_section": "Essais par an, par type de section",
+      "chart_tests_per_year_classification": "Essais par an, par classification du tronçon",
       "chart_loading_protocol": "Protocole de chargement",
       "chart_test_configuration": "Configuration d'essai",
       "chart_steel_grade": "Nuance d'acier"
@@ -82,8 +82,8 @@
       "rail_fracture_strain": "Déformation à la rupture",
       "rail_thickness": "Épaisseur [mm]",
       "chart_steel_type": "Type d'acier",
-      "chart_coupons_per_year_profile": "Éprouvettes par an × type de profilé",
-      "chart_thickness_profile": "Épaisseur × type de profilé"
+      "chart_coupons_per_year_profile": "Éprouvettes par an, par type de profilé",
+      "chart_thickness_profile": "Épaisseur par type de profilé"
     },
     "tensile_coupon": {
       "title": "Éprouvettes de traction",
@@ -94,8 +94,8 @@
       "rail_reduction_of_area": "Striction",
       "rail_thickness": "Épaisseur [mm]",
       "chart_steel_grade": "Nuance d'acier",
-      "chart_coupons_per_year_profile": "Éprouvettes par an × type de profilé",
-      "chart_thickness_profile": "Épaisseur × type de profilé"
+      "chart_coupons_per_year_profile": "Éprouvettes par an, par type de profilé",
+      "chart_thickness_profile": "Épaisseur par type de profilé"
     },
     "ductile_fracture": {
       "title": "Rupture ductile",
@@ -108,10 +108,10 @@
       "rail_sem_with": "Avec MEB",
       "rail_sem_without": "Sans",
       "chart_specimen_type": "Type d'éprouvette",
-      "chart_tests_per_year": "Essais par an × type d'éprouvette",
+      "chart_tests_per_year": "Essais par an, par type d'éprouvette",
       "chart_steel_type": "Type d'acier",
-      "chart_triaxiality": "Triaxialité × type d'éprouvette",
-      "chart_lode_angle": "Angle de Lode × type d'éprouvette"
+      "chart_triaxiality": "Triaxialité par type d'éprouvette",
+      "chart_lode_angle": "Angle de Lode par type d'éprouvette"
     },
     "residual": {
       "title": "Contraintes résiduelles",
@@ -122,8 +122,8 @@
       "rail_flange_residual_stress": "Contrainte résiduelle de semelle σ0,f [MPa]",
       "rail_web_residual_stress": "Contrainte résiduelle d'âme σ0,w [MPa]",
       "chart_steel_grade": "Nuance d'acier",
-      "chart_specimens_per_year_profile": "Éprouvettes par an × type de profilé",
-      "chart_section_height_profile": "Hauteur de section × type de profilé"
+      "chart_specimens_per_year_profile": "Éprouvettes par an, par type de profilé",
+      "chart_section_height_profile": "Hauteur de section par type de profilé"
     }
   },
   "brace": {
