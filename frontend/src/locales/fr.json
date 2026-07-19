@@ -563,6 +563,7 @@
     "share": "Partager",
     "table_showing": "Affichage de {from}–{to} sur {total}",
     "per_page": "{option} / page",
+    "per_page_all": "Tout",
     "rows_per_page": "Lignes par page",
     "publication": "Publication",
     "loading_geometric_parameters": "Paramètres de chargement et géométriques",

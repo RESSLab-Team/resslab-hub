@@ -89,7 +89,10 @@ const emit = defineEmits<{
 }>()
 
 const maxDownloadCount = 5
-const itemsPerPageOptions = [5, 10, 20, 100, 1000]
+/** -1 = "All". `useTable` maps it to a 1000-row fetch, which exceeds every
+ *  dataset (largest is ~370 rows), so it really does return everything. */
+const ALL_ITEMS_PER_PAGE = -1
+const itemsPerPageOptions = [25, 50, 100, ALL_ITEMS_PER_PAGE]
 const vInputBind = {
   class: 'table-input',
   clearable: true,
@@ -119,7 +122,7 @@ const selectedItemsIds = ref<string[]>([])
 // M (UnwrapRefSimple<M>) and break the typing of everything touching it.
 const selectedItems = shallowRef<M[]>([])
 const page = ref<number>(1)
-const itemsPerPage = ref<number>(5)
+const itemsPerPage = ref<number>(50)
 const sortBy = ref<{ key: string; order: 'asc' | 'desc' }>()
 // Which column's header menu (sort + filter popover) is open, keyed by column.
 // Sort actions close it; filter edits keep it open.
@@ -226,6 +229,11 @@ onUnmounted(() => {
 // Row virtualization: window the current page's rows so large page sizes
 // (100/1000) mount only what's visible. No-ops for the common small pages.
 const totalRows = computed<number>(() => displayItems.value.length)
+// Height floor for the scroll viewport, in rows. Driven by the rows actually
+// rendered rather than the page size: with a 50-row default, sizing to the page
+// would pin the panel at the 50vh cap even when a filter leaves 3 matches. The
+// small floor keeps the empty/near-empty state from collapsing.
+const heightRows = computed<number>(() => Math.max(3, totalRows.value))
 const { window: rowWindow } = useVirtualRows(scrollEl, totalRows)
 const visibleRows = computed<M[]>(() =>
   displayItems.value.slice(rowWindow.value.startIndex, rowWindow.value.endIndex)
@@ -278,14 +286,22 @@ const columnWidths = computed<string[]>(() => {
   return weights.map((w) => `calc((100% - 44px) * ${(w / total).toFixed(4)})`)
 })
 
+// "All" (-1) would make the pager math go negative, so resolve it to the full
+// filtered count first — every page computation below rides this, not the raw
+// itemsPerPage.
+const effectivePageSize = computed<number>(() =>
+  itemsPerPage.value === ALL_ITEMS_PER_PAGE
+    ? Math.max(1, props.totalFilteredCount)
+    : itemsPerPage.value
+)
 const pageCount = computed<number>(() =>
-  Math.max(1, Math.ceil(props.totalFilteredCount / itemsPerPage.value))
+  Math.max(1, Math.ceil(props.totalFilteredCount / effectivePageSize.value))
 )
 const pageFrom = computed<number>(() =>
-  props.totalFilteredCount === 0 ? 0 : (page.value - 1) * itemsPerPage.value + 1
+  props.totalFilteredCount === 0 ? 0 : (page.value - 1) * effectivePageSize.value + 1
 )
 const pageTo = computed<number>(() =>
-  Math.min(page.value * itemsPerPage.value, props.totalFilteredCount)
+  Math.min(page.value * effectivePageSize.value, props.totalFilteredCount)
 )
 // Footer "showing X to Y of Z" values, overridden by the live drag count when set
 // (display-only — pagination above still uses the committed totalFilteredCount).
@@ -467,7 +483,7 @@ function downloadZip(): void {
 </script>
 
 <template>
-  <v-card class="stbl" flat :style="{ '--stbl-rows': String(itemsPerPage) }">
+  <v-card class="stbl" flat :style="{ '--stbl-rows': String(heightRows) }">
     <div v-if="!hideToolbar" class="stbl-toolbar">
       <div class="stbl-title">
         <slot name="title">
@@ -785,7 +801,11 @@ function downloadZip(): void {
           :aria-label="$t('commons.rows_per_page')"
         >
           <option v-for="option in itemsPerPageOptions" :key="option" :value="option">
-            {{ $t('commons.per_page', { option }) }}
+            {{
+              option === ALL_ITEMS_PER_PAGE
+                ? $t('commons.per_page_all')
+                : $t('commons.per_page', { option })
+            }}
           </option>
         </select>
       </div>

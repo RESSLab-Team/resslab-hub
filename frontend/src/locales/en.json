@@ -490,6 +490,7 @@
     "share": "Share",
     "table_showing": "Showing {from}–{to} of {total}",
     "per_page": "{option} / page",
+    "per_page_all": "All",
     "rows_per_page": "Rows per page",
     "publication": "Publication",
     "loading_geometric_parameters": "Loading & geometric parameters",
