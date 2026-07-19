@@ -574,7 +574,7 @@
     "range_max": "max",
     "confirm": "Confirmer",
     "cancel": "Annuler",
-    "search_n_items": "{n} éléments",
+    "no_results": "Aucune section correspondante",
     "select_database": "Sélectionner la base de données",
     "select_section": "Sélectionner la section",
     "reset": "Réinitialiser",

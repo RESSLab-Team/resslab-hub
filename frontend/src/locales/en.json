@@ -501,7 +501,7 @@
     "range_max": "max",
     "confirm": "Confirm",
     "cancel": "Cancel",
-    "search_n_items": "{n} items",
+    "no_results": "No matching sections",
     "select_database": "Select Database",
     "select_section": "Select Section",
     "reset": "Reset",
