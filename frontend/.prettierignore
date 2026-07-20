@@ -1,0 +1,9 @@
+# Build output / generated reports (also gitignored).
+dist/
+dist-ssr/
+coverage/
+
+# Auto-generated TypeScript API client (openapi-generator via `make api`).
+# Formatting it would be reverted on the next regeneration, so it is excluded
+# from both `npm run format` and the lefthook pre-commit prettier job.
+src/backend/
