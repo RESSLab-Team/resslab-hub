@@ -393,7 +393,10 @@ const paramCount = computed(
         <div class="st-charts-2">
           <div class="st-chart">
             <div class="chart-cap">
-              <h2 class="chart-h">{{ $t('tools.brace_model.tension') }}</h2>
+              <div class="chart-cap-t">
+                <h2 class="chart-h">{{ $t('tools.brace_model.tension') }}</h2>
+                <p class="chart-sub">{{ $t('tools.brace_model.tension_sub') }}</p>
+              </div>
             </div>
             <div class="tchart h-chart">
               <unit-chart fill :option="getTensionOption(result)" />
@@ -401,7 +404,10 @@ const paramCount = computed(
           </div>
           <div class="st-chart">
             <div class="chart-cap">
-              <h2 class="chart-h">{{ $t('tools.brace_model.compression') }}</h2>
+              <div class="chart-cap-t">
+                <h2 class="chart-h">{{ $t('tools.brace_model.compression') }}</h2>
+                <p class="chart-sub">{{ $t('tools.brace_model.compression_sub') }}</p>
+              </div>
             </div>
             <div class="tchart h-chart">
               <unit-chart fill :option="getCompressionOption(result)" />
@@ -416,6 +422,7 @@ const paramCount = computed(
             :alt="$t('tools.brace_model.schematic_alt')"
             :src="publicPath + 'img/brace/I_shaped_Bracing.png'"
           />
+          <figcaption>{{ $t('tools.brace_model.figcaption') }}</figcaption>
         </figure>
       </div>
     </template>

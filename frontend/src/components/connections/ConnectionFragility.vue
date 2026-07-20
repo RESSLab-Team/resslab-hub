@@ -120,18 +120,24 @@ const postNorthridgeOption = computed<EChartsOption>(() => {
   }
 })
 
-const panels = computed<{ id: FocusId; title: string; option: EChartsOption }[]>(() => [
-  {
-    id: 'pre',
-    title: t('tools.connection_fragility.panel_pre_northridge'),
-    option: preNorthridgeOption.value
-  },
-  {
-    id: 'post',
-    title: t('tools.connection_fragility.panel_post_northridge'),
-    option: postNorthridgeOption.value
-  }
-])
+// `count` is the number of damage states plotted, surfaced as the thumbnail's
+// meta line so the two panels are distinguishable at thumbnail size.
+const panels = computed<{ id: FocusId; title: string; option: EChartsOption; count: number }[]>(
+  () => [
+    {
+      id: 'pre',
+      title: t('tools.connection_fragility.panel_pre_northridge'),
+      option: preNorthridgeOption.value,
+      count: (preNorthridgeOption.value.series as unknown[]).length
+    },
+    {
+      id: 'post',
+      title: t('tools.connection_fragility.panel_post_northridge'),
+      option: postNorthridgeOption.value,
+      count: (postNorthridgeOption.value.series as unknown[]).length
+    }
+  ]
+)
 const activePanel = computed(() => panels.value.find((p) => p.id === focus.value)!)
 
 // Compact, label-free clone for the preview thumbnails; inactive series go grey.
@@ -234,7 +240,10 @@ function thumbOption(option: EChartsOption, active: boolean): EChartsOption {
     <template #stage>
       <div class="st-block st-chart">
         <div class="chart-cap">
-          <h2 class="chart-h">{{ activePanel.title }}</h2>
+          <div class="chart-cap-t">
+            <h2 class="chart-h">{{ activePanel.title }}</h2>
+            <p class="chart-sub">{{ $t('tools.connection_fragility.panel_sub') }}</p>
+          </div>
         </div>
         <div class="tchart h-chart">
           <unit-chart fill :option="activePanel.option" x-unit="rad" />
@@ -256,6 +265,9 @@ function thumbOption(option: EChartsOption, active: boolean): EChartsOption {
               />
             </div>
             <span class="mat-thumb-label">{{ panel.title }}</span>
+            <span class="mat-thumb-meta">
+              {{ $t('tools.connection_fragility.damage_states', { count: panel.count }) }}
+            </span>
           </button>
         </div>
       </div>

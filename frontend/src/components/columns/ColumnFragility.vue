@@ -297,7 +297,10 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
     <template #stage>
       <div class="st-chart">
         <div class="chart-cap">
-          <h2 class="chart-h">{{ $t('tools.column_fragility.fragility_curves') }}</h2>
+          <div class="chart-cap-t">
+            <h2 class="chart-h">{{ $t('tools.column_fragility.fragility_curves') }}</h2>
+            <p class="chart-sub">{{ $t('tools.column_fragility.fragility_curves_sub') }}</p>
+          </div>
         </div>
         <div class="curve-row">
           <div class="tchart h-chart">
@@ -309,6 +312,7 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
 
       <div class="e-surfaces-head">
         <h3 class="chart-h">{{ $t('tools.column_fragility.surface_fragility_curves') }}</h3>
+        <p class="chart-sub">{{ $t('tools.column_fragility.surface_fragility_curves_sub') }}</p>
       </div>
       <div class="st-surfaces">
         <div v-for="(item, index) in surfaceOptions" :key="index" class="tchart h-surface">

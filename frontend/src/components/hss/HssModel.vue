@@ -460,7 +460,10 @@ defineExpose({ vars, backbone, envelope })
     <template #stage>
       <div class="st-block st-chart">
         <div class="chart-cap">
-          <h2 class="chart-h">{{ $t('tools.hss_model.backbone_curve') }}</h2>
+          <div class="chart-cap-t">
+            <h2 class="chart-h">{{ $t('tools.hss_model.backbone_curve') }}</h2>
+            <p class="chart-sub">{{ $t('tools.hss_model.backbone_curve_sub') }}</p>
+          </div>
         </div>
         <div class="tchart h-chart">
           <unit-chart
@@ -506,6 +509,7 @@ defineExpose({ vars, backbone, envelope })
             :alt="$t('tools.hss_model.schematic_alt')"
             :src="publicPath + 'img/hss/component.png'"
           />
+          <figcaption>{{ $t('tools.hss_model.figcaption') }}</figcaption>
         </figure>
       </div>
     </template>

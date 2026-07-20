@@ -637,7 +637,12 @@ defineExpose({
         <div class="st-charts-2">
           <div class="st-chart">
             <div class="chart-cap">
-              <h2 class="chart-h">{{ $t('tools.connection_model.chart_beams_with_rbs') }}</h2>
+              <div class="chart-cap-t">
+                <h2 class="chart-h">{{ $t('tools.connection_model.chart_beams_with_rbs') }}</h2>
+                <p class="chart-sub">
+                  {{ $t('tools.connection_model.chart_beams_with_rbs_sub') }}
+                </p>
+              </div>
             </div>
             <div class="tchart h-chart">
               <unit-chart
@@ -650,7 +655,12 @@ defineExpose({
           </div>
           <div class="st-chart">
             <div class="chart-cap">
-              <h2 class="chart-h">{{ $t('tools.connection_model.chart_beams_without_rbs') }}</h2>
+              <div class="chart-cap-t">
+                <h2 class="chart-h">{{ $t('tools.connection_model.chart_beams_without_rbs') }}</h2>
+                <p class="chart-sub">
+                  {{ $t('tools.connection_model.chart_beams_without_rbs_sub') }}
+                </p>
+              </div>
             </div>
             <div class="tchart h-chart">
               <unit-chart
@@ -729,6 +739,7 @@ defineExpose({
             :alt="$t('tools.connection_model.schematic_alt')"
             :src="publicPath + 'img/connection/component-2.png'"
           />
+          <figcaption>{{ $t('tools.connection_model.figcaption') }}</figcaption>
         </figure>
       </div>
     </template>

@@ -454,7 +454,10 @@ defineExpose({ vars, backbone, envelope, variables, onSectionChanged })
     <template #stage>
       <div class="st-block st-chart">
         <div class="chart-cap">
-          <h2 class="chart-h">{{ $t('tools.column_model.backbone_curve') }}</h2>
+          <div class="chart-cap-t">
+            <h2 class="chart-h">{{ $t('tools.column_model.backbone_curve') }}</h2>
+            <p class="chart-sub">{{ $t('tools.column_model.backbone_curve_sub') }}</p>
+          </div>
         </div>
         <div class="tchart h-chart">
           <unit-chart
@@ -500,6 +503,7 @@ defineExpose({ vars, backbone, envelope, variables, onSectionChanged })
             :alt="$t('tools.column_model.schematic_alt')"
             :src="publicPath + 'img/column/component.png'"
           />
+          <figcaption>{{ $t('tools.column_model.figcaption') }}</figcaption>
         </figure>
       </div>
     </template>

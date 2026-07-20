@@ -76,6 +76,11 @@
   gap: 12px;
   flex-wrap: wrap;
 }
+/* Title + kicker stack on the left of the caption row, leaving the right slot
+   free for whatever a chart wants to hang there. */
+.tool-page .chart-cap-t {
+  min-width: 0;
+}
 .tool-page .chart-h {
   font-size: var(--title-card-size);
   font-weight: var(--title-card-weight);
@@ -225,6 +230,15 @@
   font-weight: 600;
   color: var(--fg);
   margin-top: 4px;
+}
+/* Muted qualifier under a thumbnail's label (handoff `.thumb .tm`). */
+.tool-page .mat-thumb-meta {
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  margin-top: 2px;
 }
 
 /* ── Rail cards / fields / controls ────────────────────────── */

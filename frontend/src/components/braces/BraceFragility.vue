@@ -321,7 +321,10 @@ function correlatedBivariate(
     <template #stage>
       <div class="st-chart">
         <div class="chart-cap">
-          <h2 class="chart-h">{{ $t('tools.brace_fragility.univariate_fragilities') }}</h2>
+          <div class="chart-cap-t">
+            <h2 class="chart-h">{{ $t('tools.brace_fragility.univariate_fragilities') }}</h2>
+            <p class="chart-sub">{{ $t('tools.brace_fragility.univariate_fragilities_sub') }}</p>
+          </div>
         </div>
         <div class="tchart h-chart">
           <unit-chart fill :option="univariateOptions[option]" x-unit="rad" />
@@ -330,6 +333,7 @@ function correlatedBivariate(
 
       <div class="e-surfaces-head">
         <h3 class="chart-h">{{ $t('tools.brace_fragility.multivariate_fragilities') }}</h3>
+        <p class="chart-sub">{{ $t('tools.brace_fragility.multivariate_fragilities_sub') }}</p>
       </div>
       <div class="st-surfaces">
         <div v-for="(item, i) in multivariateOptions" :key="i" class="tchart h-surface">

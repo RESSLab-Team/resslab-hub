@@ -235,7 +235,10 @@ const paramCount = computed(() =>
     <template #stage>
       <div class="st-block st-chart">
         <div class="chart-cap">
-          <h2 class="chart-h">{{ focusTitle }}</h2>
+          <div class="chart-cap-t">
+            <h2 class="chart-h">{{ focusTitle }}</h2>
+            <p class="chart-sub">{{ $t('tools.material_model.chart_sub', { id: focus }) }}</p>
+          </div>
         </div>
         <div class="tchart h-chart">
           <unit-line-chart
@@ -259,6 +262,7 @@ const paramCount = computed(() =>
               <unit-chart :aspect-ratio="1.9" :option="thumbOption(item.id, focus === item.id)" />
             </div>
             <span class="mat-thumb-label">{{ item.title }}</span>
+            <span class="mat-thumb-meta">{{ item.id }}</span>
           </button>
         </div>
       </div>
