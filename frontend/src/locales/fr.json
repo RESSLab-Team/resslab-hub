@@ -1012,7 +1012,6 @@
   },
   "contribute": {
     "new_submission": "Nouvelle soumission",
-    "eyebrow": "CONTRIBUER",
     "gate": {
       "lead_before": "Contribuez des essais expérimentaux à la ",
       "lead_em": "base de données acier ouverte",
@@ -1020,7 +1019,6 @@
       "blurb": "RESSLab Hub regroupe des campagnes expérimentales cycliques et monotones sur des éléments et assemblages en acier. La soumission et la curation sont réservées aux chercheurs académiques vérifiés.",
       "stat_tests": "Essais curés",
       "stat_databases": "Bases de données",
-      "stat_labs": "Laboratoires sources",
       "title": "Connectez-vous pour contribuer",
       "subtitle": "Utilisez votre identité institutionnelle. La consultation publique ne nécessite aucun compte — un compte n'est requis que pour soumettre ou curer des données.",
       "sso_tequila": "Continuer avec EPFL Tequila",
@@ -1072,32 +1070,30 @@
     },
     "metadata": {
       "title": "Métadonnées du spécimen",
-      "subtitle": "Ces champs correspondent exactement au schéma de la base de données sélectionnée — les mêmes propriétés que celles exposées par chaque spécimen publié. Laissez vide ce que vous n'avez pas mesuré.",
+      "subtitle": "Ces champs correspondent exactement au schéma de la base de données sélectionnée — les mêmes propriétés que celles exposées par chaque spécimen publié. Remplissez-les à la main, ou préremplissez-les depuis un CSV préparé. Laissez vide ce que vous n'avez pas mesuré.",
       "summary_fields": "{count} champs",
       "summary_blank": "les champs vides sont soumis comme « non renseignés » et ignorés par la validation",
       "fields": "Champs",
       "id_required": "Un identifiant est requis avant de lancer le contrôle qualité.",
-      "select_database_first": "Choisissez d'abord une base de données cible."
-    },
-    "files": {
-      "title": "Fichiers de données",
-      "subtitle": "Importez un enregistrement préparé pour remplir le formulaire de métadonnées, ou joignez la réponse mesurée. Le téléversement des séries temporelles n'est pas encore branché dans ce brouillon.",
-      "import": "Importer un enregistrement depuis un CSV",
-      "columns": "colonnes attendues",
-      "browse": "parcourir",
-      "drop_big": "Déposez un CSV ici, ou {browse}",
-      "drop_small": "la première ligne de données est lue · les en-têtes doivent correspondre aux colonnes",
+      "select_database_first": "Choisissez d'abord une base de données cible.",
+      "import_prompt": "Déposez un CSV ici pour préremplir tous les champs, ou {browse}",
+      "import_browse": "parcourir",
+      "import_hint": "la première ligne de données est lue · les en-têtes doivent correspondre aux colonnes",
+      "import_clear": "Tout effacer",
       "import_ok": "{file} importé — {matched} colonnes correspondantes, {filled} champs remplis.",
       "import_failed": "Impossible d'importer {file} :",
       "import_no_match": "Aucun en-tête ne correspond à cette base de données. Le fichier concerne-t-il une autre base ?",
       "import_first_row": "Le fichier contient {count} lignes ; seule la première a été importée.",
-      "import_unknown": "{count} en-tête(s) absent(s) de cette base ont été ignorés : {columns}",
-      "import_note": "L'import remplace tout le contenu actuel du formulaire de métadonnées. Les valeurs NA ou NR sont considérées comme vides.",
+      "import_unknown": "{count} en-tête(s) absent(s) de cette base ont été ignorés : {columns}"
+    },
+    "files": {
+      "title": "Fichiers de données",
+      "subtitle": "Joignez la réponse mesurée pour ce spécimen. Le téléversement des séries temporelles n'est pas encore branché dans ce brouillon.",
       "timeseries": "Séries temporelles",
       "optional_stub": "pas encore disponible",
       "timeseries_soon": "Le téléversement des séries temporelles arrive bientôt",
       "timeseries_kinds": "force–déplacement · moment–rotation · contrainte–déformation",
-      "note": "Le contrôle qualité de l'étape suivante valide les métadonnées ; il n'inspecte pas encore les séries temporelles téléversées."
+      "note": "Le contrôle qualité de l'étape suivante valide les métadonnées saisies ; il n'inspecte pas encore les séries temporelles téléversées."
     },
     "quality": {
       "title": "Contrôle qualité",

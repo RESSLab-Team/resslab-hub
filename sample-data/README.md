@@ -20,12 +20,13 @@ The directory layout mirrors what the backend expects inside an upload archive
 
 1. Start the backend, database and `npm run dev`.
 2. Go to `/contribute/new`, sign in, and pick the matching database in step 1.
-3. In **step 3**, drop the CSV on the import zone. It reads the first data row
-   and fills the metadata form.
+3. In **step 2**, drop the CSV on the prefill bar above the fields. It reads the
+   first data row and fills the form; you can then edit any field by hand.
 4. **Step 4** runs the real quality check.
 
 Step 1 must match the file — the importer aligns headers against the selected
-database's columns and refuses a file with no overlap.
+database's columns and refuses a file with no overlap. Prefilling is optional;
+every field can be typed in directly.
 
 ## Using them with curl
 
