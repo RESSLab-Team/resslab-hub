@@ -1081,12 +1081,23 @@
     },
     "files": {
       "title": "Test data files",
-      "subtitle": "Upload the measured response. This step is a placeholder in the current draft — time-series upload is not wired up yet.",
+      "subtitle": "Import a prepared record to fill the metadata form, or attach the measured response. Time-series upload is not wired up yet in this draft.",
+      "import": "Import a record from CSV",
+      "columns": "columns expected",
+      "browse": "browse",
+      "drop_big": "Drop a CSV here, or {browse}",
+      "drop_small": "first data row is read · headers must match the database columns",
+      "import_ok": "Imported {file} — {matched} columns matched, {filled} fields filled.",
+      "import_failed": "Could not import {file}:",
+      "import_no_match": "No column headers matched this database. Is the file for a different database?",
+      "import_first_row": "The file holds {count} rows; only the first was imported.",
+      "import_unknown": "{count} header(s) not in this database were ignored: {columns}",
+      "import_note": "Importing replaces everything currently in the metadata form. Values of NA or NR are treated as blank.",
       "timeseries": "Time-series",
       "optional_stub": "not yet available",
-      "drop_big": "Time-series upload is coming soon",
-      "drop_small": "force–displacement · moment–rotation · stress–strain",
-      "note": "The quality check in the next step validates the metadata you entered; it does not yet inspect uploaded files."
+      "timeseries_soon": "Time-series upload is coming soon",
+      "timeseries_kinds": "force–displacement · moment–rotation · stress–strain",
+      "note": "The quality check in the next step validates the metadata; it does not yet inspect uploaded time-series."
     },
     "quality": {
       "title": "Quality check",

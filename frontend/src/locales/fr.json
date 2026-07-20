@@ -1081,12 +1081,23 @@
     },
     "files": {
       "title": "Fichiers de données",
-      "subtitle": "Téléversez la réponse mesurée. Cette étape est un espace réservé dans le présent brouillon — le téléversement des séries temporelles n'est pas encore branché.",
+      "subtitle": "Importez un enregistrement préparé pour remplir le formulaire de métadonnées, ou joignez la réponse mesurée. Le téléversement des séries temporelles n'est pas encore branché dans ce brouillon.",
+      "import": "Importer un enregistrement depuis un CSV",
+      "columns": "colonnes attendues",
+      "browse": "parcourir",
+      "drop_big": "Déposez un CSV ici, ou {browse}",
+      "drop_small": "la première ligne de données est lue · les en-têtes doivent correspondre aux colonnes",
+      "import_ok": "{file} importé — {matched} colonnes correspondantes, {filled} champs remplis.",
+      "import_failed": "Impossible d'importer {file} :",
+      "import_no_match": "Aucun en-tête ne correspond à cette base de données. Le fichier concerne-t-il une autre base ?",
+      "import_first_row": "Le fichier contient {count} lignes ; seule la première a été importée.",
+      "import_unknown": "{count} en-tête(s) absent(s) de cette base ont été ignorés : {columns}",
+      "import_note": "L'import remplace tout le contenu actuel du formulaire de métadonnées. Les valeurs NA ou NR sont considérées comme vides.",
       "timeseries": "Séries temporelles",
       "optional_stub": "pas encore disponible",
-      "drop_big": "Le téléversement des séries temporelles arrive bientôt",
-      "drop_small": "force–déplacement · moment–rotation · contrainte–déformation",
-      "note": "Le contrôle qualité de l'étape suivante valide les métadonnées saisies ; il n'inspecte pas encore les fichiers téléversés."
+      "timeseries_soon": "Le téléversement des séries temporelles arrive bientôt",
+      "timeseries_kinds": "force–déplacement · moment–rotation · contrainte–déformation",
+      "note": "Le contrôle qualité de l'étape suivante valide les métadonnées ; il n'inspecte pas encore les séries temporelles téléversées."
     },
     "quality": {
       "title": "Contrôle qualité",

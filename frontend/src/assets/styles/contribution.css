@@ -729,6 +729,22 @@
   padding: 38px 24px;
   text-align: center;
   background: var(--bg-subtle);
+  display: block;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.cp-drop:hover:not(.is-disabled),
+.cp-drop.dragover {
+  border-color: var(--epfl-red);
+}
+.cp-drop.dragover {
+  background: var(--bg);
+}
+.cp-drop.is-disabled {
+  cursor: default;
+  opacity: 0.65;
 }
 .cp-drop .ic {
   width: 34px;
