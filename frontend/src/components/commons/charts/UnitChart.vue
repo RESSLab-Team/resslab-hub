@@ -54,7 +54,11 @@ const actualOption = computed<EChartsOption>(() => {
   const yAXisOption: YAXisOption = props.option.yAxis as YAXisOption
   const defaultOption: EChartsOption = {
     grid: {
-      left: 60,
+      // The rotated y-axis name sits at `left - nameGap` from the container
+      // edge (74 - 44 = 30px), while `nameGap` itself is what keeps the name
+      // clear of the tick labels. The moment charts render 6-digit kN⋅mm
+      // labels ~40px wide, so nameGap has little room to shrink further.
+      left: 74,
       top: props.legendSide ? 10 : 16,
       right: props.legendSide ? 200 : 20,
       // Reserve a legend band only when the legend actually sits below the plot.
@@ -85,7 +89,7 @@ const actualOption = computed<EChartsOption>(() => {
     yAxis: {
       // Name rides along the axis (rotated, mid-height) — never above the plot.
       nameLocation: 'middle',
-      nameGap: 50,
+      nameGap: 44,
       max: yAXisOption?.max,
       axisLabel: {
         formatter: (value: number) => `${round(value, axisLabelMaxDigits)}`,
@@ -187,11 +191,11 @@ const actualOption = computed<EChartsOption>(() => {
   height: 100%;
 }
 /* Hairline that fences the bottom legend off from the plot + x-axis label
-   (handoff). Offsets track the grid (left 60 / right 20) and the legend band —
+   (handoff). Offsets track the grid (left 74 / right 20) and the legend band —
    all fixed in px, so the rule stays put at any chart height. */
 .uc-legend-rule {
   position: absolute;
-  left: 60px;
+  left: 74px;
   right: 20px;
   bottom: 32px;
   border-top: 1px solid var(--border);
