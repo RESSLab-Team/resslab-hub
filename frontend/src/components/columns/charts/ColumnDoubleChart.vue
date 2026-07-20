@@ -35,16 +35,10 @@ const {
   numberMax,
   numberMin,
   numberRange
-} = useDoubleChart<ColumnField, ColumnNumberField>(
-  emit,
-  props.fields,
-  query,
-  getCounts,
-  {
-    field: ColumnNumberField,
-    getRange
-  }
-)
+} = useDoubleChart<ColumnField, ColumnNumberField>(emit, props.fields, query, getCounts, {
+  field: ColumnNumberField,
+  getRange
+})
 </script>
 
 <template>

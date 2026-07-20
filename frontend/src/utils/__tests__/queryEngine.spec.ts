@@ -1,4 +1,10 @@
-import { compileQuery, filterRows, formatValue, inferFieldTypes, type Row } from '@/utils/queryEngine'
+import {
+  compileQuery,
+  filterRows,
+  formatValue,
+  inferFieldTypes,
+  type Row
+} from '@/utils/queryEngine'
 import { describe, expect, it } from 'vitest'
 
 const rows: Row[] = [

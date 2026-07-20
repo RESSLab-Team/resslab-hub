@@ -35,16 +35,10 @@ const {
   numberMax,
   numberMin,
   numberRange
-} = useDoubleChart<BraceField, BraceNumberField>(
-  emit,
-  props.fields,
-  query,
-  getCounts,
-  {
-    field: BraceNumberField,
-    getRange
-  }
-)
+} = useDoubleChart<BraceField, BraceNumberField>(emit, props.fields, query, getCounts, {
+  field: BraceNumberField,
+  getRange
+})
 </script>
 
 <template>

@@ -42,7 +42,10 @@ interface Emits extends TableEmits<BraceModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
-const { getTotal, getPage, countRowsSync, pageSync } = useDataset<BraceModel>(BRACE_KEY, fetchBraces)
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<BraceModel>(
+  BRACE_KEY,
+  fetchBraces
+)
 const {
   clickRow,
   downloadFiles,

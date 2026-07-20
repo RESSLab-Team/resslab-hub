@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import type { DuctileFractureField, DuctileFractureModel } from '@/backend'
 import SingleChart from '@/components/commons/charts/SingleChart.vue'
-import { singleChartProps, toSingleCounts, useSingleChart, type ChartEmits } from '@/composables/chart'
+import {
+  singleChartProps,
+  toSingleCounts,
+  useSingleChart,
+  type ChartEmits
+} from '@/composables/chart'
 import { dashboardQueryKey } from '@/composables/dashboard'
 import { useDataset } from '@/composables/useDataset'
 import { DUCTILE_FRACTURE_KEY, fetchDuctileFractures } from '@/components/ductile-fracture/data'

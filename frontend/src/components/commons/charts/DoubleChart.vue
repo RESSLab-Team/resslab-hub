@@ -28,7 +28,11 @@ import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { chain, clone, range } from 'lodash'
 import { isBrushDragging } from '@/composables/interactionState'
 import { publishLive, publishSettle, subscribeCrossfilter } from '@/composables/crossfilterBus'
-import { dashboardQueryKey, queryFieldSeparator, queryKeyValueSeparator } from '@/composables/dashboard'
+import {
+  dashboardQueryKey,
+  queryFieldSeparator,
+  queryKeyValueSeparator
+} from '@/composables/dashboard'
 import { computed, inject, onBeforeUnmount, onMounted, onUnmounted, ref, unref, watch } from 'vue'
 
 use([

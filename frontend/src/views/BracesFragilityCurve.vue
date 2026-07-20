@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BraceFragility from "@/components/braces/BraceFragility.vue";
+import BraceFragility from '@/components/braces/BraceFragility.vue'
 </script>
 
 <template>

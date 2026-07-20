@@ -89,7 +89,12 @@ describe('crossfilter drag integration', () => {
 
     publishLive('value:>15')
     flushFrame()
-    expect(frames).toEqual([[{ names: ['B'], value: 1 }, { names: ['A'], value: 1 }]])
+    expect(frames).toEqual([
+      [
+        { names: ['B'], value: 1 },
+        { names: ['A'], value: 1 }
+      ]
+    ])
 
     publishSettle()
     expect(settled).toBe(true)

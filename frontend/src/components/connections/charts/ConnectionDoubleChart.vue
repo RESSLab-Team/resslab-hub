@@ -35,16 +35,10 @@ const {
   numberMax,
   numberMin,
   numberRange
-} = useDoubleChart<ConnectionField, ConnectionNumberField>(
-  emit,
-  props.fields,
-  query,
-  getCounts,
-  {
-    field: ConnectionNumberField,
-    getRange
-  }
-)
+} = useDoubleChart<ConnectionField, ConnectionNumberField>(emit, props.fields, query, getCounts, {
+  field: ConnectionNumberField,
+  getRange
+})
 </script>
 
 <template>

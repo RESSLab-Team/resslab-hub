@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { HSSColumnField, HSSColumnNumberField, type CountModel, type HSSColumnModel } from '@/backend'
+import {
+  HSSColumnField,
+  HSSColumnNumberField,
+  type CountModel,
+  type HSSColumnModel
+} from '@/backend'
 import DoubleChart from '@/components/commons/charts/DoubleChart.vue'
 import {
   doubleChartProps,
@@ -35,16 +40,10 @@ const {
   numberMax,
   numberMin,
   numberRange
-} = useDoubleChart<HSSColumnField, HSSColumnNumberField>(
-  emit,
-  props.fields,
-  query,
-  getCounts,
-  {
-    field: HSSColumnNumberField,
-    getRange
-  }
-)
+} = useDoubleChart<HSSColumnField, HSSColumnNumberField>(emit, props.fields, query, getCounts, {
+  field: HSSColumnNumberField,
+  getRange
+})
 </script>
 
 <template>

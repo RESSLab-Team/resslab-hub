@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import type { MaterialField, MaterialModel } from '@/backend'
 import SingleChart from '@/components/commons/charts/SingleChart.vue'
-import { singleChartProps, toSingleCounts, useSingleChart, type ChartEmits } from '@/composables/chart'
+import {
+  singleChartProps,
+  toSingleCounts,
+  useSingleChart,
+  type ChartEmits
+} from '@/composables/chart'
 import { dashboardQueryKey } from '@/composables/dashboard'
 import { useDataset } from '@/composables/useDataset'
 import { MATERIAL_KEY, fetchMaterials } from '@/components/materials/data'
@@ -16,7 +21,12 @@ const emit = defineEmits<Emits>()
 // it updates only when its own counts change. See dashboardQueryKey.
 const query = inject(dashboardQueryKey, toRef(props, 'query'))
 const { getCounts, countsSync } = useDataset<MaterialModel>(MATERIAL_KEY, fetchMaterials)
-const { counts, changeSearches } = useSingleChart<MaterialField>(emit, props.field, query, getCounts)
+const { counts, changeSearches } = useSingleChart<MaterialField>(
+  emit,
+  props.field,
+  query,
+  getCounts
+)
 
 // Synchronous counts for the crossfilter drag path — same mapping as the
 // composable's reactive `counts`, so live frames are pixel-identical.

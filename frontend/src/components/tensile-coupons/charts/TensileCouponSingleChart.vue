@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import type { TensileCouponField } from '@/backend'
 import SingleChart from '@/components/commons/charts/SingleChart.vue'
-import { singleChartProps, toSingleCounts, useSingleChart, type ChartEmits } from '@/composables/chart'
+import {
+  singleChartProps,
+  toSingleCounts,
+  useSingleChart,
+  type ChartEmits
+} from '@/composables/chart'
 import { dashboardQueryKey } from '@/composables/dashboard'
 import { useDataset } from '@/composables/useDataset'
 import { TENSILE_COUPON_KEY, fetchTensileCoupons } from '@/components/tensile-coupons/data'
