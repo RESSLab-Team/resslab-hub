@@ -2,6 +2,7 @@ import { defaultApi } from '@/plugins/axios'
 import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { DatabaseId } from '@/utils/navigation'
 import { buildTarGz } from '@/utils/tar'
+import { timeSeriesKindsFor } from '@/utils/timeseries'
 import { isAxiosError } from 'axios'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
@@ -47,6 +48,14 @@ function isValidationResponse(data: unknown): data is ValidationResponse {
   )
 }
 
+/** A measured-response file attached to the record, held in memory until upload. */
+export interface AttachedTimeSeries {
+  /** Name the file takes inside the archive, e.g. `DEMO-BRC-001.csv`. */
+  name: string
+  content: string
+  rows: number
+}
+
 export const useContributionStore = defineStore('contribution', () => {
   const currentStep = ref(0)
   const database = ref<DatabaseId | null>(null)
@@ -55,6 +64,8 @@ export const useContributionStore = defineStore('contribution', () => {
   const doi = ref('')
   /** Metadata form values, keyed by table column. */
   const values = ref<Record<string, string>>({})
+  /** Attached time-series, keyed by `TimeSeriesKind.key`. */
+  const timeSeries = ref<Record<string, AttachedTimeSeries>>({})
 
   const status = ref<QualityCheckStatus>('idle')
   const response = ref<ValidationResponse | null>(null)
@@ -74,6 +85,7 @@ export const useContributionStore = defineStore('contribution', () => {
     // orphaned keys that never reach the CSV.
     database.value = id
     values.value = {}
+    timeSeries.value = {}
     resetQualityCheck()
   }
 
@@ -97,10 +109,20 @@ export const useContributionStore = defineStore('contribution', () => {
     errorMessage.value = ''
 
     try {
-      const archive = await buildTarGz(
-        [{ path: target.csvPath, content: buildCsv(database.value, values.value) }],
-        'contribution.tar.gz'
-      )
+      // The primary CSV plus any attached time-series, each in the directory its
+      // subsidiary type is globbed from. The validator resolves a time-series
+      // file's foreign key from its filename against the primary CSV's `id`, so
+      // both must travel in the same archive.
+      const entries = [
+        { path: target.csvPath, content: buildCsv(database.value, values.value) },
+        ...timeSeriesKindsFor(database.value)
+          .filter((kind) => timeSeries.value[kind.key])
+          .map((kind) => ({
+            path: `${kind.directory}/${timeSeries.value[kind.key].name}`,
+            content: timeSeries.value[kind.key].content
+          }))
+      ]
+      const archive = await buildTarGz(entries, 'contribution.tar.gz')
       const { data } = await defaultApi.validateData(target.type, archive)
       response.value = data as ValidationResponse
       status.value = response.value.valid_results.some((r) => r.warnings?.length) ? 'warn' : 'pass'
@@ -124,6 +146,7 @@ export const useContributionStore = defineStore('contribution', () => {
     year.value = ''
     doi.value = ''
     values.value = {}
+    timeSeries.value = {}
     resetQualityCheck()
   }
 
@@ -134,6 +157,7 @@ export const useContributionStore = defineStore('contribution', () => {
     year,
     doi,
     values,
+    timeSeries,
     status,
     response,
     errorMessage,

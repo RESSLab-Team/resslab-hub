@@ -23,6 +23,7 @@ tarred up and posted directly:
 from __future__ import annotations
 
 import csv
+import math
 from pathlib import Path
 
 from sqlalchemy import (
@@ -181,6 +182,94 @@ def seed_errors(model, row: dict[str, str]) -> tuple[dict[str, str], list[str]]:
     return row, notes
 
 
+# Measured-response files, mirroring the subsidiary types `get_args_all` expands
+# an `all-*` upload into. The filename is the foreign key, so each is written as
+# <specimen id>.csv beside the record it belongs to.
+#   database key -> [(directory, required columns)]
+TIME_SERIES: dict[str, list[tuple[str, list[str]]]] = {
+    "braces": [("braces/force_displacement", ["Displacement [mm]", "Force [kN]"])],
+    "columns": [
+        (
+            "columns/axial_shortening_rotation",
+            ["Chord Rotation [rads]", "Axial Shortening [mm]"],
+        ),
+        ("columns/moment_rotation_strong", ["Chord Rotation [rads]", "Moment [kN-mm]"]),
+        ("columns/moment_rotation_weak", ["Chord Rotation [rads]", "Moment [kN-mm]"]),
+    ],
+    "connections": [
+        (
+            "connections/Beam_moment_rotation",
+            ["Chord Rotation [rads]", "Moment [kN-mm]"],
+        ),
+        (
+            "connections/Beam_moment_rotation_west",
+            ["Chord Rotation [rads]", "Moment [kN-mm]"],
+        ),
+        (
+            "connections/Global",
+            ["Total story drift angle (rad)", "Force in the actuator (kN)"],
+        ),
+        (
+            "connections/Global_west",
+            ["Total story drift angle (rad)", "Force in the actuator (kN)"],
+        ),
+        (
+            "connections/Panel_zone",
+            ["panel zone shear distortion (rad)", "panel zone shear force (kN)"],
+        ),
+    ],
+    "hss_columns": [
+        ("hss_columns/Moment_Rotation", ["rotation (rad)", "moment (kN.m)"])
+    ],
+    "cyclic_coupons": [
+        ("material/cyclic_coupons/stress_strain", ["Sigma_true", "e_true"])
+    ],
+    "residual_stresses": [
+        (
+            "residual_stresses/Distributions/Distributions_F1",
+            ["coordinate", "residual_stress"],
+        ),
+        (
+            "residual_stresses/Distributions/Distributions_F2",
+            ["coordinate", "residual_stress"],
+        ),
+        (
+            "residual_stresses/Distributions/Distributions_W1",
+            ["coordinate", "residual_stress"],
+        ),
+        ("residual_stresses/QP_Coefficients", ["qp_coefficient"]),
+    ],
+}
+
+
+def series_rows(columns: list[str], count: int = 60) -> list[list[str]]:
+    """An open hysteresis loop — the right *shape* for a cyclic test, not physics.
+
+    The response lags the driver, so plotting column 2 against column 1 gives a
+    loop rather than a straight line, and the amplitude grows as a stepped
+    cyclic protocol would.
+    """
+    rows = []
+    for i in range(count):
+        phase = 2 * math.pi * 3 * i / count
+        growth = 1 + 2 * i / count
+        driver = 0.01 * growth * math.sin(phase)
+        response = 900 * growth * math.sin(phase - 0.4) / (1 + 0.4 * i / count)
+        values = [driver, response]
+        rows.append([f"{v:.6f}" for v in values[: len(columns)]])
+    return rows
+
+
+def write_series(path: Path, columns: list[str]) -> int:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    rows = series_rows(columns)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(columns)
+        writer.writerows(rows)
+    return len(rows)
+
+
 def write_csv(path: Path, columns: list[str], row: dict[str, str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
@@ -209,6 +298,14 @@ def main() -> None:
         summary.append(f"{name} ({len(columns)} columns) -> {stem}")
         for note in notes:
             summary.append(f"    invalid: {note}")
+
+        # Measured response, named after the record's id so the validator's
+        # foreign-key check resolves against the primary CSV in the same archive.
+        specimen = row["id"]
+        for directory, series_columns in TIME_SERIES.get(name, []):
+            series_path = Path(directory) / f"{specimen}.csv"
+            count = write_series(root / series_path, series_columns)
+            summary.append(f"    series: {series_path} ({count} rows)")
 
     print("\n".join(summary))
 

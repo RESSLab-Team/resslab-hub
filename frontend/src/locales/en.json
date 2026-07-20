@@ -1088,12 +1088,7 @@
     },
     "files": {
       "title": "Test data files",
-      "subtitle": "Attach the measured response for this specimen. Time-series upload is not wired up yet in this draft.",
-      "timeseries": "Time-series",
-      "optional_stub": "not yet available",
-      "timeseries_soon": "Time-series upload is coming soon",
-      "timeseries_kinds": "force–displacement · moment–rotation · stress–strain",
-      "note": "The quality check in the next step validates the metadata you entered; it does not yet inspect uploaded time-series."
+      "subtitle": "Attach the measured response for this specimen. Each file is validated for its required columns and linked to your record by filename."
     },
     "quality": {
       "title": "Quality check",
@@ -1131,6 +1126,36 @@
       "submit": "Submit for review",
       "draft_notice": "Submission is disabled in this first draft. The contribution pipeline currently ends at the quality check.",
       "not_set": "—"
+    },
+    "timeseries": {
+      "summary": "{count} response file(s) accepted for this database",
+      "optional": "optional — the record validates without them",
+      "none_for_database": "This database has no time-series files defined in the upload format.",
+      "needs_id": "Enter the specimen identifier in step 2 first — attached files are named after it, and that name is how the hub links them to your record.",
+      "drop": "Drop a CSV here, or {browse}",
+      "rows": "{count} rows",
+      "attached": "attached",
+      "remove": "Remove this file",
+      "rename_note": "Attached files are renamed to {name} inside the submission. The hub reads the filename as the link back to your record, so the name has to match the specimen identifier.",
+      "error_empty": "The file has no data rows.",
+      "error_columns": "Missing required column(s): {columns}",
+      "kind": {
+        "force_displacement": "Force – displacement",
+        "axial_shortening": "Axial shortening – rotation",
+        "moment_strong": "Moment – rotation, strong axis",
+        "moment_weak": "Moment – rotation, weak axis",
+        "beam": "Beam moment – rotation",
+        "beam_west": "Beam moment – rotation (west)",
+        "global": "Global response",
+        "global_west": "Global response (west)",
+        "panel_zone": "Panel zone",
+        "moment_rotation": "Moment – rotation",
+        "stress_strain": "Stress – strain",
+        "distribution_f1": "Residual stress distribution F1",
+        "distribution_f2": "Residual stress distribution F2",
+        "distribution_w1": "Residual stress distribution W1",
+        "qp_coefficient": "QP coefficients"
+      }
     }
   }
 }

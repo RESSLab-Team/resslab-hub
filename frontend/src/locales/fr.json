@@ -1088,12 +1088,7 @@
     },
     "files": {
       "title": "Fichiers de données",
-      "subtitle": "Joignez la réponse mesurée pour ce spécimen. Le téléversement des séries temporelles n'est pas encore branché dans ce brouillon.",
-      "timeseries": "Séries temporelles",
-      "optional_stub": "pas encore disponible",
-      "timeseries_soon": "Le téléversement des séries temporelles arrive bientôt",
-      "timeseries_kinds": "force–déplacement · moment–rotation · contrainte–déformation",
-      "note": "Le contrôle qualité de l'étape suivante valide les métadonnées saisies ; il n'inspecte pas encore les séries temporelles téléversées."
+      "subtitle": "Joignez la réponse mesurée pour ce spécimen. Chaque fichier est validé sur ses colonnes requises et relié à votre enregistrement par son nom."
     },
     "quality": {
       "title": "Contrôle qualité",
@@ -1131,6 +1126,36 @@
       "submit": "Soumettre pour revue",
       "draft_notice": "La soumission est désactivée dans ce premier brouillon. Le pipeline de contribution s'arrête actuellement au contrôle qualité.",
       "not_set": "—"
+    },
+    "timeseries": {
+      "summary": "{count} fichier(s) de réponse acceptés pour cette base",
+      "optional": "facultatif — l'enregistrement est valide sans eux",
+      "none_for_database": "Cette base de données n'a pas de fichiers de séries temporelles définis dans le format de dépôt.",
+      "needs_id": "Saisissez d'abord l'identifiant du spécimen à l'étape 2 — les fichiers joints portent ce nom, et c'est ainsi que le hub les relie à votre enregistrement.",
+      "drop": "Déposez un CSV ici, ou {browse}",
+      "rows": "{count} lignes",
+      "attached": "joint",
+      "remove": "Retirer ce fichier",
+      "rename_note": "Les fichiers joints sont renommés en {name} dans la soumission. Le hub lit le nom du fichier comme lien vers votre enregistrement : il doit donc correspondre à l'identifiant du spécimen.",
+      "error_empty": "Le fichier ne contient aucune ligne de données.",
+      "error_columns": "Colonne(s) requise(s) manquante(s) : {columns}",
+      "kind": {
+        "force_displacement": "Force – déplacement",
+        "axial_shortening": "Raccourcissement axial – rotation",
+        "moment_strong": "Moment – rotation, axe fort",
+        "moment_weak": "Moment – rotation, axe faible",
+        "beam": "Moment – rotation de la poutre",
+        "beam_west": "Moment – rotation de la poutre (ouest)",
+        "global": "Réponse globale",
+        "global_west": "Réponse globale (ouest)",
+        "panel_zone": "Zone nodale",
+        "moment_rotation": "Moment – rotation",
+        "stress_strain": "Contrainte – déformation",
+        "distribution_f1": "Distribution de contraintes résiduelles F1",
+        "distribution_f2": "Distribution de contraintes résiduelles F2",
+        "distribution_w1": "Distribution de contraintes résiduelles W1",
+        "qp_coefficient": "Coefficients QP"
+      }
     }
   }
 }
