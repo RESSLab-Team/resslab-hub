@@ -82,7 +82,11 @@ async def create_upload_file(
         await file.close()
 
 
-@router.post("/validate", dependencies=[Depends(get_current_username)])
+# FIXME(auth): temporarily unauthenticated so the contribution pipeline can be
+# demoed on stage without shipping the API password. Restore
+# `dependencies=[Depends(get_current_username)]` — see /upload above. Note the
+# extractall below runs on caller-supplied archives (DoS/zip-bomb surface).
+@router.post("/validate")
 async def validate_data(
     file: UploadFile = File(...),
     type: Type = Query(...),
