@@ -1,14 +1,18 @@
 <script setup lang="ts">
+import CpIcon from '@/components/contribute/CpIcon.vue'
+import ExperimentCards from '@/components/contribute/ExperimentCards.vue'
 import GridEditor from '@/components/contribute/GridEditor.vue'
 import { useContributionStore } from '@/stores/contribution'
 import { DATABASES } from '@/utils/navigation'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const store = useContributionStore()
 
 const databaseName = computed(
   () => DATABASES.find((entry) => entry.id === store.database)?.name ?? ''
 )
+
+const view = ref<'grid' | 'cards'>('grid')
 </script>
 
 <template>
@@ -24,6 +28,28 @@ const databaseName = computed(
       {{ $t('contribute.metadata.select_database_first') }}
     </p>
 
-    <GridEditor v-else />
+    <template v-else>
+      <div class="cp-viewtoggle">
+        <button
+          class="cp-viewtab"
+          type="button"
+          :class="{ active: view === 'grid' }"
+          @click="view = 'grid'"
+        >
+          <cp-icon :size="14" name="layers" />{{ $t('contribute.metadata.view_grid') }}
+        </button>
+        <button
+          class="cp-viewtab"
+          type="button"
+          :class="{ active: view === 'cards' }"
+          @click="view = 'cards'"
+        >
+          <cp-icon :size="14" name="info" />{{ $t('contribute.metadata.view_cards') }}
+        </button>
+      </div>
+
+      <GridEditor v-if="view === 'grid'" />
+      <ExperimentCards v-else />
+    </template>
   </div>
 </template>

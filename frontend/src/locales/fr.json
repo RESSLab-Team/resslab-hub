@@ -1084,7 +1084,9 @@
       "import_failed": "Impossible d'importer {file} :",
       "import_no_match": "Aucun en-tête ne correspond à cette base de données. Le fichier concerne-t-il une autre base ?",
       "import_first_row": "Le fichier contient {count} lignes ; seule la première a été importée.",
-      "import_unknown": "{count} en-tête(s) absent(s) de cette base ont été ignorés : {columns}"
+      "import_unknown": "{count} en-tête(s) absent(s) de cette base ont été ignorés : {columns}",
+      "view_grid": "Grille",
+      "view_cards": "Fiches"
     },
     "files": {
       "title": "Fichiers de données",
@@ -1201,6 +1203,15 @@
       "tip_optional": "Facultatif",
       "tip_no_description": "Aucune description dans le dictionnaire de données.",
       "issues_first": "Problèmes d’abord"
+    },
+    "cards": {
+      "expand_all": "Tout déplier",
+      "collapse_all": "Tout replier",
+      "untitled": "Expérience {n}",
+      "issue_count": "{count} problème(s)",
+      "clean": "Aucun problème",
+      "problems": "Problèmes",
+      "test_data": "Données d’essai"
     }
   }
 }

@@ -1332,6 +1332,193 @@
   background: color-mix(in srgb, var(--epfl-orange) 16%, var(--bg));
 }
 
+/* Grid ⇄ Cards view toggle. */
+.cp-viewtoggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+}
+.cp-viewtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.cp-viewtab.active {
+  background: var(--bg);
+  color: var(--epfl-red);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Experiment cards. */
+.cp-cards-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.cp-card {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-strong);
+  border-radius: 9px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.cp-card.fail {
+  border-left-color: var(--epfl-red);
+}
+.cp-card.warn {
+  border-left-color: var(--epfl-orange);
+}
+.cp-card-h {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  background: var(--bg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cp-card-h:hover {
+  background: var(--bg-subtle);
+}
+.cp-card-h .chev {
+  color: var(--fg-muted);
+  transition: transform 0.15s ease;
+  flex: none;
+}
+.cp-card-h .chev.open {
+  transform: rotate(90deg);
+}
+.cp-card-h .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--epfl-green-text);
+  flex: none;
+}
+.cp-card-h .dot.warn {
+  background: var(--epfl-orange);
+}
+.cp-card-h .dot.fail {
+  background: var(--epfl-red);
+}
+.cp-card-id {
+  font-weight: 700;
+  font-family: var(--font-mono);
+  flex: none;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cp-card-headline {
+  display: flex;
+  gap: 16px;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.cp-card-headline .chip {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.cp-card-headline .chip .k {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--fg-muted);
+}
+.cp-card-headline .chip .v {
+  font-size: 13px;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cp-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--epfl-green-text);
+}
+.cp-card-badge.fail {
+  color: var(--epfl-red);
+}
+.cp-card-badge.warn {
+  color: var(--epfl-orange);
+}
+.cp-card-body {
+  padding: 4px 16px 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+.cp-card-acts {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0;
+}
+.cp-card-section {
+  margin-top: 14px;
+}
+.cp-card-sh {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+  margin-bottom: 10px;
+}
+.cp-unit-chip {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg-subtle);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--fg-muted);
+}
+.cp-info-i {
+  display: inline-flex;
+  margin-left: 5px;
+  color: var(--fg-muted);
+  cursor: help;
+  vertical-align: middle;
+}
+.cp-spark {
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  background: var(--bg-subtle);
+}
+.cp-spark polyline {
+  fill: none;
+  stroke: var(--epfl-red);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.cp-ts-meta {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
 .cp-ts-bulk {
   margin-bottom: 12px;
 }

@@ -1084,7 +1084,9 @@
       "import_failed": "Could not import {file}:",
       "import_no_match": "No column headers matched this database. Is the file for a different database?",
       "import_first_row": "The file holds {count} rows; only the first was imported.",
-      "import_unknown": "{count} header(s) not in this database were ignored: {columns}"
+      "import_unknown": "{count} header(s) not in this database were ignored: {columns}",
+      "view_grid": "Grid",
+      "view_cards": "Cards"
     },
     "files": {
       "title": "Test data files",
@@ -1201,6 +1203,15 @@
       "tip_optional": "Optional",
       "tip_no_description": "No description in the data dictionary.",
       "issues_first": "Issues first"
+    },
+    "cards": {
+      "expand_all": "Expand all",
+      "collapse_all": "Collapse all",
+      "untitled": "Experiment {n}",
+      "issue_count": "{count} issue(s)",
+      "clean": "No issues",
+      "problems": "Problems",
+      "test_data": "Test data"
     }
   }
 }
