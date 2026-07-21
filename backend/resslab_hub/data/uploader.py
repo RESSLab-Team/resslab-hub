@@ -82,18 +82,57 @@ Session = sessionmaker(engine)
 # see https://docs.python.org/3/library/os.html#os.cpu_count
 
 
+def _cgroup_cpu_quota():
+    """CPUs the current cgroup is allowed, rounded up, or None if unrestricted.
+
+    Inside a container sched_getaffinity()/cpu_count() still report every core
+    on the *node* -- a CPU limit is a CFS bandwidth quota, not an affinity mask
+    -- so they wildly overcount the CPUs a limited pod can actually use. Read
+    the quota straight from the cgroup instead.
+    """
+    # cgroup v2
+    try:
+        with open("/sys/fs/cgroup/cpu.max") as f:
+            quota, period = f.read().split()
+        if quota != "max" and int(period) > 0:
+            return max(1, -(-int(quota) // int(period)))
+    except (OSError, ValueError):
+        pass
+    # cgroup v1
+    try:
+        with open("/sys/fs/cgroup/cpu/cpu.cfs_quota_us") as f:
+            quota = int(f.read())
+        with open("/sys/fs/cgroup/cpu/cpu.cfs_period_us") as f:
+            period = int(f.read())
+        if quota > 0 and period > 0:
+            return max(1, -(-quota // period))
+    except (OSError, ValueError):
+        pass
+    return None
+
+
 def get_safe_cpu_count() -> int:
-    """Get a safe number of CPU count in a cross-platform way"""
+    """Get a safe number of CPU count in a cross-platform way.
+
+    Honours the container's CPU quota when present so a resource-capped pod does
+    not spawn one worker per *node* core (which OOM-kills a memory-limited pod).
+    """
     try:
         # Try Linux-specific sched_getaffinity first
         from os import sched_getaffinity
 
-        return max(1, len(sched_getaffinity(0)) - 1)
+        available = len(sched_getaffinity(0))
     except (ImportError, AttributeError):
         # Fallback to cpu_count() for other platforms
         from multiprocessing import cpu_count
 
-        return max(1, cpu_count() - 1)
+        available = cpu_count()
+
+    quota = _cgroup_cpu_quota()
+    if quota is not None:
+        available = min(available, quota)
+
+    return max(1, available - 1)
 
 
 def initializer(log_level=None, log_format=None):
