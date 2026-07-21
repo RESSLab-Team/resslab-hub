@@ -24,10 +24,15 @@ const databaseName = computed(
 
 const canRun = computed(() => store.specimenId !== '')
 
+/** Render one structured issue as "Row N: col='v' - message" for display. */
+function issueText(issue: { row: number; column: string; value: string | null; message: string }) {
+  if (issue.row === 0) return `${issue.column}: ${issue.message}`
+  return `Row ${issue.row}: ${issue.column}='${issue.value ?? ''}' - ${issue.message}`
+}
+
 /**
- * The validator reports one result per file, each carrying flat lists of error
- * and warning strings ("Row 1: area='abc' - Must be a number"). Each of those
- * strings becomes its own flag so the counts match what the user has to fix.
+ * The validator reports one structured result per file. Each error/warning
+ * becomes its own flag so the counts match what the user has to fix.
  */
 const flags = computed<Flag[]>(() => {
   const response = store.response
@@ -35,38 +40,26 @@ const flags = computed<Flag[]>(() => {
 
   const result: Flag[] = []
 
-  for (const file of response.error_results) {
-    for (const message of file.errors ?? []) {
+  for (const file of response.results) {
+    for (const issue of file.errors) {
       result.push({
         level: 'fail',
         icon: 'close',
-        title: message,
+        title: issueText(issue),
         severity: t('contribute.quality.severity_high'),
         category: `${t('contribute.quality.category_schema')} · ${file.file}`
       })
     }
-    for (const message of file.warnings ?? []) {
+    for (const issue of file.warnings) {
       result.push({
         level: 'warn',
         icon: 'alert',
-        title: message,
+        title: issueText(issue),
         severity: t('contribute.quality.severity_medium'),
         category: `${t('contribute.quality.category_file')} · ${file.file}`
       })
     }
-  }
-
-  for (const file of response.valid_results) {
-    for (const message of file.warnings ?? []) {
-      result.push({
-        level: 'warn',
-        icon: 'alert',
-        title: message,
-        severity: t('contribute.quality.severity_medium'),
-        category: `${t('contribute.quality.category_file')} · ${file.file}`
-      })
-    }
-    if (!file.warnings?.length) {
+    if (file.valid && file.warnings.length === 0) {
       result.push({
         level: 'pass',
         icon: 'check',

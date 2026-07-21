@@ -4,6 +4,7 @@
 (headers, nullability, declared SQL types) -- it never opens a database
 connection -- so these run without PostgreSQL.
 """
+
 import csv
 from pathlib import Path
 
@@ -42,6 +43,14 @@ class TestValidationResult:
         text = str(result)
         assert "file.csv" in text
         assert "area" in text
+
+    def test_file_path_defaults_to_filename(self):
+        result = ValidationResult("file.csv")
+        assert result.file_path == "file.csv"
+
+    def test_file_path_is_retained(self):
+        result = ValidationResult("file.csv", "/tmp/x/file.csv")
+        assert result.file_path == "/tmp/x/file.csv"
 
 
 class TestTableValidator:
@@ -118,3 +127,31 @@ class TestTableValidator:
 
         assert not result.is_valid()
         assert any(e.column == "investigator" for e in result.errors)
+
+    def test_row_numbering_is_one_based_excluding_header(self, tmp_path: Path):
+        # The error must point at data row 2 (the second data row), proving the
+        # header is excluded and numbering starts at 1. The frontend grid maps
+        # server row N to grid row N-1, so this contract is load-bearing.
+        file_path = tmp_path / "braces.csv"
+        write_main_csv(
+            file_path,
+            Brace,
+            [
+                {"id": "B1", "area": "1.0"},
+                {"id": "B2", "area": "not-a-number"},
+            ],
+        )
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        area_errors = [e for e in result.errors if e.column == "area"]
+        assert area_errors, str(result)
+        assert area_errors[0].row == 2
+
+    def test_result_file_path_is_the_validated_file(self, tmp_path: Path):
+        file_path = tmp_path / "braces.csv"
+        write_main_csv(file_path, Brace, [{"id": "B1"}])
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert result.file_path.endswith("braces.csv")

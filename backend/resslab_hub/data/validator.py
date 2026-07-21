@@ -59,8 +59,12 @@ class ValidationError:
 
 
 class ValidationResult:
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, file_path: str = None):
         self.filename = filename
+        # Absolute path of the validated file. The router derives the
+        # archive-relative path from this so time-series kinds that share a
+        # basename (e.g. every residual-stress ``<id>.csv``) stay distinct.
+        self.file_path = file_path if file_path is not None else filename
         self.errors: List[ValidationError] = []
         self.error_count: Integer = 0
         self.warnings: List[ValidationError] = []
@@ -111,7 +115,7 @@ class TableValidator(Validator):
 
     def validate_one(self, file_path: str) -> ValidationResult:
         file_path = get_abs_path(file_path)
-        result = ValidationResult(path.basename(file_path))
+        result = ValidationResult(path.basename(file_path), file_path)
 
         try:
             encoding = get_file_encoding(file_path)
@@ -321,7 +325,7 @@ class CsvFileValidator(Validator):
             relative_path = path.relpath(
                 file_path, start=path.join(path.sep, *file_path.split(path.sep)[:7])
             )
-            result = ValidationResult(path.basename(file_path))
+            result = ValidationResult(path.basename(file_path), file_path)
             filename = path.splitext(path.basename(file_path))[0]
             encoding = get_file_encoding(file_path)
 

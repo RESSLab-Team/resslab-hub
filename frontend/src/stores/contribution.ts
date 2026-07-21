@@ -3,26 +3,13 @@ import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { DatabaseId } from '@/utils/navigation'
 import { buildTarGz } from '@/utils/tar'
 import { timeSeriesKindsFor } from '@/utils/timeseries'
+import type { ValidationResponse } from '@/utils/validationResponse'
+import { isValidationResponse } from '@/utils/validationResponse'
 import { isAxiosError } from 'axios'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-/** One entry per validated file, as assembled by the backend's `/validate` route. */
-export interface ValidationFileResult {
-  file: string
-  valid: boolean
-  errors_count?: number
-  errors?: string[]
-  warnings?: string[]
-}
-
-export interface ValidationResponse {
-  valid: boolean
-  message: string
-  error_count: number
-  error_results: ValidationFileResult[]
-  valid_results: ValidationFileResult[]
-}
+export type { ValidationResponse } from '@/utils/validationResponse'
 
 export type QualityCheckStatus =
   | 'idle'
@@ -35,17 +22,25 @@ export type QualityCheckStatus =
   | 'fail'
   /** The backend has no validator for this database. */
   | 'unsupported'
-  /** The request itself failed — network, auth, or a server-side crash. */
+  /** The request itself failed — network, transport, or a server-side crash. */
   | 'error'
 
-function isValidationResponse(data: unknown): data is ValidationResponse {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'valid' in data &&
-    'error_results' in data &&
-    'valid_results' in data
-  )
+function deriveStatus(response: ValidationResponse): QualityCheckStatus {
+  if (!response.valid) return 'fail'
+  return response.results.some((file) => file.warnings.length > 0) ? 'warn' : 'pass'
+}
+
+/** Human-readable message for a failed `/validate` request (not a data error). */
+function transportError(caught: unknown): string {
+  if (isAxiosError(caught)) {
+    const status = caught.response?.status
+    if (status === 429) return 'Too many checks in a short time — wait a moment and retry.'
+    if (status === 413) return 'The contribution is too large to validate in one request.'
+    if (status === 400) return 'The generated archive could not be read by the server.'
+    const detail = (caught.response?.data as { detail?: string } | undefined)?.detail
+    if (detail) return detail
+  }
+  return caught instanceof Error ? caught.message : String(caught)
 }
 
 /** A measured-response file attached to the record, held in memory until upload. */
@@ -124,18 +119,17 @@ export const useContributionStore = defineStore('contribution', () => {
       ]
       const archive = await buildTarGz(entries, 'contribution.tar.gz')
       const { data } = await defaultApi.validateData(target.type, archive)
-      response.value = data as ValidationResponse
-      status.value = response.value.valid_results.some((r) => r.warnings?.length) ? 'warn' : 'pass'
-    } catch (caught) {
-      // A rejected record comes back as a 422 carrying the same body as a pass.
-      const data = isAxiosError(caught) ? caught.response?.data : undefined
-      if (isValidationResponse(data)) {
-        response.value = data
-        status.value = 'fail'
-        return
+      if (!isValidationResponse(data)) {
+        throw new Error('Unexpected validation response shape.')
       }
+      response.value = data
+      status.value = deriveStatus(data)
+    } catch (caught) {
+      // The validator now returns 200 for data errors too, so a rejection here
+      // means a transport problem: 400 (bad archive), 413 (too large), 429
+      // (rate limited) or a 5xx. Surface a message the UI can show.
       status.value = 'error'
-      errorMessage.value = caught instanceof Error ? caught.message : String(caught)
+      errorMessage.value = transportError(caught)
     }
   }
 

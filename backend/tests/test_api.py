@@ -8,6 +8,10 @@ compared as strings, set membership rather than ordering) so they pin data
 behaviour rather than the exact JSON serialization, which lets them survive the
 backend framework upgrade on later branches.
 """
+
+import io
+import tarfile
+
 from resslab_hub.data.uploader import Type, upload_one
 from resslab_hub.models.database.brace import Brace
 from resslab_hub.models.database.material import Material
@@ -152,3 +156,71 @@ async def test_materials_date_range(client, tmp_path):
     # Both fixture rows default to 01.01.20 -> 2020-01-01.
     assert body["min"] == "2020-01-01"
     assert body["max"] == "2020-01-01"
+
+
+# ---------------------------------------------------------------------------
+# /validate — structured response + archive hardening
+# ---------------------------------------------------------------------------
+def _braces_targz(tmp_path, rows) -> bytes:
+    """A gzipped tar holding only the primary braces CSV (no DB needed)."""
+    csv_path = tmp_path / "steel_braces.csv"
+    write_main_csv(csv_path, Brace, rows)
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w:gz") as tar:
+        tar.add(csv_path, arcname="braces/steel_braces.csv")
+    return buffer.getvalue()
+
+
+def _upload(field_bytes, filename="c.tar.gz"):
+    return {"file": (filename, field_bytes, "application/gzip")}
+
+
+async def test_validate_valid_archive_returns_200_structured(client, tmp_path):
+    archive = _braces_targz(tmp_path, [{"id": "B1"}, {"id": "B2"}])
+    response = await client.post(
+        "/validate", params={"type": "all-braces"}, files=_upload(archive)
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["valid"] is True
+    assert body["error_count"] == 0
+    # Structured results carry the archive-relative path.
+    assert len(body["results"]) == 1
+    assert body["results"][0]["path"] == "braces/steel_braces.csv"
+    assert body["results"][0]["valid"] is True
+    # Legacy arrays are still present for the data-repo CI.
+    assert "error_results" in body and "valid_results" in body
+
+
+async def test_validate_invalid_data_is_200_with_structured_issue(client, tmp_path):
+    # 'area' is a Float column; a non-numeric value is a data error, not a
+    # transport error, so it comes back as 200 valid=false.
+    archive = _braces_targz(tmp_path, [{"id": "B1", "area": "not-a-number"}])
+    response = await client.post(
+        "/validate", params={"type": "all-braces"}, files=_upload(archive)
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["valid"] is False
+    assert body["error_count"] >= 1
+    issues = body["results"][0]["errors"]
+    assert any(issue["column"] == "area" and issue["row"] == 1 for issue in issues)
+
+
+async def test_validate_rejects_path_traversal(client, tmp_path):
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w:gz") as tar:
+        info = tarfile.TarInfo(name="../evil.csv")
+        info.size = 1
+        tar.addfile(info, io.BytesIO(b"x"))
+    response = await client.post(
+        "/validate", params={"type": "all-braces"}, files=_upload(buffer.getvalue())
+    )
+    assert response.status_code == 400
+
+
+async def test_validate_rejects_non_archive(client, tmp_path):
+    response = await client.post(
+        "/validate", params={"type": "all-braces"}, files=_upload(b"not a tar")
+    )
+    assert response.status_code == 400
