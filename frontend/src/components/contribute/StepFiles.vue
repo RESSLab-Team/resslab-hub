@@ -19,6 +19,11 @@ function expectedName(): string {
   return store.specimenId ? `${store.specimenId}.csv` : ''
 }
 
+// Kept in the script rather than inlined in the template: the placeholder
+// contains angle brackets, which the template's HTML parser would misread as a
+// tag (`<id>`), so the literal must not appear inside a `{{ }}` expression.
+const renamePreview = computed(() => expectedName() || '<id>.csv')
+
 async function attach(kind: TimeSeriesKind, file: File | undefined): Promise<void> {
   if (!file) return
   delete errors.value[kind.key]
@@ -31,9 +36,7 @@ async function attach(kind: TimeSeriesKind, file: File | undefined): Promise<voi
     const headers = rows[0].map((header) => header.trim())
     const missing = kind.requiredColumns.filter((column) => !headers.includes(column))
     if (missing.length) {
-      throw new Error(
-        t('contribute.timeseries.error_columns', { columns: missing.join(', ') })
-      )
+      throw new Error(t('contribute.timeseries.error_columns', { columns: missing.join(', ') }))
     }
 
     // Rename to the specimen id: the file's own name would otherwise become the
@@ -94,7 +97,11 @@ function onSelect(kind: TimeSeriesKind, event: Event): void {
         <span class="mut">{{ $t('contribute.timeseries.optional') }}</span>
       </div>
 
-      <div v-if="!store.specimenId" class="cp-eduflag" style="border-left-color: var(--epfl-orange)">
+      <div
+        v-if="!store.specimenId"
+        class="cp-eduflag"
+        style="border-left-color: var(--epfl-orange)"
+      >
         <cp-icon :size="15" name="alert" />
         <span>{{ $t('contribute.timeseries.needs_id') }}</span>
       </div>
@@ -110,9 +117,7 @@ function onSelect(kind: TimeSeriesKind, event: Event): void {
             <div class="meta">
               <div class="fn">{{ store.timeSeries[kind.key].name }}</div>
               <div class="fs">
-                {{
-                  $t('contribute.timeseries.rows', { count: store.timeSeries[kind.key].rows })
-                }}
+                {{ $t('contribute.timeseries.rows', { count: store.timeSeries[kind.key].rows }) }}
               </div>
             </div>
             <div class="fstate">
@@ -167,7 +172,7 @@ function onSelect(kind: TimeSeriesKind, event: Event): void {
 
       <div class="cp-eduflag">
         <cp-icon :size="15" name="info" />
-        <span>{{ $t('contribute.timeseries.rename_note', { name: expectedName() || '<id>.csv' }) }}</span>
+        <span>{{ $t('contribute.timeseries.rename_note', { name: renamePreview }) }}</span>
       </div>
     </template>
   </div>
