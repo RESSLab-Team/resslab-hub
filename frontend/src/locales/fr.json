@@ -1195,7 +1195,11 @@
       "import_ok": "{rows} expérience(s) chargée(s) depuis {file} — {matched} colonnes reconnues.",
       "import_missing": "{count} colonne(s) requise(s) manquante(s), soumises comme NR : {columns}",
       "import_unknown": "{count} colonne(s) absente(s) de cette base ont été ignorées : {columns}",
-      "all_clean": "Aucune ligne ne présente de problème."
+      "all_clean": "Aucune ligne ne présente de problème.",
+      "tip_unit": "Unité",
+      "tip_required": "Obligatoire",
+      "tip_optional": "Facultatif",
+      "tip_no_description": "Aucune description dans le dictionnaire de données."
     }
   }
 }

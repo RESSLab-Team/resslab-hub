@@ -6,6 +6,7 @@ import { readCsvTable } from '@/utils/csv'
 import { dictionaryFor } from '@/utils/dictionary'
 import { downloadDictionary, downloadTemplate } from '@/utils/templates'
 import { mapResponse } from '@/utils/qualityReport'
+import type { DictColumn } from '@/utils/dictionary'
 import type { CellIssue } from '@/utils/validation'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -14,6 +15,21 @@ const { t } = useI18n({ useScope: 'global' })
 const store = useContributionStore()
 
 const columns = computed(() => (store.database ? dictionaryFor(store.database) : []))
+
+// Column-header tooltip, teleported to <body> so the grid's scroll container
+// cannot clip it. Shown while hovering (or keyboard-focusing) a header cell.
+const tip = ref<{ column: DictColumn; x: number; y: number } | null>(null)
+
+function showTip(column: DictColumn, event: MouseEvent | FocusEvent): void {
+  const target = event.currentTarget as HTMLElement | null
+  if (!target) return
+  const rect = target.getBoundingClientRect()
+  tip.value = { column, x: rect.left, y: rect.bottom + 6 }
+}
+
+function hideTip(): void {
+  tip.value = null
+}
 
 // Client-side issues re-keyed from row-index (store.clientIssues) to row uid.
 const clientByUid = computed(() => {
@@ -271,6 +287,11 @@ watch(
               v-for="column in columns"
               :key="column.name"
               :class="{ 'col-id': column.name === 'id' }"
+              tabindex="0"
+              @mouseenter="showTip(column, $event)"
+              @mouseleave="hideTip"
+              @focus="showTip(column, $event)"
+              @blur="hideTip"
             >
               <span class="hd">
                 <span class="lbl">{{ fieldLabel(store.database, column.name) }}</span>
@@ -278,7 +299,7 @@ watch(
                 <!-- symbol comes from our own dictionary asset (trusted) -->
                 <!-- eslint-disable-next-line vue/no-v-html -->
                 <span v-if="column.symbol" class="sym" v-html="column.symbol" />
-                <span v-if="column.description" class="info" :title="column.description">
+                <span v-if="column.description" class="info">
                   <cp-icon :size="11" name="info" />
                 </span>
               </span>
@@ -335,5 +356,25 @@ watch(
     <p v-if="showOnlyIssues && visibleRows.length === 0" class="cp-hint ok" style="margin-top: 12px">
       <cp-icon :size="13" name="check" />{{ $t('contribute.grid.all_clean') }}
     </p>
+
+    <Teleport to="body">
+      <div v-if="tip" class="cp-sheet-tip" :style="{ left: `${tip.x}px`, top: `${tip.y}px` }">
+        <div v-if="tip.column.description" class="d">{{ tip.column.description }}</div>
+        <div v-else class="d muted">{{ $t('contribute.grid.tip_no_description') }}</div>
+        <div class="m">
+          <span v-if="tip.column.unit && tip.column.unit !== '-'">
+            {{ $t('contribute.grid.tip_unit') }}: {{ tip.column.unit }}
+          </span>
+          <span>{{ tip.column.type }}</span>
+          <span :class="tip.column.nullable ? '' : 'req'">
+            {{
+              tip.column.nullable
+                ? $t('contribute.grid.tip_optional')
+                : $t('contribute.grid.tip_required')
+            }}
+          </span>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

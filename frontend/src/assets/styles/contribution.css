@@ -1186,10 +1186,50 @@
   color: var(--fg-muted);
   font-family: var(--font-mono);
 }
+.cp-sheet thead th {
+  cursor: help;
+}
+.cp-sheet thead th:hover,
+.cp-sheet thead th:focus-visible {
+  background: var(--bg-subtle);
+  outline: none;
+}
 .cp-sheet thead th .info {
   display: inline-flex;
   color: var(--fg-muted);
-  cursor: help;
+}
+
+/* Teleported column-description tooltip (escapes the grid's overflow clip). */
+.cp-sheet-tip {
+  position: fixed;
+  z-index: 200;
+  max-width: 340px;
+  padding: 9px 11px;
+  border-radius: 7px;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 12px;
+  line-height: 1.45;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+}
+.cp-sheet-tip .d {
+  font-weight: 500;
+}
+.cp-sheet-tip .d.muted {
+  opacity: 0.7;
+  font-style: italic;
+}
+.cp-sheet-tip .m {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+  font-size: 11px;
+  opacity: 0.75;
+}
+.cp-sheet-tip .m .req {
+  color: var(--epfl-orange);
+  opacity: 1;
 }
 .cp-sheet thead th .unit {
   display: block;

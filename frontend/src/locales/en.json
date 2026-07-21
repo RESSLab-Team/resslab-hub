@@ -1195,7 +1195,11 @@
       "import_ok": "Loaded {rows} experiment(s) from {file} — {matched} columns matched.",
       "import_missing": "{count} required column(s) are missing and will be submitted as NR: {columns}",
       "import_unknown": "{count} column(s) not in this database were ignored: {columns}",
-      "all_clean": "No rows have issues."
+      "all_clean": "No rows have issues.",
+      "tip_unit": "Unit",
+      "tip_required": "Required",
+      "tip_optional": "Optional",
+      "tip_no_description": "No description in the data dictionary."
     }
   }
 }
