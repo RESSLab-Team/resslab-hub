@@ -6,6 +6,22 @@ and the investigator is "Demo Investigator" — but the column sets and value
 *types* come straight from the SQLAlchemy models, so the backend validator
 treats them as real submissions.
 
+## Generate them first
+
+The CSVs are **not committed** — they are generated output derived from the ORM
+schema, so a stale copy in git would silently disagree with the current models.
+Only `generate.py` and this README are versioned; the CSVs are gitignored.
+
+Create them (needs the backend's `uv` environment, which you already need to run
+the validator these files are tested against):
+
+```bash
+cd backend && uv run python ../sample-data/generate.py
+```
+
+Re-run it after any schema change — the fixtures are only ever as current as the
+models. Without this step the `sample-data/` subdirectories are empty.
+
 Per database:
 
 | File | Expectation |
@@ -81,15 +97,10 @@ is a "Field cannot be null" error. Imported through the UI, `NA` is read as
 blank, gets submitted as `NR`, and the validator skips it. Both behaviours are
 correct; they just exercise different branches.
 
-## Regenerating
+## How the generator works
 
-Re-run after any schema change — the fixtures are only as current as the models:
-
-```bash
-cd backend && uv run python ../sample-data/generate.py
-```
-
-`generate.py` reads the ORM column types and seeds one failure per validator
-branch (non-numeric in a numeric column, non-integer in an integer column, a
-value outside `yes`/`no` in a boolean, a malformed date, and the `NA` case
-above). Databases without a boolean or date column simply get fewer seeds.
+`generate.py` (run it as shown at the top) reads the ORM column types and seeds
+one failure per validator branch into each `.invalid.csv`: a non-numeric value
+in a numeric column, a non-numeric value in an integer column, a value outside
+`yes`/`no` in a boolean, a malformed date, and an `NA` in a non-nullable column.
+Databases without a boolean or date column simply get fewer seeds.
