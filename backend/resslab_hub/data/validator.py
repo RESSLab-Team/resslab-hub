@@ -564,6 +564,35 @@ def validate_with_primary(
         raise
 
 
+def _run_validations(
+    tasks, primary_csv_paths, cpu, log_level, log_format
+) -> List[ValidationResult]:
+    """Validate a batch of files, skipping multiprocessing for small inputs.
+
+    The pool uses the ``spawn`` start method, so every worker is a fresh
+    interpreter that re-imports the whole app (~100 MB each). Sizing the pool to
+    the CPU count rather than the number of files means validating a single
+    record still spawns one heavyweight worker per core -- on a many-core host
+    that alone blows past a memory-capped pod's limit and gets it OOM-killed.
+    Cap the pool at the task count and run inline when there is nothing to
+    parallelize.
+    """
+    if not tasks:
+        return []
+    workers = min(cpu, len(tasks))
+    if workers <= 1:
+        return [validate_with_primary(t, f, primary_csv_paths) for t, f in tasks]
+    with get_context("spawn").Pool(
+        workers,
+        initializer=initializer,
+        initargs=(log_level, log_format),
+    ) as pool:
+        return pool.starmap(
+            validate_with_primary,
+            [(t, f, primary_csv_paths) for t, f in tasks],
+        )
+
+
 def validate_all(
     input_type: Type, filenames: List[str], cpu=None
 ) -> List[ValidationResult]:
@@ -631,21 +660,19 @@ def validate_all(
     # First validate primary files
     if primary_types:
         debug(f"Validating primary types: {[t.name for t, _ in primary_types]}")
-
-        with get_context("spawn").Pool(
-            cpu,
-            initializer=initializer,
-            initargs=(current_log_level, current_log_format),
-        ) as pool:
-            try:
-                primary_results = pool.starmap(
-                    validate_with_primary,
-                    [(t, f, primary_csv_paths) for t, f in primary_types],
+        try:
+            results.extend(
+                _run_validations(
+                    primary_types,
+                    primary_csv_paths,
+                    cpu,
+                    current_log_level,
+                    current_log_format,
                 )
-                results.extend(primary_results)
-            except Exception as e:
-                error(f"Error in validate_all: {str(e)}")
-                error(f"Traceback: {traceback.format_exc()}")
+            )
+        except Exception as e:
+            error(f"Error in validate_all: {str(e)}")
+            error(f"Traceback: {traceback.format_exc()}")
         # Check if all primary validations passed before proceeding
         # primary_errors = any(not result.is_valid() for result in primary_results)
         # if primary_errors:
@@ -655,17 +682,15 @@ def validate_all(
     # Then validate subsidiary files
     if subsidiary_types:
         debug(f"Validating subsidiary types: {[t.name for t, _ in subsidiary_types]}")
-
-        with get_context("spawn").Pool(
-            cpu,
-            initializer=initializer,
-            initargs=(current_log_level, current_log_format),
-        ) as pool:
-            subsidiary_results = pool.starmap(
-                validate_with_primary,
-                [(t, f, primary_csv_paths) for t, f in subsidiary_types],
+        results.extend(
+            _run_validations(
+                subsidiary_types,
+                primary_csv_paths,
+                cpu,
+                current_log_level,
+                current_log_format,
             )
-            results.extend(subsidiary_results)
+        )
 
     # Log results
     for result in results:
