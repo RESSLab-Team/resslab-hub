@@ -1199,7 +1199,8 @@
       "tip_unit": "Unité",
       "tip_required": "Obligatoire",
       "tip_optional": "Facultatif",
-      "tip_no_description": "Aucune description dans le dictionnaire de données."
+      "tip_no_description": "Aucune description dans le dictionnaire de données.",
+      "issues_first": "Problèmes d’abord"
     }
   }
 }

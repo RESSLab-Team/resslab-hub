@@ -16,8 +16,8 @@ const store = useContributionStore()
 
 const columns = computed(() => (store.database ? dictionaryFor(store.database) : []))
 
-// Column-header tooltip, teleported to <body> so the grid's scroll container
-// cannot clip it. Shown while hovering (or keyboard-focusing) a header cell.
+// Column-description tooltip, teleported to <body> so the grid's scroll
+// container cannot clip it. Shown while hovering the header's info icon.
 const tip = ref<{ column: DictColumn; x: number; y: number } | null>(null)
 
 function showTip(column: DictColumn, event: MouseEvent | FocusEvent): void {
@@ -101,6 +101,34 @@ const showOnlyIssues = ref(false)
 const visibleRows = computed(() =>
   showOnlyIssues.value ? store.rows.filter((row) => rowLevel(row.uid) !== 'pass') : store.rows
 )
+
+// Columns that hold at least one flagged cell (across all rows).
+const columnsWithIssues = computed(() => {
+  const flagged = new Set<string>()
+  for (const row of store.rows) {
+    for (const column of columns.value) {
+      if (flagged.has(column.name)) continue
+      if (cellIssue(row.uid, column.name)) flagged.add(column.name)
+    }
+  }
+  return flagged
+})
+
+const issuesFirst = ref(false)
+
+// When on, bring flagged columns to the front (id stays pinned first) so the
+// problems are visible without scrolling a wide sheet.
+const columnsView = computed(() => {
+  if (!issuesFirst.value) return columns.value
+  const flagged: typeof columns.value = []
+  const clean: typeof columns.value = []
+  for (const column of columns.value) {
+    if (column.name === 'id') continue
+    ;(columnsWithIssues.value.has(column.name) ? flagged : clean).push(column)
+  }
+  const id = columns.value.find((column) => column.name === 'id')
+  return [...(id ? [id] : []), ...flagged, ...clean]
+})
 
 const totals = computed(() => {
   let errors = 0
@@ -201,6 +229,16 @@ watch(
         <cp-icon :size="15" name="alert" />
         {{ $t('contribute.grid.only_issues') }}
       </button>
+      <button
+        class="cp-btn ghost"
+        type="button"
+        :class="{ 'is-active': issuesFirst }"
+        :disabled="columnsWithIssues.size === 0"
+        @click="issuesFirst = !issuesFirst"
+      >
+        <cp-icon :size="15" name="arrowRight" />
+        {{ $t('contribute.grid.issues_first') }}
+      </button>
 
       <span class="cp-sheet-counts">
         <span v-if="totals.errors" class="c fail">{{
@@ -284,14 +322,9 @@ watch(
           <tr>
             <th class="rail">#</th>
             <th
-              v-for="column in columns"
+              v-for="column in columnsView"
               :key="column.name"
               :class="{ 'col-id': column.name === 'id' }"
-              tabindex="0"
-              @mouseenter="showTip(column, $event)"
-              @mouseleave="hideTip"
-              @focus="showTip(column, $event)"
-              @blur="hideTip"
             >
               <span class="hd">
                 <span class="lbl">{{ fieldLabel(store.database, column.name) }}</span>
@@ -299,8 +332,15 @@ watch(
                 <!-- symbol comes from our own dictionary asset (trusted) -->
                 <!-- eslint-disable-next-line vue/no-v-html -->
                 <span v-if="column.symbol" class="sym" v-html="column.symbol" />
-                <span v-if="column.description" class="info">
-                  <cp-icon :size="11" name="info" />
+                <span
+                  class="info"
+                  tabindex="0"
+                  @mouseenter="showTip(column, $event)"
+                  @mouseleave="hideTip"
+                  @focus="showTip(column, $event)"
+                  @blur="hideTip"
+                >
+                  <cp-icon :size="12" name="info" />
                 </span>
               </span>
               <span v-if="column.unit && column.unit !== '-'" class="unit">{{ column.unit }}</span>
@@ -330,7 +370,7 @@ watch(
               </span>
             </td>
             <td
-              v-for="column in columns"
+              v-for="column in columnsView"
               :key="column.name"
               :class="[
                 { 'col-id': column.name === 'id' },

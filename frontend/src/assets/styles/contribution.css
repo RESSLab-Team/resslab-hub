@@ -1186,17 +1186,16 @@
   color: var(--fg-muted);
   font-family: var(--font-mono);
 }
-.cp-sheet thead th {
-  cursor: help;
-}
-.cp-sheet thead th:hover,
-.cp-sheet thead th:focus-visible {
-  background: var(--bg-subtle);
-  outline: none;
-}
 .cp-sheet thead th .info {
   display: inline-flex;
   color: var(--fg-muted);
+  cursor: help;
+  border-radius: 4px;
+}
+.cp-sheet thead th .info:hover,
+.cp-sheet thead th .info:focus-visible {
+  color: var(--epfl-red);
+  outline: none;
 }
 
 /* Teleported column-description tooltip (escapes the grid's overflow clip). */
