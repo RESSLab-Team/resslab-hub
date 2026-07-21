@@ -1,4 +1,5 @@
 export enum LocalStorageKey {
   Locale = 'locale',
-  UnitSystem = 'unitSystem'
+  UnitSystem = 'unitSystem',
+  Auth = 'auth'
 }

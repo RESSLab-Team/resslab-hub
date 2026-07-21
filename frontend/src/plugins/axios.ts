@@ -3,6 +3,7 @@ import {
   BracesApi,
   ColumnsApi,
   ConnectionsApi,
+  DefaultApi,
   DuctileFractureApi,
   EccentricBracedFrameApi,
   HssColumnApi,
@@ -10,6 +11,7 @@ import {
   ResidualStressApi,
   TensileCouponApi
 } from '@/backend/api'
+import { Configuration } from '@/backend/configuration'
 import axios from 'axios'
 
 const axiosInstance = axios.create()
@@ -25,3 +27,15 @@ export const hssApi = new HssColumnApi(undefined, baseUrl, axiosInstance)
 export const ebfApi = new EccentricBracedFrameApi(undefined, baseUrl, axiosInstance)
 export const tensileCouponApi = new TensileCouponApi(undefined, baseUrl, axiosInstance)
 export const ductileFractureApi = new DuctileFractureApi(undefined, baseUrl, axiosInstance)
+
+// `/validate` sits behind HTTP Basic auth. The contribution pipeline has no real
+// identity yet, so the dev credentials are carried here; a deployment that
+// exposes contribution beyond localhost needs the real user's token instead.
+export const defaultApi = new DefaultApi(
+  new Configuration({
+    username: import.meta.env.VITE_APP_API_USERNAME,
+    password: import.meta.env.VITE_APP_API_PASSWORD
+  }),
+  baseUrl,
+  axiosInstance
+)

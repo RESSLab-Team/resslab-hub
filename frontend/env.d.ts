@@ -3,6 +3,9 @@
 interface ImportMetaEnv {
   readonly VITE_APP_BACKEND_URL: string
   readonly VITE_SEM_CDN_BASE_URL: string
+  /** HTTP Basic credentials for the backend's `/validate` endpoint. */
+  readonly VITE_APP_API_USERNAME: string
+  readonly VITE_APP_API_PASSWORD: string
 }
 
 interface ImportMeta {

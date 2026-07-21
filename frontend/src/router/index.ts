@@ -2,8 +2,18 @@
 // router-resolve → fetch round trip on every first visit. Its heavy pieces
 // (map, API client) already load lazily from within the view. Every other
 // route stays a dynamic import.
+import { useAuthStore } from '@/stores/auth'
 import HomeView from '@/views/HomeView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    /** Render without the app sidebar and mobile header. */
+    fullScreen?: boolean
+    /** Redirect to the contribution sign-in gate when signed out. */
+    requiresAuth?: boolean
+  }
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -159,8 +169,30 @@ const router = createRouter({
           component: () => import('@/views/EbfDatabase.vue')
         }
       ]
+    },
+    {
+      path: '/contribute',
+      redirect: '/contribute/new'
+    },
+    {
+      path: '/contribute/login',
+      name: 'ContributeLogin',
+      component: () => import('@/views/ContributeLoginView.vue'),
+      meta: { fullScreen: true }
+    },
+    {
+      path: '/contribute/new',
+      name: 'ContributeNew',
+      component: () => import('@/views/ContributeWizardView.vue'),
+      meta: { fullScreen: true, requiresAuth: true }
     }
   ]
+})
+
+router.beforeEach((to) => {
+  if (to.meta.requiresAuth && !useAuthStore().signedIn) {
+    return { name: 'ContributeLogin', query: { redirect: to.fullPath } }
+  }
 })
 
 export default router

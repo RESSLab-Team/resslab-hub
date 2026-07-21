@@ -8,6 +8,7 @@ import {
   mdiChevronDown,
   mdiHomeOutline,
   mdiInformationOutline,
+  mdiUploadOutline,
   mdiWeatherNight,
   mdiWeatherSunny
 } from '@mdi/js'
@@ -131,6 +132,17 @@ function toggleGroup(group: NavGroup) {
         </div>
       </template>
     </template>
+
+    <div class="sidebar-section">{{ $t('shell.contribute') }}</div>
+    <router-link
+      class="sidebar-link"
+      :class="{ 'is-active': route.path.startsWith('/contribute') }"
+      to="/contribute/new"
+      @click="emit('close')"
+    >
+      <v-icon :icon="mdiUploadOutline" size="16" />
+      {{ $t('contribute.new_submission') }}
+    </router-link>
 
     <div class="sidebar-section">{{ $t('shell.reference') }}</div>
     <router-link
