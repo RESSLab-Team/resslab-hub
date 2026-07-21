@@ -1,0 +1,6590 @@
+{
+  "connections": [
+    {
+      "name": "id",
+      "description": "Unique ID for each experiment",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Equals: experimental_program (with underscores)+'\\_'+date+'\\_'+specimen_designation / Example: Engelhardt_et_al_2000_DBBWWPZ",
+      "nullable": false
+    },
+    {
+      "name": "experimental_program",
+      "description": "Authors of the experimental program",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Example: Engelhardt et al.",
+      "nullable": false
+    },
+    {
+      "name": "date",
+      "description": "Date of publication",
+      "symbol": "-",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "Example: 2000",
+      "nullable": false
+    },
+    {
+      "name": "specimen_designation",
+      "description": "Designation of the test specimen",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Example: DBBWWPZ",
+      "nullable": false
+    },
+    {
+      "name": "northridge",
+      "description": "Connection detailing according to pre- or post-Northridge 1994 earthquake standards",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Binary: Pre/Post",
+      "nullable": false
+    },
+    {
+      "name": "specimen_type",
+      "description": "Interior or exterior connection/Beam or column loaded in case of subassembly testing/Subassembly or Frame testing",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Examples: [Interior - Beam Loaded - Subassembly, Exterior - Frame]",
+      "nullable": false
+    },
+    {
+      "name": "comments",
+      "description": "Comments regarding loading protocol/stiffeners/retrofit/deficiencies/axial force",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "loading_protocol",
+      "description": "Test loading protocol",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Examples: [Symmetric Cyclic, Monotonic, Asymmetric, Ramped Symmetric Cyclic AISC]",
+      "nullable": false
+    },
+    {
+      "name": "slab",
+      "description": "Composite or bare connection test",
+      "symbol": "-",
+      "unit": "-",
+      "type": "Boolean",
+      "example": "Binary: YES/NO",
+      "nullable": false
+    },
+    {
+      "name": "connection_type",
+      "description": "Connection type",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Examples: [WUF-W, WUF-B, RBS, BFP, WFP, KBB]",
+      "nullable": false
+    },
+    {
+      "name": "t_pl",
+      "description": "Plate thickness for BFP and WFP connections",
+      "symbol": "tₚₗ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "rbs_cut",
+      "description": "Reduction in flange area at RBS center (normalized to the flange width)",
+      "symbol": "RBSₖ",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "Range: [0,1]",
+      "nullable": true
+    },
+    {
+      "name": "s_h",
+      "description": "Plastic hinge distance from the column face",
+      "symbol": "sₕ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "d_h",
+      "description": "Shift of the beam effective depth due to presence of hanches",
+      "symbol": "dₕ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "section_b",
+      "description": "Section name of steel beam",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Examples: [IPE 360, W36x150, H-400x200x8x13, build up H section]",
+      "nullable": false
+    },
+    {
+      "name": "d_b",
+      "description": "Depth of steel beam",
+      "symbol": "dᵦ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "d_bg",
+      "description": "Distance from steel beam top fibre to its center of gravity",
+      "symbol": "dᵦᵧ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "Equals: $d_b/2$",
+      "nullable": true
+    },
+    {
+      "name": "t_bw",
+      "description": "Thickness of steel beam web",
+      "symbol": "tᵦᵥ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "b_bf",
+      "description": "Width of steel beam flange",
+      "symbol": "bᵦᶠ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "t_bf",
+      "description": "Thickness of steel beam flange",
+      "symbol": "tᵦᶠ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "r_b",
+      "description": "Fillet radius of steel beam",
+      "symbol": "rᵦ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "a_b",
+      "description": "Cross-sectional area of steel beam",
+      "symbol": "Aᵦ",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "i_xb",
+      "description": "Second moment of area of steel beam about major axis",
+      "symbol": "Iₓᵦ",
+      "unit": "mm⁴",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "z_xb",
+      "description": "Plastic section modulus of steel beam about major axis",
+      "symbol": "Zₓᵦ",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "z_xb_bfp",
+      "description": "Plastic section modulus of BFP steel beam about major axis",
+      "symbol": "Zₓᵦ₍ᵦᶠₚ₎",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "r_yb",
+      "description": "Minor axis radius of gyration of steel beam",
+      "symbol": "rᵧᵦ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "b_bf_rbs",
+      "description": "Width of steel beam flange at RBS center",
+      "symbol": "bᶠᵦ₍ᵣᵦₛ₎",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "d_gb_rbs",
+      "description": "Distance from steel beam top fibre to its center of gravity at RBS center",
+      "symbol": "dᵧᵦ₍ᵣᵦₛ₎",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "a_b_rbs",
+      "description": "Cross-sectional area of RBS steel beam",
+      "symbol": "Aᵦ₍ᵣᵦₛ₎",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "i_xb_rbs",
+      "description": "Second moment of area of RBS steel beam about major axis",
+      "symbol": "Iₓᵦ₍ᵣᵦₛ₎",
+      "unit": "mm⁴",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "z_xb_rbs",
+      "description": "Plastic section modulus of RBS steel beam about major axis",
+      "symbol": "Zₓᵦ₍ᵣᵦₛ₎",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "d_bm",
+      "description": "Depth of steel beam (measured)",
+      "symbol": "dᵦₘ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "d_bgm",
+      "description": "Distance from steel beam top fibre to its center of gravity (measured)",
+      "symbol": "dᵦᵧₘ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "Equals: $d_{bm}/2$",
+      "nullable": true
+    },
+    {
+      "name": "t_bwm",
+      "description": "Thickness of steel beam web (measured)",
+      "symbol": "tᵦᵥₘ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "b_bfm",
+      "description": "Width of steel beam flange (measured)",
+      "symbol": "bᵦᶠₘ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "t_bfm",
+      "description": "Thickness of steel beam flange (measured)",
+      "symbol": "tᵦᶠₘ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "z_xbm",
+      "description": "Plastic section modulus of steel beam about major axis (measured)",
+      "symbol": "Zₓᵦₘ",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "steel_b",
+      "description": "Steel grade of the beam",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "-",
+      "nullable": false
+    },
+    {
+      "name": "f_yb",
+      "description": "Nominal yield stress of the beam's steel material",
+      "symbol": "fᵧᵦ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "f_ybw",
+      "description": "Measured yield stress of the beam's web plate",
+      "symbol": "fᵧᵦᵥ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Based on coupon test results",
+      "nullable": true
+    },
+    {
+      "name": "f_ybf",
+      "description": "Measured yield stress of the beam's flange plate",
+      "symbol": "fᵧᵦᶠ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Based on coupon test results",
+      "nullable": true
+    },
+    {
+      "name": "f_yb_mill",
+      "description": "Yield stress of the beam as per the mill certificate",
+      "symbol": "fᵧᵦₘᵢₗₗ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Weighted average of the beam's flanges and web mill yield stress",
+      "nullable": true
+    },
+    {
+      "name": "f_yb_avg",
+      "description": "Average yield stress of the beam",
+      "symbol": "fᵧᵦₐᵥᵧ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Weighted average of $f_{y,bf}$ and $f_{y,bw}$, based on the areas of the flanges and the web",
+      "nullable": true
+    },
+    {
+      "name": "l_b",
+      "description": "Beam span from column centerline to column centerline",
+      "symbol": "Lᵦ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "For exterior subassemblies consider half the column centerline to centerline distance",
+      "nullable": true
+    },
+    {
+      "name": "l_fc",
+      "description": "Beam clear span from column face to column face",
+      "symbol": "Lᶠᶜ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "For exterior subassemblies consider half the column face to column face distance",
+      "nullable": true
+    },
+    {
+      "name": "l_o",
+      "description": "Beam shear span from column face to beam inflection point",
+      "symbol": "Lₒ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "For exterior subassemblies it equals $L_{fc}$. For interior ones, it equals $L_{fc}/2$",
+      "nullable": true
+    },
+    {
+      "name": "lo_db",
+      "description": "Beam shear span to depth ratio",
+      "symbol": "Lₒ/dᵦ",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "Equals: $L_o/d_b$",
+      "nullable": true
+    },
+    {
+      "name": "section_c",
+      "description": "Section name of steel column",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Examples: [HEM 300, W14x498, build up H section]",
+      "nullable": false
+    },
+    {
+      "name": "d_c",
+      "description": "Depth of steel column",
+      "symbol": "dᶜ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "t_cw",
+      "description": "Thickness of steel column web",
+      "symbol": "tᶜᵥ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "b_cf",
+      "description": "Width of steel column flange",
+      "symbol": "bᶜᶠ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "c_c",
+      "description": "Distance between steel column fillet radius toes",
+      "symbol": "cᶜ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "t_cf",
+      "description": "Thickness of steel column flange",
+      "symbol": "tᶜᶠ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "r_c",
+      "description": "Fillet radius of steel column",
+      "symbol": "rᶜ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "a_c",
+      "description": "Cross-sectional area of steel column",
+      "symbol": "Aᶜ",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "i_xc",
+      "description": "Second moment of area of steel column about major axis",
+      "symbol": "Iₓᶜ",
+      "unit": "mm⁴",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "d_cm",
+      "description": "Depth of steel column (measured)",
+      "symbol": "dᶜₘ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "t_wcm",
+      "description": "Thickness of steel column web (measured)",
+      "symbol": "tᵥᶜₘ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "c_cm",
+      "description": "Distance between steel column fillet radius toes (measured)",
+      "symbol": "cᶜₘ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "b_fcm",
+      "description": "Width of steel column flange (measured)",
+      "symbol": "bᶠᶜₘ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "t_fcm",
+      "description": "Thickness of steel column flange (measured)",
+      "symbol": "tᶠᶜₘ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "steel_c",
+      "description": "Steel grade of the column",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "-",
+      "nullable": false
+    },
+    {
+      "name": "f_yc",
+      "description": "Nominal yield stress of the column's steel material",
+      "symbol": "fᵧᶜ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "f_ydp",
+      "description": "Measured yield stress of the doubler plate(s)",
+      "symbol": "fᵧᵈₚ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Based on coupon test results",
+      "nullable": true
+    },
+    {
+      "name": "f_ycw",
+      "description": "Measured yield stress of the column's web plate",
+      "symbol": "fᵧᶜᵥ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Based on coupon test results",
+      "nullable": true
+    },
+    {
+      "name": "f_ycf",
+      "description": "Measured yield stress of the column's flange plate",
+      "symbol": "fᵧᶜᶠ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Based on coupon test results",
+      "nullable": true
+    },
+    {
+      "name": "f_yc_mill",
+      "description": "Yield stress of the column as per the mill certificate",
+      "symbol": "fᵧᶜₘᵢₗₗ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Weighted average of the column's flanges and web mill yield stress",
+      "nullable": true
+    },
+    {
+      "name": "f_yc_avg",
+      "description": "Average yield stress of the column",
+      "symbol": "fᵧᶜₐᵥᵧ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Weighted average of $f_{y,cf}$ and $f_{y,cw}$, based on the areas of the flanges and the web",
+      "nullable": true
+    },
+    {
+      "name": "h_c",
+      "description": "Column height measured from centerline to centerline of the beams",
+      "symbol": "hᶜ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "backing_bar",
+      "description": "Presence or not of backing bar during testing",
+      "symbol": "-",
+      "unit": "-",
+      "type": "Boolean",
+      "example": "Binary: YES/NO",
+      "nullable": true
+    },
+    {
+      "name": "electrode",
+      "description": "Weld electrode at the beam flange to column face welded connection",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Example: [AWS E71T-8, E70]",
+      "nullable": false
+    },
+    {
+      "name": "d_electrode",
+      "description": "Electrode diameter at the beam flange to column face welded connection",
+      "symbol": "dₑ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "cvn_0f",
+      "description": "Electrode Charpy V Notch (CVN) value at 0 F",
+      "symbol": "CVN₀",
+      "unit": "J",
+      "type": "DecimalFloat",
+      "example": "At the beam flange to column face welded connection",
+      "nullable": true
+    },
+    {
+      "name": "cvn_minus20f",
+      "description": "Electrode Charpy V Notch (CVN) value at -20 F",
+      "symbol": "CVN₋₂₀",
+      "unit": "J",
+      "type": "DecimalFloat",
+      "example": "At the beam flange to column face welded connection",
+      "nullable": true
+    },
+    {
+      "name": "cvn_70f",
+      "description": "Electrode Charpy V Notch (CVN) value at 70 F",
+      "symbol": "CVN₇₀",
+      "unit": "J",
+      "type": "DecimalFloat",
+      "example": "At the beam flange to column face welded connection",
+      "nullable": true
+    },
+    {
+      "name": "access_hole_geometry",
+      "description": "Type of access hole geometry at the beam",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Examples: [Pre-Northridge, AISC-360-16, AIJ]",
+      "nullable": true
+    },
+    {
+      "name": "w",
+      "description": "Total width of slab",
+      "symbol": "w",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "w_l",
+      "description": "Width of the slab from the center of beam flange to the left edge",
+      "symbol": "wₗ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "w_r",
+      "description": "Width of the slab from the center of beam flange to the right edge",
+      "symbol": "wᵣ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "h_t",
+      "description": "Total depth of slab",
+      "symbol": "hₜ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "a_s",
+      "description": "Area of slab reinforcement per meter of beam length",
+      "symbol": "Aₛ",
+      "unit": "mm²/m",
+      "type": "DecimalFloat",
+      "example": "Reinforcement includes rebar and/or wire mesh",
+      "nullable": true
+    },
+    {
+      "name": "f_sk",
+      "description": "Nominal yield stress of slab reinforcement",
+      "symbol": "fₛₖ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "f_sm",
+      "description": "Measured yield stress of slab reinforcement",
+      "symbol": "fₛₘ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "h_co",
+      "description": "Depth of concrete above steel deck",
+      "symbol": "hᶜₒ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "slab_con_type",
+      "description": "Type of slab's concrete",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Examples: [NWC, LWC] for normal-weight concrete and light-weight concrete, respectively",
+      "nullable": true
+    },
+    {
+      "name": "f_ck",
+      "description": "Specified compressive stress of concrete slab",
+      "symbol": "fᶜₖ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "f_cm",
+      "description": "Measured cylinder compressive stress of concrete slab",
+      "symbol": "fᶜₘ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "cur_days",
+      "description": "Number of curing days at which concrete compressive stress was measured",
+      "symbol": "-",
+      "unit": "days",
+      "type": "SmallSmallInteger",
+      "example": "Multiplied by 0.8 if cubic compression tests are provided",
+      "nullable": true
+    },
+    {
+      "name": "f_c_compr_calc",
+      "description": "Compressive stress of the concrete slab for compressive force calculation",
+      "symbol": "fᶜᶜₒₘₚ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Equals: $f_{cm}$ if provided. Else it equals $f_{ck}$",
+      "nullable": true
+    },
+    {
+      "name": "d",
+      "description": "Shear stud diameter",
+      "symbol": "d",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "h_sc",
+      "description": "Shear stud height",
+      "symbol": "hₛᶜ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "n_studs",
+      "description": "Total number of studs used in the shear span Lo",
+      "symbol": "nₛₜᵤᵈₛ",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "n_diss",
+      "description": "Number of studs in dissipative zone",
+      "symbol": "nᵈᵢₛₛ",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "n_r",
+      "description": "Number of studs per steel deck rib",
+      "symbol": "nᵣ",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "f_u_sc",
+      "description": "Ultimate tensile stress of the shear studs",
+      "symbol": "fᵤₛᶜ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Assumed to be 65 ksi unless the value is reported",
+      "nullable": true
+    },
+    {
+      "name": "h_p",
+      "description": "Height of steel deck",
+      "symbol": "hₚ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "b_o",
+      "description": "Average width of rib",
+      "symbol": "Bₒ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "Measured at rib centreline",
+      "nullable": true
+    },
+    {
+      "name": "deck_ribs_orientation",
+      "description": "Orientation of the deck ribs with respect to the beam",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Examples: [parallel, perpenticular]",
+      "nullable": true
+    },
+    {
+      "name": "section_shape_c",
+      "description": "Type of panel zone section",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Example: [H]",
+      "nullable": false
+    },
+    {
+      "name": "d_pz",
+      "description": "Depth of column at panel zone location",
+      "symbol": "dₚᵧ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "Equals $d_c$",
+      "nullable": true
+    },
+    {
+      "name": "tw_pz",
+      "description": "Thickness of column web at panel zone location",
+      "symbol": "tᵥₚᵧ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "Equals $t_{cw}$",
+      "nullable": true
+    },
+    {
+      "name": "bf_pz",
+      "description": "Width of column flange at panel zone location",
+      "symbol": "bᶠₚᵧ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "Equals $b_{cf}$",
+      "nullable": true
+    },
+    {
+      "name": "tf_pz",
+      "description": "Thickness of column flange at panel zone location",
+      "symbol": "tᶠₚᵧ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "Equals $t_{cf}$",
+      "nullable": true
+    },
+    {
+      "name": "dz",
+      "description": "Clear depth of the panel zone",
+      "symbol": "dᵧ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "Equals: $d_b-2*t_{bf}$",
+      "nullable": true
+    },
+    {
+      "name": "zw",
+      "description": "Clear width of the panel zone",
+      "symbol": "zᵥ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "Equals: $d_{pz}-2*tf_{pz}$",
+      "nullable": true
+    },
+    {
+      "name": "dz_plug",
+      "description": "Vertical distance between plug welds",
+      "symbol": "dᵧₚₗᵤᵧ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "wz_plug",
+      "description": "Horizontal distance between plug welds",
+      "symbol": "wᵧₚₗᵤᵧ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "wd",
+      "description": "Width of the doubler plate",
+      "symbol": "wᵈ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "n_dp",
+      "description": "Number of doubler plates",
+      "symbol": "nᵈₚ",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "t_dp",
+      "description": "Thickness of one doubler plate",
+      "symbol": "tᵈₚ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "t_dp_tot",
+      "description": "Total thickess of doubler plate(s)",
+      "symbol": "tᵈₚₜₒₜ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "Equals: $t_{dp}*n_{dp}$",
+      "nullable": true
+    },
+    {
+      "name": "t_p",
+      "description": "Thickness of panel zone including doubler plates",
+      "symbol": "tₚ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "Equals: $t_{dp,tot}+tw_{pz}$",
+      "nullable": true
+    },
+    {
+      "name": "t_cp",
+      "description": "Thickness of the continuity plates",
+      "symbol": "tᶜₚ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "d_cp",
+      "description": "Depth of the continuity plates",
+      "symbol": "dᶜₚ",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "db_plus",
+      "description": "Effective depth of panel zone on sagging beam side",
+      "symbol": "dᵦ₊",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "db_minus",
+      "description": "Effective depth of panel zone on hogging beam side",
+      "symbol": "dᵦ₋",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "a_vc",
+      "description": "Panel zone shear area according to Eurocode",
+      "symbol": "Aᵥᶜ",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "According to CEN (2004)",
+      "nullable": true
+    },
+    {
+      "name": "fy_pz_m",
+      "description": "Measured yield stress of the panel zone",
+      "symbol": "fᵧₚᵧₘ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Equals: $f_{yc,avg}$",
+      "nullable": true
+    },
+    {
+      "name": "p_cm",
+      "description": "Column axial compressive load based on measured yield stress",
+      "symbol": "Pᶜₘ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "n_pm",
+      "description": "Column axial load ratio based on measured yield stress (normalized to the column's axial load capacity)",
+      "symbol": "nₚₘ",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "v_pz_el_m_europe",
+      "description": "Elastic shear resistance of panel zone according to CEN (2004) based on measured yield stress",
+      "symbol": "Vₚᵧₑₗₘₑᵤᵣ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "r_n_el_m_aisc",
+      "description": "Elastic shear resistance of panel zone according to AISC (2016) based on measured yield stress",
+      "symbol": "Rₙₑₗₘₐᵢₛᶜ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "r_n_pl_m_aisc",
+      "description": "Shear resistance of panel zone considering inelastic deformation based on measured yield stress",
+      "symbol": "Rₙₚₗₘₐᵢₛᶜ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "v_pz_m_aij",
+      "description": "Shear resistance of panel zone according to AIJ based on measured yield stress",
+      "symbol": "Vₚᵧₘₐᵢⱼ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "fy_pz_n",
+      "description": "Nominal yield stress of panel zone",
+      "symbol": "fᵧₚᵧₙ",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "Equals: $f_{yc,avg}$",
+      "nullable": true
+    },
+    {
+      "name": "p_cn",
+      "description": "Column axial load (compression) based on nominal yield stress",
+      "symbol": "Pᶜₙ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "n_pn",
+      "description": "Column axial load ratio based on nominal yield stress (normalized to the column's axial load capacity)",
+      "symbol": "nₚₙ",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "v_pz_el_n_europe",
+      "description": "Elastic shear resistance of panel zone according to Eurocode",
+      "symbol": "Vₚᵧₑₗₙₑᵤᵣ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "r_n_el_n_aisc",
+      "description": "Elastic shear resistance of panel zone according to AISC (2016) based on nominal yield stress",
+      "symbol": "Rₙₑₗₙₐᵢₛᶜ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "r_n_pl_n_aisc",
+      "description": "Shear resistance of panel zone considering inelastic deformation based on nominal yield stress",
+      "symbol": "Rₙₚₗₙₐᵢₛᶜ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "v_pz_n_aij",
+      "description": "Shear resistance of panel zone according to AIJ",
+      "symbol": "Vₚᵧₙₐᵢⱼ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "m_cf_minus_n",
+      "description": "Beam hogging moment at column face at development of beam plastic flexural resistance based on nominal yield stress",
+      "symbol": "Mᶜᶠ₋ₙ",
+      "unit": "kN·m",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "m_cf_plus_n",
+      "description": "Beam sagging moment at column face at development of beam plastic flexural resistance based on nominal yield stress",
+      "symbol": "Mᶜᶠ₊ₙ",
+      "unit": "kN·m",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "m_cf_minus_m",
+      "description": "Beam hogging moment at column face at development of beam plastic flexural resistance based on measured yield stress",
+      "symbol": "Mᶜᶠ₋ₘ",
+      "unit": "kN·m",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "m_cf_plus_m",
+      "description": "Beam sagging moment at column face at development of beam plastic flexural resistance based on measured yield stress",
+      "symbol": "Mᶜᶠ₊ₘ",
+      "unit": "kN·m",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "v_bf_plus_n",
+      "description": "Panel zone shear force demand from the beam at development of beam plastic flexural resistance under sagging bending",
+      "symbol": "Vᵦᶠ₊ₙ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "v_bf_minus_n",
+      "description": "Panel zone shear force demand from the beam at development of beam plastic flexural resistance under hogging bending",
+      "symbol": "Vᵦᶠ₋ₙ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "v_col_n",
+      "description": "Column shear force at development of beam plastic flexural resistance",
+      "symbol": "Vᶜₒₗₙ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "r_u_n",
+      "description": "Panel zone demand at development of beam plastic flexural resistance based on nominal yield stress",
+      "symbol": "Rᵤₙ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "r_u_m",
+      "description": "Panel zone demand at development of beam plastic flexural resistance based on measured yield stress",
+      "symbol": "Rᵤₘ",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "ru_rn_el_n",
+      "description": "Demand over resistance (Vy) based on the nominal yield stress",
+      "symbol": "Rᵤ/Rₙₑₗₙ",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "ru_rn_pl_n",
+      "description": "Demand over resistance (Vp) based on the nominal yield stress",
+      "symbol": "Rᵤ/Rₙₚₗₙ",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "aisc_pz_violation_n",
+      "description": "Violation of the AISC (2016) design standard for panel zone strength based on nominal material properties. Panel zone designed to exceed 4gamma_y",
+      "symbol": "-",
+      "unit": "-",
+      "type": "Boolean",
+      "example": "Examples: [yes, no] for violation and not, respectively, of the AISC (2016) design for panel zone strength",
+      "nullable": true
+    },
+    {
+      "name": "ru_rn_el_m",
+      "description": "Demand over resistance (Vy) based on the measured yield stress",
+      "symbol": "Rᵤ/Rₙₑₗₘ",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "ru_rn_pl_m",
+      "description": "Demand over resistance (Vp) based on the measured yield stress",
+      "symbol": "Rᵤ/Rₙₚₗₘ",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "aisc_pz_violation_m",
+      "description": "Violation of the AISC (2016) design standard for panel zone strength based on measured material properties. Panel zone designed to exceed 4gamma_y",
+      "symbol": "-",
+      "unit": "-",
+      "type": "Boolean",
+      "example": "Examples: [yes, no] for violation and not, respectively, of the AISC (2016) design for panel zone strength",
+      "nullable": true
+    },
+    {
+      "name": "g_max",
+      "description": "Maximum attained panel zone shear distortion in the experiment",
+      "symbol": "γₘₐₓ",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "Maximum absolute panel zone shear distortion",
+      "nullable": true
+    },
+    {
+      "name": "g_y",
+      "description": "Panel zone shear distortion at yield",
+      "symbol": "γᵧ",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "-",
+      "nullable": true
+    },
+    {
+      "name": "g_max_g_y",
+      "description": "Maximum panel zone distortion normalized to the panel zone yield distortion",
+      "symbol": "γₘₐₓ/γᵧ",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "Equals: $g_{max}/g_y$",
+      "nullable": true
+    },
+    {
+      "name": "reference",
+      "description": "Reference of the experimental program",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Example: Engelhardt, M. D., Venti, M. J., Fry, G. T., Jones, S. L., and Holliday, S. D. (2000). Behavior and design of radius cut reduced beam section connections. Report No. SAC/BD-00/17, SAC Joint Venture, Sacramento, CA, USA.",
+      "nullable": false
+    },
+    {
+      "name": "link",
+      "description": "Link to the reference",
+      "symbol": "-",
+      "unit": "-",
+      "type": "String",
+      "example": "Example: https://store.atcouncil.org/index.php?dispatch=products.view&product_id=132",
+      "nullable": true
+    },
+    {
+      "name": "latitude",
+      "description": "Latitude of the laboratory the experiment was conducted",
+      "symbol": "lat",
+      "unit": "degrees",
+      "type": "DecimalFloat",
+      "example": "Example: 30.62037845",
+      "nullable": true
+    },
+    {
+      "name": "longitude",
+      "description": "Longitude of the laboratory the experiment was conducted",
+      "symbol": "lon",
+      "unit": "degrees",
+      "type": "DecimalFloat",
+      "example": "Example: -96.33951634",
+      "nullable": true
+    }
+  ],
+  "columns": [
+    {
+      "name": "id",
+      "description": "Unique identifier for the specimen",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Elkady_and_Lignos_C3",
+      "nullable": false
+    },
+    {
+      "name": "experimental_program",
+      "description": "Names of researchers who conducted the study",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Elkady & Lignos",
+      "nullable": false
+    },
+    {
+      "name": "date",
+      "description": "Year of the experiment",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "2018",
+      "nullable": false
+    },
+    {
+      "name": "section_c",
+      "description": "Cross-section designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "W610x217",
+      "nullable": false
+    },
+    {
+      "name": "specimen_designation",
+      "description": "Laboratory identification code",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "C3",
+      "nullable": false
+    },
+    {
+      "name": "d_c",
+      "description": "Total depth of section",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "630",
+      "nullable": true
+    },
+    {
+      "name": "k_c",
+      "description": "Distance from outer face of flange to web toe of fillet",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "50.8",
+      "nullable": true
+    },
+    {
+      "name": "k1_c",
+      "description": "Distance from center of web to flange toe of fillet",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "28.6",
+      "nullable": true
+    },
+    {
+      "name": "h_c",
+      "description": "Clear distance between flanges",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "528.4",
+      "nullable": true
+    },
+    {
+      "name": "t_cw",
+      "description": "Web thickness",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "17.2",
+      "nullable": true
+    },
+    {
+      "name": "h_over_t_cw",
+      "description": "Web height-to-thickness ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "30.7",
+      "nullable": true
+    },
+    {
+      "name": "b_cf",
+      "description": "Flange width",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "328",
+      "nullable": true
+    },
+    {
+      "name": "t_cf",
+      "description": "Flange thickness",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "26.8",
+      "nullable": true
+    },
+    {
+      "name": "b_f_over_t_cf",
+      "description": "Flange width-to-thickness ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "6.1",
+      "nullable": true
+    },
+    {
+      "name": "a_cm",
+      "description": "Measured cross-sectional area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "27495",
+      "nullable": true
+    },
+    {
+      "name": "a_cn",
+      "description": "Nominal cross-sectional area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "27700",
+      "nullable": true
+    },
+    {
+      "name": "i_xb",
+      "description": "Strong-axis moment of inertia at base",
+      "symbol": "",
+      "unit": "mm⁴",
+      "type": "DecimalFloat",
+      "example": "1.9E+09",
+      "nullable": true
+    },
+    {
+      "name": "i_xc",
+      "description": "Strong-axis moment of inertia at critical section",
+      "symbol": "",
+      "unit": "mm⁴",
+      "type": "DecimalFloat",
+      "example": "157862147",
+      "nullable": true
+    },
+    {
+      "name": "s_xc",
+      "description": "Strong-axis elastic section modulus",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "5951531",
+      "nullable": true
+    },
+    {
+      "name": "s_yc",
+      "description": "Weak-axis elastic section modulus",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "962574",
+      "nullable": true
+    },
+    {
+      "name": "z_xc",
+      "description": "Strong-axis plastic section modulus",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "6730988",
+      "nullable": true
+    },
+    {
+      "name": "z_yc",
+      "description": "Weak-axis plastic section modulus",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "1484256",
+      "nullable": true
+    },
+    {
+      "name": "j_c",
+      "description": "Torsional constant",
+      "symbol": "",
+      "unit": "mm⁴",
+      "type": "DecimalFloat",
+      "example": "5232195",
+      "nullable": true
+    },
+    {
+      "name": "c_wc",
+      "description": "Warping constant",
+      "symbol": "",
+      "unit": "mm⁶",
+      "type": "DecimalFloat",
+      "example": "1.4E+13",
+      "nullable": true
+    },
+    {
+      "name": "r_yc",
+      "description": "Weak-axis radius of gyration",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "76",
+      "nullable": true
+    },
+    {
+      "name": "r_xc",
+      "description": "Strong-axis radius of gyration",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "261",
+      "nullable": true
+    },
+    {
+      "name": "l_c",
+      "description": "Column length",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "3899",
+      "nullable": true
+    },
+    {
+      "name": "l_sc",
+      "description": "Shear span length",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "2924",
+      "nullable": true
+    },
+    {
+      "name": "l_bc",
+      "description": "Length between lateral bracing points",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "3899",
+      "nullable": true
+    },
+    {
+      "name": "l_b_over_r_yc",
+      "description": "Member slenderness ratio about weak axis",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "51.5",
+      "nullable": true
+    },
+    {
+      "name": "k_xc",
+      "description": "Strong-axis effective length factor",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.7",
+      "nullable": true
+    },
+    {
+      "name": "k_yc",
+      "description": "Weak-axis effective length factor",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.5",
+      "nullable": true
+    },
+    {
+      "name": "lambda_xc",
+      "description": "Strong-axis slenderness parameter",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "10",
+      "nullable": true
+    },
+    {
+      "name": "lambda_yc",
+      "description": "Weak-axis slenderness parameter",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "26",
+      "nullable": true
+    },
+    {
+      "name": "lambda_ltb",
+      "description": "Lateral-torsional buckling slenderness parameter",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.26",
+      "nullable": true
+    },
+    {
+      "name": "steel_c",
+      "description": "Steel grade designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "ASTM A992 Gr. 50",
+      "nullable": false
+    },
+    {
+      "name": "r_y",
+      "description": "Yield strength ratio (measured/nominal)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.1",
+      "nullable": true
+    },
+    {
+      "name": "r_t",
+      "description": "Ultimate-to-yield strength ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.1",
+      "nullable": true
+    },
+    {
+      "name": "f_ymf",
+      "description": "Measured flange yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "414",
+      "nullable": true
+    },
+    {
+      "name": "f_ymw",
+      "description": "Measured web yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "415",
+      "nullable": true
+    },
+    {
+      "name": "f_umf",
+      "description": "Measured flange ultimate strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "509",
+      "nullable": true
+    },
+    {
+      "name": "f_umw",
+      "description": "Measured web ultimate strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "502",
+      "nullable": true
+    },
+    {
+      "name": "f_yn",
+      "description": "Nominal yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "345",
+      "nullable": true
+    },
+    {
+      "name": "f_un",
+      "description": "Nominal ultimate strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "450",
+      "nullable": true
+    },
+    {
+      "name": "e_nc",
+      "description": "Nominal elastic modulus",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "200000",
+      "nullable": true
+    },
+    {
+      "name": "e_mc",
+      "description": "Measured elastic modulus",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "190481",
+      "nullable": true
+    },
+    {
+      "name": "g_nc",
+      "description": "Nominal shear modulus",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "77200",
+      "nullable": true
+    },
+    {
+      "name": "g_mc",
+      "description": "Measured shear modulus",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "73262",
+      "nullable": true
+    },
+    {
+      "name": "boundary_condition",
+      "description": "End conditions of the column",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Fixed-Flexible",
+      "nullable": false
+    },
+    {
+      "name": "p_ym",
+      "description": "Measured axial yield strength",
+      "symbol": "",
+      "unit": "N",
+      "type": "DecimalFloat",
+      "example": "11423976",
+      "nullable": true
+    },
+    {
+      "name": "p_yn",
+      "description": "Nominal axial yield strength",
+      "symbol": "",
+      "unit": "N",
+      "type": "DecimalFloat",
+      "example": "9556500",
+      "nullable": true
+    },
+    {
+      "name": "p_ye",
+      "description": "Expected axial yield strength",
+      "symbol": "",
+      "unit": "N",
+      "type": "DecimalFloat",
+      "example": "10512150",
+      "nullable": true
+    },
+    {
+      "name": "lateral_lp",
+      "description": "Type of lateral loading protocol",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Collapse-Consistent",
+      "nullable": false
+    },
+    {
+      "name": "direction_lp",
+      "description": "Direction of loading",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Unidirectional",
+      "nullable": false
+    },
+    {
+      "name": "axis_of_bending",
+      "description": "Axis about which bending is applied",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Strong",
+      "nullable": false
+    },
+    {
+      "name": "axial_lp",
+      "description": "Type of axial loading protocol",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Constant",
+      "nullable": false
+    },
+    {
+      "name": "p_g",
+      "description": "Gravity load",
+      "symbol": "",
+      "unit": "N",
+      "type": "DecimalFloat",
+      "example": "2272000",
+      "nullable": true
+    },
+    {
+      "name": "p_t",
+      "description": "Tensile load",
+      "symbol": "",
+      "unit": "N",
+      "type": "DecimalFloat",
+      "example": "NA",
+      "nullable": true
+    },
+    {
+      "name": "p_c",
+      "description": "Compressive load",
+      "symbol": "",
+      "unit": "N",
+      "type": "DecimalFloat",
+      "example": "2272000",
+      "nullable": true
+    },
+    {
+      "name": "p_g_over_p_ym",
+      "description": "Gravity load ratio to measured yield strength",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.2",
+      "nullable": true
+    },
+    {
+      "name": "p_g_over_p_yn",
+      "description": "Gravity load ratio to nominal yield strength",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.24",
+      "nullable": true
+    },
+    {
+      "name": "p_t_over_p_ym",
+      "description": "Tensile load ratio to measured yield strength",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "NA",
+      "nullable": true
+    },
+    {
+      "name": "p_c_over_p_ym",
+      "description": "Compressive load ratio to measured yield strength",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.2",
+      "nullable": true
+    },
+    {
+      "name": "p_c_over_p_yn",
+      "description": "Compressive load ratio to nominal yield strength",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.24",
+      "nullable": true
+    },
+    {
+      "name": "p",
+      "description": "Applied axial load",
+      "symbol": "",
+      "unit": "N",
+      "type": "DecimalFloat",
+      "example": "2272000",
+      "nullable": true
+    },
+    {
+      "name": "t_top_plate",
+      "description": "Thickness of top plate",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "76",
+      "nullable": true
+    },
+    {
+      "name": "t_bottom_plate",
+      "description": "Thickness of bottom plate",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "76",
+      "nullable": true
+    },
+    {
+      "name": "test_procedure",
+      "description": "Description of testing procedure",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "First axial load was applied...",
+      "nullable": false
+    },
+    {
+      "name": "comments",
+      "description": "Additional notes about the test",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Axial loading of 20kN/sec...",
+      "nullable": true
+    },
+    {
+      "name": "k_test",
+      "description": "Measured initial stiffness",
+      "symbol": "",
+      "unit": "N/mm",
+      "type": "DecimalFloat",
+      "example": "3190",
+      "nullable": true
+    },
+    {
+      "name": "k_flexure_th",
+      "description": "Theoretical flexural stiffness",
+      "symbol": "",
+      "unit": "N/mm",
+      "type": "DecimalFloat",
+      "example": "3930",
+      "nullable": true
+    },
+    {
+      "name": "k_shear_th",
+      "description": "Theoretical shear stiffness",
+      "symbol": "",
+      "unit": "N/mm",
+      "type": "DecimalFloat",
+      "example": "23911",
+      "nullable": true
+    },
+    {
+      "name": "k_theory",
+      "description": "Combined theoretical stiffness",
+      "symbol": "",
+      "unit": "N/mm",
+      "type": "DecimalFloat",
+      "example": "3375",
+      "nullable": true
+    },
+    {
+      "name": "th_y",
+      "description": "Story drift at yield",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.006",
+      "nullable": true
+    },
+    {
+      "name": "th_lb",
+      "description": "Story drift at local buckling",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.02",
+      "nullable": true
+    },
+    {
+      "name": "th_80",
+      "description": "Story drift at 80% peak strength",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.03",
+      "nullable": true
+    },
+    {
+      "name": "th_50",
+      "description": "Story drift at 50% peak strength",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.04",
+      "nullable": true
+    },
+    {
+      "name": "th_20",
+      "description": "Story drift at 20% peak strength",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "NA",
+      "nullable": true
+    },
+    {
+      "name": "th_1l",
+      "description": "Story drift at first loading cycle",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.03",
+      "nullable": true
+    },
+    {
+      "name": "th_2l",
+      "description": "Story drift at second loading cycle",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.035",
+      "nullable": true
+    },
+    {
+      "name": "th_3l",
+      "description": "Story drift at third loading cycle",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "NA",
+      "nullable": true
+    },
+    {
+      "name": "th_4l",
+      "description": "Story drift at fourth loading cycle",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "NA",
+      "nullable": true
+    },
+    {
+      "name": "th_6l",
+      "description": "Story drift at sixth loading cycle",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "NA",
+      "nullable": true
+    },
+    {
+      "name": "d_80",
+      "description": "Displacement at 80% peak strength",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "0.008",
+      "nullable": true
+    },
+    {
+      "name": "d_50",
+      "description": "Displacement at 50% peak strength",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "0.02",
+      "nullable": true
+    },
+    {
+      "name": "d_20",
+      "description": "Displacement at 20% peak strength",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "NA",
+      "nullable": true
+    },
+    {
+      "name": "f_class_us",
+      "description": "Flange classification (US standards)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "compact",
+      "nullable": false
+    },
+    {
+      "name": "w_class_us",
+      "description": "Web classification (US standards)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "compact",
+      "nullable": false
+    },
+    {
+      "name": "cs_class_us",
+      "description": "Cross-section classification (US standards)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "compact",
+      "nullable": false
+    },
+    {
+      "name": "f_class_eu",
+      "description": "Flange classification (Eurocode)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Class-1",
+      "nullable": false
+    },
+    {
+      "name": "w_class_eu",
+      "description": "Web classification (Eurocode)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Class-1",
+      "nullable": false
+    },
+    {
+      "name": "cs_class_eu",
+      "description": "Cross-section classification (Eurocode)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Class-1",
+      "nullable": false
+    },
+    {
+      "name": "cfe",
+      "description": "Column fixed end indicator",
+      "symbol": "",
+      "unit": "-",
+      "type": "Boolean",
+      "example": "no",
+      "nullable": false
+    },
+    {
+      "name": "reference",
+      "description": "Citation of the source publication",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Elkady, A., and Lignos, D.G. 2018...",
+      "nullable": false
+    },
+    {
+      "name": "link",
+      "description": "URL to the source document",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "https://doi.org/10.1061/...",
+      "nullable": true
+    },
+    {
+      "name": "latitude",
+      "description": "Geographical latitude of testing facility",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "DecimalFloat",
+      "example": "45.505",
+      "nullable": false
+    },
+    {
+      "name": "longitude",
+      "description": "Geographical longitude of testing facility",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "DecimalFloat",
+      "example": "-73.614",
+      "nullable": false
+    }
+  ],
+  "braces": [
+    {
+      "name": "id",
+      "description": "Unique identifier for the specimen",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Wakabayashi_DIC 1-D1",
+      "nullable": false
+    },
+    {
+      "name": "investigator",
+      "description": "Names of researchers who conducted the study",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Wakayabashi, Nakamura & Yoshida",
+      "nullable": false
+    },
+    {
+      "name": "specimen_ID",
+      "description": "Laboratory identification code for the specimen",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "DIC 1-D1",
+      "nullable": false
+    },
+    {
+      "name": "date",
+      "description": "Year of the experiment",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "1977",
+      "nullable": false
+    },
+    {
+      "name": "cross_section_shape",
+      "description": "Shape of the brace cross-section",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "I-shaped",
+      "nullable": false
+    },
+    {
+      "name": "cross_section_size",
+      "description": "Nominal dimensions of the cross-section",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "50x50x6x6",
+      "nullable": false
+    },
+    {
+      "name": "area",
+      "description": "Cross-sectional area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "839",
+      "nullable": true
+    },
+    {
+      "name": "d_br",
+      "description": "Depth of the cross-section",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "50",
+      "nullable": true
+    },
+    {
+      "name": "b_br",
+      "description": "Width of the cross-section",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "50",
+      "nullable": true
+    },
+    {
+      "name": "t_br",
+      "description": "Thickness of the web/wall",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "6",
+      "nullable": true
+    },
+    {
+      "name": "w_br",
+      "description": "Thickness of the flange",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "6",
+      "nullable": true
+    },
+    {
+      "name": "i_x",
+      "description": "Strong-axis moment of inertia",
+      "symbol": "",
+      "unit": "mm⁴",
+      "type": "DecimalFloat",
+      "example": "534700",
+      "nullable": true
+    },
+    {
+      "name": "i_y",
+      "description": "Weak-axis moment of inertia",
+      "symbol": "",
+      "unit": "mm⁴",
+      "type": "DecimalFloat",
+      "example": "125900",
+      "nullable": true
+    },
+    {
+      "name": "r_x",
+      "description": "Strong-axis radius of gyration",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "25244.93",
+      "nullable": true
+    },
+    {
+      "name": "r_y",
+      "description": "Weak-axis radius of gyration",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "12249.88",
+      "nullable": true
+    },
+    {
+      "name": "z_x",
+      "description": "Strong-axis plastic section modulus",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "20550",
+      "nullable": true
+    },
+    {
+      "name": "z_y",
+      "description": "Weak-axis plastic section modulus",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "7950",
+      "nullable": true
+    },
+    {
+      "name": "j",
+      "description": "Torsional constant",
+      "symbol": "",
+      "unit": "mm⁴",
+      "type": "DecimalFloat",
+      "example": "11412",
+      "nullable": true
+    },
+    {
+      "name": "configuration",
+      "description": "Bracing configuration type (SBF/DBF)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "DBF",
+      "nullable": false
+    },
+    {
+      "name": "brace_angle",
+      "description": "Angle between brace and beam",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "DecimalFloat",
+      "example": "45",
+      "nullable": true
+    },
+    {
+      "name": "l_b",
+      "description": "Total length of brace",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "988",
+      "nullable": true
+    },
+    {
+      "name": "l_b_clear",
+      "description": "Clear length of brace between connections",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "494",
+      "nullable": true
+    },
+    {
+      "name": "steel",
+      "description": "Steel grade designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Annealed SS 41",
+      "nullable": false
+    },
+    {
+      "name": "e",
+      "description": "Young's modulus",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "200000",
+      "nullable": true
+    },
+    {
+      "name": "f_yn",
+      "description": "Nominal yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "235",
+      "nullable": true
+    },
+    {
+      "name": "fy_m",
+      "description": "Measured yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "284",
+      "nullable": true
+    },
+    {
+      "name": "f_um",
+      "description": "Measured ultimate strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "430",
+      "nullable": true
+    },
+    {
+      "name": "boundary_condition",
+      "description": "End conditions of the brace",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Fixed-fixed end",
+      "nullable": false
+    },
+    {
+      "name": "l_1t",
+      "description": "Length of top gusset plate segment 1",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_2t",
+      "description": "Length of top gusset plate segment 2",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_3t",
+      "description": "Length of top gusset plate segment 3",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_4t",
+      "description": "Length of top gusset plate segment 4",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_5t",
+      "description": "Length of top gusset plate segment 5",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_6t",
+      "description": "Length of top gusset plate segment 6",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_7t",
+      "description": "Length of top gusset plate segment 7",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "_8t",
+      "description": "Length of top gusset plate segment 8",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "t_t",
+      "description": "Thickness of top gusset plate",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "12",
+      "nullable": true
+    },
+    {
+      "name": "l_1b",
+      "description": "Length of bottom gusset plate segment 1",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_2b",
+      "description": "Length of bottom gusset plate segment 2",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_3b",
+      "description": "Length of bottom gusset plate segment 3",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_4b",
+      "description": "Length of bottom gusset plate segment 4",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_5b",
+      "description": "Length of bottom gusset plate segment 5",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_6b",
+      "description": "Length of bottom gusset plate segment 6",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_7b",
+      "description": "Length of bottom gusset plate segment 7",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "l_8b",
+      "description": "Length of bottom gusset plate segment 8",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "t_b",
+      "description": "Thickness of bottom gusset plate",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "12",
+      "nullable": true
+    },
+    {
+      "name": "steel_gp",
+      "description": "Steel grade of gusset plates",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "A572 Gr.50",
+      "nullable": true
+    },
+    {
+      "name": "f_yn_gp",
+      "description": "Nominal yield strength of gusset plates",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "345",
+      "nullable": true
+    },
+    {
+      "name": "f_ym_gp",
+      "description": "Measured yield strength of gusset plates",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "508",
+      "nullable": true
+    },
+    {
+      "name": "f_um_gp",
+      "description": "Measured ultimate strength of gusset plates",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "549",
+      "nullable": true
+    },
+    {
+      "name": "weld_type",
+      "description": "Type of welding used",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Fillet",
+      "nullable": true
+    },
+    {
+      "name": "l_weld",
+      "description": "Length of weld",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "254",
+      "nullable": true
+    },
+    {
+      "name": "t_weld",
+      "description": "Thickness of weld",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "6.4",
+      "nullable": true
+    },
+    {
+      "name": "stick_space",
+      "description": "Stick-out spacing",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "nub_bolts",
+      "description": "Number of bolts",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "bolt_size",
+      "description": "Size designation of bolts",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "bolt_mat",
+      "description": "Material specification of bolts",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "na",
+      "nullable": true
+    },
+    {
+      "name": "reinforcement_pl",
+      "description": "Reinforcement plate dimensions",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "203x51x6.4",
+      "nullable": true
+    },
+    {
+      "name": "loading_protocol",
+      "description": "Type of loading protocol applied",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Symmetric Cyclic",
+      "nullable": false
+    },
+    {
+      "name": "p_t",
+      "description": "Measured tensile capacity",
+      "symbol": "",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "1099",
+      "nullable": true
+    },
+    {
+      "name": "p_t_theory",
+      "description": "Theoretical tensile capacity",
+      "symbol": "",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "970.6",
+      "nullable": true
+    },
+    {
+      "name": "p_c",
+      "description": "Measured compressive capacity",
+      "symbol": "",
+      "unit": "kN",
+      "type": "DecimalFloat",
+      "example": "698",
+      "nullable": true
+    },
+    {
+      "name": "kl_r",
+      "description": "Slenderness ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "77",
+      "nullable": true
+    },
+    {
+      "name": "l_c",
+      "description": "Normalized slenderness ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.2",
+      "nullable": true
+    },
+    {
+      "name": "l_c_theory",
+      "description": "Theoretical normalized slenderness ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.18",
+      "nullable": true
+    },
+    {
+      "name": "k_assumed",
+      "description": "Assumed effective length factor",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1",
+      "nullable": true
+    },
+    {
+      "name": "kl_r_theory",
+      "description": "Theoretical slenderness ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "77.13",
+      "nullable": true
+    },
+    {
+      "name": "reference",
+      "description": "Citation of the source publication",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Wakabayashi, M., Nakamura, T., & Yoshida, N. (1977)...",
+      "nullable": false
+    },
+    {
+      "name": "link",
+      "description": "URL to the source document",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "https://repository.kulib.kyoto-u.ac.jp/...",
+      "nullable": true
+    },
+    {
+      "name": "latitude",
+      "description": "Geographical latitude of testing facility",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "Numeric",
+      "example": "35.0262",
+      "nullable": true
+    },
+    {
+      "name": "longitude",
+      "description": "Geographical longitude of testing facility",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "Numeric",
+      "example": "135.7808",
+      "nullable": true
+    }
+  ],
+  "hss": [
+    {
+      "name": "id",
+      "description": "Unique identifier for the specimen",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Yamada_et_al_2012__No-1",
+      "nullable": false
+    },
+    {
+      "name": "date",
+      "description": "Year of the experiment",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "2012",
+      "nullable": false
+    },
+    {
+      "name": "investigator",
+      "description": "Names of researchers who conducted the study",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Yamada",
+      "nullable": false
+    },
+    {
+      "name": "reference",
+      "description": "Citation of the source publication",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Yamada, S., Ishida, T., & Shimada, Y. (2012)...",
+      "nullable": false
+    },
+    {
+      "name": "url",
+      "description": "URL to the source document",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "https://doi.org/10.3130/aijs.77.627",
+      "nullable": true
+    },
+    {
+      "name": "test_configuration",
+      "description": "Type of test setup configuration",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "DC",
+      "nullable": false
+    },
+    {
+      "name": "stiffness_coefficient",
+      "description": "Stiffness coefficient for boundary conditions",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "3",
+      "nullable": false
+    },
+    {
+      "name": "test_type",
+      "description": "Type of loading test",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Cyclic",
+      "nullable": false
+    },
+    {
+      "name": "loading_protocol",
+      "description": "Description of loading sequence",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Symmetric",
+      "nullable": false
+    },
+    {
+      "name": "forming_process",
+      "description": "Manufacturing process of the HSS section",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Cold",
+      "nullable": false
+    },
+    {
+      "name": "seams",
+      "description": "Presence of seam welds",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "NR",
+      "nullable": true
+    },
+    {
+      "name": "tube_section",
+      "description": "HSS section designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "HSS-125x125x4.5",
+      "nullable": false
+    },
+    {
+      "name": "width__mm",
+      "description": "Width of HSS section",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "125",
+      "nullable": true
+    },
+    {
+      "name": "depth__mm",
+      "description": "Depth of HSS section",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "125",
+      "nullable": true
+    },
+    {
+      "name": "flange_thickness__mm",
+      "description": "Thickness of HSS flange",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "4.5",
+      "nullable": true
+    },
+    {
+      "name": "web_thickness__mm",
+      "description": "Thickness of HSS web",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "4.5",
+      "nullable": true
+    },
+    {
+      "name": "area__mm2",
+      "description": "Cross-sectional area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "2116.85",
+      "nullable": true
+    },
+    {
+      "name": "moment_of_inertia__mm4",
+      "description": "Strong-axis moment of inertia",
+      "symbol": "",
+      "unit": "mm⁴",
+      "type": "DecimalFloat",
+      "example": "5062047.74",
+      "nullable": true
+    },
+    {
+      "name": "radius__mm",
+      "description": "Radius of gyration",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "48.9",
+      "nullable": true
+    },
+    {
+      "name": "depth_over_t",
+      "description": "Depth-to-thickness ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "27.78",
+      "nullable": true
+    },
+    {
+      "name": "plastic_section_modulus__mm3",
+      "description": "Plastic section modulus",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "98057.25",
+      "nullable": true
+    },
+    {
+      "name": "axial_load_ratio",
+      "description": "Applied axial load ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0",
+      "nullable": true
+    },
+    {
+      "name": "axial_load_sequence",
+      "description": "Description of axial load application",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Constant",
+      "nullable": false
+    },
+    {
+      "name": "loading_angle",
+      "description": "Angle of applied loading",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "SmallInteger",
+      "example": "0",
+      "nullable": true
+    },
+    {
+      "name": "steel_type",
+      "description": "Steel grade designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "STKR400",
+      "nullable": false
+    },
+    {
+      "name": "fy_nominal__n_mm2",
+      "description": "Nominal yield strength",
+      "symbol": "",
+      "unit": "N/mm²",
+      "type": "DecimalFloat",
+      "example": "245",
+      "nullable": true
+    },
+    {
+      "name": "fy_measured__n_mm2",
+      "description": "Measured yield strength",
+      "symbol": "",
+      "unit": "N/mm²",
+      "type": "DecimalFloat",
+      "example": "367",
+      "nullable": true
+    },
+    {
+      "name": "f_ultimate__n_mm2",
+      "description": "Measured ultimate strength",
+      "symbol": "",
+      "unit": "N/mm²",
+      "type": "DecimalFloat",
+      "example": "436.9",
+      "nullable": true
+    },
+    {
+      "name": "mp_measured__knmm",
+      "description": "Measured plastic moment",
+      "symbol": "",
+      "unit": "kN·mm",
+      "type": "DecimalFloat",
+      "example": "35987.01",
+      "nullable": true
+    },
+    {
+      "name": "length__mm",
+      "description": "Length of specimen",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "742",
+      "nullable": true
+    },
+    {
+      "name": "ke_measured__knmm_rad",
+      "description": "Measured elastic rotational stiffness",
+      "symbol": "",
+      "unit": "kN·mm/rad",
+      "type": "DecimalFloat",
+      "example": "3512579.15",
+      "nullable": true
+    },
+    {
+      "name": "my_pos_100fit__knmm",
+      "description": "Positive yield moment (100% fit)",
+      "symbol": "",
+      "unit": "kN·mm",
+      "type": "DecimalFloat",
+      "example": "33451.2",
+      "nullable": true
+    },
+    {
+      "name": "my_neg_100fit__knmm",
+      "description": "Negative yield moment (100% fit)",
+      "symbol": "",
+      "unit": "kN·mm",
+      "type": "DecimalFloat",
+      "example": "36096.14",
+      "nullable": true
+    },
+    {
+      "name": "theta_p_pos_100fit__rad",
+      "description": "Positive plastic rotation (100% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.026",
+      "nullable": true
+    },
+    {
+      "name": "theta_pc_pos_100fit__rad",
+      "description": "Positive post-capping rotation (100% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.096",
+      "nullable": true
+    },
+    {
+      "name": "theta_u_pos_100fit__rad",
+      "description": "Positive ultimate rotation (100% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.117",
+      "nullable": true
+    },
+    {
+      "name": "theta_p_neg_100fit__rad",
+      "description": "Negative plastic rotation (100% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.007",
+      "nullable": true
+    },
+    {
+      "name": "theta_pc_neg_100fit__rad",
+      "description": "Negative post-capping rotation (100% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.114",
+      "nullable": true
+    },
+    {
+      "name": "theta_u_neg_100fit__rad",
+      "description": "Negative ultimate rotation (100% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.103",
+      "nullable": true
+    },
+    {
+      "name": "mc_my_pos_100fit",
+      "description": "Positive capping moment ratio (100% fit)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.124",
+      "nullable": true
+    },
+    {
+      "name": "mu_mc_pos_100fit",
+      "description": "Positive ultimate moment ratio (100% fit)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.358",
+      "nullable": true
+    },
+    {
+      "name": "mc_my_neg_100fit",
+      "description": "Negative capping moment ratio (100% fit)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.08",
+      "nullable": true
+    },
+    {
+      "name": "mu_mc_neg_100fit",
+      "description": "Negative ultimate moment ratio (100% fit)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.369",
+      "nullable": true
+    },
+    {
+      "name": "my_pos_80fit__knmm",
+      "description": "Positive yield moment (80% fit)",
+      "symbol": "",
+      "unit": "kN·mm",
+      "type": "DecimalFloat",
+      "example": "31859.1",
+      "nullable": true
+    },
+    {
+      "name": "my_neg_80fit__knmm",
+      "description": "Negative yield moment (80% fit)",
+      "symbol": "",
+      "unit": "kN·mm",
+      "type": "DecimalFloat",
+      "example": "31648.92",
+      "nullable": true
+    },
+    {
+      "name": "theta_p_pos_80fit__rad",
+      "description": "Positive plastic rotation (80% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.042",
+      "nullable": true
+    },
+    {
+      "name": "theta_pc_pos_80fit__rad",
+      "description": "Positive post-capping rotation (80% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.064",
+      "nullable": true
+    },
+    {
+      "name": "theta_u_pos_80fit__rad",
+      "description": "Positive ultimate rotation (80% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.117",
+      "nullable": true
+    },
+    {
+      "name": "theta_p_neg_80fit__rad",
+      "description": "Negative plastic rotation (80% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.032",
+      "nullable": true
+    },
+    {
+      "name": "theta_pc_neg_80fit__rad",
+      "description": "Negative post-capping rotation (80% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.066",
+      "nullable": true
+    },
+    {
+      "name": "theta_u_neg_80fit__rad",
+      "description": "Negative ultimate rotation (80% fit)",
+      "symbol": "",
+      "unit": "rad",
+      "type": "DecimalFloat",
+      "example": "0.103",
+      "nullable": true
+    },
+    {
+      "name": "mc_my_pos_80fit",
+      "description": "Positive capping moment ratio (80% fit)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.21",
+      "nullable": true
+    },
+    {
+      "name": "mu_mc_pos_80fit",
+      "description": "Positive ultimate moment ratio (80% fit)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.3",
+      "nullable": true
+    },
+    {
+      "name": "mc_my_neg_80fit",
+      "description": "Negative capping moment ratio (80% fit)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.19",
+      "nullable": true
+    },
+    {
+      "name": "mu_mc_neg_80fit",
+      "description": "Negative ultimate moment ratio (80% fit)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.36",
+      "nullable": true
+    },
+    {
+      "name": "lambda_s",
+      "description": "Slenderness ratio (strong axis)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.749",
+      "nullable": true
+    },
+    {
+      "name": "lambda_c",
+      "description": "Slenderness ratio (weak axis)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.749",
+      "nullable": true
+    },
+    {
+      "name": "flexural_buckling",
+      "description": "Indication of flexural buckling occurrence",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "False",
+      "nullable": false
+    },
+    {
+      "name": "latitude",
+      "description": "Geographical latitude of testing facility",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "DecimalFloat",
+      "example": "45.505",
+      "nullable": true
+    },
+    {
+      "name": "longitude",
+      "description": "Geographical longitude of testing facility",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "DecimalFloat",
+      "example": "-73.614",
+      "nullable": true
+    }
+  ],
+  "cyclic": [
+    {
+      "name": "hidden_index",
+      "description": "Internal index for database management",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "0",
+      "nullable": false
+    },
+    {
+      "name": "experimental_program",
+      "description": "Name of the research program/investigators",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "El Jisr & Lignos",
+      "nullable": false
+    },
+    {
+      "name": "id",
+      "description": "Unique specimen identifier",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "LP4_S1_D",
+      "nullable": false
+    },
+    {
+      "name": "profile_type",
+      "description": "Type of steel section",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "wide flange",
+      "nullable": false
+    },
+    {
+      "name": "profile",
+      "description": "Steel section designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "HEM320",
+      "nullable": false
+    },
+    {
+      "name": "source",
+      "description": "Location of specimen extraction",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "web",
+      "nullable": false
+    },
+    {
+      "name": "thickness",
+      "description": "Thickness of the specimen",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "21",
+      "nullable": false
+    },
+    {
+      "name": "grade",
+      "description": "Steel grade designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "S355",
+      "nullable": false
+    },
+    {
+      "name": "spec",
+      "description": "Steel specification suffix",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "J2+M",
+      "nullable": true
+    },
+    {
+      "name": "lp",
+      "description": "Loading protocol identifier",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "LP4",
+      "nullable": false
+    },
+    {
+      "name": "size",
+      "description": "Specimen size designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "M20",
+      "nullable": false
+    },
+    {
+      "name": "gage_length__mm_",
+      "description": "Gage length of the specimen",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "20",
+      "nullable": true
+    },
+    {
+      "name": "avg_reduced_dia__mm_",
+      "description": "Average reduced diameter",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "9.98",
+      "nullable": true
+    },
+    {
+      "name": "avg_fractured_dia_top__mm_",
+      "description": "Average fracture diameter at top",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "5.37333",
+      "nullable": true
+    },
+    {
+      "name": "avg_fractured_dia_bot__mm_",
+      "description": "Average fracture diameter at bottom",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "6.00333",
+      "nullable": true
+    },
+    {
+      "name": "fy_n__mpa_",
+      "description": "Nominal yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "355",
+      "nullable": true
+    },
+    {
+      "name": "fu_n__mpa_",
+      "description": "Nominal ultimate strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "490",
+      "nullable": true
+    },
+    {
+      "name": "t_a__deg_c_",
+      "description": "Ambient temperature",
+      "symbol": "",
+      "unit": "°C",
+      "type": "DecimalFloat",
+      "example": "19.5",
+      "nullable": true
+    },
+    {
+      "name": "date",
+      "description": "Test date",
+      "symbol": "",
+      "unit": "-",
+      "type": "Date",
+      "example": "07.10.2020",
+      "nullable": false
+    },
+    {
+      "name": "investigator",
+      "description": "Name of test operator",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Selimcan",
+      "nullable": false
+    },
+    {
+      "name": "location",
+      "description": "Testing facility location",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "EPFL GIS",
+      "nullable": false
+    },
+    {
+      "name": "machine",
+      "description": "Testing machine model",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Schenck Trebel 500 kN",
+      "nullable": false
+    },
+    {
+      "name": "pid_force_k_p",
+      "description": "Force PID proportional gain",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.07",
+      "nullable": true
+    },
+    {
+      "name": "pid_force_t_i",
+      "description": "Force PID integral time",
+      "symbol": "",
+      "unit": "s",
+      "type": "DecimalFloat",
+      "example": "1.5",
+      "nullable": true
+    },
+    {
+      "name": "pid_force_t_d",
+      "description": "Force PID derivative time",
+      "symbol": "",
+      "unit": "s",
+      "type": "DecimalFloat",
+      "example": "0",
+      "nullable": true
+    },
+    {
+      "name": "pid_disp_k_p",
+      "description": "Displacement PID proportional gain",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "8.8",
+      "nullable": true
+    },
+    {
+      "name": "pid_disp_t_i",
+      "description": "Displacement PID integral time",
+      "symbol": "",
+      "unit": "s",
+      "type": "DecimalFloat",
+      "example": "0.5",
+      "nullable": true
+    },
+    {
+      "name": "pid_disp_t_d",
+      "description": "Displacement PID derivative time",
+      "symbol": "",
+      "unit": "s",
+      "type": "DecimalFloat",
+      "example": "0",
+      "nullable": true
+    },
+    {
+      "name": "pid_extenso_k_p",
+      "description": "Extensometer PID proportional gain",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "7.5",
+      "nullable": true
+    },
+    {
+      "name": "pid_extenso_t_i",
+      "description": "Extensometer PID integral time",
+      "symbol": "",
+      "unit": "s",
+      "type": "DecimalFloat",
+      "example": "50",
+      "nullable": true
+    },
+    {
+      "name": "pid_extenso_t_d",
+      "description": "Extensometer PID derivative time",
+      "symbol": "",
+      "unit": "s",
+      "type": "DecimalFloat",
+      "example": "0",
+      "nullable": true
+    },
+    {
+      "name": "yield_stress__mpa_",
+      "description": "Measured yield stress",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "397.8143069",
+      "nullable": true
+    },
+    {
+      "name": "elastic_modulus__mpa_",
+      "description": "Measured elastic modulus",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "202083.802",
+      "nullable": true
+    },
+    {
+      "name": "fracture_strain",
+      "description": "Measured fracture strain",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.118311687",
+      "nullable": true
+    },
+    {
+      "name": "c",
+      "description": "Carbon content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.09",
+      "nullable": true
+    },
+    {
+      "name": "si",
+      "description": "Silicon content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.24",
+      "nullable": true
+    },
+    {
+      "name": "mn",
+      "description": "Manganese content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "1.38",
+      "nullable": true
+    },
+    {
+      "name": "p",
+      "description": "Phosphorus content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.018",
+      "nullable": true
+    },
+    {
+      "name": "s",
+      "description": "Sulfur content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.021",
+      "nullable": true
+    },
+    {
+      "name": "n",
+      "description": "Nitrogen content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.0037",
+      "nullable": true
+    },
+    {
+      "name": "cu",
+      "description": "Copper content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.23",
+      "nullable": true
+    },
+    {
+      "name": "mo",
+      "description": "Molybdenum content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.04",
+      "nullable": true
+    },
+    {
+      "name": "ni",
+      "description": "Nickel content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.14",
+      "nullable": true
+    },
+    {
+      "name": "cr",
+      "description": "Chromium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.1",
+      "nullable": true
+    },
+    {
+      "name": "v",
+      "description": "Vanadium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.041",
+      "nullable": true
+    },
+    {
+      "name": "nb",
+      "description": "Niobium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.008",
+      "nullable": true
+    },
+    {
+      "name": "ti",
+      "description": "Titanium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.002",
+      "nullable": true
+    },
+    {
+      "name": "al",
+      "description": "Aluminum content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.011",
+      "nullable": true
+    },
+    {
+      "name": "b",
+      "description": "Boron content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.0001",
+      "nullable": true
+    },
+    {
+      "name": "zr",
+      "description": "Zirconium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.001",
+      "nullable": true
+    },
+    {
+      "name": "sn",
+      "description": "Tin content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.002",
+      "nullable": true
+    },
+    {
+      "name": "ca",
+      "description": "Calcium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.0002",
+      "nullable": true
+    },
+    {
+      "name": "h",
+      "description": "Hydrogen content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.0002",
+      "nullable": true
+    },
+    {
+      "name": "fe",
+      "description": "Iron content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "97.5",
+      "nullable": true
+    },
+    {
+      "name": "file",
+      "description": "Path to raw data file",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Clean_Data/S355J2_HEM320/WP3_HEM320_D_CRM20/LP4_Specimen_1_processed_data.csv",
+      "nullable": true
+    },
+    {
+      "name": "reference",
+      "description": "Publication reference",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "El Jisr H. Lignos D.G. (2022)",
+      "nullable": true
+    },
+    {
+      "name": "link",
+      "description": "URL to publication",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "https://infoscience.epfl.ch/record/292178",
+      "nullable": true
+    },
+    {
+      "name": "latitude",
+      "description": "Testing facility latitude",
+      "symbol": "",
+      "unit": "deg",
+      "type": "DecimalFloat",
+      "example": "46.5191",
+      "nullable": true
+    },
+    {
+      "name": "longitude",
+      "description": "Testing facility longitude",
+      "symbol": "",
+      "unit": "deg",
+      "type": "DecimalFloat",
+      "example": "6.5668",
+      "nullable": true
+    },
+    {
+      "name": "citekey",
+      "description": "Citation key for reference",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "ElJisrRoleCompositeFloor2022",
+      "nullable": true
+    },
+    {
+      "name": "uvc_phi__prct_",
+      "description": "UVC model parameter phi",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "5.449895087",
+      "nullable": true
+    },
+    {
+      "name": "uvc_e__mpa_",
+      "description": "UVC model elastic modulus",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "181.0519",
+      "nullable": true
+    },
+    {
+      "name": "uvc_sigma__mpa_",
+      "description": "UVC model stress parameter",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "411.1091",
+      "nullable": true
+    },
+    {
+      "name": "uvc_q__mpa_",
+      "description": "UVC model parameter Q",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "116.3773",
+      "nullable": true
+    },
+    {
+      "name": "uvc_b",
+      "description": "UVC model parameter b",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "16.56587",
+      "nullable": true
+    },
+    {
+      "name": "uvc_d__mpa_",
+      "description": "UVC model parameter D",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "131.8686",
+      "nullable": true
+    },
+    {
+      "name": "uvc_a",
+      "description": "UVC model parameter a",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "188.0333",
+      "nullable": true
+    },
+    {
+      "name": "uvc_c1__mpa_",
+      "description": "UVC model parameter C1",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "21161.27",
+      "nullable": true
+    },
+    {
+      "name": "uvc_g1",
+      "description": "UVC model parameter γ1",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "210.4413",
+      "nullable": true
+    },
+    {
+      "name": "uvc_c2__mpa_",
+      "description": "UVC model parameter C2",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "1706.608",
+      "nullable": true
+    },
+    {
+      "name": "uvc_g2",
+      "description": "UVC model parameter γ2",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "16.5007",
+      "nullable": true
+    },
+    {
+      "name": "hidden_dataset_index",
+      "description": "Internal dataset index",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "4",
+      "nullable": false
+    },
+    {
+      "name": "uvc_sigma_sat__mpa_",
+      "description": "UVC model saturation stress",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "599.6008399",
+      "nullable": true
+    },
+    {
+      "name": "uvc_sigma_hard__mpa_",
+      "description": "UVC model hardening stress",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "320.3603399",
+      "nullable": true
+    },
+    {
+      "name": "uvc_rho_yield",
+      "description": "UVC model yield ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.458495664",
+      "nullable": true
+    },
+    {
+      "name": "uvc_rho_iso",
+      "description": "UVC model isotropic ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.363269998",
+      "nullable": true
+    },
+    {
+      "name": "uvc_rho_kin",
+      "description": "UVC model kinematic ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.636730002",
+      "nullable": true
+    },
+    {
+      "name": "uvc_rho_d",
+      "description": "UVC model damage ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.411625859",
+      "nullable": true
+    }
+  ],
+  "residuals": [
+    {
+      "name": "id",
+      "description": "Unique identifier for specimen",
+      "symbol": "",
+      "unit": "None",
+      "type": "String",
+      "example": "Ketter_1958_W4x13_1",
+      "nullable": false
+    },
+    {
+      "name": "experimental_program",
+      "description": "Name of experimental program or primary investigator",
+      "symbol": "",
+      "unit": "None",
+      "type": "String",
+      "example": "Ketter",
+      "nullable": false
+    },
+    {
+      "name": "date",
+      "description": "Year of the study",
+      "symbol": "",
+      "unit": "None",
+      "type": "SmallInteger",
+      "example": "1958",
+      "nullable": false
+    },
+    {
+      "name": "profile_type",
+      "description": "Type of steel section",
+      "symbol": "",
+      "unit": "None",
+      "type": "String",
+      "example": "Hot-rolled wide flange",
+      "nullable": false
+    },
+    {
+      "name": "profile",
+      "description": "Profile designation",
+      "symbol": "",
+      "unit": "None",
+      "type": "String",
+      "example": "W4x13",
+      "nullable": false
+    },
+    {
+      "name": "spec_var",
+      "description": "Specimen variant identifier",
+      "symbol": "",
+      "unit": "None",
+      "type": "String",
+      "example": "A",
+      "nullable": true
+    },
+    {
+      "name": "steel",
+      "description": "Steel grade designation",
+      "symbol": "",
+      "unit": "None",
+      "type": "String",
+      "example": "ASTM A7",
+      "nullable": false
+    },
+    {
+      "name": "fy_n",
+      "description": "Nominal yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "250",
+      "nullable": true
+    },
+    {
+      "name": "fy_e",
+      "description": "Expected yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "Numeric",
+      "example": "DecimalFloat",
+      "nullable": true
+    },
+    {
+      "name": "fy_mf",
+      "description": "Measured yield strength (flange)",
+      "symbol": "",
+      "unit": "mf",
+      "type": "DecimalFloat",
+      "example": "DecimalFloat",
+      "nullable": true
+    },
+    {
+      "name": "fy_mw",
+      "description": "Measured yield strength (web)",
+      "symbol": "",
+      "unit": "mw",
+      "type": "DecimalFloat",
+      "example": "DecimalFloat",
+      "nullable": true
+    },
+    {
+      "name": "h",
+      "description": "Section depth",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "106",
+      "nullable": true
+    },
+    {
+      "name": "b",
+      "description": "Section width",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "103",
+      "nullable": true
+    },
+    {
+      "name": "tw",
+      "description": "Web thickness",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "7.1",
+      "nullable": true
+    },
+    {
+      "name": "tf",
+      "description": "Flange thickness",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "8.8",
+      "nullable": true
+    },
+    {
+      "name": "r",
+      "description": "Root radius",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "6.4",
+      "nullable": true
+    },
+    {
+      "name": "A",
+      "description": "Cross-sectional area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "2470",
+      "nullable": true
+    },
+    {
+      "name": "sigma_0_f",
+      "description": "Residual stress at flange tip",
+      "symbol": "",
+      "unit": "f",
+      "type": "Numeric",
+      "example": "DecimalFloat",
+      "nullable": false
+    },
+    {
+      "name": "sigma_0_w",
+      "description": "Residual stress at web center",
+      "symbol": "",
+      "unit": "w",
+      "type": "Numeric",
+      "example": "DecimalFloat",
+      "nullable": false
+    },
+    {
+      "name": "flange_nr_data",
+      "description": "Number of measurement points in flange",
+      "symbol": "",
+      "unit": "None",
+      "type": "SmallInteger",
+      "example": "1",
+      "nullable": false
+    },
+    {
+      "name": "plot_sf",
+      "description": "Plot scale factor",
+      "symbol": "",
+      "unit": "None",
+      "type": "Numeric",
+      "example": "2.8",
+      "nullable": false
+    },
+    {
+      "name": "reference",
+      "description": "Full citation of the study",
+      "symbol": "",
+      "unit": "None",
+      "type": "String",
+      "example": "Ketter, R. L. (1958)...",
+      "nullable": false
+    },
+    {
+      "name": "link",
+      "description": "DOI or URL link to the study",
+      "symbol": "",
+      "unit": "None",
+      "type": "String",
+      "example": "https://doi.org/...",
+      "nullable": true
+    },
+    {
+      "name": "latitude",
+      "description": "Latitude of testing location",
+      "symbol": "",
+      "unit": "Degrees",
+      "type": "Numeric",
+      "example": "40.608028",
+      "nullable": true
+    },
+    {
+      "name": "longitude",
+      "description": "Longitude of testing location",
+      "symbol": "",
+      "unit": "Degrees",
+      "type": "Numeric",
+      "example": "-75.376194",
+      "nullable": true
+    }
+  ],
+  "ebf": [
+    {
+      "name": "id",
+      "description": "Unique identifier for the record",
+      "symbol": "`id`",
+      "unit": "-",
+      "type": "String",
+      "example": "Equals: experimental_program (with underscores)+'\\_'+date+'\\_'+specimen_designation / Example: Engelhardt_et_al_2000_DBBWWPZ",
+      "nullable": false
+    },
+    {
+      "name": "investigator",
+      "description": "Name(s) of the investigators",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Engelhardt & Popov",
+      "nullable": false
+    },
+    {
+      "name": "year",
+      "description": "Year of the study or experiment",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "1989",
+      "nullable": false
+    },
+    {
+      "name": "spec_id",
+      "description": "Specimen identifier",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "A1",
+      "nullable": false
+    },
+    {
+      "name": "profile",
+      "description": "Profile designation (e.g., steel section)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "W12x16",
+      "nullable": false
+    },
+    {
+      "name": "region",
+      "description": "Geographical region or country code",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "USA",
+      "nullable": false
+    },
+    {
+      "name": "sec_type",
+      "description": "Section type (e.g., hot-rolled)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "hot-rolled",
+      "nullable": false
+    },
+    {
+      "name": "sg_flg_link",
+      "description": "Steel grade flag from flag source",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "A36",
+      "nullable": false
+    },
+    {
+      "name": "sg_web_link",
+      "description": "Steel grade from web source",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "A36",
+      "nullable": false
+    },
+    {
+      "name": "f_y_n_flg",
+      "description": "Flag value for nominal yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "250",
+      "nullable": false
+    },
+    {
+      "name": "f_y_n_web",
+      "description": "Web-sourced nominal yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "250",
+      "nullable": false
+    },
+    {
+      "name": "f_u_n_flg",
+      "description": "Flag value for nominal ultimate strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "400",
+      "nullable": false
+    },
+    {
+      "name": "f_u_n_web",
+      "description": "Web-sourced nominal ultimate strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "400",
+      "nullable": false
+    },
+    {
+      "name": "e_n_flg",
+      "description": "Flag value for elastic modulus (nominal)",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "Integer",
+      "example": "205000",
+      "nullable": false
+    },
+    {
+      "name": "e_n_web",
+      "description": "Web-sourced elastic modulus (nominal)",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "Integer",
+      "example": "205000",
+      "nullable": false
+    },
+    {
+      "name": "f_y_m_flg",
+      "description": "Flag value for measured yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "317",
+      "nullable": true
+    },
+    {
+      "name": "f_y_m_web",
+      "description": "Web-sourced measured yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "365",
+      "nullable": true
+    },
+    {
+      "name": "f_y_exp_l_flg",
+      "description": "Flag value for lower expected yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "375",
+      "nullable": true
+    },
+    {
+      "name": "f_y_exp_l_web",
+      "description": "Web-sourced lower expected yield strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "375.00",
+      "nullable": true
+    },
+    {
+      "name": "f_u_m_flg",
+      "description": "Flag value for measured ultimate strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "420.60",
+      "nullable": true
+    },
+    {
+      "name": "f_u_m_web",
+      "description": "Web-sourced measured ultimate strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "448.20",
+      "nullable": true
+    },
+    {
+      "name": "f_u_exp_l_flg",
+      "description": "Flag value for lower expected ultimate strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "480.0",
+      "nullable": true
+    },
+    {
+      "name": "f_u_exp_l_web",
+      "description": "Web-sourced lower expected ultimate strength",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "480.0",
+      "nullable": true
+    },
+    {
+      "name": "e_m_flg",
+      "description": "Flag for measured elastic modulus (if available, 'NR' if not)",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "197340",
+      "nullable": true
+    },
+    {
+      "name": "e_m_web",
+      "description": "Web-sourced measured elastic modulus (if available, 'NR' if not)",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "197685",
+      "nullable": true
+    },
+    {
+      "name": "r_y_flg",
+      "description": "Flag value for lower yield ratio",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "1.5",
+      "nullable": true
+    },
+    {
+      "name": "r_y_web",
+      "description": "Web-sourced lower yield ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.5",
+      "nullable": true
+    },
+    {
+      "name": "r_t_flg",
+      "description": "Flag value for lower target ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.2",
+      "nullable": true
+    },
+    {
+      "name": "r_t_web",
+      "description": "Web-sourced lower target ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.2",
+      "nullable": true
+    },
+    {
+      "name": "f_u_f_y_n_flg",
+      "description": "Flag value for ultimate-to-nominal yield strength ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.6",
+      "nullable": true
+    },
+    {
+      "name": "f_u_f_y_n_web",
+      "description": "Web-sourced ultimate-to-nominal yield strength ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.6",
+      "nullable": true
+    },
+    {
+      "name": "f_u_f_y_m_flg",
+      "description": "Flag value for ultimate-to-measured yield strength ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.325977301",
+      "nullable": true
+    },
+    {
+      "name": "f_u_f_y_m_web",
+      "description": "Web-sourced ultimate-to-measured yield strength ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.226600985",
+      "nullable": true
+    },
+    {
+      "name": "h_n",
+      "description": "Nominal height of the section",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "304.5",
+      "nullable": false
+    },
+    {
+      "name": "tw_n",
+      "description": "Nominal web thickness",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "5.6",
+      "nullable": false
+    },
+    {
+      "name": "bf_n",
+      "description": "Nominal flange width",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "101.4",
+      "nullable": false
+    },
+    {
+      "name": "tf_n",
+      "description": "Nominal flange thickness",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "6.7",
+      "nullable": false
+    },
+    {
+      "name": "tf_add_n",
+      "description": "Nominal additional flange thickness",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "12",
+      "nullable": true
+    },
+    {
+      "name": "r_n",
+      "description": "Nominal radius",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "8",
+      "nullable": true
+    },
+    {
+      "name": "h_m",
+      "description": "Measured height of the section",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "302.0",
+      "nullable": true
+    },
+    {
+      "name": "tw_m",
+      "description": "Measured web thickness",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "5.5",
+      "nullable": true
+    },
+    {
+      "name": "bf_m",
+      "description": "Measured flange width",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "101.3",
+      "nullable": true
+    },
+    {
+      "name": "tf_m",
+      "description": "Measured flange thickness",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "6.5",
+      "nullable": true
+    },
+    {
+      "name": "tf_add_m",
+      "description": "Measured additional flange thickness",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "12",
+      "nullable": true
+    },
+    {
+      "name": "hw_n",
+      "description": "Nominal head width",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "275.1",
+      "nullable": false
+    },
+    {
+      "name": "hw_m",
+      "description": "Measured head width",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "273.052",
+      "nullable": true
+    },
+    {
+      "name": "a_fil_n",
+      "description": "Nominal fillet area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "13.73451754",
+      "nullable": true
+    },
+    {
+      "name": "af_n",
+      "description": "Nominal flange area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "679.38",
+      "nullable": false
+    },
+    {
+      "name": "aw_n",
+      "description": "Nominal web area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "1630.16",
+      "nullable": false
+    },
+    {
+      "name": "a_n",
+      "description": "Nominal total cross-sectional area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "3043.85807",
+      "nullable": false
+    },
+    {
+      "name": "af_m",
+      "description": "Measured flange area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "656.418042",
+      "nullable": true
+    },
+    {
+      "name": "aw_m",
+      "description": "Measured web area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "1593.196814",
+      "nullable": true
+    },
+    {
+      "name": "a_m",
+      "description": "Measured total cross-sectional area",
+      "symbol": "",
+      "unit": "mm²",
+      "type": "DecimalFloat",
+      "example": "2960.970968",
+      "nullable": true
+    },
+    {
+      "name": "zp_fil_n",
+      "description": "Nominal plastic section modulus of fillet",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "7898.064885",
+      "nullable": true
+    },
+    {
+      "name": "zp_n",
+      "description": "Nominal plastic section modulus",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "328852.3229",
+      "nullable": true
+    },
+    {
+      "name": "zp_no_fil_n",
+      "description": "Nominal plastic section modulus without fillet",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "314433.618",
+      "nullable": true
+    },
+    {
+      "name": "zp_fil_m",
+      "description": "Measured plastic section modulus of fillet",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "7841.808301",
+      "nullable": true
+    },
+    {
+      "name": "zp_m",
+      "description": "Measured plastic section modulus",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "316961.5572",
+      "nullable": true
+    },
+    {
+      "name": "zp_no_fil_m",
+      "description": "Measured plastic section modulus without fillet",
+      "symbol": "",
+      "unit": "mm³",
+      "type": "DecimalFloat",
+      "example": "309119.7489",
+      "nullable": true
+    },
+    {
+      "name": "link_loc",
+      "description": "Location of the link in the structure",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "edge",
+      "nullable": true
+    },
+    {
+      "name": "l_confi",
+      "description": "Connection configuration identifier",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "TF2",
+      "nullable": true
+    },
+    {
+      "name": "l_con_typ",
+      "description": "Type of connection (e.g., continuous-welded)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "continuous-welded",
+      "nullable": true
+    },
+    {
+      "name": "l_st",
+      "description": "Local status/specification",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "6000",
+      "nullable": true
+    },
+    {
+      "name": "h_st",
+      "description": "Height status/specification",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "3500",
+      "nullable": true
+    },
+    {
+      "name": "e",
+      "description": "Unspecified parameter 'e' (needs clarification)",
+      "symbol": "",
+      "unit": "mm",
+      "type": "SmallInteger",
+      "example": "711",
+      "nullable": false
+    },
+    {
+      "name": "l_con_confi",
+      "description": "Connection configuration detail",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "LC9",
+      "nullable": true
+    },
+    {
+      "name": "l_con_wld",
+      "description": "Weld type for connection",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "CJP single bevel groove",
+      "nullable": true
+    },
+    {
+      "name": "l_endp_wld",
+      "description": "Endpoint weld detail",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "CJP single bevel groove",
+      "nullable": true
+    },
+    {
+      "name": "l_bu_wld",
+      "description": "Butt weld detail",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "CJP single V-groove + fillet",
+      "nullable": true
+    },
+    {
+      "name": "l_s_side",
+      "description": "Link side designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "single",
+      "nullable": true
+    },
+    {
+      "name": "l_s_reg",
+      "description": "Regularity of link side",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "non-regular",
+      "nullable": true
+    },
+    {
+      "name": "l_s_d_pnl_1_f",
+      "description": "Load distribution panel 1 front value",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "168.402",
+      "nullable": true
+    },
+    {
+      "name": "l_s_d_pnl_2_f",
+      "description": "Load distribution panel 2 front value",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "136.652",
+      "nullable": true
+    },
+    {
+      "name": "l_s_d_pnl_1_b",
+      "description": "Load distribution panel 1 back value",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "355.6",
+      "nullable": true
+    },
+    {
+      "name": "l_s_d_pnl_2_b",
+      "description": "Load distribution panel 2 back value",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "279.4",
+      "nullable": true
+    },
+    {
+      "name": "t_s",
+      "description": "Test sequence duration or identifier",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "9.5",
+      "nullable": true
+    },
+    {
+      "name": "l_s_weld",
+      "description": "Weld type on link side",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "fillet",
+      "nullable": true
+    },
+    {
+      "name": "l_s_no_f",
+      "description": "Number of fillet welds on link side",
+      "symbol": "",
+      "unit": "-",
+      "type": "Integer",
+      "example": "4",
+      "nullable": true
+    },
+    {
+      "name": "l_s_no_b",
+      "description": "Number of butt welds on link side",
+      "symbol": "",
+      "unit": "-",
+      "type": "Integer",
+      "example": "NA",
+      "nullable": true
+    },
+    {
+      "name": "a_b_b",
+      "description": "Base plate area or dimension",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "48.2",
+      "nullable": true
+    },
+    {
+      "name": "t_e_s",
+      "description": "Test end specification value",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "9.5",
+      "nullable": true
+    },
+    {
+      "name": "t_b_s",
+      "description": "Test base specification value",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "9.5",
+      "nullable": true
+    },
+    {
+      "name": "d_b_s",
+      "description": "Base dimension specification",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "9.5",
+      "nullable": true
+    },
+    {
+      "name": "d_b_pnl_1",
+      "description": "Dimension of base panel 1",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "263.7",
+      "nullable": true
+    },
+    {
+      "name": "d_b_pnl_2",
+      "description": "Dimension of base panel 2",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "457.2",
+      "nullable": true
+    },
+    {
+      "name": "b_s_no",
+      "description": "Number of base supports",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "2",
+      "nullable": true
+    },
+    {
+      "name": "l_p_typ",
+      "description": "Load pattern type",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Symmetric-cyclic",
+      "nullable": false
+    },
+    {
+      "name": "n_d_n_pl_ten",
+      "description": "Number of non-plastic tensile elements",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.49",
+      "nullable": true
+    },
+    {
+      "name": "n_d_n_pl_comp",
+      "description": "Number of non-plastic compressive elements",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.49",
+      "nullable": true
+    },
+    {
+      "name": "fail_mode",
+      "description": "Failure mode",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "FM5",
+      "nullable": true
+    },
+    {
+      "name": "ov_aisc",
+      "description": "Overstrength factor (AISC)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.19",
+      "nullable": true
+    },
+    {
+      "name": "ov_ec8",
+      "description": "Overstrength factor (EC8)",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.93",
+      "nullable": true
+    },
+    {
+      "name": "class_aisc",
+      "description": "Classification according to AISC",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "intermediate",
+      "nullable": false
+    },
+    {
+      "name": "class_ec8",
+      "description": "Classification according to EC8",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "long",
+      "nullable": false
+    },
+    {
+      "name": "reference",
+      "description": "Reference citation for the study",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Engelhardt, M. and Popov, E. P. (1989). Behavior of long links in eccentrically braced frames. Report No. UCB/EERC- 89/01, Earthquake Engineering Research Center, Berkeley, California",
+      "nullable": false
+    },
+    {
+      "name": "url",
+      "description": "URL to the reference document",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "https://nehrpsearch.nist.gov/static/files/NSF/PB92143056.pdf",
+      "nullable": false
+    },
+    {
+      "name": "latitude",
+      "description": "Latitude of the test location",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "DecimalFloat",
+      "example": "37.8742565",
+      "nullable": false
+    },
+    {
+      "name": "longitude",
+      "description": "Longitude of the test location",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "DecimalFloat",
+      "example": "-122.2387092",
+      "nullable": false
+    }
+  ],
+  "tensile": [
+    {
+      "name": "experimental_program",
+      "description": "Name of the research program/investigators",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Wen, Skiadopoulos, Ashida & Lignos",
+      "nullable": false
+    },
+    {
+      "name": "standard",
+      "description": "Testing standard referenced",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "ASTM E8M-25",
+      "nullable": false
+    },
+    {
+      "name": "specimen_type",
+      "description": "Selected specimen cross-section type",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Rectangular",
+      "nullable": false
+    },
+    {
+      "name": "id",
+      "description": "Unique specimen identifier (primary key)",
+      "symbol": "`id`",
+      "unit": "-",
+      "type": "String",
+      "example": "batch1-bfl-A3",
+      "nullable": false
+    },
+    {
+      "name": "profile_type",
+      "description": "Type of steel section",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "wide flange",
+      "nullable": false
+    },
+    {
+      "name": "profile",
+      "description": "Profile designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "IPE400",
+      "nullable": false
+    },
+    {
+      "name": "specimen_source",
+      "description": "Source of the coupon within the parent profile",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Flange",
+      "nullable": true
+    },
+    {
+      "name": "steel_grade",
+      "description": "Steel grade designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "S355J2+AR",
+      "nullable": false
+    },
+    {
+      "name": "avg_init_reduced_width__mm_",
+      "description": "Averaged initial measured width of reduced section",
+      "symbol": "`b_0`",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "40.09",
+      "nullable": false
+    },
+    {
+      "name": "avg_init_reduced_thickness__mm_",
+      "description": "Averaged initial measured thickness of reduced section",
+      "symbol": "`t_0`",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "13.293",
+      "nullable": false
+    },
+    {
+      "name": "avg_init_marked_gauge_length__mm_",
+      "description": "Averaged initial distance between gauge marks",
+      "symbol": "`L_0`",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "200.68",
+      "nullable": false
+    },
+    {
+      "name": "eff_fractured_width__mm_",
+      "description": "Effective final measured width at fracture (see report A-30007_REP_01, section 7.12)",
+      "symbol": "`b_f`",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "27.76",
+      "nullable": false
+    },
+    {
+      "name": "eff_fractured_thickness__mm_",
+      "description": "Effective final measured thickness at fracture (see report A-30007_REP_01, section 7.12)",
+      "symbol": "`t_f`",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "7.483",
+      "nullable": false
+    },
+    {
+      "name": "avg_fractured_marked_gauge_length__mm_",
+      "description": "Averaged final distance between gauge marks at fracture",
+      "symbol": "`L_f`",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "250.18",
+      "nullable": false
+    },
+    {
+      "name": "fy_n__mpa_",
+      "description": "Nominal yield stress",
+      "symbol": "`f_{y,n}`",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "355",
+      "nullable": false
+    },
+    {
+      "name": "fu_n__mpa_",
+      "description": "Nominal tensile strength",
+      "symbol": "`f_{u,n}`",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "490",
+      "nullable": false
+    },
+    {
+      "name": "t_a__deg_c_",
+      "description": "Ambient temperature at which the test was conducted",
+      "symbol": "`T_a`",
+      "unit": "°C",
+      "type": "DecimalFloat",
+      "example": "20.6",
+      "nullable": false
+    },
+    {
+      "name": "date",
+      "description": "Test date (format: DD.MM.YYYY)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "25.02.2026",
+      "nullable": false
+    },
+    {
+      "name": "year",
+      "description": "Year of test",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "2026",
+      "nullable": false
+    },
+    {
+      "name": "investigator",
+      "description": "Person who conducted the test",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Yosuke Ashida",
+      "nullable": false
+    },
+    {
+      "name": "location",
+      "description": "Test location",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "EPFL_GIS",
+      "nullable": false
+    },
+    {
+      "name": "machine",
+      "description": "Test machine identifier",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "LFV-1500",
+      "nullable": false
+    },
+    {
+      "name": "pid_force_p",
+      "description": "PID proportional gain for force control",
+      "symbol": "`K_p`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.007",
+      "nullable": true
+    },
+    {
+      "name": "pid_force_i",
+      "description": "PID integral gain for force control",
+      "symbol": "`K_i`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1",
+      "nullable": true
+    },
+    {
+      "name": "pid_force_d",
+      "description": "PID derivative gain for force control",
+      "symbol": "`K_d`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0",
+      "nullable": true
+    },
+    {
+      "name": "pid_disp_p",
+      "description": "PID proportional gain for crosshead displacement control",
+      "symbol": "`K_p`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "4",
+      "nullable": true
+    },
+    {
+      "name": "pid_disp_i",
+      "description": "PID integral gain for crosshead displacement control",
+      "symbol": "`K_i`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.2",
+      "nullable": true
+    },
+    {
+      "name": "pid_disp_d",
+      "description": "PID derivative gain for crosshead displacement control",
+      "symbol": "`K_d`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0",
+      "nullable": true
+    },
+    {
+      "name": "pid_ext_p",
+      "description": "PID proportional gain for extensometer control",
+      "symbol": "`K_p`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.8",
+      "nullable": true
+    },
+    {
+      "name": "pid_ext_i",
+      "description": "PID integral gain for extensometer control",
+      "symbol": "`K_i`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.8",
+      "nullable": true
+    },
+    {
+      "name": "pid_ext_d",
+      "description": "PID derivative gain for extensometer control",
+      "symbol": "`K_d`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0",
+      "nullable": true
+    },
+    {
+      "name": "yield_stress_02__mpa_",
+      "description": "Engineering stress at yield, 0.2% offset rule",
+      "symbol": "`f_{y,m}`",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "395",
+      "nullable": true
+    },
+    {
+      "name": "yield_strain_02",
+      "description": "Engineering strain at yield, 0.2% offset rule",
+      "symbol": "`\\varepsilon_y`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.00394",
+      "nullable": true
+    },
+    {
+      "name": "bin_discont_yield",
+      "description": "Presence of discontinuous yielding (0 = no, 1 = yes)",
+      "symbol": "",
+      "unit": "-",
+      "type": "Boolean",
+      "example": "1",
+      "nullable": false
+    },
+    {
+      "name": "yield_stress_uyp__mpa_",
+      "description": "Engineering stress at upper yield point",
+      "symbol": "`f_{y,uyp}`",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "400",
+      "nullable": true
+    },
+    {
+      "name": "yield_stress_lyp__mpa_",
+      "description": "Engineering stress at lower yield point",
+      "symbol": "`f_{y,lyp}`",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "389",
+      "nullable": true
+    },
+    {
+      "name": "yield_point_elongation",
+      "description": "Yield point elongation",
+      "symbol": "`\\varepsilon_{yp}`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.01045",
+      "nullable": true
+    },
+    {
+      "name": "tensile_strength__mpa_",
+      "description": "Engineering stress at maximum strength (measured tensile strength)",
+      "symbol": "`f_{u,m}`",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "523",
+      "nullable": true
+    },
+    {
+      "name": "uniform_elongation",
+      "description": "Engineering strain at maximum strength",
+      "symbol": "`\\varepsilon_u`",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.13913",
+      "nullable": true
+    },
+    {
+      "name": "elongation_at_fracture",
+      "description": "Elongation at fracture",
+      "symbol": "`\\varepsilon_f`",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "21.5",
+      "nullable": true
+    },
+    {
+      "name": "elongation_after_fracture",
+      "description": "Elongation after fracture",
+      "symbol": "`\\varepsilon_{af}`",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "24.7",
+      "nullable": true
+    },
+    {
+      "name": "reduction_of_area",
+      "description": "Reduction of area",
+      "symbol": "`Z`",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "61",
+      "nullable": true
+    },
+    {
+      "name": "elastic_modulus__mpa_",
+      "description": "Young's modulus",
+      "symbol": "`E`",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "202901",
+      "nullable": true
+    },
+    {
+      "name": "c",
+      "description": "Carbon content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.09",
+      "nullable": true
+    },
+    {
+      "name": "si",
+      "description": "Silicon content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.19",
+      "nullable": true
+    },
+    {
+      "name": "mn",
+      "description": "Manganese content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "1.46",
+      "nullable": true
+    },
+    {
+      "name": "p",
+      "description": "Phosphorus content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.024",
+      "nullable": true
+    },
+    {
+      "name": "s",
+      "description": "Sulfur content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.023",
+      "nullable": true
+    },
+    {
+      "name": "n",
+      "description": "Nitrogen content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.011",
+      "nullable": true
+    },
+    {
+      "name": "cu",
+      "description": "Copper content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.32",
+      "nullable": true
+    },
+    {
+      "name": "mo",
+      "description": "Molybdenum content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.02",
+      "nullable": true
+    },
+    {
+      "name": "ni",
+      "description": "Nickel content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.15",
+      "nullable": true
+    },
+    {
+      "name": "cr",
+      "description": "Chromium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.13",
+      "nullable": true
+    },
+    {
+      "name": "v",
+      "description": "Vanadium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.008",
+      "nullable": true
+    },
+    {
+      "name": "nb",
+      "description": "Niobium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.04",
+      "nullable": true
+    },
+    {
+      "name": "ti",
+      "description": "Titanium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.023",
+      "nullable": true
+    },
+    {
+      "name": "al",
+      "description": "Aluminum content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.018",
+      "nullable": true
+    },
+    {
+      "name": "b",
+      "description": "Boron content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.001",
+      "nullable": true
+    },
+    {
+      "name": "zr",
+      "description": "Zirconium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.001",
+      "nullable": true
+    },
+    {
+      "name": "sn",
+      "description": "Tin content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.001",
+      "nullable": true
+    },
+    {
+      "name": "ca",
+      "description": "Calcium content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.001",
+      "nullable": true
+    },
+    {
+      "name": "h",
+      "description": "Hydrogen content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "0.001",
+      "nullable": true
+    },
+    {
+      "name": "fe",
+      "description": "Iron content",
+      "symbol": "",
+      "unit": "wt%",
+      "type": "DecimalFloat",
+      "example": "98.5",
+      "nullable": true
+    },
+    {
+      "name": "file_path",
+      "description": "Relative path to the stress-strain time-series file for this specimen",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "tensile_coupons/stress_strain/batch1-bfl-A3.csv",
+      "nullable": true
+    },
+    {
+      "name": "reference",
+      "description": "Publication reference (human-readable)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Wen et al. (2026)",
+      "nullable": true
+    },
+    {
+      "name": "link",
+      "description": "URL to the publication",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "https://doi.org/...",
+      "nullable": true
+    },
+    {
+      "name": "latitude",
+      "description": "Latitude of the test location",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "DecimalFloat",
+      "example": "46.5191",
+      "nullable": false
+    },
+    {
+      "name": "longitude",
+      "description": "Longitude of the test location",
+      "symbol": "",
+      "unit": "degrees",
+      "type": "DecimalFloat",
+      "example": "6.5668",
+      "nullable": false
+    },
+    {
+      "name": "publication_key",
+      "description": "BibTeX citation key for the publication",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "AshidaCompositeEffect2025",
+      "nullable": true
+    },
+    {
+      "name": "datacol_version",
+      "description": "Version of the data collection system",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "1",
+      "nullable": false
+    }
+  ],
+  "ductile-fracture": [
+    {
+      "name": "id",
+      "description": "Unique specimen identifier",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Skiadopoulos_and_Lignos_CNT_L1_M_C1_R1_0",
+      "nullable": false
+    },
+    {
+      "name": "specimen_designation",
+      "description": "Specimen designation code",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "CNT_L1_M_C1_R1_0",
+      "nullable": false
+    },
+    {
+      "name": "experimental_program",
+      "description": "Name of the research program/investigators",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Skiadopoulos and Lignos",
+      "nullable": false
+    },
+    {
+      "name": "date",
+      "description": "Test year",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "2026",
+      "nullable": false
+    },
+    {
+      "name": "specimen_type",
+      "description": "Specimen geometry (CNT = circumferentially notched tensile; GP = grooved plate)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "CNT",
+      "nullable": false
+    },
+    {
+      "name": "piece",
+      "description": "Coupon name in fabrication drawings (optional)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "L1_5",
+      "nullable": false
+    },
+    {
+      "name": "loading",
+      "description": "Loading type (monotonic / cyclic_*)",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "monotonic",
+      "nullable": false
+    },
+    {
+      "name": "loading_protocol",
+      "description": "Loading protocol sequence as array",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "[0,2]",
+      "nullable": false
+    },
+    {
+      "name": "location_coupon",
+      "description": "Coupon extraction location in parent element",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "column flange",
+      "nullable": false
+    },
+    {
+      "name": "section_type",
+      "description": "Cross-section type",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "wide flange",
+      "nullable": false
+    },
+    {
+      "name": "section_profile",
+      "description": "Section profile designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "H498x432x45/70",
+      "nullable": false
+    },
+    {
+      "name": "steel_type",
+      "description": "Steel grade designation",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "SM490A",
+      "nullable": false
+    },
+    {
+      "name": "coupon_direction",
+      "description": "Coupon orientation relative to rolling direction",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "longitudinal",
+      "nullable": false
+    },
+    {
+      "name": "crack_opening_direction",
+      "description": "Plane or direction of crack opening relative to rolling direction",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "thickness/width",
+      "nullable": false
+    },
+    {
+      "name": "plate_thickness",
+      "description": "Plate thickness from which coupon was extracted",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "70",
+      "nullable": false
+    },
+    {
+      "name": "f_yn",
+      "description": "Nominal yield stress",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "295",
+      "nullable": false
+    },
+    {
+      "name": "f_un",
+      "description": "Nominal ultimate stress",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "490",
+      "nullable": true
+    },
+    {
+      "name": "fy_m",
+      "description": "Measured yield stress",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "368",
+      "nullable": true
+    },
+    {
+      "name": "fu_m",
+      "description": "Measured ultimate stress",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "531",
+      "nullable": true
+    },
+    {
+      "name": "elongation_fr",
+      "description": "Elongation at fracture (?)",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "36",
+      "nullable": true
+    },
+    {
+      "name": "temperature",
+      "description": "Test temperature",
+      "symbol": "",
+      "unit": "°C",
+      "type": "DecimalFloat",
+      "example": "20",
+      "nullable": false
+    },
+    {
+      "name": "chemical_composition_C",
+      "description": "Carbon content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.16",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_Si",
+      "description": "Silicon content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.3",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_Mn",
+      "description": "Manganese content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "1.4",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_P",
+      "description": "Phosphorus content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.017",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_S",
+      "description": "Sulfur content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.004",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_Cu",
+      "description": "Copper content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.01",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_Ni",
+      "description": "Nickel content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.01",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_Cr",
+      "description": "Chromium content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.02",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_V",
+      "description": "Vanadium content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.042",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_Nb",
+      "description": "Niobium content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_Mo",
+      "description": "Molybdenum content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.006",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_Ti",
+      "description": "Titanium content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.001",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_Al",
+      "description": "Aluminum content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.032",
+      "nullable": true
+    },
+    {
+      "name": "chemical_composition_N",
+      "description": "Nitrogen content",
+      "symbol": "",
+      "unit": "%",
+      "type": "DecimalFloat",
+      "example": "0.004",
+      "nullable": true
+    },
+    {
+      "name": "gauge_length",
+      "description": "Gauge length",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "20",
+      "nullable": false
+    },
+    {
+      "name": "nom_notch_radius",
+      "description": "Nominal notch radius",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "1",
+      "nullable": false
+    },
+    {
+      "name": "nom_whole_diameter_cnt",
+      "description": "Nominal unotched cylinder diameter (CNT only)",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "8",
+      "nullable": true
+    },
+    {
+      "name": "nom_notch_diameter_cnt",
+      "description": "Nominal notched cylinder diameter (CNT only)",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "5",
+      "nullable": true
+    },
+    {
+      "name": "nom_notch_width",
+      "description": "Nominal notch width",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "2",
+      "nullable": false
+    },
+    {
+      "name": "nom_width_gp",
+      "description": "Nominal width (GP only)",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "25",
+      "nullable": true
+    },
+    {
+      "name": "nom_whole_thickness_gp",
+      "description": "Nominal whole thickness (GP only)",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "12",
+      "nullable": true
+    },
+    {
+      "name": "nom_notch_thickness_gp",
+      "description": "Nominal notch thickness (GP only)",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "2.6",
+      "nullable": true
+    },
+    {
+      "name": "meas_whole_diameter_cnt",
+      "description": "Measured unotched cylinder diameter values as array (CNT only)",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "[7.99, 7.99, 7.99, 7.99]",
+      "nullable": true
+    },
+    {
+      "name": "meas_notch_diameter_cnt",
+      "description": "Measured notched cylinder diameter values as array (CNT only)",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "[5.04, 5.04, 5.02, 5.03]",
+      "nullable": true
+    },
+    {
+      "name": "meas_notch_width",
+      "description": "Measured notch width values as array",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "[1.97, 1.94, 1.96, 1.97]",
+      "nullable": false
+    },
+    {
+      "name": "meas_width_gp",
+      "description": "Measured width values as array (GP only)",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "[24.96, 25.01, 24.98]",
+      "nullable": true
+    },
+    {
+      "name": "meas_whole_thickness_gp",
+      "description": "Measured whole thickness values as array (GP only)",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "[12.0, 12.0, 12.0]",
+      "nullable": true
+    },
+    {
+      "name": "meas_notch_thickness_gp",
+      "description": "Measured notch thickness values as array (GP only)",
+      "symbol": "",
+      "unit": "mm",
+      "type": "String",
+      "example": "[2.60, 2.59, 2.61]",
+      "nullable": true
+    },
+    {
+      "name": "disp_fract",
+      "description": "Displacement at fracture",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "1.253",
+      "nullable": true
+    },
+    {
+      "name": "exc_at_fract",
+      "description": "Excursion count at fracture",
+      "symbol": "",
+      "unit": "-",
+      "type": "SmallInteger",
+      "example": "1",
+      "nullable": true
+    },
+    {
+      "name": "step_fract",
+      "description": "Experimental step at ductile crack initiation",
+      "symbol": "",
+      "unit": "-",
+      "type": "Integer",
+      "example": "9125",
+      "nullable": false
+    },
+    {
+      "name": "fract_loc",
+      "description": "Fracture location",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "center",
+      "nullable": false
+    },
+    {
+      "name": "young_mod",
+      "description": "Young's modulus",
+      "symbol": "",
+      "unit": "MPa",
+      "type": "DecimalFloat",
+      "example": "205000",
+      "nullable": false
+    },
+    {
+      "name": "nu",
+      "description": "Poisson's ratio",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.3",
+      "nullable": false
+    },
+    {
+      "name": "triax_at_fr",
+      "description": "Triaxiality at fracture",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.33267",
+      "nullable": true
+    },
+    {
+      "name": "triax_avg_till_fr",
+      "description": "Average triaxiality up to fracture",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.33267",
+      "nullable": false
+    },
+    {
+      "name": "lode_at_fr",
+      "description": "Lode angle parameter at fracture",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1",
+      "nullable": false
+    },
+    {
+      "name": "lode_avg_till_fr",
+      "description": "Average Lode angle parameter up to fracture",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.0032",
+      "nullable": false
+    },
+    {
+      "name": "peeq_at_fr",
+      "description": "Equivalent plastic strain at fracture",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.5214",
+      "nullable": false
+    },
+    {
+      "name": "cvgm_etamono",
+      "description": "CVGM monotonic toughness parameter η",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "6.1",
+      "nullable": false
+    },
+    {
+      "name": "cvgm_lambda",
+      "description": "CVGM cyclic degradation parameter λ",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.6",
+      "nullable": false
+    },
+    {
+      "name": "swdfm_alpha_pos",
+      "description": "SWDFM Alpha positive exponent",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.3",
+      "nullable": false
+    },
+    {
+      "name": "swdfm_alpha_neg",
+      "description": "SWDFM Alpha negative exponent",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1.3",
+      "nullable": false
+    },
+    {
+      "name": "swdfm_kappa",
+      "description": "SWDFM kappa parameter",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.3",
+      "nullable": false
+    },
+    {
+      "name": "swdfm_C",
+      "description": "SWDFM C toughness parameter",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.25",
+      "nullable": false
+    },
+    {
+      "name": "swdfm_beta",
+      "description": "SWDFM beta parameter",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "2.75",
+      "nullable": false
+    },
+    {
+      "name": "kk_alpha_1",
+      "description": "Kiran-Khandelwal damage parameter",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "0.85",
+      "nullable": false
+    },
+    {
+      "name": "kk_alpha_2",
+      "description": "Kiran-Khandelwal damage parameter",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "-0.25",
+      "nullable": false
+    },
+    {
+      "name": "kk_beta_1",
+      "description": "Kiran-Khandelwal damage parameter",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "-0.25",
+      "nullable": false
+    },
+    {
+      "name": "kk_beta_2",
+      "description": "Kiran-Khandelwal damage parameter",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "-1.9",
+      "nullable": false
+    },
+    {
+      "name": "kk_d_cr",
+      "description": "Kiran-Khandelwal critical damage parameter",
+      "symbol": "",
+      "unit": "-",
+      "type": "DecimalFloat",
+      "example": "1",
+      "nullable": false
+    },
+    {
+      "name": "l_star",
+      "description": "Characteristic length",
+      "symbol": "",
+      "unit": "mm",
+      "type": "DecimalFloat",
+      "example": "0.3",
+      "nullable": true
+    },
+    {
+      "name": "reference",
+      "description": "Publication reference",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "Skiadopoulos, A., and Lignos, D. (2026), ...",
+      "nullable": false
+    },
+    {
+      "name": "link",
+      "description": "Publication URL",
+      "symbol": "",
+      "unit": "-",
+      "type": "String",
+      "example": "https://www.sciencedirect.com/science/article/pii/S0143974X26000271",
+      "nullable": false
+    },
+    {
+      "name": "latitude",
+      "description": "Test location latitude",
+      "symbol": "",
+      "unit": "°",
+      "type": "DecimalFloat",
+      "example": "46.5172",
+      "nullable": false
+    },
+    {
+      "name": "longitude",
+      "description": "Test location longitude",
+      "symbol": "",
+      "unit": "°",
+      "type": "DecimalFloat",
+      "example": "6.5689",
+      "nullable": false
+    },
+    {
+      "name": "has_sem",
+      "description": "Whether Scanning Electron Microscopy images are available for this specimen",
+      "symbol": "",
+      "unit": "-",
+      "type": "Boolean",
+      "example": "Binary: YES/NO",
+      "nullable": true
+    }
+  ]
+}

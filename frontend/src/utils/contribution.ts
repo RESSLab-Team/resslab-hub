@@ -1,63 +1,13 @@
-import {
-  BraceField,
-  ColumnField,
-  ConnectionField,
-  DuctileFractureField,
-  EccentricBracedFrameField,
-  HSSColumnField,
-  MaterialField,
-  ResidualStressField,
-  TensileCouponField,
-  Type
-} from '@/backend'
+import { Type } from '@/backend'
 import i18n from '@/plugins/i18n'
+import { dictionaryFor } from '@/utils/dictionary'
 import type { DatabaseId } from '@/utils/navigation'
-
-/**
- * Columns exposed by the generated `*Field` constants that are SQLAlchemy
- * `column_property` expressions rather than real table columns. The backend
- * validator compares CSV headers against `__table__.c`, so including these
- * would trip its "unexpected columns" warning.
- *
- * Everything matching `_count` is a relationship row-count; the rest are
- * derived values (see `backend/resslab_hub/models/database/*.py`).
- */
-const DERIVED_COLUMNS: Partial<Record<DatabaseId, string[]>> = {
-  columns: ['built_up'],
-  residuals: ['h_over_b'],
-  cyclic: ['type', 'year']
-}
-
-/**
- * Real table columns the generated client cannot express.
- *
- * `Brace._8t` is declared with a leading underscore, which Pydantic treats as a
- * private attribute — so it is absent from the API schema, from `openapi.json`
- * and from `BraceField`. The validator still requires it in the CSV header
- * (it compares against `__table__.c`), so omitting it fails every braces
- * submission with "Missing required columns: _8t". Drop this entry once the
- * data dictionary renames the column.
- */
-const UNEXPOSED_COLUMNS: Partial<Record<DatabaseId, string[]>> = {
-  braces: ['_8t']
-}
-
-function columnsOf(fields: Record<string, string>, database: DatabaseId): string[] {
-  const derived = DERIVED_COLUMNS[database] ?? []
-  return [
-    // The generated constants repeat a few values under different keys.
-    ...new Set(Object.values(fields)),
-    ...(UNEXPOSED_COLUMNS[database] ?? [])
-  ].filter((column) => !column.endsWith('_count') && !derived.includes(column))
-}
 
 export interface ContributionDatabase {
   /** Value for the `type` query parameter of `POST /validate`. */
   type: Type
   /** Path of the primary CSV inside the uploaded archive. */
   csvPath: string
-  /** Table columns, in the order the CSV header will list them. */
-  columns: string[]
   /** i18n namespace holding this database's field labels. */
   namespace: string
   /**
@@ -67,71 +17,79 @@ export interface ContributionDatabase {
   qualityCheckSupported: boolean
 }
 
-export const CONTRIBUTION_DATABASES: Record<DatabaseId, ContributionDatabase> = {
+const DATABASE_META: Record<DatabaseId, ContributionDatabase> = {
   connections: {
     type: Type.AllConnections,
     csvPath: 'connections/connections.csv',
-    columns: columnsOf(ConnectionField, 'connections'),
     namespace: 'connection',
     qualityCheckSupported: true
   },
   columns: {
     type: Type.AllColumns,
     csvPath: 'columns/steel_columns.csv',
-    columns: columnsOf(ColumnField, 'columns'),
     namespace: 'column',
     qualityCheckSupported: true
   },
   braces: {
     type: Type.AllBraces,
     csvPath: 'braces/steel_braces.csv',
-    columns: columnsOf(BraceField, 'braces'),
     namespace: 'brace',
     qualityCheckSupported: true
   },
   hss: {
     type: Type.AllHssColumns,
     csvPath: 'hss_columns/hss_columns.csv',
-    columns: columnsOf(HSSColumnField, 'hss'),
     namespace: 'hss',
     qualityCheckSupported: true
   },
   cyclic: {
     type: Type.AllMaterial,
     csvPath: 'material/cyclic_coupons/steel_material.csv',
-    columns: columnsOf(MaterialField, 'cyclic'),
     namespace: 'material',
     qualityCheckSupported: true
   },
   residuals: {
     type: Type.AllResidualStresses,
     csvPath: 'residual_stresses/residual_stresses.csv',
-    columns: columnsOf(ResidualStressField, 'residuals'),
     namespace: 'residual',
     qualityCheckSupported: true
   },
   ebf: {
     type: Type.AllEccentricBracedFrames,
     csvPath: 'eccentric_braced_frames/eccentric_braced_frames.csv',
-    columns: columnsOf(EccentricBracedFrameField, 'ebf'),
     namespace: 'ebf',
     qualityCheckSupported: false
   },
   tensile: {
     type: Type.AllTensileCoupons,
     csvPath: 'material/tensile_coupons/tensile_coupons.csv',
-    columns: columnsOf(TensileCouponField, 'tensile'),
     namespace: 'tensile_coupon',
     qualityCheckSupported: false
   },
   'ductile-fracture': {
     type: Type.AllDuctileFractures,
     csvPath: 'material/ductile_fracture/ductile_fracture.csv',
-    columns: columnsOf(DuctileFractureField, 'ductile-fracture'),
     namespace: 'ductile_fracture',
     qualityCheckSupported: false
   }
 }
+
+export interface ContributionDatabaseConfig extends ContributionDatabase {
+  /** Table columns, in the order the CSV header will list them (dictionary order). */
+  columns: string[]
+}
+
+/**
+ * Per-database contribution config. Columns come from the baked data dictionary
+ * — the same source that generates the ORM/validator, so they match the
+ * validator's `__table__.c` exactly (no more `_8t`/`_count`/derived fixups).
+ */
+export const CONTRIBUTION_DATABASES = Object.fromEntries(
+  (Object.keys(DATABASE_META) as DatabaseId[]).map((id) => [
+    id,
+    { ...DATABASE_META[id], columns: dictionaryFor(id).map((column) => column.name) }
+  ])
+) as Record<DatabaseId, ContributionDatabaseConfig>
 
 /** `f_yn` → `F yn`; a readable fallback when a column has no translation. */
 function prettify(column: string): string {
@@ -148,7 +106,7 @@ export function fieldLabel(database: DatabaseId, column: string): string {
   return i18n.global.te(key) ? i18n.global.t(key) : prettify(column)
 }
 
-function escapeCsv(value: string): string {
+export function escapeCsv(value: string): string {
   return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
 }
 
