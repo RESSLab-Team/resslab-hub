@@ -32,7 +32,15 @@ const rows = computed(() => [
     key: t('contribute.review.database'),
     value: DATABASES.find((entry) => entry.id === store.database)?.name ?? notSet
   },
-  { key: t('contribute.review.specimen'), value: store.specimenId || notSet },
+  {
+    key: t('contribute.review.experiments'),
+    value: store.experimentCount
+      ? t('contribute.review.experiments_value', {
+          count: store.experimentCount,
+          withId: store.specimenIds.length
+        })
+      : notSet
+  },
   { key: t('contribute.review.program'), value: store.program || notSet },
   { key: t('contribute.review.year'), value: store.year || notSet },
   { key: t('contribute.review.doi'), value: store.doi || notSet },
@@ -41,7 +49,7 @@ const rows = computed(() => [
     value: store.config
       ? t('contribute.review.fields_filled_value', {
           filled: store.filledCount,
-          total: store.config.columns.length
+          total: store.config.columns.length * store.experimentCount
         })
       : notSet
   },

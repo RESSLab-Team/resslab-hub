@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CpIcon from '@/components/contribute/CpIcon.vue'
-import type { CpIconName } from '@/components/contribute/icons'
 import { useContributionStore } from '@/stores/contribution'
+import { mapResponse, type ReportedIssue } from '@/utils/qualityReport'
 import { DATABASES } from '@/utils/navigation'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -9,75 +9,45 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n({ useScope: 'global' })
 const store = useContributionStore()
 
-interface Flag {
-  level: 'pass' | 'warn' | 'fail'
-  icon: CpIconName
-  title: string
-  description?: string
-  severity?: string
-  category: string
-}
-
 const databaseName = computed(
   () => DATABASES.find((entry) => entry.id === store.database)?.name ?? ''
 )
 
-const canRun = computed(() => store.specimenId !== '')
+const canRun = computed(() => store.hasAnyId)
 
-/** Render one structured issue as "Row N: col='v' - message" for display. */
-function issueText(issue: { row: number; column: string; value: string | null; message: string }) {
+const report = computed(() =>
+  store.database && store.response ? mapResponse(store.database, store.rows, store.response) : null
+)
+
+const summary = computed(() => {
+  const experiments = report.value?.experiments ?? []
+  return {
+    pass: experiments.filter((e) => e.level === 'pass').length,
+    warn: experiments.filter((e) => e.level === 'warn').length,
+    fail: experiments.filter((e) => e.level === 'fail').length,
+    global: report.value?.global.length ?? 0
+  }
+})
+
+const problemExperiments = computed(
+  () => report.value?.experiments.filter((e) => e.level !== 'pass') ?? []
+)
+
+function issueText(entry: ReportedIssue): string {
+  const { issue } = entry
   if (issue.row === 0) return `${issue.column}: ${issue.message}`
   return `Row ${issue.row}: ${issue.column}='${issue.value ?? ''}' - ${issue.message}`
 }
 
-/**
- * The validator reports one structured result per file. Each error/warning
- * becomes its own flag so the counts match what the user has to fix.
- */
-const flags = computed<Flag[]>(() => {
-  const response = store.response
-  if (!response) return []
+function kindLabel(kindKey: string | null): string {
+  return kindKey ? t(`contribute.timeseries.kind.${kindKey}`) : t('contribute.quality.category_file')
+}
 
-  const result: Flag[] = []
-
-  for (const file of response.results) {
-    for (const issue of file.errors) {
-      result.push({
-        level: 'fail',
-        icon: 'close',
-        title: issueText(issue),
-        severity: t('contribute.quality.severity_high'),
-        category: `${t('contribute.quality.category_schema')} · ${file.file}`
-      })
-    }
-    for (const issue of file.warnings) {
-      result.push({
-        level: 'warn',
-        icon: 'alert',
-        title: issueText(issue),
-        severity: t('contribute.quality.severity_medium'),
-        category: `${t('contribute.quality.category_file')} · ${file.file}`
-      })
-    }
-    if (file.valid && file.warnings.length === 0) {
-      result.push({
-        level: 'pass',
-        icon: 'check',
-        title: t('contribute.quality.check_passed'),
-        description: t('contribute.quality.check_passed_desc', { file: file.file }),
-        category: t('contribute.quality.category_schema')
-      })
-    }
-  }
-
-  return result
-})
-
-const counts = computed(() => ({
-  pass: flags.value.filter((flag) => flag.level === 'pass').length,
-  warn: flags.value.filter((flag) => flag.level === 'warn').length,
-  fail: flags.value.filter((flag) => flag.level === 'fail').length
-}))
+/** Jump back to the grid and focus the offending cell. */
+function goToCell(uid: number, column: string): void {
+  store.requestFocus(uid, column)
+  store.currentStep = 1
+}
 </script>
 
 <template>
@@ -93,7 +63,7 @@ const counts = computed(() => ({
     </p>
 
     <template v-else>
-      <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 22px">
+      <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px">
         <button
           class="cp-btn primary"
           :disabled="!canRun || store.status === 'running'"
@@ -113,8 +83,18 @@ const counts = computed(() => ({
           {{ $t('contribute.quality.no_id') }}
         </span>
         <span v-else-if="store.status === 'idle'" class="cp-hint" style="margin: 0">
-          {{ $t('contribute.quality.idle', { database: databaseName, id: store.specimenId }) }}
+          {{
+            $t('contribute.quality.idle_multi', {
+              database: databaseName,
+              count: store.experimentCount
+            })
+          }}
         </span>
+      </div>
+
+      <div v-if="store.clientErrorCount > 0" class="cp-hint" style="margin-bottom: 14px">
+        <cp-icon :size="13" name="alert" />
+        {{ $t('contribute.quality.client_errors', { count: store.clientErrorCount }) }}
       </div>
 
       <div v-if="store.status === 'unsupported'" class="cp-eduflag">
@@ -128,44 +108,80 @@ const counts = computed(() => ({
         style="border-left-color: var(--epfl-red)"
       >
         <cp-icon :size="15" name="alert" />
-        <span
-          >{{ $t('contribute.quality.error') }} <code>{{ store.errorMessage }}</code></span
-        >
+        <span>{{ $t('contribute.quality.error') }} <code>{{ store.errorMessage }}</code></span>
       </div>
 
-      <template v-else-if="store.response">
+      <template v-else-if="report">
         <div class="cp-flagsum">
           <div class="fs pass">
-            <b>{{ counts.pass }}</b>
-            <span>{{ $t('contribute.quality.passed') }}</span>
+            <b>{{ summary.pass }}</b>
+            <span>{{ $t('contribute.quality.exp_passed') }}</span>
           </div>
           <div class="fs warn">
-            <b>{{ counts.warn }}</b>
-            <span>{{ $t('contribute.quality.warnings') }}</span>
+            <b>{{ summary.warn }}</b>
+            <span>{{ $t('contribute.quality.exp_warned') }}</span>
           </div>
           <div class="fs fail">
-            <b>{{ counts.fail }}</b>
-            <span>{{ $t('contribute.quality.failed') }}</span>
+            <b>{{ summary.fail }}</b>
+            <span>{{ $t('contribute.quality.exp_failed') }}</span>
           </div>
         </div>
 
-        <div v-for="(flag, index) in flags" :key="index" class="cp-flag" :class="flag.level">
-          <div class="fmark"><cp-icon :size="13" :width="2.4" :name="flag.icon" /></div>
-          <div class="fbody">
-            <div class="ftitle">
-              {{ flag.title }}
-              <span
-                v-if="flag.severity"
-                class="fsev"
-                :class="flag.level === 'fail' ? 'high' : 'med'"
-              >
-                {{ flag.severity }}
-              </span>
-            </div>
-            <div v-if="flag.description" class="fdesc">{{ flag.description }}</div>
-            <div class="fcat">{{ flag.category }}</div>
+        <!-- One card per experiment with issues. -->
+        <div v-for="exp in problemExperiments" :key="exp.uid" class="cp-exp" :class="exp.level">
+          <div class="cp-exp-h">
+            <span class="id">{{ exp.id || $t('contribute.quality.no_id_short') }}</span>
+            <span class="cp-exp-badge" :class="exp.level">
+              {{
+                $t('contribute.quality.exp_issue_summary', {
+                  fields: exp.cellIssues.length,
+                  files: exp.fileIssues.length
+                })
+              }}
+            </span>
+          </div>
+          <button
+            v-for="(cell, i) in exp.cellIssues"
+            :key="`c${i}`"
+            class="cp-exp-issue"
+            :class="cell.severity"
+            type="button"
+            @click="goToCell(cell.ref.uid, cell.ref.column)"
+          >
+            <cp-icon :size="13" :name="cell.severity === 'error' ? 'close' : 'alert'" />
+            <span>{{ issueText(cell) }}</span>
+            <cp-icon class="go" :size="13" name="arrowRight" />
+          </button>
+          <div
+            v-for="(file, i) in exp.fileIssues"
+            :key="`f${i}`"
+            class="cp-exp-issue"
+            :class="file.severity"
+          >
+            <cp-icon :size="13" :name="file.severity === 'error' ? 'close' : 'alert'" />
+            <span>{{ kindLabel(file.kindKey) }} · {{ issueText(file) }}</span>
           </div>
         </div>
+
+        <!-- File/header-level issues not tied to one experiment. -->
+        <div v-if="report.global.length" class="cp-exp fail">
+          <div class="cp-exp-h">
+            <span class="id">{{ $t('contribute.quality.global_issues') }}</span>
+          </div>
+          <div
+            v-for="(entry, i) in report.global"
+            :key="`g${i}`"
+            class="cp-exp-issue"
+            :class="entry.severity"
+          >
+            <cp-icon :size="13" :name="entry.severity === 'error' ? 'close' : 'alert'" />
+            <span>{{ issueText(entry) }}</span>
+          </div>
+        </div>
+
+        <p v-if="summary.fail === 0 && summary.warn === 0" class="cp-hint ok" style="margin-top: 14px">
+          <cp-icon :size="13" name="check" />{{ $t('contribute.quality.all_passed') }}
+        </p>
       </template>
     </template>
   </div>

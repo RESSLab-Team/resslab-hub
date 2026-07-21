@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import CpIcon from '@/components/contribute/CpIcon.vue'
 import { useContributionStore } from '@/stores/contribution'
-import { parseCsv } from '@/utils/csv'
-import { timeSeriesKindsFor, type TimeSeriesKind } from '@/utils/timeseries'
+import { checkTimeSeriesFile, timeSeriesKindsFor, type TimeSeriesKind } from '@/utils/timeseries'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -10,63 +9,81 @@ const { t } = useI18n({ useScope: 'global' })
 const store = useContributionStore()
 
 const kinds = computed(() => timeSeriesKindsFor(store.database))
+
+/** Experiments that can receive files: those with a non-empty id. */
+const experiments = computed(() =>
+  store.rows
+    .map((row) => ({ uid: row.uid, id: (row.cells.id ?? '').trim() }))
+    .filter((row) => row.id !== '')
+)
+const idlessCount = computed(() => store.rows.length - experiments.value.length)
+
 const inputs = ref<Record<string, HTMLInputElement | null>>({})
-const draggingKey = ref('')
+const dragKey = ref('')
 const errors = ref<Record<string, string>>({})
+/** Per-kind report of a bulk drop: which stems matched, which did not. */
+const bulkReport = ref<Record<string, { attached: number; unmatched: string[] }>>({})
 
-/** The validator reads the foreign key from the filename, not from a column. */
-function expectedName(): string {
-  return store.specimenId ? `${store.specimenId}.csv` : ''
+function describeCheck(kind: TimeSeriesKind, text: string): { rows: number } | { error: string } {
+  const result = checkTimeSeriesFile(kind, text)
+  if (result.ok) return { rows: result.rows }
+  if (result.error === 'empty') return { error: t('contribute.timeseries.error_empty') }
+  return { error: t('contribute.timeseries.error_columns', { columns: result.missing.join(', ') }) }
 }
 
-// Kept in the script rather than inlined in the template: the placeholder
-// contains angle brackets, which the template's HTML parser would misread as a
-// tag (`<id>`), so the literal must not appear inside a `{{ }}` expression.
-const renamePreview = computed(() => expectedName() || '<id>.csv')
-
-async function attach(kind: TimeSeriesKind, file: File | undefined): Promise<void> {
-  if (!file) return
-  delete errors.value[kind.key]
-
-  try {
-    const rows = parseCsv(await file.text())
-    if (rows.length < 2) {
-      throw new Error(t('contribute.timeseries.error_empty'))
-    }
-    const headers = rows[0].map((header) => header.trim())
-    const missing = kind.requiredColumns.filter((column) => !headers.includes(column))
-    if (missing.length) {
-      throw new Error(t('contribute.timeseries.error_columns', { columns: missing.join(', ') }))
-    }
-
-    // Rename to the specimen id: the file's own name would otherwise become the
-    // foreign key and fail against the record being submitted alongside it.
-    store.timeSeries[kind.key] = {
-      name: expectedName() || file.name,
-      content: await file.text(),
-      rows: rows.length - 1
-    }
-    store.resetQualityCheck()
-  } catch (caught) {
-    errors.value[kind.key] = caught instanceof Error ? caught.message : String(caught)
+async function attachOne(uid: number, kind: TimeSeriesKind, file: File): Promise<boolean> {
+  const text = await file.text()
+  const check = describeCheck(kind, text)
+  if ('error' in check) {
+    errors.value[`${uid}:${kind.key}`] = check.error
+    return false
   }
-}
-
-function remove(kind: TimeSeriesKind): void {
-  delete store.timeSeries[kind.key]
-  delete errors.value[kind.key]
+  delete errors.value[`${uid}:${kind.key}`]
+  store.timeSeries[`${uid}:${kind.key}`] = { name: file.name, content: text, rows: check.rows }
   store.resetQualityCheck()
+  return true
 }
 
-function onDrop(kind: TimeSeriesKind, event: DragEvent): void {
-  draggingKey.value = ''
-  attach(kind, event.dataTransfer?.files[0])
+/** Bulk drop: match each file's stem (case-sensitive) to an experiment id. */
+async function bulkAttach(kind: TimeSeriesKind, files: FileList | undefined): Promise<void> {
+  if (!files) return
+  const byId = new Map(experiments.value.map((row) => [row.id, row.uid]))
+  let attached = 0
+  const unmatched: string[] = []
+  for (const file of Array.from(files)) {
+    const stem = file.name.replace(/\.csv$/i, '')
+    const uid = byId.get(stem)
+    if (uid === undefined) {
+      unmatched.push(file.name)
+      continue
+    }
+    if (await attachOne(uid, kind, file)) attached++
+  }
+  bulkReport.value[kind.key] = { attached, unmatched }
 }
 
-function onSelect(kind: TimeSeriesKind, event: Event): void {
+function onBulkDrop(kind: TimeSeriesKind, event: DragEvent): void {
+  dragKey.value = ''
+  bulkAttach(kind, event.dataTransfer?.files ?? undefined)
+}
+
+function onBulkSelect(kind: TimeSeriesKind, event: Event): void {
   const input = event.target as HTMLInputElement
-  attach(kind, input.files?.[0])
+  bulkAttach(kind, input.files ?? undefined)
   input.value = ''
+}
+
+function onSlotSelect(uid: number, kind: TimeSeriesKind, event: Event): void {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (file) attachOne(uid, kind, file)
+  input.value = ''
+}
+
+function remove(uid: number, kind: TimeSeriesKind): void {
+  delete store.timeSeries[`${uid}:${kind.key}`]
+  delete errors.value[`${uid}:${kind.key}`]
+  store.resetQualityCheck()
 }
 </script>
 
@@ -89,90 +106,123 @@ function onSelect(kind: TimeSeriesKind, event: Event): void {
       </div>
     </template>
 
-    <template v-else>
-      <div class="cp-metasum">
-        <cp-icon :size="15" name="layers" />
-        <b>{{ $t('contribute.timeseries.summary', { count: kinds.length }) }}</b>
-        <span>·</span>
-        <span class="mut">{{ $t('contribute.timeseries.optional') }}</span>
-      </div>
-
-      <div
-        v-if="!store.specimenId"
-        class="cp-eduflag"
-        style="border-left-color: var(--epfl-orange)"
-      >
+    <template v-else-if="experiments.length === 0">
+      <div class="cp-eduflag" style="border-left-color: var(--epfl-orange)">
         <cp-icon :size="15" name="alert" />
         <span>{{ $t('contribute.timeseries.needs_id') }}</span>
       </div>
+    </template>
 
-      <div v-for="kind in kinds" :key="kind.key" class="cp-fieldset">
+    <template v-else>
+      <!-- Bulk attach: drop many files at once, matched to experiments by name. -->
+      <div class="cp-fieldset">
         <div class="cp-fset-h">
-          {{ $t(`contribute.timeseries.kind.${kind.key}`) }}
-          <span class="ct">{{ kind.directory }}</span>
+          {{ $t('contribute.timeseries.bulk_title') }}
+          <span class="ct">{{ $t('contribute.timeseries.bulk_hint') }}</span>
         </div>
         <div class="cp-fset-body">
-          <div v-if="store.timeSeries[kind.key]" class="cp-file">
-            <span class="fic">CSV</span>
-            <div class="meta">
-              <div class="fn">{{ store.timeSeries[kind.key].name }}</div>
-              <div class="fs">
-                {{ $t('contribute.timeseries.rows', { count: store.timeSeries[kind.key].rows }) }}
-              </div>
+          <div v-for="kind in kinds" :key="kind.key" class="cp-ts-bulk">
+            <button
+              class="cp-drop small"
+              :class="{ dragover: dragKey === kind.key }"
+              type="button"
+              @click="inputs[`bulk:${kind.key}`]?.click()"
+              @dragleave.prevent="dragKey = ''"
+              @dragover.prevent="dragKey = kind.key"
+              @drop.prevent="onBulkDrop(kind, $event)"
+            >
+              <cp-icon class="ic" :size="20" :width="1.5" name="upload" />
+              <span class="big">{{ $t(`contribute.timeseries.kind.${kind.key}`) }}</span>
+              <span class="small">{{ kind.directory }}</span>
+            </button>
+            <input
+              :ref="(el) => (inputs[`bulk:${kind.key}`] = el as HTMLInputElement)"
+              accept=".csv,text/csv"
+              hidden
+              multiple
+              type="file"
+              @change="onBulkSelect(kind, $event)"
+            />
+            <div
+              v-if="bulkReport[kind.key]"
+              class="cp-hint"
+              :class="bulkReport[kind.key].unmatched.length ? 'err' : 'ok'"
+            >
+              <cp-icon :size="13" :name="bulkReport[kind.key].unmatched.length ? 'alert' : 'check'" />
+              {{
+                $t('contribute.timeseries.bulk_result', {
+                  attached: bulkReport[kind.key].attached
+                })
+              }}
+              <template v-if="bulkReport[kind.key].unmatched.length">
+                {{
+                  $t('contribute.timeseries.bulk_unmatched', {
+                    files: bulkReport[kind.key].unmatched.slice(0, 5).join(', ')
+                  })
+                }}
+              </template>
             </div>
-            <div class="fstate">
-              <span class="cp-hint ok" style="margin: 0">
-                <cp-icon :size="13" name="check" />{{ $t('contribute.timeseries.attached') }}
-              </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Per experiment: one slot per kind. -->
+      <div v-for="row in experiments" :key="row.uid" class="cp-fieldset">
+        <div class="cp-fset-h">
+          {{ row.id }}
+          <span class="ct">{{ $t('contribute.timeseries.per_experiment') }}</span>
+        </div>
+        <div class="cp-fset-body">
+          <div v-for="kind in kinds" :key="kind.key" class="cp-ts-slot">
+            <div class="cp-ts-kind">{{ $t(`contribute.timeseries.kind.${kind.key}`) }}</div>
+            <div v-if="store.timeSeries[`${row.uid}:${kind.key}`]" class="cp-file">
+              <span class="fic">CSV</span>
+              <div class="meta">
+                <div class="fn">{{ store.timeSeries[`${row.uid}:${kind.key}`].name }}</div>
+                <div class="fs">
+                  {{
+                    $t('contribute.timeseries.rows', {
+                      count: store.timeSeries[`${row.uid}:${kind.key}`].rows
+                    })
+                  }}
+                  → {{ row.id }}.csv
+                </div>
+              </div>
               <button
                 class="fx"
                 type="button"
                 :aria-label="$t('contribute.timeseries.remove')"
-                @click="remove(kind)"
+                @click="remove(row.uid, kind)"
               >
                 <cp-icon :size="13" name="close" />
               </button>
             </div>
-          </div>
-
-          <button
-            v-else
-            class="cp-drop"
-            :class="{ dragover: draggingKey === kind.key }"
-            type="button"
-            @click="inputs[kind.key]?.click()"
-            @dragleave.prevent="draggingKey = ''"
-            @dragover.prevent="draggingKey = kind.key"
-            @drop.prevent="onDrop(kind, $event)"
-          >
-            <cp-icon class="ic" :size="30" :width="1.5" name="upload" />
-            <span class="big">
-              <i18n-t keypath="contribute.timeseries.drop" tag="span">
-                <template #browse>
-                  <b>{{ $t('contribute.metadata.import_browse') }}</b>
-                </template>
-              </i18n-t>
-            </span>
-            <span class="small">{{ kind.requiredColumns.join(' · ') }}</span>
-          </button>
-          <input
-            :ref="(el) => (inputs[kind.key] = el as HTMLInputElement)"
-            accept=".csv,text/csv"
-            hidden
-            type="file"
-            @change="onSelect(kind, $event)"
-          />
-
-          <div v-if="errors[kind.key]" class="cp-hint err">
-            <cp-icon :size="13" name="alert" />
-            {{ errors[kind.key] }}
+            <template v-else>
+              <button
+                class="cp-btn ghost"
+                type="button"
+                @click="inputs[`${row.uid}:${kind.key}`]?.click()"
+              >
+                <cp-icon :size="14" name="upload" />{{ $t('contribute.timeseries.attach') }}
+              </button>
+              <input
+                :ref="(el) => (inputs[`${row.uid}:${kind.key}`] = el as HTMLInputElement)"
+                accept=".csv,text/csv"
+                hidden
+                type="file"
+                @change="onSlotSelect(row.uid, kind, $event)"
+              />
+            </template>
+            <div v-if="errors[`${row.uid}:${kind.key}`]" class="cp-hint err">
+              <cp-icon :size="13" name="alert" />{{ errors[`${row.uid}:${kind.key}`] }}
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="cp-eduflag">
-        <cp-icon :size="15" name="info" />
-        <span>{{ $t('contribute.timeseries.rename_note', { name: renamePreview }) }}</span>
+      <div v-if="idlessCount" class="cp-hint">
+        <cp-icon :size="13" name="info" />
+        {{ $t('contribute.timeseries.idless', { count: idlessCount }) }}
       </div>
     </template>
   </div>

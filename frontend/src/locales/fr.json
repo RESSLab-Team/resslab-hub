@@ -1108,7 +1108,16 @@
       "check_passed": "Validation réussie",
       "check_passed_desc": "Aucune erreur de schéma ou de type détectée dans {file}.",
       "severity_high": "Élevée",
-      "severity_medium": "Moyenne"
+      "severity_medium": "Moyenne",
+      "exp_passed": "Expériences valides",
+      "exp_warned": "Avec avertissements",
+      "exp_failed": "Avec erreurs",
+      "idle_multi": "Lancez la vérification pour valider {count} expérience(s) {database} selon le schéma du hub.",
+      "client_errors": "{count} cellule(s) en erreur — la vérification serveur reste possible, mais elles échoueront.",
+      "no_id_short": "(sans id)",
+      "exp_issue_summary": "{fields} champ · {files} problème(s) de fichier",
+      "global_issues": "Problèmes au niveau du fichier",
+      "all_passed": "Toutes les expériences sont valides."
     },
     "review": {
       "title": "Vérifier & soumettre",
@@ -1125,7 +1134,9 @@
       "quality_not_run": "Non exécuté",
       "submit": "Soumettre pour revue",
       "draft_notice": "La soumission est désactivée dans ce premier brouillon. Le pipeline de contribution s'arrête actuellement au contrôle qualité.",
-      "not_set": "—"
+      "not_set": "—",
+      "experiments": "Expériences",
+      "experiments_value": "{count} expérience(s), {withId} avec identifiant"
     },
     "timeseries": {
       "summary": "{count} fichier(s) de réponse acceptés pour cette base",
@@ -1154,8 +1165,37 @@
         "distribution_f1": "Distribution de contraintes résiduelles F1",
         "distribution_f2": "Distribution de contraintes résiduelles F2",
         "distribution_w1": "Distribution de contraintes résiduelles W1",
-        "qp_coefficient": "Coefficients QP"
-      }
+        "qp_coefficient": "Coefficients QP",
+        "processed_data": "Données traitées",
+        "force_elongation": "Force – allongement",
+        "force_elongation_simulation": "Force – allongement (simulation)",
+        "force_radial": "Force – radiale",
+        "force_radial_simulation": "Force – radiale (simulation)",
+        "epeq_simulation": "Déformation plastique équivalente (simulation)",
+        "lode_simulation": "Angle de Lode (simulation)",
+        "triax_simulation": "Triaxialité (simulation)"
+      },
+      "bulk_title": "Joindre plusieurs fichiers à la fois",
+      "bulk_hint": "associés aux expériences par nom de fichier",
+      "bulk_result": "{attached} fichier(s) joint(s).",
+      "bulk_unmatched": "Aucune expérience correspondante : {files}",
+      "per_experiment": "par expérience",
+      "idless": "{count} expérience(s) sans identifiant sont masquées — renseignez un id dans la grille.",
+      "attach": "Joindre un fichier"
+    },
+    "grid": {
+      "add_row": "Ajouter une expérience",
+      "only_issues": "Seulement les lignes avec problèmes",
+      "error_count": "{count} avec erreurs",
+      "warning_count": "{count} avec avertissements",
+      "no_issues": "Aucun problème",
+      "download_template": "Modèle CSV",
+      "download_dictionary": "Dictionnaire de données",
+      "import_prompt": "Déposez un CSV rempli ici pour charger toutes les expériences, ou {browse}",
+      "import_ok": "{rows} expérience(s) chargée(s) depuis {file} — {matched} colonnes reconnues.",
+      "import_missing": "{count} colonne(s) requise(s) manquante(s), soumises comme NR : {columns}",
+      "import_unknown": "{count} colonne(s) absente(s) de cette base ont été ignorées : {columns}",
+      "all_clean": "Aucune ligne ne présente de problème."
     }
   }
 }

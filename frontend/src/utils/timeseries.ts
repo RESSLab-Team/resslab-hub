@@ -1,3 +1,4 @@
+import { parseCsv } from '@/utils/csv'
 import type { DatabaseId } from '@/utils/navigation'
 
 /**
@@ -109,9 +110,78 @@ export const TIME_SERIES_KINDS: Partial<Record<DatabaseId, TimeSeriesKind[]>> = 
       directory: 'residual_stresses/QP_Coefficients',
       requiredColumns: ['qp_coefficient']
     }
+  ],
+  // The three databases below have no backend validator yet, so their required
+  // columns are unknown — files are only checked for having data rows. The
+  // directories mirror `get_args_all` so the archive layout stays correct.
+  tensile: [
+    {
+      key: 'stress_strain',
+      directory: 'material/tensile_coupons/stress_strain',
+      requiredColumns: []
+    }
+  ],
+  ebf: [
+    {
+      key: 'processed_data',
+      directory: 'eccentric_braced_frames/processed_data',
+      requiredColumns: []
+    }
+  ],
+  'ductile-fracture': [
+    { key: 'force_elongation', directory: 'material/ductile_fracture/force_elongation', requiredColumns: [] },
+    {
+      key: 'force_elongation_simulation',
+      directory: 'material/ductile_fracture/force_elongation_simulation',
+      requiredColumns: []
+    },
+    { key: 'force_radial', directory: 'material/ductile_fracture/force_radial', requiredColumns: [] },
+    {
+      key: 'force_radial_simulation',
+      directory: 'material/ductile_fracture/force_radial_simulation',
+      requiredColumns: []
+    },
+    {
+      key: 'epeq_simulation',
+      directory: 'material/ductile_fracture/equivalent_plastic_strain_elongation_simulation',
+      requiredColumns: []
+    },
+    {
+      key: 'lode_simulation',
+      directory: 'material/ductile_fracture/lode_angle_elongation_simulation',
+      requiredColumns: []
+    },
+    {
+      key: 'triax_simulation',
+      directory: 'material/ductile_fracture/triaxiality_elongation_simulation',
+      requiredColumns: []
+    }
   ]
 }
 
 export function timeSeriesKindsFor(database: DatabaseId | null): TimeSeriesKind[] {
   return database ? TIME_SERIES_KINDS[database] ?? [] : []
+}
+
+export type TimeSeriesCheck =
+  | { ok: true; rows: number }
+  | { ok: false; error: 'empty' }
+  | { ok: false; error: 'columns'; missing: string[] }
+
+/**
+ * Validate a time-series file's content before attaching it: it must have at
+ * least one data row and, when the kind declares them, the required columns.
+ * Returns a discriminated result the caller can translate.
+ */
+export function checkTimeSeriesFile(kind: TimeSeriesKind, text: string): TimeSeriesCheck {
+  const parsed = parseCsv(text)
+  if (parsed.length < 2) {
+    return { ok: false, error: 'empty' }
+  }
+  const headers = parsed[0].map((header) => header.trim())
+  const missing = kind.requiredColumns.filter((column) => !headers.includes(column))
+  if (missing.length) {
+    return { ok: false, error: 'columns', missing }
+  }
+  return { ok: true, rows: parsed.length - 1 }
 }

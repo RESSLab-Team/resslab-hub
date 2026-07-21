@@ -1,4 +1,4 @@
-import { parseCsv, readCsvRecord } from '@/utils/csv'
+import { parseCsv, readCsvRecord, readCsvTable } from '@/utils/csv'
 import { describe, expect, it } from 'vitest'
 
 describe('parseCsv', () => {
@@ -72,5 +72,35 @@ describe('readCsvRecord', () => {
   it('rejects an empty file and a header with no data', () => {
     expect(() => readCsvRecord('', columns)).toThrow(/empty/i)
     expect(() => readCsvRecord('id,area\n', columns)).toThrow(/no data rows/i)
+  })
+})
+
+describe('readCsvTable', () => {
+  const columns = ['id', 'area', 'steel']
+
+  it('reads every row and aligns to the columns', () => {
+    const table = readCsvTable('id,area\nB1,10\nB2,20\n', columns)
+    expect(table.rows).toEqual([
+      { id: 'B1', area: '10' },
+      { id: 'B2', area: '20' }
+    ])
+    expect(table.matched).toEqual(['id', 'area'])
+    expect(table.missing).toEqual(['steel'])
+  })
+
+  it('collapses NR to blank but keeps NA verbatim', () => {
+    const table = readCsvTable('id,area,steel\nB1,NR,NA\n', columns)
+    expect(table.rows[0]).toEqual({ id: 'B1', area: '', steel: 'NA' })
+  })
+
+  it('handles quoted cells with embedded commas and newlines', () => {
+    const table = readCsvTable('id,area\n"B,1","line1\nline2"\n', columns)
+    expect(table.rows[0]).toEqual({ id: 'B,1', area: 'line1\nline2' })
+  })
+
+  it('drops unknown headers and reports them', () => {
+    const table = readCsvTable('id,bogus\nB1,x\n', columns)
+    expect(table.rows[0]).toEqual({ id: 'B1' })
+    expect(table.unknown).toEqual(['bogus'])
   })
 })

@@ -111,14 +111,17 @@ export function escapeCsv(value: string): string {
 }
 
 /**
- * Serialize the form into a one-row CSV.
+ * Serialize the experiments into a CSV, one data row per experiment.
  *
  * Blank fields become `NR` ("not reported"), which the validator skips — an
  * empty string would instead fail every numeric and date check, burying the
  * real problems under noise.
  */
-export function buildCsv(database: DatabaseId, values: Record<string, string>): string {
+export function buildCsv(database: DatabaseId, rows: Array<Record<string, string>>): string {
   const { columns } = CONTRIBUTION_DATABASES[database]
-  const row = columns.map((column) => escapeCsv(values[column]?.trim() || 'NR'))
-  return `${columns.map(escapeCsv).join(',')}\n${row.join(',')}\n`
+  const header = columns.map(escapeCsv).join(',')
+  const body = rows
+    .map((cells) => columns.map((column) => escapeCsv(cells[column]?.trim() || 'NR')).join(','))
+    .join('\n')
+  return `${header}\n${body}\n`
 }

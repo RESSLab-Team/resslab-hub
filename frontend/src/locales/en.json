@@ -1108,7 +1108,16 @@
       "check_passed": "Validation passed",
       "check_passed_desc": "No schema or type errors were found in {file}.",
       "severity_high": "High",
-      "severity_medium": "Medium"
+      "severity_medium": "Medium",
+      "exp_passed": "Experiments passed",
+      "exp_warned": "With warnings",
+      "exp_failed": "With errors",
+      "idle_multi": "Run the check to validate {count} {database} experiment(s) against the hub’s schema.",
+      "client_errors": "{count} cell(s) have errors — you can still run the server check, but they will fail.",
+      "no_id_short": "(no id)",
+      "exp_issue_summary": "{fields} field · {files} file issue(s)",
+      "global_issues": "Whole-file issues",
+      "all_passed": "Every experiment passed."
     },
     "review": {
       "title": "Review & submit",
@@ -1125,7 +1134,9 @@
       "quality_not_run": "Not run",
       "submit": "Submit for review",
       "draft_notice": "Submission is disabled in this first draft. The contribution pipeline currently ends at the quality check.",
-      "not_set": "—"
+      "not_set": "—",
+      "experiments": "Experiments",
+      "experiments_value": "{count} experiment(s), {withId} with an identifier"
     },
     "timeseries": {
       "summary": "{count} response file(s) accepted for this database",
@@ -1154,8 +1165,37 @@
         "distribution_f1": "Residual stress distribution F1",
         "distribution_f2": "Residual stress distribution F2",
         "distribution_w1": "Residual stress distribution W1",
-        "qp_coefficient": "QP coefficients"
-      }
+        "qp_coefficient": "QP coefficients",
+        "processed_data": "Processed data",
+        "force_elongation": "Force – elongation",
+        "force_elongation_simulation": "Force – elongation (simulation)",
+        "force_radial": "Force – radial",
+        "force_radial_simulation": "Force – radial (simulation)",
+        "epeq_simulation": "Equivalent plastic strain (simulation)",
+        "lode_simulation": "Lode angle (simulation)",
+        "triax_simulation": "Triaxiality (simulation)"
+      },
+      "bulk_title": "Attach many files at once",
+      "bulk_hint": "matched to experiments by filename",
+      "bulk_result": "{attached} file(s) attached.",
+      "bulk_unmatched": "No experiment matched: {files}",
+      "per_experiment": "per experiment",
+      "idless": "{count} experiment(s) without an identifier are hidden — set an id in the grid first.",
+      "attach": "Attach file"
+    },
+    "grid": {
+      "add_row": "Add experiment",
+      "only_issues": "Only rows with issues",
+      "error_count": "{count} with errors",
+      "warning_count": "{count} with warnings",
+      "no_issues": "No issues",
+      "download_template": "Template CSV",
+      "download_dictionary": "Data dictionary",
+      "import_prompt": "Drop a filled CSV here to load every experiment, or {browse}",
+      "import_ok": "Loaded {rows} experiment(s) from {file} — {matched} columns matched.",
+      "import_missing": "{count} required column(s) are missing and will be submitted as NR: {columns}",
+      "import_unknown": "{count} column(s) not in this database were ignored: {columns}",
+      "all_clean": "No rows have issues."
     }
   }
 }
