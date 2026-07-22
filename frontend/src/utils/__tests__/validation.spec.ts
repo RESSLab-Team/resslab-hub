@@ -1,4 +1,4 @@
-import type { DictColumn, DictType } from '@/utils/dictionary'
+import type { DictColumn, DictType } from '@/stores/dictionary'
 import { validateCell, validateHeaders, validateSheet } from '@/utils/validation'
 import { describe, expect, it } from 'vitest'
 
@@ -59,9 +59,15 @@ describe('validateCell — types', () => {
   })
 })
 
+const COLUMNS: DictColumn[] = [
+  { ...col('String', false), name: 'id' },
+  { ...col('String', false), name: 'investigator' },
+  { ...col('Numeric'), name: 'area' }
+]
+
 describe('validateHeaders', () => {
-  it('reports missing and unexpected against the braces dictionary', () => {
-    const report = validateHeaders('braces', ['id', 'not_a_real_column'])
+  it('reports missing and unexpected headers', () => {
+    const report = validateHeaders(COLUMNS, ['id', 'not_a_real_column'])
     expect(report.unexpected).toContain('not_a_real_column')
     expect(report.missing).toContain('investigator')
     expect(report.missing).not.toContain('id')
@@ -70,7 +76,7 @@ describe('validateHeaders', () => {
 
 describe('validateSheet', () => {
   it('flags a missing id and a bad numeric cell', () => {
-    const issues = validateSheet('braces', [
+    const issues = validateSheet(COLUMNS, [
       { id: '', area: 'abc' },
       { id: 'B2' }
     ])
@@ -80,7 +86,7 @@ describe('validateSheet', () => {
   })
 
   it('flags duplicate ids on every offending row', () => {
-    const issues = validateSheet('braces', [{ id: 'B1' }, { id: 'B1' }])
+    const issues = validateSheet(COLUMNS, [{ id: 'B1' }, { id: 'B1' }])
     expect(issues.get(0)?.id?.message).toContain('Duplicate')
     expect(issues.get(1)?.id?.message).toContain('Duplicate')
   })

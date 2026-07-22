@@ -1,20 +1,17 @@
 /**
  * Client-side mirror of the backend validator's per-cell rules
  * (`_validate_field` in `backend/resslab_hub/data/validator.py`), driven by the
- * data dictionary. It gives the grid instant per-cell feedback so contributors
- * rarely need a server round-trip; the server stays the authority.
+ * data dictionary. It gives the editor instant per-cell feedback; the server
+ * stays the authority.
  *
  * Parity contract: for the classes the server treats as ERRORS, this never
  * flags something the server would accept. Where the server is lenient in ways
  * that corrupt data (accepts `1.5` for an integer, truncating it) we downgrade
- * to a WARNING rather than diverge. Two deliberate parity breaks, both stricter
- * and therefore safe, are documented inline: we reject `NaN`/`Infinity` numbers,
- * and we warn on a blank required field.
+ * to a WARNING rather than diverge. Two deliberate, stricter parity breaks:
+ * `NaN`/`Infinity` are rejected, and a blank required field warns.
  */
 
-import { CONTRIBUTION_DATABASES } from '@/utils/contribution'
-import { dictionaryFor, type DictColumn } from '@/utils/dictionary'
-import type { DatabaseId } from '@/utils/navigation'
+import type { DictColumn } from '@/stores/dictionary'
 
 export interface CellIssue {
   level: 'error' | 'warn'
@@ -26,8 +23,7 @@ export interface CellIssue {
 const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/
 
 function isValidDate(value: string): boolean {
-  // Server accepts DD.MM.YY or DD.MM.YYYY (strptime %d.%m.%y then %d.%m.%Y),
-  // and strptime tolerates non-padded day/month.
+  // Server accepts DD.MM.YY or DD.MM.YYYY; strptime tolerates non-padded parts.
   const match = /^(\d{1,2})\.(\d{1,2})\.(\d{2}|\d{4})$/.exec(value)
   if (!match) return false
   const day = Number(match[1])
@@ -38,8 +34,7 @@ function isValidDate(value: string): boolean {
     year = year <= 68 ? 2000 + year : 1900 + year
   }
   if (month < 1 || month > 12 || day < 1) return false
-  const daysInMonth = new Date(year, month, 0).getDate()
-  return day <= daysInMonth
+  return day <= new Date(year, month, 0).getDate()
 }
 
 /** Validate a single cell against its column. Returns null when acceptable. */
@@ -47,7 +42,6 @@ export function validateCell(column: DictColumn, raw: string): CellIssue | null 
   const value = raw.trim()
 
   // A blank cell is serialized as NR ("not reported"), which the server skips.
-  // It is never an error, but a blank on a required column is worth flagging.
   if (value === '') {
     return column.nullable
       ? null
@@ -98,7 +92,6 @@ export function validateCell(column: DictColumn, raw: string): CellIssue | null 
           }
 
     default:
-      // String columns: anything is a valid string.
       return null
   }
 }
@@ -110,11 +103,11 @@ export interface HeaderReport {
   unexpected: string[]
 }
 
-export function validateHeaders(database: DatabaseId, headers: string[]): HeaderReport {
-  const known = new Set(CONTRIBUTION_DATABASES[database].columns)
+export function validateHeaders(columns: DictColumn[], headers: string[]): HeaderReport {
+  const known = new Set(columns.map((column) => column.name))
   const present = new Set(headers)
   return {
-    missing: CONTRIBUTION_DATABASES[database].columns.filter((column) => !present.has(column)),
+    missing: columns.map((column) => column.name).filter((name) => !present.has(name)),
     unexpected: headers.filter((header) => !known.has(header))
   }
 }
@@ -123,16 +116,14 @@ export function validateHeaders(database: DatabaseId, headers: string[]): Header
 export type SheetIssues = Map<number, Record<string, CellIssue>>
 
 /**
- * Validate every cell of every row, plus sheet-level rules the server cannot
- * see but that would break the upload: a specimen must have an id, and ids must
- * be unique (a time-series file's foreign key is its filename `<id>.csv`, so
- * duplicate ids are ambiguous).
+ * Validate every cell of every row, plus sheet rules the server cannot see but
+ * that would break the upload: a specimen must have an id, and ids must be
+ * unique (a time-series file's foreign key is its filename `<id>.csv`).
  */
 export function validateSheet(
-  database: DatabaseId,
+  columns: DictColumn[],
   rows: Array<Record<string, string>>
 ): SheetIssues {
-  const columns = dictionaryFor(database)
   const issues: SheetIssues = new Map()
 
   const setIssue = (rowIndex: number, column: string, issue: CellIssue) => {
@@ -148,7 +139,6 @@ export function validateSheet(
     }
   })
 
-  // Sheet rule: id is required and must be unique.
   const idRows = new Map<string, number[]>()
   rows.forEach((cells, rowIndex) => {
     const id = (cells.id ?? '').trim()

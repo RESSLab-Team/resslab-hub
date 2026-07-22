@@ -1,4 +1,5 @@
 import { defaultApi } from '@/plugins/axios'
+import { useDictionaryStore } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { DatabaseId } from '@/utils/navigation'
 import { buildTarGz } from '@/utils/tar'
@@ -8,18 +9,15 @@ import type { ValidationResponse } from '@/utils/validationResponse'
 import { isValidationResponse } from '@/utils/validationResponse'
 import { isAxiosError } from 'axios'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 export type { ValidationResponse } from '@/utils/validationResponse'
 
 export type QualityCheckStatus =
   | 'idle'
   | 'running'
-  /** Validation ran and the record is clean. */
   | 'pass'
-  /** Validation ran, no errors, but the validator raised warnings. */
   | 'warn'
-  /** Validation ran and rejected the record. */
   | 'fail'
   /** The backend has no validator for this database. */
   | 'unsupported'
@@ -46,7 +44,6 @@ function transportError(caught: unknown): string {
 
 /** A measured-response file attached to an experiment, held in memory until upload. */
 export interface AttachedTimeSeries {
-  /** Original filename, for display. */
   name: string
   content: string
   rows: number
@@ -54,19 +51,17 @@ export interface AttachedTimeSeries {
 
 /** One experiment (a data row) with a stable client-only id. */
 export interface ExperimentRow {
-  /** Monotonic, client-only. Keys time-series and survives id edits/reordering. */
+  /** Monotonic, client-only. Keys time-series and survives id edits. */
   uid: number
   cells: Record<string, string>
 }
 
-/** Where a quality-check issue wants to send the user in the grid. */
-export interface CellFocus {
-  uid: number
-  column: string
-}
+/** Idle time after the last edit before the server check fires. */
+const AUTO_VALIDATE_DELAY_MS = 2000
 
 export const useContributionStore = defineStore('contribution', () => {
-  const currentStep = ref(0)
+  const dictionary = useDictionaryStore()
+
   const database = ref<DatabaseId | null>(null)
   const program = ref('')
   const year = ref('')
@@ -78,7 +73,6 @@ export const useContributionStore = defineStore('contribution', () => {
     cells
   })
 
-  /** Experiments, one per grid row. Starts with a single blank row. */
   const rows = ref<ExperimentRow[]>([newRow()])
   /** Attached time-series, keyed by `${row.uid}:${TimeSeriesKind.key}`. */
   const timeSeries = ref<Record<string, AttachedTimeSeries>>({})
@@ -86,28 +80,19 @@ export const useContributionStore = defineStore('contribution', () => {
   const status = ref<QualityCheckStatus>('idle')
   const response = ref<ValidationResponse | null>(null)
   const errorMessage = ref('')
-  /** Set by the quality step to jump to a cell; the grid consumes and clears it. */
-  const focusRequest = ref<CellFocus | null>(null)
 
   const config = computed(() => (database.value ? CONTRIBUTION_DATABASES[database.value] : null))
+  const columns = computed(() => dictionary.columnsFor(database.value))
 
   const experimentCount = computed(() => rows.value.length)
-
   const specimenIds = computed(() =>
     rows.value.map((row) => (row.cells.id ?? '').trim()).filter((id) => id !== '')
   )
   const hasAnyId = computed(() => specimenIds.value.length > 0)
 
-  const filledCount = computed(() =>
-    rows.value.reduce(
-      (total, row) => total + Object.values(row.cells).filter((v) => (v ?? '').trim() !== '').length,
-      0
-    )
-  )
-
-  /** Per-cell client-side issues across the whole sheet (empty when no database). */
+  /** Per-cell client-side issues across all experiments. */
   const clientIssues = computed<SheetIssues>(() =>
-    database.value ? validateSheet(database.value, rows.value.map((row) => row.cells)) : new Map()
+    validateSheet(columns.value, rows.value.map((row) => row.cells))
   )
 
   const clientErrorCount = computed(() => {
@@ -124,8 +109,7 @@ export const useContributionStore = defineStore('contribution', () => {
 
   function selectDatabase(id: DatabaseId): void {
     if (database.value === id) return
-    // Columns differ per database, so carrying values across would leave
-    // orphaned keys that never reach the CSV.
+    // Columns differ per database; carried-over values would never reach the CSV.
     database.value = id
     rows.value = [newRow()]
     timeSeries.value = {}
@@ -134,43 +118,27 @@ export const useContributionStore = defineStore('contribution', () => {
 
   function addRow(): void {
     rows.value.push(newRow())
-    resetQualityCheck()
   }
 
   function duplicateRow(uid: number): void {
     const source = rowByUid(uid)
     if (!source) return
-    // Clear the id: ids must be unique, so a copy needs its own.
+    // Ids must be unique, so a copy starts without one.
     rows.value.push(newRow({ ...source.cells, id: '' }))
-    resetQualityCheck()
   }
 
   function removeRow(uid: number): void {
-    // Always keep at least one row so the grid is never empty.
-    if (rows.value.length <= 1) {
-      rows.value = [newRow()]
-    } else {
-      rows.value = rows.value.filter((row) => row.uid !== uid)
-    }
+    // Keep at least one row so the editor is never empty.
+    rows.value = rows.value.length > 1 ? rows.value.filter((row) => row.uid !== uid) : [newRow()]
     for (const key of Object.keys(timeSeries.value)) {
       if (key.startsWith(`${uid}:`)) delete timeSeries.value[key]
     }
-    resetQualityCheck()
   }
 
   /** Replace all experiments from imported CSV rows. */
   function importRows(records: Array<Record<string, string>>): void {
     rows.value = records.length ? records.map((cells) => newRow(cells)) : [newRow()]
     timeSeries.value = {}
-    resetQualityCheck()
-  }
-
-  function requestFocus(uid: number, column: string): void {
-    focusRequest.value = { uid, column }
-  }
-
-  function clearFocus(): void {
-    focusRequest.value = null
   }
 
   function resetQualityCheck(): void {
@@ -181,30 +149,30 @@ export const useContributionStore = defineStore('contribution', () => {
 
   async function runQualityCheck(): Promise<void> {
     const target = config.value
-    if (!target || !database.value) return
+    if (!target || !database.value || columns.value.length === 0) return
 
     if (!target.qualityCheckSupported) {
       status.value = 'unsupported'
       return
     }
+    if (!hasAnyId.value) return
 
     status.value = 'running'
     response.value = null
     errorMessage.value = ''
 
     try {
-      // The primary CSV (all experiments) plus each attached time-series, placed
-      // in the directory its subsidiary type is globbed from and named after its
-      // experiment's id — the validator resolves the foreign key from the
-      // filename against the primary CSV's `id`, so both travel in one archive.
-      const kinds = timeSeriesKindsFor(database.value)
+      // The primary CSV (all experiments) plus each attached time-series, named
+      // `<id>.csv` in its kind's directory — the validator reads the foreign
+      // key from the filename, matched against the primary CSV in the archive.
+      const columnNames = columns.value.map((column) => column.name)
       const entries = [
-        { path: target.csvPath, content: buildCsv(database.value, rows.value.map((r) => r.cells)) }
+        { path: target.csvPath, content: buildCsv(columnNames, rows.value.map((r) => r.cells)) }
       ]
       for (const row of rows.value) {
         const id = (row.cells.id ?? '').trim()
-        if (id === '') continue // no filename to key on
-        for (const kind of kinds) {
+        if (id === '') continue
+        for (const kind of timeSeriesKindsFor(database.value)) {
           const attached = timeSeries.value[`${row.uid}:${kind.key}`]
           if (attached) {
             entries.push({ path: `${kind.directory}/${id}.csv`, content: attached.content })
@@ -220,28 +188,39 @@ export const useContributionStore = defineStore('contribution', () => {
       response.value = data
       status.value = deriveStatus(data)
     } catch (caught) {
-      // The validator returns 200 for data errors too, so a rejection here means
-      // a transport problem: 400 (bad archive), 413 (too large), 429 (rate
-      // limited) or a 5xx.
       status.value = 'error'
       errorMessage.value = transportError(caught)
     }
   }
 
+  // Auto-validate: any edit invalidates the last report and re-checks after a
+  // quiet delay. Trailing-only, so continuous typing fires nothing; a failed
+  // request is not auto-retried (the manual "Check now" button covers that).
+  let debounce: ReturnType<typeof setTimeout> | undefined
+  watch(
+    [rows, timeSeries],
+    () => {
+      if (status.value !== 'running') resetQualityCheck()
+      clearTimeout(debounce)
+      if (!config.value?.qualityCheckSupported || !hasAnyId.value) return
+      debounce = setTimeout(() => {
+        if (status.value !== 'running') runQualityCheck()
+      }, AUTO_VALIDATE_DELAY_MS)
+    },
+    { deep: true }
+  )
+
   function reset(): void {
-    currentStep.value = 0
     database.value = null
     program.value = ''
     year.value = ''
     doi.value = ''
     rows.value = [newRow()]
     timeSeries.value = {}
-    focusRequest.value = null
     resetQualityCheck()
   }
 
   return {
-    currentStep,
     database,
     program,
     year,
@@ -251,12 +230,11 @@ export const useContributionStore = defineStore('contribution', () => {
     status,
     response,
     errorMessage,
-    focusRequest,
     config,
+    columns,
     experimentCount,
     specimenIds,
     hasAnyId,
-    filledCount,
     clientIssues,
     clientErrorCount,
     rowByUid,
@@ -265,8 +243,6 @@ export const useContributionStore = defineStore('contribution', () => {
     duplicateRow,
     removeRow,
     importRows,
-    requestFocus,
-    clearFocus,
     resetQualityCheck,
     runQualityCheck,
     reset

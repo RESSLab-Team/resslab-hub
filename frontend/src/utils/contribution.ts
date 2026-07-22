@@ -1,6 +1,5 @@
 import { Type } from '@/backend'
 import i18n from '@/plugins/i18n'
-import { dictionaryFor } from '@/utils/dictionary'
 import type { DatabaseId } from '@/utils/navigation'
 
 export interface ContributionDatabase {
@@ -17,7 +16,7 @@ export interface ContributionDatabase {
   qualityCheckSupported: boolean
 }
 
-const DATABASE_META: Record<DatabaseId, ContributionDatabase> = {
+export const CONTRIBUTION_DATABASES: Record<DatabaseId, ContributionDatabase> = {
   connections: {
     type: Type.AllConnections,
     csvPath: 'connections/connections.csv',
@@ -74,23 +73,6 @@ const DATABASE_META: Record<DatabaseId, ContributionDatabase> = {
   }
 }
 
-export interface ContributionDatabaseConfig extends ContributionDatabase {
-  /** Table columns, in the order the CSV header will list them (dictionary order). */
-  columns: string[]
-}
-
-/**
- * Per-database contribution config. Columns come from the baked data dictionary
- * — the same source that generates the ORM/validator, so they match the
- * validator's `__table__.c` exactly (no more `_8t`/`_count`/derived fixups).
- */
-export const CONTRIBUTION_DATABASES = Object.fromEntries(
-  (Object.keys(DATABASE_META) as DatabaseId[]).map((id) => [
-    id,
-    { ...DATABASE_META[id], columns: dictionaryFor(id).map((column) => column.name) }
-  ])
-) as Record<DatabaseId, ContributionDatabaseConfig>
-
 /** `f_yn` → `F yn`; a readable fallback when a column has no translation. */
 function prettify(column: string): string {
   const spaced = column.replace(/_/g, ' ')
@@ -117,8 +99,7 @@ export function escapeCsv(value: string): string {
  * empty string would instead fail every numeric and date check, burying the
  * real problems under noise.
  */
-export function buildCsv(database: DatabaseId, rows: Array<Record<string, string>>): string {
-  const { columns } = CONTRIBUTION_DATABASES[database]
+export function buildCsv(columns: string[], rows: Array<Record<string, string>>): string {
   const header = columns.map(escapeCsv).join(',')
   const body = rows
     .map((cells) => columns.map((column) => escapeCsv(cells[column]?.trim() || 'NR')).join(','))

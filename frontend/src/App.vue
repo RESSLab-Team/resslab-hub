@@ -46,10 +46,7 @@ watch(
 
 <template>
   <v-app>
-    <!-- The contribution pipeline runs its own full-bleed chrome (sign-in gate,
-         wizard rail), so it opts out of the sidebar shell. -->
-    <router-view v-if="route.meta.fullScreen" />
-    <div v-else class="app-shell">
+    <div class="app-shell">
       <app-sidebar
         :open="sidebarOpen"
         :dark="dark"
