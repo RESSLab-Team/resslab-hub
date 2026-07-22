@@ -249,6 +249,30 @@ async def test_validate_ignores_dictionary_files(client, tmp_path):
     assert [entry["path"] for entry in body["results"]] == ["braces/steel_braces.csv"]
 
 
+async def test_validate_surfaces_range_warnings(client, tmp_path):
+    # Seed enough braces that "the norm" is established, then validate an
+    # outlier: it must warn (please-verify) while remaining valid.
+    seed_path = tmp_path / "seed.csv"
+    write_main_csv(
+        seed_path,
+        Brace,
+        [{"id": f"B{i}", "area": str(10 + i)} for i in range(20)],
+    )
+    upload_one(Type.BRACE, str(seed_path))
+
+    archive = _braces_targz(tmp_path, [{"id": "NEW", "area": "10000"}])
+    response = await client.post(
+        "/validate", params={"type": "all-braces"}, files=_upload(archive)
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["valid"] is True
+    warnings = body["results"][0]["warnings"]
+    assert any(w["column"] == "area" and "verify" in w["message"] for w in warnings)
+    # Legacy arrays still carry the same information for the data-repo CI.
+    assert any("verify" in w for w in body["valid_results"][0]["warnings"])
+
+
 # ---------------------------------------------------------------------------
 # /dictionary
 # ---------------------------------------------------------------------------
