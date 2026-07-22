@@ -44,6 +44,7 @@ from resslab_hub.models.database.connection import (
     ConnectionGlobalWest,
     ConnectionPanelZone,
 )
+from resslab_hub.models.database.dictionary import DictionaryColumn
 from resslab_hub.models.database.ductile_fracture import (
     DuctileFracture,
     DuctileFractureEpeqSimulation,
@@ -167,6 +168,7 @@ def initializer(log_level=None, log_format=None):
 
 class Type(Enum):
     ALL = "all"  # Triggers upload of all data types
+    DICTIONARY = "dictionary"  # A *_data_dictionary.csv file
     ALL_COLUMN = "all-columns"  # Main column table + related measurements
     ALL_BRACE = "all-braces"
     ALL_CONNECTION = "all-connections"
@@ -505,6 +507,65 @@ class CsvFileUploader(Uploader):
         return path.splitext(basename)[0]
 
 
+# Data-dictionary CSV basename -> frontend DatabaseId. The mapping lives here so
+# the frontend consumes /dictionary keys as-is.
+DICTIONARY_DATABASES = {
+    "connections_data_dictionary.csv": "connections",
+    "steel_columns_data_dictionary.csv": "columns",
+    "steel_braces_data_dictionary.csv": "braces",
+    "hss_columns_data_dictionary.csv": "hss",
+    "steel_material_data_dictionary.csv": "cyclic",
+    "residual_stresses_data_dictionary.csv": "residuals",
+    "eccentric_braced_frames_data_dictionary.csv": "ebf",
+    "tensile_coupons_data_dictionary.csv": "tensile",
+    "ductile_fracture_data_dictionary.csv": "ductile-fracture",
+}
+
+
+class DictionaryUploader(Uploader):
+    """
+    Loads a ``*_data_dictionary.csv`` into the dictionary_column table.
+
+    The 7-column dictionary CSVs don't fit TableUploader (they carry neither the
+    database discriminator nor the row position), so rows are built here and the
+    database's previous entries replaced wholesale.
+    """
+
+    def upload_one(self, file_path: str) -> str:
+        file_path = get_abs_path(file_path)
+        database = DICTIONARY_DATABASES.get(path.basename(file_path))
+        if database is None:
+            return f"Skipping unknown dictionary file {path.basename(file_path)}"
+
+        rows = []
+        with open(file_path, newline="", encoding="utf-8-sig") as file:
+            for position, entry in enumerate(DictReader(file)):
+                column_name = (entry.get("column_name") or "").strip()
+                if not column_name:
+                    continue
+                rows.append(
+                    DictionaryColumn(
+                        database=database,
+                        column_name=column_name,
+                        position=position,
+                        description=(entry.get("description") or "").strip(),
+                        symbol=(entry.get("symbol") or "").strip(),
+                        unit=(entry.get("unit") or "").strip(),
+                        type=(entry.get("type") or "String").strip(),
+                        example=(entry.get("example_value") or "").strip(),
+                        nullable=(entry.get("nullable") or "").strip() == "True",
+                    )
+                )
+
+        with Session() as session:
+            session.execute(
+                delete(DictionaryColumn).where(DictionaryColumn.database == database)
+            )
+            session.add_all(rows)
+            session.commit()
+        return f"{path.basename(file_path)}: {len(rows)} dictionary columns"
+
+
 def upload_one(input_type: Type, filename: str) -> str:
     """
     Handles individual file uploads based on type
@@ -521,6 +582,8 @@ def upload_one(input_type: Type, filename: str) -> str:
     info(f"Upload one: {input_type}, {filename}")
     try:
         match input_type:
+            case Type.DICTIONARY:
+                uploader = DictionaryUploader()
             case Type.BRACE:
                 uploader = TableUploader(Brace)
             case Type.COLUMN:
@@ -895,6 +958,10 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             return [
                 (Type.BRACE, path.join(root_folder, "steel_braces.csv")),
                 (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "steel_braces_data_dictionary.csv"),
+                ),
+                (
                     Type.BRACE_DISPLACEMENT,
                     path.join(root_folder, "force_displacement", "*.csv"),
                 ),
@@ -903,6 +970,10 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             root_folder = path.join(filename, "columns")
             return [
                 (Type.COLUMN, path.join(root_folder, "steel_columns.csv")),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "steel_columns_data_dictionary.csv"),
+                ),
                 (
                     Type.COLUMN_AXIAL_SHORTENING,
                     path.join(
@@ -924,6 +995,10 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             root_folder = path.join(filename, "connections")
             return [
                 (Type.CONNECTION, path.join(root_folder, "connections.csv")),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "connections_data_dictionary.csv"),
+                ),
                 (
                     Type.CONNECTION_BEAM,
                     path.join(root_folder, "Beam_moment_rotation", "*.csv"),
@@ -954,6 +1029,10 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             return [
                 (Type.MATERIAL, path.join(root_folder, "steel_material.csv")),
                 (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "steel_material_data_dictionary.csv"),
+                ),
+                (
                     Type.MATERIAL_STRESS_STRAIN,
                     path.join(root_folder, "stress_strain", "*.csv"),
                 ),
@@ -964,6 +1043,10 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 (
                     Type.RESIDUAL_STRESS,
                     path.join(root_folder, "residual_stresses.csv"),
+                ),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "residual_stresses_data_dictionary.csv"),
                 ),
                 (
                     Type.RESIDUAL_STRESS_DISTRIBUTION_F1,
@@ -1002,6 +1085,10 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     path.join(root_folder, "hss_columns.csv"),
                 ),
                 (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "hss_columns_data_dictionary.csv"),
+                ),
+                (
                     Type.HSS_COLUMN_MOMENT_ROTATION,
                     path.join(root_folder, "Moment_Rotation", "*.csv"),
                 ),
@@ -1014,6 +1101,12 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     path.join(root_folder, "eccentric_braced_frames.csv"),
                 ),
                 (
+                    Type.DICTIONARY,
+                    path.join(
+                        root_folder, "eccentric_braced_frames_data_dictionary.csv"
+                    ),
+                ),
+                (
                     Type.ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE,
                     path.join(root_folder, "processed_data", "*.csv"),
                 ),
@@ -1022,6 +1115,10 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             root_folder = path.join(filename, "material", "tensile_coupons")
             return [
                 (Type.TENSILE_COUPON, path.join(root_folder, "tensile_coupons.csv")),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "tensile_coupons_data_dictionary.csv"),
+                ),
                 (
                     Type.TENSILE_COUPON_STRESS_STRAIN,
                     path.join(root_folder, "stress_strain", "*.csv"),
@@ -1033,6 +1130,10 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 (
                     Type.DUCTILE_FRACTURE,
                     path.join(root_folder, "ductile_fracture.csv"),
+                ),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "ductile_fracture_data_dictionary.csv"),
                 ),
                 (
                     Type.DUCTILE_FRACTURE_FORCE_ELONGATION,

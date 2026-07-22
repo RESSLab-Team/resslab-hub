@@ -621,7 +621,14 @@ def validate_all(
     wildcard_args = [
         arg for filename in filenames for arg in get_args_all(input_type, filename)
     ]
-    args = [(arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])]
+    args = [
+        (arg[0], filename)
+        for arg in wildcard_args
+        for filename in iglob(arg[1])
+        # Dictionary CSVs are upload metadata, not contributed data: archives
+        # from the data repo contain them, but there is nothing to validate.
+        if arg[0] is not Type.DICTIONARY
+    ]
 
     # Split into primary and subsidiary types
     primary_types = [

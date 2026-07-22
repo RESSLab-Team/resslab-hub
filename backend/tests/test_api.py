@@ -224,3 +224,66 @@ async def test_validate_rejects_non_archive(client, tmp_path):
         "/validate", params={"type": "all-braces"}, files=_upload(b"not a tar")
     )
     assert response.status_code == 400
+
+
+async def test_validate_ignores_dictionary_files(client, tmp_path):
+    # Data-repo CI archives contain the dictionary CSV alongside the data; it
+    # must be skipped, not validated (there is no validator for it).
+    csv_path = tmp_path / "steel_braces.csv"
+    write_main_csv(csv_path, Brace, [{"id": "B1"}])
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w:gz") as tar:
+        tar.add(csv_path, arcname="braces/steel_braces.csv")
+        dictionary = (
+            b"column_name,description,symbol,unit,type,example_value,nullable\n"
+        )
+        info = tarfile.TarInfo(name="braces/steel_braces_data_dictionary.csv")
+        info.size = len(dictionary)
+        tar.addfile(info, io.BytesIO(dictionary))
+    response = await client.post(
+        "/validate", params={"type": "all-braces"}, files=_upload(buffer.getvalue())
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["valid"] is True
+    assert [entry["path"] for entry in body["results"]] == ["braces/steel_braces.csv"]
+
+
+# ---------------------------------------------------------------------------
+# /dictionary
+# ---------------------------------------------------------------------------
+async def test_dictionary_endpoint_groups_by_database(client, tmp_path):
+    from resslab_hub.data.uploader import upload_one as upload
+
+    file_path = tmp_path / "steel_braces_data_dictionary.csv"
+    file_path.write_text(
+        "column_name,description,symbol,unit,type,example_value,nullable\n"
+        "id,Unique identifier,,-,String,B1,False\n"
+        "area,Cross-section area,A,mm2,DecimalFloat,120.5,True\n",
+        encoding="utf-8",
+    )
+    upload(Type.DICTIONARY, str(file_path))
+
+    response = await client.get("/dictionary")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["braces"] == [
+        {
+            "name": "id",
+            "description": "Unique identifier",
+            "symbol": "",
+            "unit": "-",
+            "type": "String",
+            "example": "B1",
+            "nullable": False,
+        },
+        {
+            "name": "area",
+            "description": "Cross-section area",
+            "symbol": "A",
+            "unit": "mm2",
+            "type": "DecimalFloat",
+            "example": "120.5",
+            "nullable": True,
+        },
+    ]

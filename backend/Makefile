@@ -119,15 +119,7 @@ transform-data:
 analyze-data:
 	uv run python -m data.analyzer ../../resslab-hub-data/connections/connections.csv ../../resslab-hub-data/material/cyclic_coupons/steel_material.csv ../../resslab-hub-data/columns/steel_columns.csv ../../resslab-hub-data/braces/steel_braces.csv ../../resslab-hub-data/residual_stresses/residual_stresses.csv ../../resslab-hub-data/hss_columns/hss_columns.csv
 
-# Bake the data dictionaries into a frontend asset (tooltips, units, symbols,
-# example values, required flags). Chained into generate-model so the models and
-# this asset never drift -- they come from the same *_data_dictionary.csv files.
-generate-dictionary:
-	uv run python data/generate_dictionary.py \
-		../../resslab-hub-data \
-		../frontend/src/assets/contribute/dictionary.json
-
-generate-model: generate-dictionary
+generate-model:
 	uv run python data/generate_model.py \
 		../../resslab-hub-data/braces/steel_braces_data_dictionary.csv \
 		resslab_hub/models/database/brace.py \

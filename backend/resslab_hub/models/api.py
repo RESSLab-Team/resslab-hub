@@ -275,6 +275,21 @@ class DateRangeModel(BaseModel):
     max: date
 
 
+class DictionaryColumnModel(BaseModel):
+    """
+    One column of a database's data dictionary.
+    Field names match the frontend's DictColumn shape.
+    """
+
+    name: str
+    description: str
+    symbol: str
+    unit: str
+    type: str
+    example: str
+    nullable: bool
+
+
 FieldsModel = Dict[str, Any]
 
 
