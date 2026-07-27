@@ -205,3 +205,67 @@ def test_uploader_classes_share_interface():
     """Both concrete uploaders implement the common ``Uploader`` interface."""
     assert issubclass(TableUploader, Uploader)
     assert issubclass(CsvFileUploader, Uploader)
+
+
+# ---------------------------------------------------------------------------
+# DictionaryUploader
+# ---------------------------------------------------------------------------
+DICTIONARY_HEADER = "column_name,description,symbol,unit,type,example_value,nullable"
+
+
+def write_dictionary_csv(tmp_path, rows):
+    # The basename selects the target database ("braces").
+    file_path = tmp_path / "steel_braces_data_dictionary.csv"
+    file_path.write_text(
+        DICTIONARY_HEADER + "\n" + "\n".join(rows) + "\n", encoding="utf-8"
+    )
+    return file_path
+
+
+def test_dictionary_uploader_roundtrip(tmp_path, db_session):
+    from resslab_hub.models.database.dictionary import DictionaryColumn
+
+    file_path = write_dictionary_csv(
+        tmp_path,
+        [
+            "id,Unique identifier,,-,String,B1,False",
+            "area,Cross-section area,A,mm2,DecimalFloat,120.5,True",
+        ],
+    )
+    upload_one(Type.DICTIONARY, str(file_path))
+
+    rows = (
+        db_session.query(DictionaryColumn)
+        .filter(DictionaryColumn.database == "braces")
+        .order_by(DictionaryColumn.position)
+        .all()
+    )
+    assert [row.column_name for row in rows] == ["id", "area"]
+    assert rows[0].nullable is False
+    assert rows[1].unit == "mm2"
+    assert rows[1].example == "120.5"
+
+
+def test_dictionary_uploader_replaces_previous_rows(tmp_path, db_session):
+    from resslab_hub.models.database.dictionary import DictionaryColumn
+
+    upload_one(
+        Type.DICTIONARY,
+        str(
+            write_dictionary_csv(
+                tmp_path, ["id,Old,,-,String,B1,False", "gone,Old,,-,String,x,True"]
+            )
+        ),
+    )
+    upload_one(
+        Type.DICTIONARY,
+        str(write_dictionary_csv(tmp_path, ["id,New,,-,String,B1,False"])),
+    )
+
+    rows = (
+        db_session.query(DictionaryColumn)
+        .filter(DictionaryColumn.database == "braces")
+        .all()
+    )
+    assert [row.column_name for row in rows] == ["id"]
+    assert rows[0].description == "New"

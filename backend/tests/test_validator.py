@@ -1,13 +1,16 @@
-"""Pure-unit tests for the CSV integrity validator.
+"""Tests for the CSV integrity validator.
 
-``TableValidator`` checks a CSV against an ORM model's column *metadata*
-(headers, nullability, declared SQL types) -- it never opens a database
-connection -- so these run without PostgreSQL.
+Most of ``TableValidator`` checks a CSV against an ORM model's column
+*metadata* (headers, nullability, declared SQL types), so those tests run
+without PostgreSQL — the range-statistics query degrades to "no stats" when no
+database is reachable. The range-warning tests at the bottom do need the test
+database (they seed existing data to compare against).
 """
 
 import csv
 from pathlib import Path
 
+from resslab_hub.data.uploader import Type, upload_one
 from resslab_hub.data.validator import (
     TableValidator,
     ValidationResult,
@@ -43,6 +46,14 @@ class TestValidationResult:
         text = str(result)
         assert "file.csv" in text
         assert "area" in text
+
+    def test_file_path_defaults_to_filename(self):
+        result = ValidationResult("file.csv")
+        assert result.file_path == "file.csv"
+
+    def test_file_path_is_retained(self):
+        result = ValidationResult("file.csv", "/tmp/x/file.csv")
+        assert result.file_path == "/tmp/x/file.csv"
 
 
 class TestTableValidator:
@@ -119,3 +130,90 @@ class TestTableValidator:
 
         assert not result.is_valid()
         assert any(e.column == "investigator" for e in result.errors)
+
+    def test_row_numbering_is_one_based_excluding_header(self, tmp_path: Path):
+        # The error must point at data row 2 (the second data row), proving the
+        # header is excluded and numbering starts at 1. The frontend grid maps
+        # server row N to grid row N-1, so this contract is load-bearing.
+        file_path = tmp_path / "braces.csv"
+        write_main_csv(
+            file_path,
+            Brace,
+            [
+                {"id": "B1", "area": "1.0"},
+                {"id": "B2", "area": "not-a-number"},
+            ],
+        )
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        area_errors = [e for e in result.errors if e.column == "area"]
+        assert area_errors, str(result)
+        assert area_errors[0].row == 2
+
+    def test_result_file_path_is_the_validated_file(self, tmp_path: Path):
+        file_path = tmp_path / "braces.csv"
+        write_main_csv(file_path, Brace, [{"id": "B1"}])
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert result.file_path.endswith("braces.csv")
+
+
+class TestRangeWarnings:
+    """Warn when a value is far outside the range of existing data.
+
+    Uses the throwaway test database: ``db_session`` guarantees empty tables at
+    the start of each test, and seeding goes through the real uploader.
+    """
+
+    @staticmethod
+    def _seed_braces(tmp_path: Path, count: int):
+        # area spans 10..10+count-1; every other column gets fixture defaults.
+        csv_path = tmp_path / "steel_braces.csv"
+        write_main_csv(
+            csv_path,
+            Brace,
+            [{"id": f"B{i}", "area": str(10 + i)} for i in range(count)],
+        )
+        upload_one(Type.BRACE, str(csv_path))
+
+    @staticmethod
+    def _validate_area(tmp_path: Path, area: str):
+        file_path = tmp_path / "contribution.csv"
+        write_main_csv(file_path, Brace, [{"id": "NEW", "area": area}])
+        return TableValidator(Brace).validate_one(str(file_path))
+
+    @staticmethod
+    def _area_warnings(result):
+        return [
+            w for w in result.warnings if w.column == "area" and "range" in w.message
+        ]
+
+    def test_far_outlier_warns_but_stays_valid(self, tmp_path: Path, db_session):
+        self._seed_braces(tmp_path, 20)  # area 10..29
+
+        result = self._validate_area(tmp_path, "10000")
+
+        warnings = self._area_warnings(result)
+        assert len(warnings) == 1
+        assert warnings[0].row == 1
+        assert "10 to 29" in warnings[0].message
+        assert "verify" in warnings[0].message
+        assert result.is_valid()  # a warning, never an error
+
+    def test_value_within_one_span_of_range_does_not_warn(
+        self, tmp_path: Path, db_session
+    ):
+        self._seed_braces(tmp_path, 20)  # area 10..29, span 19 -> bounds [-9, 48]
+
+        assert not self._area_warnings(self._validate_area(tmp_path, "45"))
+        assert not self._area_warnings(self._validate_area(tmp_path, "25"))
+
+    def test_too_little_existing_data_never_warns(self, tmp_path: Path, db_session):
+        self._seed_braces(tmp_path, 19)  # below RANGE_MIN_COUNT
+
+        assert not self._area_warnings(self._validate_area(tmp_path, "10000"))
+
+    def test_empty_table_never_warns(self, tmp_path: Path, db_session):
+        assert not self._area_warnings(self._validate_area(tmp_path, "10000"))

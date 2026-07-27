@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi_pagination import add_pagination
+from slowapi.errors import RateLimitExceeded
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from resslab_hub import __name__ as title
@@ -21,6 +22,7 @@ from resslab_hub.routers import (
     braces,
     columns,
     connections,
+    dictionary,
     ductile_fracture,
     eccentric_braced_frame,
     hss_columns,
@@ -32,6 +34,7 @@ from resslab_hub.routers import (
 from resslab_hub.utils.caching import HTTPCacheMiddleware
 from resslab_hub.utils.database import upgrade_database
 from resslab_hub.utils.fastapi import use_route_names_as_operation_ids
+from resslab_hub.utils.rate_limit import limiter
 
 
 # Function to determine if --log-level debug is set
@@ -52,6 +55,16 @@ app = FastAPI(
     version=__version__,
     root_path=settings.root_path,  # type: ignore
 )
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Too many requests. Please slow down and retry."},
+    )
+
 
 # Compress JSON/CSV responses (highly compressible numeric payloads).
 # minimum_size avoids the overhead of compressing tiny responses.
@@ -86,6 +99,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 app.include_router(root.router)
 app.include_router(analytics.router)
+app.include_router(dictionary.router)
 app.include_router(braces.router)
 app.include_router(columns.router)
 app.include_router(connections.router)

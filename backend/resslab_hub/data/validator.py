@@ -23,6 +23,8 @@ from sqlalchemy import (
     SmallInteger,
     String,
     create_engine,
+    func,
+    select,
     text,
 )
 from sqlalchemy.orm import Session
@@ -59,8 +61,12 @@ class ValidationError:
 
 
 class ValidationResult:
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, file_path: str = None):
         self.filename = filename
+        # Absolute path of the validated file. The router derives the
+        # archive-relative path from this so time-series kinds that share a
+        # basename (e.g. every residual-stress ``<id>.csv``) stay distinct.
+        self.file_path = file_path if file_path is not None else filename
         self.errors: List[ValidationError] = []
         self.error_count: Integer = 0
         self.warnings: List[ValidationError] = []
@@ -100,6 +106,11 @@ class Validator(ABC):
         """
 
 
+# A range warning needs at least this many existing values before "the norm"
+# means anything.
+RANGE_MIN_COUNT = 20
+
+
 class TableValidator(Validator):
     """
     Validator for table data (csv files with headers matching table columns)
@@ -109,9 +120,71 @@ class TableValidator(Validator):
         self.base_model = base_model
         self.id_column_key = id_column_key
 
+    def _range_stats(self) -> dict:
+        """Per-column (count, min, max) over existing data, one query per file.
+
+        Returns {} when the database is unreachable, keeping this validator
+        usable without a database (header/type checks still run).
+        """
+        numeric_columns = [
+            column
+            for column in self.base_model.__table__.c
+            if isinstance(column.type, (Integer, Numeric))
+        ]
+        if not numeric_columns:
+            return {}
+        aggregates = []
+        for column in numeric_columns:
+            aggregates.extend([func.count(column), func.min(column), func.max(column)])
+        try:
+            with Session(engine) as session:
+                row = session.execute(select(*aggregates)).one()
+        except Exception:
+            return {}
+        return {
+            column.key: (row[i * 3], row[i * 3 + 1], row[i * 3 + 2])
+            for i, column in enumerate(numeric_columns)
+            if row[i * 3] >= RANGE_MIN_COUNT
+        }
+
+    @staticmethod
+    def _check_range(
+        result: ValidationResult, row: int, column_name: str, value: str, stats: dict
+    ):
+        """Warn when a value is far outside the range of existing data.
+
+        The value is not necessarily wrong — the warning asks the contributor
+        to double-check it. "Far outside" = beyond one full span of the
+        observed [min, max] on either side.
+        """
+        if column_name not in stats:
+            return
+        try:
+            number = Decimal(value)
+        except (InvalidOperation, ValueError):
+            return
+        _, minimum, maximum = stats[column_name]
+        span = maximum - minimum
+        if span == 0:
+            span = abs(maximum) or Decimal(1)
+        if number < minimum - span or number > maximum + span:
+
+            def plain(bound) -> str:
+                return format(Decimal(bound).normalize(), "f")
+
+            result.add_warning(
+                row,
+                column_name,
+                value,
+                f"Value is far outside the range of existing data for this "
+                f"column ({plain(minimum)} to {plain(maximum)}) — "
+                f"please verify it.",
+            )
+
     def validate_one(self, file_path: str) -> ValidationResult:
         file_path = get_abs_path(file_path)
-        result = ValidationResult(path.basename(file_path))
+        result = ValidationResult(path.basename(file_path), file_path)
+        range_stats = self._range_stats()
 
         try:
             encoding = get_file_encoding(file_path)
@@ -175,6 +248,9 @@ class TableValidator(Validator):
 
                         column = self.base_model.__table__.c[column_name]
                         self._validate_field(result, row_num, column, value)
+                        self._check_range(
+                            result, row_num, column_name, value, range_stats
+                        )
 
         except Exception as e:
             result.add_error(0, "file", file_path, f"Failed to process file: {str(e)}")
@@ -321,7 +397,7 @@ class CsvFileValidator(Validator):
             relative_path = path.relpath(
                 file_path, start=path.join(path.sep, *file_path.split(path.sep)[:7])
             )
-            result = ValidationResult(path.basename(file_path))
+            result = ValidationResult(path.basename(file_path), file_path)
             filename = path.splitext(path.basename(file_path))[0]
             encoding = get_file_encoding(file_path)
 
@@ -617,7 +693,14 @@ def validate_all(
     wildcard_args = [
         arg for filename in filenames for arg in get_args_all(input_type, filename)
     ]
-    args = [(arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])]
+    args = [
+        (arg[0], filename)
+        for arg in wildcard_args
+        for filename in iglob(arg[1])
+        # Dictionary CSVs are upload metadata, not contributed data: archives
+        # from the data repo contain them, but there is nothing to validate.
+        if arg[0] is not Type.DICTIONARY
+    ]
 
     # Split into primary and subsidiary types
     primary_types = [

@@ -1,4 +1,4 @@
-import { parseCsv, readCsvRecord } from '@/utils/csv'
+import { parseCsv, readCsvTable } from '@/utils/csv'
 import { describe, expect, it } from 'vitest'
 
 describe('parseCsv', () => {
@@ -40,37 +40,32 @@ describe('parseCsv', () => {
   })
 })
 
-describe('readCsvRecord', () => {
+describe('readCsvTable', () => {
   const columns = ['id', 'area', 'steel']
 
-  it('maps the first data row onto known columns', () => {
-    const record = readCsvRecord('id,area,steel\nBRC-1,4580,A992\n', columns)
-    expect(record.values).toEqual({ id: 'BRC-1', area: '4580', steel: 'A992' })
-    expect(record.matched).toEqual(['id', 'area', 'steel'])
-    expect(record.unknown).toEqual([])
-    expect(record.missing).toEqual([])
+  it('reads every row and aligns to the columns', () => {
+    const table = readCsvTable('id,area\nB1,10\nB2,20\n', columns)
+    expect(table.rows).toEqual([
+      { id: 'B1', area: '10' },
+      { id: 'B2', area: '20' }
+    ])
+    expect(table.matched).toEqual(['id', 'area'])
+    expect(table.missing).toEqual(['steel'])
   })
 
-  it('treats NA and NR as blank rather than importing them literally', () => {
-    const record = readCsvRecord('id,area,steel\nBRC-1,NA,nr\n', columns)
-    expect(record.values).toEqual({ id: 'BRC-1' })
+  it('collapses NR to blank but keeps NA verbatim', () => {
+    const table = readCsvTable('id,area,steel\nB1,NR,NA\n', columns)
+    expect(table.rows[0]).toEqual({ id: 'B1', area: '', steel: 'NA' })
   })
 
-  it('reports unknown and missing columns without failing', () => {
-    const record = readCsvRecord('id,bogus\nBRC-1,x\n', columns)
-    expect(record.values).toEqual({ id: 'BRC-1' })
-    expect(record.unknown).toEqual(['bogus'])
-    expect(record.missing).toEqual(['area', 'steel'])
+  it('handles quoted cells with embedded commas and newlines', () => {
+    const table = readCsvTable('id,area\n"B,1","line1\nline2"\n', columns)
+    expect(table.rows[0]).toEqual({ id: 'B,1', area: 'line1\nline2' })
   })
 
-  it('imports only the first row but reports how many it saw', () => {
-    const record = readCsvRecord('id\nBRC-1\nBRC-2\nBRC-3\n', columns)
-    expect(record.values).toEqual({ id: 'BRC-1' })
-    expect(record.rowCount).toBe(3)
-  })
-
-  it('rejects an empty file and a header with no data', () => {
-    expect(() => readCsvRecord('', columns)).toThrow(/empty/i)
-    expect(() => readCsvRecord('id,area\n', columns)).toThrow(/no data rows/i)
+  it('drops unknown headers and reports them', () => {
+    const table = readCsvTable('id,bogus\nB1,x\n', columns)
+    expect(table.rows[0]).toEqual({ id: 'B1' })
+    expect(table.unknown).toEqual(['bogus'])
   })
 })

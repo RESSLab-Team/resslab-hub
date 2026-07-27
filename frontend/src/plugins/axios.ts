@@ -14,8 +14,10 @@ import {
 import { Configuration } from '@/backend/configuration'
 import axios from 'axios'
 
-const axiosInstance = axios.create()
-const baseUrl = import.meta.env.VITE_APP_BACKEND_URL
+// Exported for hand-written calls to endpoints the generated client does not
+// cover (its regeneration is blocked on an OpenAPI 3.1 generator issue).
+export const axiosInstance = axios.create()
+export const baseUrl = import.meta.env.VITE_APP_BACKEND_URL
 
 export const analyticsApi = new AnalyticsApi(undefined, baseUrl, axiosInstance)
 export const bracesApi = new BracesApi(undefined, baseUrl, axiosInstance)
