@@ -1,6 +1,6 @@
 # `benchmark` collides with the benchmark/ directory; mark targets phony so make
 # always runs the recipe instead of treating the directory as an up-to-date file.
-.PHONY: install dev test test-cov benchmark lint update
+.PHONY: install dev test test-cov benchmark lint update sample-data
 
 install:
 	uv sync
@@ -24,6 +24,14 @@ benchmark:
 
 lint:
 	uv run pre-commit run --all-files
+
+# Sample contribution batches for /contribute/new. Needs the database: the
+# in-range values are drawn from it. Override with EXPERIMENTS/OUTLIERS.
+EXPERIMENTS ?= 15
+OUTLIERS ?= 3
+sample-data:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python ../sample-data/generate.py \
+		--experiments $(EXPERIMENTS) --outliers $(OUTLIERS)
 
 update:
 	pre-commit autoupdate

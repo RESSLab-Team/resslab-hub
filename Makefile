@@ -1,4 +1,4 @@
-.PHONY: install hooks dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api upload-data upload-data-test backup-dump
+.PHONY: install hooks dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data upload-data-test backup-dump
 
 install:
 	npm install
@@ -47,6 +47,9 @@ run:
 api:
 	cd backend; DATABASE_UPGRADE=false uv run python api.py ../openapi.json
 	$(MAKE) -C frontend api
+
+sample-data:
+	$(MAKE) -C backend sample-data
 
 upload-data:
 	$(MAKE) -C backend upload-data
