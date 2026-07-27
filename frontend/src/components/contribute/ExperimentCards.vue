@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import ToolSelect from '@/components/commons/tools/ToolSelect.vue'
-import { useContributionStore } from '@/stores/contribution'
+import { useContributionStore, type CardIssue } from '@/stores/contribution'
 import { useNotificationStore } from '@/stores/notification'
 import { fieldLabel } from '@/utils/contribution'
 import { readCsvTable } from '@/utils/csv'
-import { mapResponse, type ExperimentReport } from '@/utils/qualityReport'
 import { sparkline } from '@/utils/sparkline'
 import { downloadDictionary, downloadTemplate } from '@/utils/templates'
 import { checkTimeSeriesFile, timeSeriesKindsFor, type TimeSeriesKind } from '@/utils/timeseries'
-import type { CellIssue } from '@/utils/validation'
 import {
   mdiAlertOutline,
+  mdiBellOffOutline,
   mdiChevronRight,
   mdiClose,
   mdiContentCopy,
   mdiDownloadOutline,
   mdiPlus,
+  mdiRestore,
   mdiTrayArrowUp,
   mdiUploadOutline
 } from '@mdi/js'
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n({ useScope: 'global' })
@@ -50,69 +50,48 @@ const headlineColumns = computed(() => {
   return store.columns.filter((column) => picked.includes(column.name))
 })
 
-// Client-side issues re-keyed from row index to row uid.
-const clientByUid = computed(() => {
-  const map = new Map<number, Record<string, CellIssue>>()
-  store.rows.forEach((row, index) => {
-    const issues = store.clientIssues.get(index)
-    if (issues) map.set(row.uid, issues)
-  })
-  return map
-})
-
-// Server-side issues from the last validation, mapped back per experiment.
-const serverByUid = computed(() => {
-  const map = new Map<number, ExperimentReport>()
-  if (store.database && store.response) {
-    for (const experiment of mapResponse(store.database, store.rows, store.response).experiments) {
-      map.set(experiment.uid, experiment)
-    }
-  }
-  return map
-})
-
-function cellIssue(uid: number, column: string): CellIssue | undefined {
-  return clientByUid.value.get(uid)?.[column]
+/**
+ * A card is only green once the server has actually judged it. Until then it
+ * reads as pending, so a batch does not flash "No issues" the moment it loads.
+ */
+function cardState(uid: number): 'fail' | 'warn' | 'checking' | 'unchecked' | 'pass' {
+  const level = store.levelFor(uid)
+  if (level !== 'pass') return level
+  if (store.checking) return 'checking'
+  return store.unverified ? 'unchecked' : 'pass'
 }
 
-interface CardIssue {
-  column?: string
-  kindKey?: string | null
-  level: 'error' | 'warn'
-  message: string
+/** The element a problem points at: its field input, or its test-data row. */
+function targetId(uid: number, issue: CardIssue): string {
+  return issue.column ? `f-${uid}-${issue.column}` : `s-${uid}-${issue.kindKey}`
 }
 
-function issuesFor(uid: number): CardIssue[] {
-  const client = Object.entries(clientByUid.value.get(uid) ?? {}).map(([column, issue]) => ({
-    column,
-    level: issue.level,
-    message: issue.message
-  }))
-  const server = (serverByUid.value.get(uid)?.fileIssues ?? []).map((file) => ({
-    kindKey: file.kindKey,
-    level: file.severity === 'error' ? ('error' as const) : ('warn' as const),
-    message: file.issue.message
-  }))
-  // Server-reported range warnings live on cells too; surface those the client
-  // engine cannot know about (client issues already cover the rest).
-  const known = new Set(client.map((issue) => issue.column))
-  const serverCells = (serverByUid.value.get(uid)?.cellIssues ?? [])
-    .filter((cell) => !known.has(cell.ref.column))
-    .map((cell) => ({
-      column: cell.ref.column,
-      level: cell.severity === 'error' ? ('error' as const) : ('warn' as const),
-      message: cell.issue.message
-    }))
-  return [...client, ...serverCells, ...server]
-}
+// Briefly outlines the element a problem was just clicked from, so the jump is
+// visible when the target is already on screen.
+const flashed = ref('')
 
-function levelFor(uid: number): 'pass' | 'warn' | 'fail' {
-  const issues = issuesFor(uid)
-  if (issues.some((issue) => issue.level === 'error')) return 'fail'
-  return issues.length ? 'warn' : 'pass'
+async function goToIssue(uid: number, issue: CardIssue): Promise<void> {
+  const id = targetId(uid, issue)
+  await nextTick()
+  const element = document.getElementById(id)
+  if (!element) return
+  element.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  element.focus({ preventScroll: true })
+  flashed.value = id
+  window.setTimeout(() => {
+    if (flashed.value === id) flashed.value = ''
+  }, 1600)
 }
 
 // --- Expand / collapse ---------------------------------------------------
+/** Cards whose dismissed-warning list is unfolded. */
+const showDismissed = ref<Set<number>>(new Set())
+function toggleDismissed(uid: number): void {
+  const next = new Set(showDismissed.value)
+  if (!next.delete(uid)) next.add(uid)
+  showDismissed.value = next
+}
+
 const expanded = ref<Set<number>>(new Set())
 function toggle(uid: number): void {
   const next = new Set(expanded.value)
@@ -124,11 +103,30 @@ function toggle(uid: number): void {
 // --- CSV import ----------------------------------------------------------
 const importInput = ref<HTMLInputElement>()
 
+/** The drop zone takes the place of the toolbar button while nothing is entered. */
+const isEmptyBatch = computed(() => store.rows.length === 1 && !store.hasAnyId)
+
+// dragenter/dragleave also fire for children, so count them instead of
+// toggling a flag — otherwise moving over the icon clears the highlight.
+const dragDepth = ref(0)
+const dragging = computed(() => dragDepth.value > 0)
+
+async function onDrop(event: DragEvent): Promise<void> {
+  dragDepth.value = 0
+  const files = Array.from(event.dataTransfer?.files ?? [])
+  if (files.length === 0) return
+  if (files.length > 1) notification.notify(t('contribute.editor.drop_one_file'))
+  await loadCsv(files[0])
+}
+
 async function importFile(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   input.value = ''
-  if (!file) return
+  if (file) await loadCsv(file)
+}
+
+async function loadCsv(file: File): Promise<void> {
   try {
     const columnNames = store.columns.map((column) => column.name)
     const table = readCsvTable(await file.text(), columnNames)
@@ -218,17 +216,23 @@ function chart(uid: number, kind: TimeSeriesKind) {
 
 <template>
   <div>
+    <div v-if="isEmptyBatch" class="intro">
+      <p>{{ $t('contribute.editor.intro') }}</p>
+      <p v-if="kinds.length">{{ $t('contribute.editor.intro_files') }}</p>
+    </div>
+
     <div class="toolbar">
-      <button class="btn btn-secondary btn-sm" type="button" @click="store.addRow()">
-        <v-icon :icon="mdiPlus" size="14" />{{ $t('contribute.editor.add_experiment') }}
-      </button>
-      <button class="btn btn-secondary btn-sm" type="button" @click="importInput?.click()">
+      <button
+        v-if="!isEmptyBatch"
+        class="btn btn-secondary btn-sm"
+        type="button"
+        @click="importInput?.click()"
+      >
         <v-icon :icon="mdiTrayArrowUp" size="14" />{{ $t('contribute.editor.import_csv') }}
       </button>
       <input ref="importInput" accept=".csv,text/csv" hidden type="file" @change="importFile" />
-      <span class="spacer" />
       <button
-        class="btn btn-ghost btn-sm"
+        class="btn btn-secondary btn-sm"
         type="button"
         @click="downloadTemplate(store.database!, store.columns)"
       >
@@ -242,6 +246,22 @@ function chart(uid: number, kind: TimeSeriesKind) {
         <v-icon :icon="mdiDownloadOutline" size="14" />{{ $t('contribute.editor.dictionary') }}
       </button>
     </div>
+
+    <button
+      v-if="isEmptyBatch"
+      class="dropzone"
+      :class="{ over: dragging }"
+      type="button"
+      @click="importInput?.click()"
+      @dragenter.prevent="dragDepth++"
+      @dragover.prevent
+      @dragleave.prevent="dragDepth--"
+      @drop.prevent="onDrop"
+    >
+      <v-icon :icon="mdiTrayArrowUp" size="30" />
+      <span class="drop-title">{{ $t('contribute.editor.drop_title') }}</span>
+      <span class="drop-hint">{{ $t('contribute.editor.drop_hint') }}</span>
+    </button>
 
     <!-- Bulk attach: pick a response type, drop many <id>.csv files at once. -->
     <div v-if="kinds.length" class="toolbar">
@@ -264,10 +284,16 @@ function chart(uid: number, kind: TimeSeriesKind) {
       <span class="bulk-hint">{{ $t('contribute.editor.bulk_hint') }}</span>
     </div>
 
-    <article v-for="(row, index) in store.rows" :key="row.uid" class="card" :class="levelFor(row.uid)">
+    <article
+      v-for="(row, index) in store.rows"
+      :key="row.uid"
+      class="card"
+      :class="store.levelFor(row.uid)"
+    >
       <button class="card-head" type="button" @click="toggle(row.uid)">
         <v-icon class="chevron" :class="{ open: expanded.has(row.uid) }" :icon="mdiChevronRight" size="18" />
-        <span class="dot" :class="levelFor(row.uid)" />
+        <span v-if="cardState(row.uid) === 'checking'" class="spinner" />
+        <span v-else class="dot" :class="cardState(row.uid)" />
         <span class="card-id">
           {{ row.cells.id?.trim() || $t('contribute.editor.untitled', { n: index + 1 }) }}
         </span>
@@ -277,12 +303,21 @@ function chart(uid: number, kind: TimeSeriesKind) {
             <span class="v">{{ row.cells[column.name]?.trim() || '—' }}</span>
           </span>
         </span>
-        <span class="badge" :class="levelFor(row.uid)">
-          {{
-            issuesFor(row.uid).length
-              ? $t('contribute.editor.issue_count', { count: issuesFor(row.uid).length })
-              : $t('contribute.editor.clean')
-          }}
+        <span class="badge" :class="cardState(row.uid)">
+          <template v-if="store.activeIssuesFor(row.uid).length">
+            {{ $t('contribute.editor.issue_count', { count: store.activeIssuesFor(row.uid).length }) }}
+          </template>
+          <template v-else-if="cardState(row.uid) === 'checking'">
+            {{ $t('contribute.editor.checking') }}
+          </template>
+          <template v-else-if="cardState(row.uid) === 'unchecked'">
+            {{ $t('contribute.editor.unchecked') }}
+          </template>
+          <template v-else>{{ $t('contribute.editor.clean') }}</template>
+        </span>
+        <span v-if="store.dismissedIssuesFor(row.uid).length" class="badge muted">
+          <v-icon :icon="mdiBellOffOutline" size="13" />
+          {{ store.dismissedIssuesFor(row.uid).length }}
         </span>
       </button>
 
@@ -296,18 +331,77 @@ function chart(uid: number, kind: TimeSeriesKind) {
           </button>
         </div>
 
-        <section v-if="issuesFor(row.uid).length" class="card-section">
+        <section v-if="store.issuesFor(row.uid).length" class="card-section">
           <h3>{{ $t('contribute.editor.problems') }}</h3>
-          <p v-for="(issue, i) in issuesFor(row.uid)" :key="i" class="issue" :class="issue.level">
-            <v-icon :icon="mdiAlertOutline" size="14" />
-            <span>
-              <template v-if="issue.column">{{ fieldLabel(store.database!, issue.column) }}: </template>
-              <template v-else-if="issue.kindKey">
-                {{ $t(`contribute.timeseries.kind.${issue.kindKey}`) }}:
-              </template>
-              {{ issue.message }}
-            </span>
-          </p>
+
+          <div v-for="issue in store.activeIssuesFor(row.uid)" :key="issue.key" class="issue" :class="issue.level">
+            <button class="issue-go" type="button" @click="goToIssue(row.uid, issue)">
+              <v-icon :icon="mdiAlertOutline" size="14" />
+              <span>
+                <template v-if="issue.column">{{ fieldLabel(store.database!, issue.column) }}: </template>
+                <template v-else-if="issue.kindKey">
+                  {{ $t(`contribute.timeseries.kind.${issue.kindKey}`) }}:
+                </template>
+                {{ issue.message }}
+              </span>
+            </button>
+            <button
+              v-if="issue.level === 'warn'"
+              class="issue-action"
+              type="button"
+              :title="$t('contribute.editor.dismiss_hint')"
+              @click="store.dismissIssue(issue.key)"
+            >
+              <v-icon :icon="mdiClose" size="14" />
+              <span class="sr-only">{{ $t('contribute.editor.dismiss') }}</span>
+            </button>
+          </div>
+
+          <!-- Dismissed warnings stay available, folded away by default. -->
+          <div v-if="store.dismissedIssuesFor(row.uid).length" class="dismissed">
+            <button class="dismissed-toggle" type="button" @click="toggleDismissed(row.uid)">
+              <v-icon
+                class="chevron"
+                :class="{ open: showDismissed.has(row.uid) }"
+                :icon="mdiChevronRight"
+                size="14"
+              />
+              {{
+                $t('contribute.editor.dismissed_count', {
+                  count: store.dismissedIssuesFor(row.uid).length
+                })
+              }}
+            </button>
+            <button class="link" type="button" @click="store.restoreDismissed(row.uid)">
+              {{ $t('contribute.editor.restore_all') }}
+            </button>
+
+            <div v-if="showDismissed.has(row.uid)" class="dismissed-list">
+              <div v-for="issue in store.dismissedIssuesFor(row.uid)" :key="issue.key" class="issue muted">
+                <button class="issue-go" type="button" @click="goToIssue(row.uid, issue)">
+                  <v-icon :icon="mdiBellOffOutline" size="14" />
+                  <span>
+                    <template v-if="issue.column">
+                      {{ fieldLabel(store.database!, issue.column) }}:
+                    </template>
+                    <template v-else-if="issue.kindKey">
+                      {{ $t(`contribute.timeseries.kind.${issue.kindKey}`) }}:
+                    </template>
+                    {{ issue.message }}
+                  </span>
+                </button>
+                <button
+                  class="issue-action"
+                  type="button"
+                  :title="$t('contribute.editor.restore')"
+                  @click="store.restoreIssue(issue.key)"
+                >
+                  <v-icon :icon="mdiRestore" size="14" />
+                  <span class="sr-only">{{ $t('contribute.editor.restore') }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section class="card-section">
@@ -317,7 +411,10 @@ function chart(uid: number, kind: TimeSeriesKind) {
               v-for="column in store.columns"
               :key="column.name"
               class="field"
-              :class="cellIssue(row.uid, column.name)?.level"
+              :class="[
+                store.cellIssueFor(row.uid, column.name)?.level,
+                { flashed: flashed === `f-${row.uid}-${column.name}` }
+              ]"
             >
               <label :for="`f-${row.uid}-${column.name}`">
                 {{ fieldLabel(store.database!, column.name) }}
@@ -326,8 +423,11 @@ function chart(uid: number, kind: TimeSeriesKind) {
                 <info-tooltip v-if="column.description">{{ column.description }}</info-tooltip>
               </label>
               <input :id="`f-${row.uid}-${column.name}`" v-model="row.cells[column.name]" type="text" />
-              <small v-if="cellIssue(row.uid, column.name)" :class="cellIssue(row.uid, column.name)!.level">
-                {{ cellIssue(row.uid, column.name)!.message }}
+              <small
+                v-if="store.cellIssueFor(row.uid, column.name)"
+                :class="store.cellIssueFor(row.uid, column.name)!.level"
+              >
+                {{ store.cellIssueFor(row.uid, column.name)!.message }}
               </small>
             </div>
           </div>
@@ -335,7 +435,14 @@ function chart(uid: number, kind: TimeSeriesKind) {
 
         <section v-if="kinds.length" class="card-section">
           <h3>{{ $t('contribute.editor.test_data') }}</h3>
-          <div v-for="kind in kinds" :key="kind.key" class="series">
+          <div
+            v-for="kind in kinds"
+            :id="`s-${row.uid}-${kind.key}`"
+            :key="kind.key"
+            class="series"
+            :class="{ flashed: flashed === `s-${row.uid}-${kind.key}` }"
+            tabindex="-1"
+          >
             <span class="series-name">{{ $t(`contribute.timeseries.kind.${kind.key}`) }}</span>
             <template v-if="store.timeSeries[`${row.uid}:${kind.key}`]">
               <svg
@@ -380,6 +487,10 @@ function chart(uid: number, kind: TimeSeriesKind) {
         </section>
       </div>
     </article>
+
+    <button class="btn btn-secondary add-manual" type="button" @click="store.addRow()">
+      <v-icon :icon="mdiPlus" size="15" />{{ $t('contribute.editor.add_experiment') }}
+    </button>
   </div>
 </template>
 
@@ -407,6 +518,69 @@ function chart(uid: number, kind: TimeSeriesKind) {
   color: var(--fg-muted);
 }
 
+.intro {
+  margin-bottom: 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--fg-muted);
+  max-width: 78ch;
+}
+.intro p {
+  margin: 0 0 6px;
+}
+.intro p:last-child {
+  margin-bottom: 0;
+}
+
+.add-manual {
+  width: 100%;
+  margin-top: 4px;
+  justify-content: center;
+  border-style: dashed;
+}
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 32px 20px;
+  margin-bottom: 14px;
+  border: 2px dashed var(--border-strong);
+  background: var(--bg);
+  color: var(--fg-muted);
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+.dropzone:hover,
+.dropzone:focus-visible {
+  border-color: var(--epfl-red);
+  background: var(--bg-subtle);
+}
+.dropzone.over {
+  border-color: var(--epfl-red);
+  background: var(--bg-subtle);
+  color: var(--epfl-red);
+}
+/* The children would otherwise fire dragleave on the parent as the pointer
+   crosses them, and the counter would drift. */
+.dropzone * {
+  pointer-events: none;
+}
+.drop-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg);
+}
+.dropzone.over .drop-title {
+  color: var(--epfl-red);
+}
+.drop-hint {
+  font-size: 12px;
+}
+
 .card {
   border: 1px solid var(--border);
   border-left: 3px solid var(--border-strong);
@@ -423,7 +597,7 @@ function chart(uid: number, kind: TimeSeriesKind) {
 .card-head {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
   padding: 13px 16px;
   border: none;
@@ -454,16 +628,43 @@ function chart(uid: number, kind: TimeSeriesKind) {
 .dot.fail {
   background: var(--epfl-red);
 }
+.dot.unchecked {
+  background: var(--border-strong);
+}
+/* Sits in the status dot's place while the server verdict is pending — same
+   box as .dot (border included) so swapping the two shifts nothing. */
+.spinner {
+  box-sizing: border-box;
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border: 1.5px solid var(--border-strong);
+  border-top-color: var(--fg-muted);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
 .card-id {
   font-weight: 700;
   max-width: 220px;
+  /* Keeps the identifier clear of the first headline column. */
+  margin-right: 16px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .headline {
   display: flex;
-  gap: 18px;
+  gap: 24px;
   flex: 1;
   flex-wrap: wrap;
   min-width: 0;
@@ -489,6 +690,10 @@ function chart(uid: number, kind: TimeSeriesKind) {
   font-size: 12px;
   font-weight: 600;
   flex: none;
+  /* Reserved width: the label swaps between "No issues", "Checking…" and an
+     issue count, and the headline next to it would reflow on every change. */
+  min-width: 8em;
+  text-align: right;
   color: var(--epfl-green-text);
 }
 .badge.warn {
@@ -496,6 +701,19 @@ function chart(uid: number, kind: TimeSeriesKind) {
 }
 .badge.fail {
   color: var(--epfl-red);
+}
+.badge.checking,
+.badge.unchecked {
+  color: var(--fg-muted);
+  font-weight: 400;
+}
+.badge.muted {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  color: var(--fg-muted);
+  font-weight: 400;
 }
 
 .card-body {
@@ -522,8 +740,8 @@ function chart(uid: number, kind: TimeSeriesKind) {
 .issue {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 0 0 6px;
+  gap: 4px;
+  margin-bottom: 4px;
   font-size: 13px;
 }
 .issue.error {
@@ -531,6 +749,93 @@ function chart(uid: number, kind: TimeSeriesKind) {
 }
 .issue.warn {
   color: var(--epfl-orange);
+}
+.issue.muted {
+  color: var(--fg-muted);
+}
+/* The message itself is the jump-to-field control. */
+.issue-go {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+.issue-go:hover,
+.issue-go:focus-visible {
+  background: var(--bg-subtle);
+  text-decoration: underline;
+}
+.issue-action {
+  display: flex;
+  flex: none;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+.issue-action:hover,
+.issue-action:focus-visible {
+  background: var(--bg-subtle);
+  color: var(--fg);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.dismissed {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.dismissed-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.dismissed-toggle:hover {
+  color: var(--fg);
+}
+.link {
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 12.5px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.link:hover {
+  color: var(--fg);
+}
+.dismissed-list {
+  flex-basis: 100%;
+  padding-left: 12px;
+  border-left: 2px solid var(--border-subtle);
 }
 
 .fields {
@@ -586,6 +891,26 @@ function chart(uid: number, kind: TimeSeriesKind) {
 }
 .field small.warn {
   color: var(--epfl-orange);
+}
+.field.flashed input,
+.series.flashed {
+  animation: flash 1.6s ease-out;
+}
+@keyframes flash {
+  0%,
+  60% {
+    box-shadow: 0 0 0 3px var(--epfl-red-soft, rgba(227, 6, 19, 0.22));
+  }
+  100% {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .field.flashed input,
+  .series.flashed {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--epfl-red-soft, rgba(227, 6, 19, 0.22));
+  }
 }
 
 .series {

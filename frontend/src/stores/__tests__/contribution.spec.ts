@@ -10,9 +10,9 @@ const BRACE_COLUMNS: DictColumn[] = [
   { name: 'investigator', description: '', symbol: '', unit: '-', type: 'String', example: 'X', nullable: false }
 ]
 
-function seededStore() {
+function seededStore(columns: DictColumn[] = BRACE_COLUMNS) {
   const dictionary = useDictionaryStore()
-  dictionary.columns = { braces: BRACE_COLUMNS }
+  dictionary.columns = { braces: columns }
   dictionary.state = 'ready'
   const store = useContributionStore()
   store.selectDatabase('braces')
@@ -73,6 +73,105 @@ describe('contribution store — experiment rows', () => {
     store.addRow()
     store.removeRow(uid)
     expect(store.timeSeries[`${uid}:force_displacement`]).toBeUndefined()
+  })
+
+  it('dismisses a warning, and brings it back when the value changes', () => {
+    const store = seededStore()
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    row.cells.area = '1.5' // Numeric is fine, but "investigator" is blank -> warning
+
+    const warning = store.activeIssuesFor(row.uid).find((issue) => issue.level === 'warn')
+    expect(warning?.column).toBe('investigator')
+    expect(store.levelFor(row.uid)).toBe('warn')
+
+    store.dismissIssue(warning!.key)
+    expect(store.activeIssuesFor(row.uid)).toHaveLength(0)
+    expect(store.dismissedIssuesFor(row.uid)).toHaveLength(1)
+    expect(store.dismissedCount).toBe(1)
+    expect(store.levelFor(row.uid)).toBe('pass')
+    // The field stops showing it inline too.
+    expect(store.cellIssueFor(row.uid, 'investigator')).toBeUndefined()
+
+    // A dismissal follows the value that was acknowledged, so filling the field
+    // clears the warning outright and blanking it again stays acknowledged.
+    row.cells.investigator = 'Someone'
+    expect(store.activeIssuesFor(row.uid)).toHaveLength(0)
+    expect(store.dismissedIssuesFor(row.uid)).toHaveLength(0)
+    row.cells.investigator = ''
+    expect(store.dismissedIssuesFor(row.uid)).toHaveLength(1)
+  })
+
+  it('re-raises a dismissed warning when the value it was about changes', () => {
+    const store = seededStore([
+      ...BRACE_COLUMNS,
+      { name: 'cycles', description: '', symbol: '', unit: '-', type: 'Integer', example: '2', nullable: true }
+    ])
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    row.cells.investigator = 'X'
+    row.cells.cycles = '1.5' // warns: will be truncated
+
+    const warning = store.activeIssuesFor(row.uid).find((issue) => issue.column === 'cycles')
+    store.dismissIssue(warning!.key)
+    expect(store.activeIssuesFor(row.uid)).toHaveLength(0)
+
+    row.cells.cycles = '2.5' // same warning, different value -> ask again
+    expect(store.activeIssuesFor(row.uid)).toHaveLength(1)
+    expect(store.dismissedIssuesFor(row.uid)).toHaveLength(0)
+  })
+
+  it('never dismisses an error', () => {
+    const store = seededStore()
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    row.cells.investigator = 'X'
+    row.cells.area = 'not-a-number'
+
+    const error = store.activeIssuesFor(row.uid).find((issue) => issue.level === 'error')
+    store.dismissIssue(error!.key)
+    expect(store.activeIssuesFor(row.uid)).toHaveLength(1)
+    expect(store.levelFor(row.uid)).toBe('fail')
+  })
+
+  it('restores dismissals per experiment and clears them on database change', () => {
+    const store = seededStore()
+    store.importRows([{ id: 'B1' }, { id: 'B2' }])
+    const [first, second] = store.rows
+    for (const row of store.rows) {
+      for (const issue of store.activeIssuesFor(row.uid)) store.dismissIssue(issue.key)
+    }
+    expect(store.dismissedCount).toBe(2)
+
+    store.restoreDismissed(first.uid)
+    expect(store.dismissedIssuesFor(first.uid)).toHaveLength(0)
+    expect(store.dismissedIssuesFor(second.uid)).toHaveLength(1)
+
+    store.restoreDismissed()
+    expect(store.dismissedCount).toBe(0)
+
+    for (const issue of store.activeIssuesFor(second.uid)) store.dismissIssue(issue.key)
+    store.selectDatabase('columns')
+    expect(store.dismissedCount).toBe(0)
+  })
+
+  it('reports a pending verdict until the server has judged the batch', () => {
+    const store = seededStore()
+    // Nothing to check yet: no identifier, so no request will be made.
+    expect(store.checking).toBe(false)
+
+    store.rows[0].cells.id = 'B1'
+    expect(store.checking).toBe(true) // queued behind the debounce
+    store.status = 'running'
+    expect(store.checking).toBe(true)
+
+    store.status = 'pass'
+    expect(store.checking).toBe(false)
+    expect(store.unverified).toBe(false)
+
+    store.status = 'error'
+    expect(store.checking).toBe(false)
+    expect(store.unverified).toBe(true)
   })
 
   it('imports rows and counts client-side errors', () => {

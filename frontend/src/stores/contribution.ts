@@ -2,8 +2,10 @@ import { defaultApi } from '@/plugins/axios'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { DatabaseId } from '@/utils/navigation'
+import { mapResponse, type ExperimentReport, type ReportedIssue } from '@/utils/qualityReport'
 import { buildTarGz } from '@/utils/tar'
 import { timeSeriesKindsFor } from '@/utils/timeseries'
+import type { CellIssue } from '@/utils/validation'
 import { validateSheet, type SheetIssues } from '@/utils/validation'
 import type { ValidationResponse } from '@/utils/validationResponse'
 import { isValidationResponse } from '@/utils/validationResponse'
@@ -56,6 +58,26 @@ export interface ExperimentRow {
   cells: Record<string, string>
 }
 
+/** One problem to show on an experiment card, from either validation source. */
+export interface CardIssue {
+  /**
+   * Identity of the problem, stable across re-validations so a dismissal
+   * survives the next automatic check. It embeds what the contributor was
+   * looking at when they dismissed it — the cell value, or the attached
+   * filename — so editing that value brings the warning back.
+   */
+  key: string
+  /** Set for a field problem; `kindKey` is set instead for a test-data file. */
+  column?: string
+  kindKey?: string | null
+  level: 'error' | 'warn'
+  message: string
+}
+
+function issueKey(uid: number, target: string, signature: string, message: string): string {
+  return `${uid}|${target}|${signature}|${message}`
+}
+
 /** Idle time after the last edit before the server check fires. */
 const AUTO_VALIDATE_DELAY_MS = 2000
 
@@ -63,10 +85,6 @@ export const useContributionStore = defineStore('contribution', () => {
   const dictionary = useDictionaryStore()
 
   const database = ref<DatabaseId | null>(null)
-  const program = ref('')
-  const year = ref('')
-  const doi = ref('')
-
   let uidCounter = 0
   const newRow = (cells: Record<string, string> = {}): ExperimentRow => ({
     uid: uidCounter++,
@@ -107,12 +125,149 @@ export const useContributionStore = defineStore('contribution', () => {
     return rows.value.find((row) => row.uid === uid)
   }
 
+  // --- Problems, and dismissing them ------------------------------------
+
+  /** Keys of warnings the contributor has acknowledged. */
+  const dismissed = ref<Set<string>>(new Set())
+
+  const serverReport = computed(() =>
+    database.value && response.value
+      ? mapResponse(database.value, rows.value, response.value)
+      : null
+  )
+
+  /** Problems that could not be tied to an experiment (header-level, orphans). */
+  const globalIssues = computed<ReportedIssue[]>(() => serverReport.value?.global ?? [])
+
+  /** Every problem per experiment, client-side and server-side merged. */
+  const issuesByUid = computed<Map<number, CardIssue[]>>(() => {
+    const reports = new Map<number, ExperimentReport>()
+    for (const experiment of serverReport.value?.experiments ?? []) {
+      reports.set(experiment.uid, experiment)
+    }
+
+    const map = new Map<number, CardIssue[]>()
+    rows.value.forEach((row, index) => {
+      const issues: CardIssue[] = []
+      const client = clientIssues.value.get(index) ?? {}
+      const value = (column: string) => (row.cells[column] ?? '').trim()
+
+      for (const [column, issue] of Object.entries(client)) {
+        issues.push({
+          key: issueKey(row.uid, column, value(column), issue.message),
+          column,
+          level: issue.level,
+          message: issue.message
+        })
+      }
+
+      const report = reports.get(row.uid)
+      for (const cell of report?.cellIssues ?? []) {
+        // The client engine mirrors the server's per-cell rules, so only report
+        // what it cannot know about — chiefly the range warnings.
+        if (client[cell.ref.column]) continue
+        issues.push({
+          key: issueKey(row.uid, cell.ref.column, value(cell.ref.column), cell.issue.message),
+          column: cell.ref.column,
+          level: cell.severity === 'error' ? 'error' : 'warn',
+          message: cell.issue.message
+        })
+      }
+      for (const file of report?.fileIssues ?? []) {
+        const attached = file.kindKey ? timeSeries.value[`${row.uid}:${file.kindKey}`] : undefined
+        issues.push({
+          key: issueKey(row.uid, file.kindKey ?? 'file', attached?.name ?? '', file.issue.message),
+          kindKey: file.kindKey,
+          level: file.severity === 'error' ? 'error' : 'warn',
+          message: file.issue.message
+        })
+      }
+      map.set(row.uid, issues)
+    })
+    return map
+  })
+
+  /** Errors are never dismissible — they have to be fixed. */
+  function isDismissed(issue: CardIssue): boolean {
+    return issue.level === 'warn' && dismissed.value.has(issue.key)
+  }
+
+  function issuesFor(uid: number): CardIssue[] {
+    return issuesByUid.value.get(uid) ?? []
+  }
+
+  function activeIssuesFor(uid: number): CardIssue[] {
+    return issuesFor(uid).filter((issue) => !isDismissed(issue))
+  }
+
+  function dismissedIssuesFor(uid: number): CardIssue[] {
+    return issuesFor(uid).filter((issue) => isDismissed(issue))
+  }
+
+  function levelFor(uid: number): 'pass' | 'warn' | 'fail' {
+    const issues = activeIssuesFor(uid)
+    if (issues.some((issue) => issue.level === 'error')) return 'fail'
+    return issues.length ? 'warn' : 'pass'
+  }
+
+  /** The live problem for a cell, so the field can show it inline. */
+  function cellIssueFor(uid: number, column: string): CellIssue | undefined {
+    const issue = activeIssuesFor(uid).find((entry) => entry.column === column)
+    return issue ? { level: issue.level, message: issue.message } : undefined
+  }
+
+  function dismissIssue(key: string): void {
+    dismissed.value.add(key)
+  }
+
+  function restoreIssue(key: string): void {
+    dismissed.value.delete(key)
+  }
+
+  /** Restore one experiment's dismissed warnings, or every one when uid is omitted. */
+  function restoreDismissed(uid?: number): void {
+    if (uid === undefined) {
+      dismissed.value.clear()
+      return
+    }
+    for (const issue of dismissedIssuesFor(uid)) dismissed.value.delete(issue.key)
+  }
+
+  const activeWarningCount = computed(() => {
+    let count = globalIssues.value.filter((entry) => entry.severity === 'warning').length
+    for (const uid of issuesByUid.value.keys()) {
+      count += activeIssuesFor(uid).filter((issue) => issue.level === 'warn').length
+    }
+    return count
+  })
+
+  /**
+   * True while the server's verdict is unknown because a check is coming: one
+   * is in flight, or an edit has invalidated the last one and the debounce has
+   * yet to fire. A card with no *client* issues is not clean yet, only unjudged.
+   */
+  const checking = computed(
+    () =>
+      status.value === 'running' ||
+      (status.value === 'idle' && !!config.value?.qualityCheckSupported && hasAnyId.value)
+  )
+
+  /** The last check failed outright, so there is no verdict to report either. */
+  const unverified = computed(() => status.value === 'error')
+
+  const dismissedCount = computed(() => {
+    let count = 0
+    for (const uid of issuesByUid.value.keys()) count += dismissedIssuesFor(uid).length
+    return count
+  })
+
   function selectDatabase(id: DatabaseId): void {
     if (database.value === id) return
     // Columns differ per database; carried-over values would never reach the CSV.
     database.value = id
     rows.value = [newRow()]
     timeSeries.value = {}
+    dismissed.value.clear()
     resetQualityCheck()
   }
 
@@ -139,6 +294,7 @@ export const useContributionStore = defineStore('contribution', () => {
   function importRows(records: Array<Record<string, string>>): void {
     rows.value = records.length ? records.map((cells) => newRow(cells)) : [newRow()]
     timeSeries.value = {}
+    dismissed.value.clear()
   }
 
   function resetQualityCheck(): void {
@@ -212,19 +368,14 @@ export const useContributionStore = defineStore('contribution', () => {
 
   function reset(): void {
     database.value = null
-    program.value = ''
-    year.value = ''
-    doi.value = ''
     rows.value = [newRow()]
     timeSeries.value = {}
+    dismissed.value.clear()
     resetQualityCheck()
   }
 
   return {
     database,
-    program,
-    year,
-    doi,
     rows,
     timeSeries,
     status,
@@ -237,6 +388,19 @@ export const useContributionStore = defineStore('contribution', () => {
     hasAnyId,
     clientIssues,
     clientErrorCount,
+    globalIssues,
+    checking,
+    unverified,
+    activeWarningCount,
+    dismissedCount,
+    issuesFor,
+    activeIssuesFor,
+    dismissedIssuesFor,
+    levelFor,
+    cellIssueFor,
+    dismissIssue,
+    restoreIssue,
+    restoreDismissed,
     rowByUid,
     selectDatabase,
     addRow,

@@ -1021,16 +1021,13 @@
     "dictionary_error": "Le dictionnaire de données n’a pas pu être chargé — le backend est-il joignable ?",
     "retry": "Réessayer",
     "setup": {
-      "title": "Cible & source",
-      "database": "Base de données",
-      "database_placeholder": "Choisir une base…",
-      "program": "Programme expérimental",
-      "year": "Année d’essai",
-      "doi": "DOI ou référence",
-      "no_quality_check": "La validation automatique n’est pas encore disponible pour cette base ; un curateur relira les données manuellement."
+      "title": "Base de données cible",
+      "no_quality_check": "La validation automatique n’est pas encore disponible pour cette base ; un curateur relira les données manuellement.",
+      "no_check_badge": "Pas de contrôle automatique",
+      "switch_confirm": "Cliquez à nouveau pour remplacer {count} expérience(s)"
     },
     "editor": {
-      "add_experiment": "Ajouter une expérience",
+      "add_experiment": "Ajouter une expérience manuellement",
       "import_csv": "Importer un CSV",
       "template": "Modèle CSV",
       "dictionary": "Dictionnaire de données",
@@ -1050,7 +1047,19 @@
       "remove": "Retirer",
       "problems": "Problèmes",
       "fields": "Champs",
-      "test_data": "Données d’essai"
+      "test_data": "Données d’essai",
+      "dismiss": "Ignorer cet avertissement",
+      "dismiss_hint": "Ignorer — l’avertissement réapparaît si la valeur change",
+      "dismissed_count": "{count} avertissement(s) ignoré(s)",
+      "restore": "Rétablir cet avertissement",
+      "restore_all": "Rétablir",
+      "drop_title": "Déposez un CSV ici, ou cliquez pour parcourir",
+      "drop_hint": "Une ligne par expérience — les en-têtes sont associés aux colonnes de cette base.",
+      "drop_one_file": "Seul le premier fichier a été importé.",
+      "intro": "Partez du modèle CSV ci-dessous — il contient déjà les en-têtes exacts de cette base — et ouvrez le dictionnaire de données pour savoir ce qu’attend chaque colonne (unité, type, caractère obligatoire). Remplissez une ligne par expérience, puis déposez le fichier ici.",
+      "intro_files": "Les réponses mesurées sont des fichiers distincts. Nommez chacun d’après le spécimen correspondant (B1.csv pour l’expérience dont l’identifiant est B1) et vous pourrez joindre tout le lot en une fois avec l’ajout en masse, ci-dessous.",
+      "checking": "Vérification…",
+      "unchecked": "Non vérifié"
     },
     "status": {
       "idle": "Ajoutez au moins une expérience avec un identifiant pour activer la vérification automatique.",
@@ -1062,7 +1071,9 @@
       "unsupported": "La validation automatique n’est pas disponible pour cette base.",
       "error": "La vérification n’a pas pu aboutir :",
       "client_errors": "{count} champ(s) en erreur",
-      "check_now": "Vérifier maintenant"
+      "check_now": "Vérifier maintenant",
+      "warn_dismissed": "Vérifications passées — tous les avertissements ont été ignorés.",
+      "dismissed": "{count} ignoré(s)"
     },
     "timeseries": {
       "rows": "{count} lignes",

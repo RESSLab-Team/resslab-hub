@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import PageHeader from '@/components/commons/PageHeader.vue'
-import ToolSelect from '@/components/commons/tools/ToolSelect.vue'
 import ExperimentCards from '@/components/contribute/ExperimentCards.vue'
 import { useContributionStore } from '@/stores/contribution'
 import { useDictionaryStore } from '@/stores/dictionary'
-import { DATABASES } from '@/utils/navigation'
-import type { DatabaseId } from '@/utils/navigation'
-import { mdiAlertOutline, mdiCheck, mdiSend, mdiShieldCheckOutline } from '@mdi/js'
-import { computed, onMounted } from 'vue'
+import { CONTRIBUTION_DATABASES } from '@/utils/contribution'
+import { DATABASES, type DatabaseId } from '@/utils/navigation'
+import { mdiAlertOutline, mdiBellOffOutline, mdiCheck, mdiSend, mdiShieldCheckOutline } from '@mdi/js'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n({ useScope: 'global' })
@@ -16,12 +15,21 @@ const dictionary = useDictionaryStore()
 
 onMounted(() => dictionary.fetch())
 
-const databaseItems = computed(() =>
-  DATABASES.map((entry) => ({ title: entry.name, value: entry.id }))
-)
+const supported = (id: DatabaseId) => CONTRIBUTION_DATABASES[id].qualityCheckSupported
 
-function onDatabase(value: string): void {
-  if (value) store.selectDatabase(value as DatabaseId)
+// Switching database clears the batch, so when there is work to lose the first
+// click only arms the button and the second one confirms.
+const pending = ref<DatabaseId | null>(null)
+const atRisk = computed(() => (store.hasAnyId ? store.experimentCount : 0))
+
+function pick(id: DatabaseId): void {
+  if (store.database === id) return
+  if (atRisk.value > 0 && pending.value !== id) {
+    pending.value = id
+    return
+  }
+  pending.value = null
+  store.selectDatabase(id)
 }
 
 /** One line summarizing the automatic server check. */
@@ -32,7 +40,9 @@ const statusText = computed(() => {
     case 'pass':
       return t('contribute.status.pass')
     case 'warn':
-      return t('contribute.status.warn', { count: warningCount.value })
+      return store.activeWarningCount > 0
+        ? t('contribute.status.warn', { count: store.activeWarningCount })
+        : t('contribute.status.warn_dismissed')
     case 'fail':
       return t('contribute.status.fail', { count: store.response?.error_count ?? 0 })
     case 'unsupported':
@@ -46,10 +56,11 @@ const statusText = computed(() => {
   }
 })
 
-const warningCount = computed(
-  () =>
-    store.response?.results.reduce((total, file) => total + file.warnings.length, 0) ?? 0
+/** Once every warning is dismissed the bar reads as a pass. */
+const statusClass = computed(() =>
+  store.status === 'warn' && store.activeWarningCount === 0 ? 'pass' : store.status
 )
+
 </script>
 
 <template>
@@ -60,28 +71,23 @@ const warningCount = computed(
 
     <div class="tool-card setup">
       <div class="tool-card-h">{{ $t('contribute.setup.title') }}</div>
-      <div class="setup-grid">
-        <div class="tfield">
-          <div class="tfield-label">{{ $t('contribute.setup.database') }}</div>
-          <tool-select
-            :items="databaseItems"
-            :model-value="store.database ?? ''"
-            :placeholder="$t('contribute.setup.database_placeholder')"
-            @update:model-value="onDatabase"
-          />
-        </div>
-        <div class="tfield">
-          <div class="tfield-label">{{ $t('contribute.setup.program') }}</div>
-          <input v-model="store.program" class="tinput" type="text" />
-        </div>
-        <div class="tfield">
-          <div class="tfield-label">{{ $t('contribute.setup.year') }}</div>
-          <input v-model="store.year" class="tinput" type="text" />
-        </div>
-        <div class="tfield">
-          <div class="tfield-label">{{ $t('contribute.setup.doi') }}</div>
-          <input v-model="store.doi" class="tinput" type="text" />
-        </div>
+      <div class="db-grid">
+        <button
+          v-for="entry in DATABASES"
+          :key="entry.id"
+          class="db"
+          :class="{ active: store.database === entry.id, pending: pending === entry.id }"
+          type="button"
+          @click="pick(entry.id)"
+        >
+          <span class="db-name">{{ entry.name }}</span>
+          <span v-if="pending === entry.id" class="db-warn">
+            {{ $t('contribute.setup.switch_confirm', { count: atRisk }) }}
+          </span>
+          <span v-else-if="!supported(entry.id)" class="db-flag">
+            {{ $t('contribute.setup.no_check_badge') }}
+          </span>
+        </button>
       </div>
       <p v-if="store.config && !store.config.qualityCheckSupported" class="note">
         <v-icon :icon="mdiAlertOutline" size="14" />
@@ -103,15 +109,22 @@ const warningCount = computed(
     </template>
 
     <footer v-if="store.database && dictionary.ready" class="status-bar">
-      <span class="status" :class="store.status">
+      <span class="status" :class="statusClass">
         <v-icon
-          :icon="store.status === 'pass' ? mdiCheck : store.status === 'running' ? mdiShieldCheckOutline : mdiAlertOutline"
+          :icon="statusClass === 'pass' ? mdiCheck : statusClass === 'running' ? mdiShieldCheckOutline : mdiAlertOutline"
           size="15"
         />
         {{ statusText }}
       </span>
       <span v-if="store.clientErrorCount" class="client-errors">
         {{ $t('contribute.status.client_errors', { count: store.clientErrorCount }) }}
+      </span>
+      <span v-if="store.dismissedCount" class="dismissed">
+        <v-icon :icon="mdiBellOffOutline" size="14" />
+        {{ $t('contribute.status.dismissed', { count: store.dismissedCount }) }}
+        <button class="link" type="button" @click="store.restoreDismissed()">
+          {{ $t('contribute.editor.restore_all') }}
+        </button>
       </span>
       <span class="spacer" />
       <button
@@ -139,29 +152,47 @@ const warningCount = computed(
 .setup {
   margin-bottom: 20px;
 }
-.setup-grid {
-  display: grid;
-  grid-template-columns: 2fr 2fr 1fr 2fr;
-  gap: 16px;
+.db-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
-@media (max-width: 800px) {
-  .setup-grid {
-    grid-template-columns: 1fr;
-  }
-}
-.tinput {
-  width: 100%;
-  padding: 10px 12px;
+.db {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 14px;
   border: 1px solid var(--border-strong);
   background: var(--bg);
   color: var(--fg);
   font: inherit;
-  font-size: 14px;
+  font-size: 13.5px;
+  cursor: pointer;
   border-radius: var(--radius);
 }
-.tinput:focus {
-  outline: 2px solid var(--epfl-red);
-  outline-offset: -1px;
+.db:hover {
+  background: var(--bg-subtle);
+  border-color: var(--fg-muted);
+}
+.db.active {
+  border-color: var(--epfl-red);
+  background: var(--epfl-red);
+  color: #fff;
+  font-weight: 600;
+}
+.db.pending {
+  border-color: var(--epfl-orange);
+}
+.db-flag,
+.db-warn {
+  font-size: 11px;
+  color: var(--epfl-orange);
+}
+.db.active .db-flag {
+  color: #fff;
+}
+.db-warn {
+  font-weight: 600;
 }
 .note {
   display: flex;
@@ -212,6 +243,24 @@ const warningCount = computed(
 .client-errors {
   font-size: 13px;
   color: var(--epfl-red);
+}
+.dismissed {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+.dismissed .link {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.dismissed .link:hover {
+  color: var(--fg);
 }
 .spacer {
   flex: 1;

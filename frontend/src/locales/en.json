@@ -1021,16 +1021,13 @@
     "dictionary_error": "The data dictionary could not be loaded — is the backend reachable?",
     "retry": "Retry",
     "setup": {
-      "title": "Target & source",
-      "database": "Database",
-      "database_placeholder": "Choose a database…",
-      "program": "Experimental program",
-      "year": "Test year",
-      "doi": "DOI or reference",
-      "no_quality_check": "Automated validation is not available for this database yet; a curator will review the data manually."
+      "title": "Target database",
+      "no_quality_check": "Automated validation is not available for this database yet; a curator will review the data manually.",
+      "no_check_badge": "No automatic check",
+      "switch_confirm": "Click again to replace {count} experiment(s)"
     },
     "editor": {
-      "add_experiment": "Add experiment",
+      "add_experiment": "Add an experiment manually",
       "import_csv": "Import CSV",
       "template": "Template CSV",
       "dictionary": "Data dictionary",
@@ -1050,7 +1047,19 @@
       "remove": "Remove",
       "problems": "Problems",
       "fields": "Fields",
-      "test_data": "Test data"
+      "test_data": "Test data",
+      "dismiss": "Dismiss this warning",
+      "dismiss_hint": "Dismiss — the warning comes back if you change the value",
+      "dismissed_count": "{count} warning(s) dismissed",
+      "restore": "Restore this warning",
+      "restore_all": "Restore",
+      "drop_title": "Drop a CSV here, or click to browse",
+      "drop_hint": "One row per experiment — headers are matched to this database’s columns.",
+      "drop_one_file": "Only the first file was imported.",
+      "intro": "Start from the Template CSV below — it already carries this database’s exact column headers — and open the Data dictionary if you need to know what a column expects (unit, type, whether it is required). Fill in one row per experiment, then drop the file here.",
+      "intro_files": "Measured responses are separate files. Name each one after the specimen it belongs to (B1.csv for the experiment whose id is B1) and you can attach the whole set in one go with bulk attach, below.",
+      "checking": "Checking…",
+      "unchecked": "Not checked"
     },
     "status": {
       "idle": "Add at least one experiment with an identifier to enable the automatic check.",
@@ -1062,7 +1071,9 @@
       "unsupported": "Automated validation is not available for this database.",
       "error": "The check could not be completed:",
       "client_errors": "{count} field(s) have errors",
-      "check_now": "Check now"
+      "check_now": "Check now",
+      "warn_dismissed": "Checks passed — every warning was dismissed.",
+      "dismissed": "{count} dismissed"
     },
     "timeseries": {
       "rows": "{count} rows",
