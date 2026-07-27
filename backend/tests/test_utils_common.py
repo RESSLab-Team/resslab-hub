@@ -1,4 +1,5 @@
 """Pure-unit tests for the small helpers in ``resslab_hub.utils.common``."""
+
 import pytest
 
 from resslab_hub.utils.common import strtobool

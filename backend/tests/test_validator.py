@@ -4,6 +4,7 @@
 (headers, nullability, declared SQL types) -- it never opens a database
 connection -- so these run without PostgreSQL.
 """
+
 import csv
 from pathlib import Path
 

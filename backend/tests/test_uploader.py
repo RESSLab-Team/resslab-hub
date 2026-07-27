@@ -8,6 +8,7 @@ for measurement tables. (The measurement path is bulk-rewritten to ``COPY ...
 FROM STDIN`` on later branches; these behaviour-level assertions are what verify
 that rewrite preserved the result.)
 """
+
 from datetime import date
 from decimal import Decimal
 

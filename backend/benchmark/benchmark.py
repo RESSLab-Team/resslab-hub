@@ -25,6 +25,7 @@ Usage (from ``backend/``)::
     uv run python -m benchmark.benchmark --rows 5000 --rounds 50
     uv run python -m benchmark.benchmark --rows 20000 --rounds 100 --warmup 5
 """
+
 from __future__ import annotations
 
 import argparse
@@ -259,7 +260,9 @@ async def run_db_benchmarks(rounds: int, warmup: int) -> list[list[str]]:
             await session.execute(select(distinct(Brace.investigator)))
 
     rows.append(
-        (await measure_async("db: count(*)", count_all, rounds=rounds, warmup=warmup)).row()
+        (
+            await measure_async("db: count(*)", count_all, rounds=rounds, warmup=warmup)
+        ).row()
     )
     rows.append(
         (
@@ -304,7 +307,9 @@ async def run_api_benchmarks(rounds: int, warmup: int) -> list[list[str]]:
             await client.get("/braces/counts", params={"fields": "investigator"})
 
         async def distinct() -> None:
-            await client.get("/braces/distinct", params={"fields": "cross_section_shape"})
+            await client.get(
+                "/braces/distinct", params={"fields": "cross_section_shape"}
+            )
 
         async def value_range() -> None:
             await client.get("/braces/range", params={"field": "f_yn"})
@@ -341,7 +346,9 @@ def run_upload_benchmark(rows: int, tmp_dir: Path, warmup: int) -> Stats:
         upload_one(Type.BRACE, str(csv_path))
 
     # A small number of rounds: each round re-uploads all `rows` records.
-    return measure("upload: braces (bulk COPY)", upload, rounds=3, warmup=warmup, unit_count=rows)
+    return measure(
+        "upload: braces (bulk COPY)", upload, rounds=3, warmup=warmup, unit_count=rows
+    )
 
 
 def seed(rows: int, tmp_dir: Path) -> None:
@@ -399,7 +406,9 @@ def parse_args() -> argparse.Namespace:
         "--warmup", type=int, default=3, help="discarded warmup rounds per scenario"
     )
     parser.add_argument(
-        "--tmp-dir", default=None, help="where to write fixture CSVs (default backend/.benchmark-tmp)"
+        "--tmp-dir",
+        default=None,
+        help="where to write fixture CSVs (default backend/.benchmark-tmp)",
     )
     return parser.parse_args()
 

@@ -1,4 +1,5 @@
 """Pure-unit tests for the section-table CSV transformer (no database)."""
+
 import csv
 from decimal import Decimal
 from pathlib import Path

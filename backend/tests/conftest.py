@@ -8,6 +8,7 @@ the same credentials as the app (read from ``secrets/.env``), but the database
 name is overridden to a throwaway ``resslab_hub_test`` that is created and
 dropped around the test session, so the real data is never touched.
 """
+
 import csv
 import logging
 import os
