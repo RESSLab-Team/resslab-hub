@@ -1237,7 +1237,7 @@ body.theme-dark .logos img {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--fg-muted);
+  color: var(--fg);
 }
 /* Below the tablet breakpoint the title needs the full width. */
 @media (max-width: 900px) {

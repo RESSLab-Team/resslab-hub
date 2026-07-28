@@ -128,7 +128,7 @@ function shareView(): void {
       </div>
       <!-- Decorative: the title already names the database. -->
       <div v-if="databaseIcon" class="dash-head-icon" aria-hidden="true">
-        <v-icon :icon="databaseIcon" size="112" />
+        <v-icon :icon="databaseIcon" size="4rem" />
       </div>
     </div>
 
