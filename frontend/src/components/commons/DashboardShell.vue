@@ -124,12 +124,14 @@ function shareView(): void {
             <div class="dash-head-actions">
               <slot name="head-actions" />
             </div>
+            <!-- Decorative: the title already names the database. Lives in the
+                 title row so it sits beside the title once it stops being
+                 absolutely positioned on narrow screens. -->
+            <div v-if="databaseIcon" class="dash-head-icon" aria-hidden="true">
+              <v-icon :icon="databaseIcon" />
+            </div>
           </div>
           <p v-if="description" class="dash-desc">{{ description }}</p>
-        </div>
-        <!-- Decorative: the title already names the database. -->
-        <div v-if="databaseIcon" class="dash-head-icon" aria-hidden="true">
-          <v-icon :icon="databaseIcon" />
         </div>
       </div>
     </div>

@@ -1255,14 +1255,32 @@ body.theme-dark .logos img {
   width: 58%;
   height: 58%;
 }
-/* Below the tablet breakpoint the title needs the full width — drop the mark
-   and hand its gutter back to the text. */
+/* Narrower screens keep the mark but drop it back into the flow, where it sits
+   beside the title instead of spanning the text block — the description then
+   gets the full width back. Its stroke climbs to chrome weight as it shrinks. */
 @media (max-width: 900px) {
-  .dash-head-icon {
-    display: none;
-  }
   .dash-head-main {
     padding-right: 0;
+  }
+  /* Keep the mark on the title's line rather than letting it wrap below. */
+  .dash-head-row {
+    flex-wrap: nowrap;
+  }
+  .dash-title {
+    min-width: 0;
+  }
+  .dash-head-icon {
+    position: static;
+    flex: 0 0 auto;
+    height: 3rem;
+    max-height: none;
+    --rl-icon-stroke: 1.5;
+  }
+}
+@media (max-width: 560px) {
+  .dash-head-icon {
+    height: 2.5rem;
+    --rl-icon-stroke: 1.8;
   }
 }
 .dash-title {
@@ -1277,6 +1295,9 @@ body.theme-dark .logos img {
   font-weight: 300;
   margin-left: 14px;
   font-feature-settings: 'tnum';
+  /* Wrap the count as a whole — breaking between the number and its label
+     strands the unit ("85" above, "specimens" below) on its own line. */
+  white-space: nowrap;
 }
 .dash-desc {
   margin: 12px 0 0;
