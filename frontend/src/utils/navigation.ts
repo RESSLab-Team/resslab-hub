@@ -1,12 +1,4 @@
 import i18n from '@/plugins/i18n'
-import {
-  mdiChartBar,
-  mdiChartBellCurve,
-  mdiCubeOutline,
-  mdiImageFilterCenterFocus,
-  mdiLayersOutline,
-  mdiPulse
-} from '@mdi/js'
 
 const t = i18n.global.t
 
@@ -47,7 +39,7 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'connections',
     name: t('nav.connections'),
     desc: t('nav.connections_desc'),
-    icon: mdiCubeOutline,
+    icon: 'rl:connections',
     group: 'components',
     children: [
       { name: t('nav.database'), to: '/connections/database', countId: 'connections' },
@@ -59,7 +51,7 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'columns',
     name: t('nav.columns'),
     desc: t('nav.columns_desc'),
-    icon: mdiLayersOutline,
+    icon: 'rl:columns',
     group: 'components',
     children: [
       { name: t('nav.database'), to: '/columns/database', countId: 'columns' },
@@ -71,7 +63,7 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'braces',
     name: t('nav.braces'),
     desc: t('nav.braces_desc'),
-    icon: mdiPulse,
+    icon: 'rl:braces',
     group: 'components',
     children: [
       { name: t('nav.database'), to: '/braces/database', countId: 'braces' },
@@ -83,7 +75,7 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'hss',
     name: t('nav.hss_columns'),
     desc: t('nav.hss_columns_desc'),
-    icon: mdiCubeOutline,
+    icon: 'rl:hss',
     group: 'components',
     children: [
       { name: t('nav.database'), to: '/hss-columns/database', countId: 'hss' },
@@ -94,7 +86,7 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'ebf',
     name: t('nav.ebf_links'),
     desc: t('nav.ebf_links_desc'),
-    icon: mdiPulse,
+    icon: 'rl:ebf',
     group: 'components',
     children: [{ name: t('nav.database'), to: '/ebf-links/database', countId: 'ebf' }]
   },
@@ -102,28 +94,28 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'materials',
     name: t('nav.materials'),
     desc: t('nav.materials_desc'),
-    icon: mdiChartBar,
+    icon: 'rl:materials',
     group: 'materials',
     children: [
       {
         name: t('nav.cyclic_coupons'),
         to: '/materials/cyclic-coupons',
         countId: 'cyclic',
-        icon: mdiChartBar,
+        icon: 'rl:cyclic',
         desc: t('nav.cyclic_coupons_desc')
       },
       {
         name: t('nav.tensile_coupons'),
         to: '/materials/tensile-coupons',
         countId: 'tensile',
-        icon: mdiChartBellCurve,
+        icon: 'rl:tensile',
         desc: t('nav.tensile_coupons_desc')
       },
       {
         name: t('nav.ductile_fracture'),
         to: '/materials/ductile-fracture',
         countId: 'ductile-fracture',
-        icon: mdiImageFilterCenterFocus,
+        icon: 'rl:ductile-fracture',
         desc: t('nav.ductile_fracture_desc')
       },
       { name: t('nav.material_model'), to: '/materials/model' }
@@ -133,7 +125,7 @@ export const NAV_GROUPS: NavGroup[] = [
     id: 'residuals',
     name: t('nav.residual_stresses'),
     desc: t('nav.residual_stresses_desc'),
-    icon: mdiLayersOutline,
+    icon: 'rl:residuals',
     group: 'materials',
     children: [{ name: t('nav.database'), to: '/residuals/database', countId: 'residuals' }]
   }

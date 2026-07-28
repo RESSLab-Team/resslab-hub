@@ -5,7 +5,13 @@ import { useContributionStore } from '@/stores/contribution'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import { DATABASES, type DatabaseId } from '@/utils/navigation'
-import { mdiAlertOutline, mdiBellOffOutline, mdiCheck, mdiSend, mdiShieldCheckOutline } from '@mdi/js'
+import {
+  mdiAlertOutline,
+  mdiBellOffOutline,
+  mdiCheck,
+  mdiSend,
+  mdiShieldCheckOutline
+} from '@mdi/js'
 import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -50,9 +56,7 @@ const statusText = computed(() => {
     case 'error':
       return `${t('contribute.status.error')} ${store.errorMessage}`
     default:
-      return store.hasAnyId
-        ? t('contribute.status.pending')
-        : t('contribute.status.idle')
+      return store.hasAnyId ? t('contribute.status.pending') : t('contribute.status.idle')
   }
 })
 
@@ -60,7 +64,6 @@ const statusText = computed(() => {
 const statusClass = computed(() =>
   store.status === 'warn' && store.activeWarningCount === 0 ? 'pass' : store.status
 )
-
 </script>
 
 <template>
@@ -80,6 +83,7 @@ const statusClass = computed(() =>
           type="button"
           @click="pick(entry.id)"
         >
+          <v-icon :icon="entry.icon" size="17" />
           <span class="db-name">{{ entry.name }}</span>
           <span v-if="pending === entry.id" class="db-warn">
             {{ $t('contribute.setup.switch_confirm', { count: atRisk }) }}
@@ -111,7 +115,13 @@ const statusClass = computed(() =>
     <footer v-if="store.database && dictionary.ready" class="status-bar">
       <span class="status" :class="statusClass">
         <v-icon
-          :icon="statusClass === 'pass' ? mdiCheck : statusClass === 'running' ? mdiShieldCheckOutline : mdiAlertOutline"
+          :icon="
+            statusClass === 'pass'
+              ? mdiCheck
+              : statusClass === 'running'
+              ? mdiShieldCheckOutline
+              : mdiAlertOutline
+          "
           size="15"
         />
         {{ statusText }}
@@ -129,7 +139,9 @@ const statusClass = computed(() =>
       <span class="spacer" />
       <button
         class="btn btn-secondary btn-sm"
-        :disabled="!store.hasAnyId || store.status === 'running' || !store.config?.qualityCheckSupported"
+        :disabled="
+          !store.hasAnyId || store.status === 'running' || !store.config?.qualityCheckSupported
+        "
         type="button"
         @click="store.runQualityCheck()"
       >
@@ -159,7 +171,7 @@ const statusClass = computed(() =>
 }
 .db {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   padding: 8px 14px;
   border: 1px solid var(--border-strong);

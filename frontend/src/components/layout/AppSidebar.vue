@@ -80,6 +80,7 @@ function toggleGroup(group: NavGroup) {
         :to="group.children[0].to"
         @click="emit('close')"
       >
+        <v-icon :icon="group.icon" size="16" />
         {{ group.name }}
         <span
           v-if="group.children[0].countId && countsStore.counts[group.children[0].countId] != null"
@@ -96,6 +97,7 @@ function toggleGroup(group: NavGroup) {
             :to="group.children[0].to"
             @click="emit('close')"
           >
+            <v-icon :icon="group.icon" size="16" />
             {{ group.name }}
           </router-link>
           <button
