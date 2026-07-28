@@ -16,6 +16,31 @@
   --rail-w: 340px;
   --pad: 32px;
   --topbar-h: 56px;
+
+  /* ── Rail density ────────────────────────────────────────
+     The model rails stack up to ten sliders, so how much room a
+     control can afford is a function of VIEWPORT HEIGHT, not width.
+     These are the compact tier — short laptop viewports; two
+     min-height steps down in RESPONSIVE REGIMES relax them back to
+     the handoff's original spacing as the viewport grows.
+     `--card-pad` has to be a token either way: the ratio readout
+     bleeds to the card edges with a matching negative margin. */
+  --card-pad: 14px;
+  --card-head-gap: 10px;
+  --field-gap: 16px;
+  --rail-pad: 14px;
+  --rail-gap: 12px;
+  --group-gap: 14px;
+  --group-head-gap: 9px;
+  /* consumed by ToolSlider's scoped styles */
+  --tsl-head-gap: 2px;
+  --tsl-track-h: 16px;
+  --tsl-thumb: 12px;
+  --tsl-ends-gap: -1px;
+  --tsl-label-size: 12.5px;
+  --tsl-val-size: 12px;
+  --tsl-ends-size: 9px;
+
   background: var(--bg);
   min-height: calc(100vh - var(--topbar-h));
 }
@@ -40,10 +65,10 @@
   overflow-y: auto;
   border-right: 1px solid var(--border);
   background: var(--bg);
-  padding: 18px;
+  padding: var(--rail-pad);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--rail-gap);
 }
 
 /* stage — flows in the single page scroll */
@@ -245,7 +270,7 @@
 .tool-page .tool-card {
   border: 1px solid var(--border);
   background: var(--bg);
-  padding: 20px;
+  padding: var(--card-pad);
 }
 .tool-page .tool-card-h {
   font-size: var(--title-panel-size);
@@ -253,8 +278,8 @@
   text-transform: uppercase;
   letter-spacing: var(--title-panel-tracking);
   color: var(--fg);
-  padding-bottom: 12px;
-  margin-bottom: 14px;
+  padding-bottom: calc(var(--card-head-gap) - 2px);
+  margin-bottom: var(--card-head-gap);
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
@@ -264,7 +289,7 @@
   justify-content: space-between;
 }
 .tool-page .tfield {
-  margin-bottom: 18px;
+  margin-bottom: var(--field-gap);
 }
 .tool-page .tfield:last-child {
   margin-bottom: 0;
@@ -275,7 +300,7 @@
   letter-spacing: var(--title-panel-tracking);
   color: var(--fg);
   font-weight: var(--title-panel-weight);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 /* Ratio readout — dark emphasis bar bled to the card edges */
@@ -283,8 +308,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 16px -20px -20px;
-  padding: 13px 20px;
+  margin: var(--field-gap) calc(-1 * var(--card-pad)) calc(-1 * var(--card-pad));
+  padding: 10px var(--card-pad);
   background: var(--epfl-control-fill);
   color: var(--fg-inverse);
   font-size: 13px;
@@ -304,7 +329,7 @@
 
 /* Parameter groups (material model) */
 .tool-page .tool-param-group {
-  margin-bottom: 22px;
+  margin-bottom: var(--group-gap);
 }
 .tool-page .tool-param-group:last-child {
   margin-bottom: 0;
@@ -315,19 +340,19 @@
   letter-spacing: var(--title-panel-tracking);
   color: var(--fg);
   font-weight: var(--title-panel-weight);
-  margin-bottom: 14px;
-  padding-bottom: 6px;
+  margin-bottom: var(--group-head-gap);
+  padding-bottom: 5px;
   border-bottom: 1px solid var(--border-subtle);
 }
 .tool-page .tool-param-group .tslider {
-  margin-bottom: 16px;
+  margin-bottom: var(--field-gap);
 }
 .tool-page .tool-param-group .tslider:last-child {
   margin-bottom: 0;
 }
 .tool-page .mat-a-groups {
-  margin-top: 20px;
-  padding-top: 18px;
+  margin-top: var(--group-gap);
+  padding-top: calc(var(--group-gap) - 2px);
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -426,6 +451,50 @@
 }
 
 /* ═══════════════════════ RESPONSIVE REGIMES ═══════════════════ */
+
+/* ── VERTICAL DENSITY — the rail relaxes as the viewport gets taller.
+   The compact defaults sit on `.tool-page` above and cover short laptop
+   viewports (a 1440×900 laptop lands around 780px of usable height). These
+   two steps walk the rail back up: ~1080p gets an intermediate tier, and a
+   genuinely tall screen gets the handoff's original spacing. Only the tokens
+   move — no rule below needs a height-specific override. */
+@media (min-height: 800px) {
+  .tool-page {
+    --card-pad: 17px;
+    --card-head-gap: 12px;
+    --field-gap: 17px;
+    --rail-pad: 16px;
+    --rail-gap: 14px;
+    --group-gap: 18px;
+    --group-head-gap: 11px;
+    --tsl-head-gap: 4px;
+    --tsl-track-h: 19px;
+    --tsl-thumb: 13px;
+    --tsl-ends-gap: 0px;
+    --tsl-label-size: 13.5px;
+    --tsl-val-size: 12.5px;
+    --tsl-ends-size: 9.5px;
+  }
+}
+
+@media (min-height: 1000px) {
+  .tool-page {
+    --card-pad: 20px;
+    --card-head-gap: 14px;
+    --field-gap: 18px;
+    --rail-pad: 18px;
+    --rail-gap: 16px;
+    --group-gap: 22px;
+    --group-head-gap: 14px;
+    --tsl-head-gap: 7px;
+    --tsl-track-h: 22px;
+    --tsl-thumb: 14px;
+    --tsl-ends-gap: 2px;
+    --tsl-label-size: 14px;
+    --tsl-val-size: 13px;
+    --tsl-ends-size: 10px;
+  }
+}
 
 /* WIDE — give the rail and padding more room */
 @media (min-width: 1600px) {

@@ -4,6 +4,11 @@
 // a ringed thumb — no surrounding box. Colors use --fg/--bg tokens so the
 // control inverts correctly in dark mode. Unit conversion (SI/US) is handled
 // through `useUnits`.
+// Sizing is driven by the `--tsl-*` tokens that tool-pages.css sets per
+// VIEWPORT-HEIGHT tier: the model rails stack up to ten of these, so on a short
+// laptop viewport they run dense, and on a tall screen they relax back to the
+// handoff's original proportions. The fallbacks below (the dense tier) keep the
+// control self-contained if it's ever used outside a `.tool-page`.
 import { useUnits } from '@/composables/unit'
 import { computed } from 'vue'
 
@@ -93,32 +98,36 @@ function onInput(event: Event): void {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 7px;
+  gap: 8px;
+  line-height: 1.15;
+  margin-bottom: var(--tsl-head-gap, 2px);
 }
 .tslider-label {
-  font-size: 14px;
+  font-size: var(--tsl-label-size, 12.5px);
   font-weight: 600;
   font-style: italic; /* math-variable labels read as italic in the handoff */
   color: var(--fg);
+  white-space: nowrap;
 }
 .tslider-label :deep(sub) {
-  font-size: 9px;
+  font-size: 0.65em;
 }
 .tslider-val {
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--tsl-val-size, 12px);
   color: var(--fg);
   font-feature-settings: 'tnum';
+  white-space: nowrap;
 }
 .tslider-val em {
   color: var(--fg-subtle);
   font-style: normal;
   margin-left: 3px;
-  font-size: 10px;
+  font-size: 0.8em;
 }
 .tslider-track {
   position: relative;
-  height: 22px;
+  height: var(--tsl-track-h, 16px);
   display: flex;
   align-items: center;
 }
@@ -143,9 +152,10 @@ function onInput(event: Event): void {
 .tslider-ends {
   display: flex;
   justify-content: space-between;
-  margin-top: 2px;
+  margin-top: var(--tsl-ends-gap, -1px);
   font-family: var(--font-sans);
-  font-size: 10px;
+  font-size: var(--tsl-ends-size, 9px);
+  line-height: 1.1;
   color: var(--fg-subtle);
   font-feature-settings: 'tnum';
 }
@@ -157,14 +167,14 @@ function onInput(event: Event): void {
   margin: 0;
   position: relative;
   z-index: 1;
-  height: 22px;
+  height: var(--tsl-track-h, 16px);
   cursor: pointer;
 }
 .tslider-track input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 14px;
-  height: 14px;
+  width: var(--tsl-thumb, 12px);
+  height: var(--tsl-thumb, 12px);
   border-radius: 50%; /* circular knob kept per logged deviation */
   background: var(--bg);
   border: 2px solid var(--epfl-red); /* handoff: red-ringed thumb */
@@ -175,8 +185,8 @@ function onInput(event: Event): void {
   border-color: var(--epfl-red-dark);
 }
 .tslider-track input[type='range']::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: var(--tsl-thumb, 12px);
+  height: var(--tsl-thumb, 12px);
   border-radius: 50%;
   background: var(--bg);
   border: 2px solid var(--epfl-red);
