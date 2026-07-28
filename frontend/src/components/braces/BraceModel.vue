@@ -227,31 +227,38 @@ function onSectionChanged(value?: Section): void {
   }
 }
 
-function getTensionOption(result: Result): EChartsOption {
+// Chart options are computed, not built inline in the template: a template call
+// would mint a fresh option object on every re-render (unit toggle, locale, any
+// unrelated state) and vue-echarts would push each one through `setOption`.
+// As computeds they only change when `result` does.
+const tensionOption = computed<EChartsOption>(() => {
+  const { delta_y, delta_ut, Nple } = result.value
   return {
     xAxis: {
       name: t('tools.brace_model.tension_x_axis'),
-      max: 1.2 * result.delta_ut
+      max: 1.2 * delta_ut
     },
     yAxis: {
       name: t('tools.brace_model.tension_y_axis'),
-      max: 1.2 * result.Nple
+      max: 1.2 * Nple
     },
     series: [
       {
+        id: 'backbone',
         type: 'line',
         data: [
           [0, 0],
-          [result.delta_y, result.Nple],
-          [result.delta_ut, result.Nple]
+          [delta_y, Nple],
+          [delta_ut, Nple]
         ],
         color: primaryColor.base
       },
       {
+        id: 'drop',
         type: 'line',
         data: [
-          [result.delta_ut, result.Nple],
-          [result.delta_ut, 0]
+          [delta_ut, Nple],
+          [delta_ut, 0]
         ],
         color: primaryColor.base,
         lineStyle: {
@@ -260,33 +267,36 @@ function getTensionOption(result: Result): EChartsOption {
       }
     ]
   }
-}
+})
 
-function getCompressionOption(result: Result): EChartsOption {
+const compressionOption = computed<EChartsOption>(() => {
+  const { delta_c, delta_ub, Nbe, Nu_c } = result.value
   return {
     xAxis: {
       name: t('tools.brace_model.compression_x_axis'),
-      max: 1.2 * result.delta_ub
+      max: 1.2 * delta_ub
     },
     yAxis: {
       name: t('tools.brace_model.compression_y_axis'),
-      max: 1.2 * result.Nbe
+      max: 1.2 * Nbe
     },
     series: [
       {
+        id: 'backbone',
         type: 'line',
         data: [
           [0, 0],
-          [result.delta_c, result.Nbe],
-          [result.delta_ub, result.Nu_c]
+          [delta_c, Nbe],
+          [delta_ub, Nu_c]
         ],
         color: primaryColor.base
       },
       {
+        id: 'drop',
         type: 'line',
         data: [
-          [result.delta_ub, result.Nu_c],
-          [result.delta_ub, 0]
+          [delta_ub, Nu_c],
+          [delta_ub, 0]
         ],
         color: primaryColor.base,
         lineStyle: {
@@ -295,7 +305,7 @@ function getCompressionOption(result: Result): EChartsOption {
       }
     ]
   }
-}
+})
 
 const paramCount = computed(
   () =>
@@ -399,7 +409,7 @@ const paramCount = computed(
               </div>
             </div>
             <div class="tchart h-chart">
-              <unit-chart fill :option="getTensionOption(result)" />
+              <unit-chart fill :option="tensionOption" />
             </div>
           </div>
           <div class="st-chart">
@@ -410,7 +420,7 @@ const paramCount = computed(
               </div>
             </div>
             <div class="tchart h-chart">
-              <unit-chart fill :option="getCompressionOption(result)" />
+              <unit-chart fill :option="compressionOption" />
             </div>
           </div>
         </div>

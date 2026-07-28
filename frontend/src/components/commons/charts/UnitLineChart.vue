@@ -4,7 +4,6 @@ import { primaryColors, type Color } from '@/utils/vuetify'
 import type { EChartsOption, LineSeriesOption } from 'echarts'
 import { TitleComponent } from 'echarts/components'
 import { use } from 'echarts/core'
-import { merge } from 'lodash'
 import { computed } from 'vue'
 
 const props = withDefaults(
@@ -77,18 +76,15 @@ const option = computed<EChartsOption>(
           axis: props.axisPointerType
         }
       },
-      series: props.series.map((serie) =>
-        merge<LineSeriesOption, LineSeriesOption>(
-          {
-            type: 'line',
-            showSymbol: false,
-            lineStyle: {
-              width: 1
-            }
-          },
-          serie
-        )
-      ),
+      // Spread rather than `merge`: the callers' `data` arrays run to thousands
+      // of points and a deep merge would clone every one of them on each update.
+      // Only `lineStyle` actually needs merging with the default.
+      series: props.series.map((serie) => ({
+        type: 'line',
+        showSymbol: false,
+        ...serie,
+        lineStyle: { width: 1, ...serie.lineStyle }
+      })),
       color: props.colors.map((color) => color.base)
     } as EChartsOption)
 )

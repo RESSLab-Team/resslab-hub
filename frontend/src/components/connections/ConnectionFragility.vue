@@ -141,17 +141,29 @@ const panels = computed<{ id: FocusId; title: string; option: EChartsOption; cou
 const activePanel = computed(() => panels.value.find((p) => p.id === focus.value)!)
 
 // Compact, label-free clone for the preview thumbnails; inactive series go grey.
-function thumbOption(option: EChartsOption, active: boolean): EChartsOption {
-  const series = option.series as { type: string }[]
-  return {
-    ...option,
-    grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: false },
-    xAxis: { ...(option.xAxis as object), name: '', axisLabel: { show: false } },
-    yAxis: { ...(option.yAxis as object), name: '', axisLabel: { show: false } },
-    color: active ? (option.color as string[]) : series.map(() => '#c1c1c1'),
-    legend: { show: false }
-  }
-}
+// Computed once per panel rather than called from the template, so a slider drag
+// doesn't hand vue-echarts a brand-new option object for each thumbnail.
+const thumbOptions = computed<Record<FocusId, EChartsOption>>(
+  () =>
+    Object.fromEntries(
+      panels.value.map((panel) => {
+        const option = panel.option
+        const series = option.series as { type: string }[]
+        const active = focus.value === panel.id
+        return [
+          panel.id,
+          {
+            ...option,
+            grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: false },
+            xAxis: { ...(option.xAxis as object), name: '', axisLabel: { show: false } },
+            yAxis: { ...(option.yAxis as object), name: '', axisLabel: { show: false } },
+            color: active ? (option.color as string[]) : series.map(() => '#c1c1c1'),
+            legend: { show: false }
+          } as EChartsOption
+        ]
+      })
+    ) as Record<FocusId, EChartsOption>
+)
 </script>
 
 <template>
@@ -258,11 +270,7 @@ function thumbOption(option: EChartsOption, active: boolean): EChartsOption {
             @click="focus = panel.id"
           >
             <div class="mat-thumb-chart">
-              <unit-chart
-                :aspect-ratio="3"
-                :option="thumbOption(panel.option, focus === panel.id)"
-                x-unit="rad"
-              />
+              <unit-chart :aspect-ratio="3" :option="thumbOptions[panel.id]" x-unit="rad" />
             </div>
             <span class="mat-thumb-label">{{ panel.title }}</span>
             <span class="mat-thumb-meta">

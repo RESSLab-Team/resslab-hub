@@ -364,34 +364,38 @@ function getResult(output: Envelope | Backbone): Result {
   }
 }
 
-function getOption(backbone: Result, envelope: Result): EChartsOption {
-  return {
-    xAxis: {
-      name: t('tools.column_model.chart_x_axis')
+// Computed rather than built inline in the template: a template call would mint a
+// fresh option object on every re-render and vue-echarts would push each one
+// through `setOption`. Series carry stable ids so a parameter change merges into
+// the rendered series instead of replacing them.
+const chartOption = computed<EChartsOption>(() => ({
+  xAxis: {
+    name: t('tools.column_model.chart_x_axis')
+  },
+  yAxis: {
+    name: t('tools.column_model.chart_y_axis')
+  },
+  series: [
+    {
+      id: 'backbone',
+      type: 'line',
+      name: t('tools.column_model.series_monotonic_backbone'),
+      data: backboneResult.value.points,
+      color: primaryColor.base
     },
-    yAxis: {
-      name: t('tools.column_model.chart_y_axis')
-    },
-    series: [
-      {
-        type: 'line',
-        name: t('tools.column_model.series_monotonic_backbone'),
-        data: backbone.points,
-        color: primaryColor.base
-      },
-      {
-        type: 'line',
-        name: t('tools.column_model.series_first_cycle_envelope'),
-        data: envelope.points,
-        color: secondaryColor.base
-      }
-    ]
-  }
-}
+    {
+      id: 'envelope',
+      type: 'line',
+      name: t('tools.column_model.series_first_cycle_envelope'),
+      data: envelopeResult.value.points,
+      color: secondaryColor.base
+    }
+  ]
+}))
 
-function getTableColumns(...results: Result[]): Record<string, number | undefined>[] {
-  return results.map((result) => omit(result, 'points'))
-}
+const tableColumns = computed<Record<string, number | undefined>[]>(() =>
+  [backboneResult.value, envelopeResult.value].map((result) => omit(result, 'points'))
+)
 
 const paramCount = computed(() => steelShapeDimensions.length + memberProperties.value.length)
 
@@ -460,12 +464,7 @@ defineExpose({ vars, backbone, envelope, variables, onSectionChanged })
           </div>
         </div>
         <div class="tchart h-chart">
-          <unit-chart
-            fill
-            :option="getOption(backboneResult, envelopeResult)"
-            x-unit="rad"
-            y-unit="kN⋅mm"
-          />
+          <unit-chart fill :option="chartOption" x-unit="rad" y-unit="kN⋅mm" />
         </div>
       </div>
 
@@ -491,7 +490,7 @@ defineExpose({ vars, backbone, envelope, variables, onSectionChanged })
               :text="item.text"
               :unit="item.unit"
               :fraction-digit="item.fractionDigit"
-              :columns="getTableColumns(backboneResult, envelopeResult)"
+              :columns="tableColumns"
             />
           </tbody>
         </v-table>

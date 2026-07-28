@@ -9,6 +9,9 @@ export const initOptions: InitOptions = {
 export const canvasInitOptions: InitOptions = {
   renderer: 'canvas'
 }
+// NOTE: UnitChart does not use this — it derives its update options per render
+// so it can skip `replaceMerge` while the series set is unchanged (see the
+// comment there). Dashboard charts below keep the unconditional replace.
 // Diff-merge each filter update instead of tearing down and re-instantiating the
 // whole chart (notMerge:true was a full rebuild every tick). Merge animates the
 // change as a cheap *update*; replaceMerge:['series'] drops series whose ids

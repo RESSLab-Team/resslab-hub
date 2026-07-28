@@ -534,7 +534,11 @@ function getResult(output: Envelope | Backbone): Result {
   }
 }
 
-function option(backbone: Result, envelope: Result): EChartsOption {
+// Built as computeds, not called from the template: a template call would mint a
+// fresh option object on every re-render and vue-echarts would push each one
+// through `setOption`. Series carry stable ids so a parameter change merges into
+// the rendered series instead of replacing them.
+function buildOption(backbone: Result, envelope: Result): EChartsOption {
   return {
     xAxis: {
       name: t('tools.connection_model.chart_x_axis')
@@ -544,12 +548,14 @@ function option(backbone: Result, envelope: Result): EChartsOption {
     },
     series: [
       {
+        id: 'backbone',
         type: 'line',
         name: t('tools.connection_model.series_monotonic_backbone'),
         data: backbone.points,
         color: primaryColor.base
       },
       {
+        id: 'envelope',
         type: 'line',
         name: t('tools.connection_model.series_first_cycle_envelope'),
         data: envelope.points,
@@ -558,6 +564,13 @@ function option(backbone: Result, envelope: Result): EChartsOption {
     ]
   }
 }
+
+const rbsOption = computed<EChartsOption>(() =>
+  buildOption(backboneWithRbs.value, envelopeWithRbs.value)
+)
+const nonRbsOption = computed<EChartsOption>(() =>
+  buildOption(backboneWithoutRbs.value, envelopeWithoutRbs.value)
+)
 
 const paramCount = computed(() => steelShapeDimensions.length + memberProperties.length)
 
@@ -645,12 +658,7 @@ defineExpose({
               </div>
             </div>
             <div class="tchart h-chart">
-              <unit-chart
-                fill
-                :option="option(backboneWithRbs, envelopeWithRbs)"
-                x-unit="rad"
-                y-unit="kN⋅mm"
-              />
+              <unit-chart fill :option="rbsOption" x-unit="rad" y-unit="kN⋅mm" />
             </div>
           </div>
           <div class="st-chart">
@@ -663,12 +671,7 @@ defineExpose({
               </div>
             </div>
             <div class="tchart h-chart">
-              <unit-chart
-                fill
-                :option="option(backboneWithoutRbs, envelopeWithoutRbs)"
-                x-unit="rad"
-                y-unit="kN⋅mm"
-              />
+              <unit-chart fill :option="nonRbsOption" x-unit="rad" y-unit="kN⋅mm" />
             </div>
           </div>
         </div>

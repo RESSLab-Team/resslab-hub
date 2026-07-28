@@ -135,8 +135,11 @@ const chartSeries = computed<Record<testId, LineSeriesOption>>(() => {
 const focusTitle = computed(() => charts.value.find((c) => c.id === focus.value)!.title)
 
 // Series with explicit colour: active focus is periwinkle, previews muted grey.
+// The `id` is stable across parameter changes, so ECharts merges the new data
+// into the rendered series rather than rebuilding it.
 function styledSeries(id: testId, active: boolean): LineSeriesOption {
   return {
+    id,
     ...chartSeries.value[id],
     type: 'line',
     showSymbol: false,
@@ -145,15 +148,26 @@ function styledSeries(id: testId, active: boolean): LineSeriesOption {
   }
 }
 
+// Focus chart + the four previews are computed, not built inline in the template.
+// Called from the template these five option objects would be rebuilt on every
+// re-render — each one a `setOption` on a curve with thousands of points.
+const focusSeries = computed<LineSeriesOption[]>(() => [styledSeries(focus.value, true)])
+
 // Compact, axis-free preview so the hysteresis shape fills the thumbnail.
-function thumbOption(id: testId, active: boolean): EChartsOption {
-  return {
-    grid: { left: 6, right: 6, top: 6, bottom: 6, containLabel: false },
-    xAxis: { type: 'value', name: '', axisLabel: { show: false } },
-    yAxis: { type: 'value', name: '', axisLabel: { show: false } },
-    series: [styledSeries(id, active)]
-  }
-}
+const thumbOptions = computed<Record<testId, EChartsOption>>(
+  () =>
+    Object.fromEntries(
+      charts.value.map((chart) => [
+        chart.id,
+        {
+          grid: { left: 6, right: 6, top: 6, bottom: 6, containLabel: false },
+          xAxis: { type: 'value', name: '', axisLabel: { show: false } },
+          yAxis: { type: 'value', name: '', axisLabel: { show: false } },
+          series: [styledSeries(chart.id, focus.value === chart.id)]
+        } as EChartsOption
+      ])
+    ) as Record<testId, EChartsOption>
+)
 
 onMounted(() => {
   Promise.all(
@@ -243,7 +257,7 @@ const paramCount = computed(() =>
         <div class="tchart h-chart">
           <unit-line-chart
             fill
-            :series="[styledSeries(focus, true)]"
+            :series="focusSeries"
             x-axis-name="ε"
             y-axis-name="σ"
             y-unit="MPa"
@@ -259,7 +273,7 @@ const paramCount = computed(() =>
             @click="focus = item.id"
           >
             <div class="mat-thumb-chart">
-              <unit-chart :aspect-ratio="1.9" :option="thumbOption(item.id, focus === item.id)" />
+              <unit-chart :aspect-ratio="1.9" :option="thumbOptions[item.id]" />
             </div>
             <span class="mat-thumb-label">{{ item.title }}</span>
             <span class="mat-thumb-meta">{{ item.id }}</span>

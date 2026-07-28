@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { initOptions, updateOptions } from '@/components/commons/charts/utils'
+import { initOptions } from '@/components/commons/charts/utils'
 import { useUnits } from '@/composables/unit'
-import type { EChartsOption, SeriesOption, TooltipComponentFormatterCallbackParams } from 'echarts'
+import type {
+  EChartsOption,
+  SeriesOption,
+  SetOptionOpts,
+  TooltipComponentFormatterCallbackParams
+} from 'echarts'
 import { LineChart } from 'echarts/charts'
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
@@ -138,9 +143,12 @@ const actualOption = computed<EChartsOption>(() => {
   }) as EChartsOption
 
   // Scale every point exactly once into fresh arrays; never mutate props.option.
+  // Every series also gets a stable id so ECharts can map the incoming series
+  // onto the ones already rendered and update them in place (see below).
   merged.series = (series as SeriesOption[] | undefined)?.map(
-    (serie) =>
+    (serie, index) =>
       ({
+        id: serie.id ?? serie.name ?? `s${index}`,
         ...serie,
         data: (serie.data as [number, number][] | undefined)?.map((v): [number, number] => [
           v[0] / xRatio.value,
@@ -150,6 +158,27 @@ const actualOption = computed<EChartsOption>(() => {
   )
   return merged
 })
+
+// How each `setOption` is applied. `replaceMerge: ['series']` tears every series
+// component down and rebuilds it — the chart replays its entry animation, which
+// is what makes a slider drag look like a full redraw. It's only needed when the
+// SET of series changes (a panel switch dropping a curve would otherwise leave a
+// stale one behind). So compare the series ids against the previous render and
+// pay for the replace only then; steady-state updates — a slider moving a curve —
+// merge in place and animate as a data transition.
+//
+// `previousSeriesKey` is a plain (non-reactive) per-instance variable: this
+// computed is invalidated exactly when `actualOption` changes, and vue-echarts
+// reads it while handling that same change, so the two stay in step.
+let previousSeriesKey: string | null = null
+const chartUpdateOptions = computed<SetOptionOpts>(() => {
+  const key = ((actualOption.value.series as SeriesOption[] | undefined) ?? [])
+    .map((serie) => serie.id)
+    .join('|')
+  const seriesSetChanged = key !== previousSeriesKey
+  previousSeriesKey = key
+  return seriesSetChanged ? { notMerge: false, replaceMerge: ['series'] } : { notMerge: false }
+})
 </script>
 
 <template>
@@ -158,7 +187,7 @@ const actualOption = computed<EChartsOption>(() => {
       autoresize
       :init-options="initOptions"
       :option="actualOption"
-      :update-options="updateOptions"
+      :update-options="chartUpdateOptions"
     />
     <span v-if="showLegendRule" class="uc-legend-rule" />
   </div>
@@ -168,7 +197,7 @@ const actualOption = computed<EChartsOption>(() => {
         autoresize
         :init-options="initOptions"
         :option="actualOption"
-        :update-options="updateOptions"
+        :update-options="chartUpdateOptions"
       />
       <span v-if="showLegendRule" class="uc-legend-rule" />
     </div>
