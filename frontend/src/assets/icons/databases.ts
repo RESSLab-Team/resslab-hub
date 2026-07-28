@@ -20,16 +20,20 @@ export const rlIcons: Record<string, string> = {
   ].join(''),
   // Wide-flange (I/H) cross-section outline.
   columns: '<path d="M4 3 H20 V6 H13.5 V18 H20 V21 H4 V18 H10.5 V6 H4 Z"/>',
-  // X-braced frame bay.
-  braces:
-    '<path d="M3 4.5 H21 V19.5 H3 Z"/><path d="M3.75 5.25 L20.25 18.75 M20.25 5.25 L3.75 18.75"/>',
+  // X-braced frame bay: columns on foundation lines, open at the bottom.
+  braces: [
+    '<path d="M4 19.5 V4.5 H20 V19.5"/>',
+    '<path d="M2 19.5 H6 M18 19.5 H22"/>',
+    '<path d="M4.75 5.25 L19.25 18.75 M19.25 5.25 L4.75 18.75"/>'
+  ].join(''),
   // Hollow square section: outer tube wall + inner void.
   hss: '<rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><rect x="7.5" y="7.5" width="9" height="9" rx="0.5"/>',
-  // EBF bay: chevron braces meeting the beam either side of the short link.
+  // EBF bay on foundation lines: chevron braces meeting the short link under the beam.
   ebf: [
-    '<path d="M3 5 H21 V19 H3 Z"/>',
-    '<path d="M9.5 5.75 V7.5 H14.5 V5.75"/>',
-    '<path d="M3.75 18.25 L9.5 7.5 M20.25 18.25 L14.5 7.5"/>'
+    '<path d="M4 19.5 V4.5 H20 V19.5"/>',
+    '<path d="M2 19.5 H6 M18 19.5 H22"/>',
+    '<path d="M9.5 5.25 V7.5 H14.5 V5.25"/>',
+    '<path d="M4.75 18.75 L9.5 7.5 M19.25 18.75 L14.5 7.5"/>'
   ].join(''),
   // Hysteresis loop over centred stress–strain axes.
   cyclic: [
