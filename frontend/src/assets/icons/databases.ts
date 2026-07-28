@@ -18,7 +18,8 @@ export const rlIcons: Record<string, string> = {
     '<circle cx="10.75" cy="11" r="0.75" style="fill:currentColor;stroke:none"/>',
     '<circle cx="10.75" cy="13" r="0.75" style="fill:currentColor;stroke:none"/>'
   ].join(''),
-  // Wide-flange (I/H) cross-section outline.
+  // Wide-flange (I/H) cross-section outline. Flange and web are 3 units of
+  // metal — the same section thickness the HSS tube wall uses.
   columns: '<path d="M4 3 H20 V6 H13.5 V18 H20 V21 H4 V18 H10.5 V6 H4 Z"/>',
   // X-braced frame bay: columns on foundation lines, open at the bottom.
   braces: [
@@ -26,8 +27,9 @@ export const rlIcons: Record<string, string> = {
     '<path d="M2 19.5 H6 M18 19.5 H22"/>',
     '<path d="M4.75 5.25 L19.25 18.75 M19.25 5.25 L4.75 18.75"/>'
   ].join(''),
-  // Hollow square section: outer tube wall + inner void.
-  hss: '<rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><rect x="7.5" y="7.5" width="9" height="9" rx="0.5"/>',
+  // Hollow square section: outer tube wall + inner void, 3 units of metal to
+  // match the wide-flange section above.
+  hss: '<rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><rect x="6.5" y="6.5" width="11" height="11" rx="0.5"/>',
   // EBF bay on foundation lines: chevron braces meeting the short link under the beam.
   ebf: [
     '<path d="M4 19.5 V4.5 H20 V19.5"/>',
