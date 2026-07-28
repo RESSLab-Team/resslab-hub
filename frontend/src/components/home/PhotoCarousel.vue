@@ -8,10 +8,13 @@ import { useI18n } from 'vue-i18n'
  * style (no Vuetify). Images lazy-load, so the ~1.3 MB gallery only downloads
  * once the section approaches the viewport — never on first paint.
  *
- * The strip shows as many photos side by side as the viewport can carry: one on
- * phones, up to four on a very wide desktop. Arrows and the auto-cycle page by a
- * whole row, so every step reveals a fresh set instead of shuffling one photo
- * along.
+ * The strip shows as many photos side by side as it has room for: one on phones,
+ * up to four on a very wide desktop. Arrows and the auto-cycle page by a whole
+ * row, so every step reveals a fresh set instead of shuffling one photo along.
+ *
+ * Sizing is driven by the CONTAINER's width, not the viewport's — on an ultrawide
+ * screen the home page puts this in a right-hand column roughly half the window
+ * wide, so a viewport media query would badly over-count the panes.
  */
 const props = defineProps<{ images: { src: string; credit: string }[] }>()
 
@@ -19,22 +22,22 @@ const { t } = useI18n({ useScope: 'global' })
 
 const CYCLE_MS = 5000
 
-// Widest match wins. This is the ONLY place the layout is described: the grid
-// and the container cap both read it through custom properties, so there is no
-// CSS breakpoint to keep in sync with the paging step. `maxWidth` keeps a pane
-// around 500px so photos don't balloon on an ultrawide monitor.
+// Widest match wins; widths are the space available to the strip. Chosen so a
+// pane stays between roughly 300px and 650px: never postage stamps, and never
+// one photo blown across a quarter of an ultrawide monitor.
 const PANE_TIERS = [
-  { query: '(min-width: 2100px)', panes: 4, maxWidth: '1990px' },
-  { query: '(min-width: 1600px)', panes: 3, maxWidth: '1500px' },
-  { query: '(min-width: 1024px)', panes: 2, maxWidth: '1080px' }
+  { minWidth: 2700, panes: 6 },
+  { minWidth: 2250, panes: 5 },
+  { minWidth: 1700, panes: 4 },
+  { minWidth: 1250, panes: 3 },
+  { minWidth: 620, panes: 2 }
 ]
-const SINGLE_PANE = { panes: 1, maxWidth: '1080px' }
 
+const root = ref<HTMLElement>()
 const current = ref(0)
 const panes = ref(1)
-const maxWidth = ref(SINGLE_PANE.maxWidth)
 let timer: number | undefined
-let mediaQueries: MediaQueryList[] = []
+let observer: ResizeObserver | undefined
 
 // Offsets of the photos on screen right now, e.g. [0, 1, 2] for a three-up row.
 const offsets = computed(() => Array.from({ length: panes.value }, (_, index) => index))
@@ -43,12 +46,10 @@ function isVisible(index: number): boolean {
   return offsets.value.some((offset) => (current.value + offset) % props.images.length === index)
 }
 
-function syncPanes(): void {
-  const tier = PANE_TIERS.find((candidate) => window.matchMedia(candidate.query).matches)
-  const { panes: wanted, maxWidth: width } = tier ?? SINGLE_PANE
+function syncPanes(available: number): void {
+  const tier = PANE_TIERS.find((candidate) => available >= candidate.minWidth)
   // Never let a row repeat a photo when the gallery is smaller than the row.
-  panes.value = Math.max(1, Math.min(wanted, props.images.length))
-  maxWidth.value = width
+  panes.value = Math.max(1, Math.min(tier?.panes ?? 1, props.images.length))
 }
 
 function goTo(index: number): void {
@@ -77,24 +78,29 @@ function resume(): void {
 }
 
 onMounted(() => {
-  mediaQueries = PANE_TIERS.map((tier) => window.matchMedia(tier.query))
-  mediaQueries.forEach((query) => query.addEventListener('change', syncPanes))
-  syncPanes()
+  // Observe the strip's own box: it reacts to the ultrawide column split the
+  // same way it reacts to the window resizing.
+  observer = new ResizeObserver((entries) => syncPanes(entries[0].contentRect.width))
+  if (root.value) {
+    observer.observe(root.value)
+    syncPanes(root.value.clientWidth)
+  }
   resume()
 })
 
 onBeforeUnmount(() => {
-  mediaQueries.forEach((query) => query.removeEventListener('change', syncPanes))
-  mediaQueries = []
+  observer?.disconnect()
+  observer = undefined
   pause()
 })
 </script>
 
 <template>
   <div
+    ref="root"
     class="pcar"
     :class="{ 'is-single': panes === 1 }"
-    :style="{ '--pcar-panes': panes, '--pcar-max': maxWidth }"
+    :style="{ '--pcar-panes': panes }"
     @pointerenter="pause"
     @pointerleave="resume"
   >
@@ -147,12 +153,9 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* `--pcar-panes` / `--pcar-max` are set inline from PANE_TIERS in the script;
-   the fallbacks are the single-pane (phone) layout. */
-.pcar {
-  max-width: var(--pcar-max, 1080px);
-  margin: 0 auto;
-}
+/* `--pcar-panes` is set inline from PANE_TIERS in the script; the fallback is
+   the single-pane (phone) layout. No width cap: the strip is the page's
+   full-width closer, and PANE_TIERS keeps individual panes from ballooning. */
 .pcar-frames {
   display: grid;
   grid-template-columns: repeat(var(--pcar-panes, 1), 1fr);

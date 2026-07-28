@@ -754,9 +754,11 @@ a {
 .logos-items {
   flex: 1;
   display: flex;
-  justify-content: space-around;
+  /* Clustered after the label rather than spread across the strip — spaced-out
+     logos read as filler, grouped ones as a credit line. */
+  justify-content: flex-start;
   align-items: center;
-  gap: 48px;
+  gap: 24px 44px;
   flex-wrap: wrap;
 }
 .logos img {
@@ -1197,15 +1199,18 @@ body.theme-dark .logos img {
 }
 /* Database pages (DashboardShell, root `.dash`) run the header straight into the
    filters/table below, so the rule reads as clutter. Tool pages (ToolShell, root
-   `.tool-page`) keep it — there the header separates unrelated content. */
-.dash > .dash-head {
+   `.tool-page`) keep it — there the header separates unrelated content.
+   Descendant, not child: the ultrawide split nests these under
+   `.dash-split > .dash-col-main`, and `display: contents` does not restore a
+   child relationship for selector matching. */
+.dash .dash-head {
   border-bottom: none;
 }
 
 /* Squares the toolbar's bottom padding to its 32px sides, giving the search band
    room to breathe above the divider (the .dash-head border is gone on these
    pages, so this rule carries the first horizontal line). */
-.dash > .dash-toolbar {
+.dash .dash-toolbar {
   padding-bottom: 32px;
 }
 
@@ -2222,4 +2227,178 @@ a.cd-publication-ref:hover {
     border-right: 0;
     border-bottom: 1px solid var(--border-subtle);
   }
+}
+
+/* ================ ULTRAWIDE (≥2100px) ================
+   On a 3440px-class monitor a single centred column leaves most of the screen
+   empty and pushes the map and photos far below the fold. Above 2100px the home
+   page and the database/tool pages each split into columns; below it every page
+   keeps its normal laptop layout (home: databases full-width, then the
+   map | video row).
+
+   All splits use the same trick: the wrappers are `display: contents` by
+   default, so below the breakpoint the DOM flows exactly as it did before this
+   rule existed — the columns only become real boxes inside the media query.
+   2100px is chosen to clear a maximised 1920px window (which, minus the ~192px
+   app sidebar, has nowhere near the room for two columns). */
+.home-split,
+.dash-split,
+.dash-col-main,
+.dash-col-side {
+  display: contents;
+}
+
+@media (min-width: 2100px) {
+  /* ---- Home: hero on top, then two columns ----
+     The hero and the key numbers keep the full width — the split starts below
+     them: databases in the left column; map and video in the right one. The
+     photo strip and the partners strip close the page full-width, in that
+     order, so the partners land right before the footer as they always did. */
+  .home-split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      'hero     hero'
+      'kpis     kpis'
+      'data     maphead'
+      'data     map'
+      'data     tools'
+      'gallery  gallery'
+      'partners partners';
+    align-content: start;
+  }
+  .home-split > * {
+    min-width: 0;
+  }
+  .hp-hero {
+    grid-area: hero;
+  }
+  .hp-kpis {
+    grid-area: kpis;
+  }
+  .hp-data {
+    grid-area: data;
+    border-right: 1px solid var(--border);
+  }
+  .hp-gallery {
+    grid-area: gallery;
+    border-top: 1px solid var(--border);
+  }
+  .home-split .section {
+    padding: 32px 48px;
+  }
+  /* As many ~300px tiles per row as the data column carries — two in the pair
+     tier, three once the column widens on a full-size monitor. */
+  .home-split .cat-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .home-split .cat-tile {
+    min-height: 0;
+    padding: 16px 18px 14px;
+  }
+  /* The dataset section's own head competes with nine cards for the column. */
+  .home-split .hp-data .section-head {
+    margin-bottom: 16px;
+  }
+  .home-split .hp-data .section-sub {
+    display: none;
+  }
+  /* The reach section holds head, map and video in one box; dissolve it (and
+     its inner 7/5 split) so the three parts can be placed independently. */
+  .hp-reach,
+  .hp-reach .split-7-5 {
+    display: contents;
+  }
+  .hp-reach > .section-head {
+    grid-area: maphead;
+    align-self: start;
+    padding: 32px 48px 12px;
+  }
+  /* Owns its column now, so it gets real height instead of a strip's share. */
+  .hp-reach .map-frame {
+    grid-area: map;
+    margin: 0 48px 32px;
+    min-height: clamp(380px, 42vh, 700px);
+  }
+  .hp-reach .tools-panel {
+    grid-area: tools;
+    margin: 0 48px 32px;
+    align-self: start;
+  }
+  /* Partners: the usual full-width strip, closing the page before the footer. */
+  .hp-partners {
+    grid-area: partners;
+  }
+
+  /* ---- Database pages: table left, charts pinned right ---- */
+  .dash-split {
+    display: grid;
+    /* Close to an even split. The charts column earns the extra width: at this
+       size a strip fits all its cells on ONE row, so widening it turns vertical
+       scrolling into charts you can already see. */
+    grid-template-columns: minmax(0, 1fr) minmax(520px, 0.85fr);
+    flex: 1;
+  }
+  /* Bound to the viewport so the table (the only growable child) absorbs the
+     leftover height and the pager always lands just above the fold. */
+  .dash-col-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 100vh;
+  }
+  .dash-col-main .dash-table-full {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Charts stay put while the table scrolls beside them. `align-self: start`
+     plus a viewport cap keeps the sticky box from stretching the grid row (the
+     same shape as .tool-page .rail) — the main column keeps the grid's default
+     `stretch` so the table can run the full height. */
+  .dash-col-side {
+    display: block;
+    min-width: 0;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow-y: auto;
+    border-left: 1px solid var(--border);
+  }
+  /* Cells keep their natural wrap here (a strip of three fits across a ~1400px
+     column), but each gets more height than the 220px strip default — the
+     column is tall and the point is to read the charts, not to stack them. */
+  .dash-col-side .chart-cell {
+    min-height: clamp(260px, 30vh, 380px);
+  }
+  .dash-col-side .charts-strip:last-child {
+    border-bottom: 0;
+  }
+}
+
+/* Tutorial video + modelling-tool links (home "worldwide reach" section).
+   Extracted from inline styles so the ultrawide layout can re-flow the panel. */
+.tools-panel {
+  display: flex;
+  flex-direction: column;
+}
+.tools-panel-copy {
+  margin-top: 24px;
+}
+.tools-panel-eyebrow {
+  margin-bottom: 10px;
+}
+.tools-panel-blurb {
+  margin: 0 0 16px;
+  color: var(--fg-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.tools-panel-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }

@@ -619,3 +619,129 @@
     transition: none !important;
   }
 }
+
+/* ═══════════════════ ULTRAWIDE (≥2100px) ═══════════════════
+   Same threshold as the home / database splits in app.css. A tool page is a
+   short list of result blocks stacked under one another, which on a 3440px-class
+   monitor means scrolling past a lot of empty side margin. Above 2100px the
+   results move into two columns so a model page fits the viewport.
+
+   Purely additive: every rule is scoped to a stage archetype, and none of the
+   markup changes — the same blocks are simply placed differently. */
+@media (min-width: 2100px) {
+  /* ---- The rail goes two cards wide ----
+     Once the results sit in two columns the RAIL is the tallest thing on a model
+     page (eight sliders across four cards), and it — not the stage — is what
+     makes the page scroll. It has the horizontal room here, so lay its cards out
+     two-up instead of stacking them. */
+  .tool-page {
+    --rail-w: 640px;
+  }
+  .tool-page .rail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-content: start;
+  }
+  /* A rail built from ONE card (the material model) has nothing to pair, so the
+     card spans both tracks and its parameter groups go side by side instead —
+     three groups abreast is the same height saving as two cards abreast.
+     Matched via the always-present (mobile-only) .drawer-close sibling rather
+     than :only-child, which never matches because of it. */
+  .tool-page .rail > .drawer-close + .tool-card:last-child {
+    grid-column: 1 / -1;
+  }
+  .tool-page .rail > .drawer-close + .tool-card:last-child .mat-a-groups {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 24px;
+  }
+
+  /* ---- Archetypes A/B/C: charts left, secondary results right ---- */
+  .tool-page .stage:not(.e-body) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    align-content: start;
+  }
+  .tool-page .stage:not(.e-body) > .st-block {
+    grid-column: 1;
+    border-top: 0;
+  }
+  /* The predictive-model table and the experiment schematic are what the charts
+     are read AGAINST, so they belong beside them, not a scroll away. */
+  .tool-page .stage:not(.e-body) > .st-table,
+  .tool-page .stage:not(.e-body) > .st-schem {
+    grid-column: 2;
+    border-left: 1px solid var(--border);
+  }
+  .tool-page .stage:not(.e-body) > .st-table ~ .st-schem {
+    border-top: 1px solid var(--border);
+  }
+  /* The schematic shares its column with the results table, so it gets a tighter
+     cap than the full-width layout's 40vh. */
+  .tool-page .stage:not(.e-body) .st-schem .tool-schematic img {
+    max-height: clamp(200px, 30vh, 360px);
+  }
+  /* Connection's schematic carries TWO figures (subassembly + backbone key);
+     stacked they alone outrun the viewport, so pair them side by side. */
+  .tool-page .st-schem .tool-schematic:has(img + img) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+  .tool-page .st-schem .tool-schematic:has(img + img) figcaption {
+    grid-column: 1 / -1;
+  }
+  /* The stage's primary column is ~1600px here, so a two-chart page keeps its
+     pair side by side rather than falling back to the ≤999px stacked layout. */
+
+  /* ---- Archetype D (stage-d): focus chart beside its thumbnail switcher ---- */
+  .tool-page .stage-d {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tool-page .stage-d > .st-chart {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    grid-template-areas:
+      'cap cap'
+      'chart thumbs';
+    column-gap: 24px;
+  }
+  .tool-page .stage-d > .st-chart > .chart-cap {
+    grid-area: cap;
+  }
+  .tool-page .stage-d > .st-chart > .tchart {
+    grid-area: chart;
+  }
+  .tool-page .stage-d > .st-chart > .mat-thumbs {
+    grid-area: thumbs;
+    align-content: start;
+  }
+  /* Four protocol previews go 2×2 in the side column; the two fragility panels
+     stack. Both keep the thumbnails legible at column width. */
+  .tool-page .stage-d .mat-thumbs {
+    grid-template-columns: 1fr 1fr;
+  }
+  .tool-page .stage-d .frag-thumbs {
+    grid-template-columns: 1fr;
+  }
+
+  /* ---- Archetype E (parambar): curve left, 3D surfaces right ---- */
+  .tool-page .e-results {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 32px;
+    align-content: start;
+  }
+  .tool-page .e-results > .st-chart {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .tool-page .e-results > .e-surfaces-head {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .tool-page .e-results > .st-surfaces {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}

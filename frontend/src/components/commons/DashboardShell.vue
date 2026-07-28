@@ -108,94 +108,102 @@ function shareView(): void {
 
 <template>
   <div class="dash">
-    <!-- Page header -->
-    <div class="dash-head">
-      <div class="eyebrow" style="margin-bottom: 6px"><eyebrow-text :text="eyebrow" /></div>
-      <div class="dash-head-split">
-        <div class="dash-head-main">
-          <div class="dash-head-row">
-            <h1 class="dash-title">
-              {{ title }}
-              <span v-if="count != null" class="dash-title-count">
-                {{ count.toLocaleString('en-CH') }}
-                {{ countLabel === 'tests' ? $t('commons.dash_count_label') : countLabel }}
-              </span>
-            </h1>
-            <div class="dash-head-actions">
-              <slot name="head-actions" />
-            </div>
-            <!-- Decorative: the title already names the database. Lives in the
-                 title row so it sits beside the title once it stops being
-                 absolutely positioned on narrow screens. -->
-            <div v-if="databaseIcon" class="dash-head-icon" aria-hidden="true">
-              <v-icon :icon="databaseIcon" />
+    <!-- Ultrawide (≥2100px) splits header + table from the charts, which then
+         pin beside the scrolling table. Below that the wrappers are
+         `display: contents`, so everything stacks as before. -->
+    <div class="dash-split">
+      <div class="dash-col-main">
+        <!-- Page header -->
+        <div class="dash-head">
+          <div class="eyebrow" style="margin-bottom: 6px"><eyebrow-text :text="eyebrow" /></div>
+          <div class="dash-head-split">
+            <div class="dash-head-main">
+              <div class="dash-head-row">
+                <h1 class="dash-title">
+                  {{ title }}
+                  <span v-if="count != null" class="dash-title-count">
+                    {{ count.toLocaleString('en-CH') }}
+                    {{ countLabel === 'tests' ? $t('commons.dash_count_label') : countLabel }}
+                  </span>
+                </h1>
+                <div class="dash-head-actions">
+                  <slot name="head-actions" />
+                </div>
+                <!-- Decorative: the title already names the database. Lives in the
+                     title row so it sits beside the title once it stops being
+                     absolutely positioned on narrow screens. -->
+                <div v-if="databaseIcon" class="dash-head-icon" aria-hidden="true">
+                  <v-icon :icon="databaseIcon" />
+                </div>
+              </div>
+              <p v-if="description" class="dash-desc">{{ description }}</p>
             </div>
           </div>
-          <p v-if="description" class="dash-desc">{{ description }}</p>
+        </div>
+
+        <!-- Toolbar: global search + filters -->
+        <div class="dash-toolbar">
+          <div class="dash-search">
+            <v-icon class="dash-search-icon" :icon="mdiMagnify" size="16" />
+            <input
+              v-model="searchModel"
+              type="search"
+              :placeholder="
+                searchPlaceholder === 'Search all columns…'
+                  ? $t('commons.dash_search_placeholder')
+                  : searchPlaceholder
+              "
+            />
+          </div>
+          <div class="dash-toolbar-spacer" />
+          <div class="dash-toolbar-actions">
+            <button class="btn btn-secondary btn-sm" @click="shareView">
+              <v-icon :icon="mdiShare" size="14" />
+              {{ $t('commons.share_view') }}
+            </button>
+            <button
+              class="btn btn-secondary btn-sm dash-filters-trigger"
+              @click="filtersOverlayOpen = true"
+            >
+              <v-icon :icon="mdiFilterVariant" size="14" />
+              {{ $t('commons.filters') }}
+              <span v-if="railFilterCount > 0" class="dash-filters-trigger-badge">
+                {{ railFilterCount }}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Active filters -->
+        <div v-if="activeChips.length > 0" class="dash-active-filters">
+          <strong>{{ $t('commons.active_filters') }}</strong>
+          <span v-for="chip in activeChips" :key="chip.key" class="fchip">
+            {{ chip.label }}
+            <span
+              class="fchip-x"
+              role="button"
+              :aria-label="$t('commons.remove_filter', { label: chip.label })"
+              @click="emit('change:searches', chip.key, undefined)"
+            >
+              <v-icon :icon="mdiClose" size="10" />
+            </span>
+          </span>
+          <button class="chip-clear" @click="clearAll">
+            <v-icon :icon="mdiClose" size="10" />
+            {{ $t('commons.clear_all') }}
+          </button>
+        </div>
+
+        <!-- Table (full bleed) -->
+        <div class="dash-table-full">
+          <slot name="table" />
         </div>
       </div>
-    </div>
-
-    <!-- Toolbar: global search + filters -->
-    <div class="dash-toolbar">
-      <div class="dash-search">
-        <v-icon class="dash-search-icon" :icon="mdiMagnify" size="16" />
-        <input
-          v-model="searchModel"
-          type="search"
-          :placeholder="
-            searchPlaceholder === 'Search all columns…'
-              ? $t('commons.dash_search_placeholder')
-              : searchPlaceholder
-          "
-        />
-      </div>
-      <div class="dash-toolbar-spacer" />
-      <div class="dash-toolbar-actions">
-        <button class="btn btn-secondary btn-sm" @click="shareView">
-          <v-icon :icon="mdiShare" size="14" />
-          {{ $t('commons.share_view') }}
-        </button>
-        <button
-          class="btn btn-secondary btn-sm dash-filters-trigger"
-          @click="filtersOverlayOpen = true"
-        >
-          <v-icon :icon="mdiFilterVariant" size="14" />
-          {{ $t('commons.filters') }}
-          <span v-if="railFilterCount > 0" class="dash-filters-trigger-badge">
-            {{ railFilterCount }}
-          </span>
-        </button>
+      <div class="dash-col-side">
+        <!-- Chart strips -->
+        <slot name="charts" />
       </div>
     </div>
-
-    <!-- Active filters -->
-    <div v-if="activeChips.length > 0" class="dash-active-filters">
-      <strong>{{ $t('commons.active_filters') }}</strong>
-      <span v-for="chip in activeChips" :key="chip.key" class="fchip">
-        {{ chip.label }}
-        <span
-          class="fchip-x"
-          role="button"
-          :aria-label="$t('commons.remove_filter', { label: chip.label })"
-          @click="emit('change:searches', chip.key, undefined)"
-        >
-          <v-icon :icon="mdiClose" size="10" />
-        </span>
-      </span>
-      <button class="chip-clear" @click="clearAll">
-        <v-icon :icon="mdiClose" size="10" />
-        {{ $t('commons.clear_all') }}
-      </button>
-    </div>
-
-    <!-- Table (full bleed) -->
-    <div class="dash-table-full">
-      <slot name="table" />
-    </div>
-
-    <!-- Chart strips -->
-    <slot name="charts" />
 
     <!-- Detail drawer -->
     <div class="drawer-scrim" :class="{ open: detailOpen }" @click="emit('close:detail')" />
