@@ -109,26 +109,28 @@ function shareView(): void {
 <template>
   <div class="dash">
     <!-- Page header -->
-    <div class="dash-head dash-head-split">
-      <div class="dash-head-main">
-        <div class="eyebrow" style="margin-bottom: 6px"><eyebrow-text :text="eyebrow" /></div>
-        <div class="dash-head-row">
-          <h1 class="dash-title">
-            {{ title }}
-            <span v-if="count != null" class="dash-title-count">
-              {{ count.toLocaleString('en-CH') }}
-              {{ countLabel === 'tests' ? $t('commons.dash_count_label') : countLabel }}
-            </span>
-          </h1>
-          <div class="dash-head-actions">
-            <slot name="head-actions" />
+    <div class="dash-head">
+      <div class="eyebrow" style="margin-bottom: 6px"><eyebrow-text :text="eyebrow" /></div>
+      <div class="dash-head-split">
+        <div class="dash-head-main">
+          <div class="dash-head-row">
+            <h1 class="dash-title">
+              {{ title }}
+              <span v-if="count != null" class="dash-title-count">
+                {{ count.toLocaleString('en-CH') }}
+                {{ countLabel === 'tests' ? $t('commons.dash_count_label') : countLabel }}
+              </span>
+            </h1>
+            <div class="dash-head-actions">
+              <slot name="head-actions" />
+            </div>
           </div>
+          <p v-if="description" class="dash-desc">{{ description }}</p>
         </div>
-        <p v-if="description" class="dash-desc">{{ description }}</p>
-      </div>
-      <!-- Decorative: the title already names the database. -->
-      <div v-if="databaseIcon" class="dash-head-icon" aria-hidden="true">
-        <v-icon :icon="databaseIcon" size="4rem" />
+        <!-- Decorative: the title already names the database. -->
+        <div v-if="databaseIcon" class="dash-head-icon" aria-hidden="true">
+          <v-icon :icon="databaseIcon" />
+        </div>
       </div>
     </div>
 

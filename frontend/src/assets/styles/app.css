@@ -1221,31 +1221,48 @@ body.theme-dark .logos img {
   align-items: center;
   gap: 8px;
 }
-/* Database pages close the header with a large mark of the section you are in:
-   eyebrow/title/description stay in one column, the icon anchors the far edge. */
+/* Database pages close the header with a framed mark of the section you are in.
+   The row starts below the eyebrow, so the box stretches to exactly the height
+   of the title + description block and squares itself off that height. Its
+   right edge lands on the same 32px inset as the toolbar buttons below. */
 .dash-head-split {
-  display: flex;
-  align-items: center;
-  gap: 40px;
+  position: relative;
 }
+/* Reserves the gutter the mark sits in — the mark itself is out of flow, so it
+   can size off the text block without feeding its own height back into it. */
 .dash-head-main {
-  flex: 1 1 auto;
-  min-width: 0;
+  padding-right: 10rem;
 }
 .dash-head-icon {
-  flex: 0 0 auto;
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  /* Squares off the text-block height, capped so a long description can never
+     grow the mark wider than the gutter reserved above. */
+  max-height: 9rem;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--fg);
-  /* Drawn at 4rem the chrome-weight stroke reads as a slab — thin it so the
+  /* At this scale the chrome-weight stroke reads as a slab — thin it so the
      mark keeps the precision of a technical drawing. */
   --rl-icon-stroke: 1.25;
 }
-/* Below the tablet breakpoint the title needs the full width. */
+.dash-head-icon .v-icon {
+  width: 58%;
+  height: 58%;
+}
+/* Below the tablet breakpoint the title needs the full width — drop the mark
+   and hand its gutter back to the text. */
 @media (max-width: 900px) {
   .dash-head-icon {
     display: none;
+  }
+  .dash-head-main {
+    padding-right: 0;
   }
 }
 .dash-title {
