@@ -5,12 +5,12 @@ Database Service
 from typing import AsyncIterator
 from urllib.parse import quote_plus
 
-from alembic.command import upgrade
-from alembic.config import Config
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+from alembic.command import upgrade
+from alembic.config import Config
 from resslab_hub.config import settings
 
 __username: str = settings.postgres_user  # type: ignore
