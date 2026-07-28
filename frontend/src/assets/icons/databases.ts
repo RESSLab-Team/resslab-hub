@@ -11,25 +11,25 @@ import type { IconProps, IconSet } from 'vuetify'
  * inherited stroke/fill via an inline style.
  */
 export const rlIcons: Record<string, string> = {
-  // Beam framing into a column: column flanges, end plate, beam flanges, bolts.
+  // Beam framing into a column: column flanges, beam flanges, bolt pair.
   connections: [
     '<path d="M4.5 3 V21 M8 3 V21"/>',
-    '<path d="M8 6.5 H10.5 V17.5 H8"/>',
-    '<path d="M10.5 9.5 H21.5 M10.5 14.5 H21.5"/>',
-    '<circle cx="9.25" cy="8" r="0.9" style="fill:currentColor;stroke:none"/>',
-    '<circle cx="9.25" cy="16" r="0.9" style="fill:currentColor;stroke:none"/>'
+    '<path d="M8.75 9.5 H21 M8.75 14.5 H21"/>',
+    '<circle cx="10.75" cy="11" r="0.75" style="fill:currentColor;stroke:none"/>',
+    '<circle cx="10.75" cy="13" r="0.75" style="fill:currentColor;stroke:none"/>'
   ].join(''),
   // Wide-flange (I/H) cross-section outline.
   columns: '<path d="M4 3 H20 V6 H13.5 V18 H20 V21 H4 V18 H10.5 V6 H4 Z"/>',
   // X-braced frame bay.
-  braces: '<path d="M3 4.5 H21 V19.5 H3 Z"/><path d="M3 4.5 L21 19.5 M21 4.5 L3 19.5"/>',
+  braces:
+    '<path d="M3 4.5 H21 V19.5 H3 Z"/><path d="M3.75 5.25 L20.25 18.75 M20.25 5.25 L3.75 18.75"/>',
   // Hollow square section: outer tube wall + inner void.
   hss: '<rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><rect x="7.5" y="7.5" width="9" height="9" rx="0.5"/>',
   // EBF bay: chevron braces meeting the beam either side of the short link.
   ebf: [
     '<path d="M3 5 H21 V19 H3 Z"/>',
-    '<path d="M3 19 L9.5 5 M21 19 L14.5 5"/>',
-    '<path d="M9.5 3 V7 M14.5 3 V7"/>'
+    '<path d="M9.5 5.75 V7.5 H14.5 V5.75"/>',
+    '<path d="M3.75 18.25 L9.5 7.5 M20.25 18.25 L14.5 7.5"/>'
   ].join(''),
   // Hysteresis loop over centred stress–strain axes.
   cyclic: [
@@ -41,8 +41,8 @@ export const rlIcons: Record<string, string> = {
     '<path d="M3 7 H7 C8.5 7 8.5 9.5 10 9.5 H14 C15.5 9.5 15.5 7 17 7 H21 V17 H17 C15.5 17 15.5 14.5 14 14.5 H10 C8.5 14.5 8.5 17 7 17 H3 Z"/>',
   // Dogbone coupon fractured through the gauge length.
   'ductile-fracture': [
-    '<path d="M2.5 7 H6.5 C8 7 8 9.5 9.5 9.5 H11.6 L10.5 11.3 L11.9 12.7 L11 14.5 H9.5 C8 14.5 8 17 6.5 17 H2.5 Z"/>',
-    '<path d="M21.5 7 H17.5 C16 7 16 9.5 14.5 9.5 H13.6 L12.5 11.3 L13.9 12.7 L13 14.5 H14.5 C16 14.5 16 17 17.5 17 H21.5 Z"/>'
+    '<path d="M2.5 7 H6.5 C8 7 8 9.5 9.5 9.5 H11.9 L10.6 12 L11.9 14.5 H9.5 C8 14.5 8 17 6.5 17 H2.5 Z"/>',
+    '<path d="M21.5 7 H17.5 C16 7 16 9.5 14.5 9.5 L13.2 12 L14.5 14.5 C16 14.5 16 17 17.5 17 H21.5 Z"/>'
   ].join(''),
   // Self-equilibrated residual stress distribution across a flange.
   residuals: [
@@ -75,7 +75,7 @@ export const rl: IconSet = {
           fill: 'none',
           stroke: 'currentColor',
           strokeWidth: '1.5',
-          strokeLinecap: 'square',
+          strokeLinecap: 'butt',
           strokeLinejoin: 'miter'
         },
         innerHTML: rlIcons[String(icon)] ?? ''
