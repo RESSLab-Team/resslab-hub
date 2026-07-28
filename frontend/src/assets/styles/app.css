@@ -611,15 +611,16 @@ a {
 }
 
 /* ================ CATEGORY TILES (HOME) ================ */
+/* Separated cards, not a hairline sheet: each tile carries its own border and
+   the grid gap lets the app-shell background read between them. */
 .cat-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
+  gap: 20px;
 }
 .cat-tile {
   background: var(--bg);
+  border: 1px solid var(--border);
   padding: 28px 28px 24px;
   display: flex;
   flex-direction: column;
@@ -628,11 +629,14 @@ a {
   cursor: pointer;
   text-decoration: none;
   color: var(--fg);
-  transition: background var(--t-fast);
+  transition: background var(--t-fast), border-color var(--t-fast);
   min-height: 200px;
 }
+/* Flat by design (--radius is 0 and the system avoids shadows) — a card lifts
+   by darkening its edge, the same cue as .mat-thumb on the tool pages. */
 .cat-tile:hover {
   background: var(--bg-subtle);
+  border-color: var(--fg);
 }
 .cat-tile:hover .cat-arrow {
   transform: translateX(4px);
