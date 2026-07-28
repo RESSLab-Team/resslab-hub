@@ -97,6 +97,7 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :title="$t('dashboards.ebf.title')"
     :count="countsStore.counts.ebf"
     :description="$t('dashboards.ebf.description')"
+    database-id="ebf"
     i18n-prefix="ebf."
     :rail-groups="railGroups"
     :searches="searches"

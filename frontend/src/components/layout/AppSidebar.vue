@@ -126,6 +126,7 @@ function toggleGroup(group: NavGroup) {
             :to="child.to"
             @click="emit('close')"
           >
+            <v-icon v-if="child.icon" :icon="child.icon" size="15" />
             {{ child.name }}
             <span v-if="child.countId && countsStore.counts[child.countId] != null" class="count">
               {{ countsStore.counts[child.countId!] }}

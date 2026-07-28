@@ -1221,6 +1221,30 @@ body.theme-dark .logos img {
   align-items: center;
   gap: 8px;
 }
+/* Database pages close the header with a large mark of the section you are in:
+   eyebrow/title/description stay in one column, the icon anchors the far edge. */
+.dash-head-split {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+.dash-head-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.dash-head-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-muted);
+}
+/* Below the tablet breakpoint the title needs the full width. */
+@media (max-width: 900px) {
+  .dash-head-icon {
+    display: none;
+  }
+}
 .dash-title {
   margin: 0;
   font-size: var(--title-page-size);
@@ -1452,6 +1476,13 @@ body.theme-dark .logos img {
 }
 .dash-toolbar-spacer {
   flex: 1;
+}
+/* Share view + Filters read as one action pair, tighter than the toolbar gap. */
+.dash-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
 }
 @media (max-width: 900px) {
   .dash-toolbar {

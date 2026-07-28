@@ -99,6 +99,7 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :count="countsStore.counts.tensile"
     count-label="coupons"
     :description="$t('dashboards.tensile_coupon.description')"
+    database-id="tensile"
     i18n-prefix="tensile_coupon."
     :rail-groups="railGroups"
     :searches="searches"

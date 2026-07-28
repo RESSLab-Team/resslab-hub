@@ -84,6 +84,7 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :count="countsStore.counts.residuals"
     count-label="specimens"
     :description="$t('dashboards.residual.description')"
+    database-id="residuals"
     i18n-prefix="residual."
     :rail-groups="railGroups"
     :searches="searches"

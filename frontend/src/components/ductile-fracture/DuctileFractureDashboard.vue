@@ -116,6 +116,7 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :title="$t('dashboards.ductile_fracture.title')"
     :count="countsStore.counts['ductile-fracture']"
     :description="$t('dashboards.ductile_fracture.description')"
+    database-id="ductile-fracture"
     i18n-prefix="ductile_fracture."
     :rail-groups="railGroups"
     :searches="searches"

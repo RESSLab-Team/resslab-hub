@@ -118,7 +118,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'rl:ductile-fracture',
         desc: t('nav.ductile_fracture_desc')
       },
-      { name: t('nav.material_model'), to: '/materials/model' }
+      { name: t('nav.material_model'), to: '/materials/model', icon: 'rl:materials' }
     ]
   },
   {

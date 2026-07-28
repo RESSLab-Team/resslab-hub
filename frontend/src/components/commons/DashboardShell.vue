@@ -4,6 +4,7 @@ import FilterRail, { type FilterRailGroup } from '@/components/commons/FilterRai
 import i18n from '@/plugins/i18n'
 import { useNotificationStore } from '@/stores/notification'
 import { shareCurrentUrl, type Searches, type Value } from '@/utils/common'
+import { DATABASES, type DatabaseId } from '@/utils/navigation'
 import { mdiClose, mdiFilterVariant, mdiMagnify, mdiShare } from '@mdi/js'
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
@@ -26,6 +27,8 @@ const props = withDefaults(
     description?: string
     /** i18n key prefix for the active-filter chip labels, e.g. 'connection.' */
     i18nPrefix: string
+    /** Identifies the database so the header can show its icon (see navigation.ts). */
+    databaseId?: DatabaseId
     railGroups: FilterRailGroup[]
     searches: Searches
     search?: string
@@ -37,6 +40,7 @@ const props = withDefaults(
     count: undefined,
     countLabel: 'tests',
     description: undefined,
+    databaseId: undefined,
     search: '',
     searchPlaceholder: 'Search all columns…',
     detailOpen: false
@@ -57,6 +61,11 @@ const searchModel = computed<string>({
   get: () => props.search,
   set: (value) => emit('update:search', value)
 })
+
+/** The database's own icon, resolved from the single nav definition. */
+const databaseIcon = computed<string | undefined>(
+  () => DATABASES.find((entry) => entry.id === props.databaseId)?.icon
+)
 
 const railFilterCount = computed<number>(
   () => props.railGroups.filter((group) => props.searches[group.key] != null).length
@@ -100,25 +109,27 @@ function shareView(): void {
 <template>
   <div class="dash">
     <!-- Page header -->
-    <div class="dash-head">
-      <div class="eyebrow" style="margin-bottom: 6px"><eyebrow-text :text="eyebrow" /></div>
-      <div class="dash-head-row">
-        <h1 class="dash-title">
-          {{ title }}
-          <span v-if="count != null" class="dash-title-count">
-            {{ count.toLocaleString('en-CH') }}
-            {{ countLabel === 'tests' ? $t('commons.dash_count_label') : countLabel }}
-          </span>
-        </h1>
-        <div class="dash-head-actions">
-          <slot name="head-actions" />
-          <button class="btn btn-secondary btn-sm" @click="shareView">
-            <v-icon :icon="mdiShare" size="14" />
-            {{ $t('commons.share_view') }}
-          </button>
+    <div class="dash-head dash-head-split">
+      <div class="dash-head-main">
+        <div class="eyebrow" style="margin-bottom: 6px"><eyebrow-text :text="eyebrow" /></div>
+        <div class="dash-head-row">
+          <h1 class="dash-title">
+            {{ title }}
+            <span v-if="count != null" class="dash-title-count">
+              {{ count.toLocaleString('en-CH') }}
+              {{ countLabel === 'tests' ? $t('commons.dash_count_label') : countLabel }}
+            </span>
+          </h1>
+          <div class="dash-head-actions">
+            <slot name="head-actions" />
+          </div>
         </div>
+        <p v-if="description" class="dash-desc">{{ description }}</p>
       </div>
-      <p v-if="description" class="dash-desc">{{ description }}</p>
+      <!-- Decorative: the title already names the database. -->
+      <div v-if="databaseIcon" class="dash-head-icon" aria-hidden="true">
+        <v-icon :icon="databaseIcon" size="112" />
+      </div>
     </div>
 
     <!-- Toolbar: global search + filters -->
@@ -136,16 +147,22 @@ function shareView(): void {
         />
       </div>
       <div class="dash-toolbar-spacer" />
-      <button
-        class="btn btn-secondary btn-sm dash-filters-trigger"
-        @click="filtersOverlayOpen = true"
-      >
-        <v-icon :icon="mdiFilterVariant" size="14" />
-        {{ $t('commons.filters') }}
-        <span v-if="railFilterCount > 0" class="dash-filters-trigger-badge">
-          {{ railFilterCount }}
-        </span>
-      </button>
+      <div class="dash-toolbar-actions">
+        <button class="btn btn-secondary btn-sm" @click="shareView">
+          <v-icon :icon="mdiShare" size="14" />
+          {{ $t('commons.share_view') }}
+        </button>
+        <button
+          class="btn btn-secondary btn-sm dash-filters-trigger"
+          @click="filtersOverlayOpen = true"
+        >
+          <v-icon :icon="mdiFilterVariant" size="14" />
+          {{ $t('commons.filters') }}
+          <span v-if="railFilterCount > 0" class="dash-filters-trigger-badge">
+            {{ railFilterCount }}
+          </span>
+        </button>
+      </div>
     </div>
 
     <!-- Active filters -->
