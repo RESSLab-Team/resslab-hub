@@ -4,7 +4,7 @@ import type { IconProps, IconSet } from 'vuetify'
 /**
  * Custom thin-line database icons, one per component type plus the materials
  * group fallback. Drawn on the Material 24×24 grid (live area ~2–22) with a
- * uniform 1.5 stroke so they sit next to the @mdi/js chrome icons.
+ * uniform 1.8 stroke, matching the wall weight of the mdi outline icons.
  *
  * Values are inner-SVG markup rendered inside a stroke-styled <svg> by the
  * `rl` icon set below; elements needing a fill (e.g. bolt heads) override the
@@ -14,7 +14,7 @@ export const rlIcons: Record<string, string> = {
   // Beam framing into a column: column flanges, beam flanges, bolt pair.
   connections: [
     '<path d="M4.5 3 V21 M8 3 V21"/>',
-    '<path d="M8.75 9.5 H21 M8.75 14.5 H21"/>',
+    '<path d="M8.75 9 H21 M8.75 15 H21"/>',
     '<circle cx="10.75" cy="11" r="0.75" style="fill:currentColor;stroke:none"/>',
     '<circle cx="10.75" cy="13" r="0.75" style="fill:currentColor;stroke:none"/>'
   ].join(''),
@@ -45,8 +45,8 @@ export const rlIcons: Record<string, string> = {
     '<path d="M3 7 H7 C8.5 7 8.5 9.5 10 9.5 H14 C15.5 9.5 15.5 7 17 7 H21 V17 H17 C15.5 17 15.5 14.5 14 14.5 H10 C8.5 14.5 8.5 17 7 17 H3 Z"/>',
   // Dogbone coupon fractured through the gauge length.
   'ductile-fracture': [
-    '<path d="M2.5 7 H6.5 C8 7 8 9.5 9.5 9.5 H11.9 L10.6 12 L11.9 14.5 H9.5 C8 14.5 8 17 6.5 17 H2.5 Z"/>',
-    '<path d="M21.5 7 H17.5 C16 7 16 9.5 14.5 9.5 L13.2 12 L14.5 14.5 C16 14.5 16 17 17.5 17 H21.5 Z"/>'
+    '<path d="M2.5 7 H6.5 C8 7 8 9.5 9.5 9.5 H11.6 L10.3 12 L11.6 14.5 H9.5 C8 14.5 8 17 6.5 17 H2.5 Z"/>',
+    '<path d="M21.5 7 H17.5 C16 7 16 9.5 14.8 9.5 L13.5 12 L14.8 14.5 C16 14.5 16 17 17.5 17 H21.5 Z"/>'
   ].join(''),
   // Self-equilibrated residual stress distribution across a flange.
   residuals: [
@@ -78,7 +78,7 @@ export const rl: IconSet = {
         style: {
           fill: 'none',
           stroke: 'currentColor',
-          strokeWidth: '1.5',
+          strokeWidth: '1.8',
           strokeLinecap: 'butt',
           strokeLinejoin: 'miter'
         },
