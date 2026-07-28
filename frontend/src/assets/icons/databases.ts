@@ -80,7 +80,12 @@ export const rl: IconSet = {
         style: {
           fill: 'none',
           stroke: 'currentColor',
-          strokeWidth: '1.8',
+          // Optical scaling: 1.8 is tuned for 15–24px chrome sizes, where it
+          // matches the mdi outline weight. At large sizes that same ratio
+          // reads as a slab and small features (the EBF link, the bolt pair,
+          // the HSS void) close up, so callers drawing the icon big override
+          // this with a finer stroke.
+          strokeWidth: 'var(--rl-icon-stroke, 1.8)',
           strokeLinecap: 'butt',
           strokeLinejoin: 'miter'
         },

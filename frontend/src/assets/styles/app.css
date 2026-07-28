@@ -1238,6 +1238,9 @@ body.theme-dark .logos img {
   align-items: center;
   justify-content: center;
   color: var(--fg);
+  /* Drawn at 4rem the chrome-weight stroke reads as a slab — thin it so the
+     mark keeps the precision of a technical drawing. */
+  --rl-icon-stroke: 1.25;
 }
 /* Below the tablet breakpoint the title needs the full width. */
 @media (max-width: 900px) {
