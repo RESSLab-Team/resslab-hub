@@ -1461,7 +1461,10 @@ function downloadZip(): void {
   }
 }
 
-:deep(input[type='number']) {
+/* Only the Vuetify filter fields (filter-only row): stop the native number
+   input's intrinsic min-width from bloating them. Scoped to `.table-input` so
+   it doesn't catch the header-menu filter input, which must stay full width. */
+:deep(.table-input input[type='number']) {
   width: 3em;
 }
 
