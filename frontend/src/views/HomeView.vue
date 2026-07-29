@@ -102,10 +102,11 @@ onMounted(async () => {
   <div>
     <!-- Ultrawide screens (≥2100px) re-lay these blocks via `grid-template-areas`
          (see app.css) — hence the `hp-*` hooks: hero and key numbers full-width
-         on top, then databases | map + video in two columns, with the photo
-         strip and the partners strip closing the page. Below that the wrapper
-         is `display: contents`, so the page keeps the normal laptop flow in
-         DOM order — databases full-width, then the map | video row. -->
+         on top, then databases | map + video in two columns (three from 2400px,
+         where the video splits off), with the photo strip and the partners
+         strip closing the page. Below that the wrapper is `display: contents`,
+         so the page keeps the normal laptop flow in DOM order — databases
+         full-width, then the map | video row. -->
     <div class="home-split">
       <!-- Hero — overlapping white text panel breaking the media edge -->
       <section class="hero hp-hero">
@@ -176,10 +177,17 @@ onMounted(async () => {
             <div class="cat-tile-icon"><v-icon :icon="db.icon" size="22" /></div>
             <h3 class="cat-tile-title">{{ db.name }}</h3>
             <p class="cat-tile-desc">{{ db.desc }}</p>
+            <!-- The dashboard's own description; only shown where the tiles have
+                 the room for it (the ultrawide column layout). -->
+            <p class="cat-tile-desc-long">{{ db.descLong }}</p>
             <div class="cat-tile-meta">
               <template v-if="countsStore.counts[db.id] != null">
                 <strong>{{ countsStore.counts[db.id] }}</strong>
                 <span>{{ t('home.databases.tests') }}</span>
+              </template>
+              <template v-if="countsStore.sources[db.id] != null">
+                <strong>{{ countsStore.sources[db.id] }}</strong>
+                <span>{{ t('home.databases.sources', countsStore.sources[db.id]!) }}</span>
               </template>
               <span style="flex: 1" />
               <span class="cat-tab">{{ db.group }}</span>

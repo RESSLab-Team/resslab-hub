@@ -961,7 +961,8 @@
       "title": "Neuf jeux de données sélectionnés, un format cohérent.",
       "sub": "Données expérimentales numérisées provenant de laboratoires du monde entier. Filtrez par géométrie, matériau et protocole de chargement ; exportez de façon reproductible ; citez les sources originales.",
       "viewAll": "Voir toutes les bases de données",
-      "tests": "essais"
+      "tests": "essais",
+      "sources": "source | sources"
     },
     "reach": {
       "eyebrow": "Portée mondiale",

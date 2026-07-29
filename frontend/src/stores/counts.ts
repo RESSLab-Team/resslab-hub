@@ -20,9 +20,27 @@ const fetcherFor: Record<DatabaseId, (apis: Apis) => Promise<{ data: number }>> 
   residuals: (apis) => apis.residualsApi.getResidualStressesDistinct()
 }
 
-/** Test counts per database, fetched once per session (sidebar, home tiles, dashboards). */
+// Same endpoints narrowed to each database's "who ran the tests" column, so the
+// count is distinct experimental programs / investigators — the tiles' "sources".
+// Field names are string literals (they satisfy the generated union types) so this
+// module keeps its no-static-client-import property.
+const sourcesFetcherFor: Record<DatabaseId, (apis: Apis) => Promise<{ data: number }>> = {
+  connections: (apis) => apis.connectionsApi.getConnectionsDistinct(['experimental_program']),
+  columns: (apis) => apis.columnsApi.getColumnsDistinct(['experimental_program']),
+  braces: (apis) => apis.bracesApi.getBracesDistinct(['investigator']),
+  hss: (apis) => apis.hssApi.getHssColumnsDistinct(['reference']),
+  ebf: (apis) => apis.ebfApi.getEccentricBracedFramesDistinct(['investigator']),
+  cyclic: (apis) => apis.materialsApi.getMaterialsDistinct(['experimental_program']),
+  tensile: (apis) => apis.tensileCouponApi.getTensileCouponsDistinct(['experimental_program']),
+  'ductile-fracture': (apis) =>
+    apis.ductileFractureApi.getDuctileFracturesDistinct(['experimental_program']),
+  residuals: (apis) => apis.residualsApi.getResidualStressesDistinct(['experimental_program'])
+}
+
+/** Test and source counts per database, fetched once per session (sidebar, home tiles). */
 export const useCountsStore = defineStore('counts', () => {
   const counts = ref<Partial<Record<DatabaseId, number>>>({})
+  const sources = ref<Partial<Record<DatabaseId, number>>>({})
   let fetched = false
 
   function fetch(): void {
@@ -31,18 +49,21 @@ export const useCountsStore = defineStore('counts', () => {
     }
     fetched = true
     import('@/plugins/axios').then((apis) => {
-      Object.entries(fetcherFor).forEach(([id, fetcher]) => {
-        fetcher(apis)
-          .then((response) => {
-            counts.value = {
-              ...counts.value,
-              [id]: response.data
-            }
-          })
-          .catch(() => {
-            // counts are decorative; leave the entry empty on failure
-          })
-      })
+      const fill = (fetchers: typeof fetcherFor, target: typeof counts): void =>
+        Object.entries(fetchers).forEach(([id, fetcher]) => {
+          fetcher(apis)
+            .then((response) => {
+              target.value = {
+                ...target.value,
+                [id]: response.data
+              }
+            })
+            .catch(() => {
+              // counts are decorative; leave the entry empty on failure
+            })
+        })
+      fill(fetcherFor, counts)
+      fill(sourcesFetcherFor, sources)
     })
   }
 
@@ -54,5 +75,5 @@ export const useCountsStore = defineStore('counts', () => {
     return values.reduce((sum, value) => sum + (value ?? 0), 0)
   })
 
-  return { counts, total, fetch }
+  return { counts, sources, total, fetch }
 })

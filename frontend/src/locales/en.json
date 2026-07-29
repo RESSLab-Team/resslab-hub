@@ -961,7 +961,8 @@
       "title": "Nine curated datasets, one consistent format.",
       "sub": "Digitized experimental data from labs worldwide. Filter by geometry, material and loading protocol; export reproducibly; cite original sources.",
       "viewAll": "View all databases",
-      "tests": "tests"
+      "tests": "tests",
+      "sources": "source | sources"
     },
     "reach": {
       "eyebrow": "Worldwide reach",
