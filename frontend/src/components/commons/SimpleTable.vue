@@ -2,6 +2,7 @@
 import CheckboxDialog, { type CheckBoxDialogItem } from '@/components/commons/CheckboxDialog.vue'
 import TextSubscript from '@/components/commons/TextSubscript.vue'
 import { DownloadType, type Column, type ColumnType } from '@/composables/table'
+import { useColumnWidths, type MeasurableColumn } from '@/composables/useColumnWidths'
 import { useVirtualRows } from '@/composables/useVirtualRows'
 import i18n from '@/plugins/i18n'
 import { useNotificationStore } from '@/stores/notification'
@@ -29,6 +30,8 @@ interface TableHeader {
   options?: string[]
   format?: (value: unknown) => string
   cellVariant?: 'mono' | 'tag' | 'strong'
+  width?: number
+  minWidth?: number
   // https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/labs/VDataTable/types.ts
   key: string
   title: string
@@ -204,10 +207,17 @@ watch(
 // ResizeObserver, exposing it as `--stbl-head-h`.
 const scrollEl = ref<HTMLElement>()
 const headEl = ref<HTMLElement>()
+const hscrollEl = ref<HTMLElement>()
 const headHeight = ref<string>('44px')
+// Width of the horizontal scroll wrapper — the space the columns have to fill.
+// Read from `hscrollEl` (not `headEl`, which is content-sized and can be wider
+// than the viewport once the table overflows). Fractional, so the distributed
+// column widths add up to the real content box, not a rounded one.
+const containerWidth = ref<number>(0)
 let headObserver: ResizeObserver | undefined
 function measureHead(): void {
   if (headEl.value) headHeight.value = `${headEl.value.offsetHeight}px`
+  if (hscrollEl.value) containerWidth.value = hscrollEl.value.getBoundingClientRect().width
 }
 
 /* ---- Overlay scrollbar ----------------------------------------------------
@@ -291,6 +301,7 @@ onMounted(() => {
     // watch above, not here.
     if (headEl.value) headObserver.observe(headEl.value)
     if (scrollEl.value) headObserver.observe(scrollEl.value)
+    if (hscrollEl.value) headObserver.observe(hscrollEl.value)
   }
 })
 onUnmounted(() => {
@@ -349,15 +360,27 @@ const filterHeaders = computed<TableHeader[]>(() =>
 )
 const hasFilters = computed<boolean>(() => !!props.query && props.query?.length != 0)
 
-// Fixed-layout column proportions: text/option columns get twice the share of
-// numeric/boolean. Widths are a fraction of the space left by the fixed 44px
-// select column, so they sum to exactly 100% — the whole table fits the container
-// with no horizontal overflow, and long headers/values ellipsis within their cell.
-const columnWidths = computed<string[]>(() => {
-  const weights = tableHeaders.value.map((h) => (h.type === 'text' || h.type === 'option' ? 2 : 1))
-  const total = weights.reduce((sum, w) => sum + w, 0) || 1
-  return weights.map((w) => `calc((100% - 44px) * ${(w / total).toFixed(4)})`)
-})
+// Content-measured column widths (see useColumnWidths): each column is sized to
+// its widest header/value; leftover space goes to the text columns, and when the
+// mins don't fit the table grows past the container into the horizontal scroll
+// wrapper. Measured over the COMMITTED page only — live crossfilter drag rows
+// are never measured, and the ratchet keeps widths still during a drag.
+const measurableColumns = computed<MeasurableColumn[]>(() =>
+  tableHeaders.value.map((header) => ({
+    key: header.key,
+    title: headerTitle(header.title),
+    type: header.type,
+    format: header.format,
+    cellVariant: header.cellVariant,
+    width: header.width,
+    minWidth: header.minWidth
+  }))
+)
+const { columnWidths, tableWidth } = useColumnWidths(
+  measurableColumns,
+  computed(() => props.items as unknown as readonly Record<string, unknown>[]),
+  containerWidth
+)
 
 // "All" (-1) would make the pager math go negative, so resolve it to the full
 // filtered count first — every page computation below rides this, not the raw
@@ -536,6 +559,8 @@ function getTableHeader(column: Column): TableHeader {
     type: column.type,
     format: column.format,
     cellVariant: column.cellVariant,
+    width: column.width,
+    minWidth: column.minWidth,
     options: column.options?.sort(),
     multiple: column.options ? column.options.length > 2 : false,
     align: column.type === 'number' ? 'end' : 'start'
@@ -627,226 +652,240 @@ function downloadZip(): void {
     </div>
 
     <div class="stbl-body">
-      <!-- The header is its own table *outside* the scroll viewport, so it holds
-           still without `sticky` and the scrollbar tracks the data rows only. The
-           two tables stay column-aligned because they share the `<colgroup>`
-           widths and the overlay scrollbar takes no width from either. -->
-      <div ref="headEl" class="stbl-head">
-        <table class="stbl-table">
-          <colgroup>
-            <col class="stbl-col-select" />
-            <col
-              v-for="(header, index) in tableHeaders"
-              :key="header.key"
-              :style="{ width: columnWidths[index] }"
-            />
-          </colgroup>
-          <thead>
-            <tr class="stbl-head-titles">
-              <th class="stbl-col-select">
-                <input
-                  type="checkbox"
-                  class="stbl-check"
-                  :checked="allPageSelected"
-                  :indeterminate.prop="somePageSelected"
-                  aria-label="select all"
-                  @change="toggleSelectAll"
-                />
-              </th>
-              <th
-                v-for="header in tableHeaders"
+      <!-- One shared horizontal scroller around BOTH tables: when the measured
+           column mins outgrow the viewport, head and body overflow together and
+           stay aligned with zero scroll-sync JS. Vertical scrolling stays on
+           `.stbl-scroll` alone. An open header menu is anchored to a fixed
+           overlay, so it must close when its activator scrolls away sideways. -->
+      <div ref="hscrollEl" class="stbl-hscroll" @scroll.passive="closeMenu">
+        <!-- The header is its own table *outside* the vertical scroll viewport,
+             so it holds still without `sticky` and the scrollbar tracks the data
+             rows only. The two tables stay column-aligned because they share the
+             `<colgroup>` widths and the overlay scrollbar takes no width from
+             either. -->
+        <div ref="headEl" class="stbl-head">
+          <table class="stbl-table" :style="{ width: tableWidth }">
+            <colgroup>
+              <col class="stbl-col-select" />
+              <col
+                v-for="(header, index) in tableHeaders"
                 :key="header.key"
-                class="stbl-th"
-                :class="{
-                  'text-end': header.align === 'end',
-                  'is-sorted': sortBy?.key === header.key
-                }"
-              >
-                <!-- Per-column menu: sort direction + this column's filter, opened
-                     from the header itself so the header stays a single row. -->
-                <v-menu
-                  :model-value="openMenuKey === header.key"
-                  :close-on-content-click="false"
-                  :transition="false"
-                  open-on-hover
-                  :open-delay="90"
-                  :close-delay="220"
-                  :offset="0"
-                  location="bottom start"
-                  @update:model-value="toggleMenu(header, $event)"
+                :style="{ width: columnWidths[index] }"
+              />
+            </colgroup>
+            <thead>
+              <tr class="stbl-head-titles">
+                <th class="stbl-col-select">
+                  <input
+                    type="checkbox"
+                    class="stbl-check"
+                    :checked="allPageSelected"
+                    :indeterminate.prop="somePageSelected"
+                    aria-label="select all"
+                    @change="toggleSelectAll"
+                  />
+                </th>
+                <th
+                  v-for="header in tableHeaders"
+                  :key="header.key"
+                  class="stbl-th"
+                  :class="{
+                    'text-end': header.align === 'end',
+                    'is-sorted': sortBy?.key === header.key
+                  }"
                 >
-                  <template #activator="{ props: activatorProps }">
-                    <button
-                      v-bind="activatorProps"
-                      type="button"
-                      class="stbl-th-inner"
-                      :title="headerTitle(header.title)"
-                      :aria-label="`${headerTitle(header.title)} – ${$t('commons.column_options')}`"
-                    >
-                      <span class="stbl-th-label"><text-subscript :text="header.title" /></span>
-                      <v-icon
-                        v-if="sortBy?.key === header.key"
-                        class="stbl-sort"
-                        size="14"
-                        :icon="sortBy?.order === 'asc' ? mdiMenuUp : mdiMenuDown"
-                      />
-                      <span v-if="hasColumnFilter(header)" class="stbl-th-dot" />
-                      <v-icon class="stbl-th-caret" size="12" :icon="mdiChevronDown" />
-                    </button>
-                  </template>
-
-                  <div class="stbl-menu" @focusin="menuHasFocus = true" @focusout="onMenuFocusOut">
-                    <button
-                      type="button"
-                      class="stbl-menu-item"
-                      :class="{ on: sortBy?.key === header.key && sortBy?.order === 'asc' }"
-                      @click="setSort(header, 'asc')"
-                    >
-                      <v-icon size="16" :icon="mdiSortAscending" />
-                      {{ $t('commons.sort_asc') }}
-                    </button>
-                    <button
-                      type="button"
-                      class="stbl-menu-item"
-                      :class="{ on: sortBy?.key === header.key && sortBy?.order === 'desc' }"
-                      @click="setSort(header, 'desc')"
-                    >
-                      <v-icon size="16" :icon="mdiSortDescending" />
-                      {{ $t('commons.sort_desc') }}
-                    </button>
-                    <button
-                      v-if="sortBy?.key === header.key"
-                      type="button"
-                      class="stbl-menu-item"
-                      @click="clearSort()"
-                    >
-                      <v-icon size="16" :icon="mdiClose" />
-                      {{ $t('commons.clear_sort') }}
-                    </button>
-                    <div class="stbl-menu-sep" />
-                    <div class="stbl-menu-filter">
-                      <v-select
-                        v-if="header.options"
-                        v-bind="vInputBind"
-                        :model-value="(columnSearches[header.key] as string)"
-                        :label="$t('commons.filter')"
-                        :multiple="header.multiple"
-                        :items="header.options"
-                        @update:model-value="columnSearches[header.key] = $event"
+                  <!-- Per-column menu: sort direction + this column's filter, opened
+                     from the header itself so the header stays a single row. -->
+                  <v-menu
+                    :model-value="openMenuKey === header.key"
+                    :close-on-content-click="false"
+                    :transition="false"
+                    open-on-hover
+                    :open-delay="90"
+                    :close-delay="220"
+                    :offset="0"
+                    location="bottom start"
+                    @update:model-value="toggleMenu(header, $event)"
+                  >
+                    <template #activator="{ props: activatorProps }">
+                      <button
+                        v-bind="activatorProps"
+                        type="button"
+                        class="stbl-th-inner"
+                        :title="headerTitle(header.title)"
+                        :aria-label="`${headerTitle(header.title)} – ${$t(
+                          'commons.column_options'
+                        )}`"
                       >
-                        <!-- eslint-disable vue/no-template-shadow -->
-                        <template
-                          v-if="$slots[`header-select-item.${header.key}`]"
-                          #item="{ item, index, props }"
+                        <span class="stbl-th-label"><text-subscript :text="header.title" /></span>
+                        <v-icon
+                          v-if="sortBy?.key === header.key"
+                          class="stbl-sort"
+                          size="14"
+                          :icon="sortBy?.order === 'asc' ? mdiMenuUp : mdiMenuDown"
+                        />
+                        <span v-if="hasColumnFilter(header)" class="stbl-th-dot" />
+                        <v-icon class="stbl-th-caret" size="12" :icon="mdiChevronDown" />
+                      </button>
+                    </template>
+
+                    <div
+                      class="stbl-menu"
+                      @focusin="menuHasFocus = true"
+                      @focusout="onMenuFocusOut"
+                    >
+                      <button
+                        type="button"
+                        class="stbl-menu-item"
+                        :class="{ on: sortBy?.key === header.key && sortBy?.order === 'asc' }"
+                        @click="setSort(header, 'asc')"
+                      >
+                        <v-icon size="16" :icon="mdiSortAscending" />
+                        {{ $t('commons.sort_asc') }}
+                      </button>
+                      <button
+                        type="button"
+                        class="stbl-menu-item"
+                        :class="{ on: sortBy?.key === header.key && sortBy?.order === 'desc' }"
+                        @click="setSort(header, 'desc')"
+                      >
+                        <v-icon size="16" :icon="mdiSortDescending" />
+                        {{ $t('commons.sort_desc') }}
+                      </button>
+                      <button
+                        v-if="sortBy?.key === header.key"
+                        type="button"
+                        class="stbl-menu-item"
+                        @click="clearSort()"
+                      >
+                        <v-icon size="16" :icon="mdiClose" />
+                        {{ $t('commons.clear_sort') }}
+                      </button>
+                      <div class="stbl-menu-sep" />
+                      <div class="stbl-menu-filter">
+                        <v-select
+                          v-if="header.options"
+                          v-bind="vInputBind"
+                          :model-value="(columnSearches[header.key] as string)"
+                          :label="$t('commons.filter')"
+                          :multiple="header.multiple"
+                          :items="header.options"
+                          @update:model-value="columnSearches[header.key] = $event"
                         >
-                          <!-- eslint-enable vue/no-template-shadow -->
-                          <slot
-                            :name="`header-select-item.${header.key}`"
-                            :item="item"
-                            :index="index"
-                            :props="props"
-                          />
-                        </template>
-                      </v-select>
-                      <!-- Native inputs for the common text/number columns: a
+                          <!-- eslint-disable vue/no-template-shadow -->
+                          <template
+                            v-if="$slots[`header-select-item.${header.key}`]"
+                            #item="{ item, index, props }"
+                          >
+                            <!-- eslint-enable vue/no-template-shadow -->
+                            <slot
+                              :name="`header-select-item.${header.key}`"
+                              :item="item"
+                              :index="index"
+                              :props="props"
+                            />
+                          </template>
+                        </v-select>
+                        <!-- Native inputs for the common text/number columns: a
                            Vuetify field mounts on first hover of every column and
                            that cost is what reads as hover lag. Matches the
                            light-DOM approach used by the body and the pager. -->
-                      <input
-                        v-else-if="header.type === 'text'"
-                        v-model="columnSearches[header.key]"
-                        class="stbl-menu-input"
-                        type="search"
-                        :placeholder="$t('commons.filter')"
-                      />
-                      <input
-                        v-else-if="header.type === 'number'"
-                        v-model="columnSearches[header.key]"
-                        class="stbl-menu-input"
-                        type="number"
-                        :placeholder="$t('commons.filter')"
-                      />
-                      <v-select
-                        v-else-if="header.type === 'boolean'"
-                        v-bind="vInputBind"
-                        v-model="columnSearches[header.key]"
-                        :label="$t('commons.filter')"
-                        :items="booleanOptions"
-                      />
+                        <input
+                          v-else-if="header.type === 'text'"
+                          v-model="columnSearches[header.key]"
+                          class="stbl-menu-input"
+                          type="search"
+                          :placeholder="$t('commons.filter')"
+                        />
+                        <input
+                          v-else-if="header.type === 'number'"
+                          v-model="columnSearches[header.key]"
+                          class="stbl-menu-input"
+                          type="number"
+                          :placeholder="$t('commons.filter')"
+                        />
+                        <v-select
+                          v-else-if="header.type === 'boolean'"
+                          v-bind="vInputBind"
+                          v-model="columnSearches[header.key]"
+                          :label="$t('commons.filter')"
+                          :items="booleanOptions"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </v-menu>
-              </th>
-            </tr>
-          </thead>
-        </table>
-      </div>
+                  </v-menu>
+                </th>
+              </tr>
+            </thead>
+          </table>
+        </div>
 
-      <div ref="scrollEl" class="stbl-scroll" @scroll="updateThumb">
-        <table class="stbl-table">
-          <colgroup>
-            <col class="stbl-col-select" />
-            <col
-              v-for="(header, index) in tableHeaders"
-              :key="header.key"
-              :style="{ width: columnWidths[index] }"
-            />
-          </colgroup>
-          <tbody>
-            <tr
-              v-if="rowWindow.padTop"
-              class="stbl-spacer"
-              :style="{ height: `${rowWindow.padTop}px` }"
-            >
-              <td :colspan="tableHeaders.length + 1"></td>
-            </tr>
-            <tr
-              v-for="(item, index) in visibleRows"
-              :key="item.id"
-              class="stbl-row"
-              :class="{
-                'is-selected': isRowSelected(item),
-                'is-stripe': (rowWindow.startIndex + index) % 2 === 1
-              }"
-              @click="rowClick(item)"
-            >
-              <td class="stbl-col-select" @click.stop>
-                <input
-                  type="checkbox"
-                  class="stbl-check"
-                  :checked="isRowSelected(item)"
-                  :disabled="!isItemSelectable(item)"
-                  @change="toggleRow(item)"
-                />
-              </td>
-              <td
-                v-for="header in tableHeaders"
+        <div ref="scrollEl" class="stbl-scroll" @scroll="updateThumb">
+          <table class="stbl-table" :style="{ width: tableWidth }">
+            <colgroup>
+              <col class="stbl-col-select" />
+              <col
+                v-for="(header, index) in tableHeaders"
                 :key="header.key"
-                :title="cellText(header, item)"
-                :class="{ 'text-end': header.align === 'end' }"
+                :style="{ width: columnWidths[index] }"
+              />
+            </colgroup>
+            <tbody>
+              <tr
+                v-if="rowWindow.padTop"
+                class="stbl-spacer"
+                :style="{ height: `${rowWindow.padTop}px` }"
               >
-                <span v-if="header.cellVariant === 'tag' && cellText(header, item)" class="tag">{{
-                  cellText(header, item)
-                }}</span>
-                <span
-                  v-else
-                  :class="{
-                    'cell-mono': header.cellVariant === 'mono',
-                    'cell-strong': header.cellVariant === 'strong'
-                  }"
-                  >{{ cellText(header, item) }}</span
+                <td :colspan="tableHeaders.length + 1"></td>
+              </tr>
+              <tr
+                v-for="(item, index) in visibleRows"
+                :key="item.id"
+                class="stbl-row"
+                :class="{
+                  'is-selected': isRowSelected(item),
+                  'is-stripe': (rowWindow.startIndex + index) % 2 === 1
+                }"
+                @click="rowClick(item)"
+              >
+                <td class="stbl-col-select" @click.stop>
+                  <input
+                    type="checkbox"
+                    class="stbl-check"
+                    :checked="isRowSelected(item)"
+                    :disabled="!isItemSelectable(item)"
+                    @change="toggleRow(item)"
+                  />
+                </td>
+                <td
+                  v-for="header in tableHeaders"
+                  :key="header.key"
+                  :title="cellText(header, item)"
+                  :class="{ 'text-end': header.align === 'end' }"
                 >
-              </td>
-            </tr>
-            <tr
-              v-if="rowWindow.padBottom"
-              class="stbl-spacer"
-              :style="{ height: `${rowWindow.padBottom}px` }"
-            >
-              <td :colspan="tableHeaders.length + 1"></td>
-            </tr>
-          </tbody>
-        </table>
+                  <span v-if="header.cellVariant === 'tag' && cellText(header, item)" class="tag">{{
+                    cellText(header, item)
+                  }}</span>
+                  <span
+                    v-else
+                    :class="{
+                      'cell-mono': header.cellVariant === 'mono',
+                      'cell-strong': header.cellVariant === 'strong'
+                    }"
+                    >{{ cellText(header, item) }}</span
+                  >
+                </td>
+              </tr>
+              <tr
+                v-if="rowWindow.padBottom"
+                class="stbl-spacer"
+                :style="{ height: `${rowWindow.padBottom}px` }"
+              >
+                <td :colspan="tableHeaders.length + 1"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
       <!-- Overlay scrollbar, drawn over the rows so they keep the full width of the
            panel whether or not there is anything to scroll. -->
@@ -966,10 +1005,37 @@ function downloadZip(): void {
   font-size: 14px;
 }
 
+/* Horizontal scroll wrapper around BOTH tables. On wide screens the columns sum
+   to the container and this never engages; when the measured column mins don't
+   fit, the tables (explicit px width) overflow it together — one scroller, so
+   head and body can't desync. A native bottom scrollbar costs no column width
+   (unlike the vertical one, overlaid for that reason) and only appears when
+   there is actually something to scroll. */
+.stbl-hscroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+@media (pointer: fine) {
+  .stbl-hscroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  .stbl-hscroll::-webkit-scrollbar {
+    height: 8px;
+  }
+  .stbl-hscroll::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+  }
+}
+
 /* Head band. Painted by the container rather than the cells so the grey and its
    hairline run unbroken under the whole head — select column included, which has
-   no `.stbl-th` to carry a border of its own. */
+   no `.stbl-th` to carry a border of its own. `fit-content` (resolved from the
+   table's explicit px width) keeps the band spanning the full scrolled width
+   instead of clipping at the viewport. */
 .stbl-head {
+  width: fit-content;
+  min-width: 100%;
   background: var(--bg-subtle);
   border-bottom: 1px solid var(--table-gridline-strong);
 }
@@ -986,8 +1052,11 @@ function downloadZip(): void {
 .stbl-scroll {
   min-height: min(calc(var(--stbl-rows, 5) * 38px), calc(50vh - var(--stbl-head-h, 44px)));
   max-height: calc(50vh - var(--stbl-head-h, 44px));
-  /* Vertical only: the table is `width: 100%` + fixed layout, so it can never
-     overflow horizontally. */
+  /* Vertical only. Horizontal overflow belongs to `.stbl-hscroll` — this box is
+     sized to its table (`fit-content`, from the table's explicit px width) so
+     the rows never overflow it sideways and its own overflow-x never engages. */
+  width: fit-content;
+  min-width: 100%;
   overflow-y: auto;
   /* Native scrollbar hidden — `.stbl-sbar-thumb` draws over the rows instead, so the
      scrollport keeps its full width and nothing shifts when the rows outgrow the
@@ -1045,6 +1114,14 @@ function downloadZip(): void {
     flex: 1;
     min-height: 0;
   }
+  /* The horizontal scroll wrapper sits in this flex chain too — without passing
+     the height through it, the scroll viewport would collapse to content. */
+  .dash-col-main .stbl-hscroll {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
   .dash-col-main .stbl-scroll {
     flex: 1;
     min-height: 0;
@@ -1053,14 +1130,17 @@ function downloadZip(): void {
 }
 
 .stbl-table {
+  /* Fallback only — the template binds an explicit px width computed with the
+     column measurement, container-fit when everything fits and wider when the
+     column mins overflow into the horizontal scroller. */
   width: 100%;
   /* `separate` (not `collapse`) so the whole sticky <thead> keeps its borders
      while scrolling — collapsed borders detach from sticky headers in Chrome. */
   border-collapse: separate;
   border-spacing: 0;
-  /* Fixed layout: columns take the weighted `<colgroup>` widths (summing to 100%),
-     so the whole table fits with no horizontal overflow and headers/values
-     ellipsis within their cell instead of forcing the column wide. */
+  /* Fixed layout: columns take exactly the measured `<colgroup>` px widths —
+     content never forces a column wide; values longer than their measured cap
+     ellipsis within the cell. */
   table-layout: fixed;
   font-size: 13px;
   font-feature-settings: 'tnum';

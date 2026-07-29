@@ -29,6 +29,11 @@ export interface Column {
   format?: (value: any) => string
   /** Design-system cell treatment: 'mono' = smaller section-name text, tag pill, bold identifier */
   cellVariant?: 'mono' | 'tag' | 'strong'
+  /** Fixed column width in px — skips content-based auto-sizing entirely. */
+  width?: number
+  /** Width floor in px when space is tight, overriding the type default
+   *  (content fit for numbers/booleans, 110px for text/option). */
+  minWidth?: number
 }
 
 export const tableProps = {
