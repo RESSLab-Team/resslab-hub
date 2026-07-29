@@ -19,7 +19,7 @@ import {
   mdiSortAscending,
   mdiSortDescending
 } from '@mdi/js'
-import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -122,7 +122,14 @@ const selectedItemsIds = ref<string[]>([])
 // M (UnwrapRefSimple<M>) and break the typing of everything touching it.
 const selectedItems = shallowRef<M[]>([])
 const page = ref<number>(1)
-const itemsPerPage = ref<number>(50)
+/** On an ultrawide screen the table owns the full height of its column, so the
+ *  default page is the whole dataset rather than the first 50 — you scroll the
+ *  same table either way, minus the paging. Read once at setup: flipping this on
+ *  resize would silently discard a page size the user had chosen. Matches the
+ *  2100px split breakpoint in app.css. */
+const itemsPerPage = ref<number>(
+  window.matchMedia('(min-width: 2100px)').matches ? ALL_ITEMS_PER_PAGE : 50
+)
 const sortBy = ref<{ key: string; order: 'asc' | 'desc' }>()
 // Which column's header menu (sort + filter popover) is open, keyed by column.
 // Sort actions close it; filter edits keep it open.
@@ -190,16 +197,75 @@ watch(
   { immediate: true }
 )
 
-// Size the loading shimmer to the table head only. The header height is stable
-// per dashboard but varies between them, so measure the real <thead> and track it
-// via ResizeObserver. (The header sticks as a whole unit — no per-row offset.)
+// Size the loading shimmer to the table head only, and let the scroll viewport
+// subtract the head from its height cap. The header height is stable per dashboard
+// but varies between them, so measure the real head band — including its bottom
+// hairline, which is the line the shimmer marches along — and track it via
+// ResizeObserver, exposing it as `--stbl-head-h`.
 const scrollEl = ref<HTMLElement>()
+const headEl = ref<HTMLElement>()
 const headHeight = ref<string>('44px')
 let headObserver: ResizeObserver | undefined
 function measureHead(): void {
-  const thead = scrollEl.value?.querySelector('thead') as HTMLElement | null
-  if (thead) headHeight.value = `${thead.offsetHeight}px`
+  if (headEl.value) headHeight.value = `${headEl.value.offsetHeight}px`
 }
+
+/* ---- Overlay scrollbar ----------------------------------------------------
+ * The native scrollbar is hidden (see `.stbl-scroll`) and a thumb is drawn over
+ * the rows: a native one takes its width out of the scrollport, which either
+ * shifts every column when the rows outgrow the panel or (gutter reserved)
+ * leaves dead space when they don't. Overlaying costs neither — the content box
+ * never changes width. Wheel/trackpad/keyboard/touch scrolling are untouched;
+ * only the drag has to be implemented. */
+const THUMB_MIN_HEIGHT = 24
+const thumbVisible = ref<boolean>(false)
+const thumbHeight = ref<number>(0)
+const thumbTop = ref<number>(0)
+function updateThumb(): void {
+  const el = scrollEl.value
+  if (!el) return
+  const track = el.clientHeight
+  const overflow = el.scrollHeight - track
+  // Sub-pixel overflow is layout rounding, not content — don't flash a thumb for it.
+  thumbVisible.value = overflow > 1
+  if (!thumbVisible.value) return
+  thumbHeight.value = Math.max(THUMB_MIN_HEIGHT, (track / el.scrollHeight) * track)
+  thumbTop.value = (el.scrollTop / overflow) * (track - thumbHeight.value)
+}
+
+function onThumbPointerDown(event: PointerEvent): void {
+  const el = scrollEl.value
+  if (!el) return
+  const startY = event.clientY
+  const startScroll = el.scrollTop
+  const travel = el.clientHeight - thumbHeight.value
+  const overflow = el.scrollHeight - el.clientHeight
+  if (travel <= 0 || overflow <= 0) return
+  const thumb = event.currentTarget as HTMLElement
+  const onMove = (moveEvent: PointerEvent): void => {
+    el.scrollTop = startScroll + ((moveEvent.clientY - startY) / travel) * overflow
+  }
+  const onUp = (): void => {
+    thumb.removeEventListener('pointermove', onMove)
+    thumb.removeEventListener('pointerup', onUp)
+    thumb.removeEventListener('pointercancel', onUp)
+  }
+  // Pointer capture keeps the drag alive when the cursor leaves the 8px thumb,
+  // which is most of any real drag.
+  thumb.setPointerCapture(event.pointerId)
+  thumb.addEventListener('pointermove', onMove)
+  thumb.addEventListener('pointerup', onUp)
+  thumb.addEventListener('pointercancel', onUp)
+  event.preventDefault()
+}
+
+// Recompute after any render that changes how much there is to scroll. The
+// crossing into (or out of) scrollable happens with the viewport's own box
+// unchanged, so a ResizeObserver on it never sees it.
+watch(displayItems, async () => {
+  await nextTick()
+  updateThumb()
+})
 
 onMounted(() => {
   // Default sort — mirrors Vuetify's `must-sort` initial state and, crucially,
@@ -214,10 +280,17 @@ onMounted(() => {
   watch([sortBy, page, itemsPerPage], emitOptions, { deep: true })
 
   measureHead()
-  const thead = scrollEl.value?.querySelector('thead') as HTMLElement | null
-  if (thead && 'ResizeObserver' in window) {
-    headObserver = new ResizeObserver(measureHead)
-    headObserver.observe(thead)
+  updateThumb()
+  if ('ResizeObserver' in window) {
+    headObserver = new ResizeObserver(() => {
+      measureHead()
+      updateThumb()
+    })
+    // Covers the container actually changing size — window resize, the ultrawide
+    // split handing the table a column. Content-driven changes are caught by the
+    // watch above, not here.
+    if (headEl.value) headObserver.observe(headEl.value)
+    if (scrollEl.value) headObserver.observe(scrollEl.value)
   }
 })
 onUnmounted(() => {
@@ -483,7 +556,11 @@ function downloadZip(): void {
 </script>
 
 <template>
-  <v-card class="stbl" flat :style="{ '--stbl-rows': String(heightRows) }">
+  <v-card
+    class="stbl"
+    flat
+    :style="{ '--stbl-rows': String(heightRows), '--stbl-head-h': headHeight }"
+  >
     <div v-if="!hideToolbar" class="stbl-toolbar">
       <div class="stbl-title">
         <slot name="title">
@@ -550,7 +627,11 @@ function downloadZip(): void {
     </div>
 
     <div class="stbl-body">
-      <div ref="scrollEl" class="stbl-scroll">
+      <!-- The header is its own table *outside* the scroll viewport, so it holds
+           still without `sticky` and the scrollbar tracks the data rows only. The
+           two tables stay column-aligned because they share the `<colgroup>`
+           widths and the overlay scrollbar takes no width from either. -->
+      <div ref="headEl" class="stbl-head">
         <table class="stbl-table">
           <colgroup>
             <col class="stbl-col-select" />
@@ -698,6 +779,19 @@ function downloadZip(): void {
               </th>
             </tr>
           </thead>
+        </table>
+      </div>
+
+      <div ref="scrollEl" class="stbl-scroll" @scroll="updateThumb">
+        <table class="stbl-table">
+          <colgroup>
+            <col class="stbl-col-select" />
+            <col
+              v-for="(header, index) in tableHeaders"
+              :key="header.key"
+              :style="{ width: columnWidths[index] }"
+            />
+          </colgroup>
           <tbody>
             <tr
               v-if="rowWindow.padTop"
@@ -754,12 +848,17 @@ function downloadZip(): void {
           </tbody>
         </table>
       </div>
+      <!-- Overlay scrollbar, drawn over the rows so they keep the full width of the
+           panel whether or not there is anything to scroll. -->
       <div
-        class="stbl-loading"
-        :class="{ 'is-loading': showLoading }"
-        :style="{ height: headHeight }"
+        v-if="thumbVisible"
+        class="stbl-sbar-thumb"
+        :style="{ height: `${thumbHeight}px`, transform: `translateY(${thumbTop}px)` }"
         aria-hidden="true"
+        @pointerdown="onThumbPointerDown"
       />
+
+      <div class="stbl-loading" :class="{ 'is-loading': showLoading }" aria-hidden="true" />
     </div>
 
     <!-- Design-handoff pager -->
@@ -835,6 +934,10 @@ function downloadZip(): void {
    so the body can re-render every frame during a crossfilter drag. Mirrors the
    handoff's .tbl styles. */
 .stbl {
+  /* Overlay-thumb geometry, shared by the thumb itself and by the right-hand
+     padding that keeps the last column clear of it. */
+  --stbl-sbar-w: 8px;
+  --stbl-sbar-inset: 3px;
   border: 1px solid var(--border);
   border-radius: 0;
   background: var(--bg);
@@ -863,14 +966,90 @@ function downloadZip(): void {
   font-size: 14px;
 }
 
-/* Scroll viewport — sized to a *full* page (rows + the single header row), capped
-   at the 50vh scroll limit. Without a floor, filtering to fewer rows than the
-   page size collapsed the body and shoved the charts below it. */
+/* Head band. Painted by the container rather than the cells so the grey and its
+   hairline run unbroken under the whole head — select column included, which has
+   no `.stbl-th` to carry a border of its own. */
+.stbl-head {
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--table-gridline-strong);
+}
+/* Plain full width: with the body's scrollbar overlaid rather than in-flow, the two
+   tables always have the same space to fill. Transparent so the band above shows
+   through instead of `--bg`. */
+.stbl-head .stbl-table {
+  background: transparent;
+}
+
+/* Scroll viewport — sized to a *full* page of rows, capped so the panel as a whole
+   (head + rows) still fits the 50vh scroll limit. Without a floor, filtering to
+   fewer rows than the page size collapsed the body and shoved the charts below it. */
 .stbl-scroll {
-  min-height: min(calc(var(--stbl-rows, 5) * 38px + 52px), 50vh);
-  max-height: 50vh;
+  min-height: min(calc(var(--stbl-rows, 5) * 38px), calc(50vh - var(--stbl-head-h, 44px)));
+  max-height: calc(50vh - var(--stbl-head-h, 44px));
+  /* Vertical only: the table is `width: 100%` + fixed layout, so it can never
+     overflow horizontally. */
   overflow-y: auto;
-  overflow-x: auto;
+  /* Native scrollbar hidden — `.stbl-sbar-thumb` draws over the rows instead, so the
+     scrollport keeps its full width and nothing shifts when the rows outgrow the
+     panel. Scrolling itself (wheel, trackpad, keyboard, touch) is untouched. */
+  scrollbar-width: none;
+}
+.stbl-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Overlay thumb. Positioned against `.stbl-body`, offset by the head so it tracks
+   the rows only — same span as the viewport it represents. */
+.stbl-sbar-thumb {
+  position: absolute;
+  top: var(--stbl-head-h, 44px);
+  right: var(--stbl-sbar-inset);
+  width: var(--stbl-sbar-w);
+  z-index: 3;
+  background: var(--border-strong);
+  opacity: 0.55;
+  cursor: default;
+  transition: opacity 120ms ease;
+}
+.stbl-sbar-thumb:hover {
+  opacity: 0.85;
+}
+/* Coarse pointers get the platform's own overlay scrollbar, which takes no width
+   either — ours would just be a second one that can't be flicked. */
+@media (pointer: coarse) {
+  .stbl-sbar-thumb {
+    display: none;
+  }
+}
+
+/* On the ultrawide database split the charts have their own column, so the 50vh
+   cap — which only existed to stop the table from pushing them off-screen — has
+   nothing left to protect, and the table fills the column instead.
+
+   The height is passed down the flex chain rather than reserved as a fixed
+   offset: the page header, toolbar, the CONDITIONAL active-filter bar and the
+   pager all take their natural height first and the scroll viewport absorbs
+   what's left. A fixed offset hid the pager as soon as a filter chip appeared
+   and changed the header's height. */
+@media (min-width: 2100px) {
+  .dash-col-main .stbl {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+  .dash-col-main .stbl-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+  .dash-col-main .stbl-scroll {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+  }
 }
 
 .stbl-table {
@@ -892,15 +1071,13 @@ function downloadZip(): void {
   width: 44px;
   text-align: center;
 }
-
-/* Sticky single-row header. */
-.stbl-table thead {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-}
-.stbl-head-titles th {
-  background: var(--bg-subtle);
+/* The select column is a fixed 44px gutter, not a text cell: drop the 16px side
+   padding (which left a 12px box for a 15px control, pushing it off-centre) and
+   let the cell centre its block child on both axes. */
+.stbl-table th.stbl-col-select,
+.stbl-table tbody td.stbl-col-select {
+  padding: 0;
+  vertical-align: middle;
 }
 
 /* Column header row */
@@ -910,7 +1087,6 @@ function downloadZip(): void {
   letter-spacing: 0.06em;
   font-weight: 700;
   color: var(--fg-muted);
-  border-bottom: 1px solid var(--table-gridline-strong);
   user-select: none;
   padding: 0;
   text-align: start;
@@ -922,7 +1098,9 @@ function downloadZip(): void {
   align-items: center;
   gap: 2px;
   width: 100%;
-  padding: 8px 16px;
+  /* Vertical padding sets the head band's height — the select column's checkbox
+     centres against whatever this row resolves to. */
+  padding: 12px 16px;
   border: 0;
   background: none;
   cursor: pointer;
@@ -1048,6 +1226,16 @@ function downloadZip(): void {
   white-space: nowrap;
   padding: 0 16px;
 }
+/* The last column is the one the thumb sits over, and it is usually the right-aligned
+   numeric one, so its values would otherwise run right up against the thumb. Clear
+   its width, then keep a 12px gutter. Applied unconditionally, not only while the
+   thumb is showing — the whole point of overlaying it is that nothing moves when the
+   rows outgrow the panel. */
+.stbl-th:last-child .stbl-th-inner,
+.stbl-table tbody td:last-child {
+  padding-right: calc(var(--stbl-sbar-inset) + var(--stbl-sbar-w) + 12px);
+}
+
 /* Body cells clip to the column cap (select column exempt); only values longer
    than the cap show an ellipsis — short numbers never do. */
 .stbl-table tbody td:not(.stbl-col-select) {
@@ -1075,11 +1263,55 @@ function downloadZip(): void {
 }
 
 /* Selection checkboxes — EPFL red when checked */
+/* Square by construction: `accent-color` alone keeps the UA's rounded box, so the
+   control is drawn from scratch — square corners, hairline border, EPFL red when
+   set. Grid (a block-level box) rather than the input's default inline box: it
+   centres the glyph below, and it is what `vertical-align: middle` on the cell
+   actually centres — an inline input would sit on the text baseline instead. */
 .stbl-check {
-  accent-color: var(--epfl-red);
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  place-content: center;
+  margin: 0 auto;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: var(--bg);
   cursor: pointer;
-  width: 16px;
-  height: 16px;
+}
+.stbl-check:checked,
+.stbl-check:indeterminate {
+  background: var(--epfl-red);
+  border-color: var(--epfl-red);
+}
+/* Checkmark: two borders of an empty box, rotated. White in both themes — it sits
+   on EPFL red, which never lightens. */
+.stbl-check::after {
+  content: '';
+  width: 7px;
+  height: 3px;
+  border: 2px solid #fff;
+  border-top: 0;
+  border-right: 0;
+  transform: translateY(-1px) rotate(-45deg);
+  opacity: 0;
+}
+.stbl-check:checked::after {
+  opacity: 1;
+}
+/* Indeterminate (some-but-not-all rows on the page): a bar, not a tick. */
+.stbl-check:indeterminate::after {
+  opacity: 1;
+  width: 8px;
+  height: 0;
+  border-left: 0;
+  transform: none;
+}
+.stbl-check:focus-visible {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: 1px;
 }
 .stbl-check:disabled {
   cursor: not-allowed;
@@ -1110,6 +1342,7 @@ function downloadZip(): void {
   top: 0;
   left: 0;
   right: 0;
+  height: var(--stbl-head-h, 44px);
   z-index: 4;
   pointer-events: none;
   overflow: hidden;
