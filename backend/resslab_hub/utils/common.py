@@ -129,7 +129,6 @@ class Component(ABC, Generic[D, M]):
             select(*self.model_columns.values())
             .where(and_(*where_clauses))
             .order_by(*order_clauses),
-            self.model_type,
             self.__get_non_nan,
             count_query=select(func.count())
             .select_from(self.database_type)
@@ -297,8 +296,8 @@ class Component(ABC, Generic[D, M]):
         )
 
     @staticmethod
-    def __clean_value(value: Any) -> Optional[Union[Decimal, str]]:
-        if isinstance(value, Decimal) and isnan(value):
+    def __clean_value(value: Any) -> Optional[Union[Decimal, float, str]]:
+        if isinstance(value, (float, Decimal)) and isnan(value):
             return None
         return value
 
@@ -372,9 +371,15 @@ class Component(ABC, Generic[D, M]):
         return column == expression
 
     @staticmethod
-    def __format_value(value: Optional[Union[str, Decimal]]) -> Union[str, Decimal]:
+    def __format_value(
+        value: Optional[Union[str, float, Decimal]],
+    ) -> Union[str, Decimal]:
         if value is None:
             return "NA"
+        if isinstance(value, float):
+            # Go through Decimal so floats keep the historical CSV/counts
+            # formatting (normalize drops trailing zeros: 300.0 -> "300").
+            value = Decimal(str(value))
         if isinstance(value, Decimal):
             if isnan(value):
                 return "NR"
@@ -383,7 +388,7 @@ class Component(ABC, Generic[D, M]):
 
     @staticmethod
     def __get_non_nan(value: Any) -> Any:
-        if isinstance(value, Decimal) and isnan(value):
+        if isinstance(value, (float, Decimal)) and isnan(value):
             return None
         else:
             return value

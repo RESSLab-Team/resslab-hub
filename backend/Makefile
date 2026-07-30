@@ -5,8 +5,10 @@
 install:
 	uv sync
 
+# --log-level info: debug puts the root logger at DEBUG, which makes
+# SQLAlchemy log every statement and adds real per-request latency.
 dev:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run uvicorn resslab_hub.main:app --reload --log-level debug
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run uvicorn resslab_hub.main:app --reload --log-level info
 
 test:
 	uv run pytest

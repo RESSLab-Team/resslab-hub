@@ -2,7 +2,7 @@
 https://uriyyo-fastapi-pagination.netlify.app/customization/
 """
 
-from typing import Any, Callable, Generic, Optional, Type, TypeVar
+from typing import Any, Callable, Generic, Optional, TypeVar
 
 from fastapi import Query
 from fastapi_pagination.api import resolve_params
@@ -28,7 +28,6 @@ class ExtendedPage(Page[T], Generic[T]):
 async def paginate(
     session: AsyncSession,
     query: Select,
-    type: Type[T],
     map_value: Callable[[Any], Any],
     params: Optional[AbstractParams] = None,
     count_query: Optional[Select] = None,
@@ -48,8 +47,10 @@ async def paginate(
         {k: map_value(v) for k, v in item._mapping.items()} for item in items
     ]
 
+    # Items stay plain dicts: the route's response_model validates them once on
+    # the way out. Building Pydantic models here would validate everything twice.
     return ExtendedPage.create(
-        items=[type(**item) for item in mapped_items],
+        items=mapped_items,
         params=params,
         total=total,
     )
