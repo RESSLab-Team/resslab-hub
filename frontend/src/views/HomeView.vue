@@ -13,7 +13,7 @@ import { useCountsStore } from '@/stores/counts'
 import { publicPath } from '@/utils/common'
 import { DATABASES, TOOLS } from '@/utils/navigation'
 import { mdiArrowRight } from '@mdi/js'
-import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // Lazy-load the map so leaflet + d3 + markercluster ship in a separate chunk and
@@ -55,8 +55,14 @@ const keyNumbers = computed(() => [
 // is only attached on `window` load, and autoplay+muted picks it up from there.
 // `load` fires once per page, so SPA re-mounts of Home check readyState instead.
 const heroVideoSrc = ref<string>()
-const startHeroVideo = () => {
+const heroVideo = ref<HTMLVideoElement>()
+const startHeroVideo = async () => {
   heroVideoSrc.value = publicPath + 'video/steel-mrf-front-page.mp4'
+  await nextTick()
+  // Reinforce the autoplay attribute: an explicit play() is the documented
+  // path for sources attached after mount. Rejections (e.g. hidden tab, where
+  // the browser defers playback until visible) are fine — autoplay takes over.
+  heroVideo.value?.play().catch(() => {})
 }
 onMounted(() => {
   if (document.readyState === 'complete') startHeroVideo()
@@ -152,6 +158,7 @@ onMounted(async () => {
              `window` load (see heroVideoSrc) so the ~1 MB video never competes
              with the critical CSS/JS/font/API downloads. -->
           <video
+            ref="heroVideo"
             autoplay
             loop
             muted
