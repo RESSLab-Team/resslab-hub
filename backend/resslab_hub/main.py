@@ -66,16 +66,18 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     )
 
 
+# Cache the read-only data endpoints (see utils/caching.py): browser-side
+# via ETag + max-age, server-side via an in-process store of rendered JSON
+# bodies. Added first so it sits innermost — it must see (and store)
+# uncompressed bodies; GZip below then compresses every response, cache hits
+# included, on the way out. Dev sets cache_max_age = 0 so local data reloads
+# show up immediately.
+if settings.cache_max_age > 0:
+    app.add_middleware(HTTPCacheMiddleware, max_age=settings.cache_max_age)
+
 # Compress JSON/CSV responses (highly compressible numeric payloads).
 # minimum_size avoids the overhead of compressing tiny responses.
 app.add_middleware(GZipMiddleware, minimum_size=1000)
-
-# Let browsers cache the read-only data endpoints (see utils/caching.py).
-# Added after GZip but before CORS so CORS stays outermost and its headers
-# also cover the short-circuited 304s. Dev sets cache_max_age = 0 so local
-# data reloads show up immediately.
-if settings.cache_max_age > 0:
-    app.add_middleware(HTTPCacheMiddleware, max_age=settings.cache_max_age)
 
 if settings.cors_enabled:
     logging.debug("cors enabled")

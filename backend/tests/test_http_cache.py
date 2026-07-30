@@ -3,11 +3,13 @@ Unit tests for the HTTP cache middleware (utils/caching.py).
 
 Runs against a stub FastAPI app — no database. The contract under test: data
 GETs get a version ETag + Cache-Control, a matching If-None-Match short-circuits
-to 304 without invoking the endpoint, and bumping the data version (what a
-successful upload does) makes the same request serve fresh content again.
+to 304 without invoking the endpoint, repeat GETs for the same URL are served
+from the in-process body cache without invoking the endpoint, and bumping the
+data version (what a successful upload does) makes the same request serve
+fresh content again.
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import PlainTextResponse
 from fastapi.testclient import TestClient
 
@@ -23,9 +25,9 @@ def make_app() -> tuple[TestClient, dict]:
     calls = {"connections": 0}
 
     @app.get("/connections/")
-    def list_connections():
+    def list_connections(query: str = ""):
         calls["connections"] += 1
-        return {"items": [1, 2, 3]}
+        return {"items": [1, 2, 3], "query": query}
 
     @app.get("/connections/csv", response_class=PlainTextResponse)
     def get_csv():
@@ -79,3 +81,64 @@ def test_non_json_and_excluded_paths_are_not_cached():
         assert response.status_code == 200
         assert "cache-control" not in response.headers, path
         assert "etag" not in response.headers, path
+
+
+def test_repeat_get_is_served_from_body_cache_without_running_endpoint():
+    client, calls = make_app()
+    first = client.get("/connections/")
+    second = client.get("/connections/")
+    assert calls["connections"] == 1  # endpoint ran only once
+    assert second.status_code == 200
+    assert second.content == first.content
+    assert second.headers["content-type"] == first.headers["content-type"]
+    assert second.headers["etag"] == first.headers["etag"]
+    assert second.headers["cache-control"] == f"public, max-age={MAX_AGE}"
+
+
+def test_body_cache_entries_are_keyed_by_full_url():
+    client, calls = make_app()
+    a = client.get("/connections/", params={"query": "a"})
+    b = client.get("/connections/", params={"query": "b"})
+    assert calls["connections"] == 2  # distinct query strings, distinct entries
+    assert a.json()["query"] == "a"
+    assert b.json()["query"] == "b"
+    client.get("/connections/", params={"query": "a"})
+    client.get("/connections/", params={"query": "b"})
+    assert calls["connections"] == 2  # both replays came from the cache
+
+
+def test_bumped_data_version_invalidates_body_cache():
+    client, calls = make_app()
+    client.get("/connections/")
+    bump_data_version()
+    response = client.get("/connections/")  # plain GET, no If-None-Match
+    assert response.status_code == 200
+    assert calls["connections"] == 2
+
+
+def test_expired_body_cache_entry_is_recomputed(monkeypatch):
+    client, calls = make_app()
+    client.get("/connections/")
+    now = caching.time.monotonic()
+    monkeypatch.setattr(caching.time, "monotonic", lambda: now + MAX_AGE + 1)
+    response = client.get("/connections/")
+    assert response.status_code == 200
+    assert calls["connections"] == 2  # entry outlived max_age, endpoint re-ran
+
+
+def test_error_responses_are_not_cached():
+    app = FastAPI()
+    app.add_middleware(HTTPCacheMiddleware, max_age=MAX_AGE)
+    calls = {"boom": 0}
+
+    @app.get("/boom/")
+    def boom():
+        calls["boom"] += 1
+        raise HTTPException(status_code=404, detail="nope")
+
+    client = TestClient(app)
+    for _ in range(2):
+        response = client.get("/boom/")
+        assert response.status_code == 404
+        assert "etag" not in response.headers
+    assert calls["boom"] == 2
