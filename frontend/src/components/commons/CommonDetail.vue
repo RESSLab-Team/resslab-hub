@@ -23,7 +23,7 @@ export interface DetailCarouselItem {
 
 export interface Props {
   reference: string
-  link: string | undefined
+  link: string | null | undefined
   /** Uppercase kicker above the title, e.g. "RBS · Connection". */
   eyebrow?: string
   /** Monospace specimen identifier shown under the title. */

@@ -54,11 +54,11 @@ watch(
   }
 )
 
-function formatNumber(value?: number) {
+function formatNumber(value?: number | null) {
   return value ?? t('detail.brace.not_reported')
 }
-function formatString(value?: string): string {
-  if (value === undefined) {
+function formatString(value?: string | null): string {
+  if (value == null) {
     return t('detail.brace.no')
   } else if (value === 'NR') {
     return t('detail.brace.not_reported')

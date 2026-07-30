@@ -230,8 +230,8 @@ export function useDoubleChart<F extends string, NF extends string, DF extends s
       .getRange(numberField)
       .then((response) => response.data)
       .then((range) => {
-        numberMin.value = range.min
-        numberMax.value = range.max
+        numberMin.value = range.min ?? undefined
+        numberMax.value = range.max ?? undefined
       })
   }
   if (dateRangeOption) {
