@@ -552,6 +552,51 @@ a {
   background: var(--epfl-red);
   margin: 14px 0 12px;
 }
+/* Live fetch in flight (snapshot value shown): a red segment travels along a
+   faint track and back again — each cycle ends at the left edge, where the
+   solid bar settles once the value is live, so the handoff never jumps. */
+.keynum-bar--loading {
+  position: relative;
+  background: color-mix(in srgb, var(--epfl-red) 20%, var(--bg));
+}
+.keynum-bar--loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--epfl-red);
+  animation: keynum-borealis 1.4s ease-in-out infinite alternate;
+}
+@keyframes keynum-borealis {
+  0% {
+    left: 0%;
+    width: 0%;
+  }
+  15% {
+    left: 0%;
+    width: 35%;
+  }
+  85% {
+    left: 65%;
+    width: 35%;
+  }
+  100% {
+    left: 100%;
+    width: 0%;
+  }
+}
+/* Live fetch failed: the archived snapshot value stays (tooltip on the tile). */
+.keynum-bar--stale {
+  background: var(--fg-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .keynum-bar--loading {
+    background: var(--epfl-red);
+  }
+  .keynum-bar--loading::before {
+    content: none;
+  }
+}
 .keynum-label {
   font-size: 13px;
   color: var(--fg-muted);

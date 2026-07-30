@@ -1,0 +1,27 @@
+{
+  "generatedAt": "2026-07-30",
+  "counts": {
+    "connections": 100,
+    "columns": 153,
+    "braces": 294,
+    "hss": 284,
+    "ebf": 240,
+    "cyclic": 356,
+    "tensile": 15,
+    "ductile-fracture": 102,
+    "residuals": 85
+  },
+  "sources": {
+    "connections": 22,
+    "columns": 11,
+    "braces": 20,
+    "hss": 27,
+    "ebf": 20,
+    "cyclic": 12,
+    "tensile": 1,
+    "ductile-fracture": 2,
+    "residuals": 18
+  },
+  "universities": 60,
+  "users": 2805
+}

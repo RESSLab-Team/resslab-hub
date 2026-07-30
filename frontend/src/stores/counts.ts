@@ -1,3 +1,4 @@
+import { kpiSnapshot, type KpiStatus } from '@/utils/kpiSnapshot'
 import type { DatabaseId } from '@/utils/navigation'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
@@ -39,8 +40,12 @@ const sourcesFetcherFor: Record<DatabaseId, (apis: Apis) => Promise<{ data: numb
 
 /** Test and source counts per database, fetched once per session (sidebar, home tiles). */
 export const useCountsStore = defineStore('counts', () => {
-  const counts = ref<Partial<Record<DatabaseId, number>>>({})
-  const sources = ref<Partial<Record<DatabaseId, number>>>({})
+  // Seeded from the committed snapshot so tiles and badges render on first
+  // paint; each live response then overwrites its key in place.
+  const counts = ref<Partial<Record<DatabaseId, number>>>({ ...kpiSnapshot.counts })
+  const sources = ref<Partial<Record<DatabaseId, number>>>({ ...kpiSnapshot.sources })
+  const countsSettled = ref(0)
+  const countsFailed = ref(0)
   let fetched = false
 
   function fetch(): void {
@@ -49,7 +54,7 @@ export const useCountsStore = defineStore('counts', () => {
     }
     fetched = true
     import('@/plugins/axios').then((apis) => {
-      const fill = (fetchers: typeof fetcherFor, target: typeof counts): void =>
+      const fill = (fetchers: typeof fetcherFor, target: typeof counts, tracked: boolean): void =>
         Object.entries(fetchers).forEach(([id, fetcher]) => {
           fetcher(apis)
             .then((response) => {
@@ -59,13 +64,27 @@ export const useCountsStore = defineStore('counts', () => {
               }
             })
             .catch(() => {
-              // counts are decorative; leave the entry empty on failure
+              // counts are decorative; keep the snapshot value on failure
+              if (tracked) countsFailed.value++
+            })
+            .finally(() => {
+              if (tracked) countsSettled.value++
             })
         })
-      fill(fetcherFor, counts)
-      fill(sourcesFetcherFor, sources)
+      fill(fetcherFor, counts, true)
+      fill(sourcesFetcherFor, sources, false)
     })
   }
+
+  // State of the 9 counts requests (sources don't gate any KPI), driving the
+  // stale-while-revalidate bar under the home page's "tests digitized" number.
+  const countsStatus = computed<KpiStatus>(() =>
+    countsSettled.value < Object.keys(fetcherFor).length
+      ? 'loading'
+      : countsFailed.value > 0
+      ? 'stale'
+      : 'live'
+  )
 
   const total = computed<number | undefined>(() => {
     const values = Object.values(counts.value)
@@ -75,5 +94,5 @@ export const useCountsStore = defineStore('counts', () => {
     return values.reduce((sum, value) => sum + (value ?? 0), 0)
   })
 
-  return { counts, sources, total, fetch }
+  return { counts, sources, total, countsStatus, fetch }
 })
