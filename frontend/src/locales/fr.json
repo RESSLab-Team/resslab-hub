@@ -947,7 +947,8 @@
       "testsDigitized": "Essais expérimentaux numérisés",
       "universities": "Universités contributrices",
       "researchers": "Utilisateurs dans le monde",
-      "databases": "Bases de données sélectionnées, un format cohérent"
+      "databases": "Bases de données sélectionnées, un format cohérent",
+      "staleTooltip": "Valeur archivée du {date} — données en direct actuellement indisponibles"
     },
     "hero": {
       "title": "Données ouvertes pour des structures en acier {emphasis}{break}.",

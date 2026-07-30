@@ -11,6 +11,7 @@ import PhotoCarousel from '@/components/home/PhotoCarousel.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import { useCountsStore } from '@/stores/counts'
 import { publicPath } from '@/utils/common'
+import { kpiSnapshot, type KpiStatus } from '@/utils/kpiSnapshot'
 import { DATABASES, TOOLS } from '@/utils/navigation'
 import { mdiArrowRight } from '@mdi/js'
 import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
@@ -37,17 +38,28 @@ const galleryImages = [
   src: publicPath + `img/home/Photo${index + 1}.webp`,
   credit
 }))
-const universityCount = ref<number | string>('…')
-const userCount = ref<number | string>('…')
+// Seeded from the committed snapshot (see utils/kpiSnapshot.ts) so the key
+// numbers render on first paint; the live fetches below overwrite them. Each
+// KPI's status drives the bar under its number: sweeping while the live fetch
+// is in flight, muted + tooltip when it failed and the snapshot value stays.
+const universityCount = ref<number | string>(kpiSnapshot.universities ?? '…')
+const userCount = ref<number | string>(kpiSnapshot.users?.toLocaleString('en-CH') ?? '…')
+const universityStatus = ref<KpiStatus>('loading')
+const userStatus = ref<KpiStatus>('loading')
 
-const keyNumbers = computed(() => [
+const keyNumbers = computed<{ num: number | string; label: string; status: KpiStatus }[]>(() => [
   {
     num: countsStore.total != null ? countsStore.total.toLocaleString('en-CH') : '…',
-    label: t('home.keyNumbers.testsDigitized')
+    label: t('home.keyNumbers.testsDigitized'),
+    status: countsStore.countsStatus
   },
-  { num: universityCount.value, label: t('home.keyNumbers.universities') },
-  { num: userCount.value, label: t('home.keyNumbers.researchers') },
-  { num: DATABASES.length, label: t('home.keyNumbers.databases') }
+  {
+    num: universityCount.value,
+    label: t('home.keyNumbers.universities'),
+    status: universityStatus.value
+  },
+  { num: userCount.value, label: t('home.keyNumbers.researchers'), status: userStatus.value },
+  { num: DATABASES.length, label: t('home.keyNumbers.databases'), status: 'live' }
 ])
 
 onMounted(async () => {
@@ -86,6 +98,10 @@ onMounted(async () => {
     )
     .then((count) => {
       universityCount.value = count
+      universityStatus.value = 'live'
+    })
+    .catch(() => {
+      universityStatus.value = 'stale'
     })
 
   // Get user count
@@ -94,8 +110,17 @@ onMounted(async () => {
     .then((response) => response.data)
     .then((count) => {
       // The backend returns -1 when Google Analytics is unavailable
-      // (e.g. no credentials in local dev) — keep the placeholder then.
-      if (count >= 0) userCount.value = count.toLocaleString('en-CH')
+      // (e.g. no credentials in local dev) — keep the snapshot value then,
+      // marked stale so a broken analytics setup is visible on the tile.
+      if (count >= 0) {
+        userCount.value = count.toLocaleString('en-CH')
+        userStatus.value = 'live'
+      } else {
+        userStatus.value = 'stale'
+      }
+    })
+    .catch(() => {
+      userStatus.value = 'stale'
     })
 })
 </script>
@@ -153,9 +178,24 @@ onMounted(async () => {
 
       <!-- Key numbers -->
       <div class="keynums hp-kpis">
-        <div v-for="(item, index) in keyNumbers" :key="index" class="keynum">
+        <div
+          v-for="(item, index) in keyNumbers"
+          :key="index"
+          class="keynum"
+          :title="
+            item.status === 'stale'
+              ? t('home.keyNumbers.staleTooltip', { date: kpiSnapshot.generatedAt })
+              : undefined
+          "
+        >
           <div class="keynum-num">{{ item.num }}</div>
-          <div class="keynum-bar" />
+          <div
+            class="keynum-bar"
+            :class="{
+              'keynum-bar--loading': item.status === 'loading',
+              'keynum-bar--stale': item.status === 'stale'
+            }"
+          />
           <div class="keynum-label">{{ item.label }}</div>
         </div>
       </div>

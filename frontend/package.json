@@ -13,7 +13,8 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "api": "rm -rf src/backend && openapi-generator-cli generate"
+    "api": "rm -rf src/backend && openapi-generator-cli generate",
+    "kpi:snapshot": "node scripts/update-kpi-snapshot.mjs"
   },
   "dependencies": {
     "@stdlib/stats-base-dists-lognormal-cdf": "^0.0.7",

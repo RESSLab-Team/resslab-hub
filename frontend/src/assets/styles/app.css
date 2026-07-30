@@ -552,6 +552,35 @@ a {
   background: var(--epfl-red);
   margin: 14px 0 12px;
 }
+/* Live fetch in flight (snapshot value shown): a highlight sweeps the bar. */
+.keynum-bar--loading {
+  background: linear-gradient(
+    90deg,
+    var(--epfl-red) 0%,
+    color-mix(in srgb, var(--epfl-red) 35%, var(--bg)) 50%,
+    var(--epfl-red) 100%
+  );
+  background-size: 200% 100%;
+  animation: keynum-sweep 1.2s linear infinite;
+}
+@keyframes keynum-sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+/* Live fetch failed: the archived snapshot value stays (tooltip on the tile). */
+.keynum-bar--stale {
+  background: var(--fg-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .keynum-bar--loading {
+    animation: none;
+    background: var(--epfl-red);
+  }
+}
 .keynum-label {
   font-size: 13px;
   color: var(--fg-muted);

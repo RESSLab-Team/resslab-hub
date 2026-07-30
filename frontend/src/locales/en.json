@@ -947,7 +947,8 @@
       "testsDigitized": "Experimental tests digitized",
       "universities": "Universities contributed",
       "researchers": "Users worldwide",
-      "databases": "Curated databases, one consistent format"
+      "databases": "Curated databases, one consistent format",
+      "staleTooltip": "Archived value from {date} — live data currently unavailable"
     },
     "hero": {
       "title": "Open data for {emphasis}{break}steel structures.",
