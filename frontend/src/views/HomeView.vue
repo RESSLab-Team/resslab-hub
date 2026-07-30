@@ -13,7 +13,7 @@ import { useCountsStore } from '@/stores/counts'
 import { publicPath } from '@/utils/common'
 import { DATABASES, TOOLS } from '@/utils/navigation'
 import { mdiArrowRight } from '@mdi/js'
-import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // Lazy-load the map so leaflet + d3 + markercluster ship in a separate chunk and
@@ -49,6 +49,20 @@ const keyNumbers = computed(() => [
   { num: userCount.value, label: t('home.keyNumbers.researchers') },
   { num: DATABASES.length, label: t('home.keyNumbers.databases') }
 ])
+
+// The hero <video> renders poster-only until the page has fully loaded, so its
+// ~1 MB fetch never competes with the initial CSS/JS/font/API traffic: the src
+// is only attached on `window` load, and autoplay+muted picks it up from there.
+// `load` fires once per page, so SPA re-mounts of Home check readyState instead.
+const heroVideoSrc = ref<string>()
+const startHeroVideo = () => {
+  heroVideoSrc.value = publicPath + 'video/steel-mrf-front-page.mp4'
+}
+onMounted(() => {
+  if (document.readyState === 'complete') startHeroVideo()
+  else window.addEventListener('load', startHeroVideo, { once: true })
+})
+onBeforeUnmount(() => window.removeEventListener('load', startHeroVideo))
 
 onMounted(async () => {
   countsStore.fetch()
@@ -134,19 +148,18 @@ onMounted(async () => {
           </div>
         </div>
         <div class="hero-img">
-          <!-- The poster paints the hero immediately; preload=metadata keeps the
-             ~1 MB video from competing with the critical CSS/JS/font downloads
-             (autoplay still starts the full fetch right after mount). -->
+          <!-- The poster paints the hero immediately; the src is deferred to
+             `window` load (see heroVideoSrc) so the ~1 MB video never competes
+             with the critical CSS/JS/font/API downloads. -->
           <video
             autoplay
             loop
             muted
             playsinline
-            preload="metadata"
+            preload="none"
+            :src="heroVideoSrc"
             :poster="publicPath + 'video/steel-mrf-front-page-poster.webp'"
-          >
-            <source :src="publicPath + 'video/steel-mrf-front-page.mp4'" type="video/mp4" />
-          </video>
+          ></video>
           <div class="hero-img-credit">RESSLab, EPFL</div>
         </div>
       </section>
@@ -223,9 +236,13 @@ onMounted(async () => {
                would outrank. -->
           <div class="surface surface-pad tools-panel">
             <div class="video-frame">
+              <!-- loading=lazy: the YouTube embed pulls hundreds of kB of
+                   third-party player assets, and this panel sits below the
+                   fold — don't fetch any of it until the user scrolls near. -->
               <iframe
                 src="https://www.youtube.com/embed/5TkO07T16z4"
                 :title="t('home.tools.videoTitle')"
+                loading="lazy"
                 allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowfullscreen
               ></iframe>
