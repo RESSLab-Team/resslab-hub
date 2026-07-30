@@ -15,7 +15,7 @@ RUN uv pip install --no-deps . \
 
 
 FROM python:3.12-slim AS production-stage
-EXPOSE 80
+EXPOSE 8080
 WORKDIR /app
 
 COPY --from=build-stage /app/.venv /app/.venv
@@ -25,4 +25,9 @@ COPY ./alembic /app/alembic
 ENV PATH="/app/.venv/bin:${PATH}" \
     PYTHONUNBUFFERED=1
 
-CMD [ "uvicorn", "resslab_hub.main:app", "--host", "0.0.0.0", "--port", "80" ]
+# Run unprivileged on a non-privileged port. Secrets are injected at runtime via
+# the environment (compose env_file / k8s secret), never baked into the image.
+RUN useradd -r -u 10001 appuser
+USER appuser
+
+CMD [ "uvicorn", "resslab_hub.main:app", "--host", "0.0.0.0", "--port", "8080" ]
