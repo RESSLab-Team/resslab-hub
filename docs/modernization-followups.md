@@ -58,14 +58,13 @@ parallel. Splitting a single file's rows across workers would **not** help
 
 ## Required follow-up (created by this work)
 
-- **`make api` — regenerate the frontend client under OpenAPI 3.1.**
-  Pydantic v2 makes FastAPI emit **OpenAPI 3.1.0** (was 3.0.x): nullables become
-  `anyOf: [<type>, {type: null}]` instead of `nullable: true`. The committed
-  `openapi.json` + `frontend/src/backend/` were generated under 3.0, so they are
-  now stale. Run `make api` and review the (large) generated diff; confirm the
-  `typescript-axios` generator (`openapitools.json`, generator-cli 6.4.0) handles
-  3.1 cleanly — bump the generator if not. Left out on purpose so it can be
-  reviewed as its own change.
+- **`make api` — regenerate the frontend client under OpenAPI 3.1.** ✅ Done
+  (2026-07): generator-cli bumped to 7.24.0 in `openapitools.json`, spec and
+  `frontend/src/backend/` regenerated under 3.1. The model-level
+  `model_serializer` on `ApiModel` collapsed serialization schemas to `{}` and
+  had to be replaced by plain `float` field types (`Numeric` -> `float` in
+  `generate_model.py`); series endpoints now return JSON numbers instead of
+  Decimal-as-string; nullable fields are typed `T | null` in the client.
 
 ## Deferred — deliberately out of scope this round
 

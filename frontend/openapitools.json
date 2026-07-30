@@ -2,12 +2,16 @@
   "$schema": "./node_modules/@openapitools/openapi-generator-cli/config.schema.json",
   "spaces": 2,
   "generator-cli": {
-    "version": "6.4.0",
+    "version": "7.24.0",
     "generators": {
       "typescript-axios": {
         "generatorName": "typescript-axios",
         "inputSpec": "../openapi.json",
-        "output": "src/backend"
+        "output": "src/backend",
+        "globalProperty": {
+          "apiDocs": "false",
+          "modelDocs": "false"
+        }
       }
     }
   }

@@ -43,7 +43,7 @@
   "devDependencies": {
     "@intlify/unplugin-vue-i18n": "^0.10.0",
     "@mdi/js": "^7.1.96",
-    "@openapitools/openapi-generator-cli": "^2.5.2",
+    "@openapitools/openapi-generator-cli": "^2.38.0",
     "@rollup/plugin-dsv": "^3.0.2",
     "@rushstack/eslint-patch": "^1.2.0",
     "@types/colormap": "^2.3.1",

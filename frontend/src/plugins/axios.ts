@@ -15,7 +15,7 @@ import { Configuration } from '@/backend/configuration'
 import axios from 'axios'
 
 // Exported for hand-written calls to endpoints the generated client does not
-// cover (its regeneration is blocked on an OpenAPI 3.1 generator issue).
+// cover.
 export const axiosInstance = axios.create()
 export const baseUrl = import.meta.env.VITE_APP_BACKEND_URL
 
