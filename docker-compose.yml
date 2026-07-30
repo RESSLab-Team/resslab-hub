@@ -17,6 +17,10 @@ services:
     labels:
       - "traefik.http.middlewares.secureHeaders.headers.stsSeconds=31536000"
       - "traefik.http.middlewares.secureHeaders.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.secureHeaders.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.secureHeaders.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.secureHeaders.headers.frameDeny=true"
+      - "traefik.http.middlewares.secureHeaders.headers.referrerPolicy=strict-origin-when-cross-origin"
       - "traefik.http.middlewares.compress.compress=true"
       # - "traefik.enable=true"
       # - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
@@ -31,7 +35,10 @@ services:
       - "443:443"
     restart: unless-stopped
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      # Read-only: Traefik only needs to watch the Docker API, never mutate it.
+      # A writable socket makes any Traefik/container compromise root-equivalent
+      # on the host.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik.yaml:/configuration/traefik.yml
       - /etc/ssl:/etc/ssl
 
@@ -66,7 +73,11 @@ services:
   database:
     image: postgres:14-alpine
     ports:
-      - "5432:5432"
+      # Bind to loopback only. Publishing on 0.0.0.0 inserts an iptables rule
+      # that bypasses host firewalls, exposing the DB (superuser) to the network.
+      # Local tooling reaches it on 127.0.0.1:5432; the backend uses the compose
+      # network. For remote prod uploads, tunnel over SSH (see CLAUDE.md).
+      - "127.0.0.1:5432:5432"
     env_file:
       - ./secrets/.env
     restart: unless-stopped
