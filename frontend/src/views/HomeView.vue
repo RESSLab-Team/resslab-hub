@@ -93,7 +93,9 @@ onMounted(async () => {
     .getUsers()
     .then((response) => response.data)
     .then((count) => {
-      userCount.value = count
+      // The backend returns -1 when Google Analytics is unavailable
+      // (e.g. no credentials in local dev) — keep the placeholder then.
+      if (count >= 0) userCount.value = count.toLocaleString('en-CH')
     })
 })
 </script>
