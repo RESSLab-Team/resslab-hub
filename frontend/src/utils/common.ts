@@ -16,6 +16,26 @@ export function filterColumnValue(value: Value): boolean {
   }
 }
 
+/**
+ * Return `url` only if it is a safe, navigable link (http/https or a
+ * root-relative/fragment path). Database-sourced `link`/`url` fields are
+ * rendered into anchor `href`s, so a value like `javascript:…` would otherwise
+ * execute on click. Unsafe or unparseable values yield `undefined`, causing Vue
+ * to omit the `href` attribute entirely.
+ */
+export function safeHref(url: string | null | undefined): string | undefined {
+  if (!url) return undefined
+  const trimmed = url.trim()
+  if (trimmed.startsWith('/') || trimmed.startsWith('#')) return trimmed
+  try {
+    const { protocol } = new URL(trimmed, window.location.origin)
+    if (protocol === 'http:' || protocol === 'https:') return trimmed
+  } catch {
+    return undefined
+  }
+  return undefined
+}
+
 export const publicPath: string = import.meta.env.BASE_URL ?? ''
 
 export const globalSearchKey = 'search'
