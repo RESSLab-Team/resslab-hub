@@ -70,7 +70,15 @@ def get_current_username(credentials: HTTPBasicCredentials = Depends(security)) 
     correct_username: str = settings.api_username  # type: ignore
     is_correct_username = compare_digest(current_username, correct_username)
     current_password = credentials.password
-    correct_password: str = settings.api_password  # type: ignore
+    correct_password: str = settings.get("api_password") or ""
+    # Fail closed: when no API password is configured, deny every write request
+    # instead of authenticating against an empty/placeholder credential (an empty
+    # correct_password would otherwise match an empty supplied password).
+    if not correct_password:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Upload API is not configured",
+        )
     is_correct_password = compare_digest(current_password, correct_password)
     if not (is_correct_username and is_correct_password):
         raise HTTPException(

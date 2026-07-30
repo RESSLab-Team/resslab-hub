@@ -25,7 +25,11 @@ settings = Dynaconf(
         Validator("analytics_property_id", default=None),
         Validator("google_application_credentials", default=None),
         Validator("api_username", default="user"),
-        Validator("api_password", must_exist=True),
+        # No committed default: an unset value resolves to "" and the write
+        # endpoints deny all requests (fail closed) rather than accepting a
+        # public placeholder credential. Set API_PASSWORD via secrets/.env
+        # (dev) or the injected environment secret (prod).
+        Validator("api_password", default=""),
     ],
 )
 

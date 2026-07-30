@@ -5,6 +5,7 @@ from functools import reduce
 from math import ceil, isnan
 from typing import Any, Dict, Generic, List, Optional, Set, TypeVar, Union
 
+from fastapi import HTTPException, status
 from fastapi.responses import StreamingResponse
 from fastapi_pagination.default import Page
 from pydantic.main import BaseModel
@@ -28,6 +29,16 @@ from resslab_hub.utils.pagination import paginate
 
 D = TypeVar("D", bound=Base)  # type: ignore
 M = TypeVar("M", bound=BaseModel)
+
+# Hard ceiling on the number of points returned from a time-series endpoint.
+# `size=0` (or an absurdly large value) must not stream a full high-resolution
+# series unbounded — that is a cheap DoS lever on public read endpoints.
+MAX_SERIES_SIZE = 100_000
+
+# Cap on the number of `;`-separated clauses in a single `query` string. Each
+# clause with no `:` fans an ILIKE out across every column, so an unbounded
+# clause count is a cheap sequential-scan DoS lever.
+MAX_QUERY_CLAUSES = 20
 
 
 # Replacement for distutils.util.strtobool (removed in Python 3.12).
@@ -263,15 +274,18 @@ class Component(ABC, Generic[D, M]):
         id_column: Column[int],
         size: int,
     ) -> List[List[float]]:
-        if size > 0:
-            count: Optional[int] = await session.scalar(
-                select(func.count()).select_from(statement.subquery())
-            )
-            if not count:
-                return []
-            if count > size:
-                n = ceil(float(count) / float(size))
-                statement = statement.where(func.mod(id_column, n) == 0)
+        # Treat size<=0 ("no sampling") and oversized requests as the capped
+        # default so a full high-resolution series can never be streamed.
+        if size <= 0 or size > MAX_SERIES_SIZE:
+            size = MAX_SERIES_SIZE
+        count: Optional[int] = await session.scalar(
+            select(func.count()).select_from(statement.subquery())
+        )
+        if not count:
+            return []
+        if count > size:
+            n = ceil(float(count) / float(size))
+            statement = statement.where(func.mod(id_column, n) == 0)
         rows = await session.execute(statement)
         rows = list(rows)
 
@@ -314,7 +328,15 @@ class Component(ABC, Generic[D, M]):
         """
         Get where clauses
         """
-        return [self.__get_where_clause(q) for q in query.split(";")] if query else []
+        if not query:
+            return []
+        clauses = query.split(";")
+        if len(clauses) > MAX_QUERY_CLAUSES:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Too many query clauses (max {MAX_QUERY_CLAUSES})",
+            )
+        return [self.__get_where_clause(q) for q in clauses]
 
     def __get_where_clause(self, query: str) -> Union[BooleanClauseList, ColumnElement]:
         """

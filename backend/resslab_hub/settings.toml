@@ -1,7 +1,10 @@
 [default]
 postgres_host = "localhost"
 postgres_password = ""
-api_password = "changeit"
+# api_password is intentionally NOT defaulted here: it must be provided via the
+# environment/secret (API_PASSWORD in secrets/.env for dev, the injected secret
+# in prod). When it is unset, the write endpoints fail closed (503) instead of
+# silently accepting a public placeholder — see routers/root.py.
 
 [development]
 # Vite dev server (:5173) calls the backend (:8000) cross-origin, so CORS must

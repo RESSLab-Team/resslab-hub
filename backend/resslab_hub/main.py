@@ -79,10 +79,15 @@ if settings.cache_max_age > 0:
 
 if settings.cors_enabled:
     logging.debug("cors enabled")
+    # Public read API: a wildcard origin is fine, but it must NOT be paired with
+    # allow_credentials — that combination reflects the caller's origin back and
+    # would expose the credentialed write endpoints to any site. Auth here is
+    # HTTP Basic (a request header), not cookies, so credentialed CORS is
+    # unnecessary.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
-        allow_credentials=True,
+        allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
     )
