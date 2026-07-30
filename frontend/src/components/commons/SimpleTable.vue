@@ -313,11 +313,11 @@ onUnmounted(() => {
 // Row virtualization: window the current page's rows so large page sizes
 // (100/1000) mount only what's visible. No-ops for the common small pages.
 const totalRows = computed<number>(() => displayItems.value.length)
-// Height floor for the scroll viewport, in rows. Driven by the rows actually
-// rendered rather than the page size: with a 50-row default, sizing to the page
-// would pin the panel at the 50vh cap even when a filter leaves 3 matches. The
-// small floor keeps the empty/near-empty state from collapsing.
-const heightRows = computed<number>(() => Math.max(3, totalRows.value))
+// Height floor for the scroll viewport, in rows. Driven by the unfiltered
+// dataset size, which is constant per page, so filtering never resizes the
+// panel and shifts the charts below it. Small datasets still get a compact
+// panel instead of being pinned at the 50vh cap.
+const heightRows = computed<number>(() => Math.max(3, props.totalCount ?? totalRows.value))
 const { window: rowWindow } = useVirtualRows(scrollEl, totalRows)
 const visibleRows = computed<M[]>(() =>
   displayItems.value.slice(rowWindow.value.startIndex, rowWindow.value.endIndex)
