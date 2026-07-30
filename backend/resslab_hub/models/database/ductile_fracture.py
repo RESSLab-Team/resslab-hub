@@ -11,6 +11,7 @@ from sqlalchemy import (
     Numeric,
     SmallInteger,
     String,
+    cast,
     func,
     select,
 )
@@ -192,51 +193,82 @@ class DuctileFracture(Base):  # type: ignore
     has_sem = Column(Boolean, nullable=True)
     # END_OF_GENERATED_CODE
 
+    # The *_count fields only feed "has data" checks. min(id) IS NOT NULL
+    # resolves as a single probe of the (fk, id) primary-key index; a plain
+    # EXISTS lets the planner pick per-row seq scans when FK stats are skewed.
     force_elongation_count = column_property(
-        select(func.count(DuctileFractureForceElongation.id))
-        .where(DuctileFractureForceElongation.ductile_fracture_id == id)
-        .correlate_except(DuctileFractureForceElongation)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(DuctileFractureForceElongation.id))
+            .where(DuctileFractureForceElongation.ductile_fracture_id == id)
+            .correlate_except(DuctileFractureForceElongation)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )
 
     force_elongation_simulation_count = column_property(
-        select(func.count(DuctileFractureForceElongationSimulation.id))
-        .where(DuctileFractureForceElongationSimulation.ductile_fracture_id == id)
-        .correlate_except(DuctileFractureForceElongationSimulation)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(DuctileFractureForceElongationSimulation.id))
+            .where(DuctileFractureForceElongationSimulation.ductile_fracture_id == id)
+            .correlate_except(DuctileFractureForceElongationSimulation)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )
 
     force_radial_count = column_property(
-        select(func.count(DuctileFractureForceRadial.id))
-        .where(DuctileFractureForceRadial.ductile_fracture_id == id)
-        .correlate_except(DuctileFractureForceRadial)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(DuctileFractureForceRadial.id))
+            .where(DuctileFractureForceRadial.ductile_fracture_id == id)
+            .correlate_except(DuctileFractureForceRadial)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )
 
     force_radial_simulation_count = column_property(
-        select(func.count(DuctileFractureForceRadialSimulation.id))
-        .where(DuctileFractureForceRadialSimulation.ductile_fracture_id == id)
-        .correlate_except(DuctileFractureForceRadialSimulation)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(DuctileFractureForceRadialSimulation.id))
+            .where(DuctileFractureForceRadialSimulation.ductile_fracture_id == id)
+            .correlate_except(DuctileFractureForceRadialSimulation)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )
 
     epeq_simulation_count = column_property(
-        select(func.count(DuctileFractureEpeqSimulation.id))
-        .where(DuctileFractureEpeqSimulation.ductile_fracture_id == id)
-        .correlate_except(DuctileFractureEpeqSimulation)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(DuctileFractureEpeqSimulation.id))
+            .where(DuctileFractureEpeqSimulation.ductile_fracture_id == id)
+            .correlate_except(DuctileFractureEpeqSimulation)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )
 
     lode_simulation_count = column_property(
-        select(func.count(DuctileFractureLodeSimulation.id))
-        .where(DuctileFractureLodeSimulation.ductile_fracture_id == id)
-        .correlate_except(DuctileFractureLodeSimulation)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(DuctileFractureLodeSimulation.id))
+            .where(DuctileFractureLodeSimulation.ductile_fracture_id == id)
+            .correlate_except(DuctileFractureLodeSimulation)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )
 
     triax_simulation_count = column_property(
-        select(func.count(DuctileFractureTriaxSimulation.id))
-        .where(DuctileFractureTriaxSimulation.ductile_fracture_id == id)
-        .correlate_except(DuctileFractureTriaxSimulation)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(DuctileFractureTriaxSimulation.id))
+            .where(DuctileFractureTriaxSimulation.ductile_fracture_id == id)
+            .correlate_except(DuctileFractureTriaxSimulation)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )

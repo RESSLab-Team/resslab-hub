@@ -7,8 +7,10 @@ from sqlalchemy import (
     Column,
     Double,
     ForeignKey,
+    Integer,
     SmallInteger,
     String,
+    cast,
     func,
     select,
 )
@@ -100,9 +102,16 @@ class HSSColumn(Base):  # type: ignore
     longitude = Column(DecimalFloat, nullable=True)
     # END_OF_GENERATED_CODE
 
+    # The *_count fields only feed "has data" checks. min(id) IS NOT NULL
+    # resolves as a single probe of the (fk, id) primary-key index; a plain
+    # EXISTS lets the planner pick per-row seq scans when FK stats are skewed.
     moment_rotation_count = column_property(
-        select(func.count(HSSColumnMomentRotation.id))
-        .where(HSSColumnMomentRotation.hss_column_id == id)
-        .correlate_except(HSSColumnMomentRotation)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(HSSColumnMomentRotation.id))
+            .where(HSSColumnMomentRotation.hss_column_id == id)
+            .correlate_except(HSSColumnMomentRotation)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )

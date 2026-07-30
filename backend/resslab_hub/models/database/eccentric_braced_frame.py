@@ -10,6 +10,7 @@ from sqlalchemy import (
     Numeric,
     SmallInteger,
     String,
+    cast,
     func,
     select,
 )
@@ -142,10 +143,16 @@ class EccentricBracedFrame(Base):  # type: ignore
     longitude = Column(DecimalFloat, nullable=False)
     # END_OF_GENERATED_CODE
 
-    # Add column property to check for related data
+    # The *_count fields only feed "has data" checks. min(id) IS NOT NULL
+    # resolves as a single probe of the (fk, id) primary-key index; a plain
+    # EXISTS lets the planner pick per-row seq scans when FK stats are skewed.
     shear_link_angle_count = column_property(
-        select(func.count(EccentricBracedFrameShearLinkAngle.id))  # Changed from .id
-        .where(EccentricBracedFrameShearLinkAngle.eccentric_braced_frame_id == id)
-        .correlate_except(EccentricBracedFrameShearLinkAngle)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(EccentricBracedFrameShearLinkAngle.id))
+            .where(EccentricBracedFrameShearLinkAngle.eccentric_braced_frame_id == id)
+            .correlate_except(EccentricBracedFrameShearLinkAngle)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )

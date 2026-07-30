@@ -7,9 +7,11 @@ from sqlalchemy import (
     Boolean,
     Column,
     ForeignKey,
+    Integer,
     Numeric,
     SmallInteger,
     String,
+    cast,
     func,
     select,
 )
@@ -111,9 +113,16 @@ class TensileCoupon(Base):  # type: ignore
     datacol_version = Column(SmallInteger, nullable=False)
     # END_OF_GENERATED_CODE
 
+    # The *_count fields only feed "has data" checks. min(id) IS NOT NULL
+    # resolves as a single probe of the (fk, id) primary-key index; a plain
+    # EXISTS lets the planner pick per-row seq scans when FK stats are skewed.
     stress_strain_count = column_property(
-        select(func.count(TensileCouponStressStrain.id))
-        .where(TensileCouponStressStrain.tensile_coupon_id == id)
-        .correlate_except(TensileCouponStressStrain)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(TensileCouponStressStrain.id))
+            .where(TensileCouponStressStrain.tensile_coupon_id == id)
+            .correlate_except(TensileCouponStressStrain)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )

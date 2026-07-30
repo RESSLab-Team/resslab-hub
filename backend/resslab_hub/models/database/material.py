@@ -7,9 +7,11 @@ from sqlalchemy import (
     Column,
     Date,
     ForeignKey,
+    Integer,
     Numeric,
     SmallInteger,
     String,
+    cast,
     func,
     select,
     text,
@@ -123,9 +125,16 @@ class Material(Base):  # type: ignore
 
     year = column_property(func.extract("year", date))
 
+    # The *_count fields only feed "has data" checks. min(id) IS NOT NULL
+    # resolves as a single probe of the (fk, id) primary-key index; a plain
+    # EXISTS lets the planner pick per-row seq scans when FK stats are skewed.
     stress_strain_count = column_property(
-        select(func.count(MaterialStressStrain.id))
-        .where(MaterialStressStrain.material_id == id)
-        .correlate_except(MaterialStressStrain)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(MaterialStressStrain.id))
+            .where(MaterialStressStrain.material_id == id)
+            .correlate_except(MaterialStressStrain)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )

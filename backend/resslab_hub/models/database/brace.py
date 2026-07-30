@@ -6,9 +6,11 @@ from sqlalchemy import (
     BigInteger,
     Column,
     ForeignKey,
+    Integer,
     Numeric,
     SmallInteger,
     String,
+    cast,
     func,
     select,
 )
@@ -113,9 +115,16 @@ class Brace(Base):  # type: ignore
     longitude = Column(Numeric, nullable=True)
     # END_OF_GENERATED_CODE
 
+    # The *_count fields only feed "has data" checks. min(id) IS NOT NULL
+    # resolves as a single probe of the (fk, id) primary-key index; a plain
+    # EXISTS lets the planner pick per-row seq scans when FK stats are skewed.
     displacement_count = column_property(
-        select(func.count(BraceDisplacement.id))
-        .where(BraceDisplacement.brace_id == id)
-        .correlate_except(BraceDisplacement)
-        .scalar_subquery()  # type: ignore
+        cast(
+            select(func.min(BraceDisplacement.id))
+            .where(BraceDisplacement.brace_id == id)
+            .correlate_except(BraceDisplacement)
+            .scalar_subquery()  # type: ignore
+            .is_not(None),
+            Integer,
+        )
     )
