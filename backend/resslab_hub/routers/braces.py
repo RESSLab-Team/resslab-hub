@@ -2,7 +2,6 @@
 Handle /braces requests
 """
 
-from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -128,12 +127,12 @@ async def get_braces_distinct(
     return await component.get_distinct(session, [field.value for field in fields])
 
 
-@router.get("/{brace_id}/displacement", response_model=List[List[Decimal]])
+@router.get("/{brace_id}/displacement", response_model=List[List[float]])
 async def get_braces_displacement(
     session: AsyncSession = Depends(get_session),
     brace_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get displacement series from brace
     """

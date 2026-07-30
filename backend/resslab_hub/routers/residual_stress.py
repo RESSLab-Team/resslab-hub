@@ -2,7 +2,6 @@
 Handle /residual-stress requests
 """
 
-from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -166,12 +165,12 @@ async def get_residual_stresses_distinct(
     return await component.get_distinct(session, [field.value for field in fields]) or 0
 
 
-@router.get("/{ResidualStress_id}/distribution-f1", response_model=List[List[Decimal]])
+@router.get("/{ResidualStress_id}/distribution-f1", response_model=List[List[float]])
 async def get_residual_stresses_distribution_f1(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get distribution-f1 series from ResidualStress
     """
@@ -191,12 +190,12 @@ async def get_residual_stresses_distribution_f1_csv(
     return await distribution_f1_component.get_csv(session, ResidualStress_id)
 
 
-@router.get("/{ResidualStress_id}/distribution-f2", response_model=List[List[Decimal]])
+@router.get("/{ResidualStress_id}/distribution-f2", response_model=List[List[float]])
 async def get_residual_stresses_distribution_f2(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get distribution-f2 series from ResidualStress
     """
@@ -216,12 +215,12 @@ async def get_residual_stresses_distribution_f2_csv(
     return await distribution_f2_component.get_csv(session, ResidualStress_id)
 
 
-@router.get("/{ResidualStress_id}/distribution-w1", response_model=List[List[Decimal]])
+@router.get("/{ResidualStress_id}/distribution-w1", response_model=List[List[float]])
 async def get_residual_stresses_distribution_w1(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get distribution-w1 series from ResidualStress
     """
@@ -241,12 +240,12 @@ async def get_residual_stresses_distribution_w1_csv(
     return await distribution_w1_component.get_csv(session, ResidualStress_id)
 
 
-@router.get("/{ResidualStress_id}/qp-coefficient", response_model=List[List[Decimal]])
+@router.get("/{ResidualStress_id}/qp-coefficient", response_model=List[List[float]])
 async def get_residual_stresses_qp_coefficient(
     session: AsyncSession = Depends(get_session),
     ResidualStress_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get qp-coefficient series from ResidualStress
     """

@@ -2,7 +2,6 @@
 Handle /connections requests
 """
 
-from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -153,12 +152,12 @@ async def get_columns_distinct(
     return await component.get_distinct(session, [field.value for field in fields])
 
 
-@router.get("/{column_id}/axial-shortening", response_model=List[List[Decimal]])
+@router.get("/{column_id}/axial-shortening", response_model=List[List[float]])
 async def get_columns_axial_shortening(
     session: AsyncSession = Depends(get_session),
     column_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get axial shortening series from column
     """
@@ -176,12 +175,12 @@ async def get_columns_axial_shortening_csv(
     return await axial_shortening_component.get_csv(session, column_id)
 
 
-@router.get("/{column_id}/moment-strong", response_model=List[List[Decimal]])
+@router.get("/{column_id}/moment-strong", response_model=List[List[float]])
 async def get_columns_moment_strong(
     session: AsyncSession = Depends(get_session),
     column_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get moment strong series from column
     """
@@ -199,12 +198,12 @@ async def get_columns_moment_strong_csv(
     return await moment_strong_component.get_csv(session, column_id)
 
 
-@router.get("/{column_id}/moment-weak", response_model=List[List[Decimal]])
+@router.get("/{column_id}/moment-weak", response_model=List[List[float]])
 async def get_columns_moment_weak(
     session: AsyncSession = Depends(get_session),
     column_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get moment weak series from column
     """

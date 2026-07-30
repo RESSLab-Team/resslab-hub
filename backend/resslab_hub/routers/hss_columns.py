@@ -2,7 +2,6 @@
 Handle /hss-column requests
 """
 
-from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -128,12 +127,12 @@ async def get_hss_columns_distinct(
     return await component.get_distinct(session, [field.value for field in fields]) or 0
 
 
-@router.get("/{HSSColumn_id}/moment-rotation", response_model=List[List[Decimal]])
+@router.get("/{HSSColumn_id}/moment-rotation", response_model=List[List[float]])
 async def get_hss_columns_moment_rotation(
     session: AsyncSession = Depends(get_session),
     HSSColumn_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get moment-rotation series from HSSColumn
     """

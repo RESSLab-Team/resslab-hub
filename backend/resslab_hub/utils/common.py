@@ -59,7 +59,7 @@ class SubComponent:
         session: AsyncSession,
         parent_id: str,
         size: int,
-    ) -> List[List[Decimal]]:
+    ) -> List[List[float]]:
         return await Component.get_series(
             session,
             select(*self.columns)
@@ -180,7 +180,11 @@ class Component(ABC, Generic[D, M]):
         column: Column[Union[Float, Integer, Numeric]] = self.__get_column(number_field)
         rows = await session.execute(select(func.min(column), func.max(column)))
         row = next(rows)
-        return RangeModel(min=row[0], max=row[1])
+        # Postgres sorts NaN above every number, so max() over a column with
+        # NaN sentinels returns NaN; RangeModel maps that to None.
+        return RangeModel(
+            min=self.__get_non_nan(row[0]), max=self.__get_non_nan(row[1])
+        )
 
     async def get_date_range(
         self,
@@ -258,7 +262,7 @@ class Component(ABC, Generic[D, M]):
         statement: Select,
         id_column: Column[int],
         size: int,
-    ) -> List[List[Decimal]]:
+    ) -> List[List[float]]:
         if size > 0:
             count: Optional[int] = await session.scalar(
                 select(func.count()).select_from(statement.subquery())

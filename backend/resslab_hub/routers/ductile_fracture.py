@@ -2,7 +2,6 @@
 Handle /ductile-fracture requests
 """
 
-from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -203,14 +202,12 @@ async def get_ductile_fractures_distinct(
     return await component.get_distinct(session, [field.value for field in fields])
 
 
-@router.get(
-    "/{ductile_fracture_id}/force-elongation", response_model=List[List[Decimal]]
-)
+@router.get("/{ductile_fracture_id}/force-elongation", response_model=List[List[float]])
 async def get_ductile_fractures_force_elongation(
     session: AsyncSession = Depends(get_session),
     ductile_fracture_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get Force-Elongation test series
     """
@@ -231,13 +228,13 @@ async def get_ductile_fractures_force_elongation_csv(
 
 @router.get(
     "/{ductile_fracture_id}/force-elongation-simulation",
-    response_model=List[List[Decimal]],
+    response_model=List[List[float]],
 )
 async def get_ductile_fractures_force_elongation_simulation(
     session: AsyncSession = Depends(get_session),
     ductile_fracture_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get Force-Elongation simulation series
     """
@@ -259,12 +256,12 @@ async def get_ductile_fractures_force_elongation_simulation_csv(
     )
 
 
-@router.get("/{ductile_fracture_id}/force-radial", response_model=List[List[Decimal]])
+@router.get("/{ductile_fracture_id}/force-radial", response_model=List[List[float]])
 async def get_ductile_fractures_force_radial(
     session: AsyncSession = Depends(get_session),
     ductile_fracture_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get Force-Radial elongation test series
     """
@@ -281,13 +278,13 @@ async def get_ductile_fractures_force_radial_csv(
 
 @router.get(
     "/{ductile_fracture_id}/force-radial-simulation",
-    response_model=List[List[Decimal]],
+    response_model=List[List[float]],
 )
 async def get_ductile_fractures_force_radial_simulation(
     session: AsyncSession = Depends(get_session),
     ductile_fracture_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get Force-Radial elongation simulation series
     """
@@ -307,14 +304,12 @@ async def get_ductile_fractures_force_radial_simulation_csv(
     return await force_radial_simulation_component.get_csv(session, ductile_fracture_id)
 
 
-@router.get(
-    "/{ductile_fracture_id}/epeq-simulation", response_model=List[List[Decimal]]
-)
+@router.get("/{ductile_fracture_id}/epeq-simulation", response_model=List[List[float]])
 async def get_ductile_fractures_epeq_simulation(
     session: AsyncSession = Depends(get_session),
     ductile_fracture_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get Equivalent Plastic Strain - Elongation simulation series
     """
@@ -333,14 +328,12 @@ async def get_ductile_fractures_epeq_simulation_csv(
     return await epeq_simulation_component.get_csv(session, ductile_fracture_id)
 
 
-@router.get(
-    "/{ductile_fracture_id}/lode-simulation", response_model=List[List[Decimal]]
-)
+@router.get("/{ductile_fracture_id}/lode-simulation", response_model=List[List[float]])
 async def get_ductile_fractures_lode_simulation(
     session: AsyncSession = Depends(get_session),
     ductile_fracture_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get Lode angle - Elongation simulation series
     """
@@ -359,14 +352,12 @@ async def get_ductile_fractures_lode_simulation_csv(
     return await lode_simulation_component.get_csv(session, ductile_fracture_id)
 
 
-@router.get(
-    "/{ductile_fracture_id}/triax-simulation", response_model=List[List[Decimal]]
-)
+@router.get("/{ductile_fracture_id}/triax-simulation", response_model=List[List[float]])
 async def get_ductile_fractures_triax_simulation(
     session: AsyncSession = Depends(get_session),
     ductile_fracture_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get Triaxiality - Elongation simulation series
     """

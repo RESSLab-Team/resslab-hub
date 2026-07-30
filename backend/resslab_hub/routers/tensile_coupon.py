@@ -2,7 +2,6 @@
 Handle /tensile-coupon requests
 """
 
-from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -131,12 +130,12 @@ async def get_tensile_coupons_distinct(
     return await component.get_distinct(session, [field.value for field in fields])
 
 
-@router.get("/{tensile_coupon_id}/stress-strain", response_model=List[List[Decimal]])
+@router.get("/{tensile_coupon_id}/stress-strain", response_model=List[List[float]])
 async def get_tensile_coupons_stress_strain(
     session: AsyncSession = Depends(get_session),
     tensile_coupon_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get Stress-Strain series from tensile coupon
     """

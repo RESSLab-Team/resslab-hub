@@ -3,17 +3,16 @@ API Models
 """
 
 from datetime import date
-from decimal import Decimal
 from enum import Enum
 from math import isnan
 from typing import Any, Dict, List, Optional, Union, get_args, get_origin
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_serializer
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 def _change_nan_to_none(
-    v: Optional[Union[float, Decimal]],
-) -> Optional[Union[float, Decimal]]:
+    v: Optional[float],
+) -> Optional[float]:
     if v is not None and isnan(v):
         return None
     return v
@@ -41,44 +40,16 @@ class OrmModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-def _decimals_to_numbers(value: Any) -> Any:
-    """Recursively convert ``Decimal`` leaves to JSON numbers (NaN -> None).
-
-    Float NaN (the database's "not reported" sentinel) also becomes None —
-    ``json.dumps`` would otherwise emit a bare ``NaN``, which is invalid JSON.
-    Recurses through ``list`` so nested structures (e.g. ``MatrixModel.data``,
-    a ``List[List[Decimal | str]]``) are handled; all other values pass through.
-    """
-    if isinstance(value, Decimal):
-        return None if isnan(value) else float(value)
-    if isinstance(value, float):
-        return None if isnan(value) else value
-    if isinstance(value, list):
-        return [_decimals_to_numbers(item) for item in value]
-    return value
-
-
 class ApiModel(BaseModel):
     """Base for response models.
 
-    Pydantic v2 serializes ``Decimal`` as a JSON *string*, but the OpenAPI
-    contract and the frontend expect a number. Emit Decimals as JSON numbers
-    (NaN -> null) at serialization time, leaving the field *types* as ``Decimal``
-    so the type introspection in this module (the ``_field_base_type`` checks)
-    keeps working.
+    All numeric fields are plain ``float``/``int`` so that Pydantic emits JSON
+    numbers and a real serialization schema. (A model-level ``model_serializer``
+    was used here historically to force Decimal -> number, but it collapses the
+    OpenAPI serialization schema to ``{}``, which breaks client generation.)
+    NaN sentinels are converted to None *before* validation by the callers in
+    ``utils/common.py`` and the ``change_nan_to_none`` field validators below.
     """
-
-    @model_serializer(mode="wrap")
-    def _decimals_as_numbers(self, handler: Any) -> Any:
-        data = handler(self)
-        if isinstance(data, dict):
-            for name, value in self:
-                if name in data and (
-                    isinstance(value, (Decimal, list))
-                    or (isinstance(value, float) and isnan(value))
-                ):
-                    data[name] = _decimals_to_numbers(value)
-        return data
 
 
 class ConnectionModel(ApiModel):
@@ -88,7 +59,7 @@ class ConnectionModel(ApiModel):
 
     @field_validator("f_ybw", "f_ybf", "f_ycw", "f_ycf")
     @classmethod
-    def change_nan_to_none(cls, v) -> Optional[Decimal]:
+    def change_nan_to_none(cls, v) -> Optional[float]:
         return _change_nan_to_none(v)
 
     # START_OF_GENERATED_CODE_connection
@@ -269,10 +240,13 @@ class CountModel(BaseModel):
 class RangeModel(ApiModel):
     """
     Range
+
+    min/max are None when the aggregate is NaN (Postgres sorts NaN above all
+    numbers, so max() over a column with NaN sentinels returns NaN).
     """
 
-    min: Decimal
-    max: Decimal
+    min: Optional[float]
+    max: Optional[float]
 
 
 class DateRangeModel(BaseModel):
@@ -304,7 +278,7 @@ FieldsModel = Dict[str, Any]
 
 class MatrixModel(ApiModel):
     ids: List[str]
-    data: List[List[Optional[Union[Decimal, str]]]]
+    data: List[List[Optional[Union[float, str]]]]
 
 
 ConnectionField = Enum(
@@ -319,7 +293,7 @@ ConnectionNumberField = Enum(
     {
         key: key
         for key, field in ConnectionModel.model_fields.items()
-        if _field_base_type(field) in [Decimal, float, int]
+        if _field_base_type(field) in [float, int]
     },
     module=__name__,
     type=str,
@@ -329,7 +303,7 @@ ConnectionNumberField = Enum(
 class ColumnModel(ApiModel):
     @field_validator("th_80")
     @classmethod
-    def change_nan_to_none(cls, v) -> Optional[Decimal]:
+    def change_nan_to_none(cls, v) -> Optional[float]:
         return _change_nan_to_none(v)
 
     # START_OF_GENERATED_CODE_column
@@ -450,7 +424,7 @@ ColumnNumberField = Enum(
     {
         key: key
         for key, field in ColumnModel.model_fields.items()
-        if _field_base_type(field) in [Decimal, float, int]
+        if _field_base_type(field) in [float, int]
     },
     module=__name__,
     type=str,
@@ -528,8 +502,8 @@ class BraceModel(ApiModel):
     kl_r_theory: Optional[float]
     reference: str
     link: Optional[str]
-    latitude: Optional[Decimal]
-    longitude: Optional[Decimal]
+    latitude: Optional[float]
+    longitude: Optional[float]
     # END_OF_GENERATED_CODE_brace
 
     displacement_count: int
@@ -547,7 +521,7 @@ BraceNumberField = Enum(
     {
         key: key
         for key, field in BraceModel.model_fields.items()
-        if _field_base_type(field) in [Decimal, float, int]
+        if _field_base_type(field) in [float, int]
     },
     module=__name__,
     type=str,
@@ -654,7 +628,7 @@ MaterialNumberField = Enum(
     {
         key: key
         for key, field in MaterialModel.model_fields.items()
-        if _field_base_type(field) in [Decimal, float, int]
+        if _field_base_type(field) in [float, int]
     },
     module=__name__,
     type=str,
@@ -682,7 +656,7 @@ class ResidualStressModel(ApiModel):
     spec_var: Optional[str]
     steel: str
     fy_n: Optional[float]
-    fy_e: Optional[Decimal]
+    fy_e: Optional[float]
     fy_mf: Optional[float]
     fy_mw: Optional[float]
     h: Optional[float]
@@ -691,14 +665,14 @@ class ResidualStressModel(ApiModel):
     tf: Optional[float]
     r: Optional[float]
     A: Optional[float]
-    sigma_0_f: Decimal
-    sigma_0_w: Decimal
+    sigma_0_f: float
+    sigma_0_w: float
     flange_nr_data: int
-    plot_sf: Decimal
+    plot_sf: float
     reference: str
     link: Optional[str]
-    latitude: Optional[Decimal]
-    longitude: Optional[Decimal]
+    latitude: Optional[float]
+    longitude: Optional[float]
     # END_OF_GENERATED_CODE_residual_stress
 
     qp_coefficient_count: int
@@ -707,7 +681,7 @@ class ResidualStressModel(ApiModel):
     distribution_F2_count: int
     distribution_W1_count: int
 
-    h_over_b: Decimal
+    h_over_b: float
 
 
 ResidualStressField = Enum(
@@ -722,7 +696,7 @@ ResidualStressNumberField = Enum(
     {
         key: key
         for key, field in ResidualStressModel.model_fields.items()
-        if _field_base_type(field) in [Decimal, float, int]
+        if _field_base_type(field) in [float, int]
     },
     module=__name__,
     type=str,
@@ -808,7 +782,7 @@ HSSColumnNumberField = Enum(
     {
         key: key
         for key, field in HSSColumnModel.model_fields.items()
-        if _field_base_type(field) in [Decimal, float, int]
+        if _field_base_type(field) in [float, int]
     },
     module=__name__,
     type=str,
@@ -932,7 +906,7 @@ EccentricBracedFrameNumberField = Enum(
     {
         key: key
         for key, field in EccentricBracedFrameModel.model_fields.items()
-        if _field_base_type(field) in [Decimal, float, int]
+        if _field_base_type(field) in [float, int]
     },
     module=__name__,
     type=str,
@@ -1028,7 +1002,7 @@ TensileCouponNumberField = Enum(
     {
         key: key
         for key, field in TensileCouponModel.model_fields.items()
-        if _field_base_type(field) in [Decimal, float, int]
+        if _field_base_type(field) in [float, int]
     },
     module=__name__,
     type=str,
@@ -1138,7 +1112,7 @@ DuctileFractureNumberField = Enum(
     {
         key: key
         for key, field in DuctileFractureModel.model_fields.items()
-        if _field_base_type(field) in [Decimal, float, int]
+        if _field_base_type(field) in [float, int]
     },
     module=__name__,
     type=str,
