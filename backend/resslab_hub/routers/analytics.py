@@ -18,6 +18,9 @@ router = APIRouter(
 )
 
 MIN_DATE = "2022-07-01"
+# Only count visitors of the production site — the same GA property also
+# receives hits from dev/stage deployments and localhost dev sessions.
+PROD_HOST = "resslab-hub.epfl.ch"
 property_id = settings.analytics_property_id
 GA_TIMEOUT = 10  # seconds, so a slow Google call can't hang a worker indefinitely
 
@@ -70,6 +73,15 @@ def _fetch_user_count(days: int | None) -> int:
     request_payload = {
         "property": f"{property_id}",
         "metrics": [{"name": "totalUsers"}],
+        # GA requires a dimension to be requested before it can be filtered on;
+        # the filter reduces the report to a single hostName row.
+        "dimensions": [{"name": "hostName"}],
+        "dimensionFilter": {
+            "filter": {
+                "fieldName": "hostName",
+                "stringFilter": {"matchType": "EXACT", "value": PROD_HOST},
+            }
+        },
         "dateRanges": [
             {
                 "startDate": f"{days}daysAgo" if days is not None else MIN_DATE,
@@ -95,7 +107,11 @@ def _fetch_user_count(days: int | None) -> int:
         if response.status_code != 200:
             return -1
         data = response.json()
-        return int(data["rows"][0]["metricValues"][0]["value"])
+        # GA omits `rows` entirely when the filter matches no data.
+        rows = data.get("rows")
+        if not rows:
+            return 0
+        return int(rows[0]["metricValues"][0]["value"])
     except Exception as exc:
         if exc is not None:
             logging.error("failed to retrieve google analytics because %r", exc)
