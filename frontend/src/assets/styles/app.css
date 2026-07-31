@@ -552,48 +552,30 @@ a {
   background: var(--epfl-red);
   margin: 14px 0 12px;
 }
-/* Live fetch in flight (snapshot value shown): the red bar shrinks to a
-   segment that ping-pongs left-right. One keyframe cycle is a full round
-   trip ending at the left edge, and HomeView only drops this class on an
-   `animationiteration` boundary — so even the fastest fetch shows one clean
-   trip, and the segment is back at the left when the full bar settles. */
+/* Live fetch in flight (snapshot value shown): the bar slides right and back,
+   never changing size. One keyframe cycle is a full round trip ending at the
+   left edge, and HomeView only drops this class on an `animationiteration`
+   boundary — so even the fastest fetch shows one clean trip and the bar is
+   back home when it settles (the number then counts up to the live value). */
 .keynum-bar--loading {
-  position: relative;
-  background: transparent;
-}
-.keynum-bar--loading::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 40%;
-  background: var(--epfl-red);
   animation: keynum-pingpong 0.9s ease-in-out infinite;
 }
 @keyframes keynum-pingpong {
   0%,
   100% {
-    left: 0%;
+    transform: translateX(0);
   }
   50% {
-    left: 60%;
+    transform: translateX(100%);
   }
 }
-/* Live fetch failed: the archived snapshot value stays (tooltip on the tile).
-   Declared after the loading rules so it wins even while the loading class
-   lingers (reduced motion never fires the iteration event that clears it). */
+/* Live fetch failed: the archived snapshot value stays (tooltip on the tile). */
 .keynum-bar--stale {
   background: var(--fg-muted);
 }
-.keynum-bar--stale::before {
-  content: none;
-}
 @media (prefers-reduced-motion: reduce) {
   .keynum-bar--loading {
-    background: var(--epfl-red);
-  }
-  .keynum-bar--loading::before {
-    content: none;
+    animation: none;
   }
 }
 .keynum-label {

@@ -49,9 +49,37 @@ const universityCount = ref<number | null>(kpiSnapshot.universities)
 const userCount = ref<number | null>(kpiSnapshot.users)
 const universityStatus = ref<KpiStatus>('loading')
 const userStatus = ref<KpiStatus>('loading')
-const displayedTotal = useCountUp(() => countsStore.total)
-const displayedUniversities = useCountUp(() => universityCount.value)
-const displayedUsers = useCountUp(() => userCount.value)
+
+// The loading class is only dropped on an `animationiteration` boundary —
+// each keyframe cycle is a full left-right round trip, so even a fetch that
+// resolves instantly shows one clean trip before the bar settles. Reduced
+// motion runs no animation (and fires no events), so it skips straight to
+// the settled state.
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const barAnimating = ref([
+  !reducedMotion && countsStore.countsStatus === 'loading',
+  !reducedMotion && universityStatus.value === 'loading',
+  !reducedMotion && userStatus.value === 'loading',
+  false
+])
+
+function onBarCycle(index: number): void {
+  if (keyNumbers.value[index].status !== 'loading') {
+    barAnimating.value[index] = false
+  }
+}
+
+// Displayed values hold the snapshot number while the bar is still animating,
+// then count up to the live value in a single tween once it has settled —
+// this also keeps the total from wobbling as its nine counts land one by one.
+const initialTotal = countsStore.total
+const displayedTotal = useCountUp(() => (barAnimating.value[0] ? initialTotal : countsStore.total))
+const displayedUniversities = useCountUp(() =>
+  barAnimating.value[1] ? kpiSnapshot.universities : universityCount.value
+)
+const displayedUsers = useCountUp(() =>
+  barAnimating.value[2] ? kpiSnapshot.users : userCount.value
+)
 
 const keyNumbers = computed<{ num: number | string; label: string; status: KpiStatus }[]>(() => [
   {
@@ -71,17 +99,6 @@ const keyNumbers = computed<{ num: number | string; label: string; status: KpiSt
   },
   { num: DATABASES.length, label: t('home.keyNumbers.databases'), status: 'live' }
 ])
-
-// The loading class is only dropped on an `animationiteration` boundary —
-// each keyframe cycle is a full left-right round trip, so even a fetch that
-// resolves instantly shows one clean trip before the bar settles.
-const barAnimating = ref(keyNumbers.value.map((item) => item.status === 'loading'))
-
-function onBarCycle(index: number): void {
-  if (keyNumbers.value[index].status !== 'loading') {
-    barAnimating.value[index] = false
-  }
-}
 
 onMounted(async () => {
   countsStore.fetch()
