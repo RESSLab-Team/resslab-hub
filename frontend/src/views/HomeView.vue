@@ -9,6 +9,7 @@ import type {
 import EyebrowText from '@/components/commons/EyebrowText.vue'
 import PhotoCarousel from '@/components/home/PhotoCarousel.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
+import { useCountUp } from '@/composables/useCountUp'
 import { useCountsStore } from '@/stores/counts'
 import { publicPath } from '@/utils/common'
 import { kpiSnapshot, type KpiStatus } from '@/utils/kpiSnapshot'
@@ -40,27 +41,47 @@ const galleryImages = [
 }))
 // Seeded from the committed snapshot (see utils/kpiSnapshot.ts) so the key
 // numbers render on first paint; the live fetches below overwrite them. Each
-// KPI's status drives the bar under its number: sweeping while the live fetch
-// is in flight, muted + tooltip when it failed and the snapshot value stays.
-const universityCount = ref<number | string>(kpiSnapshot.universities ?? '…')
-const userCount = ref<number | string>(kpiSnapshot.users?.toLocaleString('en-CH') ?? '…')
+// KPI's status drives the bar under its number: ping-ponging while the live
+// fetch is in flight, muted + tooltip when it failed and the snapshot stays.
+// Displayed values go through useCountUp so a live number that differs from
+// the snapshot counts into place instead of jumping.
+const universityCount = ref<number | null>(kpiSnapshot.universities)
+const userCount = ref<number | null>(kpiSnapshot.users)
 const universityStatus = ref<KpiStatus>('loading')
 const userStatus = ref<KpiStatus>('loading')
+const displayedTotal = useCountUp(() => countsStore.total)
+const displayedUniversities = useCountUp(() => universityCount.value)
+const displayedUsers = useCountUp(() => userCount.value)
 
 const keyNumbers = computed<{ num: number | string; label: string; status: KpiStatus }[]>(() => [
   {
-    num: countsStore.total != null ? countsStore.total.toLocaleString('en-CH') : '…',
+    num: displayedTotal.value != null ? displayedTotal.value.toLocaleString('en-CH') : '…',
     label: t('home.keyNumbers.testsDigitized'),
     status: countsStore.countsStatus
   },
   {
-    num: universityCount.value,
+    num: displayedUniversities.value ?? '…',
     label: t('home.keyNumbers.universities'),
     status: universityStatus.value
   },
-  { num: userCount.value, label: t('home.keyNumbers.researchers'), status: userStatus.value },
+  {
+    num: displayedUsers.value != null ? displayedUsers.value.toLocaleString('en-CH') : '…',
+    label: t('home.keyNumbers.researchers'),
+    status: userStatus.value
+  },
   { num: DATABASES.length, label: t('home.keyNumbers.databases'), status: 'live' }
 ])
+
+// The loading class is only dropped on an `animationiteration` boundary —
+// each keyframe cycle is a full left-right round trip, so even a fetch that
+// resolves instantly shows one clean trip before the bar settles.
+const barAnimating = ref(keyNumbers.value.map((item) => item.status === 'loading'))
+
+function onBarCycle(index: number): void {
+  if (keyNumbers.value[index].status !== 'loading') {
+    barAnimating.value[index] = false
+  }
+}
 
 onMounted(async () => {
   countsStore.fetch()
@@ -113,7 +134,7 @@ onMounted(async () => {
       // (e.g. no credentials in local dev) — keep the snapshot value then,
       // marked stale so a broken analytics setup is visible on the tile.
       if (count >= 0) {
-        userCount.value = count.toLocaleString('en-CH')
+        userCount.value = count
         userStatus.value = 'live'
       } else {
         userStatus.value = 'stale'
@@ -192,9 +213,10 @@ onMounted(async () => {
           <div
             class="keynum-bar"
             :class="{
-              'keynum-bar--loading': item.status === 'loading',
+              'keynum-bar--loading': barAnimating[index],
               'keynum-bar--stale': item.status === 'stale'
             }"
+            @animationiteration="onBarCycle(index)"
           />
           <div class="keynum-label">{{ item.label }}</div>
         </div>
@@ -247,8 +269,7 @@ onMounted(async () => {
             <h2 class="section-title">
               {{
                 t('home.reach.title', {
-                  count:
-                    typeof universityCount === 'number' ? universityCount : t('home.reach.dozensOf')
+                  count: universityCount ?? t('home.reach.dozensOf')
                 })
               }}
             </h2>
