@@ -552,37 +552,21 @@ a {
   background: var(--epfl-red);
   margin: 14px 0 12px;
 }
-/* Live fetch in flight (snapshot value shown): a red segment travels along a
-   faint track and back again — each cycle ends at the left edge, where the
-   solid bar settles once the value is live, so the handoff never jumps. */
+/* Live fetch in flight (snapshot value shown): the bar slides right and back,
+   never changing size. One keyframe cycle is a full round trip ending at the
+   left edge, and HomeView only drops this class on an `animationiteration`
+   boundary — so even the fastest fetch shows one clean trip and the bar is
+   back home when it settles (the number then counts up to the live value). */
 .keynum-bar--loading {
-  position: relative;
-  background: color-mix(in srgb, var(--epfl-red) 20%, var(--bg));
+  animation: keynum-pingpong 0.9s ease-in-out infinite;
 }
-.keynum-bar--loading::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  background: var(--epfl-red);
-  animation: keynum-borealis 1.4s ease-in-out infinite alternate;
-}
-@keyframes keynum-borealis {
-  0% {
-    left: 0%;
-    width: 0%;
-  }
-  15% {
-    left: 0%;
-    width: 35%;
-  }
-  85% {
-    left: 65%;
-    width: 35%;
-  }
+@keyframes keynum-pingpong {
+  0%,
   100% {
-    left: 100%;
-    width: 0%;
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(100%);
   }
 }
 /* Live fetch failed: the archived snapshot value stays (tooltip on the tile). */
@@ -591,10 +575,7 @@ a {
 }
 @media (prefers-reduced-motion: reduce) {
   .keynum-bar--loading {
-    background: var(--epfl-red);
-  }
-  .keynum-bar--loading::before {
-    content: none;
+    animation: none;
   }
 }
 .keynum-label {
