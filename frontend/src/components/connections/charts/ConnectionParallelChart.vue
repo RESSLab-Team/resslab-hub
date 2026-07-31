@@ -15,7 +15,17 @@ const emit = defineEmits<Emits>()
 // query via inject (not prop) so a filter change doesn't re-render this chart.
 const query = inject(dashboardQueryKey, toRef(props, 'query'))
 const { getMatrix, matrixSync } = useDataset(CONNECTION_KEY, fetchConnections)
-const { changeSearches, data, ids, requestFields, isFiltered } = useParallelChart<ConnectionField>(
+const {
+  changeSearches,
+  commitSelection,
+  data,
+  highlightIds,
+  ids,
+  publishSelection,
+  requestFields,
+  isFiltered,
+  zoomed
+} = useParallelChart<ConnectionField>(
   emit,
   ConnectionField.Id,
   props.fields,
@@ -27,18 +37,17 @@ const { changeSearches, data, ids, requestFields, isFiltered } = useParallelChar
 
 <template>
   <simple-parallel-chart
+    v-model:zoomed="zoomed"
     :animate="false"
-    :color="color"
+    :highlight-ids="highlightIds"
     :data="data"
     :fields="fields"
     :ids="ids"
     :is-filtered="isFiltered"
     label-prefix="connection."
     :request-fields="requestFields"
+    @brush:commit="commitSelection"
+    @brush:live="publishSelection"
     @change:searches="changeSearches"
-  >
-    <template #title>
-      <slot name="title" />
-    </template>
-  </simple-parallel-chart>
+  />
 </template>

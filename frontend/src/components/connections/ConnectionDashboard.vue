@@ -67,6 +67,17 @@ const parallelFields: ParallelField<ConnectionField>[] = [
     name: 'Connection\nType'
   }
 ]
+
+const parallelFilterFields: string[] = [
+  ConnectionField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
+]
 const beamFields: DoubleFields<ConnectionField> = [
   ConnectionField.DB,
   {
@@ -275,12 +286,14 @@ const railGroups = computed<FilterRailGroup[]>(() => [
 
       <!-- Row 3: parallel coordinates (full width) -->
       <div class="charts-strip charts-strip-1col">
-        <chart-cell>
-          <connection-parallel-chart
-            :color="periwinkle"
-            :fields="parallelFields"
-            @change:searches="changeSearches"
-          />
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <connection-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
         </chart-cell>
       </div>
     </template>

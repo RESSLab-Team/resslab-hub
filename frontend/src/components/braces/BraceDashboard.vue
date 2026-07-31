@@ -38,6 +38,17 @@ const parallelFields: ParallelField<BraceField>[] = [
   { id: BraceField.CrossSectionShape },
   { id: BraceField.BoundaryCondition }
 ]
+
+const parallelFilterFields: string[] = [
+  BraceField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
+]
 const boundaryConditionFields: DoubleFields<BraceField> = [
   BraceField.Date,
   BraceField.BoundaryCondition
@@ -143,12 +154,14 @@ const railGroups = computed<FilterRailGroup[]>(() => [
       </div>
 
       <div class="charts-strip charts-strip-1col">
-        <chart-cell>
-          <brace-parallel-chart
-            :color="apricot"
-            :fields="parallelFields"
-            @change:searches="changeSearches"
-          />
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <brace-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
         </chart-cell>
       </div>
     </template>

@@ -18,27 +18,39 @@ const { getMatrix, matrixSync } = useDataset<DuctileFractureModel>(
   DUCTILE_FRACTURE_KEY,
   fetchDuctileFractures
 )
-const { changeSearches, data, ids, requestFields, isFiltered } =
-  useParallelChart<DuctileFractureField>(
-    emit,
-    DuctileFractureField.Id,
-    props.fields,
-    query,
-    getMatrix,
-    matrixSync // live crossfilter drag frames (see useParallelChart)
-  )
+const {
+  changeSearches,
+  commitSelection,
+  data,
+  highlightIds,
+  ids,
+  publishSelection,
+  requestFields,
+  isFiltered,
+  zoomed
+} = useParallelChart<DuctileFractureField>(
+  emit,
+  DuctileFractureField.Id,
+  props.fields,
+  query,
+  getMatrix,
+  matrixSync // live crossfilter drag frames (see useParallelChart)
+)
 </script>
 
 <template>
   <simple-parallel-chart
+    v-model:zoomed="zoomed"
     :animate="false"
-    :color="color"
+    :highlight-ids="highlightIds"
     :data="data"
     :fields="fields"
     :ids="ids"
     :is-filtered="isFiltered"
     label-prefix="ductile_fracture."
     :request-fields="requestFields"
+    @brush:commit="commitSelection"
+    @brush:live="publishSelection"
     @change:searches="changeSearches"
   />
 </template>

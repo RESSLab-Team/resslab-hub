@@ -39,6 +39,17 @@ const parallelFields: ParallelField<MaterialField>[] = [
   { id: MaterialField.FractureStrain },
   { id: MaterialField.Thickness }
 ]
+
+const parallelFilterFields: string[] = [
+  MaterialField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
+]
 const profileFields: DoubleFields<MaterialField> = [MaterialField.Year, MaterialField.ProfileType]
 const profileThicknessFields: DoubleFields<MaterialField> = [
   MaterialField.Thickness,
@@ -150,12 +161,14 @@ const railGroups = computed<FilterRailGroup[]>(() => [
       </div>
 
       <div class="charts-strip charts-strip-1col">
-        <chart-cell>
-          <material-parallel-chart
-            :color="plum"
-            :fields="parallelFields"
-            @change:searches="changeSearches"
-          />
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <material-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
         </chart-cell>
       </div>
     </template>

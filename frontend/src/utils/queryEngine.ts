@@ -103,6 +103,16 @@ function compileClause(clause: string, fieldTypes: FieldTypes): RowPredicate {
   }
   const key = clause.slice(0, separatorIndex)
   const expression = clause.slice(separatorIndex + 1)
+  // Derived-ratio clause (`a/b:expression`): a parallel-chart brush on a
+  // division axis filters on the quotient of two numeric columns. Client-side
+  // only — this grammar extension never reaches the backend.
+  if (fieldTypes[key] === undefined && key.includes('/')) {
+    const [dividend, divisor] = key.split('/', 2)
+    if (fieldTypes[dividend] !== undefined && fieldTypes[divisor] !== undefined) {
+      const predicate = compilePredicate(expression, 'number')
+      return (row) => predicate(Number(row[dividend]) / Number(row[divisor]))
+    }
+  }
   const predicate = compilePredicate(expression, fieldTypes[key] ?? 'string')
   return (row) => predicate(row[key])
 }

@@ -165,6 +165,7 @@
     "connection_type": "Type d'assemblage",
     "section_b": "Section de la poutre",
     "d_b": "Hauteur de la poutre [mm]",
+    "d_b/d_c": "db / dc",
     "steel_b": "Matériau acier de la poutre",
     "section_c": "Section du poteau",
     "d_c": "Hauteur du poteau [mm]",
@@ -540,8 +541,8 @@
     "yes": "Oui",
     "no": "Non",
     "n_selected": "{n} sélectionné(s)",
-    "apply_selection": "Appliquer la sélection ({n})",
-    "clear_selection": "Effacer la sélection",
+    "zoom_selection": "Zoomer sur la sélection",
+    "unzoom": "Tout afficher",
     "share_view": "Partager la vue",
     "filters": "Filtres",
     "active_filters": "Filtres actifs",
@@ -587,10 +588,9 @@
     "reset": "Réinitialiser",
     "alert": "Notification",
     "parallel_view_title": "Vue parallèle de tous les essais",
-    "parallel_view_intro": "Dans ces tracés en coordonnées parallèles, vous pouvez visualiser tous les essais disponibles dans la base de données, ordonnés selon des variables clés. Chaque ligne représente un essai unique.",
-    "parallel_view_how_to": "Comment l'utiliser ?",
-    "parallel_view_bullet_filter": "Filtrez un sous-ensemble des données en sélectionnant directement des valeurs sur l'axe vertical",
-    "parallel_view_bullet_select": "Sélectionnez un essai spécifique en cliquant sur la ligne correspondante."
+    "parallel_view_hint": "Sélectionnez une plage sur un axe pour filtrer · cliquez sur une ligne pour choisir un essai",
+    "parallel_selection_count": "{n} essais sur {total} sélectionnés",
+    "parallel_zoomed_count": "Zoom sur {total} essais"
   },
   "table": {
     "connection": {

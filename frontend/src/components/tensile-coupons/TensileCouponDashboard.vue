@@ -46,6 +46,17 @@ const parallelFields: ParallelField<TensileCouponField>[] = [
   { id: TensileCouponField.ReductionOfArea },
   { id: TensileCouponField.AvgInitReducedThicknessMm }
 ]
+
+const parallelFilterFields: string[] = [
+  TensileCouponField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
+]
 const profileYearFields: DoubleFields<TensileCouponField> = [
   TensileCouponField.Year,
   TensileCouponField.ProfileType
@@ -166,9 +177,14 @@ const railGroups = computed<FilterRailGroup[]>(() => [
       </div>
 
       <div class="charts-strip charts-strip-1col">
-        <chart-cell>
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
           <tensile-coupon-parallel-chart
-            :color="mint"
             :fields="parallelFields"
             @change:searches="changeSearches"
           />

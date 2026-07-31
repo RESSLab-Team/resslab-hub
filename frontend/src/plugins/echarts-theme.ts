@@ -20,11 +20,20 @@
 // (e.g. laying the legend out inline after a title — see DoubleChart.vue).
 export const SANS = "'Suisse Int\\'l', 'SuisseIntl', Arial, 'Helvetica Neue', Helvetica, sans-serif"
 
-const AXIS = '#c1c1c1' // hairline axis line
+// Also exported for charts that must restate axis chrome locally because a
+// theme default outranks their component (e.g. SimpleParallelChart: the
+// theme's valueAxis hides axisLine, which would drop every parallel spine).
+export const AXIS = '#c1c1c1' // hairline axis line
 const GRID = '#ececec' // very light gridline
-const TICK = '#8e8e8e' // tick label ink
-const NAME = '#6e6e73' // muted axis-name ink (uniform across every chart)
+export const TICK = '#8e8e8e' // tick label ink
+export const NAME = '#6e6e73' // muted axis-name ink (uniform across every chart)
 const INK = '#212121' // soft black
+// Undifferentiated "density" ink for many-line charts where hue carries no
+// information (the parallel-coordinates hairball).
+export const INK_SLATE = '#5b6b78'
+// The one place EPFL red (epfl-tokens.css --epfl-red) enters a chart: brush
+// bands and selected/hovered lines. Never a series fill.
+export const RED = '#e30713'
 
 // Categorical series palette — Okabe–Ito (colorblind-safe), handoff order.
 // EPFL red stays reserved for selection/emphasis and is never a series color.
@@ -35,7 +44,7 @@ const SERIES = [
   '#cc79a7', // reddish purple
   '#56b4e9', // sky
   '#d55e00', // vermillion
-  '#5b6b78', // slate
+  INK_SLATE, // slate
   '#332288' // indigo
 ]
 

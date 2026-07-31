@@ -12,7 +12,7 @@ import type { DoubleFields, ParallelField } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { testConfigurationNameMapping } from '@/utils/hss'
-import { periwinkle, plum, sky, yellowgreen } from '@/utils/vuetify'
+import { periwinkle, plum, yellowgreen } from '@/utils/vuetify'
 import { mdiCalendarRange, mdiPulse, mdiTagOutline, mdiTune } from '@mdi/js'
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -38,6 +38,17 @@ const parallelFields: ParallelField<HSSColumnField>[] = [
     name: 'Configuration',
     mapping: testConfigurationNameMapping
   }
+]
+
+const parallelFilterFields: string[] = [
+  HSSColumnField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
 ]
 const failureModeFields: DoubleFields<HSSColumnField> = [
   HSSColumnField.Date,
@@ -166,12 +177,14 @@ const railGroups = computed<FilterRailGroup[]>(() => [
       </div>
 
       <div class="charts-strip charts-strip-1col">
-        <chart-cell>
-          <hss-parallel-chart
-            :color="sky"
-            :fields="parallelFields"
-            @change:searches="changeSearches"
-          />
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <hss-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
         </chart-cell>
       </div>
     </template>

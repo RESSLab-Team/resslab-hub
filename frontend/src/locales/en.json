@@ -38,6 +38,7 @@
     "connection_type": "Connection Type",
     "section_b": "Beam Section",
     "d_b": "Beam Depth [mm]",
+    "d_b/d_c": "db / dc",
     "steel_b": "Beam Steel Material",
     "section_c": "Column Section",
     "d_c": "Column Depth [mm]",
@@ -484,8 +485,8 @@
     "yes": "Yes",
     "no": "No",
     "n_selected": "{n} selected",
-    "apply_selection": "Apply selection ({n})",
-    "clear_selection": "Clear selection",
+    "zoom_selection": "Zoom to selection",
+    "unzoom": "Show all",
     "share_view": "Share view",
     "filters": "Filters",
     "active_filters": "Active filters",
@@ -531,10 +532,9 @@
     "reset": "Reset",
     "alert": "Notification",
     "parallel_view_title": "Parallel View of all Tests",
-    "parallel_view_intro": "In this parallel coordinate plots, you can view all available tests in the database, ordered according to key variables. Each line represents a single test.",
-    "parallel_view_how_to": "How to use?",
-    "parallel_view_bullet_filter": "Filter a subset of the data by selecting values on the vertical axis directly",
-    "parallel_view_bullet_select": "Select a specific test by clicking on the respective line."
+    "parallel_view_hint": "Brush an axis to filter · click a line to select a test",
+    "parallel_selection_count": "{n} of {total} tests brushed",
+    "parallel_zoomed_count": "Zoomed to {total} tests"
   },
   "detail": {
     "connection": {

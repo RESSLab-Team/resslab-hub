@@ -24,11 +24,16 @@ import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { onBeforeUnmount, onMounted, type Ref } from 'vue'
 
 export type EChartHandlers = Partial<
-  Record<'click' | 'mouseover' | 'mouseout', (params: CallbackDataParams) => void>
+  Record<
+    'click' | 'mouseover' | 'mouseout' | 'axisareaselected',
+    (params: CallbackDataParams) => void
+  >
 >
 
 /**
- * Mount an ECharts instance on `el` and return an imperative `render`.
+ * Mount an ECharts instance on `el` and return an imperative `render`, plus a
+ * `getInstance` accessor for hosts that need the raw instance (dispatchAction,
+ * the parallel chart's private brush-index read).
  *
  * @param el        the container element (a plain <div>, sized by CSS)
  * @param initial   builds the option for the first paint on mount
@@ -75,5 +80,5 @@ export function useEChart(
     chart = undefined
   })
 
-  return { render }
+  return { render, getInstance: () => chart }
 }

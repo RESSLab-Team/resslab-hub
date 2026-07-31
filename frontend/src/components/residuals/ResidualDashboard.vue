@@ -35,6 +35,17 @@ const parallelFields: ParallelField<ResidualStressField>[] = [
   { id: ResidualStressField.Sigma0F, name: 'σ0,f [MPa]' },
   { id: ResidualStressField.Sigma0W, name: 'σ0,w [MPa] ' }
 ]
+
+const parallelFilterFields: string[] = [
+  ResidualStressField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
+]
 const profileFields: DoubleFields<ResidualStressField> = [
   ResidualStressField.Date,
   ResidualStressField.ProfileType
@@ -151,12 +162,14 @@ const railGroups = computed<FilterRailGroup[]>(() => [
       </div>
 
       <div class="charts-strip charts-strip-1col">
-        <chart-cell>
-          <residual-parallel-chart
-            :color="cobalt"
-            :fields="parallelFields"
-            @change:searches="changeSearches"
-          />
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <residual-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
         </chart-cell>
       </div>
     </template>

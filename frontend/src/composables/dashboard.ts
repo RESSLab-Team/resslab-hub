@@ -26,6 +26,15 @@ export function useDashboard<M>(
   field: object
 ) {
   const fields: string[] = Object.values(field)
+  // URL keys accepted back into `searches`: the component's own fields, plus
+  // derived-ratio keys (`a/b`, both sides known) written by parallel-chart
+  // brushes on division axes.
+  function isKnownKey(key: string): boolean {
+    if (fields.includes(key)) return true
+    if (!key.includes('/')) return false
+    const parts = key.split('/', 2)
+    return parts.length === 2 && parts.every((part) => fields.includes(part))
+  }
 
   const search = ref<string>('')
   const searches = ref<Searches>({})
@@ -92,7 +101,7 @@ export function useDashboard<M>(
     (newQuery) => {
       // Update or add keys from newQuery
       Object.entries(newQuery)
-        .filter(([key]) => fields.includes(key))
+        .filter(([key]) => isKnownKey(key))
         .forEach(([key, value]) => {
           const newValue = parseValue(value)
           if (newValue !== undefined) {

@@ -56,6 +56,17 @@ const parallelFields: ParallelField<DuctileFractureField>[] = [
     }
   }
 ]
+
+const parallelFilterFields: string[] = [
+  DuctileFractureField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
+]
 const dateSpecimenFields: DoubleFields<DuctileFractureField> = [
   DuctileFractureField.Date,
   DuctileFractureField.SpecimenType
@@ -216,9 +227,14 @@ const railGroups = computed<FilterRailGroup[]>(() => [
       </div>
 
       <div class="charts-strip charts-strip-1col">
-        <chart-cell>
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
           <ductile-fracture-parallel-chart
-            :color="mauve"
             :fields="parallelFields"
             @change:searches="changeSearches"
           />

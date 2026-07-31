@@ -40,6 +40,17 @@ const parallelFields: ParallelField<EccentricBracedFrameField>[] = [
     sortValues: ['long', 'intermediate', 'short']
   }
 ]
+
+const parallelFilterFields: string[] = [
+  EccentricBracedFrameField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
+]
 const yearSectionFields: DoubleFields<EccentricBracedFrameField> = [
   EccentricBracedFrameField.Year,
   {
@@ -199,12 +210,14 @@ const railGroups = computed<FilterRailGroup[]>(() => [
       </div>
 
       <div class="charts-strip charts-strip-1col">
-        <chart-cell>
-          <ebf-parallel-chart
-            :color="peach"
-            :fields="parallelFields"
-            @change:searches="changeSearches"
-          />
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <ebf-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
         </chart-cell>
       </div>
     </template>

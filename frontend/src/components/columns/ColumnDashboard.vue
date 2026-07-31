@@ -34,6 +34,17 @@ const parallelFields: ParallelField<ColumnField>[] = [
   { id: ColumnField.LBOverRYc },
   { id: ColumnField.PGOverPYm }
 ]
+
+const parallelFilterFields: string[] = [
+  ColumnField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
+]
 const boundaryConditionFields: DoubleFields<ColumnField> = [
   ColumnField.Date,
   ColumnField.BoundaryCondition
@@ -162,12 +173,14 @@ const railGroups = computed<FilterRailGroup[]>(() => [
       </div>
 
       <div class="charts-strip charts-strip-1col">
-        <chart-cell>
-          <column-parallel-chart
-            :color="mint"
-            :fields="parallelFields"
-            @change:searches="changeSearches"
-          />
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <column-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
         </chart-cell>
       </div>
     </template>
