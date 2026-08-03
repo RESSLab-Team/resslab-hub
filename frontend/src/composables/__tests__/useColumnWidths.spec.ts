@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { effectScope, ref } from 'vue'
 import {
   CAP_NUMBER,
   CELL_PAD,
@@ -9,6 +10,7 @@ import {
   measureColumnIdeals,
   SELECT_COL_WIDTH,
   TEXT_MIN,
+  useColumnWidths,
   type ColumnSizing,
   type MeasurableColumn,
   type TextMeasurer
@@ -145,5 +147,132 @@ describe('distributeWidths', () => {
       expect(widths[0]).toBeGreaterThanOrEqual(110 - 1e-9)
       expect(widths[1]).toBeGreaterThanOrEqual(90 - 1e-9)
     }
+  })
+})
+
+const LONG_TITLE = 'Total Doubler Plate Thickness [mm]'
+const SHORT_TITLE = 'tdp,tot [mm]'
+
+// Case-sensitive spy around the per-char fake, capturing header measurements.
+function recordingMeasurer(): { measure: TextMeasurer; seenHeaders: string[] } {
+  const seenHeaders: string[] = []
+  const measure: TextMeasurer = (text, font) => {
+    if (font === 'header') seenHeaders.push(text)
+    return text.length * 7
+  }
+  return { measure, seenHeaders }
+}
+
+describe('measureColumnIdeals (short titles)', () => {
+  const shortable: MeasurableColumn[] = [
+    {
+      key: 't_dp_tot',
+      title: LONG_TITLE,
+      type: 'number',
+      shortTitle: { text: SHORT_TITLE, isSymbol: false }
+    }
+  ]
+
+  it('uses the short title for the header floor in short mode', () => {
+    const [short] = measureColumnIdeals(shortable, [], perChar, true)
+    const headerMin = SHORT_TITLE.length * 7 + HEADER_CHROME + CELL_PAD
+    expect(short.ideal).toBe(Math.max(headerMin, IDEAL_FLOOR) + LAST_COL_EXTRA)
+    const [long] = measureColumnIdeals(shortable, [], perChar)
+    expect(short.ideal).toBeLessThan(long.ideal)
+  })
+
+  it('measures a symbol short title verbatim — no uppercasing', () => {
+    const symbolColumn: MeasurableColumn[] = [
+      {
+        key: 't_dp_tot',
+        title: LONG_TITLE,
+        type: 'number',
+        shortTitle: { text: SHORT_TITLE, isSymbol: true }
+      }
+    ]
+    const { measure, seenHeaders } = recordingMeasurer()
+    measureColumnIdeals(symbolColumn, [], measure, true)
+    expect(seenHeaders).toContain(SHORT_TITLE)
+    expect(seenHeaders).not.toContain(SHORT_TITLE.toUpperCase())
+  })
+
+  it('measures a word short title uppercased, like any header', () => {
+    const { measure, seenHeaders } = recordingMeasurer()
+    measureColumnIdeals(shortable, [], measure, true)
+    expect(seenHeaders).toContain(SHORT_TITLE.toUpperCase())
+    expect(seenHeaders).not.toContain(SHORT_TITLE)
+  })
+
+  it('keeps the (uppercased) long title for columns without a short title in short mode', () => {
+    const mixed: MeasurableColumn[] = [
+      { key: 'name', title: 'Specimen', type: 'text' },
+      ...shortable
+    ]
+    const { measure, seenHeaders } = recordingMeasurer()
+    measureColumnIdeals(mixed, [], measure, true)
+    expect(seenHeaders).toContain('SPECIMEN')
+  })
+
+  it('ignores shortTitle entirely in long mode', () => {
+    const [withShort] = measureColumnIdeals(shortable, [], perChar)
+    const [withoutShort] = measureColumnIdeals(
+      [{ key: 't_dp_tot', title: LONG_TITLE, type: 'number' }],
+      [],
+      perChar
+    )
+    expect(withShort).toEqual(withoutShort)
+  })
+})
+
+describe('useColumnWidths (adaptive switch)', () => {
+  const px = (value: string): number => parseFloat(value)
+
+  function adaptiveColumns(withShort: boolean): MeasurableColumn[] {
+    return [
+      { key: 'name', title: 'Experimental Program', type: 'text' },
+      {
+        key: 't_dp_tot',
+        title: LONG_TITLE,
+        type: 'number',
+        shortTitle: withShort ? { text: SHORT_TITLE, isSymbol: true } : undefined
+      }
+    ]
+  }
+
+  function setup(cols: MeasurableColumn[], container: number) {
+    const scope = effectScope()
+    const columns = ref(cols)
+    const rows = ref<readonly Record<string, unknown>[]>([{ name: 'A-1', t_dp_tot: 20 }])
+    const containerWidth = ref(container)
+    const api = scope.run(() => useColumnWidths(columns, rows, containerWidth))!
+    return { ...api, columns }
+  }
+
+  it('prefers long titles when they fit the container', () => {
+    const { useShortTitles } = setup(adaptiveColumns(true), 2000)
+    expect(useShortTitles.value).toBe(false)
+  })
+
+  it('switches to short labels when the long mins overflow, and the table shrinks', () => {
+    const narrow = 300
+    const long = setup(adaptiveColumns(false), narrow)
+    const short = setup(adaptiveColumns(true), narrow)
+    expect(short.useShortTitles.value).toBe(true)
+    expect(px(short.tableWidth.value)).toBeLessThan(px(long.tableWidth.value))
+  })
+
+  it('stays long when no column is shortable, however narrow the container', () => {
+    const { useShortTitles } = setup(adaptiveColumns(false), 50)
+    expect(useShortTitles.value).toBe(false)
+  })
+
+  it('shrinks ratcheted widths when short titles arrive asynchronously', () => {
+    const { columns, tableWidth, useShortTitles } = setup(adaptiveColumns(false), 300)
+    const before = px(tableWidth.value)
+    expect(useShortTitles.value).toBe(false)
+    // The dictionary fetch lands: same column keys, now carrying short labels.
+    columns.value = adaptiveColumns(true)
+    expect(useShortTitles.value).toBe(true)
+    expect(px(tableWidth.value)).toBeLessThan(before)
   })
 })

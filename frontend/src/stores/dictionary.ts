@@ -28,6 +28,20 @@ export interface DictColumn {
   nullable: boolean
 }
 
+/** Symbol cleaned for display — markdown code backticks dropped, the `-`
+ *  no-symbol sentinel mapped to undefined. */
+export function displaySymbol(column: DictColumn): string | undefined {
+  const symbol = column.symbol.trim().replace(/^`(.*)`$/, '$1')
+  return symbol && symbol !== '-' ? symbol : undefined
+}
+
+/** Unit for display — undefined when unitless (`-`, or the literal "None"
+ *  some dictionaries carry instead). */
+export function displayUnit(column: DictColumn): string | undefined {
+  const unit = column.unit.trim()
+  return unit && unit !== '-' && unit.toLowerCase() !== 'none' ? unit : undefined
+}
+
 /**
  * The data dictionary, served by `GET /dictionary` and fetched once per
  * session (same pattern as the counts store). It is the single source of truth

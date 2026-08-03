@@ -8,41 +8,38 @@ import { EBF_KEY, fetchEbfs } from '@/components/ebf/data'
 import { ebfApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { toRef } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const columns: Column[] = [
   {
     value: EccentricBracedFrameField.Investigator,
-    title: t('table.ebf.columns.experimentalProgram'),
+    titleKey: 'table.ebf.columns.experimentalProgram',
     type: 'text'
   },
   {
     value: EccentricBracedFrameField.SpecId,
-    title: t('table.ebf.columns.specimenDesignation'),
+    titleKey: 'table.ebf.columns.specimenDesignation',
     type: 'text',
     cellVariant: 'strong'
   },
   {
     value: EccentricBracedFrameField.Profile,
-    title: t('table.ebf.columns.linkCrossSection'),
+    titleKey: 'table.ebf.columns.linkCrossSection',
     type: 'text',
     cellVariant: 'mono'
   },
   {
     value: EccentricBracedFrameField.LinkLoc,
-    title: t('table.ebf.columns.linkLocation'),
+    titleKey: 'table.ebf.columns.linkLocation',
     type: 'text'
   },
   {
     value: EccentricBracedFrameField.E,
-    title: t('table.ebf.columns.linkLength'),
+    titleKey: 'table.ebf.columns.linkLength',
     type: 'number'
   },
   {
     value: EccentricBracedFrameField.SgFlgLink,
-    title: t('table.ebf.columns.steelMaterial'),
+    titleKey: 'table.ebf.columns.steelMaterial',
     type: 'text'
   }
 ]
@@ -95,6 +92,7 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    database-id="ebf"
     :columns="columns"
     hide-toolbar
     :live-count="liveCount"

@@ -23,7 +23,16 @@ export type ColumnType = 'text' | 'option' | 'number' | 'boolean'
 export interface Column {
   value: string
   type: ColumnType
+  /** Literal header text (e.g. `kL/r<sub>y</sub>`). Prefer `titleKey` for
+   *  locale-resolved titles — it keeps the `_short` convention working. */
   title?: string
+  /** Locale key for the header, when it isn't `{prefix}{value}`. Like prefix
+   *  columns, a sibling `{titleKey}_short` key provides the adaptive short label. */
+  titleKey?: string
+  /** Adaptive short header label. string = explicit override, false = never
+   *  shorten, undefined = derive from `_short` locale keys or the data
+   *  dictionary symbol. */
+  shortTitle?: string | false
   options?: string[]
   filterOnly?: boolean
   format?: (value: any) => string

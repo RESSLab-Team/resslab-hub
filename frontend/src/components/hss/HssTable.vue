@@ -8,14 +8,10 @@ import { HSS_KEY, fetchHsss } from '@/components/hss/data'
 import { hssApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { toRef } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const columns: Column[] = [
   {
     value: HSSColumnField.Investigator,
-    title: t('table.hss.columns.experimentalProgram'),
     type: 'text'
   },
   {
@@ -85,6 +81,7 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    database-id="hss"
     :columns="columns"
     hide-toolbar
     :items="items"

@@ -80,6 +80,7 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    database-id="cyclic"
     :columns="columns"
     hide-toolbar
     :live-count="liveCount"

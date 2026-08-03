@@ -100,6 +100,7 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    database-id="columns"
     :columns="columns"
     hide-toolbar
     :live-count="liveCount"

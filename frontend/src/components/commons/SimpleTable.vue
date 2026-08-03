@@ -1,12 +1,19 @@
 <script setup lang="ts" generic="M extends { id: string }">
 import CheckboxDialog, { type CheckBoxDialogItem } from '@/components/commons/CheckboxDialog.vue'
-import TextSubscript from '@/components/commons/TextSubscript.vue'
+import TextSubscript, { stripSubSup } from '@/components/commons/TextSubscript.vue'
 import { DownloadType, type Column, type ColumnType } from '@/composables/table'
 import { useColumnWidths, type MeasurableColumn } from '@/composables/useColumnWidths'
 import { useVirtualRows } from '@/composables/useVirtualRows'
 import i18n from '@/plugins/i18n'
+import {
+  displaySymbol,
+  displayUnit,
+  useDictionaryStore,
+  type DictColumn
+} from '@/stores/dictionary'
 import { useNotificationStore } from '@/stores/notification'
 import { shareCurrentUrl, type Searches } from '@/utils/common'
+import type { DatabaseId } from '@/utils/navigation'
 import type { DataOptions } from '@/utils/vuetify'
 import { booleanOptions } from '@/utils/vuetify'
 import {
@@ -35,6 +42,11 @@ interface TableHeader {
   // https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/labs/VDataTable/types.ts
   key: string
   title: string
+  /** Adaptive short label shown when space is tight; `isSymbol` marks a
+   *  dictionary symbol whose case is semantic — rendered verbatim, not uppercased. */
+  shortTitle?: { text: string; isSymbol: boolean }
+  /** Dictionary unit shown in the header menu, when the title doesn't already carry it. */
+  unit?: string
   align?: 'start' | 'end'
 }
 
@@ -64,6 +76,9 @@ const props = withDefaults(
      *  the committed `items` in the body (the light-DOM rows are cheap enough to
      *  re-render every frame). Cleared (undefined) on drag end → back to `items`. */
     liveItems?: M[]
+    /** Dictionary database id — enables adaptive short header labels derived
+     *  from the data dictionary symbols when the long titles don't fit. */
+    databaseId?: DatabaseId
   }>(),
   {
     title: undefined,
@@ -80,7 +95,8 @@ const props = withDefaults(
     hideToolbar: false,
     instant: false,
     liveCount: undefined,
-    liveItems: undefined
+    liveItems: undefined,
+    databaseId: undefined
   }
 )
 const emit = defineEmits<{
@@ -118,6 +134,11 @@ const checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
 
 const route = useRoute()
 const notificationStore = useNotificationStore()
+// The data dictionary powers the adaptive short header labels; the store
+// dedupes, so this kicks at most one fetch per session. Until it resolves
+// (or without a databaseId) headers simply never shorten.
+const dictionaryStore = useDictionaryStore()
+if (props.databaseId) void dictionaryStore.fetch()
 
 const downloadDialog = ref<InstanceType<typeof CheckboxDialog>>()
 const selectedItemsIds = ref<string[]>([])
@@ -368,7 +389,10 @@ const hasFilters = computed<boolean>(() => !!props.query && props.query?.length 
 const measurableColumns = computed<MeasurableColumn[]>(() =>
   tableHeaders.value.map((header) => ({
     key: header.key,
-    title: headerTitle(header.title),
+    title: stripSubSup(header.title),
+    shortTitle: header.shortTitle
+      ? { text: stripSubSup(header.shortTitle.text), isSymbol: header.shortTitle.isSymbol }
+      : undefined,
     type: header.type,
     format: header.format,
     cellVariant: header.cellVariant,
@@ -376,7 +400,7 @@ const measurableColumns = computed<MeasurableColumn[]>(() =>
     minWidth: header.minWidth
   }))
 )
-const { columnWidths, tableWidth } = useColumnWidths(
+const { columnWidths, tableWidth, useShortTitles } = useColumnWidths(
   measurableColumns,
   computed(() => props.items as unknown as readonly Record<string, unknown>[]),
   containerWidth
@@ -470,12 +494,24 @@ function closeMenu(): void {
   openMenuKey.value = undefined
 }
 
-// Sort is chosen explicitly from the per-column header menu (not a click-to-cycle
-// on the header), so both directions are always reachable in one action and the
-// menu closes once a direction is picked.
+// Sort is chosen explicitly from the per-column header menu, so both directions
+// are always reachable in one action and the menu closes once a direction is
+// picked. Clicking the header itself cycles asc → desc → unsorted instead.
 function setSort(header: TableHeader, order: 'asc' | 'desc'): void {
   sortBy.value = { key: header.key, order }
   closeMenu()
+}
+// The header menu is hover-only (`open-on-hover` without `open-on-click`), so
+// this is the activator's sole click action — the open menu stays put and its
+// sort rows just reflect the new state.
+function cycleSort(header: TableHeader): void {
+  if (sortBy.value?.key !== header.key) {
+    sortBy.value = { key: header.key, order: 'asc' }
+  } else if (sortBy.value.order === 'asc') {
+    sortBy.value = { key: header.key, order: 'desc' }
+  } else {
+    sortBy.value = undefined
+  }
 }
 // Return to the unsorted (natural) order — emitOptions sends an empty sortBy,
 // which useTable maps to empty sort params.
@@ -532,12 +568,6 @@ function cellText(header: TableHeader, item: M): string {
   return header.format ? header.format(value) : String(value)
 }
 
-// Plain-text header (strips the <sub> markup TextSubscript renders) for the
-// hover tooltip, so an ellipsised column header stays readable.
-function headerTitle(text: string): string {
-  return text.replace(/<\/?sub>/g, '')
-}
-
 function resetFilters(): void {
   globalSearch.value = ''
   columnSearches.value = {}
@@ -552,10 +582,59 @@ function shareUrl(): void {
   shareCurrentUrl(route.fullPath, notificationStore.notify)
 }
 
+// Adaptive short label candidate, by precedence: an explicit `shortTitle`
+// string, then the `{titleKey}_short` locale key (contextual wording, e.g.
+// "Connection Type" → "Type"), then the dictionary symbol (+ unit). Identity
+// columns opt out through the data — their symbol is the `-` sentinel.
+function shortCandidateFor(
+  column: Column,
+  titleKey: string | undefined,
+  dict: DictColumn | undefined
+): TableHeader['shortTitle'] {
+  if (typeof column.shortTitle === 'string') return { text: column.shortTitle, isSymbol: false }
+  const shortKey = titleKey && `${titleKey}_short`
+  if (shortKey && i18n.global.te(shortKey)) {
+    return { text: i18n.global.t(shortKey).toString(), isSymbol: false }
+  }
+  const symbol = dict && displaySymbol(dict)
+  if (!symbol) return undefined
+  const unit = displayUnit(dict!)
+  return { text: unit ? `${symbol} [${unit}]` : symbol, isSymbol: true }
+}
+
+function shortLabelFor(
+  column: Column,
+  titleKey: string | undefined,
+  title: string,
+  dict: DictColumn | undefined
+): TableHeader['shortTitle'] {
+  if (column.shortTitle === false) return undefined
+  const short = shortCandidateFor(column, titleKey, dict)
+  // A "short" label that isn't shorter would widen the column under space pressure.
+  return short && stripSubSup(short.text).length < stripSubSup(title).length ? short : undefined
+}
+
+// Dictionary unit for the header-menu title line — omitted when the title
+// already carries it (many locale titles bake in "[mm]" etc.).
+function unitFor(dict: DictColumn | undefined, title: string): string | undefined {
+  const unit = dict && displayUnit(dict)
+  return unit && !title.includes(`[${unit}]`) ? unit : undefined
+}
+
 function getTableHeader(column: Column): TableHeader {
+  // Locale key behind the title: explicit `titleKey`, else the prefix
+  // convention — absent when the title is a literal string.
+  const titleKey =
+    column.titleKey ?? (column.title === undefined ? props.prefix + column.value : undefined)
+  const title = column.title ?? i18n.global.t(titleKey as string).toString()
+  const dict = props.databaseId
+    ? dictionaryStore.columnFor(props.databaseId, column.value)
+    : undefined
   return {
     key: column.value,
-    title: column.title ?? i18n.global.t(props.prefix + column.value).toString(),
+    title,
+    shortTitle: shortLabelFor(column, titleKey, title, dict),
+    unit: unitFor(dict, title),
     type: column.type,
     format: column.format,
     cellVariant: column.cellVariant,
@@ -712,12 +791,28 @@ function downloadZip(): void {
                         v-bind="activatorProps"
                         type="button"
                         class="stbl-th-inner"
-                        :title="headerTitle(header.title)"
-                        :aria-label="`${headerTitle(header.title)} – ${$t(
+                        :title="stripSubSup(header.title)"
+                        :aria-label="`${stripSubSup(header.title)} – ${$t(
                           'commons.column_options'
                         )}`"
+                        @click="cycleSort(header)"
                       >
-                        <span class="stbl-th-label"><text-subscript :text="header.title" /></span>
+                        <!-- Tooltip/aria keep the long title; only the visible
+                             label swaps to the short one when space is tight.
+                             Word shorts uppercase like any header; only symbol
+                             shorts keep their (semantic) case. -->
+                        <span
+                          class="stbl-th-label"
+                          :class="{ 'is-symbol': useShortTitles && header.shortTitle?.isSymbol }"
+                        >
+                          <text-subscript
+                            :text="
+                              useShortTitles && header.shortTitle
+                                ? header.shortTitle.text
+                                : header.title
+                            "
+                          />
+                        </span>
                         <v-icon
                           v-if="sortBy?.key === header.key"
                           class="stbl-sort"
@@ -761,7 +856,6 @@ function downloadZip(): void {
                         <v-icon size="16" :icon="mdiClose" />
                         {{ $t('commons.clear_sort') }}
                       </button>
-                      <div class="stbl-menu-sep" />
                       <div class="stbl-menu-filter">
                         <v-select
                           v-if="header.options"
@@ -811,6 +905,13 @@ function downloadZip(): void {
                           :label="$t('commons.filter')"
                           :items="booleanOptions"
                         />
+                      </div>
+                      <div class="stbl-menu-sep" />
+                      <!-- Full column title (+ unit) as a caption — the visible
+                           header may be ellipsised or swapped to its short label. -->
+                      <div class="stbl-menu-title">
+                        <text-subscript :text="header.title" />
+                        <span v-if="header.unit" class="stbl-menu-unit">[{{ header.unit }}]</span>
                       </div>
                     </div>
                   </v-menu>
@@ -1206,6 +1307,11 @@ function downloadZip(): void {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Symbol labels keep their case — it's semantic (t ≠ T) — while inheriting the
+   header letter-spacing the width measurer compensates for. */
+.stbl-th-label.is-symbol {
+  text-transform: none;
+}
 .stbl-th.is-sorted {
   color: var(--fg);
 }
@@ -1244,6 +1350,19 @@ function downloadZip(): void {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: 0 6px 24px rgb(0 0 0 / 12%);
+}
+.stbl-menu-title {
+  padding: 5px 10px 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg);
+  /* Long titles wrap rather than widening the popover past its min-width. */
+  overflow-wrap: break-word;
+}
+.stbl-menu-unit {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--fg-muted);
 }
 .stbl-menu-item {
   display: flex;

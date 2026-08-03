@@ -142,6 +142,7 @@ function getImageSource(item: string): string {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    database-id="connections"
     :columns="columns"
     hide-filter-only
     hide-toolbar

@@ -2,8 +2,11 @@
   "brace": {
     "investigator": "Investigator",
     "specimen_ID": "Specimen Designation",
+    "specimen_ID_short": "Specimen",
     "cross_section_size": "Cross Section",
+    "cross_section_size_short": "Section",
     "steel": "Steel Grade",
+    "steel_short": "Steel",
     "kl_r": "kL/ry",
     "d_br/t_br": "b/t",
     "cross_section_shape": "Cross Section Shape",
@@ -13,9 +16,12 @@
   },
   "column": {
     "experimental_program": "Experimental Program",
+    "experimental_program_short": "Program",
     "date": "Date",
     "section_c": "Column Section",
+    "section_c_short": "Section",
     "specimen_designation": "Specimen Designation",
+    "specimen_designation_short": "Specimen",
     "d_c": "Column Depth [mm]",
     "h_over_t_cw": "h / tw",
     "b_f_over_t_cf": "b / t",
@@ -23,6 +29,7 @@
     "steel_c": "Steel Material",
     "boundary_condition": "Boundary Condition",
     "direction_lp": "Load Direction",
+    "direction_lp_short": "Direction",
     "p_g_over_p_ym": "Pg / Py",
     "th_80": "θp [rad]",
     "built_up": "Column Section"
@@ -30,17 +37,22 @@
   "connection": {
     "id": "ID",
     "experimental_program": "Experimental Program",
+    "experimental_program_short": "Program",
     "date": "Date",
     "specimen_designation": "Specimen Designation",
+    "specimen_designation_short": "Specimen",
     "northridge": "Northridge",
     "specimen_type": "Specimen Type",
     "slab": "SLAB",
     "connection_type": "Connection Type",
+    "connection_type_short": "Type",
     "section_b": "Beam Section",
+    "section_b_short": "Beam",
     "d_b": "Beam Depth [mm]",
     "d_b/d_c": "db / dc",
     "steel_b": "Beam Steel Material",
     "section_c": "Column Section",
+    "section_c_short": "Column",
     "d_c": "Column Depth [mm]",
     "t_cf": "Column Flange Thickness",
     "t_dp": "Doubler Plates Thickness [mm]",
@@ -51,8 +63,11 @@
   },
   "material": {
     "experimental_program": "Experimental Program",
+    "experimental_program_short": "Program",
     "id": "Specimen Designation",
+    "id_short": "Specimen",
     "type": "Steel Type",
+    "type_short": "Steel",
     "profile": "Profile",
     "profile_type": "Profile Type",
     "source": "Source",
@@ -65,10 +80,13 @@
   },
   "residual": {
     "experimental_program": "Experimental Program",
+    "experimental_program_short": "Program",
     "id": "Specimen Designation",
     "profile": "Cross Section",
+    "profile_short": "Section",
     "profile_type": "Profile type",
     "steel": "Steel Grade",
+    "steel_short": "Steel",
     "tf": "tf [mm]",
     "h": "Height of the cross section [mm]",
     "date": "Date",
@@ -76,10 +94,13 @@
   },
   "hss": {
     "tube_section": "Column Cross Section",
+    "tube_section_short": "Section",
     "investigator": "Experimental Program",
+    "investigator_short": "Program",
     "axial_load_ratio": "Pg/Py",
     "depth_over_t": "D/t",
     "loading_angle": "Load Angle",
+    "loading_angle_short": "Angle",
     "flexural_buckling": "Buckling",
     "date": "Date"
   },
@@ -93,8 +114,11 @@
   },
   "tensile_coupon": {
     "experimental_program": "Experimental Program",
+    "experimental_program_short": "Program",
     "id": "Specimen Designation",
+    "id_short": "Specimen",
     "steel_grade": "Steel Type",
+    "steel_grade_short": "Steel",
     "profile": "Profile",
     "profile_type": "Profile Type",
     "specimen_source": "Source",
@@ -120,12 +144,15 @@
     "id": "Specimen ID",
     "specimen_designation": "Specimen Designation",
     "experimental_program": "Experimental Program",
+    "experimental_program_short": "Program",
     "date": "Year",
     "specimen_type": "Specimen Type",
+    "specimen_type_short": "Specimen",
     "loading": "Loading",
     "section_type": "Section Type",
     "section_profile": "Section Profile",
     "steel_type": "Steel Type",
+    "steel_type_short": "Steel",
     "coupon_direction": "Coupon Direction",
     "location_coupon": "Coupon Location",
     "plate_thickness": "Plate Thickness [mm]",
@@ -911,11 +938,17 @@
       "title": "EBF Links",
       "columns": {
         "experimentalProgram": "Experimental Program",
+        "experimentalProgram_short": "Program",
         "specimenDesignation": "Specimen Designation",
+        "specimenDesignation_short": "Specimen",
         "linkCrossSection": "Link cross-section",
+        "linkCrossSection_short": "Section",
         "linkLocation": "Link location",
+        "linkLocation_short": "Location",
         "linkLength": "Link length [mm]",
-        "steelMaterial": "Steel material [MPa]"
+        "linkLength_short": "Length [mm]",
+        "steelMaterial": "Steel material [MPa]",
+        "steelMaterial_short": "Steel [MPa]"
       },
       "tooltip": {
         "intro": "The database on eccentric braced frame (EBF) links presents data from early 1977s on EBF Links under reversed cyclic and monotonic loading. The primary data involve the deduced shear-link angle of the EBF link.",
@@ -929,7 +962,8 @@
     "ductile_fracture": {
       "title": "Ductile Fracture",
       "columns": {
-        "profileType": "Profile Type"
+        "profileType": "Profile Type",
+        "profileType_short": "Profile"
       }
     },
     "material": {

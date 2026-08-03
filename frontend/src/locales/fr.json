@@ -129,8 +129,11 @@
   "brace": {
     "investigator": "Investigateur",
     "specimen_ID": "Désignation de l'éprouvette",
+    "specimen_ID_short": "Éprouvette",
     "cross_section_size": "Section transversale",
+    "cross_section_size_short": "Section",
     "steel": "Nuance d'acier",
+    "steel_short": "Acier",
     "kl_r": "kL/ry",
     "d_br/t_br": "b/t",
     "cross_section_shape": "Forme de section",
@@ -140,9 +143,12 @@
   },
   "column": {
     "experimental_program": "Programme expérimental",
+    "experimental_program_short": "Programme",
     "date": "Date",
     "section_c": "Section du poteau",
+    "section_c_short": "Section",
     "specimen_designation": "Désignation de l'éprouvette",
+    "specimen_designation_short": "Éprouvette",
     "d_c": "Hauteur du poteau [mm]",
     "h_over_t_cw": "h / tw",
     "b_f_over_t_cf": "b / t",
@@ -150,6 +156,7 @@
     "steel_c": "Matériau acier",
     "boundary_condition": "Condition d'appui",
     "direction_lp": "Direction de chargement",
+    "direction_lp_short": "Direction",
     "p_g_over_p_ym": "Pg / Py",
     "th_80": "θp [rad]",
     "built_up": "Section du poteau"
@@ -157,17 +164,22 @@
   "connection": {
     "id": "ID",
     "experimental_program": "Programme expérimental",
+    "experimental_program_short": "Programme",
     "date": "Date",
     "specimen_designation": "Désignation de l'éprouvette",
+    "specimen_designation_short": "Éprouvette",
     "northridge": "Northridge",
     "specimen_type": "Type d'éprouvette",
     "slab": "SLAB",
     "connection_type": "Type d'assemblage",
+    "connection_type_short": "Type",
     "section_b": "Section de la poutre",
+    "section_b_short": "Poutre",
     "d_b": "Hauteur de la poutre [mm]",
     "d_b/d_c": "db / dc",
     "steel_b": "Matériau acier de la poutre",
     "section_c": "Section du poteau",
+    "section_c_short": "Poteau",
     "d_c": "Hauteur du poteau [mm]",
     "t_cf": "Épaisseur de semelle du poteau",
     "t_dp": "Épaisseur des plaques de renfort (d'âme) [mm]",
@@ -178,8 +190,11 @@
   },
   "material": {
     "experimental_program": "Programme expérimental",
+    "experimental_program_short": "Programme",
     "id": "Désignation de l'éprouvette",
+    "id_short": "Éprouvette",
     "type": "Type d'acier",
+    "type_short": "Acier",
     "profile": "Profilé",
     "profile_type": "Type de profilé",
     "source": "Source",
@@ -192,10 +207,13 @@
   },
   "residual": {
     "experimental_program": "Programme expérimental",
+    "experimental_program_short": "Programme",
     "id": "Désignation de l'éprouvette",
     "profile": "Section transversale",
+    "profile_short": "Section",
     "profile_type": "Type de profilé",
     "steel": "Nuance d'acier",
+    "steel_short": "Acier",
     "tf": "tf [mm]",
     "h": "Hauteur de la section [mm]",
     "date": "Date",
@@ -203,10 +221,13 @@
   },
   "hss": {
     "tube_section": "Section du poteau",
+    "tube_section_short": "Section",
     "investigator": "Programme expérimental",
+    "investigator_short": "Programme",
     "axial_load_ratio": "Pg/Py",
     "depth_over_t": "D/t",
     "loading_angle": "Angle de chargement",
+    "loading_angle_short": "Angle",
     "flexural_buckling": "Flambement",
     "date": "Date"
   },
@@ -220,8 +241,11 @@
   },
   "tensile_coupon": {
     "experimental_program": "Programme expérimental",
+    "experimental_program_short": "Programme",
     "id": "Désignation de l'éprouvette",
+    "id_short": "Éprouvette",
     "steel_grade": "Type d'acier",
+    "steel_grade_short": "Acier",
     "profile": "Profilé",
     "profile_type": "Type de profilé",
     "specimen_source": "Source",
@@ -247,12 +271,15 @@
     "id": "ID de l'éprouvette",
     "specimen_designation": "Désignation de l'éprouvette",
     "experimental_program": "Programme expérimental",
+    "experimental_program_short": "Programme",
     "date": "Année",
     "specimen_type": "Type d'éprouvette",
+    "specimen_type_short": "Éprouvette",
     "loading": "Chargement",
     "section_type": "Type de section",
     "section_profile": "Profilé de section",
     "steel_type": "Type d'acier",
+    "steel_type_short": "Acier",
     "coupon_direction": "Direction de l'éprouvette",
     "location_coupon": "Position de l'éprouvette",
     "plate_thickness": "Épaisseur de plaque [mm]",
@@ -644,11 +671,17 @@
       "title": "Tronçons EBF",
       "columns": {
         "experimentalProgram": "Programme expérimental",
+        "experimentalProgram_short": "Programme",
         "specimenDesignation": "Désignation de l'éprouvette",
+        "specimenDesignation_short": "Éprouvette",
         "linkCrossSection": "Section du tronçon",
+        "linkCrossSection_short": "Section",
         "linkLocation": "Position du tronçon",
+        "linkLocation_short": "Position",
         "linkLength": "Longueur du tronçon [mm]",
-        "steelMaterial": "Matériau acier [MPa]"
+        "linkLength_short": "Longueur [mm]",
+        "steelMaterial": "Matériau acier [MPa]",
+        "steelMaterial_short": "Acier [MPa]"
       },
       "tooltip": {
         "intro": "La base de données sur les tronçons des portiques à treillis excentré (EBF) présente des données depuis le début des années 1977 sur les tronçons EBF sous chargement cyclique alterné et monotone. Les données principales concernent l'angle déduit cisaillement-tronçon du tronçon EBF.",
@@ -662,7 +695,8 @@
     "ductile_fracture": {
       "title": "Rupture ductile",
       "columns": {
-        "profileType": "Type de profilé"
+        "profileType": "Type de profilé",
+        "profileType_short": "Profilé"
       }
     },
     "material": {

@@ -8,9 +8,6 @@ import { ductileFractureApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { displayLoading } from '@/utils/ductile_fracture'
 import { toRef } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const columns: Column[] = [
   {
@@ -34,7 +31,7 @@ const columns: Column[] = [
   {
     value: DuctileFractureField.SectionType,
     type: 'text',
-    title: t('table.ductile_fracture.columns.profileType')
+    titleKey: 'table.ductile_fracture.columns.profileType'
   }
 ]
 
@@ -116,6 +113,7 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    database-id="ductile-fracture"
     :columns="columns"
     hide-toolbar
     :live-count="liveCount"
