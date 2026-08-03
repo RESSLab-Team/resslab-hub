@@ -30,9 +30,10 @@ _TOKEN_TTL = 3000  # ~50 min
 _token_cache: dict = {"token": None, "expiry": 0.0}
 _token_lock = Lock()
 
-# Cache the (slow-changing) user-count result per `days` window for a short
-# time so the home page's repeated calls don't each hit Google Analytics.
-_RESULT_TTL = 300  # 5 min
+# Cache the (slow-changing) user-count result per `days` window so the home
+# page's repeated calls don't each hit Google Analytics. The count is a
+# cumulative total, so half an hour of staleness is invisible on the KPI.
+_RESULT_TTL = 1800  # 30 min
 _result_cache: dict = {}
 _result_lock = Lock()
 
