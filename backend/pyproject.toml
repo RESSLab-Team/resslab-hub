@@ -36,6 +36,7 @@ dev = [
   "pre-commit>=3.0.4,<4",
   "ruff>=0.9,<1",
   "sqlalchemy[mypy]>=2.0.4,<3",
+  "watchfiles>=1.2.0",
 ]
 sem = [
   "opencv-python-headless>=4.8,<5",
