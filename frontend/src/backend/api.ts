@@ -990,6 +990,14 @@ export type ConnectionNumberField = typeof ConnectionNumberField[keyof typeof Co
 
 
 /**
+ * The pull request opened on the data repository for a submission.
+ */
+export interface ContributionResponse {
+    'pr_url': string;
+    'pr_number': number;
+    'branch': string;
+}
+/**
  * Count
  */
 export interface CountModel {
@@ -5587,6 +5595,86 @@ export class ConnectionsApi extends BaseAPI {
 export const DefaultApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * Re-validate a contribution archive and open a pull request on the data repository. Errors block; warnings pass and are listed in the PR body.
+         * @summary Create Contribution
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {string} contributorName 
+         * @param {string} contributorEmail 
+         * @param {string} [institution] 
+         * @param {string} [orcid] 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createContribution: async (type: Type, file: File, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'type' is not null or undefined
+            assertParamExists('createContribution', 'type', type)
+            // verify required parameter 'file' is not null or undefined
+            assertParamExists('createContribution', 'file', file)
+            // verify required parameter 'contributorName' is not null or undefined
+            assertParamExists('createContribution', 'contributorName', contributorName)
+            // verify required parameter 'contributorEmail' is not null or undefined
+            assertParamExists('createContribution', 'contributorEmail', contributorEmail)
+            const localVarPath = `/contributions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
+
+            // authentication HTTPBasic required
+            // http basic authentication required
+            setBasicAuthToObject(localVarRequestOptions, configuration)
+
+            if (type !== undefined) {
+                localVarQueryParameter['type'] = type;
+            }
+
+
+            if (file !== undefined) { 
+                localVarFormParams.append('file', file as any);
+            }
+
+            if (contributorName !== undefined) { 
+                localVarFormParams.append('contributor_name', contributorName as any);
+            }
+
+            if (contributorEmail !== undefined) { 
+                localVarFormParams.append('contributor_email', contributorEmail as any);
+            }
+
+            if (institution !== undefined) { 
+                localVarFormParams.append('institution', institution as any);
+            }
+
+            if (orcid !== undefined) { 
+                localVarFormParams.append('orcid', orcid as any);
+            }
+
+            if (dismissedWarnings !== undefined) { 
+                localVarFormParams.append('dismissed_warnings', dismissedWarnings as any);
+            }
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = localVarFormParams;
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Create Upload File
          * @param {Type} type 
@@ -5702,6 +5790,36 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
+         * @summary Readyz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        readyz: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/readyz`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get Info
          * @summary Root
          * @param {*} [options] Override http request option.
@@ -5736,10 +5854,11 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * @summary Validate Data
          * @param {Type} type 
          * @param {File} file 
+         * @param {boolean} [checkDuplicates] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        validateData: async (type: Type, file: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        validateData: async (type: Type, file: File, checkDuplicates?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'type' is not null or undefined
             assertParamExists('validateData', 'type', type)
             // verify required parameter 'file' is not null or undefined
@@ -5759,6 +5878,10 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
 
             if (type !== undefined) {
                 localVarQueryParameter['type'] = type;
+            }
+
+            if (checkDuplicates !== undefined) {
+                localVarQueryParameter['check_duplicates'] = checkDuplicates;
             }
 
 
@@ -5787,6 +5910,25 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
 export const DefaultApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = DefaultApiAxiosParamCreator(configuration)
     return {
+        /**
+         * Re-validate a contribution archive and open a pull request on the data repository. Errors block; warnings pass and are listed in the PR body.
+         * @summary Create Contribution
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {string} contributorName 
+         * @param {string} contributorEmail 
+         * @param {string} [institution] 
+         * @param {string} [orcid] 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createContribution(type: Type, file: File, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ContributionResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createContribution(type, file, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.createContribution']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
         /**
          * 
          * @summary Create Upload File
@@ -5826,6 +5968,18 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
+         * @summary Readyz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async readyz(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.readyz(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.readyz']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Get Info
          * @summary Root
          * @param {*} [options] Override http request option.
@@ -5842,11 +5996,12 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * @summary Validate Data
          * @param {Type} type 
          * @param {File} file 
+         * @param {boolean} [checkDuplicates] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async validateData(type: Type, file: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ValidationResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.validateData(type, file, options);
+        async validateData(type: Type, file: File, checkDuplicates?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ValidationResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.validateData(type, file, checkDuplicates, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['DefaultApi.validateData']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5860,6 +6015,22 @@ export const DefaultApiFp = function(configuration?: Configuration) {
 export const DefaultApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = DefaultApiFp(configuration)
     return {
+        /**
+         * Re-validate a contribution archive and open a pull request on the data repository. Errors block; warnings pass and are listed in the PR body.
+         * @summary Create Contribution
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {string} contributorName 
+         * @param {string} contributorEmail 
+         * @param {string} [institution] 
+         * @param {string} [orcid] 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createContribution(type: Type, file: File, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): AxiosPromise<ContributionResponse> {
+            return localVarFp.createContribution(type, file, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(axios, basePath));
+        },
         /**
          * 
          * @summary Create Upload File
@@ -5890,6 +6061,15 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.healthz(options).then((request) => request(axios, basePath));
         },
         /**
+         * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
+         * @summary Readyz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        readyz(options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.readyz(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get Info
          * @summary Root
          * @param {*} [options] Override http request option.
@@ -5903,11 +6083,12 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * @summary Validate Data
          * @param {Type} type 
          * @param {File} file 
+         * @param {boolean} [checkDuplicates] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        validateData(type: Type, file: File, options?: RawAxiosRequestConfig): AxiosPromise<ValidationResponse> {
-            return localVarFp.validateData(type, file, options).then((request) => request(axios, basePath));
+        validateData(type: Type, file: File, checkDuplicates?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<ValidationResponse> {
+            return localVarFp.validateData(type, file, checkDuplicates, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -5916,6 +6097,23 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
  * DefaultApi - object-oriented interface
  */
 export class DefaultApi extends BaseAPI {
+    /**
+     * Re-validate a contribution archive and open a pull request on the data repository. Errors block; warnings pass and are listed in the PR body.
+     * @summary Create Contribution
+     * @param {Type} type 
+     * @param {File} file 
+     * @param {string} contributorName 
+     * @param {string} contributorEmail 
+     * @param {string} [institution] 
+     * @param {string} [orcid] 
+     * @param {string} [dismissedWarnings] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createContribution(type: Type, file: File, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).createContribution(type, file, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @summary Create Upload File
@@ -5949,6 +6147,16 @@ export class DefaultApi extends BaseAPI {
     }
 
     /**
+     * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
+     * @summary Readyz
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public readyz(options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).readyz(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Get Info
      * @summary Root
      * @param {*} [options] Override http request option.
@@ -5963,11 +6171,12 @@ export class DefaultApi extends BaseAPI {
      * @summary Validate Data
      * @param {Type} type 
      * @param {File} file 
+     * @param {boolean} [checkDuplicates] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public validateData(type: Type, file: File, options?: RawAxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).validateData(type, file, options).then((request) => request(this.axios, this.basePath));
+    public validateData(type: Type, file: File, checkDuplicates?: boolean, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).validateData(type, file, checkDuplicates, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
