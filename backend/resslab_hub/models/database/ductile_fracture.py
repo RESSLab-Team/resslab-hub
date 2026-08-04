@@ -11,11 +11,8 @@ from sqlalchemy import (
     Numeric,
     SmallInteger,
     String,
-    cast,
-    func,
-    select,
+    text,
 )
-from sqlalchemy.orm import column_property
 
 from resslab_hub.models.database.common import DecimalFloat
 from resslab_hub.utils.database import Base
@@ -193,82 +190,24 @@ class DuctileFracture(Base):  # type: ignore
     has_sem = Column(Boolean, nullable=True)
     # END_OF_GENERATED_CODE
 
-    # The *_count fields only feed "has data" checks. min(id) IS NOT NULL
-    # resolves as a single probe of the (fk, id) primary-key index; a plain
-    # EXISTS lets the planner pick per-row seq scans when FK stats are skewed.
-    force_elongation_count = column_property(
-        cast(
-            select(func.min(DuctileFractureForceElongation.id))
-            .where(DuctileFractureForceElongation.ductile_fracture_id == id)
-            .correlate_except(DuctileFractureForceElongation)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
+    # of every upload (see resslab_hub/data/count_flags.py).
+    force_elongation_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )
-
-    force_elongation_simulation_count = column_property(
-        cast(
-            select(func.min(DuctileFractureForceElongationSimulation.id))
-            .where(DuctileFractureForceElongationSimulation.ductile_fracture_id == id)
-            .correlate_except(DuctileFractureForceElongationSimulation)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    force_elongation_simulation_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )
-
-    force_radial_count = column_property(
-        cast(
-            select(func.min(DuctileFractureForceRadial.id))
-            .where(DuctileFractureForceRadial.ductile_fracture_id == id)
-            .correlate_except(DuctileFractureForceRadial)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    force_radial_count = Column(SmallInteger, nullable=False, server_default=text("0"))
+    force_radial_simulation_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )
-
-    force_radial_simulation_count = column_property(
-        cast(
-            select(func.min(DuctileFractureForceRadialSimulation.id))
-            .where(DuctileFractureForceRadialSimulation.ductile_fracture_id == id)
-            .correlate_except(DuctileFractureForceRadialSimulation)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    epeq_simulation_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )
-
-    epeq_simulation_count = column_property(
-        cast(
-            select(func.min(DuctileFractureEpeqSimulation.id))
-            .where(DuctileFractureEpeqSimulation.ductile_fracture_id == id)
-            .correlate_except(DuctileFractureEpeqSimulation)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    lode_simulation_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )
-
-    lode_simulation_count = column_property(
-        cast(
-            select(func.min(DuctileFractureLodeSimulation.id))
-            .where(DuctileFractureLodeSimulation.ductile_fracture_id == id)
-            .correlate_except(DuctileFractureLodeSimulation)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
-    )
-
-    triax_simulation_count = column_property(
-        cast(
-            select(func.min(DuctileFractureTriaxSimulation.id))
-            .where(DuctileFractureTriaxSimulation.ductile_fracture_id == id)
-            .correlate_except(DuctileFractureTriaxSimulation)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    triax_simulation_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )

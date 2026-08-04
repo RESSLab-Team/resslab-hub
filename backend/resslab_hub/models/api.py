@@ -224,9 +224,6 @@ class ConnectionModel(ApiModel):
     global_west_count: int
     panel_zone_count: int
 
-    global_west_count: int
-    panel_zone_count: int
-
 
 class CountModel(BaseModel):
     """

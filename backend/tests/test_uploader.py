@@ -15,11 +15,13 @@ from decimal import Decimal
 import pytest
 from sqlalchemy import Boolean, Column, Date, Numeric, SmallInteger, String
 
+from resslab_hub.data.count_flags import recompute_count_flags
 from resslab_hub.data.uploader import (
     CsvFileUploader,
     TableUploader,
     Type,
     Uploader,
+    upload_all,
     upload_one,
 )
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
@@ -269,3 +271,48 @@ def test_dictionary_uploader_replaces_previous_rows(tmp_path, db_session):
     )
     assert [row.column_name for row in rows] == ["id"]
     assert rows[0].description == "New"
+
+
+# ---------------------------------------------------------------------------
+# Derived *_count flags
+# ---------------------------------------------------------------------------
+def test_recompute_count_flags_follows_child_rows(tmp_path, db_session):
+    _seed_brace(tmp_path, "B1")
+    assert db_session.query(Brace).one().displacement_count == 0  # server default
+
+    measurement = tmp_path / "B1.csv"
+    write_measurement_csv(
+        measurement,
+        ["Displacement [mm]", "Force [kN]"],
+        [["0.0", "0.0"], ["1.0", "5.0"]],
+    )
+    upload_one(Type.BRACE_DISPLACEMENT, str(measurement))
+    recompute_count_flags(db_session)
+    db_session.commit()
+    assert db_session.query(Brace).one().displacement_count == 1
+
+    # Re-upload the measurement file empty: rows are wiped, flag drops back.
+    write_measurement_csv(measurement, ["Displacement [mm]", "Force [kN]"], [])
+    upload_one(Type.BRACE_DISPLACEMENT, str(measurement))
+    recompute_count_flags(db_session)
+    db_session.commit()
+    assert db_session.query(Brace).one().displacement_count == 0
+
+
+def test_upload_all_recomputes_flags(tmp_path, db_session):
+    """upload_all sets the flags itself — no manual recompute step."""
+    root = tmp_path / "braces"
+    root.mkdir()
+    write_main_csv(root / "steel_braces.csv", Brace, [{"id": "B1"}, {"id": "B2"}])
+    measurements = root / "force_displacement"
+    measurements.mkdir()
+    write_measurement_csv(
+        measurements / "B1.csv",
+        ["Displacement [mm]", "Force [kN]"],
+        [["0.0", "0.0"]],
+    )
+
+    upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    flags = {b.id: b.displacement_count for b in db_session.query(Brace).all()}
+    assert flags == {"B1": 1, "B2": 0}

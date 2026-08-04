@@ -174,7 +174,7 @@ SEM images live on the EPFL enacit4r-cdn in prod. For local dev:
 1. Run `cd backend && DRY_RUN=1 make precompute-sem` — converts every TIF under `resslab-hub-data/material/ductile_fracture/sem/<id>/` to WebP and writes dimple JSONs alongside, output goes to `resslab-hub-data/material/ductile_fracture/sem/_webp/` (gitignored).
 2. Create the symlink **once**: `ln -s ../../../resslab-hub-data/material/ductile_fracture/sem/_webp frontend/public/sem`. It's gitignored (it would be a dangling link inside the Docker build context and break the prod build). Vite serves the files at `/sem/<id>/...`. `.env.development` already sets `VITE_SEM_CDN_BASE_URL=/sem`, so `npm run dev` hits the local files. Production builds use `.env.production` → the real CDN.
 
-For real CDN uploads, drop `DRY_RUN` and provide `ACCESS_KEY_ID` / `ACCESS_KEY_SECRET` from EPFL ops. Set `has_sem=True` for the corresponding row in `ductile_fracture.csv` once images are in place.
+For real CDN uploads, drop `DRY_RUN` and provide `ACCESS_KEY_ID` / `ACCESS_KEY_SECRET` from EPFL ops. The script then sets `has_sem=yes` in `ductile_fracture.csv` for the processed specimens (set-only, never clears) — commit that change to the data repo.
 
 ### Adding a new component tab
 
