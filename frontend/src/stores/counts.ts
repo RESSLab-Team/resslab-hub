@@ -90,7 +90,7 @@ export const useCountsStore = defineStore('counts', () => {
   const countsSettled = ref(0)
   const countsFailed = ref(0)
   let fetched = false
-  let homeFetched = false
+  let homeKpisInFlight = false
 
   // Which KPIs already carry live values from earlier in this session — the
   // home page uses this to skip the first-load animations.
@@ -145,13 +145,15 @@ export const useCountsStore = defineStore('counts', () => {
   }
 
   // The home page's remaining two live KPIs (distinct universities on the map,
-  // analytics users). Fetched once per session, like the counts, so revisiting
-  // the home page doesn't reset them to the snapshot and re-animate.
+  // analytics users). Refetched on every home visit so the numbers stay fresh,
+  // but the values and statuses persist in the store between visits: a repeat
+  // visit keeps showing the settled numbers while the refresh runs quietly,
+  // and only a genuinely changed number moves (a single count-up tween).
   function fetchHomeKpis(): void {
-    if (homeFetched) {
+    if (homeKpisInFlight) {
       return
     }
-    homeFetched = true
+    homeKpisInFlight = true
     import('@/plugins/axios').then(
       ({
         analyticsApi,
@@ -167,7 +169,7 @@ export const useCountsStore = defineStore('counts', () => {
           ConnectionField &
           MaterialField &
           HSSColumnField)[] = ['latitude', 'longitude']
-        Promise.all([
+        const universitiesSettled = Promise.all([
           bracesApi.getBracesCounts(latLngFields),
           columnsApi.getColumnsCounts(latLngFields),
           connectionsApi.getConnectionsCounts(latLngFields),
@@ -189,7 +191,7 @@ export const useCountsStore = defineStore('counts', () => {
             universitiesStatus.value = 'stale'
           })
 
-        analyticsApi
+        const usersSettled = analyticsApi
           .getUsers()
           .then((response) => response.data)
           .then((count) => {
@@ -208,6 +210,12 @@ export const useCountsStore = defineStore('counts', () => {
           .catch(() => {
             usersStatus.value = 'stale'
           })
+
+        // Both chains catch, so this only gates overlapping refetches (e.g.
+        // quickly navigating away from and back to the home page).
+        Promise.all([universitiesSettled, usersSettled]).finally(() => {
+          homeKpisInFlight = false
+        })
       }
     )
   }
