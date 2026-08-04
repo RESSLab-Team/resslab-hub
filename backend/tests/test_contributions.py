@@ -240,6 +240,7 @@ async def test_submit_rejects_repo_duplicates(tmp_path, monkeypatch):
 
 
 async def test_submit_rejects_header_drift(tmp_path, monkeypatch):
+    # The repo CSV lacks batch columns entirely -> real schema drift.
     patch_validation(monkeypatch)
     client = FakeClient({"braces/steel_braces.csv": "id,other\nB1,1\n"})
     with pytest.raises(SubmissionError) as caught:
@@ -247,6 +248,31 @@ async def test_submit_rejects_header_drift(tmp_path, monkeypatch):
             str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
         )
     assert caught.value.status_code == 502
+    assert "f_y" in caught.value.detail
+
+
+async def test_submit_aligns_to_repo_column_order_and_extras(tmp_path, monkeypatch):
+    # Real repo CSVs can order columns differently from the dictionary and
+    # keep legacy extras (hss_columns' test_id); rows align by name, extras NR.
+    patch_validation(monkeypatch)
+    repo = "test_id,id,name,f_y\n1,B1,First,355\n"
+    client = FakeClient({"braces/steel_braces.csv": repo})
+    await submit_contribution(
+        str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    merged = {f.path: f.content for f in client.committed}["braces/steel_braces.csv"]
+    lines = merged.strip().split("\n")
+    assert lines[0] == "test_id,id,name,f_y"
+    assert lines[-1] == "NR,B9,New one,400"
+
+
+async def test_read_csv_strips_bom(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": "\ufeff" + REPO_CSV})
+    result = await submit_contribution(
+        str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    assert result.pr_number == 7
 
 
 async def test_submit_cleans_up_branch_on_pr_failure(tmp_path, monkeypatch):

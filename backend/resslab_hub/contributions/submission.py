@@ -134,7 +134,9 @@ def escape_formula(cell: str) -> str:
 
 
 def _read_csv(text: str) -> tuple[List[str], List[List[str]]]:
-    rows = list(csv.reader(io.StringIO(text)))
+    # Excel-exported repo CSVs may carry a UTF-8 BOM; never let it glue itself
+    # onto the first header name.
+    rows = list(csv.reader(io.StringIO(text.lstrip("\ufeff"))))
     if not rows:
         raise SubmissionError(400, "The primary CSV is empty.")
     return rows[0], [row for row in rows[1:] if any(cell.strip() for cell in row)]
@@ -279,12 +281,18 @@ async def submit_contribution(
     client = client or DataRepoClient()
     repo_text = await client.get_file_text(layout.primary_csv)
     repo_header, repo_rows = _read_csv(repo_text)
-    if repo_header != header:
+
+    # Align by column NAME, not position: the repo CSV's order can differ from
+    # the dictionary's, and it may carry legacy extras the dictionary dropped
+    # (e.g. hss_columns' test_id) — those get NR, and the uploader ignores
+    # them anyway. Only a batch column the repo lacks is real schema drift.
+    missing = [name for name in header if name not in repo_header]
+    if missing:
         raise SubmissionError(
             502,
-            "The data repository's CSV columns differ from this contribution's "
-            "— the data dictionary may have changed. Please contact the "
-            "maintainers.",
+            "The data repository's CSV is missing columns this contribution "
+            f"provides ({', '.join(missing)}) — the data dictionary may have "
+            "changed. Please contact the maintainers.",
         )
 
     id_index = repo_header.index("id")
@@ -297,8 +305,18 @@ async def submit_contribution(
             + ", ".join(clashes),
         )
 
-    escaped_rows = [[escape_formula(cell) for cell in row] for row in rows]
-    merged_csv = _write_csv(repo_header, repo_rows + escaped_rows)
+    batch_index = {name: position for position, name in enumerate(header)}
+
+    def repo_ordered(row: List[str]) -> List[str]:
+        cells = []
+        for name in repo_header:
+            position = batch_index.get(name)
+            in_batch = position is not None and position < len(row)
+            value = row[position] if in_batch else ""
+            cells.append(escape_formula(value.strip() or "NR"))
+        return cells
+
+    merged_csv = _write_csv(repo_header, repo_rows + [repo_ordered(r) for r in rows])
 
     files = [NewFile(layout.primary_csv, merged_csv)]
     curve_count = 0
