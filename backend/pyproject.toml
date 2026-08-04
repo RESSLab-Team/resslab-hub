@@ -28,6 +28,8 @@ dependencies = [
   # runtime (not just tests): the startup cache warmer issues requests
   # against the app's own ASGI stack via httpx.ASGITransport
   "httpx>=0.27,<1",
+  # GitHub App client for contribution PRs on the data repo
+  "githubkit[auth-app]>=0.12,<0.13",
 ]
 
 [dependency-groups]

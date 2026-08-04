@@ -26,6 +26,14 @@ settings = Dynaconf(
         Validator("google_application_credentials", default=None),
         Validator("api_username", default="user"),
         Validator("api_password", must_exist=True),
+        # GitHub App used to open contribution PRs on the data repo. All three
+        # credentials present = submissions enabled; otherwise POST
+        # /contributions answers 503 and the app runs without the feature.
+        Validator("github_app_id", default=None),
+        Validator("github_app_private_key", default=None),
+        Validator("github_app_installation_id", default=None),
+        Validator("data_repo", default="RESSLab-Team/resslab-hub-data"),
+        Validator("data_repo_base_branch", default="main"),
     ],
 )
 

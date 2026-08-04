@@ -1,13 +1,49 @@
 import { useContributionStore } from '@/stores/contribution'
 import { useDictionaryStore, type DictColumn } from '@/stores/dictionary'
 import { buildCsv } from '@/utils/contribution'
+import { postContribution } from '@/utils/submission'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
+import { nextTick } from 'vue'
+
+vi.mock('@/utils/submission', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/submission')>()),
+  postContribution: vi.fn()
+}))
+
+// jsdom has no CompressionStream; the archive itself is covered by tar tests.
+vi.mock('@/utils/tar', () => ({
+  buildTarGz: vi.fn(async () => new File(['tar'], 'contribution.tar.gz'))
+}))
 
 const BRACE_COLUMNS: DictColumn[] = [
-  { name: 'id', description: '', symbol: '', unit: '-', type: 'String', example: 'B1', nullable: false },
-  { name: 'area', description: '', symbol: '', unit: 'mm2', type: 'Numeric', example: '10', nullable: true },
-  { name: 'investigator', description: '', symbol: '', unit: '-', type: 'String', example: 'X', nullable: false }
+  {
+    name: 'id',
+    description: '',
+    symbol: '',
+    unit: '-',
+    type: 'String',
+    example: 'B1',
+    nullable: false
+  },
+  {
+    name: 'area',
+    description: '',
+    symbol: '',
+    unit: 'mm2',
+    type: 'Numeric',
+    example: '10',
+    nullable: true
+  },
+  {
+    name: 'investigator',
+    description: '',
+    symbol: '',
+    unit: '-',
+    type: 'String',
+    example: 'X',
+    nullable: false
+  }
 ]
 
 function seededStore(columns: DictColumn[] = BRACE_COLUMNS) {
@@ -105,7 +141,15 @@ describe('contribution store — experiment rows', () => {
   it('re-raises a dismissed warning when the value it was about changes', () => {
     const store = seededStore([
       ...BRACE_COLUMNS,
-      { name: 'cycles', description: '', symbol: '', unit: '-', type: 'Integer', example: '2', nullable: true }
+      {
+        name: 'cycles',
+        description: '',
+        symbol: '',
+        unit: '-',
+        type: 'Integer',
+        example: '2',
+        nullable: true
+      }
     ])
     const row = store.rows[0]
     row.cells.id = 'B1'
@@ -184,5 +228,123 @@ describe('contribution store — experiment rows', () => {
     expect(store.experimentCount).toBe(2)
     expect(store.specimenIds).toEqual(['B1'])
     expect(store.clientErrorCount).toBeGreaterThanOrEqual(2)
+  })
+})
+
+describe('contribution store — submission', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.mocked(postContribution).mockReset()
+  })
+
+  const CONTRIBUTOR = { name: 'Ada', email: 'ada@example.edu', institution: '', orcid: '' }
+
+  /** Edits flush the reset watcher; settle it before handing out a verdict. */
+  async function submittableStore() {
+    const store = seededStore()
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    row.cells.investigator = 'X'
+    await nextTick()
+    store.status = 'pass'
+    return store
+  }
+
+  it('gates canSubmit on a clean batch with a server verdict', async () => {
+    const store = seededStore()
+    expect(store.canSubmit).toBe(false) // no id, no verdict
+
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    row.cells.investigator = 'X'
+    await nextTick()
+    store.status = 'pass'
+    expect(store.canSubmit).toBe(true)
+
+    store.status = 'warn'
+    expect(store.canSubmit).toBe(true) // warnings never block
+
+    store.status = 'fail'
+    expect(store.canSubmit).toBe(false)
+    store.status = 'unsupported'
+    expect(store.canSubmit).toBe(false) // no server validator -> no PR
+  })
+
+  it('submits the batch and records the pull request', async () => {
+    const store = await submittableStore()
+    vi.mocked(postContribution).mockResolvedValue({
+      pr_url: 'https://github.com/x/pull/7',
+      pr_number: 7,
+      branch: 'contrib/braces/b1-abc'
+    })
+
+    await store.submit(CONTRIBUTOR)
+
+    expect(store.submitStatus).toBe('submitted')
+    expect(store.pullRequestUrl).toBe('https://github.com/x/pull/7')
+    expect(store.pullRequestNumber).toBe(7)
+    const [, archive, contributor] = (postContribution as Mock).mock.calls[0]
+    expect(archive).toBeInstanceOf(File)
+    expect(contributor).toEqual(CONTRIBUTOR)
+  })
+
+  it('passes dismissed warnings, labelled by specimen id', async () => {
+    const store = seededStore()
+    const row = store.rows[0]
+    row.cells.id = 'B1' // "investigator" left blank -> warning
+    const warning = store.activeIssuesFor(row.uid).find((issue) => issue.level === 'warn')
+    store.dismissIssue(warning!.key)
+    await nextTick()
+    store.status = 'warn'
+    vi.mocked(postContribution).mockResolvedValue({
+      pr_url: 'u',
+      pr_number: 1,
+      branch: 'b'
+    })
+
+    await store.submit(CONTRIBUTOR)
+
+    const [, , , dismissed] = (postContribution as Mock).mock.calls[0]
+    expect(dismissed).toHaveLength(1)
+    expect(dismissed[0]).toMatch(/^B1: /)
+  })
+
+  it('maps a 422 validation report onto the editor and reports the failure', async () => {
+    const store = await submittableStore()
+    vi.mocked(postContribution).mockRejectedValue({
+      isAxiosError: true,
+      response: {
+        status: 422,
+        data: {
+          valid: false,
+          message: 'Validation failed',
+          error_count: 1,
+          results: [
+            {
+              file: 'steel_braces.csv',
+              path: 'braces/steel_braces.csv',
+              valid: false,
+              errors: [{ row: 1, column: 'id', value: 'B1', message: 'already exists' }],
+              warnings: []
+            }
+          ],
+          error_results: [],
+          valid_results: []
+        }
+      }
+    })
+
+    await store.submit(CONTRIBUTOR)
+
+    expect(store.submitStatus).toBe('error')
+    expect(store.status).toBe('fail')
+    expect(store.response?.error_count).toBe(1)
+  })
+
+  it('does nothing when the batch is not submittable', async () => {
+    const store = seededStore()
+    await store.submit(CONTRIBUTOR)
+    expect(postContribution).not.toHaveBeenCalled()
+    expect(store.submitStatus).toBe('idle')
   })
 })

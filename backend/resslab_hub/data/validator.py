@@ -30,6 +30,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Session
 
 from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
+from resslab_hub.data.count_flags import COUNT_FLAGS
 from resslab_hub.data.uploader import (
     Type,
     get_args_all,
@@ -116,9 +117,27 @@ class TableValidator(Validator):
     Validator for table data (csv files with headers matching table columns)
     """
 
-    def __init__(self, base_model: Any, id_column_key: str = "id"):
+    def __init__(
+        self,
+        base_model: Any,
+        id_column_key: str = "id",
+        check_duplicate_ids: bool = False,
+    ):
         self.base_model = base_model
         self.id_column_key = id_column_key
+        # Opt-in (contribution checks only): the data-repo CI validates the
+        # full repo CSVs, whose ids are all already in the database — flagging
+        # those as duplicates would make that CI permanently red.
+        self.check_duplicate_ids = check_duplicate_ids
+
+    def _existing_ids(self) -> set:
+        """Ids already in the table; empty when the database is unreachable."""
+        id_column = self.base_model.__table__.c[self.id_column_key]
+        try:
+            with Session(engine) as session:
+                return {row[0] for row in session.execute(select(id_column))}
+        except Exception:
+            return set()
 
     def _range_stats(self) -> dict:
         """Per-column (count, min, max) over existing data, one query per file.
@@ -185,6 +204,8 @@ class TableValidator(Validator):
         file_path = get_abs_path(file_path)
         result = ValidationResult(path.basename(file_path), file_path)
         range_stats = self._range_stats()
+        existing_ids = self._existing_ids() if self.check_duplicate_ids else set()
+        seen_ids: set = set()
 
         try:
             encoding = get_file_encoding(file_path)
@@ -193,8 +214,12 @@ class TableValidator(Validator):
                 headers = next(csv_reader)
 
                 debug(f"Validating headers for {path.basename(file_path)}")
-                # Validate headers
-                expected_columns = {col.key for col in self.base_model.__table__.c}
+                # Validate headers. Derived *_count flags are physical columns
+                # on the model but have no CSV header (recomputed at upload),
+                # so they are never required from a contributed file.
+                expected_columns = {
+                    col.key for col in self.base_model.__table__.c
+                } - set(COUNT_FLAGS.get(self.base_model, {}))
 
                 debug(f"Expected columns: {expected_columns}")
                 debug(f"Found columns: {headers}")
@@ -251,6 +276,29 @@ class TableValidator(Validator):
                         self._check_range(
                             result, row_num, column_name, value, range_stats
                         )
+                        if (
+                            self.check_duplicate_ids
+                            and column_name == self.id_column_key
+                            and value.strip()
+                        ):
+                            specimen_id = value.strip()
+                            if specimen_id in existing_ids:
+                                result.add_error(
+                                    row_num,
+                                    column_name,
+                                    value,
+                                    f"Specimen id '{specimen_id}' already exists "
+                                    f"in the database — ids must be unique.",
+                                )
+                            elif specimen_id in seen_ids:
+                                result.add_error(
+                                    row_num,
+                                    column_name,
+                                    value,
+                                    f"Specimen id '{specimen_id}' appears more "
+                                    f"than once in this contribution.",
+                                )
+                            seen_ids.add(specimen_id)
 
         except Exception as e:
             result.add_error(0, "file", file_path, f"Failed to process file: {str(e)}")
@@ -616,7 +664,10 @@ PRIMARY_TYPE_MAP = {
 
 
 def validate_with_primary(
-    input_type: Type, filename: str, primary_csv_paths: dict = None
+    input_type: Type,
+    filename: str,
+    primary_csv_paths: dict = None,
+    check_duplicate_ids: bool = False,
 ) -> ValidationResult:
     """Helper function to create validator with appropriate primary CSV
     Args:
@@ -628,6 +679,8 @@ def validate_with_primary(
     """Helper function to create validator with appropriate primary CSV"""
     try:
         validator = validate_one_file(input_type, filename)
+        if isinstance(validator, TableValidator):
+            validator.check_duplicate_ids = check_duplicate_ids
         if isinstance(validator, CsvFileValidator):
             primary_type = PRIMARY_TYPE_MAP.get(input_type)
             if primary_type and primary_csv_paths:
@@ -650,14 +703,17 @@ _PARALLEL_MIN_TASKS = 32
 
 
 def _run_validations(
-    tasks, primary_csv_paths, cpu, log_level, log_format
+    tasks, primary_csv_paths, cpu, log_level, log_format, check_duplicate_ids=False
 ) -> List[ValidationResult]:
     """Validate a batch of files, using a process pool only for bulk inputs."""
     if not tasks:
         return []
     workers = min(cpu, len(tasks))
     if workers <= 1 or len(tasks) < _PARALLEL_MIN_TASKS:
-        return [validate_with_primary(t, f, primary_csv_paths) for t, f in tasks]
+        return [
+            validate_with_primary(t, f, primary_csv_paths, check_duplicate_ids)
+            for t, f in tasks
+        ]
     with get_context("spawn").Pool(
         workers,
         initializer=initializer,
@@ -665,12 +721,15 @@ def _run_validations(
     ) as pool:
         return pool.starmap(
             validate_with_primary,
-            [(t, f, primary_csv_paths) for t, f in tasks],
+            [(t, f, primary_csv_paths, check_duplicate_ids) for t, f in tasks],
         )
 
 
 def validate_all(
-    input_type: Type, filenames: List[str], cpu=None
+    input_type: Type,
+    filenames: List[str],
+    cpu=None,
+    check_duplicate_ids: bool = False,
 ) -> List[ValidationResult]:
     """
     Validate all files in parallel
@@ -751,6 +810,7 @@ def validate_all(
                     cpu,
                     current_log_level,
                     current_log_format,
+                    check_duplicate_ids,
                 )
             )
         except Exception as e:

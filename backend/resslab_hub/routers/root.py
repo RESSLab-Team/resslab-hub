@@ -207,6 +207,10 @@ async def validate_data(
     request: Request,
     file: UploadFile = File(...),
     type: Type = Query(...),
+    # Opt-in: the contribution editor flags ids that already exist in the
+    # database as errors. The data-repo CI validates the full repo CSVs, whose
+    # ids are all ingested already, so it must keep the default.
+    check_duplicates: bool = Query(False),
     _: None = Depends(enforce_request_size),
 ):
     try:
@@ -217,7 +221,9 @@ async def validate_data(
             # contribution can exceed validate_all's parallel threshold, and the
             # spawn pool re-imports the whole app per worker -- which OOM-kills a
             # memory-capped pod. See _PARALLEL_MIN_TASKS in validator.py.
-            results = validate_all(type, [tmpdir], cpu=1)
+            results = validate_all(
+                type, [tmpdir], cpu=1, check_duplicate_ids=check_duplicates
+            )
 
             # A validation report is a successful operation even when the data
             # has errors: 200 with valid=false. 4xx is reserved for transport

@@ -1,0 +1,326 @@
+"""
+Unit tests for the contribution submission flow.
+
+Pure-unit: GitHub is a fake client, validation is monkeypatched, and the
+validator's database lookups are stubbed — nothing here needs Postgres.
+"""
+
+from pathlib import Path
+
+import pytest
+
+from resslab_hub.contributions import submission
+from resslab_hub.contributions.submission import (
+    Contributor,
+    SubmissionError,
+    SubmissionValidationFailed,
+    batch_ids,
+    check_paths,
+    escape_formula,
+    submit_contribution,
+)
+from resslab_hub.data.uploader import Type
+from resslab_hub.data.validator import TableValidator, ValidationResult
+from resslab_hub.models.database.brace import Brace
+
+CONTRIBUTOR = Contributor(
+    name="Ada Lovelace", email="ada@example.edu", institution="EPFL"
+)
+
+REPO_CSV = "id,f_y,name\nB1,355,First\nB2,275,Second\n"
+
+
+def write_archive(tmp_path: Path, files: dict) -> Path:
+    for rel, content in files.items():
+        target = tmp_path / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content)
+    return tmp_path
+
+
+class FakeClient:
+    """In-memory DataRepoClient double recording every call."""
+
+    def __init__(self, repo_files: dict):
+        self.repo_files = repo_files
+        self.committed: list = []
+        self.commit_kwargs: dict = {}
+        self.pr: dict = {}
+        self.deleted_branches: list = []
+        self.fail_pr = False
+
+    async def get_file_text(self, path, ref=None):
+        return self.repo_files[path]
+
+    async def get_base_sha(self):
+        return "base-sha"
+
+    async def commit_files(self, branch, base_sha, files, message, name, email):
+        self.committed = files
+        self.commit_kwargs = {
+            "branch": branch,
+            "base_sha": base_sha,
+            "message": message,
+            "author_name": name,
+            "author_email": email,
+        }
+        return "commit-sha"
+
+    async def create_pull_request(self, branch, title, body):
+        if self.fail_pr:
+            raise RuntimeError("boom")
+        self.pr = {"branch": branch, "title": title, "body": body}
+        return {"url": "https://github.com/x/pull/7", "number": 7}
+
+    async def delete_branch(self, branch):
+        self.deleted_branches.append(branch)
+
+
+def valid_result() -> ValidationResult:
+    return ValidationResult("steel_braces.csv")
+
+
+def patch_validation(monkeypatch, results=None):
+    monkeypatch.setattr(
+        submission, "validate_all", lambda *a, **k: results or [valid_result()]
+    )
+
+
+# --- escape_formula ---------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("cell", "expected"),
+    [
+        ("=SUM(A1:A9)", "'=SUM(A1:A9)"),
+        ("@import", "'@import"),
+        ("+41 21 693 11 11", "'+41 21 693 11 11"),
+        ("-DROP TABLE", "'-DROP TABLE"),
+        ("-1.5", "-1.5"),  # negative numbers are data, not formulas
+        ("+2e3", "+2e3"),
+        ("hello", "hello"),
+        ("NR", "NR"),
+    ],
+)
+def test_escape_formula(cell, expected):
+    assert escape_formula(cell) == expected
+
+
+# --- path allowlist ---------------------------------------------------------
+
+
+def test_check_paths_accepts_known_layout(tmp_path):
+    write_archive(
+        tmp_path,
+        {
+            "braces/steel_braces.csv": REPO_CSV,
+            "braces/force_displacement/B9.csv": "a,b\n1,2\n",
+        },
+    )
+    layout = check_paths(str(tmp_path), Type.ALL_BRACE)
+    assert layout.primary_csv == "braces/steel_braces.csv"
+
+
+@pytest.mark.parametrize(
+    "bad_path",
+    [
+        ".github/workflows/evil.yml",  # workflow injection
+        "braces/evil.sh",  # non-CSV beside the primary
+        "columns/steel_columns.csv",  # wrong component directory
+        "braces/force_displacement/.hidden.csv",  # leading dot
+        "braces/force_displacement/deep/B1.csv",  # unexpected nesting
+    ],
+)
+def test_check_paths_rejects_unknown_locations(tmp_path, bad_path):
+    write_archive(
+        tmp_path,
+        {"braces/steel_braces.csv": REPO_CSV, bad_path: "x"},
+    )
+    with pytest.raises(SubmissionError) as caught:
+        check_paths(str(tmp_path), Type.ALL_BRACE)
+    assert caught.value.status_code == 400
+
+
+# --- batch ids --------------------------------------------------------------
+
+
+def test_batch_ids_rejects_duplicates_and_bad_names():
+    header = ["id", "f_y"]
+    with pytest.raises(SubmissionError) as caught:
+        batch_ids(header, [["B9", "1"], ["B9", "2"]])
+    assert caught.value.status_code == 409
+    with pytest.raises(SubmissionError):
+        batch_ids(header, [["../evil", "1"]])
+    with pytest.raises(SubmissionError):
+        batch_ids(header, [["", "1"]])
+    assert batch_ids(header, [["B9", "1"], ["B10.a", "2"]]) == ["B9", "B10.a"]
+
+
+# --- submission flow --------------------------------------------------------
+
+
+def make_batch(tmp_path, csv_text="id,f_y,name\nB9,400,New one\n"):
+    return write_archive(
+        tmp_path,
+        {
+            "braces/steel_braces.csv": csv_text,
+            "braces/force_displacement/B9.csv": "Displacement [mm],Force [kN]\n0,0\n",
+        },
+    )
+
+
+async def test_submit_happy_path(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    result = await submit_contribution(
+        str(make_batch(tmp_path)),
+        Type.ALL_BRACE,
+        CONTRIBUTOR,
+        ["Value is far outside the range"],
+        client=client,
+    )
+
+    assert result.pr_url == "https://github.com/x/pull/7"
+    assert result.pr_number == 7
+    assert result.branch.startswith("contrib/braces/b9-")
+
+    by_path = {file.path: file.content for file in client.committed}
+    merged = by_path["braces/steel_braces.csv"]
+    # Existing rows kept, batch row appended.
+    assert merged.startswith(REPO_CSV.rstrip("\n"))
+    assert "B9,400,New one" in merged
+    assert "braces/force_displacement/B9.csv" in by_path
+    provenance_path = next(p for p in by_path if p.startswith("contributions/braces/"))
+    assert '"identity": "self-declared"' in by_path[provenance_path]
+    assert "Value is far outside the range" in by_path[provenance_path]
+
+    assert client.commit_kwargs["author_name"] == "Ada Lovelace"
+    assert client.commit_kwargs["author_email"] == "ada@example.edu"
+    assert "dismissed" in client.pr["body"]
+    assert "Ada Lovelace" in client.pr["body"]
+
+
+async def test_submit_escapes_formula_cells(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    batch = make_batch(tmp_path, "id,f_y,name\nB9,-1.5,=cmd()\n")
+    await submit_contribution(
+        str(batch), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    merged = {f.path: f.content for f in client.committed}["braces/steel_braces.csv"]
+    assert "'=cmd()" in merged
+    assert "-1.5" in merged and "'-1.5" not in merged
+
+
+async def test_submit_blocks_on_validation_errors(tmp_path, monkeypatch):
+    failed = valid_result()
+    failed.add_error(1, "f_y", "x", "Must be a number")
+    patch_validation(monkeypatch, [failed])
+    with pytest.raises(SubmissionValidationFailed):
+        await submit_contribution(
+            str(make_batch(tmp_path)),
+            Type.ALL_BRACE,
+            CONTRIBUTOR,
+            [],
+            client=FakeClient({"braces/steel_braces.csv": REPO_CSV}),
+        )
+
+
+async def test_submit_rejects_repo_duplicates(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    batch = make_batch(tmp_path, "id,f_y,name\nB2,400,Clash\n")
+    with pytest.raises(SubmissionError) as caught:
+        await submit_contribution(
+            str(batch), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+        )
+    assert caught.value.status_code == 409
+    assert "B2" in caught.value.detail
+    assert client.pr == {}
+
+
+async def test_submit_rejects_header_drift(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": "id,other\nB1,1\n"})
+    with pytest.raises(SubmissionError) as caught:
+        await submit_contribution(
+            str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+        )
+    assert caught.value.status_code == 502
+
+
+async def test_submit_cleans_up_branch_on_pr_failure(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    client.fail_pr = True
+    with pytest.raises(SubmissionError) as caught:
+        await submit_contribution(
+            str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+        )
+    assert caught.value.status_code == 502
+    assert len(client.deleted_branches) == 1
+
+
+async def test_submit_unsupported_type(tmp_path, monkeypatch):
+    def raise_unimplemented(*a, **k):
+        raise NotImplementedError
+
+    monkeypatch.setattr(submission, "validate_all", raise_unimplemented)
+    with pytest.raises(SubmissionError) as caught:
+        await submit_contribution(
+            str(make_batch(tmp_path)),
+            Type.ALL_BRACE,
+            CONTRIBUTOR,
+            [],
+            client=FakeClient({}),
+        )
+    assert caught.value.status_code == 422
+
+
+# --- duplicate-id check in the validator ------------------------------------
+
+
+def brace_csv(tmp_path, rows: str) -> str:
+    header = ",".join(col.key for col in Brace.__table__.c)
+    target = tmp_path / "steel_braces.csv"
+    target.write_text(f"{header}\n{rows}")
+    return str(target)
+
+
+def stub_db(monkeypatch, existing: set):
+    monkeypatch.setattr(TableValidator, "_range_stats", lambda self: {})
+    monkeypatch.setattr(TableValidator, "_existing_ids", lambda self: existing)
+
+
+def duplicate_errors(result: ValidationResult) -> list:
+    return [err for err in result.errors if "already exists" in err.message]
+
+
+def test_validator_flags_ids_already_in_database(tmp_path, monkeypatch):
+    stub_db(monkeypatch, {"B1"})
+    columns = list(Brace.__table__.c)
+    row = ",".join("B1" if col.key == "id" else "NR" for col in columns)
+    validator = TableValidator(Brace, check_duplicate_ids=True)
+    result = validator.validate_one(brace_csv(tmp_path, f"{row}\n"))
+    errors = duplicate_errors(result)
+    assert len(errors) == 1
+    assert errors[0].row == 1
+    assert errors[0].column == "id"
+
+
+def test_validator_flags_in_batch_duplicates(tmp_path, monkeypatch):
+    stub_db(monkeypatch, set())
+    columns = list(Brace.__table__.c)
+    row = ",".join("B9" if col.key == "id" else "NR" for col in columns)
+    validator = TableValidator(Brace, check_duplicate_ids=True)
+    result = validator.validate_one(brace_csv(tmp_path, f"{row}\n{row}\n"))
+    assert any("more than once" in err.message for err in result.errors)
+
+
+def test_validator_default_skips_duplicate_check(tmp_path, monkeypatch):
+    stub_db(monkeypatch, {"B1"})
+    columns = list(Brace.__table__.c)
+    row = ",".join("B1" if col.key == "id" else "NR" for col in columns)
+    validator = TableValidator(Brace)
+    result = validator.validate_one(brace_csv(tmp_path, f"{row}\n"))
+    assert duplicate_errors(result) == []

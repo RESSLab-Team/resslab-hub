@@ -1052,7 +1052,7 @@
     "title": "New submission",
     "description": "Add experiments to the open steel database: pick the target database, fill or import the metadata, attach measured responses. Everything is checked automatically as you go.",
     "submit": "Submit for review",
-    "draft_notice": "Submission is not implemented yet — this draft ends at the automatic quality check.",
+    "draft_notice": "Submitting opens a review request on the RESSLab data repository — a curator approves it before the data goes live.",
     "dictionary_loading": "Loading the data dictionary…",
     "dictionary_error": "The data dictionary could not be loaded — is the backend reachable?",
     "retry": "Retry",
@@ -1141,6 +1141,26 @@
         "triax_simulation": "Triaxiality (simulation)"
       },
       "attach": "Attach file"
+    },
+    "submitting": "Submitting…",
+    "submit_failed": "The submission failed:",
+    "submitted": {
+      "title": "Submitted — review request #{number} is open.",
+      "next": "A curator will review it; the data goes live once the request is approved and merged.",
+      "view_pr": "View review request",
+      "new": "Start a new contribution"
+    },
+    "dialog": {
+      "title": "Submit for review",
+      "recap": "You are submitting {experiments} experiment(s) and {files} test-data file(s).",
+      "recap_dismissed": "{count} dismissed warning(s) will be listed for the curator.",
+      "name": "Your name",
+      "email": "Email",
+      "institution": "Institution",
+      "orcid": "ORCID iD",
+      "note": "These details are recorded with the submission so curators can credit and contact you. They appear publicly in the data repository.",
+      "cancel": "Cancel",
+      "confirm": "Submit"
     }
   }
 }

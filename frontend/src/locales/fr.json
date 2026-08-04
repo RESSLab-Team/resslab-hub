@@ -1052,7 +1052,7 @@
     "title": "Nouvelle soumission",
     "description": "Ajoutez des expériences à la base de données ouverte : choisissez la base cible, saisissez ou importez les métadonnées, joignez les réponses mesurées. Tout est vérifié automatiquement au fil de la saisie.",
     "submit": "Soumettre pour relecture",
-    "draft_notice": "La soumission n’est pas encore disponible — cette ébauche s’arrête au contrôle qualité automatique.",
+    "draft_notice": "La soumission ouvre une demande de relecture sur le dépôt de données RESSLab — un curateur l’approuve avant la mise en ligne des données.",
     "dictionary_loading": "Chargement du dictionnaire de données…",
     "dictionary_error": "Le dictionnaire de données n’a pas pu être chargé — le backend est-il joignable ?",
     "retry": "Réessayer",
@@ -1141,6 +1141,26 @@
         "triax_simulation": "Triaxialité (simulation)"
       },
       "attach": "Joindre un fichier"
+    },
+    "submitting": "Envoi…",
+    "submit_failed": "La soumission a échoué :",
+    "submitted": {
+      "title": "Soumis — la demande de relecture #{number} est ouverte.",
+      "next": "Un curateur va la relire ; les données seront en ligne une fois la demande approuvée et fusionnée.",
+      "view_pr": "Voir la demande",
+      "new": "Nouvelle contribution"
+    },
+    "dialog": {
+      "title": "Soumettre pour relecture",
+      "recap": "Vous soumettez {experiments} expérience(s) et {files} fichier(s) de mesures.",
+      "recap_dismissed": "{count} avertissement(s) écarté(s) seront listés pour le curateur.",
+      "name": "Votre nom",
+      "email": "E-mail",
+      "institution": "Institution",
+      "orcid": "Identifiant ORCID",
+      "note": "Ces informations sont enregistrées avec la soumission afin que les curateurs puissent vous créditer et vous contacter. Elles apparaissent publiquement dans le dépôt de données.",
+      "cancel": "Annuler",
+      "confirm": "Soumettre"
     }
   }
 }

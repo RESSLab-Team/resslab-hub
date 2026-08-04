@@ -120,6 +120,16 @@
             "schema": {
               "$ref": "#/components/schemas/Type"
             }
+          },
+          {
+            "name": "check_duplicates",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Check Duplicates"
+            }
           }
         ],
         "requestBody": {
@@ -175,6 +185,60 @@
             "HTTPBasic": []
           }
         ]
+      }
+    },
+    "/contributions": {
+      "post": {
+        "summary": "Create Contribution",
+        "description": "Re-validate a contribution archive and open a pull request on the data\nrepository. Errors block; warnings pass and are listed in the PR body.",
+        "operationId": "create_contribution",
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Type"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_contribution_contributions_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContributionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
       }
     },
     "/analytics/users": {
@@ -6340,6 +6404,51 @@
   },
   "components": {
     "schemas": {
+      "Body_create_contribution_contributions_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "contributor_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Contributor Name"
+          },
+          "contributor_email": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Contributor Email"
+          },
+          "institution": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Institution",
+            "default": ""
+          },
+          "orcid": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Orcid",
+            "default": ""
+          },
+          "dismissed_warnings": {
+            "type": "string",
+            "title": "Dismissed Warnings",
+            "default": "[]"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "contributor_name",
+          "contributor_email"
+        ],
+        "title": "Body_create_contribution_contributions_post"
+      },
       "Body_create_upload_file_upload_post": {
         "properties": {
           "file": {
@@ -10553,6 +10662,30 @@
           "panel_zone_count"
         ],
         "title": "ConnectionNumberField"
+      },
+      "ContributionResponse": {
+        "properties": {
+          "pr_url": {
+            "type": "string",
+            "title": "Pr Url"
+          },
+          "pr_number": {
+            "type": "integer",
+            "title": "Pr Number"
+          },
+          "branch": {
+            "type": "string",
+            "title": "Branch"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pr_url",
+          "pr_number",
+          "branch"
+        ],
+        "title": "ContributionResponse",
+        "description": "The pull request opened on the data repository for a submission."
       },
       "CountModel": {
         "properties": {

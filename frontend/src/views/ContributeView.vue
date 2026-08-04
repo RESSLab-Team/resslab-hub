@@ -5,10 +5,13 @@ import { useContributionStore } from '@/stores/contribution'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import { DATABASES, type DatabaseId } from '@/utils/navigation'
+import { loadContributor, saveContributor } from '@/utils/submission'
 import {
   mdiAlertOutline,
   mdiBellOffOutline,
   mdiCheck,
+  mdiCheckCircleOutline,
+  mdiOpenInNew,
   mdiSend,
   mdiShieldCheckOutline
 } from '@mdi/js'
@@ -64,6 +67,37 @@ const statusText = computed(() => {
 const statusClass = computed(() =>
   store.status === 'warn' && store.activeWarningCount === 0 ? 'pass' : store.status
 )
+
+// --- Submission dialog ----------------------------------------------------
+
+const dialogOpen = ref(false)
+const contributor = ref(loadContributor())
+
+const contributorValid = computed(
+  () =>
+    contributor.value.name.trim().length > 0 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contributor.value.email.trim())
+)
+
+const curveCount = computed(() => Object.keys(store.timeSeries).length)
+
+function openDialog(): void {
+  contributor.value = loadContributor()
+  dialogOpen.value = true
+}
+
+async function confirmSubmit(): Promise<void> {
+  if (!contributorValid.value) return
+  const details = {
+    name: contributor.value.name.trim(),
+    email: contributor.value.email.trim(),
+    institution: contributor.value.institution.trim(),
+    orcid: contributor.value.orcid.trim()
+  }
+  saveContributor(details)
+  dialogOpen.value = false
+  await store.submit(details)
+}
 </script>
 
 <template>
@@ -112,7 +146,25 @@ const statusClass = computed(() =>
       <experiment-cards v-else />
     </template>
 
-    <footer v-if="store.database && dictionary.ready" class="status-bar">
+    <footer
+      v-if="store.database && dictionary.ready && store.submitStatus === 'submitted'"
+      class="status-bar submitted-bar"
+    >
+      <span class="status pass">
+        <v-icon :icon="mdiCheckCircleOutline" size="16" />
+        {{ $t('contribute.submitted.title', { number: store.pullRequestNumber }) }}
+      </span>
+      <span class="submitted-note">{{ $t('contribute.submitted.next') }}</span>
+      <span class="spacer" />
+      <a class="btn btn-secondary btn-sm" :href="store.pullRequestUrl" target="_blank">
+        <v-icon :icon="mdiOpenInNew" size="14" />{{ $t('contribute.submitted.view_pr') }}
+      </a>
+      <button class="btn btn-primary btn-sm" type="button" @click="store.reset()">
+        {{ $t('contribute.submitted.new') }}
+      </button>
+    </footer>
+
+    <footer v-else-if="store.database && dictionary.ready" class="status-bar">
       <span class="status" :class="statusClass">
         <v-icon
           :icon="
@@ -147,11 +199,75 @@ const statusClass = computed(() =>
       >
         {{ $t('contribute.status.check_now') }}
       </button>
-      <button class="btn btn-primary btn-sm" disabled type="button">
-        <v-icon :icon="mdiSend" size="14" />{{ $t('contribute.submit') }}
+      <button
+        class="btn btn-primary btn-sm"
+        :disabled="!store.canSubmit"
+        type="button"
+        @click="openDialog()"
+      >
+        <v-icon :icon="mdiSend" size="14" />
+        {{
+          store.submitStatus === 'submitting'
+            ? $t('contribute.submitting')
+            : $t('contribute.submit')
+        }}
       </button>
+      <span v-if="store.submitStatus === 'error'" class="submit-error">
+        {{ $t('contribute.submit_failed') }} {{ store.submitError }}
+      </span>
       <span class="draft-note">{{ $t('contribute.draft_notice') }}</span>
     </footer>
+
+    <div v-if="dialogOpen" class="dialog-backdrop" @click.self="dialogOpen = false">
+      <div class="dialog tool-card" role="dialog" aria-modal="true">
+        <div class="tool-card-h">{{ $t('contribute.dialog.title') }}</div>
+        <p class="dialog-recap">
+          {{
+            $t('contribute.dialog.recap', {
+              experiments: store.experimentCount,
+              files: curveCount
+            })
+          }}
+          <template v-if="store.dismissedWarningMessages.length">
+            {{
+              $t('contribute.dialog.recap_dismissed', {
+                count: store.dismissedWarningMessages.length
+              })
+            }}
+          </template>
+        </p>
+        <label class="dialog-field">
+          <span>{{ $t('contribute.dialog.name') }} *</span>
+          <input v-model="contributor.name" type="text" autocomplete="name" />
+        </label>
+        <label class="dialog-field">
+          <span>{{ $t('contribute.dialog.email') }} *</span>
+          <input v-model="contributor.email" type="email" autocomplete="email" />
+        </label>
+        <label class="dialog-field">
+          <span>{{ $t('contribute.dialog.institution') }}</span>
+          <input v-model="contributor.institution" type="text" autocomplete="organization" />
+        </label>
+        <label class="dialog-field">
+          <span>{{ $t('contribute.dialog.orcid') }}</span>
+          <input v-model="contributor.orcid" type="text" placeholder="0000-0000-0000-0000" />
+        </label>
+        <p class="dialog-note">{{ $t('contribute.dialog.note') }}</p>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary btn-sm" type="button" @click="dialogOpen = false">
+            {{ $t('contribute.dialog.cancel') }}
+          </button>
+          <button
+            class="btn btn-primary btn-sm"
+            :disabled="!contributorValid"
+            type="button"
+            @click="confirmSubmit()"
+          >
+            <v-icon :icon="mdiSend" size="14" />{{ $t('contribute.dialog.confirm') }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -281,5 +397,76 @@ const statusClass = computed(() =>
   flex-basis: 100%;
   font-size: 12px;
   color: var(--fg-muted);
+}
+.submit-error {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: var(--epfl-red);
+}
+.submitted-bar {
+  border-color: var(--epfl-green-text);
+}
+.submitted-note {
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+.submitted-bar .btn {
+  text-decoration: none;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.45);
+}
+.dialog {
+  width: min(440px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg);
+}
+.dialog-recap {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  color: var(--fg-muted);
+}
+.dialog-field {
+  display: block;
+  margin-bottom: 10px;
+}
+.dialog-field span {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.dialog-field input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: 13.5px;
+  border-radius: var(--radius);
+}
+.dialog-field input:focus {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -1px;
+}
+.dialog-note {
+  margin: 12px 0;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 </style>

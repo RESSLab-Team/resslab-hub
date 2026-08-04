@@ -3,6 +3,7 @@ import { useDictionaryStore } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { DatabaseId } from '@/utils/navigation'
 import { mapResponse, type ExperimentReport, type ReportedIssue } from '@/utils/qualityReport'
+import { postContribution, type ContributorInfo } from '@/utils/submission'
 import { buildTarGz } from '@/utils/tar'
 import { timeSeriesKindsFor } from '@/utils/timeseries'
 import type { CellIssue } from '@/utils/validation'
@@ -99,6 +100,11 @@ export const useContributionStore = defineStore('contribution', () => {
   const response = ref<ValidationResponse | null>(null)
   const errorMessage = ref('')
 
+  const submitStatus = ref<'idle' | 'submitting' | 'submitted' | 'error'>('idle')
+  const submitError = ref('')
+  const pullRequestUrl = ref('')
+  const pullRequestNumber = ref(0)
+
   const config = computed(() => (database.value ? CONTRIBUTION_DATABASES[database.value] : null))
   const columns = computed(() => dictionary.columnsFor(database.value))
 
@@ -110,7 +116,10 @@ export const useContributionStore = defineStore('contribution', () => {
 
   /** Per-cell client-side issues across all experiments. */
   const clientIssues = computed<SheetIssues>(() =>
-    validateSheet(columns.value, rows.value.map((row) => row.cells))
+    validateSheet(
+      columns.value,
+      rows.value.map((row) => row.cells)
+    )
   )
 
   const clientErrorCount = computed(() => {
@@ -269,6 +278,7 @@ export const useContributionStore = defineStore('contribution', () => {
     timeSeries.value = {}
     dismissed.value.clear()
     resetQualityCheck()
+    resetSubmission()
   }
 
   function addRow(): void {
@@ -303,6 +313,35 @@ export const useContributionStore = defineStore('contribution', () => {
     errorMessage.value = ''
   }
 
+  /**
+   * The upload artifact: the primary CSV (all experiments) plus each attached
+   * time-series, named `<id>.csv` in its kind's directory — the layout of the
+   * data repository, which both /validate and /contributions expect.
+   */
+  async function buildArchive(): Promise<File> {
+    const columnNames = columns.value.map((column) => column.name)
+    const entries = [
+      {
+        path: config.value!.csvPath,
+        content: buildCsv(
+          columnNames,
+          rows.value.map((r) => r.cells)
+        )
+      }
+    ]
+    for (const row of rows.value) {
+      const id = (row.cells.id ?? '').trim()
+      if (id === '') continue
+      for (const kind of timeSeriesKindsFor(database.value!)) {
+        const attached = timeSeries.value[`${row.uid}:${kind.key}`]
+        if (attached) {
+          entries.push({ path: `${kind.directory}/${id}.csv`, content: attached.content })
+        }
+      }
+    }
+    return buildTarGz(entries, 'contribution.tar.gz')
+  }
+
   async function runQualityCheck(): Promise<void> {
     const target = config.value
     if (!target || !database.value || columns.value.length === 0) return
@@ -318,26 +357,13 @@ export const useContributionStore = defineStore('contribution', () => {
     errorMessage.value = ''
 
     try {
-      // The primary CSV (all experiments) plus each attached time-series, named
-      // `<id>.csv` in its kind's directory — the validator reads the foreign
-      // key from the filename, matched against the primary CSV in the archive.
-      const columnNames = columns.value.map((column) => column.name)
-      const entries = [
-        { path: target.csvPath, content: buildCsv(columnNames, rows.value.map((r) => r.cells)) }
-      ]
-      for (const row of rows.value) {
-        const id = (row.cells.id ?? '').trim()
-        if (id === '') continue
-        for (const kind of timeSeriesKindsFor(database.value)) {
-          const attached = timeSeries.value[`${row.uid}:${kind.key}`]
-          if (attached) {
-            entries.push({ path: `${kind.directory}/${id}.csv`, content: attached.content })
-          }
-        }
-      }
-
-      const archive = await buildTarGz(entries, 'contribution.tar.gz')
-      const { data } = await defaultApi.validateData(target.type, archive)
+      const archive = await buildArchive()
+      const { data } = await defaultApi.validateData(target.type, archive, {
+        // Flag ids that already exist in the database as errors. Opt-in on
+        // the endpoint: the data-repo CI validates full repo CSVs and must
+        // not get this check.
+        params: { check_duplicates: true }
+      })
       if (!isValidationResponse(data)) {
         throw new Error('Unexpected validation response shape.')
       }
@@ -349,6 +375,74 @@ export const useContributionStore = defineStore('contribution', () => {
     }
   }
 
+  // --- Submission -------------------------------------------------------
+
+  /**
+   * Submittable once the batch is clean: no client-side errors, a server
+   * verdict of pass or warn (warnings never block — dismissed or not, they are
+   * listed in the PR), and nothing in flight. The databases without a server
+   * validator stay locked: the backend refuses to open an unvalidated PR.
+   */
+  const canSubmit = computed(
+    () =>
+      hasAnyId.value &&
+      clientErrorCount.value === 0 &&
+      !checking.value &&
+      (status.value === 'pass' || status.value === 'warn') &&
+      submitStatus.value !== 'submitting'
+  )
+
+  /** Human-readable lines for the PR body, one per dismissed warning. */
+  const dismissedWarningMessages = computed<string[]>(() => {
+    const messages: string[] = []
+    for (const row of rows.value) {
+      const id = (row.cells.id ?? '').trim() || `#${row.uid}`
+      for (const issue of dismissedIssuesFor(row.uid)) {
+        messages.push(`${id}: ${issue.message}`)
+      }
+    }
+    return messages
+  })
+
+  async function submit(contributor: ContributorInfo): Promise<void> {
+    const target = config.value
+    if (!target || !database.value || !canSubmit.value) return
+
+    submitStatus.value = 'submitting'
+    submitError.value = ''
+    try {
+      const archive = await buildArchive()
+      const result = await postContribution(
+        target.type,
+        archive,
+        contributor,
+        dismissedWarningMessages.value
+      )
+      pullRequestUrl.value = result.pr_url
+      pullRequestNumber.value = result.pr_number
+      submitStatus.value = 'submitted'
+    } catch (caught) {
+      // A 422 carries a full validation report: surface it through the same
+      // cell mapping as the automatic check.
+      if (isAxiosError(caught) && caught.response?.status === 422) {
+        const data = caught.response.data
+        if (isValidationResponse(data)) {
+          response.value = data
+          status.value = deriveStatus(data)
+        }
+      }
+      submitStatus.value = 'error'
+      submitError.value = transportError(caught)
+    }
+  }
+
+  function resetSubmission(): void {
+    submitStatus.value = 'idle'
+    submitError.value = ''
+    pullRequestUrl.value = ''
+    pullRequestNumber.value = 0
+  }
+
   // Auto-validate: any edit invalidates the last report and re-checks after a
   // quiet delay. Trailing-only, so continuous typing fires nothing; a failed
   // request is not auto-retried (the manual "Check now" button covers that).
@@ -357,6 +451,8 @@ export const useContributionStore = defineStore('contribution', () => {
     [rows, timeSeries],
     () => {
       if (status.value !== 'running') resetQualityCheck()
+      // Editing after a submission starts a new draft.
+      if (submitStatus.value !== 'submitting') resetSubmission()
       clearTimeout(debounce)
       if (!config.value?.qualityCheckSupported || !hasAnyId.value) return
       debounce = setTimeout(() => {
@@ -372,6 +468,7 @@ export const useContributionStore = defineStore('contribution', () => {
     timeSeries.value = {}
     dismissed.value.clear()
     resetQualityCheck()
+    resetSubmission()
   }
 
   return {
@@ -381,6 +478,14 @@ export const useContributionStore = defineStore('contribution', () => {
     status,
     response,
     errorMessage,
+    submitStatus,
+    submitError,
+    pullRequestUrl,
+    pullRequestNumber,
+    canSubmit,
+    dismissedWarningMessages,
+    submit,
+    resetSubmission,
     config,
     columns,
     experimentCount,
