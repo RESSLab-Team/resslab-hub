@@ -1,11 +1,4 @@
 <script setup lang="ts">
-import type {
-  BraceField,
-  ColumnField,
-  ConnectionField,
-  HSSColumnField,
-  MaterialField
-} from '@/backend'
 import EyebrowText from '@/components/commons/EyebrowText.vue'
 import PhotoCarousel from '@/components/home/PhotoCarousel.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
@@ -39,27 +32,28 @@ const galleryImages = [
   src: publicPath + `img/home/Photo${index + 1}.webp`,
   credit
 }))
-// Seeded from the committed snapshot (see utils/kpiSnapshot.ts) so the key
-// numbers render on first paint; the live fetches below overwrite them. Each
-// KPI's status drives the bar under its number: ping-ponging while the live
-// fetch is in flight, muted + tooltip when it failed and the snapshot stays.
-// Displayed values go through useCountUp so a live number that differs from
-// the snapshot counts into place instead of jumping.
-const universityCount = ref<number | null>(kpiSnapshot.universities)
-const userCount = ref<number | null>(kpiSnapshot.users)
-const universityStatus = ref<KpiStatus>('loading')
-const userStatus = ref<KpiStatus>('loading')
+// KPI values live in the counts store, seeded from the committed snapshot
+// (see utils/kpiSnapshot.ts) — overlaid with this session's cached live
+// values — so the key numbers render on first paint; the live fetches
+// overwrite them. Each KPI's status drives the bar under its number:
+// ping-ponging while the live fetch is in flight, muted + tooltip when it
+// failed and the snapshot stays. Displayed values go through useCountUp so a
+// live number that differs from the seed counts into place instead of jumping.
 
 // The loading class is only dropped on an `animationiteration` boundary —
 // each keyframe cycle is a full left-right round trip, so even a fetch that
 // resolves instantly shows one clean trip before the bar settles. Reduced
 // motion runs no animation (and fires no events), so it skips straight to
-// the settled state.
+// the settled state. KPIs already loaded earlier this session (store fetched,
+// or hydrated from the session cache after a reload) skip the bar entirely —
+// their numbers are already the live ones.
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const barAnimating = ref([
-  !reducedMotion && countsStore.countsStatus === 'loading',
-  !reducedMotion && universityStatus.value === 'loading',
-  !reducedMotion && userStatus.value === 'loading',
+  !reducedMotion && !countsStore.hydrated.counts && countsStore.countsStatus === 'loading',
+  !reducedMotion &&
+    !countsStore.hydrated.universities &&
+    countsStore.universitiesStatus === 'loading',
+  !reducedMotion && !countsStore.hydrated.users && countsStore.usersStatus === 'loading',
   false
 ])
 
@@ -75,10 +69,10 @@ function onBarCycle(index: number): void {
 const initialTotal = countsStore.total
 const displayedTotal = useCountUp(() => (barAnimating.value[0] ? initialTotal : countsStore.total))
 const displayedUniversities = useCountUp(() =>
-  barAnimating.value[1] ? kpiSnapshot.universities : universityCount.value
+  barAnimating.value[1] ? kpiSnapshot.universities : countsStore.universities
 )
 const displayedUsers = useCountUp(() =>
-  barAnimating.value[2] ? kpiSnapshot.users : userCount.value
+  barAnimating.value[2] ? kpiSnapshot.users : countsStore.users
 )
 
 const keyNumbers = computed<{ num: number | string; label: string; status: KpiStatus }[]>(() => [
@@ -90,12 +84,12 @@ const keyNumbers = computed<{ num: number | string; label: string; status: KpiSt
   {
     num: displayedUniversities.value ?? '…',
     label: t('home.keyNumbers.universities'),
-    status: universityStatus.value
+    status: countsStore.universitiesStatus
   },
   {
     num: displayedUsers.value != null ? displayedUsers.value.toLocaleString('en-CH') : '…',
     label: t('home.keyNumbers.researchers'),
-    status: userStatus.value
+    status: countsStore.usersStatus
   },
   { num: DATABASES.length, label: t('home.keyNumbers.databases'), status: 'live' }
 ])
@@ -120,66 +114,9 @@ onMounted(() => {
 })
 onBeforeUnmount(() => window.removeEventListener('load', startHeroVideo))
 
-onMounted(async () => {
+onMounted(() => {
   countsStore.fetch()
-
-  // The API client loads lazily, same as in stores/counts: a static import here
-  // would pull axios + the generated client into the home chunk ahead of the
-  // first paint, for numbers that only fill in after mount.
-  const {
-    analyticsApi,
-    bracesApi,
-    columnsApi,
-    connectionsApi,
-    hssApi,
-    materialsApi,
-    residualsApi
-  } = await import('@/plugins/axios')
-
-  // Get university count
-  const latLngFields: (BraceField &
-    ColumnField &
-    ConnectionField &
-    MaterialField &
-    HSSColumnField)[] = ['latitude', 'longitude']
-  Promise.all([
-    bracesApi.getBracesCounts(latLngFields),
-    columnsApi.getColumnsCounts(latLngFields),
-    connectionsApi.getConnectionsCounts(latLngFields),
-    materialsApi.getMaterialsCounts(latLngFields),
-    residualsApi.getResidualStressesCounts(latLngFields),
-    hssApi.getHssColumnsCounts(latLngFields)
-  ])
-    .then(
-      (responses) =>
-        new Set(responses.flatMap((response) => response.data.map((c) => c.names))).size
-    )
-    .then((count) => {
-      universityCount.value = count
-      universityStatus.value = 'live'
-    })
-    .catch(() => {
-      universityStatus.value = 'stale'
-    })
-
-  // Get user count
-  analyticsApi
-    .getUsers()
-    .then((response) => response.data)
-    .then((count) => {
-      // The backend returns -1 when Google Analytics is unavailable
-      // (e.g. no credentials in local dev) — keep the snapshot value then,
-      // marked stale so a broken analytics setup is visible on the tile.
-      if (count >= 0) {
-        userCount.value = count
-        userStatus.value = 'live'
-      } else {
-        userStatus.value = 'stale'
-      }
-    })
-    .catch(() => {
-      userStatus.value = 'stale'
-    })
+  countsStore.fetchHomeKpis()
 })
 </script>
 
@@ -306,7 +243,7 @@ onMounted(async () => {
             <h2 class="section-title">
               {{
                 t('home.reach.title', {
-                  count: universityCount ?? t('home.reach.dozensOf')
+                  count: countsStore.universities ?? t('home.reach.dozensOf')
                 })
               }}
             </h2>
