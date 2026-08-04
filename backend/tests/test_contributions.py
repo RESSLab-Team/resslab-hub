@@ -350,3 +350,16 @@ def test_validator_default_skips_duplicate_check(tmp_path, monkeypatch):
     validator = TableValidator(Brace)
     result = validator.validate_one(brace_csv(tmp_path, f"{row}\n"))
     assert duplicate_errors(result) == []
+
+
+async def test_submit_preserves_repo_crlf_line_endings(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    crlf_repo = REPO_CSV.replace("\n", "\r\n")
+    client = FakeClient({"braces/steel_braces.csv": crlf_repo})
+    await submit_contribution(
+        str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    merged = {f.path: f.content for f in client.committed}["braces/steel_braces.csv"]
+    # The untouched part of the file is byte-identical; the new row follows suit.
+    assert merged.startswith(crlf_repo)
+    assert merged.endswith("B9,400,New one\r\n")

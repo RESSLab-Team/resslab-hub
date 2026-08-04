@@ -142,9 +142,11 @@ def _read_csv(text: str) -> tuple[List[str], List[List[str]]]:
     return rows[0], [row for row in rows[1:] if any(cell.strip() for cell in row)]
 
 
-def _write_csv(header: List[str], rows: List[List[str]]) -> str:
+def _write_csv(
+    header: List[str], rows: List[List[str]], lineterminator: str = "\n"
+) -> str:
     out = io.StringIO()
-    writer = csv.writer(out, lineterminator="\n")
+    writer = csv.writer(out, lineterminator=lineterminator)
     writer.writerow(header)
     writer.writerows(rows)
     return out.getvalue()
@@ -316,7 +318,12 @@ async def submit_contribution(
             cells.append(escape_formula(value.strip() or "NR"))
         return cells
 
-    merged_csv = _write_csv(repo_header, repo_rows + [repo_ordered(r) for r in rows])
+    # Keep the repo file's own line endings (some are CRLF): rewriting them
+    # would turn a one-row contribution into a whole-file diff.
+    terminator = "\r\n" if "\r\n" in repo_text else "\n"
+    merged_csv = _write_csv(
+        repo_header, repo_rows + [repo_ordered(r) for r in rows], terminator
+    )
 
     files = [NewFile(layout.primary_csv, merged_csv)]
     curve_count = 0
