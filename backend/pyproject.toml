@@ -25,6 +25,9 @@ dependencies = [
   "requests>=2.32.3,<3",
   "google-auth>=2.35.0,<3",
   "slowapi>=0.1.10,<0.2",
+  # runtime (not just tests): the startup cache warmer issues requests
+  # against the app's own ASGI stack via httpx.ASGITransport
+  "httpx>=0.27,<1",
 ]
 
 [dependency-groups]
