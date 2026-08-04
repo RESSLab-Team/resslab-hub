@@ -99,9 +99,12 @@ else:
 # calls above so it wraps them (outermost): the duration covers cache hits,
 # gzip and endpoint work alike.
 _timing_logger = logging.getLogger("resslab_hub.timing")
-_timing_handler = logging.StreamHandler()
+# stdout, not the default stderr: uvicorn's access log writes to stdout and
+# these lines belong beside it in `kubectl logs`.
+_timing_handler = logging.StreamHandler(sys.stdout)
 _timing_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
 _timing_logger.addHandler(_timing_handler)
+_timing_logger.setLevel(logging.INFO)
 _timing_logger.propagate = False
 
 
