@@ -5,6 +5,7 @@ https://fastapi.tiangolo.com/tutorial/bigger-applications/
 
 import logging
 import sys
+import time
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -90,6 +91,37 @@ if settings.cors_enabled:
     )
 else:
     logging.warning("cors disabled")
+
+# Timestamped per-request log line + Server-Timing response header, so a slow
+# request seen in the browser can be split into in-app time (this number,
+# shown by devtools in the Network → Timing tab) vs. time spent in the
+# LB/ingress path in front of the pod. Declared after the add_middleware
+# calls above so it wraps them (outermost): the duration covers cache hits,
+# gzip and endpoint work alike.
+_timing_logger = logging.getLogger("resslab_hub.timing")
+_timing_handler = logging.StreamHandler()
+_timing_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
+_timing_logger.addHandler(_timing_handler)
+_timing_logger.propagate = False
+
+
+@app.middleware("http")
+async def server_timing(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - start) * 1000
+    response.headers["Server-Timing"] = f"app;dur={duration_ms:.0f}"
+    if request.url.path not in ("/", "/healthz"):  # probes ping every 10 s
+        query = f"?{request.url.query}" if request.url.query else ""
+        _timing_logger.info(
+            "%s %s%s -> %d in %.0f ms",
+            request.method,
+            request.url.path,
+            query,
+            response.status_code,
+            duration_ms,
+        )
+    return response
 
 
 # Custom error handler for detailed logging
