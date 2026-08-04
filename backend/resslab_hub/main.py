@@ -36,6 +36,7 @@ from resslab_hub.utils.caching import HTTPCacheMiddleware
 from resslab_hub.utils.database import upgrade_database
 from resslab_hub.utils.fastapi import use_route_names_as_operation_ids
 from resslab_hub.utils.rate_limit import limiter
+from resslab_hub.utils.warmup import install as install_warmup
 
 
 # Function to determine if --log-level debug is set
@@ -114,7 +115,7 @@ async def server_timing(request: Request, call_next):
     response = await call_next(request)
     duration_ms = (time.perf_counter() - start) * 1000
     response.headers["Server-Timing"] = f"app;dur={duration_ms:.0f}"
-    if request.url.path not in ("/", "/healthz"):  # probes ping every 10 s
+    if request.url.path not in ("/", "/healthz", "/readyz"):  # probe endpoints
         query = f"?{request.url.query}" if request.url.query else ""
         _timing_logger.info(
             "%s %s%s -> %d in %.0f ms",
@@ -148,6 +149,11 @@ app.include_router(tensile_coupon.router)
 app.include_router(ductile_fracture.router)
 add_pagination(app)
 use_route_names_as_operation_ids(app)
+
+# Warm the response cache at startup (readinessProbe on /readyz waits for it)
+# and refresh entries before they expire, so no visitor ever pays the cold
+# database path. Refresh at 80% of the cache TTL; disabled with caching (dev).
+install_warmup(app, interval=settings.cache_max_age * 0.8)
 
 if settings.database_upgrade:
     upgrade_database()
