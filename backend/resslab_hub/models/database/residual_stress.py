@@ -7,13 +7,11 @@ from sqlalchemy import (
     Column,
     Float,
     ForeignKey,
-    Integer,
     Numeric,
     SmallInteger,
     String,
     cast,
-    func,
-    select,
+    text,
 )
 from sqlalchemy.orm import column_property
 
@@ -103,48 +101,18 @@ class ResidualStress(Base):  # type: ignore
     longitude = Column(Numeric, nullable=True)
     # END_OF_GENERATED_CODE
 
-    # The *_count fields only feed "has data" checks. min(id) IS NOT NULL
-    # resolves as a single probe of the (fk, id) primary-key index; a plain
-    # EXISTS lets the planner pick per-row seq scans when FK stats are skewed.
-    qp_coefficient_count = column_property(
-        cast(
-            select(func.min(ResidualStressQPCoefficient.id))
-            .where(ResidualStressQPCoefficient.residual_stress_id == id)
-            .correlate_except(ResidualStressQPCoefficient)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
+    # of every upload (see resslab_hub/data/count_flags.py).
+    qp_coefficient_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )
-
-    distribution_F1_count = column_property(
-        cast(
-            select(func.min(ResidualStressDistributionF1.id))
-            .where(ResidualStressDistributionF1.residual_stress_id == id)
-            .correlate_except(ResidualStressDistributionF1)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    distribution_F1_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )
-    distribution_F2_count = column_property(
-        cast(
-            select(func.min(ResidualStressDistributionF2.id))
-            .where(ResidualStressDistributionF2.residual_stress_id == id)
-            .correlate_except(ResidualStressDistributionF2)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    distribution_F2_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )
-    distribution_W1_count = column_property(
-        cast(
-            select(func.min(ResidualStressDistributionW1.id))
-            .where(ResidualStressDistributionW1.residual_stress_id == id)
-            .correlate_except(ResidualStressDistributionW1)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    distribution_W1_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )
     h_over_b = column_property(cast(h, Float) / cast(b, Float))

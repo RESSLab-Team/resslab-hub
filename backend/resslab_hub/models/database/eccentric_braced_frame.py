@@ -10,11 +10,8 @@ from sqlalchemy import (
     Numeric,
     SmallInteger,
     String,
-    cast,
-    func,
-    select,
+    text,
 )
-from sqlalchemy.orm import column_property
 
 from resslab_hub.models.database.common import DecimalFloat
 from resslab_hub.utils.database import Base
@@ -143,16 +140,8 @@ class EccentricBracedFrame(Base):  # type: ignore
     longitude = Column(DecimalFloat, nullable=False)
     # END_OF_GENERATED_CODE
 
-    # The *_count fields only feed "has data" checks. min(id) IS NOT NULL
-    # resolves as a single probe of the (fk, id) primary-key index; a plain
-    # EXISTS lets the planner pick per-row seq scans when FK stats are skewed.
-    shear_link_angle_count = column_property(
-        cast(
-            select(func.min(EccentricBracedFrameShearLinkAngle.id))
-            .where(EccentricBracedFrameShearLinkAngle.eccentric_braced_frame_id == id)
-            .correlate_except(EccentricBracedFrameShearLinkAngle)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
+    # of every upload (see resslab_hub/data/count_flags.py).
+    shear_link_angle_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )

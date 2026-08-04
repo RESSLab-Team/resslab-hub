@@ -31,6 +31,7 @@ Environment:
 
 from __future__ import annotations
 
+import csv
 import io
 import json
 import os
@@ -143,10 +144,10 @@ def _upload(s3, bucket: str, key: str, body: bytes, content_type: str) -> None:
     )
 
 
-def process_specimen(sem_dir: Path, specimen_id: str, dry_run: bool) -> None:
+def process_specimen(sem_dir: Path, specimen_id: str, dry_run: bool) -> bool:
     folder = sem_dir / specimen_id
     if not folder.is_dir():
-        return
+        return False
 
     s3 = None if dry_run else _make_s3_client()
     bucket = None if dry_run else os.environ["BUCKET_NAME"]
@@ -179,7 +180,7 @@ def process_specimen(sem_dir: Path, specimen_id: str, dry_run: bool) -> None:
     tif_files = sorted(p for p in folder.iterdir() if p.suffix.lower() == ".tif")
     if not tif_files:
         print(f"[skip] {specimen_id}: no .tif files")
-        return
+        return False
 
     # Per-surface accumulators, plus manifest metadata gathered across surfaces.
     pooled: dict[int, List[float]] = {}
@@ -248,7 +249,48 @@ def process_specimen(sem_dir: Path, specimen_id: str, dry_run: bool) -> None:
         f"[done] {specimen_id}: {len(tif_files)} tifs, "
         f"{len(surfaces)} surface(s), {n_dimple_files} per-image dimple files"
     )
-    print(f"        Set has_sem=True for {specimen_id} in ductile_fracture.csv.")
+    return True
+
+
+def update_has_sem(data_root: Path, specimen_ids: List[str], dry_run: bool) -> None:
+    """Flip ``has_sem`` to "yes" in ductile_fracture.csv for processed specimens.
+
+    Set-only: a specimen folder missing locally proves nothing (LFS may not be
+    pulled), so flags are never cleared here. The operator commits the CSV
+    change to the data repo — git stays the source of truth.
+    """
+    csv_path = data_root / "material" / "ductile_fracture" / "ductile_fracture.csv"
+    raw = csv_path.read_bytes()
+    bom = raw.startswith(b"\xef\xbb\xbf")
+    rows = list(csv.reader(io.StringIO(raw.decode("utf-8-sig"))))
+    header = rows[0]
+    id_col = header.index("id")
+    sem_col = header.index("has_sem")
+
+    wanted = set(specimen_ids)
+    changed = []
+    for row in rows[1:]:
+        if row[id_col] in wanted and row[sem_col].strip().lower() != "yes":
+            row[sem_col] = "yes"
+            changed.append(row[id_col])
+    missing = wanted - {row[id_col] for row in rows[1:]}
+    if missing:
+        print(f"[warn] not in ductile_fracture.csv: {', '.join(sorted(missing))}")
+    if not changed:
+        print("has_sem already up to date in ductile_fracture.csv")
+        return
+    if dry_run:
+        print(f"DRY_RUN — would set has_sem=yes for: {', '.join(changed)}")
+        return
+
+    buf = io.StringIO()
+    csv.writer(buf, lineterminator="\n").writerows(rows)
+    encoding = "utf-8-sig" if bom else "utf-8"
+    csv_path.write_bytes(buf.getvalue().encode(encoding))
+    print(
+        f"Set has_sem=yes for: {', '.join(changed)} — "
+        "commit ductile_fracture.csv to the data repo."
+    )
 
 
 def main(argv: List[str]) -> int:
@@ -274,8 +316,13 @@ def main(argv: List[str]) -> int:
         print(f"No specimen folders under {sem_dir}")
         return 0
 
-    for specimen_id in specimens:
-        process_specimen(sem_dir, specimen_id, dry_run)
+    processed = [
+        specimen_id
+        for specimen_id in specimens
+        if process_specimen(sem_dir, specimen_id, dry_run)
+    ]
+    if processed:
+        update_has_sem(data_root, processed, dry_run)
     return 0
 
 

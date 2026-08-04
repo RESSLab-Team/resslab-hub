@@ -7,13 +7,9 @@ from sqlalchemy import (
     Boolean,
     Column,
     ForeignKey,
-    Integer,
     Numeric,
     SmallInteger,
     String,
-    cast,
-    func,
-    select,
     text,
 )
 from sqlalchemy.orm import column_property
@@ -161,36 +157,10 @@ class ColumnEntity(Base):  # type: ignore
 
     built_up = column_property(section_c.ilike(text("'%built_up%'")))
 
-    # The *_count fields only feed "has data" checks. min(id) IS NOT NULL
-    # resolves as a single probe of the (fk, id) primary-key index; a plain
-    # EXISTS lets the planner pick per-row seq scans when FK stats are skewed.
-    axial_shortening_count = column_property(
-        cast(
-            select(func.min(ColumnAxialShortening.id))
-            .where(ColumnAxialShortening.column_id == id)
-            .correlate_except(ColumnAxialShortening)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
+    # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
+    # of every upload (see resslab_hub/data/count_flags.py).
+    axial_shortening_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )
-    moment_strong_count = column_property(
-        cast(
-            select(func.min(ColumnMomentStrong.id))
-            .where(ColumnMomentStrong.column_id == id)
-            .correlate_except(ColumnMomentStrong)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
-    )
-    moment_weak_count = column_property(
-        cast(
-            select(func.min(ColumnMomentWeak.id))
-            .where(ColumnMomentWeak.column_id == id)
-            .correlate_except(ColumnMomentWeak)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
-    )
+    moment_strong_count = Column(SmallInteger, nullable=False, server_default=text("0"))
+    moment_weak_count = Column(SmallInteger, nullable=False, server_default=text("0"))

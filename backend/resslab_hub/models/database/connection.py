@@ -7,15 +7,11 @@ from sqlalchemy import (
     Boolean,
     Column,
     ForeignKey,
-    Integer,
     Numeric,
     SmallInteger,
     String,
-    cast,
-    func,
-    select,
+    text,
 )
-from sqlalchemy.orm import column_property
 
 from resslab_hub.models.database.common import DecimalFloat
 from resslab_hub.utils.database import Base
@@ -244,56 +240,10 @@ class Connection(Base):  # type: ignore
     longitude = Column(DecimalFloat, nullable=False)
     # END_OF_GENERATED_CODE
 
-    # The *_count fields only feed "has data" checks. min(id) IS NOT NULL
-    # resolves as a single probe of the (fk, id) primary-key index; a plain
-    # EXISTS lets the planner pick per-row seq scans when FK stats are skewed.
-    beam_count = column_property(
-        cast(
-            select(func.min(ConnectionBeam.id))
-            .where(ConnectionBeam.connection_id == id)
-            .correlate_except(ConnectionBeam)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
-    )
-    beam_west_count = column_property(
-        cast(
-            select(func.min(ConnectionBeamWest.id))
-            .where(ConnectionBeamWest.connection_id == id)
-            .correlate_except(ConnectionBeamWest)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
-    )
-    global_count = column_property(
-        cast(
-            select(func.min(ConnectionGlobal.id))
-            .where(ConnectionGlobal.connection_id == id)
-            .correlate_except(ConnectionGlobal)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
-    )
-    global_west_count = column_property(
-        cast(
-            select(func.min(ConnectionGlobalWest.id))
-            .where(ConnectionGlobalWest.connection_id == id)
-            .correlate_except(ConnectionGlobalWest)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
-    )
-    panel_zone_count = column_property(
-        cast(
-            select(func.min(ConnectionPanelZone.id))
-            .where(ConnectionPanelZone.connection_id == id)
-            .correlate_except(ConnectionPanelZone)
-            .scalar_subquery()  # type: ignore
-            .is_not(None),
-            Integer,
-        )
-    )
+    # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
+    # of every upload (see resslab_hub/data/count_flags.py).
+    beam_count = Column(SmallInteger, nullable=False, server_default=text("0"))
+    beam_west_count = Column(SmallInteger, nullable=False, server_default=text("0"))
+    global_count = Column(SmallInteger, nullable=False, server_default=text("0"))
+    global_west_count = Column(SmallInteger, nullable=False, server_default=text("0"))
+    panel_zone_count = Column(SmallInteger, nullable=False, server_default=text("0"))

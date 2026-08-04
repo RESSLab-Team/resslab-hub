@@ -40,6 +40,23 @@
         }
       }
     },
+    "/readyz": {
+      "get": {
+        "summary": "Readyz",
+        "description": "Readiness: 503 until the startup cache warmup (utils/warmup.py) has\nrendered the hot URL space, so deploys don't expose a cold pod.",
+        "operationId": "readyz",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/upload": {
       "post": {
         "summary": "Create Upload File",
