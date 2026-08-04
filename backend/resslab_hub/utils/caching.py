@@ -35,6 +35,17 @@ from starlette.responses import Response
 
 _data_version = token_hex(8)
 
+# The periodic cache warmer (utils/warmup.py) re-renders entries *before* they
+# expire, which requires bypassing both the 304 shortcut and the stored-body
+# lookup while still storing the fresh result. The bypass is gated on a
+# per-process secret so external clients can't use it to hammer the database.
+REFRESH_HEADER = "x-cache-refresh"
+_refresh_token = token_hex(16)
+
+
+def refresh_token() -> str:
+    return _refresh_token
+
 
 def bump_data_version() -> None:
     """Invalidate every cached data response (call after a successful upload)."""
@@ -70,13 +81,14 @@ class HTTPCacheMiddleware(BaseHTTPMiddleware):
         version = _data_version
         etag = data_etag()
         headers = {"ETag": etag, "Cache-Control": f"public, max-age={self.max_age}"}
+        refreshing = request.headers.get(REFRESH_HEADER) == _refresh_token
         # Only JSON data responses ever receive this ETag, so a match proves
         # the client already holds the current data version — answer without
         # running the endpoint (no database round-trip).
-        if etag in request.headers.get("if-none-match", ""):
+        if not refreshing and etag in request.headers.get("if-none-match", ""):
             return Response(status_code=304, headers=headers)
         key = f"{request.url.path}?{request.url.query}"
-        stored = self._lookup(key, version)
+        stored = None if refreshing else self._lookup(key, version)
         if stored is not None:
             content_type, body = stored
             return Response(content=body, media_type=content_type, headers=headers)
@@ -124,8 +136,9 @@ class HTTPCacheMiddleware(BaseHTTPMiddleware):
 
 
 def _excluded(path: str) -> bool:
-    # Analytics computes live user counts, root/healthz are deployment probes,
-    # docs are dev-facing. CSV downloads are skipped by the content-type check.
-    return path in ("/", "/healthz") or path.startswith(
+    # Analytics computes live user counts, root/healthz/readyz are deployment
+    # probes, docs are dev-facing. CSV downloads are skipped by the
+    # content-type check.
+    return path in ("/", "/healthz", "/readyz") or path.startswith(
         ("/analytics", "/docs", "/redoc", "/openapi")
     )

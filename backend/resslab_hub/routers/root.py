@@ -92,6 +92,17 @@ async def healthz():
     return {"status": "ok"}
 
 
+@router.get("/readyz")
+async def readyz(request: Request):
+    """
+    Readiness: 503 until the startup cache warmup (utils/warmup.py) has
+    rendered the hot URL space, so deploys don't expose a cold pod.
+    """
+    if getattr(request.app.state, "warmed", True):
+        return {"status": "ready"}
+    return JSONResponse(status_code=503, content={"status": "warming"})
+
+
 @router.post("/upload", dependencies=[Depends(get_current_username)])
 async def create_upload_file(
     file: UploadFile = File(...),
