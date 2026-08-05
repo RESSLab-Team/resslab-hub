@@ -25,18 +25,6 @@ tarred up and posted directly:
     tar czf braces.tar.gz braces/ && \
       curl -F file=@braces.tar.gz \
         "http://127.0.0.1:8000/validate?type=all-braces"
-
-`global-issues/` holds a third batch per database whose problems are all
-file-level rather than row-level: a required column dropped from the header, an
-unexpected extra column, and an orphan measured-response file matching no
-experiment. The app's editor always rebuilds a well-formed archive, so these
-cannot be produced from the UI — tar them from inside `global-issues/` and POST
-to /validate directly (the same path the data-repo CI uses). The response maps
-to the frontend's "problems not tied to a single experiment" panel.
-
-    tar -C global-issues -czf braces-global.tar.gz braces/ && \
-      curl -F file=@braces-global.tar.gz \
-        "http://127.0.0.1:8000/validate?type=all-braces"
 """
 
 from __future__ import annotations
@@ -639,52 +627,6 @@ def write_csv(path: Path, columns: list[str], rows: list[dict[str, str]]) -> Non
         writer.writerows(rows)
 
 
-UNEXPECTED_COLUMN = "unexpected_demo_column"
-
-
-def write_global_issues_batch(
-    root: Path, model, csv_path: str, prefix: str, name: str, rows: list[dict[str, str]]
-) -> list[str]:
-    """A batch whose problems are all file-level, never tied to a data row.
-
-    Three seeds, matching the two ways `mapResponse` (frontend
-    utils/qualityReport.ts) classifies an issue as global: header problems on
-    the primary CSV (row 0), and a measured-response file whose name matches no
-    experiment. The rows themselves are the clean ones, so the report contains
-    *only* global issues.
-
-    The dropped column skips the derived *_count flags — the validator does not
-    require those (they have no CSV header), so removing one would seed nothing.
-    """
-    dropped = next(c.key for c in contributed_columns(model) if c.key != "id")
-    columns = [c.key for c in contributed_columns(model) if c.key != dropped]
-    columns.append(UNEXPECTED_COLUMN)
-
-    batch = []
-    for row in rows[: min(3, len(rows))]:
-        cells = {key: value for key, value in row.items() if key != dropped}
-        cells[UNEXPECTED_COLUMN] = "Demo value"
-        batch.append(cells)
-    write_csv(root / "global-issues" / csv_path, columns, batch)
-
-    notes = [
-        f"    global: required column '{dropped}' removed — header error",
-        f"    global: extra column '{UNEXPECTED_COLUMN}' — header warning",
-    ]
-    series_list = TIME_SERIES.get(name, [])
-    if series_list:
-        series = series_list[0]
-        orphan = f"DEMO-{prefix}-ORPHAN.csv"
-        write_series(
-            root / "global-issues" / series.directory / orphan, series, scale=1.0
-        )
-        notes.append(
-            f"    global: {series.directory}/{orphan} matches no experiment "
-            f"— orphan-file error"
-        )
-    return notes
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -758,12 +700,6 @@ def main() -> None:
                 f"{rows[-1]['id']}}}.csv ({count} files, {written} rows, "
                 f"{series.shape})"
             )
-
-        # A third batch under global-issues/ seeding only file-level problems,
-        # for the "problems not tied to a single experiment" panel.
-        summary.extend(
-            write_global_issues_batch(root, model, csv_path, prefix, name, rows)
-        )
 
     print("\n".join(summary))
 

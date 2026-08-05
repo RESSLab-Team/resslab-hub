@@ -15,7 +15,6 @@ import {
   mdiSend,
   mdiShieldCheckOutline
 } from '@mdi/js'
-import { timeSeriesKindsFor } from '@/utils/timeseries'
 import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -24,69 +23,6 @@ const store = useContributionStore()
 const dictionary = useDictionaryStore()
 
 onMounted(() => dictionary.fetch())
-
-// Dev-only preview of the file-level problems panel. The editor always builds
-// a well-formed archive, so a real check can never produce these from the UI —
-// they come from schema drift, server faults, or the direct /validate path
-// (see sample-data/global-issues). With `?demo=global-issues` in the URL, dev
-// builds show a banner whose button injects the response such a batch gets,
-// through the same mapping as a real check; any edit clears it. Dead code in
-// production builds.
-const demoMode =
-  import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === 'global-issues'
-
-function injectDemoResponse(): void {
-  const database = store.database
-  if (!database) return
-  const csvPath = CONTRIBUTION_DATABASES[database].csvPath
-  const kinds = timeSeriesKindsFor(database)
-  const orphanDir = kinds[0]?.directory ?? `${database}/measured_responses`
-  store.response = {
-    valid: false,
-    message: 'Validation failed',
-    error_count: 2,
-    results: [
-      {
-        file: csvPath.split('/').pop()!,
-        path: csvPath,
-        valid: false,
-        errors: [
-          {
-            row: 0,
-            column: 'headers',
-            value: null,
-            message: 'Missing required columns: investigator'
-          }
-        ],
-        warnings: [
-          {
-            row: 0,
-            column: 'headers',
-            value: null,
-            message: 'Unexpected columns: unexpected_demo_column'
-          }
-        ]
-      },
-      {
-        file: 'DEMO-ORPHAN.csv',
-        path: `${orphanDir}/DEMO-ORPHAN.csv`,
-        valid: false,
-        errors: [
-          {
-            row: 0,
-            column: 'id',
-            value: 'DEMO-ORPHAN',
-            message: "Foreign key 'DEMO-ORPHAN' not found in primary CSV"
-          }
-        ],
-        warnings: []
-      }
-    ],
-    error_results: [],
-    valid_results: []
-  }
-  store.status = 'fail'
-}
 
 const supported = (id: DatabaseId) => CONTRIBUTION_DATABASES[id].qualityCheckSupported
 
@@ -208,18 +144,6 @@ async function confirmSubmit(): Promise<void> {
         </button>
       </p>
       <experiment-cards v-else />
-
-      <div v-if="demoMode && dictionary.ready" class="demo-banner">
-        <span>Demo mode — preview problems the editor itself cannot produce.</span>
-        <button
-          class="btn btn-secondary btn-sm"
-          data-testid="demo-inject"
-          type="button"
-          @click="injectDemoResponse()"
-        >
-          Inject file-level problems
-        </button>
-      </div>
 
       <div v-if="store.globalIssues.length" class="global-issues">
         <p class="global-issues-title">{{ $t('contribute.global_issues') }}</p>
@@ -424,16 +348,6 @@ async function confirmSubmit(): Promise<void> {
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  color: var(--fg-muted);
-}
-.demo-banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 10px 16px;
-  border: 1px dashed var(--epfl-orange);
-  font-size: 13px;
   color: var(--fg-muted);
 }
 .global-issues {
