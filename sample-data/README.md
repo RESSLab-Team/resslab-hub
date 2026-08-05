@@ -154,6 +154,27 @@ includes `<name>.invalid.csv`, which the backend ignores (it globs the exact
 primary CSV name) — copy the one file you want into a clean directory to check
 the invalid variant.
 
+## Global issues (`global-issues/`)
+
+A third batch per database seeds only **file-level** problems — the kind the
+frontend shows in the "problems not tied to a single experiment" panel instead
+of on an experiment card: a required column removed from the header (error), an
+extra `unexpected_demo_column` (warning), and an orphan measured-response file
+named after no experiment (error). The data rows themselves are clean, so the
+report contains nothing row-anchored.
+
+The app's editor cannot produce these — it rebuilds the primary CSV from the
+data dictionary and names every measured-response file after its experiment —
+which is exactly why they need their own batch: they occur through the direct
+`/validate` path (the data-repo CI) or when the server and the app disagree
+about the schema. Tar from *inside* `global-issues/` so the clean batches stay
+clean:
+
+```bash
+tar -C global-issues -czf braces-global.tar.gz braces/
+curl -F file=@braces-global.tar.gz "http://127.0.0.1:8000/validate?type=all-braces"
+```
+
 ## Coverage
 
 Only six of the nine databases can be validated. `validate_one_file` has no
