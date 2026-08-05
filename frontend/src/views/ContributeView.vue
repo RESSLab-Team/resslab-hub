@@ -144,6 +144,19 @@ async function confirmSubmit(): Promise<void> {
         </button>
       </p>
       <experiment-cards v-else />
+
+      <div v-if="store.globalIssues.length" class="global-issues">
+        <p class="global-issues-title">{{ $t('contribute.global_issues') }}</p>
+        <p
+          v-for="(entry, index) in store.globalIssues"
+          :key="index"
+          class="global-issue"
+          :class="entry.severity"
+        >
+          <v-icon :icon="mdiAlertOutline" size="14" />
+          {{ entry.issue.message }}
+        </p>
+      </div>
     </template>
 
     <footer
@@ -336,6 +349,34 @@ async function confirmSubmit(): Promise<void> {
   gap: 10px;
   font-size: 14px;
   color: var(--fg-muted);
+}
+.global-issues {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--epfl-red);
+  background: var(--bg);
+}
+.global-issues-title {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+}
+.global-issue {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 3px 0;
+  font-size: 13px;
+}
+.global-issue.error {
+  color: var(--epfl-red);
+}
+.global-issue.warning {
+  color: var(--epfl-orange);
 }
 
 .status-bar {

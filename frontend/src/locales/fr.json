@@ -1161,6 +1161,7 @@
       "note": "Ces informations sont enregistrées avec la soumission afin que les curateurs puissent vous créditer et vous contacter. Elles apparaissent publiquement dans le dépôt de données.",
       "cancel": "Annuler",
       "confirm": "Soumettre"
-    }
+    },
+    "global_issues": "Problèmes non liés à une expérience précise"
   }
 }

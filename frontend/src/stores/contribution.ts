@@ -358,12 +358,10 @@ export const useContributionStore = defineStore('contribution', () => {
 
     try {
       const archive = await buildArchive()
-      const { data } = await defaultApi.validateData(target.type, archive, {
-        // Flag ids that already exist in the database as errors. Opt-in on
-        // the endpoint: the data-repo CI validates full repo CSVs and must
-        // not get this check.
-        params: { check_duplicates: true }
-      })
+      // check_duplicates flags ids that already exist in the database as
+      // errors. Opt-in on the endpoint: the data-repo CI validates full repo
+      // CSVs and must not get this check.
+      const { data } = await defaultApi.validateData(target.type, archive, true)
       if (!isValidationResponse(data)) {
         throw new Error('Unexpected validation response shape.')
       }

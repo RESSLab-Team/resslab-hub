@@ -352,6 +352,19 @@ def test_validator_default_skips_duplicate_check(tmp_path, monkeypatch):
     assert duplicate_errors(result) == []
 
 
+def test_check_range_mixes_float_stats_with_decimal_values():
+    # An all-zero Float column (count>=20, min==max==0.0) used to crash with
+    # "unsupported operand type(s) for -: 'float' and 'decimal.Decimal'".
+    result = ValidationResult("steel_material.csv")
+    TableValidator._check_range(result, 1, "col", "5", {"col": (20, 0.0, 0.0)})
+    assert len(result.warnings) == 1  # 5 is far outside [0, 0]
+
+    quiet = ValidationResult("steel_material.csv")
+    TableValidator._check_range(quiet, 1, "col", "0.5", {"col": (20, 0.0, 0.0)})
+    assert quiet.warnings == []
+    assert quiet.errors == []
+
+
 async def test_submit_preserves_repo_crlf_line_endings(tmp_path, monkeypatch):
     patch_validation(monkeypatch)
     crlf_repo = REPO_CSV.replace("\n", "\r\n")

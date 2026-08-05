@@ -1161,6 +1161,7 @@
       "note": "These details are recorded with the submission so curators can credit and contact you. They appear publicly in the data repository.",
       "cancel": "Cancel",
       "confirm": "Submit"
-    }
+    },
+    "global_issues": "Problems not tied to a single experiment"
   }
 }

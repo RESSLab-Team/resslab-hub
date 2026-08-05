@@ -183,6 +183,11 @@ class TableValidator(Validator):
         except (InvalidOperation, ValueError):
             return
         _, minimum, maximum = stats[column_name]
+        # The driver returns Decimal for Numeric columns but float/int for the
+        # others; normalize so the arithmetic below never mixes float with
+        # Decimal (e.g. an all-zero Float column made `minimum - span` raise).
+        minimum = Decimal(str(minimum))
+        maximum = Decimal(str(maximum))
         span = maximum - minimum
         if span == 0:
             span = abs(maximum) or Decimal(1)
