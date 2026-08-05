@@ -28,11 +28,7 @@ from resslab_hub.contributions.submission import (
 from resslab_hub.data.uploader import Type
 from resslab_hub.models.contribution import ContributionResponse
 from resslab_hub.models.validation import ValidationResponse
-from resslab_hub.routers.root import (
-    _build_response,
-    enforce_request_size,
-    get_current_username,
-)
+from resslab_hub.routers.root import _build_response, enforce_request_size
 from resslab_hub.utils.rate_limit import limiter
 from resslab_hub.utils.safe_archive import (
     ArchiveError,
@@ -61,15 +57,17 @@ def _parse_dismissed(raw: str) -> list:
     return parsed
 
 
-# NOTE(auth): unlike /validate, submitting has side effects (a PR on the data
-# repo), so it keeps the shared HTTP Basic gate until per-user academic auth
-# (#247) lands. The strict rate limit bounds PR spam from a leaked credential.
+# NOTE(auth): open, like /validate. The shared HTTP Basic credential also
+# guards /upload, and a browser-side gate would have to ship it in the JS
+# bundle — publishing the ingestion password to every visitor. Until per-user
+# academic auth (#247) lands, the defences are the rate limit below, mandatory
+# server-side validation, and the fact that a submission only ever becomes a
+# pull request a curator has to review.
 @router.post(
     "/contributions",
     response_model=ContributionResponse,
     status_code=status.HTTP_201_CREATED,
     responses={422: {"model": ValidationResponse}},
-    dependencies=[Depends(get_current_username)],
 )
 @limiter.limit("5/hour")
 async def create_contribution(

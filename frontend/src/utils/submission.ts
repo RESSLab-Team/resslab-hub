@@ -47,11 +47,7 @@ export async function postContribution(
   form.append('orcid', contributor.orcid)
   form.append('dismissed_warnings', JSON.stringify(dismissedWarnings))
   const { data } = await axiosInstance.post(`${baseUrl}/contributions`, form, {
-    params: { type },
-    auth: {
-      username: import.meta.env.VITE_APP_API_USERNAME,
-      password: import.meta.env.VITE_APP_API_PASSWORD
-    }
+    params: { type }
   })
   if (!isContributionResult(data)) {
     throw new Error('Unexpected submission response shape.')

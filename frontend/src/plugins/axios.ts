@@ -11,7 +11,6 @@ import {
   ResidualStressApi,
   TensileCouponApi
 } from '@/backend/api'
-import { Configuration } from '@/backend/configuration'
 import axios from 'axios'
 
 // Exported for hand-written calls to endpoints the generated client does not
@@ -30,14 +29,8 @@ export const ebfApi = new EccentricBracedFrameApi(undefined, baseUrl, axiosInsta
 export const tensileCouponApi = new TensileCouponApi(undefined, baseUrl, axiosInstance)
 export const ductileFractureApi = new DuctileFractureApi(undefined, baseUrl, axiosInstance)
 
-// `/validate` sits behind HTTP Basic auth. The contribution pipeline has no real
-// identity yet, so the dev credentials are carried here; a deployment that
-// exposes contribution beyond localhost needs the real user's token instead.
-export const defaultApi = new DefaultApi(
-  new Configuration({
-    username: import.meta.env.VITE_APP_API_USERNAME,
-    password: import.meta.env.VITE_APP_API_PASSWORD
-  }),
-  baseUrl,
-  axiosInstance
-)
+// The contribution pipeline's two endpoints — `/validate` and `/contributions`
+// — are both open, so no credentials are carried here. They must stay that way
+// until #247 gives contributors a real identity: the shared HTTP Basic password
+// also guards `/upload`, and anything the browser sends ships in the bundle.
+export const defaultApi = new DefaultApi(undefined, baseUrl, axiosInstance)

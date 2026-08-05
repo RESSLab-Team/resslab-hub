@@ -192,11 +192,6 @@
         "summary": "Create Contribution",
         "description": "Re-validate a contribution archive and open a pull request on the data\nrepository. Errors block; warnings pass and are listed in the PR body.",
         "operationId": "create_contribution",
-        "security": [
-          {
-            "HTTPBasic": []
-          }
-        ],
         "parameters": [
           {
             "name": "type",
