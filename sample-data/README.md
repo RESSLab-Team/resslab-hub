@@ -176,9 +176,10 @@ curl -F file=@braces-global.tar.gz "http://127.0.0.1:8000/validate?type=all-brac
 ```
 
 To see the panel itself, dev builds accept a preview flag — open
-`/contribute/new?demo=global-issues` and pick a database: the app injects the
-response this batch produces, through the same mapping as a real check. Any
-edit clears it. The flag is compiled out of production builds.
+`/contribute/new?demo=global-issues`, pick a database, and press **Inject
+file-level problems** in the demo banner: the app injects the response this
+batch produces, through the same mapping as a real check. Any edit clears it.
+The flag is compiled out of production builds.
 
 ## Coverage
 
