@@ -15,14 +15,82 @@ import {
   mdiSend,
   mdiShieldCheckOutline
 } from '@mdi/js'
-import { computed, ref, onMounted } from 'vue'
+import { timeSeriesKindsFor } from '@/utils/timeseries'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
 const { t } = useI18n({ useScope: 'global' })
 const store = useContributionStore()
 const dictionary = useDictionaryStore()
 
 onMounted(() => dictionary.fetch())
+
+// Dev-only preview of the file-level problems panel. The editor always builds
+// a well-formed archive, so a real check can never produce these from the UI —
+// they come from schema drift, server faults, or the direct /validate path
+// (see sample-data/global-issues). `?demo=global-issues` injects the response
+// such a batch gets, through the same mapping as a real check; any edit
+// clears it. Dead code in production builds.
+if (import.meta.env.DEV) {
+  const route = useRoute()
+  watch(
+    () => [store.database, dictionary.ready] as const,
+    ([database, ready]) => {
+      if (route.query.demo !== 'global-issues' || !database || !ready) return
+      if (store.response) return
+      const csvPath = CONTRIBUTION_DATABASES[database].csvPath
+      const kinds = timeSeriesKindsFor(database)
+      const orphanDir = kinds[0]?.directory ?? `${database}/measured_responses`
+      store.response = {
+        valid: false,
+        message: 'Validation failed',
+        error_count: 2,
+        results: [
+          {
+            file: csvPath.split('/').pop()!,
+            path: csvPath,
+            valid: false,
+            errors: [
+              {
+                row: 0,
+                column: 'headers',
+                value: null,
+                message: 'Missing required columns: investigator'
+              }
+            ],
+            warnings: [
+              {
+                row: 0,
+                column: 'headers',
+                value: null,
+                message: 'Unexpected columns: unexpected_demo_column'
+              }
+            ]
+          },
+          {
+            file: 'DEMO-ORPHAN.csv',
+            path: `${orphanDir}/DEMO-ORPHAN.csv`,
+            valid: false,
+            errors: [
+              {
+                row: 0,
+                column: 'id',
+                value: 'DEMO-ORPHAN',
+                message: "Foreign key 'DEMO-ORPHAN' not found in primary CSV"
+              }
+            ],
+            warnings: []
+          }
+        ],
+        error_results: [],
+        valid_results: []
+      }
+      store.status = 'fail'
+    },
+    { immediate: true }
+  )
+}
 
 const supported = (id: DatabaseId) => CONTRIBUTION_DATABASES[id].qualityCheckSupported
 
