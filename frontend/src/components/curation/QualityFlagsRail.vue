@@ -12,18 +12,19 @@ import {
 } from '@/utils/qualityReport'
 import type { ValidationIssue } from '@/utils/validationResponse'
 import {
-  mdiAlertCircleOutline,
   mdiAlertOutline,
   mdiBellOffOutline,
-  mdiCheckCircleOutline
+  mdiCheck,
+  mdiClose,
+  mdiExclamationThick
 } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 /**
- * The automated quality flags for a submission: the same server-side checks
- * the batch went through at submit time, re-run against the current database
- * and mapped back onto experiments (utils/qualityReport).
+ * The automated quality flags for a submission (prototype `.cp-flag` cards):
+ * the same server-side checks the batch went through at submit time, re-run
+ * against the current database and mapped back onto experiments.
  */
 const props = defineProps<{
   database: DatabaseId
@@ -90,8 +91,8 @@ function kindLabel(kindKey: string | null): string {
   return kindKey && te(key) ? t(key) : t('curation.flags.file')
 }
 
-function severityIcon(severity: Severity): string {
-  return severity === 'error' ? mdiAlertCircleOutline : mdiAlertOutline
+function markIcon(severity: Severity): string {
+  return severity === 'error' ? mdiClose : mdiExclamationThick
 }
 
 const hasIssues = computed(() => {
@@ -109,8 +110,8 @@ function issueKey(entry: ReportedIssue, index: number): string {
 </script>
 
 <template>
-  <div class="tool-card rail">
-    <div class="tool-card-h">{{ $t('curation.flags.title') }}</div>
+  <div>
+    <p class="sech">{{ $t('curation.flags.title') }}</p>
 
     <p v-if="state === 'loading'" class="state">{{ $t('curation.flags.loading') }}</p>
     <p v-else-if="state === 'error'" class="state">
@@ -119,81 +120,104 @@ function issueKey(entry: ReportedIssue, index: number): string {
     </p>
 
     <template v-else-if="report">
-      <p class="summary">
-        <span class="chip pass">
-          <v-icon :icon="mdiCheckCircleOutline" size="13" />
-          {{ $t('curation.flags.pass', { count: summary.pass }) }}
-        </span>
-        <span class="chip warn">
-          <v-icon :icon="mdiAlertOutline" size="13" />
-          {{ $t('curation.flags.warn', { count: summary.warn }) }}
-        </span>
-        <span class="chip fail">
-          <v-icon :icon="mdiAlertCircleOutline" size="13" />
-          {{ $t('curation.flags.fail', { count: summary.fail }) }}
-        </span>
-      </p>
+      <div class="flagsum">
+        <div class="fs pass">
+          <b>{{ summary.pass }}</b>
+          <span>{{ $t('curation.flags.pass') }}</span>
+        </div>
+        <div class="fs warn">
+          <b>{{ summary.warn }}</b>
+          <span>{{ $t('curation.flags.warn') }}</span>
+        </div>
+        <div class="fs fail">
+          <b>{{ summary.fail }}</b>
+          <span>{{ $t('curation.flags.fail') }}</span>
+        </div>
+      </div>
 
-      <p v-if="!hasIssues" class="state pass-note">
-        <v-icon :icon="mdiCheckCircleOutline" size="14" />
+      <p v-if="!hasIssues" class="allclear">
+        <v-icon :icon="mdiCheck" size="14" />
         {{ $t('curation.flags.all_clear') }}
       </p>
 
       <template v-for="experiment in report.experiments" :key="experiment.uid">
-        <div v-if="experiment.cellIssues.length || experiment.fileIssues.length" class="experiment">
-          <p class="experiment-id">{{ experiment.id || `#${experiment.uid + 1}` }}</p>
+        <div v-if="experiment.cellIssues.length || experiment.fileIssues.length" class="group">
+          <p class="group-id">{{ experiment.id || `#${experiment.uid + 1}` }}</p>
 
           <button
             v-for="(entry, index) in experiment.cellIssues"
             :key="issueKey(entry, index)"
-            class="issue"
+            class="flag click"
             :class="entry.severity"
             type="button"
             @click="emit('select', experiment.uid, entry.ref.column)"
           >
-            <span class="issue-head">
-              <v-icon :icon="severityIcon(entry.severity)" size="14" />
-              <span class="issue-field">{{ columnLabel(entry.ref.column) }}</span>
-              <span class="tag">{{ $t(`curation.flags.category.${category(entry.issue)}`) }}</span>
+            <span class="fmark"><v-icon :icon="markIcon(entry.severity)" size="13" /></span>
+            <span class="fbody">
+              <span class="ftitle">
+                {{ columnLabel(entry.ref.column) }}
+                <span class="fsev" :class="entry.severity === 'error' ? 'high' : 'med'">
+                  {{
+                    entry.severity === 'error'
+                      ? $t('curation.flags.high')
+                      : $t('curation.flags.medium')
+                  }}
+                </span>
+              </span>
+              <span class="fdesc">{{ entry.issue.message }}</span>
+              <span class="fcat">
+                {{ $t('curation.flags.automated') }} ·
+                {{ $t(`curation.flags.category.${category(entry.issue)}`) }}
+              </span>
             </span>
-            <span class="issue-message">{{ entry.issue.message }}</span>
           </button>
 
           <div
             v-for="(entry, index) in experiment.fileIssues"
             :key="`file-${issueKey(entry, index)}`"
-            class="issue static"
+            class="flag"
             :class="entry.severity"
           >
-            <span class="issue-head">
-              <v-icon :icon="severityIcon(entry.severity)" size="14" />
-              <span class="issue-field">{{ kindLabel(entry.kindKey) }}</span>
-              <span class="tag">{{ $t('curation.flags.category.file') }}</span>
+            <span class="fmark"><v-icon :icon="markIcon(entry.severity)" size="13" /></span>
+            <span class="fbody">
+              <span class="ftitle">
+                {{ kindLabel(entry.kindKey) }}
+                <span class="fsev" :class="entry.severity === 'error' ? 'high' : 'med'">
+                  {{
+                    entry.severity === 'error'
+                      ? $t('curation.flags.high')
+                      : $t('curation.flags.medium')
+                  }}
+                </span>
+              </span>
+              <span class="fdesc">{{ entry.issue.message }}</span>
+              <span class="fcat">
+                {{ $t('curation.flags.automated') }} · {{ $t('curation.flags.category.file') }}
+              </span>
             </span>
-            <span class="issue-message">{{ entry.issue.message }}</span>
           </div>
         </div>
       </template>
 
-      <div v-if="report.global.length" class="experiment">
-        <p class="experiment-id">{{ $t('curation.flags.global') }}</p>
+      <div v-if="report.global.length" class="group">
+        <p class="group-id">{{ $t('curation.flags.global') }}</p>
         <div
           v-for="(entry, index) in report.global"
           :key="`global-${issueKey(entry, index)}`"
-          class="issue static"
+          class="flag"
           :class="entry.severity"
         >
-          <span class="issue-head">
-            <v-icon :icon="severityIcon(entry.severity)" size="14" />
-            <span class="issue-field">{{ entry.issue.column }}</span>
+          <span class="fmark"><v-icon :icon="markIcon(entry.severity)" size="13" /></span>
+          <span class="fbody">
+            <span class="ftitle">{{ entry.issue.column }}</span>
+            <span class="fdesc">{{ entry.issue.message }}</span>
           </span>
-          <span class="issue-message">{{ entry.issue.message }}</span>
         </div>
       </div>
     </template>
 
-    <div v-if="detail.dismissed_warnings?.length" class="dismissed">
-      <p class="experiment-id">
+    <div v-if="detail.dismissed_warnings?.length" class="group">
+      <p class="group-id">
         <v-icon :icon="mdiBellOffOutline" size="13" />
         {{ $t('curation.flags.dismissed') }}
       </p>
@@ -205,9 +229,14 @@ function issueKey(entry: ReportedIssue, index: number): string {
 </template>
 
 <style scoped>
-.rail {
-  position: sticky;
-  top: 16px;
+.sech {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 .state {
   display: flex;
@@ -217,114 +246,159 @@ function issueKey(entry: ReportedIssue, index: number): string {
   font-size: 13.5px;
   color: var(--fg-muted);
 }
-.pass-note {
-  color: var(--epfl-green-text);
-}
-.summary {
+
+/* ── summary strip (prototype .cp-flagsum) ── */
+.flagsum {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0 0 12px;
+  border: 1px solid var(--border);
+  margin-bottom: 18px;
 }
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  font-size: 12px;
-  font-weight: 600;
+.flagsum .fs {
+  flex: 1;
+  padding: 14px 8px;
+  border-right: 1px solid var(--border);
+  text-align: center;
 }
-.chip.pass {
+.flagsum .fs:last-child {
+  border-right: 0;
+}
+.flagsum .fs b {
+  display: block;
+  font-size: 24px;
+  font-weight: 300;
+  font-feature-settings: 'tnum';
+}
+.flagsum .fs span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  margin-top: 4px;
+  display: block;
+}
+.flagsum .fs.pass b {
   color: var(--epfl-green-text);
 }
-.chip.warn {
+.flagsum .fs.warn b {
   color: var(--epfl-orange);
 }
-.chip.fail {
+.flagsum .fs.fail b {
   color: var(--epfl-red);
 }
-.experiment {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
+.allclear {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--epfl-green-text);
+  margin: 4px 0;
 }
-.experiment-id {
+
+/* ── groups ── */
+.group {
+  margin-top: 16px;
+}
+.group-id {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin: 0 0 6px;
-  font-size: 11.5px;
-  font-weight: 600;
+  margin: 0 0 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--fg-muted);
+  letter-spacing: 0.08em;
+  color: var(--fg-subtle);
 }
-.issue {
-  display: block;
+
+/* ── flag cards (prototype .cp-flag) ── */
+.flag {
+  display: flex;
+  gap: 13px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-subtle);
   width: 100%;
-  margin: 0 0 8px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  background: var(--bg);
+  background: transparent;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
   color: var(--fg);
   font: inherit;
   text-align: left;
-  border-radius: var(--radius);
 }
-.issue:not(.static) {
+.flag.click {
   cursor: pointer;
 }
-.issue:not(.static):hover {
-  background: var(--bg-subtle);
-  border-color: var(--fg-muted);
-}
-.issue.error {
-  border-left: 3px solid var(--epfl-red);
-}
-.issue.warning {
-  border-left: 3px solid var(--epfl-orange);
-}
-.issue-head {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 3px;
-}
-.issue.error .issue-head {
+.flag.click:hover .ftitle {
   color: var(--epfl-red);
 }
-.issue.warning .issue-head {
+.fmark {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.flag.error .fmark {
+  border-color: var(--epfl-red);
+  color: var(--epfl-red);
+}
+.flag.warning .fmark {
+  border-color: var(--epfl-orange);
   color: var(--epfl-orange);
 }
-.issue-field {
+.fbody {
+  min-width: 0;
+}
+.ftitle {
   font-size: 13px;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.tag {
-  margin-left: auto;
-  padding: 1px 6px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  font-size: 10.5px;
+.fsev {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
   color: var(--fg-muted);
+  font-weight: 700;
 }
-.issue-message {
+.fsev.high {
+  color: var(--epfl-red);
+  border-color: var(--epfl-red);
+}
+.fsev.med {
+  color: var(--epfl-orange);
+  border-color: var(--epfl-orange);
+}
+.fdesc {
   display: block;
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--fg-muted);
+  line-height: 1.5;
+  margin-top: 4px;
 }
-.dismissed {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
+.fcat {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  margin-top: 6px;
 }
 .dismissed-item {
-  margin: 0 0 4px;
-  font-size: 12.5px;
+  margin: 8px 0 0;
+  font-size: 12px;
   color: var(--fg-muted);
+  line-height: 1.5;
 }
 </style>

@@ -1172,6 +1172,7 @@
     },
     "queue": {
       "title": "Review queue",
+      "eyebrow_qualifier": "Open submissions",
       "description": "Open submissions on the data repository, awaiting curator review. Decisions (approve, request changes, merge) happen on GitHub until curator roles are in place.",
       "loading": "Loading open submissions…",
       "error": "The review queue could not be loaded.",
@@ -1208,34 +1209,41 @@
     },
     "metadata": {
       "title": "Specimen metadata",
-      "field": "Field",
-      "value": "Value",
-      "existing_range": "Existing range",
-      "missing": "— missing"
+      "missing": "— missing",
+      "range_hint": "existing {min}–{max}"
     },
     "preview": {
       "title": "Data preview",
       "loading": "Loading measured responses…",
       "none": "No measured-response files are attached to this experiment.",
-      "rows_file": "{rows} rows · {file}",
+      "rows": "rows",
       "unavailable": "{file} could not be loaded."
     },
     "cohort": {
-      "title": "Comparison with the existing database",
+      "title": "Comparison with similar experiments",
+      "banner_title": "Comparison cohort",
+      "lead": "To keep the comparison like-for-like, the ghost lines below are drawn only from experiments that share this specimen's key parameters — not the whole database.",
       "loading": "Loading the existing database…",
       "unavailable": "The existing dataset could not be loaded.",
       "restrict": "Restrict to similar experiments",
       "count": "{count} experiments",
       "excluded": "Not reported, ignored: {fields}",
-      "hint": "Each grey line is one existing experiment; the red line is this submission."
+      "chart_title": "Parallel coordinates · New specimen vs cohort",
+      "ghosts": "{count} ghosts + {added} new",
+      "legend_new": "New specimen · {id}",
+      "legend_ghost": "{count} similar (ghost)",
+      "hint": "Each grey line is one existing experiment across all axes; the red line is this submission."
     },
     "flags": {
       "title": "Quality flags",
       "loading": "Re-running the automated checks…",
       "unavailable": "The checks could not be run — review the validation report on GitHub.",
-      "pass": "{count} pass",
-      "warn": "{count} warn",
-      "fail": "{count} fail",
+      "pass": "pass",
+      "warn": "warn",
+      "fail": "fail",
+      "high": "High",
+      "medium": "Medium",
+      "automated": "Automated",
       "all_clear": "All automated checks pass.",
       "global": "File-level",
       "dismissed": "Dismissed by the contributor",

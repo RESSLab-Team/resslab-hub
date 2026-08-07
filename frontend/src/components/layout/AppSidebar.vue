@@ -147,6 +147,8 @@ function toggleGroup(group: NavGroup) {
       <v-icon :icon="mdiUploadOutline" size="16" />
       {{ $t('contribute.new_submission') }}
     </router-link>
+
+    <div class="sidebar-section">{{ $t('curation.eyebrow') }}</div>
     <router-link
       class="sidebar-link"
       :class="{ 'is-active': route.path.startsWith('/curation') }"

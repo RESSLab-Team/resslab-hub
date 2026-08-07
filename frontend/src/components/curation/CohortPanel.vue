@@ -7,14 +7,14 @@ import { useDataset } from '@/composables/useDataset'
 import { CONTRIBUTION_DATABASES, fieldLabel } from '@/utils/contribution'
 import { cellValue, isMissing } from '@/utils/curation'
 import type { DatabaseId } from '@/utils/navigation'
-import { mdiAlertOutline } from '@mdi/js'
+import { mdiAccountGroupOutline, mdiAlertOutline, mdiInformationOutline } from '@mdi/js'
 import { computed, ref } from 'vue'
 
 /**
- * Ghost mode: the submitted specimen(s) drawn in red over the existing
- * database (grey ghost lines) on the same parallel-coordinates axes as the
- * public dashboard. Optionally restricted to a like-for-like cohort sharing
- * the submission's categorical key parameters.
+ * Ghost mode (prototype "comparison with similar experiments" section): the
+ * submitted specimen(s) drawn in red over the existing database (grey ghost
+ * lines) on the same parallel-coordinates axes as the public dashboard,
+ * introduced by a cohort banner that spells out the like-for-like criteria.
  */
 const props = defineProps<{
   database: DatabaseId
@@ -102,8 +102,8 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
 </script>
 
 <template>
-  <div v-if="config" class="tool-card">
-    <div class="tool-card-h">{{ $t('curation.cohort.title') }}</div>
+  <section v-if="config" class="cohort-section">
+    <p class="sech">{{ $t('curation.cohort.title') }}</p>
 
     <p v-if="state === 'loading'" class="state">{{ $t('curation.cohort.loading') }}</p>
     <p v-else-if="state === 'error'" class="state">
@@ -112,37 +112,78 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
     </p>
 
     <template v-else-if="chart">
-      <div class="cohort-bar">
-        <tool-switch v-model="restrict" :label="$t('curation.cohort.restrict')" />
-        <span class="count">{{ $t('curation.cohort.count', { count: chart.cohortCount }) }}</span>
-      </div>
-
-      <div v-if="restrict" class="chips">
-        <span v-for="entry in criteria" :key="entry.field" class="chip">
-          {{ entry.label }}: {{ entry.value }}
-        </span>
-        <span v-if="excluded.length" class="excluded">
+      <div class="cohort">
+        <div class="cohort-h">
+          <v-icon :icon="mdiAccountGroupOutline" size="16" />
+          <b>{{ $t('curation.cohort.banner_title') }}</b>
+          <span class="ct">{{ $t('curation.cohort.count', { count: chart.cohortCount }) }}</span>
+        </div>
+        <p class="cohort-lead">{{ $t('curation.cohort.lead') }}</p>
+        <div class="cohort-chips">
+          <span v-for="entry in criteria" :key="entry.field">
+            {{ entry.label }}: {{ entry.value }}
+          </span>
+        </div>
+        <div class="cohort-foot">
+          <tool-switch v-model="restrict" :label="$t('curation.cohort.restrict')" />
+        </div>
+        <p v-if="excluded.length && restrict" class="cohort-note">
+          <v-icon :icon="mdiInformationOutline" size="14" />
           {{ $t('curation.cohort.excluded', { fields: excluded.join(', ') }) }}
-        </span>
+        </p>
       </div>
 
-      <p class="hint">{{ $t('curation.cohort.hint') }}</p>
-
-      <simple-parallel-chart
-        :animate="false"
-        :data="chart.data"
-        :fields="config.fields"
-        :highlight-ids="chart.highlightIds"
-        :ids="chart.ids"
-        :is-filtered="false"
-        :label-prefix="labelPrefix"
-        :request-fields="requestFields"
-      />
+      <div class="chartframe">
+        <div class="ch">
+          <span>{{ $t('curation.cohort.chart_title') }}</span>
+          <span>
+            {{
+              $t('curation.cohort.ghosts', {
+                count: chart.cohortCount,
+                added: detail.experiments.length
+              })
+            }}
+          </span>
+        </div>
+        <simple-parallel-chart
+          :animate="false"
+          :data="chart.data"
+          :fields="config.fields"
+          :highlight-ids="chart.highlightIds"
+          :ids="chart.ids"
+          :is-filtered="false"
+          :label-prefix="labelPrefix"
+          :request-fields="requestFields"
+        />
+        <div class="chartleg">
+          <span class="li">
+            <span class="sw sel"></span>
+            {{ $t('curation.cohort.legend_new', { id: selected?.id ?? '' }) }}
+          </span>
+          <span class="li">
+            <span class="sw ghost"></span>
+            {{ $t('curation.cohort.legend_ghost', { count: chart.cohortCount }) }}
+          </span>
+        </div>
+        <p class="charthint">{{ $t('curation.cohort.hint') }}</p>
+      </div>
     </template>
-  </div>
+  </section>
 </template>
 
 <style scoped>
+.cohort-section {
+  margin-top: 32px;
+}
+.sech {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 0 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
 .state {
   display: flex;
   align-items: center;
@@ -151,37 +192,111 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
   font-size: 13.5px;
   color: var(--fg-muted);
 }
-.cohort-bar {
+
+/* ── cohort banner (prototype .cp-cohort) ── */
+.cohort {
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--fg);
+  padding: 15px 18px;
+  background: var(--bg-subtle);
+}
+.cohort-h {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 9px;
+  font-size: 14px;
 }
-.count {
-  font-size: 12.5px;
+.cohort-h b {
   font-weight: 600;
-  color: var(--fg-muted);
 }
-.chips {
+.cohort-h .ct {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-subtle);
+}
+.cohort-lead {
+  font-size: 13px;
+  color: var(--fg-muted);
+  line-height: 1.5;
+  margin: 9px 0 12px;
+}
+.cohort-chips {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 7px;
 }
-.chip {
-  padding: 2px 8px;
+.cohort-chips span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  padding: 4px 9px;
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  font-size: 12px;
+  background: var(--bg);
 }
-.excluded {
+.cohort-foot {
+  margin-top: 12px;
+}
+.cohort-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
   font-size: 12px;
+  color: var(--fg-subtle);
+  margin: 12px 0 0;
+  line-height: 1.45;
+}
+
+/* ── chart frame + legend (prototype .cp-previewchart / .cp-chartleg) ── */
+.chartframe {
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+  margin-top: 16px;
+}
+.ch {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.chartleg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.chartleg .li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   color: var(--fg-muted);
 }
-.hint {
-  margin: 0 0 4px;
+.chartleg .sw {
+  flex: 0 0 auto;
+}
+.chartleg .sw.sel {
+  width: 12px;
+  height: 12px;
+  background: var(--epfl-red);
+}
+.chartleg .sw.ghost {
+  width: 16px;
+  height: 0;
+  border-top: 2px solid var(--border-strong);
+}
+.charthint {
   font-size: 12.5px;
   color: var(--fg-muted);
+  line-height: 1.5;
+  margin: 12px 0 0;
 }
 </style>

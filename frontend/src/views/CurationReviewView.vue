@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CurationDetail } from '@/backend'
-import EyebrowText from '@/components/commons/EyebrowText.vue'
 import ToolSegmented from '@/components/commons/tools/ToolSegmented.vue'
 import CohortPanel from '@/components/curation/CohortPanel.vue'
 import DataPreviewPanel from '@/components/curation/DataPreviewPanel.vue'
@@ -58,7 +57,7 @@ const selectedFiles = computed(() => {
   )
 })
 
-// "Existing range" ghost column: observed min–max of each numeric dictionary
+// "Existing range" ghost hints: observed min–max of each numeric dictionary
 // field across the database the submission targets (same dataset instance as
 // the cohort panel — the module cache dedupes the fetch).
 const ranges = ref<Record<string, { min: number; max: number }>>({})
@@ -108,94 +107,70 @@ async function selectIssue(uid: number, column: string): Promise<void> {
 </script>
 
 <template>
-  <div class="tool-page review-page">
-    <p v-if="state === 'loading'" class="state">{{ $t('curation.review.loading') }}</p>
+  <div class="curation-review">
+    <p v-if="state === 'loading'" class="state pad">{{ $t('curation.review.loading') }}</p>
 
     <template v-else-if="state === 'error'">
-      <p class="state">
+      <p class="state pad">
         <v-icon :icon="mdiAlertOutline" size="15" />
         {{ $t('curation.review.not_found') }}
       </p>
-      <router-link class="btn btn-secondary btn-sm back" to="/curation">
+      <router-link class="cp-btn back" to="/curation">
         <v-icon :icon="mdiArrowLeft" size="14" />
         {{ $t('curation.review.back') }}
       </router-link>
     </template>
 
-    <template v-else-if="detail && database">
-      <div class="dash-head">
-        <div class="eyebrow head-eyebrow">
-          <eyebrow-text
-            :text="`${$t('curation.review.eyebrow', {
-              number: detail.pr_number
-            })} · ${databaseName}`"
-          />
-          <span class="state-chip">{{ $t('curation.review.in_review') }}</span>
-        </div>
-        <div class="dash-head-row">
-          <h1 class="dash-title">
-            {{ detail.experiments[0]?.id ?? detail.title }}
-            <span v-if="detail.experiments.length > 1" class="more">
-              {{ $t('curation.review.more_experiments', { count: detail.experiments.length - 1 }) }}
-            </span>
-          </h1>
-          <div class="dash-head-actions actions">
-            <a
-              class="btn btn-primary btn-sm"
-              :href="detail.pr_url"
-              target="_blank"
-              rel="noreferrer"
-            >
+    <div v-else-if="detail && database" class="val">
+      <div class="val-main">
+        <div class="val-head">
+          <p class="k">
+            {{ $t('curation.review.eyebrow', { number: detail.pr_number }) }} · {{ databaseName }} ·
+            {{ $t('curation.review.in_review') }}
+          </p>
+          <div class="hrow">
+            <h2>
+              {{ detail.experiments[0]?.id ?? detail.title }}
+              <span v-if="detail.experiments.length > 1" class="more">
+                {{
+                  $t('curation.review.more_experiments', { count: detail.experiments.length - 1 })
+                }}
+              </span>
+            </h2>
+            <a class="cp-btn" :href="detail.pr_url" target="_blank" rel="noreferrer">
               <v-icon :icon="mdiOpenInNew" size="14" />
               {{ $t('curation.review.open_pr') }}
             </a>
-            <span class="stub-actions" :title="$t('curation.actions.disabled_tooltip')">
-              <button class="btn btn-secondary btn-sm" disabled type="button">
-                <v-icon :icon="mdiCheck" size="14" />{{ $t('curation.actions.approve') }}
-              </button>
-              <button class="btn btn-secondary btn-sm" disabled type="button">
-                <v-icon :icon="mdiClose" size="14" />{{ $t('curation.actions.reject') }}
-              </button>
-              <button class="btn btn-secondary btn-sm" disabled type="button">
-                <v-icon :icon="mdiSendOutline" size="14" />
-                {{ $t('curation.actions.request_changes') }}
-              </button>
-            </span>
           </div>
+          <p class="sub">
+            <template v-if="detail.contributor?.name">
+              {{ $t('curation.review.submitted_by', { name: detail.contributor.name })
+              }}<template v-if="detail.contributor.institution">
+                · {{ detail.contributor.institution }}</template
+              >
+              <template v-if="detail.contributor.orcid">
+                · ORCID {{ detail.contributor.orcid }}</template
+              >
+            </template>
+            <template v-else>{{ $t('curation.review.unknown_contributor') }}</template>
+            · {{ formatAge(detail.submitted_at || detail.created_at, locale) }}
+          </p>
         </div>
-        <p class="dash-desc">
-          <template v-if="detail.contributor?.name">
-            {{
-              $t('curation.review.submitted_by', {
-                name: detail.contributor.name
-              })
-            }}<template v-if="detail.contributor.institution">
-              · {{ detail.contributor.institution }}</template
-            >
-            <template v-if="detail.contributor.orcid">
-              · ORCID {{ detail.contributor.orcid }}</template
-            >
-          </template>
-          <template v-else>{{ $t('curation.review.unknown_contributor') }}</template>
-          · {{ formatAge(detail.submitted_at || detail.created_at, locale) }}
-        </p>
-      </div>
 
-      <p v-if="detail.reconstruction_warning" class="reconstruction">
-        <v-icon :icon="mdiAlertOutline" size="15" />
-        {{ detail.reconstruction_warning }}
-      </p>
+        <div class="val-body">
+          <p v-if="detail.reconstruction_warning" class="reconstruction">
+            <v-icon :icon="mdiAlertOutline" size="15" />
+            {{ detail.reconstruction_warning }}
+          </p>
 
-      <tool-segmented
-        v-if="experimentItems.length > 1"
-        class="selector"
-        :items="experimentItems"
-        :model-value="String(selectedUid)"
-        @update:model-value="selectedUid = Number($event)"
-      />
+          <tool-segmented
+            v-if="experimentItems.length > 1"
+            class="selector"
+            :items="experimentItems"
+            :model-value="String(selectedUid)"
+            @update:model-value="selectedUid = Number($event)"
+          />
 
-      <div class="layout">
-        <div class="main">
           <metadata-panel
             v-if="selected"
             ref="metadataPanel"
@@ -212,38 +187,50 @@ async function selectIssue(uid: number, column: string): Promise<void> {
           />
           <cohort-panel :database="database" :detail="detail" :selected-uid="selectedUid" />
         </div>
+      </div>
 
-        <div class="rail">
+      <aside class="val-rail">
+        <div class="rail-scroll">
           <quality-flags-rail
             :database="database"
             :detail="detail"
             :pr-number="detail.pr_number"
             @select="selectIssue"
           />
-          <div class="tool-card notes">
-            <div class="tool-card-h">{{ $t('curation.notes.title') }}</div>
+
+          <div class="notes">
+            <p class="sech">{{ $t('curation.notes.title') }}</p>
             <p class="notes-text">{{ $t('curation.notes.on_github') }}</p>
-            <a
-              class="btn btn-secondary btn-sm"
-              :href="detail.pr_url"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <v-icon :icon="mdiOpenInNew" size="13" />
-              {{ $t('curation.notes.open_discussion') }}
+            <a class="notes-link" :href="detail.pr_url" target="_blank" rel="noreferrer">
+              {{ $t('curation.notes.open_discussion') }} →
             </a>
           </div>
         </div>
-      </div>
-    </template>
+
+        <div class="val-actions" :title="$t('curation.actions.disabled_tooltip')">
+          <button class="cp-btn primary full" disabled type="button">
+            <v-icon :icon="mdiSendOutline" size="14" />
+            {{ $t('curation.actions.request_changes') }}
+          </button>
+          <div class="row2">
+            <button class="cp-btn teal" disabled type="button">
+              <v-icon :icon="mdiCheck" size="14" />{{ $t('curation.actions.approve') }}
+            </button>
+            <button class="cp-btn" disabled type="button">
+              <v-icon :icon="mdiClose" size="14" />{{ $t('curation.actions.reject') }}
+            </button>
+          </div>
+          <p class="actions-note">{{ $t('curation.actions.disabled_tooltip') }}</p>
+        </div>
+      </aside>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.review-page {
-  max-width: 1240px;
-  padding: 24px clamp(16px, 4vw, 40px) 60px;
-  margin: 0 auto;
+.curation-review {
+  min-height: 100%;
+  background: var(--bg);
 }
 .state {
   display: flex;
@@ -252,86 +239,192 @@ async function selectIssue(uid: number, column: string): Promise<void> {
   font-size: 14px;
   color: var(--fg-muted);
 }
+.pad {
+  padding: 30px 40px;
+}
 .back {
-  margin-top: 12px;
+  margin: 0 40px;
   text-decoration: none;
 }
-.head-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
+
+/* ── two-pane validation layout (prototype .cp-val) ── */
+.val {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  min-height: 100%;
 }
-.state-chip {
-  padding: 2px 8px;
-  border: 1px solid var(--epfl-orange);
-  border-radius: var(--radius);
+@media (max-width: 1100px) {
+  .val {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .val-main {
+    border-right: 0 !important;
+  }
+}
+.val-main {
+  min-width: 0;
+  border-right: 1px solid var(--fg);
+}
+.val-head {
+  padding: 26px 34px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.val-head .k {
+  font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--epfl-red);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--epfl-orange);
+  margin: 0;
 }
-.more {
-  margin-left: 8px;
-  font-size: 14px;
+.hrow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+.val-head h2 {
+  font-size: 28px;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  margin: 10px 0 6px;
+}
+.val-head .more {
+  font-family: var(--font-mono);
+  font-size: 13px;
   font-weight: 400;
   color: var(--fg-muted);
+  margin-left: 8px;
 }
-.actions {
-  display: flex;
+.val-head .sub {
+  font-size: 13px;
+  color: var(--fg-muted);
+  margin: 0;
+}
+.val-body {
+  padding: 24px 34px 40px;
+}
+
+/* prototype button */
+.cp-btn {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 11px 18px;
+  border: 1px solid var(--fg);
+  background: var(--bg);
+  color: var(--fg);
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-}
-.actions .btn {
+  cursor: pointer;
+  white-space: nowrap;
   text-decoration: none;
 }
-.stub-actions {
-  display: inline-flex;
-  gap: 8px;
+.cp-btn:hover:not([disabled]) {
+  border-color: var(--epfl-red);
+  color: var(--epfl-red);
 }
-.stub-actions .btn[disabled] {
+.cp-btn.primary {
+  background: var(--epfl-red);
+  color: #fff;
+  border-color: var(--epfl-red);
+}
+.cp-btn.teal {
+  background: var(--epfl-canard, #007480);
+  color: #fff;
+  border-color: var(--epfl-canard, #007480);
+}
+.cp-btn[disabled] {
+  background: var(--bg-subtle);
+  color: var(--fg-disabled, var(--fg-subtle));
+  border-color: var(--border);
   cursor: not-allowed;
-  opacity: 0.55;
 }
+
 .reconstruction {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 16px;
-  padding: 10px 14px;
-  border: 1px solid var(--epfl-orange);
-  border-left-width: 3px;
-  font-size: 13.5px;
-  color: var(--epfl-orange);
-}
-.selector {
-  margin-bottom: 16px;
-}
-.layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
-  gap: 20px;
-  align-items: start;
-}
-@media (max-width: 960px) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-.main > * + * {
-  margin-top: 20px;
-}
-.rail > * + * {
-  margin-top: 20px;
-}
-.notes-text {
-  margin: 0 0 10px;
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--epfl-orange);
+  background: var(--bg-subtle);
   font-size: 13px;
   color: var(--fg-muted);
 }
-.notes .btn {
+.selector {
+  margin-bottom: 24px;
+}
+
+/* ── right rail ── */
+.val-rail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+  background: var(--bg);
+}
+.rail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 22px 24px;
+}
+.notes {
+  margin-top: 28px;
+}
+.sech {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.notes-text {
+  font-size: 13px;
+  color: var(--fg-muted);
+  line-height: 1.55;
+  margin: 0 0 8px;
+}
+.notes-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--epfl-red);
   text-decoration: none;
+}
+.val-actions {
+  padding: 18px 24px;
+  border-top: 1px solid var(--fg);
+  background: var(--bg-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.val-actions .full {
+  width: 100%;
+  justify-content: center;
+}
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.row2 .cp-btn {
+  justify-content: center;
+}
+.row2 .cp-btn + .cp-btn {
+  border-left: 0;
+}
+.actions-note {
+  font-size: 11.5px;
+  color: var(--fg-subtle);
+  line-height: 1.45;
+  margin: 2px 0 0;
 }
 </style>

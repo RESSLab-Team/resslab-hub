@@ -1172,6 +1172,7 @@
     },
     "queue": {
       "title": "File de relecture",
+      "eyebrow_qualifier": "Soumissions ouvertes",
       "description": "Soumissions ouvertes sur le dépôt de données, en attente de relecture. Les décisions (approbation, demandes de modification, fusion) se prennent sur GitHub tant que les rôles de curateur ne sont pas en place.",
       "loading": "Chargement des soumissions ouvertes…",
       "error": "La file de relecture n'a pas pu être chargée.",
@@ -1208,34 +1209,41 @@
     },
     "metadata": {
       "title": "Métadonnées du spécimen",
-      "field": "Champ",
-      "value": "Valeur",
-      "existing_range": "Plage existante",
-      "missing": "— manquant"
+      "missing": "— manquant",
+      "range_hint": "existant {min}–{max}"
     },
     "preview": {
       "title": "Aperçu des données",
       "loading": "Chargement des réponses mesurées…",
       "none": "Aucun fichier de réponse mesurée n'est attaché à cette expérience.",
-      "rows_file": "{rows} lignes · {file}",
+      "rows": "lignes",
       "unavailable": "{file} n'a pas pu être chargé."
     },
     "cohort": {
-      "title": "Comparaison avec la base existante",
+      "title": "Comparaison avec des expériences similaires",
+      "banner_title": "Cohorte de comparaison",
+      "lead": "Pour comparer à périmètre égal, les lignes fantômes ci-dessous ne proviennent que des expériences partageant les paramètres clés de ce spécimen — pas de toute la base.",
       "loading": "Chargement de la base existante…",
       "unavailable": "Le jeu de données existant n'a pas pu être chargé.",
       "restrict": "Restreindre aux expériences similaires",
       "count": "{count} expériences",
       "excluded": "Non renseigné, ignoré : {fields}",
-      "hint": "Chaque ligne grise est une expérience existante ; la ligne rouge est cette soumission."
+      "chart_title": "Coordonnées parallèles · Nouveau spécimen vs cohorte",
+      "ghosts": "{count} fantômes + {added} nouveau(x)",
+      "legend_new": "Nouveau spécimen · {id}",
+      "legend_ghost": "{count} similaires (fantômes)",
+      "hint": "Chaque ligne grise est une expérience existante sur tous les axes ; la ligne rouge est cette soumission."
     },
     "flags": {
       "title": "Contrôles qualité",
       "loading": "Relance des contrôles automatiques…",
       "unavailable": "Les contrôles n'ont pas pu être exécutés — consultez le rapport de validation sur GitHub.",
-      "pass": "{count} ok",
-      "warn": "{count} avert.",
-      "fail": "{count} échec",
+      "pass": "ok",
+      "warn": "avert.",
+      "fail": "échec",
+      "high": "Élevé",
+      "medium": "Moyen",
+      "automated": "Automatique",
       "all_clear": "Tous les contrôles automatiques passent.",
       "global": "Niveau fichier",
       "dismissed": "Écartés par le contributeur",

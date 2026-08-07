@@ -86,6 +86,9 @@
   /* ──────────── TYPE ──────────── */
   --font-sans: "Suisse Int'l", 'SuisseIntl', 'Suisse Intl', Arial, 'Helvetica Neue', Helvetica,
     sans-serif;
+  /* Microtypography voice (ids, eyebrows, counts, category tags) — same stack
+     as the contribution-pipeline design prototype. */
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
 
   /* Type scale — verbatim from the EPFL handoff (colors_and_type.css). */
   --fs-h1: 3rem; /* 48 */

@@ -11,8 +11,9 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 /**
- * Line-chart previews of the time-series files attached to one experiment,
- * fetched from the submission's PR branch through the backend proxy.
+ * Line-chart previews of the time-series files attached to one experiment
+ * (prototype `.cp-previewchart` frames), fetched from the submission's PR
+ * branch through the backend proxy.
  */
 const props = defineProps<{
   database: DatabaseId
@@ -20,7 +21,7 @@ const props = defineProps<{
   files: CurationFile[]
 }>()
 
-const { t, te } = useI18n({ useScope: 'global' })
+const { t, te, n } = useI18n({ useScope: 'global' })
 const store = useCurationStore()
 
 interface Preview {
@@ -100,20 +101,19 @@ const empty = computed(() => !loading.value && !previews.value.length && !failed
 </script>
 
 <template>
-  <div class="tool-card">
-    <div class="tool-card-h">{{ $t('curation.preview.title') }}</div>
+  <section class="preview-section">
+    <p class="sech">{{ $t('curation.preview.title') }}</p>
 
     <p v-if="loading" class="state">{{ $t('curation.preview.loading') }}</p>
     <p v-else-if="empty" class="state">{{ $t('curation.preview.none') }}</p>
 
-    <div v-for="preview in previews" :key="preview.path" class="preview">
-      <div class="preview-head">
-        <span class="preview-title">{{ preview.title }}</span>
-        <span class="preview-meta">
-          {{
-            $t('curation.preview.rows_file', { rows: preview.rows, file: fileName(preview.path) })
-          }}
-        </span>
+    <div v-for="preview in previews" :key="preview.path" class="previewchart">
+      <div class="ch">
+        <span>{{ preview.title }}</span>
+        <span
+          >{{ n(preview.rows) }} {{ $t('curation.preview.rows') }} ·
+          {{ fileName(preview.path) }}</span
+        >
       </div>
       <unit-line-chart
         :series="preview.series"
@@ -127,10 +127,22 @@ const empty = computed(() => !loading.value && !previews.value.length && !failed
       <v-icon :icon="mdiAlertOutline" size="14" />
       {{ $t('curation.preview.unavailable', { file: fileName(path) }) }}
     </p>
-  </div>
+  </section>
 </template>
 
 <style scoped>
+.preview-section {
+  margin-top: 32px;
+}
+.sech {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 0 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
 .state {
   margin: 4px 0;
   font-size: 13.5px;
@@ -142,26 +154,22 @@ const empty = computed(() => !loading.value && !previews.value.length && !failed
   gap: 6px;
   color: var(--epfl-orange);
 }
-.preview + .preview {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
+.previewchart {
+  border: 1px solid var(--border);
+  padding: 16px 18px;
 }
-.preview-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 6px;
+.previewchart + .previewchart {
+  margin-top: 16px;
 }
-.preview-title {
-  font-size: 13px;
-  font-weight: 600;
-}
-.preview-meta {
-  font-size: 12px;
-  color: var(--fg-muted);
+.ch {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  color: var(--fg-muted);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
 }
 </style>
