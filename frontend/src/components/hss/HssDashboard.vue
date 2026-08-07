@@ -8,10 +8,10 @@ import HssParallelChart from '@/components/hss/charts/HssParallelChart.vue'
 import HssSingleChart from '@/components/hss/charts/HssSingleChart.vue'
 import HssDetail from '@/components/hss/HssDetail.vue'
 import HssTable from '@/components/hss/HssTable.vue'
-import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { PARALLEL_FIELDS } from '@/components/hss/data'
+import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
-import { testConfigurationNameMapping } from '@/utils/hss'
 import { periwinkle, plum, yellowgreen } from '@/utils/vuetify'
 import { mdiCalendarRange, mdiPulse, mdiTagOutline, mdiTune } from '@mdi/js'
 import { computed, onMounted } from 'vue'
@@ -28,17 +28,7 @@ const { clickTableRow, closeDetail, item, query, search, searches, changeSearche
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
 
-const parallelFields: ParallelField<HSSColumnField>[] = [
-  { id: HSSColumnField.ThetaPPos100fitRad, name: 'θp [rad]' },
-  { id: HSSColumnField.DepthOverT, name: 'D/t' },
-  { id: HSSColumnField.AxialLoadRatio, name: 'Pg/Py' },
-  { id: HSSColumnField.LoadingAngle, name: 'Load Angle [degrees]' },
-  {
-    id: HSSColumnField.TestConfiguration,
-    name: 'Configuration',
-    mapping: testConfigurationNameMapping
-  }
-]
+const parallelFields = PARALLEL_FIELDS
 
 const parallelFilterFields: string[] = [
   HSSColumnField.Id,

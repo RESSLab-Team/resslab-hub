@@ -8,7 +8,8 @@ import BraceSingleChart from '@/components/braces/charts/BraceSingleChart.vue'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
 import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
-import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { PARALLEL_FIELDS } from '@/components/braces/data'
+import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { apricot, mauve, sky } from '@/utils/vuetify'
@@ -27,17 +28,7 @@ const { clickTableRow, closeDetail, item, query, search, searches, changeSearche
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
 
-const parallelFields: ParallelField<BraceField>[] = [
-  { id: BraceField.KlR },
-  {
-    id: {
-      dividend: BraceField.DBr,
-      divisor: BraceField.TBr
-    }
-  },
-  { id: BraceField.CrossSectionShape },
-  { id: BraceField.BoundaryCondition }
-]
+const parallelFields = PARALLEL_FIELDS
 
 const parallelFilterFields: string[] = [
   BraceField.Id,

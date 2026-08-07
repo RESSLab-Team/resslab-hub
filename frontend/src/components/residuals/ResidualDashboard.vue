@@ -8,7 +8,8 @@ import ResidualParallelChart from '@/components/residuals/charts/ResidualParalle
 import ResidualSingleChart from '@/components/residuals/charts/ResidualSingleChart.vue'
 import ResidualDetail from '@/components/residuals/ResidualDetail.vue'
 import ResidualTable from '@/components/residuals/ResidualTable.vue'
-import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { PARALLEL_FIELDS } from '@/components/residuals/data'
+import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { cobalt, peach, yellowgreen } from '@/utils/vuetify'
@@ -27,14 +28,7 @@ const { clickTableRow, closeDetail, item, query, search, searches, changeSearche
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
 
-const parallelFields: ParallelField<ResidualStressField>[] = [
-  { id: ResidualStressField.Steel, name: 'Steel Grade' },
-  { id: ResidualStressField.HOverB, name: 'h/bf' },
-  { id: ResidualStressField.Tf, name: 'tf [mm]' },
-  { id: ResidualStressField.A, name: 'A [mm²]' },
-  { id: ResidualStressField.Sigma0F, name: 'σ0,f [MPa]' },
-  { id: ResidualStressField.Sigma0W, name: 'σ0,w [MPa] ' }
-]
+const parallelFields = PARALLEL_FIELDS
 
 const parallelFilterFields: string[] = [
   ResidualStressField.Id,

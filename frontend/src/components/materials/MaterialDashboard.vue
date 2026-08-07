@@ -8,7 +8,8 @@ import MaterialParallelChart from '@/components/materials/charts/MaterialParalle
 import MaterialSingleChart from '@/components/materials/charts/MaterialSingleChart.vue'
 import MaterialDetail from '@/components/materials/MaterialDetail.vue'
 import MaterialTable from '@/components/materials/MaterialTable.vue'
-import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { PARALLEL_FIELDS } from '@/components/materials/data'
+import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { apricot, periwinkle, plum } from '@/utils/vuetify'
@@ -27,18 +28,7 @@ const { clickTableRow, closeDetail, item, query, search, searches, changeSearche
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
 
-const parallelFields: ParallelField<MaterialField>[] = [
-  { id: MaterialField.Type },
-  { id: MaterialField.YieldStressMpa },
-  {
-    id: {
-      dividend: MaterialField.YieldStressMpa,
-      divisor: MaterialField.FyNMpa
-    }
-  },
-  { id: MaterialField.FractureStrain },
-  { id: MaterialField.Thickness }
-]
+const parallelFields = PARALLEL_FIELDS
 
 const parallelFilterFields: string[] = [
   MaterialField.Id,

@@ -8,7 +8,8 @@ import ConnectionParallelChart from '@/components/connections/charts/ConnectionP
 import ConnectionSingleChart from '@/components/connections/charts/ConnectionSingleChart.vue'
 import ConnectionDetail from '@/components/connections/ConnectionDetail.vue'
 import ConnectionTable from '@/components/connections/ConnectionTable.vue'
-import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { PARALLEL_FIELDS } from '@/components/connections/data'
+import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { cobalt, peach, periwinkle, plum, sky } from '@/utils/vuetify'
@@ -36,37 +37,7 @@ const { clickTableRow, closeDetail, item, query, search, searches, changeSearche
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
 
-const parallelFields: ParallelField<ConnectionField>[] = [
-  {
-    id: ConnectionField.DB,
-    name: 'Beam Depth\ndb [mm]'
-  },
-  {
-    id: ConnectionField.DC,
-    name: 'Column Depth\ndc [mm]'
-  },
-  {
-    id: ConnectionField.TCf,
-    name: 'Column flange\nThickness [mm]'
-  },
-  {
-    id: {
-      dividend: ConnectionField.DB,
-      divisor: ConnectionField.DC
-    },
-    name: 'db / dc'
-  },
-  {
-    id: ConnectionField.GMaxGY
-  },
-  {
-    id: ConnectionField.RuRnPlN
-  },
-  {
-    id: ConnectionField.ConnectionType,
-    name: 'Connection\nType'
-  }
-]
+const parallelFields = PARALLEL_FIELDS
 
 const parallelFilterFields: string[] = [
   ConnectionField.Id,

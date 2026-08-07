@@ -8,7 +8,8 @@ import ColumnParallelChart from '@/components/columns/charts/ColumnParallelChart
 import ColumnSingleChart from '@/components/columns/charts/ColumnSingleChart.vue'
 import ColumnDetail from '@/components/columns/ColumnDetail.vue'
 import ColumnTable from '@/components/columns/ColumnTable.vue'
-import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { PARALLEL_FIELDS } from '@/components/columns/data'
+import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useCountsStore } from '@/stores/counts'
 import { cobalt, mint, plum } from '@/utils/vuetify'
@@ -27,13 +28,7 @@ const { clickTableRow, closeDetail, item, query, search, searches, changeSearche
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
 
-const parallelFields: ParallelField<ColumnField>[] = [
-  { id: ColumnField.Th80 },
-  { id: ColumnField.HOverTCw },
-  { id: ColumnField.BFOverTCf },
-  { id: ColumnField.LBOverRYc },
-  { id: ColumnField.PGOverPYm }
-]
+const parallelFields = PARALLEL_FIELDS
 
 const parallelFilterFields: string[] = [
   ColumnField.Id,
