@@ -247,10 +247,12 @@ async function selectIssue(uid: number, column: string): Promise<void> {
   text-decoration: none;
 }
 
-/* ── two-pane validation layout (prototype .cp-val) ── */
+/* ── two-pane validation layout (prototype .cp-val) ──
+   The rail scales with the viewport so huge screens don't leave a skinny
+   fixed-width column beside an ocean of main pane. */
 .val {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 400px;
+  grid-template-columns: minmax(0, 1fr) clamp(340px, 26vw, 480px);
   min-height: 100%;
 }
 @media (max-width: 1100px) {
@@ -260,13 +262,18 @@ async function selectIssue(uid: number, column: string): Promise<void> {
   .val-main {
     border-right: 0 !important;
   }
+  .val-rail {
+    position: static !important;
+    max-height: none !important;
+    border-top: 1px solid var(--fg);
+  }
 }
 .val-main {
   min-width: 0;
   border-right: 1px solid var(--fg);
 }
 .val-head {
-  padding: 26px 34px 20px;
+  padding: 26px clamp(22px, 3vw, 56px) 20px;
   border-bottom: 1px solid var(--border);
 }
 .val-head .k {
@@ -302,7 +309,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
   margin: 0;
 }
 .val-body {
-  padding: 24px 34px 40px;
+  padding: 24px clamp(22px, 3vw, 56px) 40px;
 }
 
 /* prototype button */
@@ -372,7 +379,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
-  padding: 22px 24px;
+  padding: 22px clamp(20px, 1.8vw, 32px);
 }
 .notes {
   margin-top: 28px;

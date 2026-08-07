@@ -107,20 +107,22 @@ const empty = computed(() => !loading.value && !previews.value.length && !failed
     <p v-if="loading" class="state">{{ $t('curation.preview.loading') }}</p>
     <p v-else-if="empty" class="state">{{ $t('curation.preview.none') }}</p>
 
-    <div v-for="preview in previews" :key="preview.path" class="previewchart">
-      <div class="ch">
-        <span>{{ preview.title }}</span>
-        <span
-          >{{ n(preview.rows) }} {{ $t('curation.preview.rows') }} ·
-          {{ fileName(preview.path) }}</span
-        >
+    <div class="grid">
+      <div v-for="preview in previews" :key="preview.path" class="previewchart">
+        <div class="ch">
+          <span>{{ preview.title }}</span>
+          <span
+            >{{ n(preview.rows) }} {{ $t('curation.preview.rows') }} ·
+            {{ fileName(preview.path) }}</span
+          >
+        </div>
+        <unit-line-chart
+          :series="preview.series"
+          :x-axis-name="preview.xAxisName"
+          :y-axis-name="preview.yAxisName"
+          :aspect-ratio="2"
+        />
       </div>
-      <unit-line-chart
-        :series="preview.series"
-        :x-axis-name="preview.xAxisName"
-        :y-axis-name="preview.yAxisName"
-        :aspect-ratio="2"
-      />
     </div>
 
     <p v-for="path in failed" :key="path" class="state error">
@@ -154,12 +156,18 @@ const empty = computed(() => !loading.value && !previews.value.length && !failed
   gap: 6px;
   color: var(--epfl-orange);
 }
+/* Frames tile side-by-side once the pane can fit two — on wide screens a
+   multi-curve experiment reads as a gallery instead of a scroll of oversized
+   charts. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
+  gap: 16px;
+}
 .previewchart {
   border: 1px solid var(--border);
   padding: 16px 18px;
-}
-.previewchart + .previewchart {
-  margin-top: 16px;
+  min-width: 0;
 }
 .ch {
   font-family: var(--font-mono);

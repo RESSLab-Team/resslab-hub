@@ -86,6 +86,7 @@ defineExpose({ flash })
           <!-- eslint-disable-next-line vue/no-v-html -->
           <span v-if="row.symbol" class="symbol" v-html="row.symbol"></span>
         </span>
+        <span class="leader"></span>
         <span class="pv">
           <span v-if="row.missing && row.required" class="missing">
             {{ $t('curation.metadata.missing') }}
@@ -118,26 +119,33 @@ defineExpose({ flash })
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
 }
+/* Column count follows the pane width (1 → 4 columns): on wide screens the
+   pairs stay compact and more fields are visible at once, instead of two
+   columns stretching label and value apart. */
 .propgrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 36px;
-}
-@media (max-width: 700px) {
-  .propgrid {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0 40px;
 }
 .prop {
   display: flex;
-  justify-content: space-between;
-  gap: 18px;
+  align-items: baseline;
+  gap: 10px;
   padding: 9px 0;
   border-bottom: 1px solid var(--border-subtle);
   font-size: 13px;
 }
 .pk {
   color: var(--fg-muted);
+}
+/* Dotted leader bridging label and value — keeps the pair readable however
+   wide the column gets (index-page style, matches the mono microtypography). */
+.leader {
+  flex: 1;
+  min-width: 18px;
+  border-bottom: 1px dotted var(--border-strong);
+  opacity: 0.55;
+  transform: translateY(-3px);
 }
 .symbol {
   margin-left: 4px;

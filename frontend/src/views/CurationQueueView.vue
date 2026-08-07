@@ -156,7 +156,7 @@ const rows = computed<QueueRow[]>(() =>
 
 /* ── page head (prototype .cp-phead) ── */
 .phead {
-  padding: 30px 40px 22px;
+  padding: 30px clamp(20px, 3vw, 56px) 22px;
   border-bottom: 1px solid var(--fg);
 }
 .eyebrow {
@@ -221,7 +221,7 @@ const rows = computed<QueueRow[]>(() =>
 }
 
 .pbody {
-  padding: 26px 40px 50px;
+  padding: 26px clamp(20px, 3vw, 56px) 50px;
 }
 .state {
   display: flex;
@@ -234,6 +234,7 @@ const rows = computed<QueueRow[]>(() =>
 /* ── table (prototype .cp-table) ── */
 .tablewrap {
   border: 1px solid var(--border);
+  overflow-x: auto;
 }
 .queue {
   width: 100%;
