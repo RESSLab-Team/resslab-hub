@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CurationDetail } from '@/backend'
-import ToolSegmented from '@/components/commons/tools/ToolSegmented.vue'
 import CohortPanel from '@/components/curation/CohortPanel.vue'
 import DataPreviewPanel from '@/components/curation/DataPreviewPanel.vue'
 import MetadataPanel from '@/components/curation/MetadataPanel.vue'
@@ -41,14 +40,6 @@ const databaseName = computed(
 
 const selectedUid = ref(0)
 const selected = computed(() => detail.value?.experiments[selectedUid.value])
-
-const experimentItems = computed(
-  () =>
-    detail.value?.experiments.map((experiment, index) => ({
-      value: String(index),
-      text: experiment.id
-    })) ?? []
-)
 
 const selectedFiles = computed(() => {
   if (!detail.value || !selected.value) return []
@@ -163,13 +154,23 @@ async function selectIssue(uid: number, column: string): Promise<void> {
             {{ detail.reconstruction_warning }}
           </p>
 
-          <tool-segmented
-            v-if="experimentItems.length > 1"
-            class="selector"
-            :items="experimentItems"
-            :model-value="String(selectedUid)"
-            @update:model-value="selectedUid = Number($event)"
-          />
+          <div v-if="detail.experiments.length > 1" class="selector">
+            <p class="selector-label">
+              {{ $t('curation.review.experiments_label', { count: detail.experiments.length }) }}
+            </p>
+            <div class="selector-chips">
+              <button
+                v-for="(experiment, index) in detail.experiments"
+                :key="experiment.id"
+                class="chip"
+                :class="{ sel: index === selectedUid }"
+                type="button"
+                @click="selectedUid = index"
+              >
+                {{ experiment.id }}
+              </button>
+            </div>
+          </div>
 
           <metadata-panel
             v-if="selected"
@@ -361,8 +362,41 @@ async function selectIssue(uid: number, column: string): Promise<void> {
   font-size: 13px;
   color: var(--fg-muted);
 }
+/* Experiment picker — wrapping chip select (prototype .cp-chips): batches of
+   any size stay reachable instead of a segmented row overflowing the pane. */
 .selector {
   margin-bottom: 24px;
+}
+.selector-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  margin: 0 0 8px;
+}
+.selector-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 6px 11px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: var(--fg);
+}
+.chip.sel {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
 }
 
 /* ── right rail ── */

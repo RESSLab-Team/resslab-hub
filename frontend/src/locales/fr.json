@@ -1197,6 +1197,7 @@
       "eyebrow": "Soumission n°{number}",
       "in_review": "En relecture",
       "more_experiments": "+{count} autres",
+      "experiments_label": "{count} expériences dans cette soumission",
       "open_pr": "Ouvrir la PR sur GitHub",
       "submitted_by": "Soumis par {name}",
       "unknown_contributor": "Contributeur inconnu"
