@@ -1010,7 +1010,7 @@ export interface CurationContributor {
     'orcid'?: string;
 }
 /**
- * Everything the review screen needs about one submission.
+ * Everything the review screen needs about one submission.  The list-ish fields carry no defaults on purpose: they are always present in the response, and a default would mark them optional in the OpenAPI schema (and therefore in the generated frontend client).
  */
 export interface CurationDetail {
     'pr_number': number;
@@ -1026,12 +1026,12 @@ export interface CurationDetail {
     'state': string;
     'head_sha': string;
     'body': string;
-    'submitted_at'?: string;
-    'dismissed_warnings'?: Array<string>;
-    'columns'?: Array<string>;
-    'experiments'?: Array<CurationExperiment>;
-    'files'?: Array<CurationFile>;
-    'reconstruction_warning'?: string | null;
+    'submitted_at': string;
+    'dismissed_warnings': Array<string>;
+    'columns': Array<string>;
+    'experiments': Array<CurationExperiment>;
+    'files': Array<CurationFile>;
+    'reconstruction_warning': string | null;
 }
 /**
  * One submitted row of the primary CSV, keyed by repo column name.

@@ -10940,40 +10940,35 @@
           },
           "submitted_at": {
             "type": "string",
-            "title": "Submitted At",
-            "default": ""
+            "title": "Submitted At"
           },
           "dismissed_warnings": {
             "items": {
               "type": "string"
             },
             "type": "array",
-            "title": "Dismissed Warnings",
-            "default": []
+            "title": "Dismissed Warnings"
           },
           "columns": {
             "items": {
               "type": "string"
             },
             "type": "array",
-            "title": "Columns",
-            "default": []
+            "title": "Columns"
           },
           "experiments": {
             "items": {
               "$ref": "#/components/schemas/CurationExperiment"
             },
             "type": "array",
-            "title": "Experiments",
-            "default": []
+            "title": "Experiments"
           },
           "files": {
             "items": {
               "$ref": "#/components/schemas/CurationFile"
             },
             "type": "array",
-            "title": "Files",
-            "default": []
+            "title": "Files"
           },
           "reconstruction_warning": {
             "anyOf": [
@@ -10999,10 +10994,16 @@
           "updated_at",
           "state",
           "head_sha",
-          "body"
+          "body",
+          "submitted_at",
+          "dismissed_warnings",
+          "columns",
+          "experiments",
+          "files",
+          "reconstruction_warning"
         ],
         "title": "CurationDetail",
-        "description": "Everything the review screen needs about one submission."
+        "description": "Everything the review screen needs about one submission.\n\nThe list-ish fields carry no defaults on purpose: they are always present\nin the response, and a default would mark them optional in the OpenAPI\nschema (and therefore in the generated frontend client)."
       },
       "CurationExperiment": {
         "properties": {

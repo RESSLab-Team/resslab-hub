@@ -1163,5 +1163,95 @@
       "confirm": "Submit"
     },
     "global_issues": "Problems not tied to a single experiment"
+  },
+  "curation": {
+    "eyebrow": "Curation",
+    "retry": "Retry",
+    "nav": {
+      "review_queue": "Review queue"
+    },
+    "queue": {
+      "title": "Review queue",
+      "description": "Open submissions on the data repository, awaiting curator review. Decisions (approve, request changes, merge) happen on GitHub until curator roles are in place.",
+      "loading": "Loading open submissions…",
+      "error": "The review queue could not be loaded.",
+      "not_configured": "Curation is not enabled on this deployment: the GitHub App credentials are missing.",
+      "empty": "The review queue is clear — no open submissions.",
+      "refresh": "Refresh",
+      "review": "Review",
+      "github": "GitHub",
+      "headers": {
+        "pr": "PR",
+        "database": "Database",
+        "title": "Title",
+        "contributor": "Contributor",
+        "experiments": "Experiments",
+        "updated": "Updated"
+      }
+    },
+    "review": {
+      "loading": "Loading submission…",
+      "not_found": "This submission does not exist or is no longer open.",
+      "back": "Back to the review queue",
+      "eyebrow": "Submission #{number}",
+      "in_review": "In review",
+      "more_experiments": "+{count} more",
+      "open_pr": "Open PR on GitHub",
+      "submitted_by": "Submitted by {name}",
+      "unknown_contributor": "Unknown contributor"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "request_changes": "Request changes",
+      "disabled_tooltip": "Decisions happen on the GitHub pull request until curator roles land (#248)."
+    },
+    "metadata": {
+      "title": "Specimen metadata",
+      "field": "Field",
+      "value": "Value",
+      "existing_range": "Existing range",
+      "missing": "— missing"
+    },
+    "preview": {
+      "title": "Data preview",
+      "loading": "Loading measured responses…",
+      "none": "No measured-response files are attached to this experiment.",
+      "rows_file": "{rows} rows · {file}",
+      "unavailable": "{file} could not be loaded."
+    },
+    "cohort": {
+      "title": "Comparison with the existing database",
+      "loading": "Loading the existing database…",
+      "unavailable": "The existing dataset could not be loaded.",
+      "restrict": "Restrict to similar experiments",
+      "count": "{count} experiments",
+      "excluded": "Not reported, ignored: {fields}",
+      "hint": "Each grey line is one existing experiment; the red line is this submission."
+    },
+    "flags": {
+      "title": "Quality flags",
+      "loading": "Re-running the automated checks…",
+      "unavailable": "The checks could not be run — review the validation report on GitHub.",
+      "pass": "{count} pass",
+      "warn": "{count} warn",
+      "fail": "{count} fail",
+      "all_clear": "All automated checks pass.",
+      "global": "File-level",
+      "dismissed": "Dismissed by the contributor",
+      "file": "Measured response",
+      "category": {
+        "schema": "schema",
+        "deduplication": "deduplication",
+        "statistical": "statistical",
+        "format": "format",
+        "file": "file"
+      }
+    },
+    "notes": {
+      "title": "Curator notes",
+      "on_github": "Discussion with the contributor happens on the pull request, where every comment is recorded.",
+      "open_discussion": "Open the discussion"
+    }
   }
 }

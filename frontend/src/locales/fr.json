@@ -1163,5 +1163,95 @@
       "confirm": "Soumettre"
     },
     "global_issues": "Problèmes non liés à une expérience précise"
+  },
+  "curation": {
+    "eyebrow": "Curation",
+    "retry": "Réessayer",
+    "nav": {
+      "review_queue": "File de relecture"
+    },
+    "queue": {
+      "title": "File de relecture",
+      "description": "Soumissions ouvertes sur le dépôt de données, en attente de relecture. Les décisions (approbation, demandes de modification, fusion) se prennent sur GitHub tant que les rôles de curateur ne sont pas en place.",
+      "loading": "Chargement des soumissions ouvertes…",
+      "error": "La file de relecture n'a pas pu être chargée.",
+      "not_configured": "La curation n'est pas activée sur ce déploiement : les identifiants de la GitHub App sont absents.",
+      "empty": "La file de relecture est vide — aucune soumission ouverte.",
+      "refresh": "Actualiser",
+      "review": "Relire",
+      "github": "GitHub",
+      "headers": {
+        "pr": "PR",
+        "database": "Base de données",
+        "title": "Titre",
+        "contributor": "Contributeur",
+        "experiments": "Expériences",
+        "updated": "Mise à jour"
+      }
+    },
+    "review": {
+      "loading": "Chargement de la soumission…",
+      "not_found": "Cette soumission n'existe pas ou n'est plus ouverte.",
+      "back": "Retour à la file de relecture",
+      "eyebrow": "Soumission n°{number}",
+      "in_review": "En relecture",
+      "more_experiments": "+{count} autres",
+      "open_pr": "Ouvrir la PR sur GitHub",
+      "submitted_by": "Soumis par {name}",
+      "unknown_contributor": "Contributeur inconnu"
+    },
+    "actions": {
+      "approve": "Approuver",
+      "reject": "Rejeter",
+      "request_changes": "Demander des modifications",
+      "disabled_tooltip": "Les décisions se prennent sur la pull request GitHub tant que les rôles de curateur ne sont pas en place (#248)."
+    },
+    "metadata": {
+      "title": "Métadonnées du spécimen",
+      "field": "Champ",
+      "value": "Valeur",
+      "existing_range": "Plage existante",
+      "missing": "— manquant"
+    },
+    "preview": {
+      "title": "Aperçu des données",
+      "loading": "Chargement des réponses mesurées…",
+      "none": "Aucun fichier de réponse mesurée n'est attaché à cette expérience.",
+      "rows_file": "{rows} lignes · {file}",
+      "unavailable": "{file} n'a pas pu être chargé."
+    },
+    "cohort": {
+      "title": "Comparaison avec la base existante",
+      "loading": "Chargement de la base existante…",
+      "unavailable": "Le jeu de données existant n'a pas pu être chargé.",
+      "restrict": "Restreindre aux expériences similaires",
+      "count": "{count} expériences",
+      "excluded": "Non renseigné, ignoré : {fields}",
+      "hint": "Chaque ligne grise est une expérience existante ; la ligne rouge est cette soumission."
+    },
+    "flags": {
+      "title": "Contrôles qualité",
+      "loading": "Relance des contrôles automatiques…",
+      "unavailable": "Les contrôles n'ont pas pu être exécutés — consultez le rapport de validation sur GitHub.",
+      "pass": "{count} ok",
+      "warn": "{count} avert.",
+      "fail": "{count} échec",
+      "all_clear": "Tous les contrôles automatiques passent.",
+      "global": "Niveau fichier",
+      "dismissed": "Écartés par le contributeur",
+      "file": "Réponse mesurée",
+      "category": {
+        "schema": "schéma",
+        "deduplication": "déduplication",
+        "statistical": "statistique",
+        "format": "format",
+        "file": "fichier"
+      }
+    },
+    "notes": {
+      "title": "Notes du curateur",
+      "on_github": "La discussion avec le contributeur se déroule sur la pull request, où chaque commentaire est archivé.",
+      "open_discussion": "Ouvrir la discussion"
+    }
   }
 }

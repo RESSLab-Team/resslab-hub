@@ -66,18 +66,23 @@ class CurationExperiment(BaseModel):
 
 
 class CurationDetail(CurationSummary):
-    """Everything the review screen needs about one submission."""
+    """Everything the review screen needs about one submission.
+
+    The list-ish fields carry no defaults on purpose: they are always present
+    in the response, and a default would mark them optional in the OpenAPI
+    schema (and therefore in the generated frontend client).
+    """
 
     state: str
     head_sha: str
     #: PR body markdown, rendered as the submission summary.
     body: str
-    submitted_at: str = ""
-    dismissed_warnings: List[str] = []
+    submitted_at: str
+    dismissed_warnings: List[str]
     #: Repo CSV header order — the stable field ordering for display.
-    columns: List[str] = []
-    experiments: List[CurationExperiment] = []
-    files: List[CurationFile] = []
+    columns: List[str]
+    experiments: List[CurationExperiment]
+    files: List[CurationFile]
     #: Set when the batch could not be reconstructed faithfully (provenance
     #: unreadable, or row count differs from the PR body) — review on GitHub.
-    reconstruction_warning: Optional[str] = None
+    reconstruction_warning: Optional[str]

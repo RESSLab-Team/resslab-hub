@@ -168,6 +168,17 @@ const router = createRouter({
       path: '/contribute/new',
       name: 'ContributeNew',
       component: () => import('@/views/ContributeView.vue')
+    },
+    {
+      path: '/curation',
+      name: 'CurationQueue',
+      component: () => import('@/views/CurationQueueView.vue')
+    },
+    {
+      path: '/curation/:prNumber(\\d+)',
+      name: 'CurationReview',
+      component: () => import('@/views/CurationReviewView.vue'),
+      props: true
     }
   ]
 })

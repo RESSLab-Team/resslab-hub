@@ -6,6 +6,7 @@ import { NAV_GROUPS, type NavGroup } from '@/utils/navigation'
 import {
   mdiBookOpenVariant,
   mdiChevronDown,
+  mdiClipboardCheckOutline,
   mdiHomeOutline,
   mdiInformationOutline,
   mdiUploadOutline,
@@ -145,6 +146,15 @@ function toggleGroup(group: NavGroup) {
     >
       <v-icon :icon="mdiUploadOutline" size="16" />
       {{ $t('contribute.new_submission') }}
+    </router-link>
+    <router-link
+      class="sidebar-link"
+      :class="{ 'is-active': route.path.startsWith('/curation') }"
+      to="/curation"
+      @click="emit('close')"
+    >
+      <v-icon :icon="mdiClipboardCheckOutline" size="16" />
+      {{ $t('curation.nav.review_queue') }}
     </router-link>
 
     <div class="sidebar-section">{{ $t('shell.reference') }}</div>

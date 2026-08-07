@@ -206,7 +206,12 @@ async def _build_detail(
         state=pull["state"],
         head_sha=head_sha,
         body=pull["body"],
+        submitted_at="",
+        dismissed_warnings=[],
+        columns=[],
+        experiments=[],
         files=files,
+        reconstruction_warning=None,
     )
 
     # Provenance is informative, never load-bearing: any failure downgrades to
