@@ -1004,6 +1004,70 @@ export interface CountModel {
     'names': Array<string>;
     'value': number;
 }
+export interface CurationContributor {
+    'name'?: string;
+    'institution'?: string;
+    'orcid'?: string;
+}
+/**
+ * Everything the review screen needs about one submission.
+ */
+export interface CurationDetail {
+    'pr_number': number;
+    'pr_url': string;
+    'title': string;
+    'branch': string;
+    'type': string;
+    'draft': boolean;
+    'created_at': string;
+    'updated_at': string;
+    'experiment_count'?: number | null;
+    'contributor'?: CurationContributor | null;
+    'state': string;
+    'head_sha': string;
+    'body': string;
+    'submitted_at'?: string;
+    'dismissed_warnings'?: Array<string>;
+    'columns'?: Array<string>;
+    'experiments'?: Array<CurationExperiment>;
+    'files'?: Array<CurationFile>;
+    'reconstruction_warning'?: string | null;
+}
+/**
+ * One submitted row of the primary CSV, keyed by repo column name.
+ */
+export interface CurationExperiment {
+    'id': string;
+    'cells': { [key: string]: string; };
+}
+/**
+ * One file added by the PR, classified against the type\'s layout.
+ */
+export interface CurationFile {
+    'path': string;
+    'kind': string;
+    'timeseries_dir'?: string | null;
+    'experiment_id'?: string | null;
+}
+export interface CurationListResponse {
+    'configured': boolean;
+    'items'?: Array<CurationSummary>;
+}
+/**
+ * One open contribution PR, as listed in the review queue.
+ */
+export interface CurationSummary {
+    'pr_number': number;
+    'pr_url': string;
+    'title': string;
+    'branch': string;
+    'type': string;
+    'draft': boolean;
+    'created_at': string;
+    'updated_at': string;
+    'experiment_count'?: number | null;
+    'contributor'?: CurationContributor | null;
+}
 export interface DataInnerInner {
 }
 /**
@@ -5629,10 +5693,6 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarQueryParameter = {} as any;
             const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
 
-            // authentication HTTPBasic required
-            // http basic authentication required
-            setBasicAuthToObject(localVarRequestOptions, configuration)
-
             if (type !== undefined) {
                 localVarQueryParameter['type'] = type;
             }
@@ -5726,6 +5786,115 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
+         * @summary Get Contribution
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContribution: async (prNumber: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'prNumber' is not null or undefined
+            assertParamExists('getContribution', 'prNumber', prNumber)
+            const localVarPath = `/contributions/{pr_number}`
+                .replace('{pr_number}', encodeURIComponent(String(prNumber)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
+         * @summary Get Contribution File
+         * @param {number} prNumber 
+         * @param {string} path 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionFile: async (prNumber: number, path: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'prNumber' is not null or undefined
+            assertParamExists('getContributionFile', 'prNumber', prNumber)
+            // verify required parameter 'path' is not null or undefined
+            assertParamExists('getContributionFile', 'path', path)
+            const localVarPath = `/contributions/{pr_number}/files`
+                .replace('{pr_number}', encodeURIComponent(String(prNumber)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (path !== undefined) {
+                localVarQueryParameter['path'] = path;
+            }
+
+            localVarHeaderParameter['Accept'] = 'text/plain,application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Re-run server-side validation on the reconstructed batch, producing the same response shape as ``/validate``. Issue rows index into the detail endpoint\'s ``experiments`` list (row N = experiments[N-1]).
+         * @summary Get Contribution Validation
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionValidation: async (prNumber: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'prNumber' is not null or undefined
+            assertParamExists('getContributionValidation', 'prNumber', prNumber)
+            const localVarPath = `/contributions/{pr_number}/validation`
+                .replace('{pr_number}', encodeURIComponent(String(prNumber)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Get User
          * @param {*} [options] Override http request option.
@@ -5767,6 +5936,36 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          */
         healthz: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/healthz`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+         * @summary List Contributions
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listContributions: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/contributions`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -5944,6 +6143,46 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
+         * @summary Get Contribution
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getContribution(prNumber: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CurationDetail>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getContribution(prNumber, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getContribution']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
+         * @summary Get Contribution File
+         * @param {number} prNumber 
+         * @param {string} path 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getContributionFile(prNumber: number, path: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getContributionFile(prNumber, path, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getContributionFile']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Re-run server-side validation on the reconstructed batch, producing the same response shape as ``/validate``. Issue rows index into the detail endpoint\'s ``experiments`` list (row N = experiments[N-1]).
+         * @summary Get Contribution Validation
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getContributionValidation(prNumber: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ValidationResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getContributionValidation(prNumber, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getContributionValidation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Get User
          * @param {*} [options] Override http request option.
@@ -5965,6 +6204,18 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.healthz(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['DefaultApi.healthz']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+         * @summary List Contributions
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listContributions(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CurationListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listContributions(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.listContributions']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -6043,6 +6294,37 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.createUploadFile(type, file, options).then((request) => request(axios, basePath));
         },
         /**
+         * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
+         * @summary Get Contribution
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContribution(prNumber: number, options?: RawAxiosRequestConfig): AxiosPromise<CurationDetail> {
+            return localVarFp.getContribution(prNumber, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
+         * @summary Get Contribution File
+         * @param {number} prNumber 
+         * @param {string} path 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionFile(prNumber: number, path: string, options?: RawAxiosRequestConfig): AxiosPromise<string> {
+            return localVarFp.getContributionFile(prNumber, path, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Re-run server-side validation on the reconstructed batch, producing the same response shape as ``/validate``. Issue rows index into the detail endpoint\'s ``experiments`` list (row N = experiments[N-1]).
+         * @summary Get Contribution Validation
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionValidation(prNumber: number, options?: RawAxiosRequestConfig): AxiosPromise<ValidationResponse> {
+            return localVarFp.getContributionValidation(prNumber, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Get User
          * @param {*} [options] Override http request option.
@@ -6059,6 +6341,15 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          */
         healthz(options?: RawAxiosRequestConfig): AxiosPromise<any> {
             return localVarFp.healthz(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+         * @summary List Contributions
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listContributions(options?: RawAxiosRequestConfig): AxiosPromise<CurationListResponse> {
+            return localVarFp.listContributions(options).then((request) => request(axios, basePath));
         },
         /**
          * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
@@ -6127,6 +6418,40 @@ export class DefaultApi extends BaseAPI {
     }
 
     /**
+     * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
+     * @summary Get Contribution
+     * @param {number} prNumber 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getContribution(prNumber: number, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getContribution(prNumber, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
+     * @summary Get Contribution File
+     * @param {number} prNumber 
+     * @param {string} path 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getContributionFile(prNumber: number, path: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getContributionFile(prNumber, path, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Re-run server-side validation on the reconstructed batch, producing the same response shape as ``/validate``. Issue rows index into the detail endpoint\'s ``experiments`` list (row N = experiments[N-1]).
+     * @summary Get Contribution Validation
+     * @param {number} prNumber 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getContributionValidation(prNumber: number, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getContributionValidation(prNumber, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * 
      * @summary Get User
      * @param {*} [options] Override http request option.
@@ -6144,6 +6469,16 @@ export class DefaultApi extends BaseAPI {
      */
     public healthz(options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).healthz(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+     * @summary List Contributions
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listContributions(options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).listContributions(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -52,6 +52,55 @@ class DataRepoClient:
             )
         )
 
+    @staticmethod
+    def _pull_dict(pull) -> dict:
+        return {
+            "number": pull.number,
+            "html_url": pull.html_url,
+            "title": pull.title,
+            "state": pull.state,
+            "draft": bool(pull.draft),
+            "head_ref": pull.head.ref,
+            "head_sha": pull.head.sha,
+            "base_ref": pull.base.ref,
+            "created_at": str(pull.created_at),
+            "updated_at": str(pull.updated_at),
+            "body": pull.body or "",
+        }
+
+    async def list_open_pulls(self) -> List[dict]:
+        """Open PRs into the base branch, newest first (one page, 100 max)."""
+        response = await self._gh.rest.pulls.async_list(
+            self.owner,
+            self.repo,
+            state="open",
+            base=self.base_branch,
+            sort="created",
+            direction="desc",
+            per_page=100,
+        )
+        return [self._pull_dict(pull) for pull in response.parsed_data]
+
+    async def get_pull(self, number: int) -> dict:
+        """One PR by number (any state)."""
+        response = await self._gh.rest.pulls.async_get(self.owner, self.repo, number)
+        return self._pull_dict(response.parsed_data)
+
+    async def list_pull_files(self, number: int) -> List[dict]:
+        """Changed files of a PR: path + status, paginated up to 300 files."""
+        files: List[dict] = []
+        for page in range(1, 4):
+            response = await self._gh.rest.pulls.async_list_files(
+                self.owner, self.repo, number, per_page=100, page=page
+            )
+            batch = response.parsed_data
+            files.extend(
+                {"path": file.filename, "status": file.status} for file in batch
+            )
+            if len(batch) < 100:
+                break
+        return files
+
     async def get_file_text(self, path: str, ref: Optional[str] = None) -> str:
         """Text content of a repo file at `ref` (default: the base branch)."""
         response = await self._gh.rest.repos.async_get_content(

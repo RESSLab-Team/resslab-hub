@@ -234,6 +234,152 @@
             "description": "Unprocessable Content"
           }
         }
+      },
+      "get": {
+        "summary": "List Contributions",
+        "description": "Open contribution pull requests on the data repository, for the review\nqueue. Returns ``configured: false`` (not an error) on deployments without\nthe GitHub App.",
+        "operationId": "list_contributions",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contributions/{pr_number}": {
+      "get": {
+        "summary": "Get Contribution",
+        "description": "Everything the review screen needs about one submission, reconstructed\nfrom the pull request at its current head commit.",
+        "operationId": "get_contribution",
+        "parameters": [
+          {
+            "name": "pr_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pr Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contributions/{pr_number}/validation": {
+      "get": {
+        "summary": "Get Contribution Validation",
+        "description": "Re-run server-side validation on the reconstructed batch, producing the\nsame response shape as ``/validate``. Issue rows index into the detail\nendpoint's ``experiments`` list (row N = experiments[N-1]).",
+        "operationId": "get_contribution_validation",
+        "parameters": [
+          {
+            "name": "pr_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pr Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contributions/{pr_number}/files": {
+      "get": {
+        "summary": "Get Contribution File",
+        "description": "Raw text of one file added by the submission (time-series preview).\nOnly paths the PR actually adds inside the type's layout are served.",
+        "operationId": "get_contribution_file",
+        "parameters": [
+          {
+            "name": "pr_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pr Number"
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/analytics/users": {
@@ -10703,6 +10849,314 @@
         ],
         "title": "CountModel",
         "description": "Count"
+      },
+      "CurationContributor": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "institution": {
+            "type": "string",
+            "title": "Institution",
+            "default": ""
+          },
+          "orcid": {
+            "type": "string",
+            "title": "Orcid",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "CurationContributor"
+      },
+      "CurationDetail": {
+        "properties": {
+          "pr_number": {
+            "type": "integer",
+            "title": "Pr Number"
+          },
+          "pr_url": {
+            "type": "string",
+            "title": "Pr Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "branch": {
+            "type": "string",
+            "title": "Branch"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "draft": {
+            "type": "boolean",
+            "title": "Draft"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "experiment_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Experiment Count"
+          },
+          "contributor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CurationContributor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "head_sha": {
+            "type": "string",
+            "title": "Head Sha"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "submitted_at": {
+            "type": "string",
+            "title": "Submitted At",
+            "default": ""
+          },
+          "dismissed_warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Dismissed Warnings",
+            "default": []
+          },
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Columns",
+            "default": []
+          },
+          "experiments": {
+            "items": {
+              "$ref": "#/components/schemas/CurationExperiment"
+            },
+            "type": "array",
+            "title": "Experiments",
+            "default": []
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/CurationFile"
+            },
+            "type": "array",
+            "title": "Files",
+            "default": []
+          },
+          "reconstruction_warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reconstruction Warning"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pr_number",
+          "pr_url",
+          "title",
+          "branch",
+          "type",
+          "draft",
+          "created_at",
+          "updated_at",
+          "state",
+          "head_sha",
+          "body"
+        ],
+        "title": "CurationDetail",
+        "description": "Everything the review screen needs about one submission."
+      },
+      "CurationExperiment": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "cells": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Cells"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "cells"
+        ],
+        "title": "CurationExperiment",
+        "description": "One submitted row of the primary CSV, keyed by repo column name."
+      },
+      "CurationFile": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "timeseries_dir": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeseries Dir"
+          },
+          "experiment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Experiment Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "path",
+          "kind"
+        ],
+        "title": "CurationFile",
+        "description": "One file added by the PR, classified against the type's layout."
+      },
+      "CurationListResponse": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CurationSummary"
+            },
+            "type": "array",
+            "title": "Items",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured"
+        ],
+        "title": "CurationListResponse"
+      },
+      "CurationSummary": {
+        "properties": {
+          "pr_number": {
+            "type": "integer",
+            "title": "Pr Number"
+          },
+          "pr_url": {
+            "type": "string",
+            "title": "Pr Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "branch": {
+            "type": "string",
+            "title": "Branch"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "draft": {
+            "type": "boolean",
+            "title": "Draft"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "experiment_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Experiment Count"
+          },
+          "contributor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CurationContributor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "pr_number",
+          "pr_url",
+          "title",
+          "branch",
+          "type",
+          "draft",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "CurationSummary",
+        "description": "One open contribution PR, as listed in the review queue."
       },
       "DateRangeModel": {
         "properties": {

@@ -24,6 +24,7 @@ from resslab_hub.routers import (
     columns,
     connections,
     contributions,
+    curation,
     dictionary,
     ductile_fracture,
     eccentric_braced_frame,
@@ -138,6 +139,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 app.include_router(root.router)
 app.include_router(contributions.router)
+app.include_router(curation.router)
 app.include_router(analytics.router)
 app.include_router(dictionary.router)
 app.include_router(braces.router)
