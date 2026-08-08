@@ -1218,7 +1218,12 @@
       "loading": "Loading measured responses…",
       "none": "No measured-response files are attached to this experiment.",
       "rows": "rows",
-      "unavailable": "{file} could not be loaded."
+      "unavailable": "{file} could not be loaded.",
+      "compare_title": "Compare with existing specimens",
+      "compare_add": "Add a specimen from the cohort…",
+      "compare_limit": "Limit of {count} overlays reached",
+      "compare_candidates": "{count} cohort specimens have comparable test data",
+      "ghosts": "{count} compared"
     },
     "cohort": {
       "title": "Comparison with similar experiments",
@@ -1228,12 +1233,14 @@
       "unavailable": "The existing dataset could not be loaded.",
       "restrict": "Restrict to similar experiments",
       "count": "{count} experiments",
-      "excluded": "Not reported, ignored: {fields}",
       "chart_title": "Parallel coordinates · New specimen vs cohort",
       "ghosts": "{count} ghosts + {added} new",
       "legend_new": "New specimen · {id}",
       "legend_ghost": "{count} similar (ghost)",
-      "hint": "Each grey line is one existing experiment across all axes; the red line is this submission."
+      "hint": "Each grey line is one existing experiment across all axes; the red line is this submission.",
+      "criteria_hint": "Criteria defining a comparable experiment",
+      "not_reported": "not reported",
+      "no_criteria": "No criterion is active — the cohort is the whole database."
     },
     "flags": {
       "title": "Quality flags",

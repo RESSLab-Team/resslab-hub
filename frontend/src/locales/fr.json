@@ -1218,7 +1218,12 @@
       "loading": "Chargement des réponses mesurées…",
       "none": "Aucun fichier de réponse mesurée n'est attaché à cette expérience.",
       "rows": "lignes",
-      "unavailable": "{file} n'a pas pu être chargé."
+      "unavailable": "{file} n'a pas pu être chargé.",
+      "compare_title": "Comparer avec des spécimens existants",
+      "compare_add": "Ajouter un spécimen de la cohorte…",
+      "compare_limit": "Limite de {count} superpositions atteinte",
+      "compare_candidates": "{count} spécimens de la cohorte ont des données comparables",
+      "ghosts": "{count} comparés"
     },
     "cohort": {
       "title": "Comparaison avec des expériences similaires",
@@ -1228,12 +1233,14 @@
       "unavailable": "Le jeu de données existant n'a pas pu être chargé.",
       "restrict": "Restreindre aux expériences similaires",
       "count": "{count} expériences",
-      "excluded": "Non renseigné, ignoré : {fields}",
       "chart_title": "Coordonnées parallèles · Nouveau spécimen vs cohorte",
       "ghosts": "{count} fantômes + {added} nouveau(x)",
       "legend_new": "Nouveau spécimen · {id}",
       "legend_ghost": "{count} similaires (fantômes)",
-      "hint": "Chaque ligne grise est une expérience existante sur tous les axes ; la ligne rouge est cette soumission."
+      "hint": "Chaque ligne grise est une expérience existante sur tous les axes ; la ligne rouge est cette soumission.",
+      "criteria_hint": "Critères définissant une expérience comparable",
+      "not_reported": "non renseigné",
+      "no_criteria": "Aucun critère actif — la cohorte est la base entière."
     },
     "flags": {
       "title": "Contrôles qualité",

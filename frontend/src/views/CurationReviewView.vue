@@ -4,7 +4,7 @@ import CohortPanel from '@/components/curation/CohortPanel.vue'
 import DataPreviewPanel from '@/components/curation/DataPreviewPanel.vue'
 import MetadataPanel from '@/components/curation/MetadataPanel.vue'
 import QualityFlagsRail from '@/components/curation/QualityFlagsRail.vue'
-import { GHOST_CONFIGS } from '@/components/curation/ghost'
+import { cohortQueryFor, GHOST_CONFIGS } from '@/components/curation/ghost'
 import { useDataset } from '@/composables/useDataset'
 import { useCurationStore } from '@/stores/curation'
 import { useDictionaryStore } from '@/stores/dictionary'
@@ -48,6 +48,16 @@ const selectedFiles = computed(() => {
   )
 })
 
+// Comparison cohort: which similarity criteria are switched on. Owned here
+// because both the ghost chart and the test-data curve overlays draw from the
+// same cohort — refining it in one place refines both.
+const cohortFields = ref<string[]>([])
+const restrictCohort = ref(true)
+const cohortQuery = computed(() => {
+  if (!restrictCohort.value || !selected.value) return undefined
+  return cohortQueryFor(selected.value.cells, cohortFields.value)
+})
+
 // "Existing range" ghost hints: observed min–max of each numeric dictionary
 // field across the database the submission targets (same dataset instance as
 // the cohort panel — the module cache dedupes the fetch).
@@ -81,6 +91,8 @@ onMounted(async () => {
   try {
     detail.value = await store.fetchDetail(number.value)
     state.value = 'ready'
+    const config = database.value ? GHOST_CONFIGS[database.value] : undefined
+    cohortFields.value = config ? [...config.cohortDefaults] : []
     loadRanges()
   } catch {
     state.value = 'error'
@@ -182,11 +194,19 @@ async function selectIssue(uid: number, column: string): Promise<void> {
           />
           <data-preview-panel
             v-if="selected"
+            :cohort-query="cohortQuery"
             :database="database"
             :files="selectedFiles"
             :pr-number="detail.pr_number"
           />
-          <cohort-panel :database="database" :detail="detail" :selected-uid="selectedUid" />
+          <cohort-panel
+            v-model:fields="cohortFields"
+            v-model:restrict="restrictCohort"
+            :cohort-query="cohortQuery"
+            :database="database"
+            :detail="detail"
+            :selected-uid="selectedUid"
+          />
         </div>
       </div>
 

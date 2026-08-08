@@ -20,6 +20,16 @@ const props = defineProps<{
   database: DatabaseId
   detail: CurationDetail
   selectedUid: number
+  /** Criteria the curator has switched on (owned by the review view). */
+  fields: string[]
+  restrict: boolean
+  /** Query the criteria compile to — `undefined` means the whole database. */
+  cohortQuery?: string
+}>()
+
+const emit = defineEmits<{
+  (e: 'update:fields', value: string[]): void
+  (e: 'update:restrict', value: boolean): void
 }>()
 
 const config = GHOST_CONFIGS[props.database]
@@ -40,50 +50,57 @@ dataset
     state.value = 'error'
   })
 
-const restrict = ref(true)
+const restrictModel = computed({
+  get: () => props.restrict,
+  set: (value: boolean) => emit('update:restrict', value)
+})
 
 const selected = computed(
   () => props.detail.experiments[props.selectedUid] ?? props.detail.experiments[0]
 )
 
-interface Criterion {
+interface Candidate {
   field: string
   label: string
   value: string
+  /** Not reported by this specimen — nothing to match on, so not selectable. */
+  missing: boolean
+  active: boolean
 }
 
-/** Cohort criteria from the selected experiment; NR fields are excluded. */
-const criteria = computed<Criterion[]>(() => {
+/**
+ * Every field the curator may use as a similarity criterion, with the selected
+ * specimen's value. Fields the specimen leaves at NR stay visible but inert, so
+ * it is obvious *why* a criterion cannot be applied.
+ */
+const candidates = computed<Candidate[]>(() => {
   if (!config || !selected.value) return []
-  return config.cohortFields
-    .filter((field) => !isMissing(selected.value.cells[field]))
-    .map((field) => ({
+  return config.cohortCandidates.map((field) => {
+    const missing = isMissing(selected.value.cells[field])
+    return {
       field,
       label: fieldLabel(props.database, field),
-      value: (selected.value.cells[field] ?? '').trim()
-    }))
+      value: (selected.value.cells[field] ?? '').trim(),
+      missing,
+      active: !missing && props.fields.includes(field)
+    }
+  })
 })
 
-const excluded = computed(() => {
-  if (!config || !selected.value) return []
-  return config.cohortFields
-    .filter((field) => isMissing(selected.value.cells[field]))
-    .map((field) => fieldLabel(props.database, field))
-})
-
-// Exact set-membership per clause (trailing comma — see useParallelChart's
-// changeSearches note): 'S355' must not also match 'S355J2'.
-const cohortQuery = computed(() => {
-  if (!restrict.value || !criteria.value.length) return undefined
-  return criteria.value.map((entry) => `${entry.field}:${entry.value},`).join(';')
-})
+function toggle(candidate: Candidate): void {
+  if (candidate.missing || !props.restrict) return
+  const next = candidate.active
+    ? props.fields.filter((field) => field !== candidate.field)
+    : [...props.fields, candidate.field]
+  emit('update:fields', next)
+}
 
 const requestFields = computed(() => (config ? requestFieldsFor(config.fields) : []))
 
 const chart = computed(() => {
   if (!config || !dataset || state.value !== 'ready') return null
   void readyTick.value
-  const cohort = dataset.matrixSync(requestFields.value, cohortQuery.value)
+  const cohort = dataset.matrixSync(requestFields.value, props.cohortQuery)
   const cohortIds = (cohort.ids ?? []) as string[]
   const cohortData = (cohort.data ?? []) as unknown as (string | number)[][]
   const submissionIds = props.detail.experiments.map((experiment) => experiment.id)
@@ -119,17 +136,28 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
           <span class="ct">{{ $t('curation.cohort.count', { count: chart.cohortCount }) }}</span>
         </div>
         <p class="cohort-lead">{{ $t('curation.cohort.lead') }}</p>
-        <div class="cohort-chips">
-          <span v-for="entry in criteria" :key="entry.field">
-            {{ entry.label }}: {{ entry.value }}
-          </span>
+        <p class="cohort-hint">{{ $t('curation.cohort.criteria_hint') }}</p>
+        <div class="cohort-chips" :class="{ inert: !restrict }">
+          <button
+            v-for="entry in candidates"
+            :key="entry.field"
+            class="cchip"
+            :class="{ on: entry.active, missing: entry.missing }"
+            :disabled="entry.missing || !restrict"
+            type="button"
+            @click="toggle(entry)"
+          >
+            {{ entry.label }}:
+            <b v-if="!entry.missing">{{ entry.value }}</b>
+            <span v-else class="nr">{{ $t('curation.cohort.not_reported') }}</span>
+          </button>
         </div>
         <div class="cohort-foot">
-          <tool-switch v-model="restrict" :label="$t('curation.cohort.restrict')" />
+          <tool-switch v-model="restrictModel" :label="$t('curation.cohort.restrict')" />
         </div>
-        <p v-if="excluded.length && restrict" class="cohort-note">
+        <p v-if="restrict && !cohortQuery" class="cohort-note">
           <v-icon :icon="mdiInformationOutline" size="14" />
-          {{ $t('curation.cohort.excluded', { fields: excluded.join(', ') }) }}
+          {{ $t('curation.cohort.no_criteria') }}
         </p>
       </div>
 
@@ -221,18 +249,59 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
   line-height: 1.5;
   margin: 9px 0 12px;
 }
+.cohort-hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  margin: 0 0 8px;
+}
 .cohort-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
 }
-.cohort-chips span {
+.cohort-chips.inert {
+  opacity: 0.45;
+}
+/* Criterion toggles — same square chip idiom as the experiment picker; an
+   active criterion inverts so the applied filter reads at a glance. */
+.cchip {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.02em;
-  padding: 4px 9px;
+  padding: 5px 9px;
   border: 1px solid var(--border-strong);
   background: var(--bg);
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.cchip b {
+  font-weight: 700;
+  color: var(--fg);
+}
+.cchip:hover:not([disabled]) {
+  border-color: var(--fg);
+}
+.cchip.on {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+}
+.cchip.on b {
+  color: var(--bg);
+}
+.cchip[disabled] {
+  cursor: default;
+}
+.cchip.missing {
+  border-style: dashed;
+  color: var(--fg-subtle);
+}
+.cchip .nr {
+  color: var(--fg-subtle);
 }
 .cohort-foot {
   margin-top: 12px;
