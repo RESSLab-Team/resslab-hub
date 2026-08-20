@@ -2,7 +2,6 @@
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import SimpleSnackbar from '@/components/commons/SimpleSnackbar.vue'
 import { useNotificationStore } from '@/stores/notification'
-import { publicPath } from '@/utils/common'
 import { mdiMenu } from '@mdi/js'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -64,9 +63,21 @@ watch(
             <v-icon :icon="mdiMenu" size="18" />
           </button>
           <router-link class="mhdr-brand" to="/">
-            <img :src="publicPath + 'logo/EPFL_Logo_184X53.svg'" alt="EPFL" />
+            <svg
+              class="brand-mark"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="butt"
+              stroke-linejoin="miter"
+              aria-hidden="true"
+            >
+              <path d="M6.5 2.5V21.5M17.5 2.5V21.5M2.5 6.5H21.5M2.5 17.5H21.5" stroke-width="2.2" />
+              <path d="M6.5 6.5L17.5 17.5M17.5 6.5L6.5 17.5" stroke-width="1.6" />
+            </svg>
             <span class="mhdr-brand-name"
-              >{{ $t('shell.brand_name') }}<small>{{ $t('shell.brand_tagline') }}</small></span
+              >RESSLab <span class="brand-hub">Hub</span
+              ><small>{{ $t('shell.brand_tagline') }} · EPFL</small></span
             >
           </router-link>
         </header>

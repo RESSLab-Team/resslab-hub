@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import LanguageToggle from '@/components/layout/LanguageToggle.vue'
 import { useCountsStore } from '@/stores/counts'
-import { publicPath } from '@/utils/common'
 import { NAV_GROUPS, type NavGroup } from '@/utils/navigation'
 import {
   mdiBookOpenVariant,
@@ -55,9 +54,49 @@ function toggleGroup(group: NavGroup) {
 <template>
   <aside class="sidebar" :class="{ open }">
     <router-link class="sidebar-brand" to="/" @click="emit('close')">
-      <img :src="publicPath + 'logo/EPFL_Logo_184X53.svg'" alt="EPFL" />
+      <svg
+        class="brand-mark"
+        viewBox="0 0 48 48"
+        fill="none"
+        stroke-linecap="butt"
+        stroke-linejoin="miter"
+        aria-hidden="true"
+      >
+        <path d="M11.95 4.00 L11.95 44.00" stroke-width="0.85" stroke="currentColor" />
+        <path d="M14.05 4.00 L14.05 44.00" stroke-width="0.85" stroke="currentColor" />
+        <path d="M11.95 4.00 L14.05 4.00" stroke-width="0.85" stroke="currentColor" />
+        <path d="M11.95 44.00 L14.05 44.00" stroke-width="0.85" stroke="currentColor" />
+        <path d="M33.95 4.00 L33.95 44.00" stroke-width="0.85" stroke="currentColor" />
+        <path d="M36.05 4.00 L36.05 44.00" stroke-width="0.85" stroke="currentColor" />
+        <path d="M33.95 4.00 L36.05 4.00" stroke-width="0.85" stroke="currentColor" />
+        <path d="M33.95 44.00 L36.05 44.00" stroke-width="0.85" stroke="currentColor" />
+        <path d="M5.00 13.05 L43.00 13.05" stroke-width="0.85" stroke="currentColor" />
+        <path d="M5.00 10.95 L43.00 10.95" stroke-width="0.85" stroke="currentColor" />
+        <path d="M5.00 13.05 L5.00 10.95" stroke-width="0.85" stroke="currentColor" />
+        <path d="M43.00 13.05 L43.00 10.95" stroke-width="0.85" stroke="currentColor" />
+        <path d="M5.00 37.05 L43.00 37.05" stroke-width="0.85" stroke="currentColor" />
+        <path d="M5.00 34.95 L43.00 34.95" stroke-width="0.85" stroke="currentColor" />
+        <path d="M5.00 37.05 L5.00 34.95" stroke-width="0.85" stroke="currentColor" />
+        <path d="M43.00 37.05 L43.00 34.95" stroke-width="0.85" stroke="currentColor" />
+        <path d="M14.05 13.05 L33.95 34.95" stroke-width="0.6" stroke="var(--epfl-red)" />
+        <path d="M33.95 13.05 L14.05 34.95" stroke-width="0.6" stroke="var(--epfl-red)" />
+        <path
+          d="M25.90 24.00 A1.9 1.9 0 1 1 25.90 24.00 Z"
+          stroke-width="0.6"
+          stroke="var(--epfl-red)"
+        />
+        <circle cx="13.00" cy="9.60" r="0.55" fill="currentColor" stroke="none" />
+        <circle cx="13.00" cy="14.40" r="0.55" fill="currentColor" stroke="none" />
+        <circle cx="13.00" cy="33.60" r="0.55" fill="currentColor" stroke="none" />
+        <circle cx="13.00" cy="38.40" r="0.55" fill="currentColor" stroke="none" />
+        <circle cx="35.00" cy="9.60" r="0.55" fill="currentColor" stroke="none" />
+        <circle cx="35.00" cy="14.40" r="0.55" fill="currentColor" stroke="none" />
+        <circle cx="35.00" cy="33.60" r="0.55" fill="currentColor" stroke="none" />
+        <circle cx="35.00" cy="38.40" r="0.55" fill="currentColor" stroke="none" />
+      </svg>
       <div class="sidebar-brand-name">
-        {{ $t('shell.brand_name') }}<small>{{ $t('shell.brand_tagline') }}</small>
+        RESSLab <span class="brand-hub">Hub</span
+        ><small>{{ $t('shell.brand_tagline') }} · EPFL</small>
       </div>
     </router-link>
 

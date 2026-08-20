@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="butt" stroke-linejoin="miter">
+<path d="M13.95 3.00 L13.95 45.00" stroke-width="0.85" stroke="#212121" />
+<path d="M16.05 3.00 L16.05 45.00" stroke-width="0.85" stroke="#212121" />
+<path d="M13.95 3.00 L16.05 3.00" stroke-width="0.85" stroke="#212121" />
+<path d="M13.95 45.00 L16.05 45.00" stroke-width="0.85" stroke="#212121" />
+<path d="M31.95 3.00 L31.95 45.00" stroke-width="0.85" stroke="#212121" />
+<path d="M34.05 3.00 L34.05 45.00" stroke-width="0.85" stroke="#212121" />
+<path d="M31.95 3.00 L34.05 3.00" stroke-width="0.85" stroke="#212121" />
+<path d="M31.95 45.00 L34.05 45.00" stroke-width="0.85" stroke="#212121" />
+<path d="M9.00 8.95 L39.00 8.95" stroke-width="0.85" stroke="#212121" />
+<path d="M9.00 7.05 L39.00 7.05" stroke-width="0.85" stroke="#212121" />
+<path d="M9.00 8.95 L9.00 7.05" stroke-width="0.85" stroke="#212121" />
+<path d="M39.00 8.95 L39.00 7.05" stroke-width="0.85" stroke="#212121" />
+<path d="M9.00 24.95 L39.00 24.95" stroke-width="0.85" stroke="#212121" />
+<path d="M9.00 23.05 L39.00 23.05" stroke-width="0.85" stroke="#212121" />
+<path d="M9.00 24.95 L9.00 23.05" stroke-width="0.85" stroke="#212121" />
+<path d="M39.00 24.95 L39.00 23.05" stroke-width="0.85" stroke="#212121" />
+<path d="M9.00 40.95 L39.00 40.95" stroke-width="0.85" stroke="#212121" />
+<path d="M9.00 39.05 L39.00 39.05" stroke-width="0.85" stroke="#212121" />
+<path d="M9.00 40.95 L9.00 39.05" stroke-width="0.85" stroke="#212121" />
+<path d="M39.00 40.95 L39.00 39.05" stroke-width="0.85" stroke="#212121" />
+<path d="M16.05 8.95 L31.95 23.05" stroke-width="0.6" stroke="#e30713" />
+<path d="M31.95 8.95 L16.05 23.05" stroke-width="0.6" stroke="#e30713" />
+<path d="M25.50 16.00 A1.5 1.5 0 1 1 25.50 16.00 Z" stroke-width="0.6" stroke="#e30713" />
+<path d="M16.05 24.95 L31.95 39.05" stroke-width="0.6" stroke="#e30713" />
+<path d="M31.95 24.95 L16.05 39.05" stroke-width="0.6" stroke="#e30713" />
+<path d="M25.50 32.00 A1.5 1.5 0 1 1 25.50 32.00 Z" stroke-width="0.6" stroke="#e30713" />
+<circle cx="15.00" cy="8.00" r="0.5" fill="#212121" stroke="none" />
+<circle cx="15.00" cy="24.00" r="0.5" fill="#212121" stroke="none" />
+<circle cx="15.00" cy="40.00" r="0.5" fill="#212121" stroke="none" />
+<circle cx="33.00" cy="8.00" r="0.5" fill="#212121" stroke="none" />
+<circle cx="33.00" cy="24.00" r="0.5" fill="#212121" stroke="none" />
+<circle cx="33.00" cy="40.00" r="0.5" fill="#212121" stroke="none" />
+</svg>

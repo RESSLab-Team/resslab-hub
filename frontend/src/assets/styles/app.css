@@ -146,10 +146,17 @@ a {
   text-decoration: none;
   color: inherit;
 }
-.sidebar-brand img {
-  height: 24px;
+.sidebar-brand .brand-mark {
+  width: 60px;
+  height: 60px;
   display: block;
+  flex: none;
+  color: var(--fg);
 }
+.brand-hub {
+  color: var(--primary);
+}
+
 .sidebar-brand-name {
   font-weight: 700;
   font-size: 14px;
@@ -157,6 +164,8 @@ a {
 }
 .sidebar-brand-name small {
   display: block;
+  white-space: normal;
+  overflow-wrap: break-word;
   font-weight: 400;
   font-size: 10px;
   color: var(--fg-muted);
@@ -314,14 +323,18 @@ a {
   color: var(--fg);
   text-decoration: none;
 }
-.mhdr-brand img {
+.mhdr-brand .brand-mark {
+  width: 20px;
   height: 20px;
+  flex: none;
 }
 .mhdr-brand-name {
   line-height: 1.2;
 }
 .mhdr-brand-name small {
   display: block;
+  white-space: normal;
+  overflow-wrap: break-word;
   font-weight: 400;
   font-size: 10px;
   color: var(--fg-muted);
@@ -2506,4 +2519,10 @@ a.cd-publication-ref:hover {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+@media (max-width: 420px) {
+  .mhdr-brand-name small {
+    display: none;
+  }
 }
