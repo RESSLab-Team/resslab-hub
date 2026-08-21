@@ -180,6 +180,8 @@ For real CDN uploads, drop `DRY_RUN` and provide `ACCESS_KEY_ID` / `ACCESS_KEY_S
 
 See `docs/adding-a-new-tab.md` for the exhaustive end-to-end playbook (data repo → backend codegen/router/uploader/migration → OpenAPI regen → frontend views/components/charts/utils/i18n/map/home + gotchas from EBF's post-launch feedback). Other maintenance notes live in `docs/` (e.g. `modernization-followups.md`).
 
+**Adding a column to a data dictionary** also means giving it a scientific category, which is what the collapsible groups in the filter rail, the contribution editor, the curation review panel and the specimen drawer are built from. The taxonomy is `frontend/src/utils/fieldGroups.ts` and the review tables are `docs/variable-categories.md`. Most new columns are matched by an existing pattern (`uvc_*`, `pid_*`, `chemical_composition_*`, `_100fit`) and need no edit; anything unmatched lands in `other` and fails `fieldGroups.spec.ts`, which reads the real column list out of the `sample-data/` CSV headers.
+
 ## Conventions
 
 - **Git hooks**: [Lefthook](https://lefthook.dev) orchestrates `commit-msg` / `pre-commit` / `pre-push`. Config in `lefthook.yml` at the repo root; installed automatically by `make install` (or `make hooks`). Escape hatch: `LEFTHOOK=0 git commit ...`.

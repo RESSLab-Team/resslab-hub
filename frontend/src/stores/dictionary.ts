@@ -26,6 +26,13 @@ export interface DictColumn {
   example: string
   /** `false` marks a mandatory field. */
   nullable: boolean
+  /**
+   * Scientific category of the column, once the data dictionary carries one.
+   * Unset today: the taxonomy lives in `utils/fieldGroups.ts` until the data repo
+   * grows a `category` column, and `groupFor()` prefers this field the moment it
+   * starts arriving.
+   */
+  category?: string
 }
 
 /** Symbol cleaned for display — markdown code backticks dropped, the `-`

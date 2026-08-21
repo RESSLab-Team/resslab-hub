@@ -257,6 +257,38 @@
     "cvgm_lambda": "CVGM λ",
     "l_star": "l* [mm]"
   },
+  "field_group": {
+    "identification": "Identification",
+    "test_setup": "Dispositif d'essai",
+    "section": "Section & origine",
+    "geometry": "Géométrie",
+    "geometry_measured": "Géométrie mesurée",
+    "slenderness": "Élancement & classe",
+    "material": "Matériau",
+    "chemistry": "Composition chimique",
+    "detailing": "Détails d'assemblage",
+    "welds": "Soudures & assemblages",
+    "gusset_plate": "Goussets",
+    "stiffeners": "Raidisseurs",
+    "composite_slab": "Dalle mixte",
+    "beam": "Poutre",
+    "column_member": "Poteau",
+    "panel_zone": "Zone nodale",
+    "panel_zone_strength": "Résistance de la zone nodale",
+    "loading": "Chargement",
+    "capacity": "Résistance",
+    "demand": "Sollicitations",
+    "response": "Réponse mesurée",
+    "residual_stress": "Contraintes résiduelles",
+    "backbone_100fit": "Courbe enveloppe (calage 100%)",
+    "backbone_80fit": "Courbe enveloppe (calage 80%)",
+    "model_parameters": "Paramètres de modèle",
+    "instrumentation": "Instrumentation",
+    "imaging": "Imagerie",
+    "provenance": "Source & référence",
+    "internal": "Interne",
+    "other": "Autres"
+  },
   "detail": {
     "connection": {
       "eyebrow_suffix": " · Assemblage",
@@ -575,7 +607,8 @@
     "no_variables_found": "Aucune variable ne correspond à cette recherche.",
     "loading_filters": "Chargement des filtres…",
     "distinct_values": "valeurs distinctes",
-    "missing_values": "non renseignées"
+    "missing_values": "non renseignées",
+    "all_recorded_properties": "Toutes les propriétés enregistrées"
   },
   "table": {
     "connection": {
