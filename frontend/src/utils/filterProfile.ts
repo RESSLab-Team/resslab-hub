@@ -59,10 +59,10 @@ export interface FilterDescriptor {
 
 /**
  * A string column with at most this many distinct values is a checkbox list.
- * Kept low on purpose: a short list reads as a *type* the user picks from, while
- * a longer one is really an open vocabulary and is better searched than scrolled.
+ * Set generously: the list scrolls inside the row, so a long domain (steel
+ * grades, section shapes) is still worth picking from rather than typing out.
  */
-export const CATEGORICAL_MAX_DISTINCT = 10
+export const CATEGORICAL_MAX_DISTINCT = 25
 /** …and only if its values actually repeat: distinct at most half the filled rows. */
 export const CATEGORICAL_MAX_RATIO = 0.5
 /** Near-unique string columns (specimen IDs, file paths) carry no signal. */
