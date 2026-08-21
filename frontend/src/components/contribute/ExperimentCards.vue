@@ -4,6 +4,7 @@ import ToolSelect from '@/components/commons/tools/ToolSelect.vue'
 import { useContributionStore, type CardIssue } from '@/stores/contribution'
 import { useNotificationStore } from '@/stores/notification'
 import { fieldLabel } from '@/utils/contribution'
+import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import { readCsvTable } from '@/utils/csv'
 import { sparkline } from '@/utils/sparkline'
 import { downloadDictionary, downloadTemplate } from '@/utils/templates'
@@ -50,6 +51,42 @@ const headlineColumns = computed(() => {
   return store.columns.filter((column) => picked.includes(column.name))
 })
 
+// --- Field groups --------------------------------------------------------
+// The editor used to render one input per column in a single grid, which is 70
+// to 150 inputs for a real database. Same categories as the filter rail, so a
+// contributor fills in identification, then geometry, then material.
+const columnGroups = computed(() =>
+  store.database ? groupBy(store.database, store.columns, (column) => column) : []
+)
+
+const openFieldGroups = ref<Set<FieldGroupId>>(new Set<FieldGroupId>(['identification']))
+
+function toggleFieldGroup(id: FieldGroupId): void {
+  const next = new Set(openFieldGroups.value)
+  if (!next.delete(id)) next.add(id)
+  openFieldGroups.value = next
+}
+
+/** Cell problems this row has inside one group, so the head can carry a count. */
+function issuesIn(uid: number, columns: { name: string }[]): number {
+  return columns.filter((column) => store.cellIssueFor(uid, column.name)).length
+}
+
+/** A group holding a problem is always open: a contributor cannot fix what a
+ *  collapsed heading is hiding. */
+function isFieldGroupOpen(uid: number, id: FieldGroupId, columns: { name: string }[]): boolean {
+  return openFieldGroups.value.has(id) || issuesIn(uid, columns) > 0
+}
+
+/** Which group a column landed in, for the jump-to-field path below. */
+const groupOfColumn = computed(() => {
+  const lookup = new Map<string, FieldGroupId>()
+  columnGroups.value.forEach((group) => {
+    group.items.forEach((column) => lookup.set(column.name, group.id))
+  })
+  return lookup
+})
+
 /**
  * A card is only green once the server has actually judged it. Until then it
  * reads as pending, so a batch does not flash "No issues" the moment it loads.
@@ -72,6 +109,9 @@ const flashed = ref('')
 
 async function goToIssue(uid: number, issue: CardIssue): Promise<void> {
   const id = targetId(uid, issue)
+  // Unfold the group first, or the input this points at is not in the DOM yet.
+  const group = issue.column ? groupOfColumn.value.get(issue.column) : undefined
+  if (group && !openFieldGroups.value.has(group)) toggleFieldGroup(group)
   await nextTick()
   const element = document.getElementById(id)
   if (!element) return
@@ -269,7 +309,12 @@ function chart(uid: number, kind: TimeSeriesKind) {
       <tool-select
         v-model="bulkKindKey"
         class="bulk-select"
-        :items="kinds.map((kind) => ({ title: $t(`contribute.timeseries.kind.${kind.key}`), value: kind.key }))"
+        :items="
+          kinds.map((kind) => ({
+            title: $t(`contribute.timeseries.kind.${kind.key}`),
+            value: kind.key
+          }))
+        "
         :placeholder="$t('contribute.editor.bulk_kind')"
       />
       <button
@@ -280,7 +325,14 @@ function chart(uid: number, kind: TimeSeriesKind) {
       >
         <v-icon :icon="mdiUploadOutline" size="14" />{{ $t('contribute.editor.bulk_pick') }}
       </button>
-      <input ref="bulkInput" accept=".csv,text/csv" hidden multiple type="file" @change="onBulkAttach" />
+      <input
+        ref="bulkInput"
+        accept=".csv,text/csv"
+        hidden
+        multiple
+        type="file"
+        @change="onBulkAttach"
+      />
       <span class="bulk-hint">{{ $t('contribute.editor.bulk_hint') }}</span>
     </div>
 
@@ -291,7 +343,12 @@ function chart(uid: number, kind: TimeSeriesKind) {
       :class="store.levelFor(row.uid)"
     >
       <button class="card-head" type="button" @click="toggle(row.uid)">
-        <v-icon class="chevron" :class="{ open: expanded.has(row.uid) }" :icon="mdiChevronRight" size="18" />
+        <v-icon
+          class="chevron"
+          :class="{ open: expanded.has(row.uid) }"
+          :icon="mdiChevronRight"
+          size="18"
+        />
         <span v-if="cardState(row.uid) === 'checking'" class="spinner" />
         <span v-else class="dot" :class="cardState(row.uid)" />
         <span class="card-id">
@@ -305,7 +362,9 @@ function chart(uid: number, kind: TimeSeriesKind) {
         </span>
         <span class="badge" :class="cardState(row.uid)">
           <template v-if="store.activeIssuesFor(row.uid).length">
-            {{ $t('contribute.editor.issue_count', { count: store.activeIssuesFor(row.uid).length }) }}
+            {{
+              $t('contribute.editor.issue_count', { count: store.activeIssuesFor(row.uid).length })
+            }}
           </template>
           <template v-else-if="cardState(row.uid) === 'checking'">
             {{ $t('contribute.editor.checking') }}
@@ -334,11 +393,18 @@ function chart(uid: number, kind: TimeSeriesKind) {
         <section v-if="store.issuesFor(row.uid).length" class="card-section">
           <h3>{{ $t('contribute.editor.problems') }}</h3>
 
-          <div v-for="issue in store.activeIssuesFor(row.uid)" :key="issue.key" class="issue" :class="issue.level">
+          <div
+            v-for="issue in store.activeIssuesFor(row.uid)"
+            :key="issue.key"
+            class="issue"
+            :class="issue.level"
+          >
             <button class="issue-go" type="button" @click="goToIssue(row.uid, issue)">
               <v-icon :icon="mdiAlertOutline" size="14" />
               <span>
-                <template v-if="issue.column">{{ fieldLabel(store.database!, issue.column) }}: </template>
+                <template v-if="issue.column"
+                  >{{ fieldLabel(store.database!, issue.column) }}:
+                </template>
                 <template v-else-if="issue.kindKey">
                   {{ $t(`contribute.timeseries.kind.${issue.kindKey}`) }}:
                 </template>
@@ -377,7 +443,11 @@ function chart(uid: number, kind: TimeSeriesKind) {
             </button>
 
             <div v-if="showDismissed.has(row.uid)" class="dismissed-list">
-              <div v-for="issue in store.dismissedIssuesFor(row.uid)" :key="issue.key" class="issue muted">
+              <div
+                v-for="issue in store.dismissedIssuesFor(row.uid)"
+                :key="issue.key"
+                class="issue muted"
+              >
                 <button class="issue-go" type="button" @click="goToIssue(row.uid, issue)">
                   <v-icon :icon="mdiBellOffOutline" size="14" />
                   <span>
@@ -406,29 +476,60 @@ function chart(uid: number, kind: TimeSeriesKind) {
 
         <section class="card-section">
           <h3>{{ $t('contribute.editor.fields') }}</h3>
-          <div class="fields">
-            <div
-              v-for="column in store.columns"
-              :key="column.name"
-              class="field"
-              :class="[
-                store.cellIssueFor(row.uid, column.name)?.level,
-                { flashed: flashed === `f-${row.uid}-${column.name}` }
-              ]"
+          <div
+            v-for="group in columnGroups"
+            :key="group.id"
+            class="field-group"
+            :class="{ open: isFieldGroupOpen(row.uid, group.id, group.items) }"
+          >
+            <button
+              class="field-group-head"
+              type="button"
+              :aria-expanded="isFieldGroupOpen(row.uid, group.id, group.items)"
+              @click="toggleFieldGroup(group.id)"
             >
-              <label :for="`f-${row.uid}-${column.name}`">
-                {{ fieldLabel(store.database!, column.name) }}
-                <span v-if="!column.nullable" class="required">*</span>
-                <span v-if="column.unit && column.unit !== '-'" class="unit">{{ column.unit }}</span>
-                <info-tooltip v-if="column.description">{{ column.description }}</info-tooltip>
-              </label>
-              <input :id="`f-${row.uid}-${column.name}`" v-model="row.cells[column.name]" type="text" />
-              <small
-                v-if="store.cellIssueFor(row.uid, column.name)"
-                :class="store.cellIssueFor(row.uid, column.name)!.level"
+              <v-icon
+                class="chevron"
+                :class="{ open: isFieldGroupOpen(row.uid, group.id, group.items) }"
+                :icon="mdiChevronRight"
+                size="14"
+              />
+              <span class="field-group-label">{{ $t(`field_group.${group.id}`) }}</span>
+              <span v-if="issuesIn(row.uid, group.items) > 0" class="field-group-issues">
+                {{ issuesIn(row.uid, group.items) }}
+              </span>
+              <span class="field-group-count">{{ group.items.length }}</span>
+            </button>
+            <div v-if="isFieldGroupOpen(row.uid, group.id, group.items)" class="fields">
+              <div
+                v-for="column in group.items"
+                :key="column.name"
+                class="field"
+                :class="[
+                  store.cellIssueFor(row.uid, column.name)?.level,
+                  { flashed: flashed === `f-${row.uid}-${column.name}` }
+                ]"
               >
-                {{ store.cellIssueFor(row.uid, column.name)!.message }}
-              </small>
+                <label :for="`f-${row.uid}-${column.name}`">
+                  {{ fieldLabel(store.database!, column.name) }}
+                  <span v-if="!column.nullable" class="required">*</span>
+                  <span v-if="column.unit && column.unit !== '-'" class="unit">{{
+                    column.unit
+                  }}</span>
+                  <info-tooltip v-if="column.description">{{ column.description }}</info-tooltip>
+                </label>
+                <input
+                  :id="`f-${row.uid}-${column.name}`"
+                  v-model="row.cells[column.name]"
+                  type="text"
+                />
+                <small
+                  v-if="store.cellIssueFor(row.uid, column.name)"
+                  :class="store.cellIssueFor(row.uid, column.name)!.level"
+                >
+                  {{ store.cellIssueFor(row.uid, column.name)!.message }}
+                </small>
+              </div>
             </div>
           </div>
         </section>
@@ -473,7 +574,9 @@ function chart(uid: number, kind: TimeSeriesKind) {
                 type="button"
                 @click="slotInputs[`${row.uid}:${kind.key}`]?.click()"
               >
-                <v-icon :icon="mdiUploadOutline" size="13" />{{ $t('contribute.timeseries.attach') }}
+                <v-icon :icon="mdiUploadOutline" size="13" />{{
+                  $t('contribute.timeseries.attach')
+                }}
               </button>
               <input
                 :ref="(el) => (slotInputs[`${row.uid}:${kind.key}`] = el as HTMLInputElement)"
@@ -836,6 +939,64 @@ function chart(uid: number, kind: TimeSeriesKind) {
   flex-basis: 100%;
   padding-left: 12px;
   border-left: 2px solid var(--border-subtle);
+}
+
+.field-group + .field-group {
+  margin-top: 4px;
+}
+.field-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 8px;
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--fg);
+}
+.field-group-head:hover {
+  background: var(--bg-subtle);
+}
+.field-group-head .chevron {
+  flex: 0 0 auto;
+  color: var(--fg-muted);
+  transition: transform var(--t-fast);
+}
+.field-group-head .chevron.open {
+  transform: rotate(90deg);
+}
+.field-group-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.field-group-count {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
+}
+.field-group-issues {
+  flex: 0 0 auto;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--epfl-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
+.field-group.open .fields {
+  padding: 4px 8px 12px;
 }
 
 .fields {

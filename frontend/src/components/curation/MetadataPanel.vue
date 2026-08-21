@@ -1,16 +1,26 @@
 <script setup lang="ts">
 import type { CurationExperiment } from '@/backend'
-import { displaySymbol, displayUnit, useDictionaryStore } from '@/stores/dictionary'
+import {
+  displaySymbol,
+  displayUnit,
+  useDictionaryStore,
+  type DictColumn
+} from '@/stores/dictionary'
 import { fieldLabel } from '@/utils/contribution'
 import { isMissing } from '@/utils/curation'
+import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
-import { computed } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 
 /**
  * Specimen metadata for the review screen (prototype `.cp-propgrid` style):
  * every column of the repo CSV as a label/value prop row, dictionary-labelled,
  * with unreported required fields highlighted — and, when the existing dataset
  * is loaded, the database's observed range as a subtle ghost hint.
+ *
+ * Rows are collected into the scientific categories of `utils/fieldGroups.ts`,
+ * the same ones the filter rail and the contribution editor use. A group holding
+ * a missing required field opens by itself: that is what the reviewer is here for.
  */
 const props = defineProps<{
   database: DatabaseId
@@ -52,12 +62,51 @@ const rows = computed<FieldRow[]>(() =>
   })
 )
 
+/** A column the dictionary does not describe still needs a category. */
+function dictColumn(name: string): DictColumn {
+  return (
+    dictionary.columnFor(props.database, name) ?? {
+      name,
+      description: '',
+      symbol: '-',
+      unit: '-',
+      type: 'String',
+      example: '',
+      nullable: true
+    }
+  )
+}
+
+const groups = computed(() =>
+  groupBy(props.database, rows.value, (row) => dictColumn(row.column)).map((group) => ({
+    id: group.id,
+    rows: group.items,
+    missing: group.items.filter((row) => row.missing && row.required).length
+  }))
+)
+
+const open = ref<Set<FieldGroupId>>(new Set<FieldGroupId>(['identification']))
+
+function isOpen(group: { id: FieldGroupId; missing: number }): boolean {
+  return group.missing > 0 || open.value.has(group.id)
+}
+
+function toggle(id: FieldGroupId): void {
+  const next = new Set(open.value)
+  if (!next.delete(id)) next.add(id)
+  open.value = next
+}
+
 function formatBound(value: number): string {
   return Math.abs(value) >= 1000 ? value.toFixed(0) : String(Number(value.toPrecision(4)))
 }
 
 /** Scroll a field into view and flash it — called by the quality-flags rail. */
-function flash(column: string): void {
+async function flash(column: string): Promise<void> {
+  // Unfold the group first, or the row this points at is not in the DOM yet.
+  const group = groups.value.find((entry) => entry.rows.some((row) => row.column === column))
+  if (group && !isOpen(group)) toggle(group.id)
+  await nextTick()
   const element = document.getElementById(`field-${column}`)
   if (!element) return
   element.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -72,38 +121,51 @@ defineExpose({ flash })
 <template>
   <section>
     <p class="sech">{{ $t('curation.metadata.title') }}</p>
-    <div class="propgrid">
-      <div
-        v-for="row in rows"
-        :id="`field-${row.column}`"
-        :key="row.column"
-        class="prop"
-        :title="row.description"
+    <div v-for="group in groups" :key="group.id" class="fgroup">
+      <button
+        class="fgroup-head"
+        type="button"
+        :aria-expanded="isOpen(group)"
+        @click="toggle(group.id)"
       >
-        <span class="pk">
-          {{ row.label }}
-          <!-- Dictionary symbols carry <sub>/<sup> markup. -->
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <span v-if="row.symbol" class="symbol" v-html="row.symbol"></span>
-        </span>
-        <span class="leader"></span>
-        <span class="pv">
-          <span v-if="row.missing && row.required" class="missing">
-            {{ $t('curation.metadata.missing') }}
+        <span class="fgroup-caret" :class="{ open: isOpen(group) }">&rsaquo;</span>
+        <span class="fgroup-label">{{ $t(`field_group.${group.id}`) }}</span>
+        <span v-if="group.missing > 0" class="fgroup-missing">{{ group.missing }}</span>
+        <span class="fgroup-count">{{ group.rows.length }}</span>
+      </button>
+      <div v-if="isOpen(group)" class="propgrid">
+        <div
+          v-for="row in group.rows"
+          :id="`field-${row.column}`"
+          :key="row.column"
+          class="prop"
+          :title="row.description"
+        >
+          <span class="pk">
+            {{ row.label }}
+            <!-- Dictionary symbols carry <sub>/<sup> markup. -->
+            <!-- eslint-disable-next-line vue/no-v-html -->
+            <span v-if="row.symbol" class="symbol" v-html="row.symbol"></span>
           </span>
-          <span v-else-if="row.missing" class="nr">NR</span>
-          <template v-else>
-            {{ row.value }}<span v-if="row.unit" class="u">{{ row.unit }}</span>
-          </template>
-          <span v-if="row.range" class="range">
-            {{
-              $t('curation.metadata.range_hint', {
-                min: formatBound(row.range.min),
-                max: formatBound(row.range.max)
-              })
-            }}
+          <span class="leader"></span>
+          <span class="pv">
+            <span v-if="row.missing && row.required" class="missing">
+              {{ $t('curation.metadata.missing') }}
+            </span>
+            <span v-else-if="row.missing" class="nr">NR</span>
+            <template v-else>
+              {{ row.value }}<span v-if="row.unit" class="u">{{ row.unit }}</span>
+            </template>
+            <span v-if="row.range" class="range">
+              {{
+                $t('curation.metadata.range_hint', {
+                  min: formatBound(row.range.min),
+                  max: formatBound(row.range.max)
+                })
+              }}
+            </span>
           </span>
-        </span>
+        </div>
       </div>
     </div>
   </section>
@@ -126,6 +188,64 @@ defineExpose({ flash })
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 0 40px;
+}
+.fgroup + .fgroup {
+  margin-top: 6px;
+}
+.fgroup-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--fg);
+}
+.fgroup-head:hover .fgroup-label {
+  color: var(--epfl-red);
+}
+.fgroup-caret {
+  flex: 0 0 auto;
+  width: 10px;
+  color: var(--fg-subtle);
+  transition: transform var(--t-fast);
+}
+.fgroup-caret.open {
+  transform: rotate(90deg);
+}
+.fgroup-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.fgroup-count {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-feature-settings: 'tnum';
+  color: var(--fg-subtle);
+}
+.fgroup-missing {
+  flex: 0 0 auto;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--epfl-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
+.fgroup .propgrid {
+  padding-bottom: 10px;
 }
 .prop {
   display: flex;
