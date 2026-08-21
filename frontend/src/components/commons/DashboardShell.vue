@@ -3,7 +3,7 @@ import EyebrowText from '@/components/commons/EyebrowText.vue'
 import AutoFilterRail from '@/components/commons/AutoFilterRail.vue'
 import i18n from '@/plugins/i18n'
 import { useNotificationStore } from '@/stores/notification'
-import type { LabeledFilter } from '@/composables/useAutoFilters'
+import type { FilterGroup, LabeledFilter } from '@/composables/useAutoFilters'
 import { formatFilterValue, shareCurrentUrl, type Searches, type Value } from '@/utils/common'
 import { DATABASES, type DatabaseId } from '@/utils/navigation'
 import { mdiClose, mdiFilterVariant, mdiMagnify, mdiShare } from '@mdi/js'
@@ -30,8 +30,10 @@ const props = withDefaults(
     i18nPrefix: string
     /** Identifies the database so the header can show its icon (see navigation.ts). */
     databaseId?: DatabaseId
-    /** Auto-generated filter descriptors (see useAutoFilters). */
+    /** Auto-generated filter descriptors (see useAutoFilters), flat, for the chips. */
     filters: LabeledFilter[]
+    /** The same filters split into scientific categories, for the rail. */
+    filterGroups: FilterGroup[]
     filtersLoading?: boolean
     searches: Searches
     search?: string
@@ -211,7 +213,7 @@ function shareView(): void {
     />
     <aside class="filters-overlay" :class="{ open: filtersOverlayOpen }">
       <auto-filter-rail
-        :filters="filters"
+        :groups="filterGroups"
         :loading="filtersLoading"
         :searches="searches"
         @change:searches="(key, value) => emit('change:searches', key, value)"

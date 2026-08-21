@@ -52,20 +52,17 @@ const columnDepthFields: DoubleFields<ColumnField> = [
 ]
 
 // Filters are derived from the data dictionary + the loaded dataset, so a new
-// column becomes filterable without touching this file; `pinned` only keeps the
-// long-standing filters at the top of the rail.
-const { filters, loading: filtersLoading } = useAutoFilters({
+// column becomes filterable without touching this file, and fieldGroups.ts
+// decides which category of the rail it shows up under.
+const {
+  filters,
+  groups: filterGroups,
+  loading: filtersLoading
+} = useAutoFilters({
   database: 'columns',
   datasetKey: COLUMN_KEY,
   fetchAll: fetchColumns,
-  i18nPrefix: 'column.',
-  pinned: [
-    ColumnField.Date,
-    ColumnField.BuiltUp,
-    ColumnField.DC,
-    ColumnField.PGOverPYm,
-    ColumnField.LBOverRYc
-  ]
+  i18nPrefix: 'column.'
 })
 </script>
 
@@ -79,6 +76,7 @@ const { filters, loading: filtersLoading } = useAutoFilters({
     database-id="columns"
     i18n-prefix="column."
     :filters="filters"
+    :filter-groups="filterGroups"
     :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"

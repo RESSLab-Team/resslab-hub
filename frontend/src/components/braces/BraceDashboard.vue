@@ -42,14 +42,17 @@ const boundaryConditionFields: DoubleFields<BraceField> = [
 ]
 
 // Filters are derived from the data dictionary + the loaded dataset, so a new
-// column becomes filterable without touching this file; `pinned` only keeps the
-// long-standing filters at the top of the rail.
-const { filters, loading: filtersLoading } = useAutoFilters({
+// column becomes filterable without touching this file, and fieldGroups.ts
+// decides which category of the rail it shows up under.
+const {
+  filters,
+  groups: filterGroups,
+  loading: filtersLoading
+} = useAutoFilters({
   database: 'braces',
   datasetKey: BRACE_KEY,
   fetchAll: fetchBraces,
-  i18nPrefix: 'brace.',
-  pinned: [BraceField.Date, BraceField.KlR, BraceField.DBr]
+  i18nPrefix: 'brace.'
 })
 </script>
 
@@ -63,6 +66,7 @@ const { filters, loading: filtersLoading } = useAutoFilters({
     database-id="braces"
     i18n-prefix="brace."
     :filters="filters"
+    :filter-groups="filterGroups"
     :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"

@@ -1272,6 +1272,71 @@ body.theme-dark .logos img {
   min-height: 0;
 }
 
+/* One category of variables. The header is what a reader scans; the rows inside
+   are indented so the hierarchy reads at a glance. */
+.afr-group {
+  border-bottom: 1px solid var(--border);
+}
+.afr-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 20px;
+  background: var(--bg-subtle);
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--fg);
+}
+.afr-group-head:hover {
+  background: var(--bg-hover, var(--bg-subtle));
+}
+.afr-group-caret {
+  flex: 0 0 auto;
+  color: var(--fg-muted);
+  transition: transform var(--t-fast);
+}
+.afr-group-caret.open {
+  transform: rotate(90deg);
+}
+.afr-group-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.afr-group-count {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
+}
+.afr-group-active {
+  flex: 0 0 auto;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--epfl-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
+.afr-group-body .afr-head {
+  padding-left: 32px;
+}
+.afr-group-body .afr-row:last-child {
+  border-bottom: 0;
+}
+
 /* One filter */
 .afr-row {
   border-bottom: 1px solid var(--border-subtle);

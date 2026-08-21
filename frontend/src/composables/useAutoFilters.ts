@@ -8,12 +8,16 @@
  * therefore all it takes for a filter to appear; no dashboard lists fields any
  * more.
  *
+ * The same filters are also returned split into the scientific categories of
+ * `utils/fieldGroups.ts`, which is what makes a rail of up to 150 rows readable.
+ *
  * Profiling scans every column of the whole dataset, so it runs once per
  * database and is memoised for the lifetime of the page (the datasets it reads
  * never expire either).
  */
 import { useDataset } from '@/composables/useDataset'
 import { displaySymbol, displayUnit, useDictionaryStore } from '@/stores/dictionary'
+import { FALLBACK_GROUP, groupBy, groupFor, type FieldGroupId } from '@/utils/fieldGroups'
 import {
   profileColumns,
   visibleFilters,
@@ -34,6 +38,13 @@ export interface LabeledFilter extends FilterDescriptor {
   symbol?: string
 }
 
+/** One collapsible section of the rail (see utils/fieldGroups.ts). */
+export interface FilterGroup {
+  id: FieldGroupId
+  label: string
+  filters: LabeledFilter[]
+}
+
 export interface AutoFilterOptions<M extends { id: string }> {
   /** Which dictionary to read (see navigation.ts). */
   database: DatabaseId
@@ -42,11 +53,6 @@ export interface AutoFilterOptions<M extends { id: string }> {
   fetchAll: () => Promise<M[]>
   /** i18n key prefix for curated field labels, e.g. `'brace.'`. */
   i18nPrefix: string
-  /**
-   * Fields to float to the top of the rail — the handful each dashboard used to
-   * declare by hand. Everything else follows in data-dictionary order.
-   */
-  pinned?: string[]
 }
 
 // Profiles outlive the components that request them: the underlying datasets are
@@ -55,7 +61,11 @@ const profiles = new Map<string, FilterDescriptor[]>()
 
 export function useAutoFilters<M extends { id: string }>(
   options: AutoFilterOptions<M>
-): { filters: ComputedRef<LabeledFilter[]>; loading: Ref<boolean> } {
+): {
+  filters: ComputedRef<LabeledFilter[]>
+  groups: ComputedRef<FilterGroup[]>
+  loading: Ref<boolean>
+} {
   const { t, te } = useI18n({ useScope: 'global' })
   const dictionary = useDictionaryStore()
   const dataset = useDataset<M>(options.datasetKey, options.fetchAll)
@@ -85,17 +95,27 @@ export function useAutoFilters<M extends { id: string }>(
       })
   }
 
-  const filters = computed<LabeledFilter[]>(() => {
-    const labeled = visibleFilters(descriptors.value).map((descriptor) => ({
+  const filters = computed<LabeledFilter[]>(() =>
+    visibleFilters(descriptors.value).map((descriptor) => ({
       ...descriptor,
       label: resolveLabel(descriptor, options.i18nPrefix, t, te),
       unit: displayUnit(descriptor.column),
       symbol: displaySymbol(descriptor.column)
     }))
-    return sortPinnedFirst(labeled, options.pinned)
-  })
+  )
 
-  return { filters, loading }
+  // The same filters, split into the collapsible sections the rail renders. Both
+  // shapes are returned because the dashboard's active-filter chips still look
+  // filters up by key, flat.
+  const groups = computed<FilterGroup[]>(() =>
+    groupBy(options.database, filters.value, (filter) => filter.column).map((group) => ({
+      id: group.id,
+      label: t(`field_group.${group.id}`),
+      filters: group.items
+    }))
+  )
+
+  return { filters, groups, loading }
 }
 
 /**
@@ -113,17 +133,6 @@ function resolveLabel(
   if (te(key)) return t(key)
   const description = descriptor.column.description?.trim()
   return description && description !== '-' ? description : descriptor.key
-}
-
-/** Pinned fields keep the order they were given; the rest stay in dictionary order. */
-function sortPinnedFirst(filters: LabeledFilter[], pinned?: string[]): LabeledFilter[] {
-  if (!pinned?.length) return filters
-  const rank = new Map(pinned.map((key, index) => [key, index]))
-  const top = filters
-    .filter((filter) => rank.has(filter.key))
-    .sort((a, b) => rank.get(a.key)! - rank.get(b.key)!)
-  const rest = filters.filter((filter) => !rank.has(filter.key))
-  return [...top, ...rest]
 }
 
 /**
@@ -147,11 +156,20 @@ function auditProfile(database: DatabaseId, profile: FilterDescriptor[]): void {
       column: descriptor.key,
       type: descriptor.column.type,
       kind: descriptor.kind,
+      group: groupFor(database, descriptor.column),
       hidden_because: descriptor.hiddenReason ?? '',
       distinct: descriptor.distinct,
       filled: descriptor.nonNull,
       missing: descriptor.missing
     }))
   )
+  // Columns nothing claimed pile up under one unhelpful heading, so say so loudly
+  // here as well as failing fieldGroups.spec.ts.
+  const orphans = profile
+    .filter((descriptor) => groupFor(database, descriptor.column) === FALLBACK_GROUP)
+    .map((descriptor) => descriptor.key)
+  if (orphans.length > 0) {
+    console.warn(`[auto-filters] ${database}: ungrouped columns`, orphans)
+  }
   console.groupEnd()
 }

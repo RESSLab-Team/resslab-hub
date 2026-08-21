@@ -1,19 +1,24 @@
 <script setup lang="ts">
 /**
- * The filter rail: every column of the database, classified and rendered by
- * {@link AutoFilterRow}. Because the list is derived rather than curated it is
- * long, so it opens with a search box — finding a variable by name is the
- * primary way in, and scrolling the secondary one.
+ * The filter rail: every column of the database, classified by
+ * {@link AutoFilterRow} and collected into the scientific categories of
+ * `utils/fieldGroups.ts`.
+ *
+ * The list is derived rather than curated, so it is long: connections alone has
+ * 150 filters. Grouping is what makes that navigable. A reader meets eight to
+ * twelve headings, opens the one they were thinking of, and the search box stays
+ * as the direct route for anyone who already knows the variable's name.
  */
 import AutoFilterRow from '@/components/commons/AutoFilterRow.vue'
-import type { LabeledFilter } from '@/composables/useAutoFilters'
+import type { FilterGroup, LabeledFilter } from '@/composables/useAutoFilters'
+import type { FieldGroupId } from '@/utils/fieldGroups'
 import type { Searches, Value } from '@/utils/common'
-import { mdiClose, mdiMagnify } from '@mdi/js'
-import { computed, ref } from 'vue'
+import { mdiChevronRight, mdiClose, mdiMagnify } from '@mdi/js'
+import { computed, ref, watch } from 'vue'
 
 const props = withDefaults(
   defineProps<{
-    filters: LabeledFilter[]
+    groups: FilterGroup[]
     searches: Searches
     loading?: boolean
   }>(),
@@ -26,25 +31,76 @@ const emit = defineEmits<{
 
 const search = ref<string>('')
 
+function isActive(filter: LabeledFilter): boolean {
+  return props.searches[filter.key] != null
+}
+
 /** Match the label a user sees, the column name they may know, and the
  *  dictionary description — the last one makes unlabelled fields findable. */
-const visible = computed<LabeledFilter[]>(() => {
+function matchesSearch(filter: LabeledFilter, needle: string): boolean {
+  return `${filter.label} ${filter.key} ${filter.column.description}`.toLowerCase().includes(needle)
+}
+
+const visible = computed<FilterGroup[]>(() => {
   const needle = search.value.trim().toLowerCase()
-  if (!needle) return props.filters
-  return props.filters.filter((filter) =>
-    `${filter.label} ${filter.key} ${filter.column.description}`.toLowerCase().includes(needle)
-  )
+  if (!needle) return props.groups
+  return props.groups
+    .map((group) => ({
+      ...group,
+      filters: group.filters.filter((filter) => matchesSearch(filter, needle))
+    }))
+    .filter((group) => group.filters.length > 0)
 })
 
 const activeCount = computed<number>(
-  () => props.filters.filter((filter) => props.searches[filter.key] != null).length
+  () => props.groups.flatMap((group) => group.filters).filter(isActive).length
 )
 
-// Rows already carrying a filter start open, so an incoming (shared, bookmarked)
-// URL shows what it is filtering on without any hunting.
-const open = ref<Set<string>>(
-  new Set(props.filters.filter((filter) => props.searches[filter.key] != null).map((f) => f.key))
+function activeIn(group: FilterGroup): number {
+  return group.filters.filter(isActive).length
+}
+
+// Identification is open from the start because it is the one group every reader
+// wants; the others wait to be asked for.
+const openGroups = ref<Set<FieldGroupId>>(new Set<FieldGroupId>(['identification']))
+
+/** Rows already carrying a filter, so a shared URL shows the value it filters on. */
+const open = ref<Set<string>>(new Set())
+
+// Seeded on the first non-empty groups rather than at setup: the overlay is
+// mounted with the dashboard, well before the dataset has loaded and the filters
+// exist, so reading props here would always see an empty list.
+const seeded = ref<boolean>(false)
+watch(
+  () => props.groups,
+  (groups) => {
+    if (seeded.value || groups.length === 0) return
+    seeded.value = true
+    // A group already carrying a filter opens too, so an incoming (shared,
+    // bookmarked) URL shows what it is filtering on without any hunting.
+    groups.filter((group) => activeIn(group) > 0).forEach((group) => openGroups.value.add(group.id))
+    open.value = new Set(
+      groups
+        .flatMap((group) => group.filters)
+        .filter(isActive)
+        .map((filter) => filter.key)
+    )
+  },
+  { immediate: true }
 )
+
+/** While searching, every group holding a hit is open: hiding a match behind a
+ *  collapsed heading would make the search box look broken. */
+function isOpen(group: FilterGroup): boolean {
+  return search.value.trim().length > 0 || openGroups.value.has(group.id)
+}
+
+function toggleGroup(group: FilterGroup): void {
+  const next = new Set(openGroups.value)
+  if (next.has(group.id)) next.delete(group.id)
+  else next.add(group.id)
+  openGroups.value = next
+}
 
 function setOpen(key: string, value: boolean): void {
   const next = new Set(open.value)
@@ -54,8 +110,9 @@ function setOpen(key: string, value: boolean): void {
 }
 
 function resetAll(): void {
-  props.filters
-    .filter((filter) => props.searches[filter.key] != null)
+  props.groups
+    .flatMap((group) => group.filters)
+    .filter(isActive)
     .forEach((filter) => emit('change:searches', filter.key, undefined))
 }
 </script>
@@ -89,15 +146,39 @@ function resetAll(): void {
     <p v-else-if="visible.length === 0" class="afr-empty">{{ $t('commons.no_variables_found') }}</p>
 
     <div class="afr-list">
-      <auto-filter-row
-        v-for="filter in visible"
-        :key="filter.key"
-        :filter="filter"
-        :open="open.has(filter.key)"
-        :value="searches[filter.key]"
-        @update="(value) => emit('change:searches', filter.key, value)"
-        @update:open="(value) => setOpen(filter.key, value)"
-      />
+      <section v-for="group in visible" :key="group.id" class="afr-group">
+        <button
+          class="afr-group-head"
+          :aria-expanded="isOpen(group)"
+          :aria-label="
+            isOpen(group)
+              ? $t('shell.collapse_group', { group: group.label })
+              : $t('shell.expand_group', { group: group.label })
+          "
+          @click="toggleGroup(group)"
+        >
+          <v-icon
+            class="afr-group-caret"
+            :class="{ open: isOpen(group) }"
+            :icon="mdiChevronRight"
+            size="14"
+          />
+          <span class="afr-group-label">{{ group.label }}</span>
+          <span v-if="activeIn(group) > 0" class="afr-group-active">{{ activeIn(group) }}</span>
+          <span class="afr-group-count">{{ group.filters.length }}</span>
+        </button>
+        <div v-if="isOpen(group)" class="afr-group-body">
+          <auto-filter-row
+            v-for="filter in group.filters"
+            :key="filter.key"
+            :filter="filter"
+            :open="open.has(filter.key)"
+            :value="searches[filter.key]"
+            @update="(value) => emit('change:searches', filter.key, value)"
+            @update:open="(value) => setOpen(filter.key, value)"
+          />
+        </div>
+      </section>
     </div>
   </aside>
 </template>

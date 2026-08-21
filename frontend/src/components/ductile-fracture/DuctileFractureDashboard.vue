@@ -78,20 +78,17 @@ const lodeSpecimenFields: DoubleFields<DuctileFractureField> = [
 ]
 
 // Filters are derived from the data dictionary + the loaded dataset, so a new
-// column becomes filterable without touching this file; `pinned` only keeps the
-// long-standing filters at the top of the rail.
-const { filters, loading: filtersLoading } = useAutoFilters({
+// column becomes filterable without touching this file, and fieldGroups.ts
+// decides which category of the rail it shows up under.
+const {
+  filters,
+  groups: filterGroups,
+  loading: filtersLoading
+} = useAutoFilters({
   database: 'ductile-fracture',
   datasetKey: DUCTILE_FRACTURE_KEY,
   fetchAll: fetchDuctileFractures,
-  i18nPrefix: 'ductile_fracture.',
-  pinned: [
-    DuctileFractureField.Date,
-    DuctileFractureField.FYn,
-    DuctileFractureField.TriaxAvgTillFr,
-    DuctileFractureField.LodeAvgTillFr,
-    DuctileFractureField.HasSem
-  ]
+  i18nPrefix: 'ductile_fracture.'
 })
 </script>
 
@@ -105,6 +102,7 @@ const { filters, loading: filtersLoading } = useAutoFilters({
     database-id="ductile-fracture"
     i18n-prefix="ductile_fracture."
     :filters="filters"
+    :filter-groups="filterGroups"
     :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"

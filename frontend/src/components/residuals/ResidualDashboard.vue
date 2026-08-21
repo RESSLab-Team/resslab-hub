@@ -42,20 +42,17 @@ const profileFields: DoubleFields<ResidualStressField> = [
 ]
 
 // Filters are derived from the data dictionary + the loaded dataset, so a new
-// column becomes filterable without touching this file; `pinned` only keeps the
-// long-standing filters at the top of the rail.
-const { filters, loading: filtersLoading } = useAutoFilters({
+// column becomes filterable without touching this file, and fieldGroups.ts
+// decides which category of the rail it shows up under.
+const {
+  filters,
+  groups: filterGroups,
+  loading: filtersLoading
+} = useAutoFilters({
   database: 'residuals',
   datasetKey: RESIDUAL_KEY,
   fetchAll: fetchResiduals,
-  i18nPrefix: 'residual.',
-  pinned: [
-    ResidualStressField.Date,
-    ResidualStressField.Tf,
-    ResidualStressField.HOverB,
-    ResidualStressField.Sigma0F,
-    ResidualStressField.Sigma0W
-  ]
+  i18nPrefix: 'residual.'
 })
 </script>
 
@@ -70,6 +67,7 @@ const { filters, loading: filtersLoading } = useAutoFilters({
     database-id="residuals"
     i18n-prefix="residual."
     :filters="filters"
+    :filter-groups="filterGroups"
     :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"

@@ -64,19 +64,17 @@ const yearLinkFields: DoubleFields<EccentricBracedFrameField> = [
 ]
 
 // Filters are derived from the data dictionary + the loaded dataset, so a new
-// column becomes filterable without touching this file; `pinned` only keeps the
-// long-standing filters at the top of the rail.
-const { filters, loading: filtersLoading } = useAutoFilters({
+// column becomes filterable without touching this file, and fieldGroups.ts
+// decides which category of the rail it shows up under.
+const {
+  filters,
+  groups: filterGroups,
+  loading: filtersLoading
+} = useAutoFilters({
   database: 'ebf',
   datasetKey: EBF_KEY,
   fetchAll: fetchEbfs,
-  i18nPrefix: 'ebf.',
-  pinned: [
-    EccentricBracedFrameField.Year,
-    EccentricBracedFrameField.E,
-    EccentricBracedFrameField.ClassAisc,
-    EccentricBracedFrameField.OvAisc
-  ]
+  i18nPrefix: 'ebf.'
 })
 </script>
 
@@ -90,6 +88,7 @@ const { filters, loading: filtersLoading } = useAutoFilters({
     database-id="ebf"
     i18n-prefix="ebf."
     :filters="filters"
+    :filter-groups="filterGroups"
     :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"
