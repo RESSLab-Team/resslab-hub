@@ -65,6 +65,8 @@ watch(
 
 <template>
   <common-detail
+    database-id="columns"
+    :record="column"
     :reference="column.reference"
     :link="column.link"
     :carousel-items="carouselItems"

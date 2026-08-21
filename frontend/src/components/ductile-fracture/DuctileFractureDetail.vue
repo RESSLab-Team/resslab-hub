@@ -46,6 +46,8 @@ const semOpen = ref(false)
 
 <template>
   <common-detail
+    database-id="ductile-fracture"
+    :record="ductileFracture"
     :reference="ductileFracture.reference ?? ''"
     :link="publicationLink"
     :carousel-items="[]"

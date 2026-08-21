@@ -70,6 +70,8 @@ function formatString(value?: string | null): string {
 
 <template>
   <common-detail
+    database-id="braces"
+    :record="brace"
     :reference="brace.reference"
     :link="brace.link"
     :carousel-items="carouselItems"

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import EyebrowText from '@/components/commons/EyebrowText.vue'
+import GroupedProperties from '@/components/commons/GroupedProperties.vue'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
+import type { DatabaseId } from '@/utils/navigation'
 import { mdiClose, mdiOpenInNew } from '@mdi/js'
 import type { AxiosResponse } from 'axios'
 import type { LineSeriesOption } from 'echarts'
@@ -31,13 +33,21 @@ export interface Props {
   carouselItems?: DetailCarouselItem[][]
   carouselHeight?: number
   aspectRatio?: number
+  /**
+   * Pass both to append the grouped "all recorded properties" section under the
+   * drawer's curated highlights (see GroupedProperties.vue).
+   */
+  databaseId?: DatabaseId
+  record?: object
 }
 const props = withDefaults(defineProps<Props>(), {
   eyebrow: undefined,
   specimenId: undefined,
   carouselItems: () => [],
   carouselHeight: 300,
-  aspectRatio: 1.5
+  aspectRatio: 1.5,
+  databaseId: undefined,
+  record: undefined
 })
 const emit = defineEmits<{
   (e: 'close'): void
@@ -161,6 +171,8 @@ function nextPage(): void {
         <h3 class="cd-section-h">{{ $t('commons.steel_material_designation') }}</h3>
         <slot name="designation" />
       </template>
+
+      <grouped-properties v-if="databaseId && record" :database="databaseId" :record="record" />
     </div>
   </div>
 </template>

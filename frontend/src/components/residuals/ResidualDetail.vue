@@ -109,6 +109,8 @@ watch(
 
 <template>
   <common-detail
+    database-id="residuals"
+    :record="residual"
     :reference="residual.reference"
     :link="residual.link"
     :carousel-items="hasValidParameters ? carouselItems : []"

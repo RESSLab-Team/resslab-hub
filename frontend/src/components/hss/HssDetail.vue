@@ -46,6 +46,8 @@ const testConfigurationImageSrc = computed<string>(() =>
 
 <template>
   <common-detail
+    database-id="hss"
+    :record="hssColumn"
     :reference="hssColumn.reference"
     :link="hssColumn.url"
     :carousel-items="carouselItems"

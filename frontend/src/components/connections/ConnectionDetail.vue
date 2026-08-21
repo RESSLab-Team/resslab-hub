@@ -98,6 +98,8 @@ watch(
 
 <template>
   <common-detail
+    database-id="connections"
+    :record="connection"
     :eyebrow="`${connection.connection_type}${$t('detail.connection.eyebrow_suffix')}`"
     :specimen-id="connection.specimen_designation"
     :reference="connection.reference"

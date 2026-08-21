@@ -110,6 +110,8 @@ watch(
 
 <template>
   <common-detail
+    database-id="cyclic"
+    :record="material"
     :reference="material.reference ?? ''"
     :link="material.link ?? ''"
     :carousel-items="showGraph ? carouselItems : []"

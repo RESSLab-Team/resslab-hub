@@ -63,6 +63,8 @@ const publicationLink = computed(() => {
 
 <template>
   <common-detail
+    database-id="tensile"
+    :record="tensileCoupon"
     :reference="tensileCoupon.reference ?? ''"
     :link="publicationLink"
     :carousel-items="carouselItems"

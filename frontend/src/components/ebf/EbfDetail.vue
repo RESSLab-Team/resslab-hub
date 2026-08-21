@@ -52,6 +52,8 @@ const imageSrc = computed(() => {
 
 <template>
   <common-detail
+    database-id="ebf"
+    :record="eccentricBracedFrame"
     :reference="eccentricBracedFrame.reference"
     :link="eccentricBracedFrame.url"
     :carousel-items="carouselItems"
