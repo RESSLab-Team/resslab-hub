@@ -2,23 +2,19 @@
 import { MaterialField, type MaterialModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import MaterialDoubleChart from '@/components/materials/charts/MaterialDoubleChart.vue'
 import MaterialParallelChart from '@/components/materials/charts/MaterialParallelChart.vue'
 import MaterialSingleChart from '@/components/materials/charts/MaterialSingleChart.vue'
 import MaterialDetail from '@/components/materials/MaterialDetail.vue'
 import MaterialTable from '@/components/materials/MaterialTable.vue'
-import { PARALLEL_FIELDS } from '@/components/materials/data'
+import { MATERIAL_KEY, PARALLEL_FIELDS, fetchMaterials } from '@/components/materials/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
 import { apricot, periwinkle, plum } from '@/utils/vuetify'
-import { mdiCalendarRange, mdiPulse, mdiTune } from '@mdi/js'
-import { computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const route = useRoute()
 const router = useRouter()
@@ -46,34 +42,21 @@ const profileThicknessFields: DoubleFields<MaterialField> = [
   MaterialField.ProfileType
 ]
 
-const railGroups = computed<FilterRailGroup[]>(() => [
-  {
-    key: MaterialField.Year,
-    label: t('dashboards.material.rail_test_year'),
-    icon: mdiCalendarRange,
-    type: 'range',
-    min: 1970,
-    max: 2026
-  },
-  {
-    key: MaterialField.YieldStressMpa,
-    label: t('dashboards.material.rail_yield_stress'),
-    icon: mdiPulse,
-    type: 'range'
-  },
-  {
-    key: MaterialField.FractureStrain,
-    label: t('dashboards.material.rail_fracture_strain'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: MaterialField.Thickness,
-    label: t('dashboards.material.rail_thickness'),
-    icon: mdiTune,
-    type: 'range'
-  }
-])
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file; `pinned` only keeps the
+// long-standing filters at the top of the rail.
+const { filters, loading: filtersLoading } = useAutoFilters({
+  database: 'cyclic',
+  datasetKey: MATERIAL_KEY,
+  fetchAll: fetchMaterials,
+  i18nPrefix: 'material.',
+  pinned: [
+    MaterialField.Year,
+    MaterialField.YieldStressMpa,
+    MaterialField.FractureStrain,
+    MaterialField.Thickness
+  ]
+})
 </script>
 
 <template>
@@ -86,7 +69,8 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :description="$t('dashboards.material.description')"
     database-id="cyclic"
     i18n-prefix="material."
-    :rail-groups="railGroups"
+    :filters="filters"
+    :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"
     @change:searches="changeSearches"

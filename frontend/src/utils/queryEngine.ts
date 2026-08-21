@@ -11,9 +11,9 @@
  *   a clause is either
  *     - `key:expression`  → a predicate on that field, or
  *     - `expression`      → a global search across every field.
- *   expressions: leading '!' negates; ',' → value-in-set; '<<' → inclusive
- *   range; leading '<'/'>' → numeric compare; otherwise substring (string),
- *   equality (number/boolean) or SQL ilike wildcard matching.
+ *   expressions: leading '!' negates; ',' → value-in-set; leading '=' → exact
+ *   match; '<<' → inclusive range; leading '<'/'>' → numeric compare; otherwise
+ *   substring (string), equality (number/boolean) or SQL ilike wildcard matching.
  */
 import { queryFieldSeparator, queryKeyValueSeparator } from '@/composables/dashboard'
 
@@ -145,6 +145,14 @@ function compilePredicate(expression: string, type: FieldType): ValuePredicate {
   if (expression.includes(',')) {
     const set = new Set(expression.split(','))
     return (value) => set.has(formatValue(value))
+  }
+  // Exact match (`=value`). Client-side only, like the derived-ratio keys: a
+  // single-value selection in the filter rail must not behave like the default
+  // substring match, or picking `RBS` would also keep `RBS-b` rows. Multi-value
+  // selections already match exactly through the ',' branch above.
+  if (expression.startsWith('=')) {
+    const target = expression.slice(1)
+    return (value) => formatValue(value) === target
   }
   if (expression.includes('<<')) {
     const [min, max] = expression.split('<<')

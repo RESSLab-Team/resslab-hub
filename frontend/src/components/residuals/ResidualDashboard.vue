@@ -2,23 +2,19 @@
 import { ResidualStressField, type ResidualStressModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import ResidualDoubleChart from '@/components/residuals/charts/ResidualDoubleChart.vue'
 import ResidualParallelChart from '@/components/residuals/charts/ResidualParallelChart.vue'
 import ResidualSingleChart from '@/components/residuals/charts/ResidualSingleChart.vue'
 import ResidualDetail from '@/components/residuals/ResidualDetail.vue'
 import ResidualTable from '@/components/residuals/ResidualTable.vue'
-import { PARALLEL_FIELDS } from '@/components/residuals/data'
+import { PARALLEL_FIELDS, RESIDUAL_KEY, fetchResiduals } from '@/components/residuals/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
 import { cobalt, peach, yellowgreen } from '@/utils/vuetify'
-import { mdiCalendarRange, mdiPulse, mdiTune } from '@mdi/js'
-import { computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const route = useRoute()
 const router = useRouter()
@@ -45,40 +41,22 @@ const profileFields: DoubleFields<ResidualStressField> = [
   ResidualStressField.ProfileType
 ]
 
-const railGroups = computed<FilterRailGroup[]>(() => [
-  {
-    key: ResidualStressField.Date,
-    label: t('dashboards.residual.rail_measurement_date'),
-    icon: mdiCalendarRange,
-    type: 'range',
-    min: 1950,
-    max: 2026
-  },
-  {
-    key: ResidualStressField.Tf,
-    label: t('dashboards.residual.rail_flange_thickness'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: ResidualStressField.HOverB,
-    label: t('dashboards.residual.rail_aspect_ratio'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: ResidualStressField.Sigma0F,
-    label: t('dashboards.residual.rail_flange_residual_stress'),
-    icon: mdiPulse,
-    type: 'range'
-  },
-  {
-    key: ResidualStressField.Sigma0W,
-    label: t('dashboards.residual.rail_web_residual_stress'),
-    icon: mdiPulse,
-    type: 'range'
-  }
-])
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file; `pinned` only keeps the
+// long-standing filters at the top of the rail.
+const { filters, loading: filtersLoading } = useAutoFilters({
+  database: 'residuals',
+  datasetKey: RESIDUAL_KEY,
+  fetchAll: fetchResiduals,
+  i18nPrefix: 'residual.',
+  pinned: [
+    ResidualStressField.Date,
+    ResidualStressField.Tf,
+    ResidualStressField.HOverB,
+    ResidualStressField.Sigma0F,
+    ResidualStressField.Sigma0W
+  ]
+})
 </script>
 
 <template>
@@ -91,7 +69,8 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :description="$t('dashboards.residual.description')"
     database-id="residuals"
     i18n-prefix="residual."
-    :rail-groups="railGroups"
+    :filters="filters"
+    :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"
     @change:searches="changeSearches"

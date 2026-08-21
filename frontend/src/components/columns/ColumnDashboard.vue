@@ -2,23 +2,19 @@
 import { ColumnField, type ColumnModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import ColumnDoubleChart from '@/components/columns/charts/ColumnDoubleChart.vue'
 import ColumnParallelChart from '@/components/columns/charts/ColumnParallelChart.vue'
 import ColumnSingleChart from '@/components/columns/charts/ColumnSingleChart.vue'
 import ColumnDetail from '@/components/columns/ColumnDetail.vue'
 import ColumnTable from '@/components/columns/ColumnTable.vue'
-import { PARALLEL_FIELDS } from '@/components/columns/data'
+import { COLUMN_KEY, PARALLEL_FIELDS, fetchColumns } from '@/components/columns/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
 import { cobalt, mint, plum } from '@/utils/vuetify'
-import { mdiCalendarRange, mdiPulse, mdiTagOutline, mdiTune } from '@mdi/js'
-import { computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const route = useRoute()
 const router = useRouter()
@@ -55,44 +51,22 @@ const columnDepthFields: DoubleFields<ColumnField> = [
   }
 ]
 
-const railGroups = computed<FilterRailGroup[]>(() => [
-  {
-    key: ColumnField.Date,
-    label: t('dashboards.column.rail_test_date'),
-    icon: mdiCalendarRange,
-    type: 'range',
-    min: 1960,
-    max: 2026
-  },
-  {
-    key: ColumnField.BuiltUp,
-    label: t('dashboards.column.rail_fabrication'),
-    icon: mdiTagOutline,
-    type: 'chips',
-    options: [
-      { label: 'Hot-rolled', value: 'false' },
-      { label: 'Built-up', value: 'true' }
-    ]
-  },
-  {
-    key: ColumnField.DC,
-    label: t('dashboards.column.rail_column_depth'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: ColumnField.PGOverPYm,
-    label: t('dashboards.column.rail_axial_load_ratio'),
-    icon: mdiPulse,
-    type: 'range'
-  },
-  {
-    key: ColumnField.LBOverRYc,
-    label: t('dashboards.column.rail_slenderness'),
-    icon: mdiTune,
-    type: 'range'
-  }
-])
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file; `pinned` only keeps the
+// long-standing filters at the top of the rail.
+const { filters, loading: filtersLoading } = useAutoFilters({
+  database: 'columns',
+  datasetKey: COLUMN_KEY,
+  fetchAll: fetchColumns,
+  i18nPrefix: 'column.',
+  pinned: [
+    ColumnField.Date,
+    ColumnField.BuiltUp,
+    ColumnField.DC,
+    ColumnField.PGOverPYm,
+    ColumnField.LBOverRYc
+  ]
+})
 </script>
 
 <template>
@@ -104,7 +78,8 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :description="$t('dashboards.column.description')"
     database-id="columns"
     i18n-prefix="column."
-    :rail-groups="railGroups"
+    :filters="filters"
+    :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"
     @change:searches="changeSearches"

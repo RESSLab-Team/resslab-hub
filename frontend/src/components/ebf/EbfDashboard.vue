@@ -2,23 +2,20 @@
 import { EccentricBracedFrameField, type EccentricBracedFrameModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import EbfDoubleChart from '@/components/ebf/charts/EbfDoubleChart.vue'
 import EbfParallelChart from '@/components/ebf/charts/EbfParallelChart.vue'
 import EbfSingleChart from '@/components/ebf/charts/EbfSingleChart.vue'
 import EbfDetail from '@/components/ebf/EbfDetail.vue'
 import EbfTable from '@/components/ebf/EbfTable.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { EBF_KEY, fetchEbfs } from '@/components/ebf/data'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
 import { sectionTypeMapping } from '@/utils/ebf'
 import { cobalt, mauve, mint, peach, sky } from '@/utils/vuetify'
-import { mdiCalendarRange, mdiPulse, mdiTagOutline, mdiTune } from '@mdi/js'
-import { computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const route = useRoute()
 const router = useRouter()
@@ -66,39 +63,21 @@ const yearLinkFields: DoubleFields<EccentricBracedFrameField> = [
   }
 ]
 
-const railGroups = computed<FilterRailGroup[]>(() => [
-  {
-    key: EccentricBracedFrameField.Year,
-    label: t('dashboards.ebf.rail_test_year'),
-    icon: mdiCalendarRange,
-    type: 'range',
-    min: 1970,
-    max: 2026
-  },
-  {
-    key: EccentricBracedFrameField.E,
-    label: t('dashboards.ebf.rail_link_length'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: EccentricBracedFrameField.ClassAisc,
-    label: t('dashboards.ebf.rail_link_classification'),
-    icon: mdiTagOutline,
-    type: 'chips',
-    options: [
-      { label: 'Short', value: 'short' },
-      { label: 'Intermediate', value: 'intermediate' },
-      { label: 'Long', value: 'long' }
-    ]
-  },
-  {
-    key: EccentricBracedFrameField.OvAisc,
-    label: t('dashboards.ebf.rail_overstrength'),
-    icon: mdiPulse,
-    type: 'range'
-  }
-])
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file; `pinned` only keeps the
+// long-standing filters at the top of the rail.
+const { filters, loading: filtersLoading } = useAutoFilters({
+  database: 'ebf',
+  datasetKey: EBF_KEY,
+  fetchAll: fetchEbfs,
+  i18nPrefix: 'ebf.',
+  pinned: [
+    EccentricBracedFrameField.Year,
+    EccentricBracedFrameField.E,
+    EccentricBracedFrameField.ClassAisc,
+    EccentricBracedFrameField.OvAisc
+  ]
+})
 </script>
 
 <template>
@@ -110,7 +89,8 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :description="$t('dashboards.ebf.description')"
     database-id="ebf"
     i18n-prefix="ebf."
-    :rail-groups="railGroups"
+    :filters="filters"
+    :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"
     @change:searches="changeSearches"

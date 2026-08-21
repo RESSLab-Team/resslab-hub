@@ -2,22 +2,19 @@
 import { DuctileFractureField, type DuctileFractureModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import DuctileFractureDoubleChart from '@/components/ductile-fracture/charts/DuctileFractureDoubleChart.vue'
 import DuctileFractureParallelChart from '@/components/ductile-fracture/charts/DuctileFractureParallelChart.vue'
 import DuctileFractureSingleChart from '@/components/ductile-fracture/charts/DuctileFractureSingleChart.vue'
 import DuctileFractureDetail from '@/components/ductile-fracture/DuctileFractureDetail.vue'
 import DuctileFractureTable from '@/components/ductile-fracture/DuctileFractureTable.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { DUCTILE_FRACTURE_KEY, fetchDuctileFractures } from '@/components/ductile-fracture/data'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
 import { apricot, mauve, mint, periwinkle, sky } from '@/utils/vuetify'
-import { mdiCalendarRange, mdiImageOutline, mdiPulse, mdiTune } from '@mdi/js'
-import { computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const route = useRoute()
 const router = useRouter()
@@ -80,44 +77,22 @@ const lodeSpecimenFields: DoubleFields<DuctileFractureField> = [
   DuctileFractureField.SpecimenType
 ]
 
-const railGroups = computed<FilterRailGroup[]>(() => [
-  {
-    key: DuctileFractureField.Date,
-    label: t('dashboards.ductile_fracture.rail_test_date'),
-    icon: mdiCalendarRange,
-    type: 'range',
-    min: 1990,
-    max: 2026
-  },
-  {
-    key: DuctileFractureField.FYn,
-    label: t('dashboards.ductile_fracture.rail_nominal_yield_stress'),
-    icon: mdiPulse,
-    type: 'range'
-  },
-  {
-    key: DuctileFractureField.TriaxAvgTillFr,
-    label: t('dashboards.ductile_fracture.rail_avg_triaxiality'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: DuctileFractureField.LodeAvgTillFr,
-    label: t('dashboards.ductile_fracture.rail_avg_lode_angle'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: DuctileFractureField.HasSem,
-    label: t('dashboards.ductile_fracture.rail_sem_imagery'),
-    icon: mdiImageOutline,
-    type: 'chips',
-    options: [
-      { label: t('dashboards.ductile_fracture.rail_sem_with'), value: 'true' },
-      { label: t('dashboards.ductile_fracture.rail_sem_without'), value: 'false' }
-    ]
-  }
-])
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file; `pinned` only keeps the
+// long-standing filters at the top of the rail.
+const { filters, loading: filtersLoading } = useAutoFilters({
+  database: 'ductile-fracture',
+  datasetKey: DUCTILE_FRACTURE_KEY,
+  fetchAll: fetchDuctileFractures,
+  i18nPrefix: 'ductile_fracture.',
+  pinned: [
+    DuctileFractureField.Date,
+    DuctileFractureField.FYn,
+    DuctileFractureField.TriaxAvgTillFr,
+    DuctileFractureField.LodeAvgTillFr,
+    DuctileFractureField.HasSem
+  ]
+})
 </script>
 
 <template>
@@ -129,7 +104,8 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :description="$t('dashboards.ductile_fracture.description')"
     database-id="ductile-fracture"
     i18n-prefix="ductile_fracture."
-    :rail-groups="railGroups"
+    :filters="filters"
+    :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"
     @change:searches="changeSearches"

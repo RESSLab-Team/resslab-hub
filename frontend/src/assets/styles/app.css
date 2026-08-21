@@ -1229,6 +1229,221 @@ body.theme-dark .logos img {
   background: var(--epfl-red);
 }
 
+/* ---- Auto-generated filter rail ---- */
+.afr {
+  padding-bottom: 0;
+}
+.afr-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.afr-search-icon {
+  position: absolute;
+  left: 28px;
+  color: var(--fg-muted);
+  pointer-events: none;
+}
+.afr-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px 7px 30px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--fg);
+  border-radius: var(--radius);
+}
+.afr-search input:focus {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -1px;
+}
+.afr-empty {
+  margin: 0;
+  padding: 16px 20px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.afr-list {
+  flex: 1;
+  min-height: 0;
+}
+
+/* One filter */
+.afr-row {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.afr-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 20px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--fg);
+}
+.afr-head:hover {
+  background: var(--bg-subtle);
+}
+.afr-row.is-active .afr-head {
+  box-shadow: inset 2px 0 0 var(--epfl-red);
+}
+.afr-caret {
+  flex: 0 0 auto;
+  color: var(--fg-muted);
+  transition: transform var(--t-fast);
+}
+.afr-row.is-open .afr-caret {
+  transform: rotate(180deg);
+}
+.afr-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.afr-unit {
+  color: var(--fg-muted);
+  font-size: 11px;
+}
+.afr-summary {
+  flex: 0 1 auto;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--epfl-red);
+  font-variant-numeric: tabular-nums;
+}
+.afr-clear {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.afr-clear:hover {
+  color: var(--epfl-red);
+}
+.afr-body {
+  padding: 2px 20px 14px;
+}
+
+/* Value list: the bar behind each row *is* the distribution. */
+.afr-options {
+  display: flex;
+  flex-direction: column;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.afr-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 12px;
+  isolation: isolate;
+  background: none;
+  border: 0;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: var(--fg);
+}
+.afr-option:hover {
+  background: var(--bg-subtle);
+}
+.afr-option-bar {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  z-index: -1;
+  background: var(--bg-subtle);
+  border-left: 2px solid #a4bce3;
+}
+.afr-option.on .afr-option-bar {
+  border-left-color: var(--epfl-red);
+}
+.afr-option input[type='checkbox'] {
+  flex: 0 0 auto;
+  accent-color: var(--epfl-red);
+  margin: 0;
+}
+.afr-option-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.afr-option.on .afr-option-value {
+  font-weight: 600;
+}
+.afr-option-count {
+  flex: 0 0 auto;
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+/* Read-only shortcuts under a text search — quieter than a checkbox list. */
+.afr-options-quiet {
+  margin-top: 8px;
+  max-height: 150px;
+}
+.afr-text {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--fg);
+  border-radius: var(--radius);
+}
+.afr-text:focus {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -1px;
+}
+.afr-meta {
+  margin: 8px 0 0;
+  font-size: 10px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* The brush's flanking bounds are sized for a chart strip; the rail is far
+   narrower, so trim them and give the plot the room. Selectors are deliberately
+   one level deeper than the brush's own scoped rules so these win the tie. */
+.afr .afr-body .dist-brush {
+  gap: 6px;
+}
+.afr .afr-body .dist-brush .v-text-field {
+  flex: 0 0 36px;
+  width: 36px;
+}
+.afr .afr-body .dist-brush .dist-brush__bound {
+  flex: 0 0 62px;
+  width: 62px;
+  font-size: 11px;
+}
+
 /* Rail responsive: hide the inline rail below 1100px (overlay takes over) */
 @media (max-width: 1099px) {
   .dash-with-rail,

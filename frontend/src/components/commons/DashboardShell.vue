@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import EyebrowText from '@/components/commons/EyebrowText.vue'
-import FilterRail, { type FilterRailGroup } from '@/components/commons/FilterRail.vue'
+import AutoFilterRail from '@/components/commons/AutoFilterRail.vue'
 import i18n from '@/plugins/i18n'
 import { useNotificationStore } from '@/stores/notification'
-import { shareCurrentUrl, type Searches, type Value } from '@/utils/common'
+import type { LabeledFilter } from '@/composables/useAutoFilters'
+import { formatFilterValue, shareCurrentUrl, type Searches, type Value } from '@/utils/common'
 import { DATABASES, type DatabaseId } from '@/utils/navigation'
 import { mdiClose, mdiFilterVariant, mdiMagnify, mdiShare } from '@mdi/js'
 import { computed, ref } from 'vue'
@@ -29,7 +30,9 @@ const props = withDefaults(
     i18nPrefix: string
     /** Identifies the database so the header can show its icon (see navigation.ts). */
     databaseId?: DatabaseId
-    railGroups: FilterRailGroup[]
+    /** Auto-generated filter descriptors (see useAutoFilters). */
+    filters: LabeledFilter[]
+    filtersLoading?: boolean
     searches: Searches
     search?: string
     searchPlaceholder?: string
@@ -39,6 +42,7 @@ const props = withDefaults(
   {
     count: undefined,
     countLabel: 'tests',
+    filtersLoading: false,
     description: undefined,
     databaseId: undefined,
     search: '',
@@ -68,32 +72,18 @@ const databaseIcon = computed<string | undefined>(
 )
 
 const railFilterCount = computed<number>(
-  () => props.railGroups.filter((group) => props.searches[group.key] != null).length
+  () => props.filters.filter((filter) => props.searches[filter.key] != null).length
 )
 
 /* ---- active-filter chips (mirrors the searches driving table + charts) ---- */
-function formatChipValue(value: Value): string {
-  if (Array.isArray(value)) {
-    if (value.length === 2 && value.every((v) => !isNaN(Number(v)))) {
-      return `${value[0]} – ${value[1]}`
-    }
-    return i18n.global.t('commons.n_selected', { n: value.length })
-  }
-  if (typeof value === 'boolean') {
-    return value ? i18n.global.t('commons.yes') : i18n.global.t('commons.no')
-  }
-  const text = String(value)
-  if (text.includes('<<')) {
-    return text.split('<<', 2).join(' – ')
-  }
-  return text.length > 32 ? `${text.split(',').length} selected` : text
-}
-
+// Most columns have no curated translation now that every one of them is
+// filterable, so fall back to the label the rail resolved from the dictionary.
 const activeChips = computed(() =>
-  Object.entries(props.searches).map(([key, value]) => ({
-    key,
-    label: `${i18n.global.t(props.i18nPrefix + key)}: ${formatChipValue(value)}`
-  }))
+  Object.entries(props.searches).map(([key, value]) => {
+    const filter = props.filters.find((entry) => entry.key === key)
+    const label = filter?.label ?? i18n.global.t(props.i18nPrefix + key)
+    return { key, label: `${label}: ${formatFilterValue(value, i18n.global.t)}` }
+  })
 )
 
 function clearAll(): void {
@@ -166,7 +156,9 @@ function shareView(): void {
               @click="filtersOverlayOpen = true"
             >
               <v-icon :icon="mdiFilterVariant" size="14" />
-              {{ $t('commons.filters') }}
+              <!-- "All", not just "Filters": the rail holds every column of the
+                   database, which the toolbar's own search box does not hint at. -->
+              {{ $t('commons.all_filters') }}
               <span v-if="railFilterCount > 0" class="dash-filters-trigger-badge">
                 {{ railFilterCount }}
               </span>
@@ -218,10 +210,9 @@ function shareView(): void {
       @click="filtersOverlayOpen = false"
     />
     <aside class="filters-overlay" :class="{ open: filtersOverlayOpen }">
-      <filter-rail
-        as-overlay
-        :groups="railGroups"
-        position="right"
+      <auto-filter-rail
+        :filters="filters"
+        :loading="filtersLoading"
         :searches="searches"
         @change:searches="(key, value) => emit('change:searches', key, value)"
         @close="filtersOverlayOpen = false"

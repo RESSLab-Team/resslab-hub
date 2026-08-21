@@ -2,22 +2,19 @@
 import { TensileCouponField, type TensileCouponModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import TensileCouponDoubleChart from '@/components/tensile-coupons/charts/TensileCouponDoubleChart.vue'
 import TensileCouponParallelChart from '@/components/tensile-coupons/charts/TensileCouponParallelChart.vue'
 import TensileCouponSingleChart from '@/components/tensile-coupons/charts/TensileCouponSingleChart.vue'
 import TensileCouponDetail from '@/components/tensile-coupons/TensileCouponDetail.vue'
 import TensileCouponTable from '@/components/tensile-coupons/TensileCouponTable.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { TENSILE_COUPON_KEY, fetchTensileCoupons } from '@/components/tensile-coupons/data'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
 import { mauve, mint, sky } from '@/utils/vuetify'
-import { mdiCalendarRange, mdiPulse, mdiTune } from '@mdi/js'
-import { computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const route = useRoute()
 const router = useRouter()
@@ -66,40 +63,22 @@ const profileThicknessFields: DoubleFields<TensileCouponField> = [
   TensileCouponField.ProfileType
 ]
 
-const railGroups = computed<FilterRailGroup[]>(() => [
-  {
-    key: TensileCouponField.Year,
-    label: t('dashboards.tensile_coupon.rail_test_year'),
-    icon: mdiCalendarRange,
-    type: 'range',
-    min: 1970,
-    max: 2026
-  },
-  {
-    key: TensileCouponField.YieldStress02Mpa,
-    label: t('dashboards.tensile_coupon.rail_yield_stress'),
-    icon: mdiPulse,
-    type: 'range'
-  },
-  {
-    key: TensileCouponField.ElongationAtFracture,
-    label: t('dashboards.tensile_coupon.rail_elongation_at_fracture'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: TensileCouponField.ReductionOfArea,
-    label: t('dashboards.tensile_coupon.rail_reduction_of_area'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: TensileCouponField.AvgInitReducedThicknessMm,
-    label: t('dashboards.tensile_coupon.rail_thickness'),
-    icon: mdiTune,
-    type: 'range'
-  }
-])
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file; `pinned` only keeps the
+// long-standing filters at the top of the rail.
+const { filters, loading: filtersLoading } = useAutoFilters({
+  database: 'tensile',
+  datasetKey: TENSILE_COUPON_KEY,
+  fetchAll: fetchTensileCoupons,
+  i18nPrefix: 'tensile_coupon.',
+  pinned: [
+    TensileCouponField.Year,
+    TensileCouponField.YieldStress02Mpa,
+    TensileCouponField.ElongationAtFracture,
+    TensileCouponField.ReductionOfArea,
+    TensileCouponField.AvgInitReducedThicknessMm
+  ]
+})
 </script>
 
 <template>
@@ -112,7 +91,8 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :description="$t('dashboards.tensile_coupon.description')"
     database-id="tensile"
     i18n-prefix="tensile_coupon."
-    :rail-groups="railGroups"
+    :filters="filters"
+    :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"
     @change:searches="changeSearches"

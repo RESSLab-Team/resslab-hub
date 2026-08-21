@@ -7,18 +7,14 @@ import BraceParallelChart from '@/components/braces/charts/BraceParallelChart.vu
 import BraceSingleChart from '@/components/braces/charts/BraceSingleChart.vue'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
-import { PARALLEL_FIELDS } from '@/components/braces/data'
+import { BRACE_KEY, PARALLEL_FIELDS, fetchBraces } from '@/components/braces/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
 import { apricot, mauve, sky } from '@/utils/vuetify'
-import { mdiCalendarRange, mdiPulse, mdiTune } from '@mdi/js'
-import { computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const route = useRoute()
 const router = useRouter()
@@ -45,28 +41,16 @@ const boundaryConditionFields: DoubleFields<BraceField> = [
   BraceField.BoundaryCondition
 ]
 
-const railGroups = computed<FilterRailGroup[]>(() => [
-  {
-    key: BraceField.Date,
-    label: t('dashboards.brace.rail_test_date'),
-    icon: mdiCalendarRange,
-    type: 'range',
-    min: 1970,
-    max: 2026
-  },
-  {
-    key: BraceField.KlR,
-    label: t('dashboards.brace.rail_slenderness'),
-    icon: mdiPulse,
-    type: 'range'
-  },
-  {
-    key: BraceField.DBr,
-    label: t('dashboards.brace.rail_section_depth'),
-    icon: mdiTune,
-    type: 'range'
-  }
-])
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file; `pinned` only keeps the
+// long-standing filters at the top of the rail.
+const { filters, loading: filtersLoading } = useAutoFilters({
+  database: 'braces',
+  datasetKey: BRACE_KEY,
+  fetchAll: fetchBraces,
+  i18nPrefix: 'brace.',
+  pinned: [BraceField.Date, BraceField.KlR, BraceField.DBr]
+})
 </script>
 
 <template>
@@ -78,7 +62,8 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :description="$t('dashboards.brace.description')"
     database-id="braces"
     i18n-prefix="brace."
-    :rail-groups="railGroups"
+    :filters="filters"
+    :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"
     @change:searches="changeSearches"

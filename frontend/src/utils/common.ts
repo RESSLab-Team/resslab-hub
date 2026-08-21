@@ -16,6 +16,34 @@ export function filterColumnValue(value: Value): boolean {
   }
 }
 
+/** Minimal translator shape, so this module stays free of the i18n plugin
+ *  (which reads localStorage at import time). */
+export type Translate = (key: string, named?: Record<string, unknown>) => string
+
+/**
+ * A filter value, rendered for a chip or a collapsed rail row.
+ *
+ * Mirrors the query grammar: `<<` is a range, an array (or a comma list) is a
+ * value set, and a leading `=` marks an exact match — a detail of the DSL, not
+ * something to show the user.
+ */
+export function formatFilterValue(value: Value, t: Translate): string {
+  if (Array.isArray(value)) {
+    return t('commons.n_selected', { n: value.length })
+  }
+  if (typeof value === 'boolean') {
+    return value ? t('commons.yes') : t('commons.no')
+  }
+  const text = String(value)
+  if (text.includes('<<')) {
+    return text.split('<<', 2).join(' – ')
+  }
+  if (text.startsWith('=')) {
+    return text.slice(1)
+  }
+  return text.includes(',') ? t('commons.n_selected', { n: text.split(',').length }) : text
+}
+
 export const publicPath: string = import.meta.env.BASE_URL ?? ''
 
 export const globalSearchKey = 'search'

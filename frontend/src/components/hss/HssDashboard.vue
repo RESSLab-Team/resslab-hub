@@ -2,23 +2,19 @@
 import { HSSColumnField, type HSSColumnModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import HssDoubleChart from '@/components/hss/charts/HssDoubleChart.vue'
 import HssParallelChart from '@/components/hss/charts/HssParallelChart.vue'
 import HssSingleChart from '@/components/hss/charts/HssSingleChart.vue'
 import HssDetail from '@/components/hss/HssDetail.vue'
 import HssTable from '@/components/hss/HssTable.vue'
-import { PARALLEL_FIELDS } from '@/components/hss/data'
+import { HSS_KEY, PARALLEL_FIELDS, fetchHsss } from '@/components/hss/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
 import { periwinkle, plum, yellowgreen } from '@/utils/vuetify'
-import { mdiCalendarRange, mdiPulse, mdiTagOutline, mdiTune } from '@mdi/js'
-import { computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const route = useRoute()
 const router = useRouter()
@@ -51,44 +47,22 @@ const failureModeFields: DoubleFields<HSSColumnField> = [
   }
 ]
 
-const railGroups = computed<FilterRailGroup[]>(() => [
-  {
-    key: HSSColumnField.Date,
-    label: t('dashboards.hss.rail_test_date'),
-    icon: mdiCalendarRange,
-    type: 'range',
-    min: 1970,
-    max: 2026
-  },
-  {
-    key: HSSColumnField.DepthOverT,
-    label: t('dashboards.hss.rail_depth_to_thickness'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: HSSColumnField.AxialLoadRatio,
-    label: t('dashboards.hss.rail_axial_load_ratio'),
-    icon: mdiPulse,
-    type: 'range'
-  },
-  {
-    key: HSSColumnField.LoadingAngle,
-    label: t('dashboards.hss.rail_loading_angle'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: HSSColumnField.FlexuralBuckling,
-    label: t('dashboards.hss.rail_failure_mode'),
-    icon: mdiTagOutline,
-    type: 'chips',
-    options: [
-      { label: 'Local buckling', value: 'false' },
-      { label: 'Flexural buckling', value: 'true' }
-    ]
-  }
-])
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file; `pinned` only keeps the
+// long-standing filters at the top of the rail.
+const { filters, loading: filtersLoading } = useAutoFilters({
+  database: 'hss',
+  datasetKey: HSS_KEY,
+  fetchAll: fetchHsss,
+  i18nPrefix: 'hss.',
+  pinned: [
+    HSSColumnField.Date,
+    HSSColumnField.DepthOverT,
+    HSSColumnField.AxialLoadRatio,
+    HSSColumnField.LoadingAngle,
+    HSSColumnField.FlexuralBuckling
+  ]
+})
 </script>
 
 <template>
@@ -100,7 +74,8 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :description="$t('dashboards.hss.description')"
     database-id="hss"
     i18n-prefix="hss."
-    :rail-groups="railGroups"
+    :filters="filters"
+    :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"
     @change:searches="changeSearches"

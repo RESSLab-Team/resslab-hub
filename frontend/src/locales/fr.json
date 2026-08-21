@@ -12,9 +12,6 @@
     "brace": {
       "title": "Contreventements",
       "description": "Essais de contreventements en acier sous chargement axial cyclique alterné, couvrant une gamme de formes de sections transversales, de rapports d'élancement et de conditions d'appui. Filtrez via le panneau de filtres, les filtres de colonnes du tableau ou les graphiques ci-dessous ; cliquez sur une ligne pour le détail complet de l'éprouvette et les données d'essai numérisées.",
-      "rail_test_date": "Date d'essai",
-      "rail_slenderness": "Élancement kL/r",
-      "rail_section_depth": "Hauteur de section d [mm]",
       "chart_loading_protocol": "Protocole de chargement",
       "chart_tests_per_year_bc": "Essais par an, par condition d'appui",
       "chart_steel_grade": "Nuance d'acier"
@@ -22,11 +19,6 @@
     "column": {
       "title": "Poteaux",
       "description": "Essais de poteaux en acier à profilé en I sous charge axiale combinée et dérive latérale cyclique, couvrant les sections laminées à chaud et reconstituées. Filtrez via le panneau de filtres, les filtres de colonnes du tableau ou les graphiques ci-dessous ; cliquez sur une ligne pour le détail complet de l'éprouvette et les données d'essai numérisées.",
-      "rail_test_date": "Date d'essai",
-      "rail_fabrication": "Fabrication",
-      "rail_column_depth": "Hauteur de poteau dc [mm]",
-      "rail_axial_load_ratio": "Rapport de charge axiale Pg/Py",
-      "rail_slenderness": "Élancement Lb/ry",
       "chart_steel_grade": "Nuance d'acier",
       "chart_tests_per_year_bc": "Essais par an, par condition d'appui",
       "chart_column_depth_fabrication": "Hauteur de poteau par fabrication"
@@ -34,15 +26,6 @@
     "connection": {
       "title": "Assemblages",
       "description": "Essais d'assemblages de moment poutre-poteau sous chargement cyclique alterné et monotone, classés selon AISC-358-16. Filtrez via le panneau de filtres, les filtres de colonnes du tableau ou les graphiques ci-dessous ; cliquez sur une ligne pour le détail complet de l'éprouvette et les données d'essai numérisées.",
-      "rail_connection_type": "Type d'assemblage",
-      "rail_test_date": "Date d'essai",
-      "rail_northridge": "Northridge",
-      "rail_specimen_type": "Type d'éprouvette",
-      "rail_composite_slab": "Dalle mixte",
-      "rail_doubler_plates": "Plaques de renfort",
-      "rail_beam_depth": "Hauteur de poutre db [mm]",
-      "rail_column_flange": "Semelle de poteau tcf [mm]",
-      "rail_panel_zone": "Zone nodale γmax/γy",
       "chart_connection_type": "Type d'assemblage",
       "chart_tests_per_year_type": "Essais par an, par type",
       "chart_beam_steel_grade": "Nuance d'acier de poutre",
@@ -52,11 +35,6 @@
     "hss": {
       "title": "Poteaux HSS",
       "description": "Essais de poteaux à section creuse sous charge axiale combinée et chargement latéral cyclique, couvrant une gamme de rapports hauteur/épaisseur et d'angles de chargement. Filtrez via le panneau de filtres, les filtres de colonnes du tableau ou les graphiques ci-dessous ; cliquez sur une ligne pour le détail complet de l'éprouvette et les données d'essai numérisées.",
-      "rail_test_date": "Date d'essai",
-      "rail_depth_to_thickness": "Rapport hauteur/épaisseur D/t",
-      "rail_axial_load_ratio": "Rapport de charge axiale Pg/Py",
-      "rail_loading_angle": "Angle de chargement [°]",
-      "rail_failure_mode": "Mode de rupture",
       "chart_loading_protocol": "Protocole de chargement",
       "chart_tests_per_year_failure_mode": "Essais par an, par mode de rupture",
       "chart_steel_grade": "Nuance d'acier"
@@ -64,10 +42,6 @@
     "ebf": {
       "title": "Tronçons EBF",
       "description": "Essais de tronçons d'ossature à contreventement excentré, classés selon les catégories de longueur de tronçon AISC-341 pour des configurations d'essai isolées, sur ossature et sur système. Filtrez via le panneau de filtres, les filtres de colonnes du tableau ou les graphiques ci-dessous ; cliquez sur une ligne pour le détail complet de l'éprouvette et les données d'essai numérisées.",
-      "rail_test_year": "Année d'essai",
-      "rail_link_length": "Longueur du tronçon e [mm]",
-      "rail_link_classification": "Classification du tronçon (AISC)",
-      "rail_overstrength": "Surrésistance Ω (AISC)",
       "chart_tests_per_year_section": "Essais par an, par type de section",
       "chart_tests_per_year_classification": "Essais par an, par classification du tronçon",
       "chart_loading_protocol": "Protocole de chargement",
@@ -77,10 +51,6 @@
     "material": {
       "title": "Éprouvettes cycliques",
       "description": "Essais d'éprouvettes cycliques sur aciers de construction avec paramètres calibrés du modèle de matériau Updated Voce-Chaboche. Filtrez via le panneau de filtres, les filtres de colonnes du tableau ou les graphiques ci-dessous ; cliquez sur une ligne pour le détail complet de l'éprouvette et les données contrainte-déformation numérisées.",
-      "rail_test_year": "Année d'essai",
-      "rail_yield_stress": "Limite d'élasticité [MPa]",
-      "rail_fracture_strain": "Déformation à la rupture",
-      "rail_thickness": "Épaisseur [mm]",
       "chart_steel_type": "Type d'acier",
       "chart_coupons_per_year_profile": "Éprouvettes par an, par type de profilé",
       "chart_thickness_profile": "Épaisseur par type de profilé"
@@ -88,11 +58,6 @@
     "tensile_coupon": {
       "title": "Éprouvettes de traction",
       "description": "Essais d'éprouvettes de traction monotone sur aciers de construction, avec courbes contrainte-déformation conventionnelles et propriétés mécaniques normalisées. Filtrez via le panneau de filtres, les filtres de colonnes du tableau ou les graphiques ci-dessous ; cliquez sur une ligne pour le détail complet de l'éprouvette et les données contrainte-déformation numérisées.",
-      "rail_test_year": "Année d'essai",
-      "rail_yield_stress": "Limite d'élasticité (0,2 %) [MPa]",
-      "rail_elongation_at_fracture": "Allongement à la rupture",
-      "rail_reduction_of_area": "Striction",
-      "rail_thickness": "Épaisseur [mm]",
       "chart_steel_grade": "Nuance d'acier",
       "chart_coupons_per_year_profile": "Éprouvettes par an, par type de profilé",
       "chart_thickness_profile": "Épaisseur par type de profilé"
@@ -100,13 +65,6 @@
     "ductile_fracture": {
       "title": "Rupture ductile",
       "description": "Essais de rupture ductile sur éprouvettes d'acier entaillées avec historiques d'état de contrainte simulés (triaxialité, angle de Lode) et paramètres calibrés du modèle de rupture. Filtrez via le panneau de filtres, les filtres de colonnes du tableau ou les graphiques ci-dessous ; cliquez sur une ligne pour le détail complet de l'éprouvette, les données d'essai et l'imagerie MEB.",
-      "rail_test_date": "Date d'essai",
-      "rail_nominal_yield_stress": "Limite d'élasticité nominale [MPa]",
-      "rail_avg_triaxiality": "Triaxialité moyenne à la rupture",
-      "rail_avg_lode_angle": "Angle de Lode moyen à la rupture",
-      "rail_sem_imagery": "Imagerie MEB",
-      "rail_sem_with": "Avec MEB",
-      "rail_sem_without": "Sans",
       "chart_specimen_type": "Type d'éprouvette",
       "chart_tests_per_year": "Essais par an, par type d'éprouvette",
       "chart_steel_type": "Type d'acier",
@@ -116,11 +74,6 @@
     "residual": {
       "title": "Contraintes résiduelles",
       "description": "Mesures de contraintes résiduelles sur profilés en acier laminés à chaud et soudés, avec données de distribution dans la semelle et l'âme. Filtrez via le panneau de filtres, les filtres de colonnes du tableau ou les graphiques ci-dessous ; cliquez sur une ligne pour le détail complet de l'éprouvette et les distributions mesurées.",
-      "rail_measurement_date": "Date de mesure",
-      "rail_flange_thickness": "Épaisseur de semelle tf [mm]",
-      "rail_aspect_ratio": "Rapport d'aspect h/bf",
-      "rail_flange_residual_stress": "Contrainte résiduelle de semelle σ0,f [MPa]",
-      "rail_web_residual_stress": "Contrainte résiduelle d'âme σ0,w [MPa]",
       "chart_steel_grade": "Nuance d'acier",
       "chart_specimens_per_year_profile": "Éprouvettes par an, par type de profilé",
       "chart_section_height_profile": "Hauteur de section par type de profilé"
@@ -571,6 +524,7 @@
     "unzoom": "Tout afficher",
     "share_view": "Partager la vue",
     "filters": "Filtres",
+    "all_filters": "Tous les filtres",
     "active_filters": "Filtres actifs",
     "clear_all": "Tout effacer",
     "remove_filter": "Supprimer le filtre {label}",
@@ -616,7 +570,12 @@
     "parallel_view_title": "Vue parallèle de tous les essais",
     "parallel_view_hint": "Sélectionnez une plage sur un axe pour filtrer · cliquez sur une ligne pour choisir un essai",
     "parallel_selection_count": "{n} essais sur {total} sélectionnés",
-    "parallel_zoomed_count": "Zoom sur {total} essais"
+    "parallel_zoomed_count": "Zoom sur {total} essais",
+    "find_a_variable": "Trouver une variable…",
+    "no_variables_found": "Aucune variable ne correspond à cette recherche.",
+    "loading_filters": "Chargement des filtres…",
+    "distinct_values": "valeurs distinctes",
+    "missing_values": "non renseignées"
   },
   "table": {
     "connection": {

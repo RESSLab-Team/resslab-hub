@@ -2,32 +2,19 @@
 import { ConnectionField, type ConnectionModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import type { FilterRailGroup } from '@/components/commons/FilterRail.vue'
 import ConnectionDoubleChart from '@/components/connections/charts/ConnectionDoubleChart.vue'
 import ConnectionParallelChart from '@/components/connections/charts/ConnectionParallelChart.vue'
 import ConnectionSingleChart from '@/components/connections/charts/ConnectionSingleChart.vue'
 import ConnectionDetail from '@/components/connections/ConnectionDetail.vue'
 import ConnectionTable from '@/components/connections/ConnectionTable.vue'
-import { PARALLEL_FIELDS } from '@/components/connections/data'
+import { CONNECTION_KEY, PARALLEL_FIELDS, fetchConnections } from '@/components/connections/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
 import { cobalt, peach, periwinkle, plum, sky } from '@/utils/vuetify'
-import {
-  mdiCalendarRange,
-  mdiHistory,
-  mdiLayersOutline,
-  mdiLayersTriple,
-  mdiPulse,
-  mdiTagOutline,
-  mdiTune,
-  mdiViewGridOutline
-} from '@mdi/js'
-import { computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
-const { t } = useI18n({ useScope: 'global' })
 
 const route = useRoute()
 const router = useRouter()
@@ -71,82 +58,26 @@ const columnDoublerFields: [ConnectionField, ConnectionField] = [
   ConnectionField.NDp
 ]
 
-const railGroups = computed<FilterRailGroup[]>(() => [
-  {
-    key: ConnectionField.ConnectionType,
-    label: t('dashboards.connection.rail_connection_type'),
-    icon: mdiTagOutline,
-    type: 'chips',
-    redChips: true,
-    options: ['WUF-W', 'RBS', 'WUF-B', 'BFP', 'WFP', 'KBB', 'BEEP']
-  },
-  {
-    key: ConnectionField.Date,
-    label: t('dashboards.connection.rail_test_date'),
-    icon: mdiCalendarRange,
-    type: 'range',
-    min: 1970,
-    max: 2026
-  },
-  {
-    key: ConnectionField.Northridge,
-    label: t('dashboards.connection.rail_northridge'),
-    icon: mdiHistory,
-    type: 'chips',
-    options: [
-      { label: 'Pre-1994', value: 'pre' },
-      { label: 'Post-1994', value: 'post' }
-    ]
-  },
-  {
-    key: ConnectionField.SpecimenType,
-    label: t('dashboards.connection.rail_specimen_type'),
-    icon: mdiViewGridOutline,
-    type: 'chips',
-    options: [
-      { label: 'Interior', value: 'interior%' },
-      { label: 'Exterior', value: 'exterior%' }
-    ]
-  },
-  {
-    key: ConnectionField.Slab,
-    label: t('dashboards.connection.rail_composite_slab'),
-    icon: mdiLayersOutline,
-    type: 'chips',
-    options: [
-      { label: 'Bare', value: 'false' },
-      { label: 'Composite', value: 'true' }
-    ]
-  },
-  {
-    key: ConnectionField.NDp,
-    label: t('dashboards.connection.rail_doubler_plates'),
-    icon: mdiLayersTriple,
-    type: 'chips',
-    options: [
-      { label: 'None', value: '0' },
-      { label: 'With', value: '> 0' }
-    ]
-  },
-  {
-    key: ConnectionField.DB,
-    label: t('dashboards.connection.rail_beam_depth'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: ConnectionField.TCf,
-    label: t('dashboards.connection.rail_column_flange'),
-    icon: mdiTune,
-    type: 'range'
-  },
-  {
-    key: ConnectionField.GMaxGY,
-    label: t('dashboards.connection.rail_panel_zone'),
-    icon: mdiPulse,
-    type: 'range'
-  }
-])
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file; `pinned` only keeps the
+// long-standing filters at the top of the rail.
+const { filters, loading: filtersLoading } = useAutoFilters({
+  database: 'connections',
+  datasetKey: CONNECTION_KEY,
+  fetchAll: fetchConnections,
+  i18nPrefix: 'connection.',
+  pinned: [
+    ConnectionField.ConnectionType,
+    ConnectionField.Date,
+    ConnectionField.Northridge,
+    ConnectionField.SpecimenType,
+    ConnectionField.Slab,
+    ConnectionField.NDp,
+    ConnectionField.DB,
+    ConnectionField.TCf,
+    ConnectionField.GMaxGY
+  ]
+})
 </script>
 
 <template>
@@ -158,7 +89,8 @@ const railGroups = computed<FilterRailGroup[]>(() => [
     :description="$t('dashboards.connection.description')"
     database-id="connections"
     i18n-prefix="connection."
-    :rail-groups="railGroups"
+    :filters="filters"
+    :filters-loading="filtersLoading"
     :searches="searches"
     :detail-open="!!item"
     @change:searches="changeSearches"

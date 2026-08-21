@@ -228,6 +228,9 @@ export function useDataset<M extends { id: string }>(
     countRowsSync,
     getPage,
     pageSync,
-    ready: () => load().ready
+    ready: () => load().ready,
+    // The cached rows themselves, for consumers that profile the dataset rather
+    // than aggregate it (see useAutoFilters). Empty until `ready` resolves.
+    rowsSync: () => load().rows
   }
 }

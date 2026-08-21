@@ -140,3 +140,28 @@ describe('queryEngine.filterRows memoization', () => {
     expect(second).toEqual(first)
   })
 })
+
+describe('queryEngine exact match (`=`)', () => {
+  it('matches the whole value, not a substring', () => {
+    // The default string predicate would also keep 'WUF-W' and 'WUF-B'.
+    expect(ids('connection_type:=WUF-W')).toEqual(['1'])
+    expect(ids('connection_type:WUF')).toEqual(['1', '3'])
+  })
+
+  it('is case-sensitive, unlike the ilike default', () => {
+    expect(ids('connection_type:=wuf-w')).toEqual([])
+  })
+
+  it('matches nulls through the NA sentinel', () => {
+    expect(ids('section_b:=NA')).toEqual(['3'])
+  })
+
+  it('matches numbers and booleans by their formatted value', () => {
+    expect(ids('date:=2005')).toEqual(['1'])
+    expect(ids('slab:=True')).toEqual(['1', '3'])
+  })
+
+  it('negates with a leading !', () => {
+    expect(ids('connection_type:!=WUF-W')).toEqual(['2', '3'])
+  })
+})
