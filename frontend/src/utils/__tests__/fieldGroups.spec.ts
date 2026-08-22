@@ -41,7 +41,7 @@ function columnNames(database: DatabaseId): string[] {
     .filter(Boolean)
 }
 
-function column(name: string, category?: string): DictColumn {
+function column(name: string, group?: string): DictColumn {
   return {
     name,
     description: name,
@@ -50,7 +50,7 @@ function column(name: string, category?: string): DictColumn {
     type: 'String',
     example: '',
     nullable: true,
-    category
+    group
   }
 }
 
@@ -81,37 +81,41 @@ describe('fieldGroups: coverage of the real schema', () => {
 })
 
 describe('fieldGroups: group sizes', () => {
-  it('splits the 153 columns of connections into twelve groups', () => {
+  // The counts the researchers agreed on in resslab-hub-data#46. They are the
+  // contract between this module and the `group` column of the dictionaries.
+  it('splits the 153 columns of connections into fourteen groups', () => {
     expect(tally('connections')).toEqual({
-      identification: 5,
-      test_setup: 5,
-      detailing: 4,
-      beam: 33,
-      column_member: 23,
-      welds: 11,
-      composite_slab: 18,
-      panel_zone: 18,
-      panel_zone_strength: 14,
-      demand: 15,
-      response: 3,
-      provenance: 4
+      experimental_program_details: 10,
+      connection_detailing: 7,
+      beam_section_properties: 24,
+      beam_material_properties: 6,
+      specimen_dimensions: 5,
+      column_section_properties: 14,
+      column_material_properties: 7,
+      weld_details: 7,
+      concrete_slab_properties: 22,
+      panel_zone_geometric_properties: 19,
+      panel_zone_resistance: 14,
+      panel_zone_demand: 7,
+      panel_zone_demand_to_resistance_ratio: 8,
+      panel_zone_shear_distortion: 3
     })
   })
 
   it('splits the 25 columns of residual stresses into six groups', () => {
     expect(tally('residuals')).toEqual({
-      identification: 3,
-      geometry: 9,
-      material: 5,
-      residual_stress: 2,
-      provenance: 4,
-      internal: 2
+      experimental_program_details: 8,
+      steel_profile: 2,
+      material_properties: 5,
+      section_properties: 6,
+      measured_residual_stresses: 3,
+      plot_properties: 1
     })
   })
 
   it('keeps every database under a scannable number of groups', () => {
     DATABASES.forEach((database) => {
-      expect(FIELD_GROUPS[database].length).toBeLessThanOrEqual(12)
+      expect(FIELD_GROUPS[database].length).toBeLessThanOrEqual(14)
     })
   })
 })
@@ -121,77 +125,78 @@ describe('fieldGroups: element symbols never leak across databases', () => {
   // globally it would swallow real structural variables that happen to be spelled
   // like an element.
   it('reads b as boron in a coupon and as the section width elsewhere', () => {
-    expect(groupFor('tensile', column('b'))).toBe('chemistry')
-    expect(groupFor('cyclic', column('b'))).toBe('chemistry')
-    expect(groupFor('residuals', column('b'))).toBe('geometry')
+    expect(groupFor('tensile', column('b'))).toBe('chemical_composition')
+    expect(groupFor('cyclic', column('b'))).toBe('chemical_composition')
+    expect(groupFor('residuals', column('b'))).toBe('section_properties')
   })
 
   it('reads h as hydrogen in a coupon and as the section height elsewhere', () => {
-    expect(groupFor('cyclic', column('h'))).toBe('chemistry')
-    expect(groupFor('residuals', column('h'))).toBe('geometry')
+    expect(groupFor('cyclic', column('h'))).toBe('chemical_composition')
+    expect(groupFor('residuals', column('h'))).toBe('section_properties')
   })
 
   it('reads p as phosphorus in a coupon and as the axial load in columns', () => {
-    expect(groupFor('tensile', column('p'))).toBe('chemistry')
-    expect(groupFor('columns', column('p'))).toBe('loading')
+    expect(groupFor('tensile', column('p'))).toBe('chemical_composition')
+    expect(groupFor('columns', column('p'))).toBe('loading_details')
   })
 })
 
 describe('fieldGroups: name-driven rules', () => {
   it('groups the two HSS backbone calibrations separately', () => {
-    expect(groupFor('hss', column('theta_p_pos_100fit__rad'))).toBe('backbone_100fit')
-    expect(groupFor('hss', column('mc_my_neg_80fit'))).toBe('backbone_80fit')
+    expect(groupFor('hss', column('theta_p_pos_100fit__rad'))).toBe(
+      'backbone_parameters_100_percent_fit'
+    )
+    expect(groupFor('hss', column('mc_my_neg_80fit'))).toBe('backbone_parameters_80_percent_fit')
   })
 
   it('picks up a new prefixed column with no rule change', () => {
-    expect(groupFor('cyclic', column('uvc_rho_new'))).toBe('model_parameters')
-    expect(groupFor('ductile-fracture', column('swdfm_gamma'))).toBe('model_parameters')
-    expect(groupFor('tensile', column('pid_torque_p'))).toBe('instrumentation')
+    expect(groupFor('cyclic', column('uvc_rho_new'))).toBe('cyclic_material_model_parameters')
+    expect(groupFor('ductile-fracture', column('swdfm_gamma'))).toBe('fracture_model_parameters')
+    expect(groupFor('tensile', column('pid_torque_p'))).toBe('test_equipment_details')
   })
 
   it('matches regardless of the casing the dictionary uses', () => {
-    expect(groupFor('braces', column('specimen_ID'))).toBe('identification')
-    expect(groupFor('ductile-fracture', column('chemical_composition_Mn'))).toBe('chemistry')
-    expect(groupFor('residuals', column('A'))).toBe('geometry')
-  })
-
-  it('separates nominal from measured geometry', () => {
-    expect(groupFor('ebf', column('h_n'))).toBe('geometry')
-    expect(groupFor('ebf', column('h_m'))).toBe('geometry_measured')
-    expect(groupFor('ductile-fracture', column('nom_notch_width'))).toBe('geometry')
-    expect(groupFor('ductile-fracture', column('meas_notch_width'))).toBe('geometry_measured')
+    expect(groupFor('braces', column('specimen_ID'))).toBe('experimental_program_details')
+    expect(groupFor('ductile-fracture', column('chemical_composition_Mn'))).toBe(
+      'chemical_composition'
+    )
+    expect(groupFor('residuals', column('A'))).toBe('section_properties')
   })
 })
 
 describe('fieldGroups: dictionary override', () => {
-  it('prefers a category carried by the data dictionary', () => {
-    expect(groupFor('residuals', column('b', 'material'))).toBe('material')
+  // The dictionary spells groups the way a reader reads them; the id is derived.
+  it('prefers the group carried by the data dictionary', () => {
+    expect(groupFor('residuals', column('b', 'Material properties'))).toBe('material_properties')
+    expect(groupFor('hss', column('anything', 'Backbone parameters (100% fit)'))).toBe(
+      'backbone_parameters_100_percent_fit'
+    )
   })
 
-  it('falls back to the rules for a category it does not know', () => {
-    expect(groupFor('residuals', column('b', 'not_a_group'))).toBe('geometry')
+  it('falls back to the rules for a group it does not know', () => {
+    expect(groupFor('residuals', column('b', 'Not a group'))).toBe('section_properties')
   })
 })
 
 describe('fieldGroups: groupBy', () => {
-  const items = ['reference', 'id', 'sigma_0_f', 'date'].map((name) => column(name))
+  const items = ['sigma_0_f', 'id', 'steel', 'date'].map((name) => column(name))
 
   it('returns groups in rule order, not in input order', () => {
     expect(groupBy('residuals', items, (item) => item).map((group) => group.id)).toEqual([
-      'identification',
-      'residual_stress',
-      'provenance'
+      'experimental_program_details',
+      'material_properties',
+      'measured_residual_stresses'
     ])
   })
 
   it('keeps the members of a group in input order', () => {
-    const identification = groupBy('residuals', items, (item) => item)[0]
-    expect(identification.items.map((item) => item.name)).toEqual(['id', 'date'])
+    const first = groupBy('residuals', items, (item) => item)[0]
+    expect(first.items.map((item) => item.name)).toEqual(['id', 'date'])
   })
 
   it('drops groups nothing landed in', () => {
     const ids = groupBy('residuals', items, (item) => item).map((group) => group.id)
-    expect(ids).not.toContain('geometry')
+    expect(ids).not.toContain('section_properties')
   })
 
   it('sends an unclaimed column to the catch-all, last', () => {
@@ -203,7 +208,7 @@ describe('fieldGroups: groupBy', () => {
 describe('fieldGroups: groupOrder', () => {
   it('ends with the catch-all so an unclaimed column never jumps the list', () => {
     const order: FieldGroupId[] = groupOrder('braces')
-    expect(order[0]).toBe('identification')
+    expect(order[0]).toBe('experimental_program_details')
     expect(order[order.length - 1]).toBe('other')
   })
 })
@@ -212,9 +217,10 @@ describe('fieldGroups: ratios land where a reader looks for them', () => {
   // `_over_` alone is not enough of a signal: a columns test reports both
   // geometric slenderness ratios and axial load ratios in the same notation.
   it('separates slenderness ratios from axial load ratios', () => {
-    expect(groupFor('columns', column('h_over_t_cw'))).toBe('slenderness')
-    expect(groupFor('columns', column('l_b_over_r_yc'))).toBe('slenderness')
-    expect(groupFor('columns', column('p_g_over_p_ym'))).toBe('loading')
-    expect(groupFor('columns', column('p_c_over_p_yn'))).toBe('capacity')
+    expect(groupFor('columns', column('h_over_t_cw'))).toBe(
+      'slenderness_and_section_classification'
+    )
+    expect(groupFor('columns', column('p_g_over_p_ym'))).toBe('loading_details')
+    expect(groupFor('columns', column('p_c_over_p_yn'))).toBe('axial_resistance')
   })
 })

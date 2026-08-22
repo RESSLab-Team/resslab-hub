@@ -30,16 +30,20 @@ function filter(key: string, label: string, description = key): LabeledFilter {
 
 const GROUPS: FilterGroup[] = [
   {
-    id: 'identification',
-    label: 'Identification',
+    id: 'experimental_program_details',
+    label: 'Experimental program details',
     filters: [filter('id', 'Specimen'), filter('date', 'Year')]
   },
   {
-    id: 'geometry',
-    label: 'Geometry',
+    id: 'section_properties',
+    label: 'Section properties',
     filters: [filter('d_br', 'Brace depth'), filter('area', 'Area', 'cross section area')]
   },
-  { id: 'material', label: 'Material', filters: [filter('steel', 'Steel grade')] }
+  {
+    id: 'material_properties',
+    label: 'Material properties',
+    filters: [filter('steel', 'Steel grade')]
+  }
 ]
 
 function mountRail(searches: Searches = {}) {
@@ -65,8 +69,12 @@ function expanded(wrapper: ReturnType<typeof mountRail>): string[] {
 describe('AutoFilterRail: default state', () => {
   it('opens identification and leaves the rest collapsed', () => {
     const wrapper = mountRail()
-    expect(headers(wrapper)).toEqual(['Identification', 'Geometry', 'Material'])
-    expect(expanded(wrapper)).toEqual(['Identification'])
+    expect(headers(wrapper)).toEqual([
+      'Experimental program details',
+      'Section properties',
+      'Material properties'
+    ])
+    expect(expanded(wrapper)).toEqual(['Experimental program details'])
   })
 
   it('mounts no rows for a collapsed group', () => {
@@ -76,7 +84,10 @@ describe('AutoFilterRail: default state', () => {
 
   it('also opens a group that already carries a filter', () => {
     // A shared or bookmarked URL has to show what it is filtering on.
-    expect(expanded(mountRail({ steel: '=S355' }))).toEqual(['Identification', 'Material'])
+    expect(expanded(mountRail({ steel: '=S355' }))).toEqual([
+      'Experimental program details',
+      'Material properties'
+    ])
   })
 
   it('counts the filters in each group, and the active ones', () => {
@@ -90,9 +101,9 @@ describe('AutoFilterRail: toggling', () => {
   it('opens a group on click and closes it again', async () => {
     const wrapper = mountRail()
     await wrapper.findAll('.afr-group-head')[1].trigger('click')
-    expect(expanded(wrapper)).toEqual(['Identification', 'Geometry'])
+    expect(expanded(wrapper)).toEqual(['Experimental program details', 'Section properties'])
     await wrapper.findAll('.afr-group-head')[1].trigger('click')
-    expect(expanded(wrapper)).toEqual(['Identification'])
+    expect(expanded(wrapper)).toEqual(['Experimental program details'])
   })
 })
 
@@ -100,8 +111,8 @@ describe('AutoFilterRail: search', () => {
   it('keeps only the groups holding a match, and opens them', async () => {
     const wrapper = mountRail()
     await wrapper.get('.afr-search input').setValue('brace depth')
-    expect(headers(wrapper)).toEqual(['Geometry'])
-    expect(expanded(wrapper)).toEqual(['Geometry'])
+    expect(headers(wrapper)).toEqual(['Section properties'])
+    expect(expanded(wrapper)).toEqual(['Section properties'])
   })
 
   it('finds a variable by its dictionary description, not just its label', async () => {
@@ -141,8 +152,8 @@ describe('AutoFilterRail: filters arriving after mount', () => {
     expect(wrapper.findAll('.afr-group')).toHaveLength(0)
     await wrapper.setProps({ groups: GROUPS })
     expect(expanded(wrapper as ReturnType<typeof mountRail>)).toEqual([
-      'Identification',
-      'Material'
+      'Experimental program details',
+      'Material properties'
     ])
   })
 })

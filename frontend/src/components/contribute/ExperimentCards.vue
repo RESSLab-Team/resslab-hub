@@ -59,7 +59,9 @@ const columnGroups = computed(() =>
   store.database ? groupBy(store.database, store.columns, (column) => column) : []
 )
 
-const openFieldGroups = ref<Set<FieldGroupId>>(new Set<FieldGroupId>(['identification']))
+const openFieldGroups = ref<Set<FieldGroupId>>(
+  new Set<FieldGroupId>(['experimental_program_details'])
+)
 
 function toggleFieldGroup(id: FieldGroupId): void {
   const next = new Set(openFieldGroups.value)

@@ -36,9 +36,6 @@ interface PropertyRow {
   value: string
 }
 
-/** Bookkeeping the databases carry but a reader never needs. */
-const SKIPPED: FieldGroupId[] = ['internal']
-
 const groups = computed(() => {
   const rows: PropertyRow[] = dictionary
     .columnsFor(props.database)
@@ -49,9 +46,10 @@ const groups = computed(() => {
       unit: displayUnit(column),
       value: formatValue(cells.value[column.name])
     }))
-  return groupBy(props.database, rows, (row) => row.column)
-    .filter((group) => !SKIPPED.includes(group.id))
-    .map((group) => ({ id: group.id, rows: group.items }))
+  return groupBy(props.database, rows, (row) => row.column).map((group) => ({
+    id: group.id,
+    rows: group.items
+  }))
 })
 
 const open = ref<Set<FieldGroupId>>(new Set())

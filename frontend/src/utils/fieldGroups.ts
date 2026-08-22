@@ -1,65 +1,70 @@
 /**
- * Scientific categories for a database's variables.
+ * The scientific category of every database variable.
  *
- * A database carries between 25 and 153 columns, and every surface that renders
- * them (the filter rail, the contribution editor, the curation review panel, the
- * specimen drawer) used to render one flat list. This module gives every column a
- * category so those surfaces can collapse them into groups a structural engineer
- * recognises: the beam, the panel zone, the chemistry, the calibrated model
- * parameters.
+ * The categories are the ones the RESSLab researchers defined on
+ * RESSLab-Team/resslab-hub#245, and their home is the `group` column of each
+ * `*_data_dictionary.csv`. {@link groupFor} reads that column whenever the
+ * dictionary carries it; the rules below mirror it so the grouping works before
+ * the data repo change lands and for any column the dictionary has not reached.
  *
- * Rules are ordered per database and the first match wins, so the rule order is
- * also the group order in the UI. Prefer a regex whenever the schema already
- * encodes the group in the name (`uvc_`, `pid_`, `chemical_composition_`,
- * `_100fit`): a column added to the data dictionary then lands in the right group
- * with no edit here. Explicit names are for the splits the naming does not carry,
- * such as which of a connection's dimensions belong to the beam and which to the
- * column.
+ * They drive the collapsible sections of the filter rail, the contribution
+ * editor, the curation review panel and the specimen drawer, which would
+ * otherwise each render one flat list of up to 153 fields.
  *
- * The eventual home for this is a `category` column in the data dictionary itself,
- * owned by the researchers rather than by the frontend. {@link groupFor} already
- * prefers `DictColumn.category` when it is present, so that migration needs no
- * change on this side.
+ * Rule order is group order in the UI, and the first match wins. Patterns are
+ * used where the naming already carries the category (`uvc_`, `pid_`,
+ * `chemical_composition_`, `_100fit`), so a column added to a dictionary lands
+ * in the right group with no edit here.
  */
 import type { DictColumn } from '@/stores/dictionary'
 import type { DatabaseId } from '@/utils/navigation'
 
 export type FieldGroupId =
-  | 'identification'
-  | 'test_setup'
-  | 'section'
-  | 'geometry'
-  | 'geometry_measured'
-  | 'slenderness'
-  | 'material'
-  | 'chemistry'
-  | 'detailing'
-  | 'welds'
-  | 'gusset_plate'
-  | 'stiffeners'
-  | 'composite_slab'
-  | 'beam'
-  | 'column_member'
-  | 'panel_zone'
-  | 'panel_zone_strength'
-  | 'loading'
-  | 'capacity'
-  | 'demand'
-  | 'response'
-  | 'residual_stress'
-  | 'backbone_100fit'
-  | 'backbone_80fit'
-  | 'model_parameters'
-  | 'instrumentation'
-  | 'imaging'
-  | 'provenance'
-  | 'internal'
+  | 'experimental_program_details' // Experimental program details
+  | 'connection_detailing' // Connection detailing
+  | 'beam_section_properties' // Beam section properties
+  | 'beam_material_properties' // Beam material properties
+  | 'specimen_dimensions' // Specimen dimensions
+  | 'column_section_properties' // Column section properties
+  | 'column_material_properties' // Column material properties
+  | 'weld_details' // Weld details
+  | 'concrete_slab_properties' // Concrete slab properties
+  | 'panel_zone_geometric_properties' // Panel zone geometric properties
+  | 'panel_zone_resistance' // Panel zone resistance
+  | 'panel_zone_demand' // Panel zone demand
+  | 'panel_zone_demand_to_resistance_ratio' // Panel zone demand-to-resistance ratio
+  | 'panel_zone_shear_distortion' // Panel zone shear distortion
+  | 'section_properties' // Section properties
+  | 'slenderness_and_section_classification' // Slenderness and section classification
+  | 'material_properties' // Material properties
+  | 'loading_details' // Loading details
+  | 'axial_resistance' // Axial resistance
+  | 'measured_response' // Measured response
+  | 'specimen_details' // Specimen details
+  | 'gusset_plate_dimensions' // Gusset plate dimensions
+  | 'gusset_plate_material_properties' // Gusset plate material properties
+  | 'measured_and_theoretical_resistance' // Measured and theoretical resistance
+  | 'steel_profile' // Steel profile
+  | 'backbone_parameters_100_percent_fit' // Backbone parameters (100% fit)
+  | 'backbone_parameters_80_percent_fit' // Backbone parameters (80% fit)
+  | 'link_details' // Link details
+  | 'connection_and_weld_details' // Connection and weld details
+  | 'stiffener_details' // Stiffener details
+  | 'geometric_properties' // Geometric properties
+  | 'test_equipment_details' // Test equipment details
+  | 'chemical_composition' // Chemical composition
+  | 'cyclic_material_model_parameters' // Cyclic material model parameters
+  | 'measured_quantities_at_fracture' // Measured quantities at fracture
+  | 'fracture_model_parameters' // Fracture model parameters
+  | 'measured_residual_stresses' // Measured residual stresses
+  | 'plot_properties' // Plot properties
+  /** Nothing claimed it. Asserted empty by fieldGroups.spec.ts. */
   | 'other'
 
 /** First match wins, so the order of the rules is the order of the groups. */
 export interface FieldGroupRule {
   id: FieldGroupId
-  /** Column names (lower case) or patterns tested against the lower-cased name. */
+  /** Column names (as spelled in the dictionary) or patterns tested against them. */
   match: (string | RegExp)[]
 }
 
@@ -67,36 +72,36 @@ export interface FieldGroupRule {
 export const FALLBACK_GROUP: FieldGroupId = 'other'
 
 /**
- * Bare element symbols, only reachable from the material databases that report a
- * chemical composition.
- *
- * This regex must never be applied globally: `b` is boron here but the section
- * width in residual stresses, `h` is hydrogen here but the section height there,
- * and `p` is phosphorus here but the applied axial load in the columns database.
+ * Bare element symbols are listed per database rather than shared, because they
+ * collide with real structural variables elsewhere: `b` is boron in a coupon but
+ * the section width in residual stresses, `h` is hydrogen or the section height,
+ * and `p` is phosphorus or the applied axial load in the columns database.
  */
-const ELEMENT_SYMBOL = /^(c|si|mn|p|s|n|cu|mo|ni|cr|v|nb|ti|al|b|zr|sn|ca|h|fe)$/
-
-/** PID gains of the test frame, the same nine columns in cyclic and tensile. */
-const PID_GAIN = /^pid_/
-
-const PROVENANCE = ['reference', 'link', 'url', 'latitude', 'longitude']
-
 export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
   connections: [
     {
-      id: 'identification',
-      match: ['id', 'experimental_program', 'date', 'specimen_designation', 'comments']
-    },
-    {
-      id: 'test_setup',
-      match: ['northridge', 'specimen_type', 'loading_protocol', 'slab', 'connection_type']
-    },
-    // Reduced beam section cut and continuity plates: what makes the connection
-    // this connection, as opposed to the members it joins.
-    { id: 'detailing', match: ['t_pl', 'rbs_cut', 's_h', 'd_h'] },
-    {
-      id: 'beam',
+      id: 'experimental_program_details',
       match: [
+        'id',
+        'experimental_program',
+        'date',
+        'specimen_designation',
+        'comments',
+        'loading_protocol',
+        'reference',
+        'link',
+        'latitude',
+        'longitude'
+      ]
+    },
+    {
+      id: 'connection_detailing',
+      match: ['northridge', 'specimen_type', 'slab', 'connection_type', 't_pl', 's_h', 'd_h']
+    },
+    {
+      id: 'beam_section_properties',
+      match: [
+        'rbs_cut',
         'section_b',
         'd_b',
         'd_bg',
@@ -119,24 +124,18 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         't_bwm',
         'b_bfm',
         't_bfm',
-        'z_xbm',
-        'steel_b',
-        'f_yb',
-        'f_ybw',
-        'f_ybf',
-        'f_yb_mill',
-        'f_yb_avg',
-        'l_b',
-        'l_fc',
-        'l_o',
-        'lo_db'
+        'z_xbm'
       ]
     },
     {
-      id: 'column_member',
+      id: 'beam_material_properties',
+      match: ['steel_b', 'f_yb', 'f_ybw', 'f_ybf', 'f_yb_mill', 'f_yb_avg']
+    },
+    { id: 'specimen_dimensions', match: ['l_b', 'l_fc', 'l_o', 'lo_db', 'h_c'] },
+    {
+      id: 'column_section_properties',
       match: [
         'section_c',
-        'section_shape_c',
         'd_c',
         't_cw',
         'b_cf',
@@ -149,35 +148,32 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         't_wcm',
         'c_cm',
         'b_fcm',
-        't_fcm',
-        'steel_c',
-        'f_yc',
-        'f_ydp',
-        'f_ycw',
-        'f_ycf',
-        'f_yc_mill',
-        'f_yc_avg',
-        'h_c'
+        't_fcm'
       ]
     },
-    // Weld metal toughness and the weld access hole that fractures start from.
     {
-      id: 'welds',
+      id: 'column_material_properties',
+      match: ['steel_c', 'f_yc', 'f_ydp', 'f_ycw', 'f_ycf', 'f_yc_mill', 'f_yc_avg']
+    },
+    {
+      id: 'weld_details',
       match: [
         'backing_bar',
         'electrode',
         'd_electrode',
-        /^cvn_/,
-        'access_hole_geometry',
-        'w',
-        'w_l',
-        'w_r',
-        'h_t'
+        'cvn_0f',
+        'cvn_minus20f',
+        'cvn_70f',
+        'access_hole_geometry'
       ]
     },
     {
-      id: 'composite_slab',
+      id: 'concrete_slab_properties',
       match: [
+        'w',
+        'w_l',
+        'w_r',
+        'h_t',
         'a_s',
         'f_sk',
         'f_sm',
@@ -199,9 +195,13 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
       ]
     },
     {
-      id: 'panel_zone',
+      id: 'panel_zone_geometric_properties',
       match: [
-        /_pz$/,
+        'section_shape_c',
+        'd_pz',
+        'tw_pz',
+        'bf_pz',
+        'tf_pz',
         'dz',
         'zw',
         'dz_plug',
@@ -218,27 +218,69 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'a_vc'
       ]
     },
-    // Panel-zone strength predicted by each code (Eurocode, AISC, AIJ).
     {
-      id: 'panel_zone_strength',
-      match: [/^fy_pz_/, /^p_c[mn]$/, /^n_p[mn]$/, /_europe$/, /_aisc$/, /_aij$/]
+      id: 'panel_zone_resistance',
+      match: [
+        'fy_pz_m',
+        'p_cm',
+        'n_pm',
+        'v_pz_el_m_europe',
+        'r_n_el_m_aisc',
+        'r_n_pl_m_aisc',
+        'v_pz_m_aij',
+        'fy_pz_n',
+        'p_cn',
+        'n_pn',
+        'v_pz_el_n_europe',
+        'r_n_el_n_aisc',
+        'r_n_pl_n_aisc',
+        'v_pz_n_aij'
+      ]
     },
-    // What the test actually demanded of the panel zone, and the resulting ratios.
     {
-      id: 'demand',
-      match: [/^m_cf_/, /^v_bf_/, 'v_col_n', /^r_u_/, /^ru_rn_/, /^aisc_pz_violation_/]
+      id: 'panel_zone_demand',
+      match: [
+        'm_cf_minus_n',
+        'm_cf_plus_n',
+        'm_cf_minus_m',
+        'm_cf_plus_m',
+        'v_bf_plus_n',
+        'v_bf_minus_n',
+        'v_col_n'
+      ]
     },
-    { id: 'response', match: ['g_max', 'g_y', 'g_max_g_y'] },
-    { id: 'provenance', match: PROVENANCE }
+    {
+      id: 'panel_zone_demand_to_resistance_ratio',
+      match: [
+        'r_u_n',
+        'r_u_m',
+        'ru_rn_el_n',
+        'ru_rn_pl_n',
+        'aisc_pz_violation_n',
+        'ru_rn_el_m',
+        'ru_rn_pl_m',
+        'aisc_pz_violation_m'
+      ]
+    },
+    { id: 'panel_zone_shear_distortion', match: ['g_max', 'g_y', 'g_max_g_y'] }
   ],
-
   columns: [
     {
-      id: 'identification',
-      match: ['id', 'experimental_program', 'date', 'specimen_designation', 'comments']
+      id: 'experimental_program_details',
+      match: [
+        'id',
+        'experimental_program',
+        'date',
+        'specimen_designation',
+        'comments',
+        'reference',
+        'link',
+        'latitude',
+        'longitude'
+      ]
     },
     {
-      id: 'geometry',
+      id: 'section_properties',
       match: [
         'section_c',
         'd_c',
@@ -259,23 +301,31 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'j_c',
         'c_wc',
         'r_yc',
-        'r_xc',
-        'l_c',
-        'l_sc',
-        'l_bc',
-        't_top_plate',
-        't_bottom_plate'
+        'r_xc'
       ]
     },
-    // Width-to-thickness and slenderness ratios plus the section class they drive,
-    // under both the US and the European classification. Anchored on the numerator
-    // so it cannot swallow the `p_*_over_p_*` axial load ratios below.
     {
-      id: 'slenderness',
-      match: [/^(h|b_f|l_b)_over_/, /^k_[xy]c$/, /^lambda_/, /_class_(us|eu)$/]
+      id: 'slenderness_and_section_classification',
+      match: [
+        'h_over_t_cw',
+        'b_f_over_t_cf',
+        'l_b_over_r_yc',
+        'k_xc',
+        'k_yc',
+        'lambda_xc',
+        'lambda_yc',
+        'lambda_ltb',
+        'f_class_us',
+        'w_class_us',
+        'cs_class_us',
+        'f_class_eu',
+        'w_class_eu',
+        'cs_class_eu'
+      ]
     },
+    { id: 'specimen_dimensions', match: ['l_c', 'l_sc', 'l_bc', 't_top_plate', 't_bottom_plate'] },
     {
-      id: 'material',
+      id: 'material_properties',
       match: [
         'steel_c',
         'r_y',
@@ -292,34 +342,74 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'g_mc'
       ]
     },
-    // The applied loads live here rather than under capacity: the axial load ratio
-    // is what a reader is looking for when they think about how a column was tested.
     {
-      id: 'loading',
+      id: 'loading_details',
       match: [
         'boundary_condition',
         'lateral_lp',
         'direction_lp',
         'axis_of_bending',
         'axial_lp',
-        'test_procedure',
-        'cfe',
         'p_g',
+        'p_g_over_p_ym',
+        'p_g_over_p_yn',
         'p',
-        /^p_g_over_/
+        'test_procedure',
+        'cfe'
       ]
     },
-    // Yield and buckling capacities, and the demands normalised by them.
-    { id: 'capacity', match: [/^p_y[mne]$/, 'p_t', 'p_c', /^p_[tc]_over_/] },
-    // Measured stiffness and the chord rotations at each strength-loss threshold.
-    { id: 'response', match: [/^k_/, /^th_/, /^d_(80|50|20)$/] },
-    { id: 'provenance', match: PROVENANCE }
-  ],
-
-  braces: [
-    { id: 'identification', match: ['id', 'investigator', 'specimen_id', 'date'] },
     {
-      id: 'geometry',
+      id: 'axial_resistance',
+      match: [
+        'p_ym',
+        'p_yn',
+        'p_ye',
+        'p_t',
+        'p_c',
+        'p_t_over_p_ym',
+        'p_c_over_p_ym',
+        'p_c_over_p_yn'
+      ]
+    },
+    {
+      id: 'measured_response',
+      match: [
+        'k_test',
+        'k_flexure_th',
+        'k_shear_th',
+        'k_theory',
+        'th_y',
+        'th_lb',
+        'th_80',
+        'th_50',
+        'th_20',
+        'th_1l',
+        'th_2l',
+        'th_3l',
+        'th_4l',
+        'th_6l',
+        'd_80',
+        'd_50',
+        'd_20'
+      ]
+    }
+  ],
+  braces: [
+    {
+      id: 'experimental_program_details',
+      match: [
+        'id',
+        'investigator',
+        'specimen_id',
+        'date',
+        'reference',
+        'link',
+        'latitude',
+        'longitude'
+      ]
+    },
+    {
+      id: 'section_properties',
       match: [
         'cross_section_shape',
         'cross_section_size',
@@ -338,20 +428,40 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
       ]
     },
     {
-      id: 'test_setup',
+      id: 'specimen_details',
       match: ['configuration', 'brace_angle', 'l_b', 'l_b_clear', 'boundary_condition']
     },
-    { id: 'material', match: ['steel', 'e', 'f_yn', 'fy_m', 'f_um'] },
-    // Both gusset plates (top and bottom) and everything that attaches the brace to
-    // them. `_8t` really is spelled with a leading underscore in the dictionary.
+    { id: 'material_properties', match: ['steel', 'e', 'f_yn', 'fy_m', 'f_um'] },
     {
-      id: 'gusset_plate',
+      id: 'gusset_plate_dimensions',
       match: [
-        /^l_[1-8][tb]$/,
+        'l_1t',
+        'l_2t',
+        'l_3t',
+        'l_4t',
+        'l_5t',
+        'l_6t',
+        'l_7t',
         '_8t',
         't_t',
-        't_b',
-        /_gp$/,
+        'l_1b',
+        'l_2b',
+        'l_3b',
+        'l_4b',
+        'l_5b',
+        'l_6b',
+        'l_7b',
+        'l_8b',
+        't_b'
+      ]
+    },
+    {
+      id: 'gusset_plate_material_properties',
+      match: ['steel_gp', 'f_yn_gp', 'f_ym_gp', 'f_um_gp']
+    },
+    {
+      id: 'connection_detailing',
+      match: [
         'weld_type',
         'l_weld',
         't_weld',
@@ -362,25 +472,35 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'reinforcement_pl'
       ]
     },
-    { id: 'loading', match: ['loading_protocol'] },
-    // Measured and theoretical buckling capacity, with the slenderness behind it.
-    { id: 'capacity', match: ['p_t', 'p_t_theory', 'p_c', /^kl_r/, /^l_c/, 'k_assumed'] },
-    { id: 'provenance', match: PROVENANCE }
-  ],
-
-  hss: [
-    { id: 'identification', match: ['id', 'date', 'investigator'] },
+    { id: 'loading_details', match: ['loading_protocol'] },
     {
-      id: 'test_setup',
-      match: ['test_configuration', 'stiffness_coefficient', 'test_type', 'flexural_buckling']
+      id: 'measured_and_theoretical_resistance',
+      match: ['p_t', 'p_t_theory', 'p_c', 'kl_r', 'l_c', 'l_c_theory', 'k_assumed', 'kl_r_theory']
+    }
+  ],
+  hss: [
+    {
+      id: 'experimental_program_details',
+      match: ['id', 'date', 'investigator', 'reference', 'url', 'latitude', 'longitude']
     },
     {
-      id: 'loading',
+      id: 'specimen_details',
+      match: [
+        'test_configuration',
+        'stiffness_coefficient',
+        'test_type',
+        'forming_process',
+        'seams',
+        'flexural_buckling'
+      ]
+    },
+    {
+      id: 'loading_details',
       match: ['loading_protocol', 'axial_load_ratio', 'axial_load_sequence', 'loading_angle']
     },
-    { id: 'section', match: ['forming_process', 'seams', 'tube_section'] },
+    { id: 'steel_profile', match: ['tube_section'] },
     {
-      id: 'geometry',
+      id: 'section_properties',
       match: [
         'width__mm',
         'depth__mm',
@@ -389,75 +509,130 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'area__mm2',
         'moment_of_inertia__mm4',
         'radius__mm',
+        'depth_over_t',
         'plastic_section_modulus__mm3',
-        'length__mm'
+        'length__mm',
+        'lambda_s',
+        'lambda_c'
       ]
     },
-    { id: 'slenderness', match: ['depth_over_t', 'lambda_s', 'lambda_c'] },
-    { id: 'material', match: [/^fy_/, 'f_ultimate__n_mm2', 'steel_type'] },
-    { id: 'capacity', match: ['mp_measured__knmm', 'ke_measured__knmm_rad'] },
-    // Modified Ibarra-Medina-Krawinkler backbone, calibrated twice: once on the
-    // full response and once on the response truncated at 80 percent of capacity.
-    { id: 'backbone_100fit', match: [/_100fit(__.+)?$/] },
-    { id: 'backbone_80fit', match: [/_80fit(__.+)?$/] },
-    { id: 'provenance', match: PROVENANCE }
+    {
+      id: 'material_properties',
+      match: ['steel_type', 'fy_nominal__n_mm2', 'fy_measured__n_mm2', 'f_ultimate__n_mm2']
+    },
+    { id: 'measured_response', match: ['mp_measured__knmm', 'ke_measured__knmm_rad'] },
+    { id: 'backbone_parameters_100_percent_fit', match: [/_100fit(__.+)?$/] },
+    { id: 'backbone_parameters_80_percent_fit', match: [/_80fit(__.+)?$/] }
   ],
-
   ebf: [
-    { id: 'identification', match: ['id', 'investigator', 'year', 'spec_id', 'region'] },
-    // The link itself: what it is made of and how it classifies under each code.
     {
-      id: 'section',
+      id: 'experimental_program_details',
       match: [
-        'profile',
-        'sec_type',
-        'e',
-        'link_loc',
-        'l_confi',
-        'class_aisc',
-        'class_ec8',
-        'ov_aisc',
-        'ov_ec8'
+        'id',
+        'investigator',
+        'year',
+        'spec_id',
+        'region',
+        'reference',
+        'url',
+        'latitude',
+        'longitude'
       ]
     },
-    // Flange and web are reported separately for every material property.
-    { id: 'material', match: [/_(flg|web)$/, 'sg_flg_link', 'sg_web_link'] },
-    { id: 'geometry', match: [/_n$/] },
-    { id: 'geometry_measured', match: [/_m$/] },
-    { id: 'stiffeners', match: [/^l_s_/, 't_s'] },
+    { id: 'steel_profile', match: ['profile', 'sec_type'] },
+    { id: 'material_properties', match: [/_(flg|web)$/, 'sg_flg_link', 'sg_web_link'] },
     {
-      id: 'welds',
+      id: 'section_properties',
       match: [
-        /^l_con_/,
-        /_wld$/,
+        'h_n',
+        'tw_n',
+        'bf_n',
+        'tf_n',
+        'tf_add_n',
+        'r_n',
+        'h_m',
+        'tw_m',
+        'bf_m',
+        'tf_m',
+        'tf_add_m',
+        'hw_n',
+        'hw_m',
+        'a_fil_n',
+        'af_n',
+        'aw_n',
+        'a_n',
+        'af_m',
+        'aw_m',
+        'a_m',
+        'zp_fil_n',
+        'zp_n',
+        'zp_no_fil_n',
+        'zp_fil_m',
+        'zp_m',
+        'zp_no_fil_m'
+      ]
+    },
+    {
+      id: 'link_details',
+      match: ['link_loc', 'l_confi', 'e', 'ov_aisc', 'ov_ec8', 'class_aisc', 'class_ec8']
+    },
+    {
+      id: 'connection_and_weld_details',
+      match: [
+        'l_con_typ',
         'l_st',
         'h_st',
+        'l_con_confi',
+        'l_con_wld',
+        'l_endp_wld',
+        'l_bu_wld',
         'a_b_b',
         't_e_s',
         't_b_s',
         'd_b_s',
-        /^d_b_pnl_/,
+        'd_b_pnl_1',
+        'd_b_pnl_2',
         'b_s_no'
       ]
     },
-    { id: 'loading', match: ['l_p_typ', /^n_d_n_pl_/] },
-    { id: 'response', match: ['fail_mode'] },
-    { id: 'provenance', match: PROVENANCE }
+    { id: 'stiffener_details', match: [/^l_s_/, 't_s'] },
+    { id: 'loading_details', match: ['l_p_typ', 'n_d_n_pl_ten', 'n_d_n_pl_comp'] },
+    { id: 'measured_response', match: ['fail_mode'] }
   ],
-
   cyclic: [
     {
-      id: 'identification',
-      match: ['id', 'experimental_program', 'investigator', 'date', 'location']
+      id: 'experimental_program_details',
+      match: [
+        'hidden_index',
+        'experimental_program',
+        'id',
+        'date',
+        'investigator',
+        'location',
+        'file',
+        'reference',
+        'link',
+        'latitude',
+        'longitude',
+        'citekey',
+        'hidden_dataset_index'
+      ]
     },
-    // Which piece of which profile the coupon was cut from.
     {
-      id: 'section',
+      id: 'specimen_details',
       match: ['profile_type', 'profile', 'source', 'thickness', 'grade', 'spec', 'lp', 'size']
     },
-    { id: 'geometry', match: ['gage_length__mm_', /^avg_.*_dia_/] },
     {
-      id: 'material',
+      id: 'geometric_properties',
+      match: [
+        'gage_length__mm_',
+        'avg_reduced_dia__mm_',
+        'avg_fractured_dia_top__mm_',
+        'avg_fractured_dia_bot__mm_'
+      ]
+    },
+    {
+      id: 'material_properties',
       match: [
         'fy_n__mpa_',
         'fu_n__mpa_',
@@ -467,97 +642,214 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'fracture_strain'
       ]
     },
-    { id: 'chemistry', match: [ELEMENT_SYMBOL] },
-    { id: 'instrumentation', match: ['machine', PID_GAIN] },
-    // Updated Voce-Chaboche parameters calibrated on the cyclic response.
-    { id: 'model_parameters', match: [/^uvc_/] },
-    { id: 'provenance', match: [...PROVENANCE, 'file', 'citekey'] },
-    { id: 'internal', match: [/^hidden_/] }
+    { id: 'test_equipment_details', match: [/^pid_/, 'machine'] },
+    {
+      id: 'chemical_composition',
+      match: [
+        'c',
+        'si',
+        'mn',
+        'p',
+        's',
+        'n',
+        'cu',
+        'mo',
+        'ni',
+        'cr',
+        'v',
+        'nb',
+        'ti',
+        'al',
+        'b',
+        'zr',
+        'sn',
+        'ca',
+        'h',
+        'fe'
+      ]
+    },
+    { id: 'cyclic_material_model_parameters', match: [/^uvc_/] }
   ],
-
   tensile: [
     {
-      id: 'identification',
-      match: ['id', 'experimental_program', 'investigator', 'date', 'year', 'location']
+      id: 'experimental_program_details',
+      match: [
+        'experimental_program',
+        'id',
+        'date',
+        'year',
+        'investigator',
+        'location',
+        'file_path',
+        'reference',
+        'link',
+        'latitude',
+        'longitude',
+        'publication_key',
+        'datacol_version'
+      ]
     },
     {
-      id: 'section',
+      id: 'specimen_details',
       match: ['standard', 'specimen_type', 'profile_type', 'profile', 'specimen_source']
     },
-    { id: 'geometry', match: [/^avg_init_/, /^eff_fractured_/, /^avg_fractured_/] },
-    { id: 'material', match: ['steel_grade', 'fy_n__mpa_', 'fu_n__mpa_', 't_a__deg_c_'] },
-    // Everything read off the measured stress-strain curve.
     {
-      id: 'response',
+      id: 'material_properties',
+      match: ['steel_grade', 'fy_n__mpa_', 'fu_n__mpa_', 't_a__deg_c_']
+    },
+    {
+      id: 'geometric_properties',
       match: [
-        /^yield_/,
+        'avg_init_reduced_width__mm_',
+        'avg_init_reduced_thickness__mm_',
+        'avg_init_marked_gauge_length__mm_',
+        'eff_fractured_width__mm_',
+        'eff_fractured_thickness__mm_',
+        'avg_fractured_marked_gauge_length__mm_'
+      ]
+    },
+    { id: 'test_equipment_details', match: [/^pid_/, 'machine'] },
+    {
+      id: 'measured_response',
+      match: [
+        'yield_stress_02__mpa_',
+        'yield_strain_02',
         'bin_discont_yield',
+        'yield_stress_uyp__mpa_',
+        'yield_stress_lyp__mpa_',
+        'yield_point_elongation',
         'tensile_strength__mpa_',
-        /elongation/,
+        'uniform_elongation',
+        'elongation_at_fracture',
+        'elongation_after_fracture',
         'reduction_of_area',
         'elastic_modulus__mpa_'
       ]
     },
-    { id: 'chemistry', match: [ELEMENT_SYMBOL] },
-    { id: 'instrumentation', match: ['machine', PID_GAIN] },
-    { id: 'provenance', match: [...PROVENANCE, 'file_path', 'publication_key'] },
-    { id: 'internal', match: ['datacol_version'] }
-  ],
-
-  'ductile-fracture': [
-    { id: 'identification', match: ['id', 'specimen_designation', 'experimental_program', 'date'] },
     {
-      id: 'section',
+      id: 'chemical_composition',
+      match: [
+        'c',
+        'si',
+        'mn',
+        'p',
+        's',
+        'n',
+        'cu',
+        'mo',
+        'ni',
+        'cr',
+        'v',
+        'nb',
+        'ti',
+        'al',
+        'b',
+        'zr',
+        'sn',
+        'ca',
+        'h',
+        'fe'
+      ]
+    }
+  ],
+  'ductile-fracture': [
+    {
+      id: 'experimental_program_details',
+      match: [
+        'id',
+        'specimen_designation',
+        'experimental_program',
+        'date',
+        'temperature',
+        'reference',
+        'link',
+        'latitude',
+        'longitude',
+        'has_sem'
+      ]
+    },
+    {
+      id: 'specimen_details',
       match: [
         'specimen_type',
         'piece',
         'location_coupon',
         'section_type',
         'section_profile',
-        'coupon_direction',
         'crack_opening_direction',
         'plate_thickness'
       ]
     },
-    { id: 'loading', match: ['loading', 'loading_protocol', 'temperature'] },
+    { id: 'loading_details', match: ['loading', 'loading_protocol'] },
     {
-      id: 'material',
-      match: ['steel_type', 'f_yn', 'f_un', 'fy_m', 'fu_m', 'elongation_fr', 'young_mod', 'nu']
+      id: 'material_properties',
+      match: [
+        'steel_type',
+        'coupon_direction',
+        'f_yn',
+        'f_un',
+        'fy_m',
+        'fu_m',
+        'elongation_fr',
+        'young_mod',
+        'nu'
+      ]
     },
-    { id: 'chemistry', match: [/^chemical_composition_/] },
-    { id: 'geometry', match: ['gauge_length', /^nom_/] },
-    { id: 'geometry_measured', match: [/^meas_/] },
-    // Stress state and equivalent plastic strain at the instant of fracture.
+    { id: 'chemical_composition', match: [/^chemical_composition_/] },
     {
-      id: 'response',
+      id: 'geometric_properties',
+      match: [
+        'gauge_length',
+        'nom_notch_radius',
+        'nom_whole_diameter_cnt',
+        'nom_notch_diameter_cnt',
+        'nom_notch_width',
+        'nom_width_gp',
+        'nom_whole_thickness_gp',
+        'nom_notch_thickness_gp',
+        'meas_whole_diameter_cnt',
+        'meas_notch_diameter_cnt',
+        'meas_notch_width',
+        'meas_width_gp',
+        'meas_whole_thickness_gp',
+        'meas_notch_thickness_gp'
+      ]
+    },
+    {
+      id: 'measured_quantities_at_fracture',
       match: [
         'disp_fract',
         'exc_at_fract',
         'step_fract',
         'fract_loc',
-        /^triax_/,
-        /^lode_/,
-        'peeq_at_fr',
-        'l_star'
+        'triax_at_fr',
+        'triax_avg_till_fr',
+        'lode_at_fr',
+        'lode_avg_till_fr',
+        'peeq_at_fr'
       ]
     },
-    // Cyclic void growth, stress-weighted damage and Kanvinde-Kiran parameters.
-    { id: 'model_parameters', match: [/^(cvgm|swdfm|kk)_/] },
-    { id: 'imaging', match: ['has_sem'] },
-    { id: 'provenance', match: PROVENANCE }
+    { id: 'fracture_model_parameters', match: [/^(cvgm|swdfm|kk)_/, 'l_star'] }
   ],
-
   residuals: [
-    { id: 'identification', match: ['id', 'experimental_program', 'date'] },
     {
-      id: 'geometry',
-      match: ['profile_type', 'profile', 'spec_var', 'h', 'b', 'tw', 'tf', 'r', 'a']
+      id: 'experimental_program_details',
+      match: [
+        'id',
+        'experimental_program',
+        'date',
+        'spec_var',
+        'reference',
+        'link',
+        'latitude',
+        'longitude'
+      ]
     },
-    { id: 'material', match: ['steel', /^fy_/] },
-    // The measured self-equilibrating stresses in the flanges and the web.
-    { id: 'residual_stress', match: [/^sigma_0_/] },
-    { id: 'provenance', match: PROVENANCE },
-    { id: 'internal', match: ['flange_nr_data', 'plot_sf'] }
+    { id: 'steel_profile', match: ['profile_type', 'profile'] },
+    { id: 'material_properties', match: ['steel', 'fy_n', 'fy_e', 'fy_mf', 'fy_mw'] },
+    { id: 'section_properties', match: ['h', 'b', 'tw', 'tf', 'r', 'a'] },
+    { id: 'measured_residual_stresses', match: ['sigma_0_f', 'sigma_0_w', 'flange_nr_data'] },
+    { id: 'plot_properties', match: ['plot_sf'] }
   ]
 }
 
@@ -570,7 +862,7 @@ const KNOWN_GROUPS = new Set<string>(
 const resolved = new Map<DatabaseId, Map<string, FieldGroupId>>()
 
 function matches(name: string, pattern: string | RegExp): boolean {
-  return typeof pattern === 'string' ? pattern === name : pattern.test(name)
+  return typeof pattern === 'string' ? pattern.toLowerCase() === name : pattern.test(name)
 }
 
 function resolve(database: DatabaseId, name: string): FieldGroupId {
@@ -589,16 +881,29 @@ function resolve(database: DatabaseId, name: string): FieldGroupId {
   return id
 }
 
+/** `Backbone parameters (100% fit)` -> `backbone_parameters_100_percent_fit`. */
+function toId(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/%/g, ' percent ')
+    .replace(/-/g, ' ')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+}
+
 /**
  * The category of one column.
  *
- * A `category` carried by the data dictionary wins, which is how this module stops
- * being the source of truth once the data repo owns the taxonomy. An unrecognised
- * category falls through to the rules rather than producing an unlabelled group.
+ * The `group` the data dictionary carries wins, which is what makes the data repo
+ * the source of truth. A group the frontend has no label for falls through to the
+ * rules rather than rendering an unnamed section.
  */
 export function groupFor(database: DatabaseId, column: DictColumn): FieldGroupId {
-  const declared = column.category?.trim().toLowerCase()
-  if (declared && KNOWN_GROUPS.has(declared)) return declared as FieldGroupId
+  const declared = column.group?.trim()
+  if (declared) {
+    const id = toId(declared)
+    if (KNOWN_GROUPS.has(id)) return id as FieldGroupId
+  }
   return resolve(database, column.name.trim().toLowerCase())
 }
 

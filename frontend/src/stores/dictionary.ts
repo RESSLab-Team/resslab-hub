@@ -27,12 +27,12 @@ export interface DictColumn {
   /** `false` marks a mandatory field. */
   nullable: boolean
   /**
-   * Scientific category of the column, once the data dictionary carries one.
-   * Unset today: the taxonomy lives in `utils/fieldGroups.ts` until the data repo
-   * grows a `category` column, and `groupFor()` prefers this field the moment it
-   * starts arriving.
+   * Scientific category of the column, e.g. `Beam section properties`. Arrives
+   * once the data repo carries the `group` column of the data dictionaries
+   * (RESSLab-Team/resslab-hub-data#46); `groupFor()` prefers it over the rules in
+   * `utils/fieldGroups.ts` the moment it does.
    */
-  category?: string
+  group?: string
 }
 
 /** Symbol cleaned for display — markdown code backticks dropped, the `-`

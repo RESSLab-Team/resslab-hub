@@ -62,7 +62,7 @@ function activeIn(group: FilterGroup): number {
 
 // Identification is open from the start because it is the one group every reader
 // wants; the others wait to be asked for.
-const openGroups = ref<Set<FieldGroupId>>(new Set<FieldGroupId>(['identification']))
+const openGroups = ref<Set<FieldGroupId>>(new Set<FieldGroupId>(['experimental_program_details']))
 
 /** Rows already carrying a filter, so a shared URL shows the value it filters on. */
 const open = ref<Set<string>>(new Set())

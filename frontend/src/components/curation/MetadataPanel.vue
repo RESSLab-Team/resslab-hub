@@ -85,7 +85,7 @@ const groups = computed(() =>
   }))
 )
 
-const open = ref<Set<FieldGroupId>>(new Set<FieldGroupId>(['identification']))
+const open = ref<Set<FieldGroupId>>(new Set<FieldGroupId>(['experimental_program_details']))
 
 function isOpen(group: { id: FieldGroupId; missing: number }): boolean {
   return group.missing > 0 || open.value.has(group.id)
