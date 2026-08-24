@@ -270,6 +270,15 @@ class DictionaryColumnModel(BaseModel):
     nullable: bool
 
 
+class DatabaseReadmeModel(BaseModel):
+    """
+    The contributor guide (README.md of the data-repo folder) of one database.
+    """
+
+    database: str
+    content: str
+
+
 FieldsModel = Dict[str, Any]
 
 

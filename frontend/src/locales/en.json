@@ -1062,11 +1062,31 @@
       "no_check_badge": "No automatic check",
       "switch_confirm": "Click again to replace {count} experiment(s)"
     },
+    "guide": {
+      "title": "Contribution guide",
+      "tab_guide": "Guide",
+      "tab_dictionary": "Data dictionary",
+      "github": "View on GitHub",
+      "loading": "Loading the guide…",
+      "missing": "No guide has been uploaded for this database yet.",
+      "column": "Column",
+      "symbol": "Symbol",
+      "description": "Description",
+      "unit": "Unit",
+      "type": "Type",
+      "required": "Required",
+      "example": "Example",
+      "dictionary_hint": "{count} columns, from the data dictionary uploaded with the data. Required columns cannot be NA.",
+      "search": "Filter columns…",
+      "no_match": "No column matches."
+    },
     "editor": {
+      "title": "Experiments",
       "add_experiment": "Add an experiment manually",
       "import_csv": "Import CSV",
       "template": "Template CSV",
       "dictionary": "Data dictionary",
+      "guide": "Contribution guide",
       "import_ok": "Loaded {rows} experiment(s), {matched} columns matched.",
       "import_missing": "{count} required column(s) were missing and will be submitted as NR.",
       "import_no_match": "No column headers matched this database. Is the file for a different database?",
@@ -1095,7 +1115,8 @@
       "intro": "Start from the Template CSV below — it already carries this database’s exact column headers — and open the Data dictionary if you need to know what a column expects (unit, type, whether it is required). Fill in one row per experiment, then drop the file here.",
       "intro_files": "Measured responses are separate files. Name each one after the specimen it belongs to (B1.csv for the experiment whose id is B1) and you can attach the whole set in one go with bulk attach, below.",
       "checking": "Checking…",
-      "unchecked": "Not checked"
+      "unchecked": "Not checked",
+      "intro_guide": "Before you start, read the contribution guide below, written by the researchers for this database: it explains how the specimen identifier is built and which response files are expected, with their exact column headers and units."
     },
     "status": {
       "idle": "Add at least one experiment with an identifier to enable the automatic check.",

@@ -462,6 +462,49 @@
         }
       }
     },
+    "/dictionary/{database}/readme": {
+      "get": {
+        "tags": [
+          "dictionary"
+        ],
+        "summary": "Get Database Readme",
+        "description": "The contributor guide of one database: the README.md of its data-repo\nfolder, uploaded alongside the data. Raw markdown; the frontend renders it.",
+        "operationId": "get_database_readme",
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Database"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatabaseReadmeModel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/braces": {
       "get": {
         "tags": [
@@ -11159,6 +11202,25 @@
         "title": "CurationSummary",
         "description": "One open contribution PR, as listed in the review queue."
       },
+      "DatabaseReadmeModel": {
+        "properties": {
+          "database": {
+            "type": "string",
+            "title": "Database"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "database",
+          "content"
+        ],
+        "title": "DatabaseReadmeModel",
+        "description": "The contributor guide (README.md of the data-repo folder) of one database."
+      },
       "DateRangeModel": {
         "properties": {
           "min": {
@@ -16851,6 +16913,7 @@
         "enum": [
           "all",
           "dictionary",
+          "readme",
           "all-columns",
           "all-braces",
           "all-connections",

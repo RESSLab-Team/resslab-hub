@@ -128,7 +128,7 @@ Create `/home/pierre/dev/resslab-hub-data/new_things/` with:
 | `new_things/new_things.csv` | yes | Main entity table. Header row + data rows. First column is the stable id (convention: `experimental_program_date_specimen_designation`, e.g. `Engelhardt_et_al_2000_DBBWWPZ`). |
 | `new_things/new_things_data_dictionary.csv` | yes | 7-column dictionary (exact header order below). |
 | `new_things/processed_data/` or `new_things/<subdir>/` | optional | One file per specimen holding time-series/curve data. |
-| `new_things/README.md` | optional | Component-specific notes (like `connections/README.md`). Add one if the naming convention or file layout is non-obvious. |
+| `new_things/README.md` | yes | The contributor guide for the database, on the model of the nine existing ones (contents, identifier convention, response files with exact headers and units, submitting). It is uploaded with the data (`Type.README`, keyed by folder in `README_DATABASES` in `uploader.py`, so add the new folder there), served by `GET /dictionary/{database}/readme` and rendered in the submission form next to the dictionary table. Do not duplicate the dictionary in it; link to the CSV. |
 
 **Time-series filename convention:** two idioms exist in the repo — **prefer id-as-filename** unless specimen ids would be filesystem-unfriendly. Two of three existing tabs (Braces, HSS) use it; EBF's integer-alias scheme is the outlier.
 - **Id-as-filename (default — Braces, HSS):** `force_displacement/{spec_id}.csv` or `Moment_Rotation/{spec_id}.csv` — the file stem IS the specimen id (e.g. `Fadden_McCormick_2012__HSS-203.2x152.4x9.5.csv`, `Tremblay_RHS13.csv`). Transparent and self-documenting.

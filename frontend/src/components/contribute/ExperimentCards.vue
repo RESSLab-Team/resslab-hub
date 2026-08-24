@@ -12,6 +12,7 @@ import { checkTimeSeriesFile, timeSeriesKindsFor, type TimeSeriesKind } from '@/
 import {
   mdiAlertOutline,
   mdiBellOffOutline,
+  mdiBookOpenPageVariantOutline,
   mdiChevronRight,
   mdiClose,
   mdiContentCopy,
@@ -27,6 +28,8 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n({ useScope: 'global' })
 const store = useContributionStore()
 const notification = useNotificationStore()
+
+const emit = defineEmits<{ (event: 'open-guide', tab: 'guide' | 'dictionary'): void }>()
 
 const kinds = computed(() => timeSeriesKindsFor(store.database))
 
@@ -257,36 +260,54 @@ function chart(uid: number, kind: TimeSeriesKind) {
 </script>
 
 <template>
-  <div>
+  <div class="block editor">
+    <!-- Section bar: what this block is on the left, its tools on the right. -->
+    <div class="block-bar">
+      <h2 class="block-h">
+        {{ $t('contribute.editor.title') }}
+        <span v-if="!isEmptyBatch" class="count">{{ store.rows.length }}</span>
+      </h2>
+      <div class="toolbar">
+        <button
+          v-if="!isEmptyBatch"
+          class="btn btn-secondary btn-sm"
+          type="button"
+          @click="importInput?.click()"
+        >
+          <v-icon :icon="mdiTrayArrowUp" size="14" />{{ $t('contribute.editor.import_csv') }}
+        </button>
+        <input ref="importInput" accept=".csv,text/csv" hidden type="file" @change="importFile" />
+        <button
+          class="btn btn-secondary btn-sm"
+          type="button"
+          @click="downloadTemplate(store.database!, store.columns)"
+        >
+          <v-icon :icon="mdiDownloadOutline" size="14" />{{ $t('contribute.editor.template') }}
+        </button>
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          @click="downloadDictionary(store.database!, store.columns)"
+        >
+          <v-icon :icon="mdiDownloadOutline" size="14" />{{ $t('contribute.editor.dictionary') }}
+        </button>
+        <button class="btn btn-ghost btn-sm" type="button" @click="emit('open-guide', 'guide')">
+          <v-icon :icon="mdiBookOpenPageVariantOutline" size="14" />{{
+            $t('contribute.editor.guide')
+          }}
+        </button>
+      </div>
+    </div>
+
     <div v-if="isEmptyBatch" class="intro">
       <p>{{ $t('contribute.editor.intro') }}</p>
       <p v-if="kinds.length">{{ $t('contribute.editor.intro_files') }}</p>
-    </div>
-
-    <div class="toolbar">
-      <button
-        v-if="!isEmptyBatch"
-        class="btn btn-secondary btn-sm"
-        type="button"
-        @click="importInput?.click()"
-      >
-        <v-icon :icon="mdiTrayArrowUp" size="14" />{{ $t('contribute.editor.import_csv') }}
-      </button>
-      <input ref="importInput" accept=".csv,text/csv" hidden type="file" @change="importFile" />
-      <button
-        class="btn btn-secondary btn-sm"
-        type="button"
-        @click="downloadTemplate(store.database!, store.columns)"
-      >
-        <v-icon :icon="mdiDownloadOutline" size="14" />{{ $t('contribute.editor.template') }}
-      </button>
-      <button
-        class="btn btn-ghost btn-sm"
-        type="button"
-        @click="downloadDictionary(store.database!, store.columns)"
-      >
-        <v-icon :icon="mdiDownloadOutline" size="14" />{{ $t('contribute.editor.dictionary') }}
-      </button>
+      <p>
+        {{ $t('contribute.editor.intro_guide') }}
+        <button class="link" type="button" @click="emit('open-guide', 'guide')">
+          {{ $t('contribute.editor.guide') }}
+        </button>
+      </p>
     </div>
 
     <button
@@ -306,7 +327,7 @@ function chart(uid: number, kind: TimeSeriesKind) {
     </button>
 
     <!-- Bulk attach: pick a response type, drop many <id>.csv files at once. -->
-    <div v-if="kinds.length" class="toolbar">
+    <div v-if="kinds.length" class="bulk">
       <span class="bulk-label">{{ $t('contribute.editor.bulk_attach') }}</span>
       <tool-select
         v-model="bulkKindKey"
@@ -600,35 +621,91 @@ function chart(uid: number, kind: TimeSeriesKind) {
 </template>
 
 <style scoped>
+/* Section chrome — mirrors ContributeView's blocks so both stacks share one
+   left edge and one header rhythm. */
+.block-bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.block-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--title-panel-size);
+  font-weight: var(--title-panel-weight);
+  text-transform: uppercase;
+  letter-spacing: var(--title-panel-tracking);
+  color: var(--fg);
+}
+.block-h .count {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 17px;
+  letter-spacing: 0;
+}
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 14px;
 }
-.spacer {
-  flex: 1;
+.intro .link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Bulk attach — a subdued strip so it reads as a batch tool, not a third row
+   of primary actions. Label and hint keep their own rows on narrow screens. */
+.bulk {
+  display: flex;
+  align-items: center;
+  gap: 10px 14px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
 }
 .bulk-label {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--fg);
 }
 .bulk-select {
   min-width: 220px;
+  flex: 0 1 260px;
 }
 .bulk-hint {
+  flex: 1 1 200px;
   font-size: 12px;
+  line-height: 1.4;
   color: var(--fg-muted);
 }
 
 .intro {
-  margin-bottom: 14px;
-  font-size: 13px;
-  line-height: 1.55;
+  margin-bottom: 16px;
+  font-size: 13.5px;
+  line-height: 1.6;
   color: var(--fg-muted);
-  max-width: 78ch;
+  max-width: 76ch;
 }
 .intro p {
   margin: 0 0 6px;
@@ -639,7 +716,8 @@ function chart(uid: number, kind: TimeSeriesKind) {
 
 .add-manual {
   width: 100%;
-  margin-top: 4px;
+  margin-top: 12px;
+  padding: 12px;
   justify-content: center;
   border-style: dashed;
 }
@@ -650,8 +728,8 @@ function chart(uid: number, kind: TimeSeriesKind) {
   align-items: center;
   gap: 6px;
   width: 100%;
-  padding: 32px 20px;
-  margin-bottom: 14px;
+  padding: clamp(28px, 6vh, 44px) 20px;
+  margin-bottom: 16px;
   border: 2px dashed var(--border-strong);
   background: var(--bg);
   color: var(--fg-muted);
@@ -689,8 +767,11 @@ function chart(uid: number, kind: TimeSeriesKind) {
 .card {
   border: 1px solid var(--border);
   border-left: 3px solid var(--border-strong);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   background: var(--bg);
+}
+.card:last-of-type {
+  margin-bottom: 0;
 }
 .card.fail {
   border-left-color: var(--epfl-red);
@@ -699,8 +780,12 @@ function chart(uid: number, kind: TimeSeriesKind) {
   border-left-color: var(--epfl-orange);
 }
 
+/* Fixed tracks, not a wrapping flex row: the identifier column and the three
+   headline columns then line up from one card to the next, and the verdict
+   badge always ends at the same right edge. */
 .card-head {
-  display: flex;
+  display: grid;
+  grid-template-columns: 18px 9px minmax(0, 220px) minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 14px;
   width: 100%;
@@ -760,23 +845,20 @@ function chart(uid: number, kind: TimeSeriesKind) {
 }
 .card-id {
   font-weight: 700;
-  max-width: 220px;
-  /* Keeps the identifier clear of the first headline column. */
-  margin-right: 16px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .headline {
-  display: flex;
-  gap: 24px;
-  flex: 1;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
   min-width: 0;
 }
 .headline-item {
   display: flex;
   flex-direction: column;
+  gap: 1px;
   min-width: 0;
 }
 .headline-item .k {
@@ -784,6 +866,9 @@ function chart(uid: number, kind: TimeSeriesKind) {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .headline-item .v {
   font-size: 13px;
@@ -794,7 +879,6 @@ function chart(uid: number, kind: TimeSeriesKind) {
 .badge {
   font-size: 12px;
   font-weight: 600;
-  flex: none;
   /* Reserved width: the label swaps between "No issues", "Checking…" and an
      issue count, and the headline next to it would reflow on every change. */
   min-width: 8em;
@@ -820,26 +904,48 @@ function chart(uid: number, kind: TimeSeriesKind) {
   color: var(--fg-muted);
   font-weight: 400;
 }
+/* Laptop and below: the headline columns no longer fit beside the identifier
+   and the verdict, so they drop rather than squeeze to two characters. */
+@media (max-width: 1023px) {
+  .card-head {
+    grid-template-columns: 18px 9px minmax(0, 1fr) auto auto;
+    gap: 12px;
+  }
+  .headline {
+    display: none;
+  }
+}
+@media (max-width: 559px) {
+  .card-head {
+    padding: 12px;
+  }
+  .badge {
+    min-width: 0;
+  }
+}
 
 .card-body {
-  padding: 0 16px 16px;
+  padding: 16px;
   border-top: 1px solid var(--border-subtle);
 }
 .card-actions {
   display: flex;
   gap: 8px;
-  padding: 12px 0;
+  justify-content: flex-end;
+  margin-bottom: 4px;
 }
-.card-section {
-  margin-top: 10px;
+.card-section + .card-section {
+  margin-top: 22px;
 }
 .card-section h3 {
+  padding-bottom: 6px;
+  margin: 0 0 12px;
+  border-bottom: 1px solid var(--border-subtle);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--fg-muted);
-  margin: 0 0 10px;
 }
 
 .issue {
@@ -998,21 +1104,26 @@ function chart(uid: number, kind: TimeSeriesKind) {
   text-align: center;
 }
 .field-group.open .fields {
-  padding: 4px 8px 12px;
+  padding: 6px 8px 14px;
 }
 
 .fields {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px 18px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 14px 20px;
 }
+/* Labels wrap to two lines for the longer variables. Reserving both lines keeps
+   every input in a row on the same baseline instead of stepping up and down. */
 .field label {
   display: flex;
-  align-items: center;
-  gap: 4px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 2px 5px;
+  min-height: 32px;
+  margin-bottom: 4px;
   font-size: 12.5px;
   font-weight: 600;
-  margin-bottom: 4px;
+  line-height: 1.3;
 }
 .field .required {
   color: var(--epfl-red);
@@ -1076,21 +1187,49 @@ function chart(uid: number, kind: TimeSeriesKind) {
   }
 }
 
+/* Name, preview, count, action — fixed tracks so the rows read as a table. */
 .series {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px minmax(70px, auto) auto;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 8px 0;
+  gap: 14px;
+  padding: 10px 0;
   border-bottom: 1px solid var(--border-subtle);
 }
 .series:last-child {
   border-bottom: none;
 }
+.series .spark {
+  grid-column: 2;
+}
+.series-meta {
+  grid-column: 3;
+}
+.series .btn-ghost {
+  grid-column: 4;
+}
+/* Nothing attached yet: the attach button takes the preview and count tracks. */
+.series .btn-secondary {
+  grid-column: 2 / -1;
+  justify-self: start;
+}
 .series-name {
-  min-width: 200px;
   font-size: 13px;
   font-weight: 600;
+}
+@media (max-width: 700px) {
+  .series {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .series .spark {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .series-meta,
+  .series .btn-ghost,
+  .series .btn-secondary {
+    grid-column: 2;
+  }
 }
 .series-meta {
   font-size: 12px;

@@ -761,9 +761,10 @@ def validate_all(
         (arg[0], filename)
         for arg in wildcard_args
         for filename in iglob(arg[1])
-        # Dictionary CSVs are upload metadata, not contributed data: archives
-        # from the data repo contain them, but there is nothing to validate.
-        if arg[0] is not Type.DICTIONARY
+        # Dictionary CSVs and READMEs are upload metadata, not contributed
+        # data: archives from the data repo contain them, but there is nothing
+        # to validate.
+        if arg[0] not in (Type.DICTIONARY, Type.README)
     ]
 
     # Split into primary and subsidiary types

@@ -73,6 +73,21 @@ export const CONTRIBUTION_DATABASES: Record<DatabaseId, ContributionDatabase> = 
   }
 }
 
+/** Base of the data repository on GitHub, where the per-database guides live. */
+export const DATA_REPOSITORY_URL = 'https://github.com/RESSLab-Team/resslab-hub-data'
+
+/**
+ * The README next to the database's primary CSV in the data repository: it
+ * explains the identifier convention, the expected response files (folder,
+ * headers, units) and how to submit. Written by the researchers, so it is
+ * linked rather than copied.
+ */
+export function contributionGuideUrl(database: DatabaseId): string {
+  const path = CONTRIBUTION_DATABASES[database].csvPath
+  const directory = path.slice(0, path.lastIndexOf('/'))
+  return `${DATA_REPOSITORY_URL}/blob/main/${directory}/README.md`
+}
+
 /** `f_yn` → `F yn`; a readable fallback when a column has no translation. */
 function prettify(column: string): string {
   const spaced = column.replace(/_/g, ' ')

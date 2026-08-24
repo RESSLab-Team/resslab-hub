@@ -4,12 +4,12 @@ Serve the data dictionary (column metadata for every component database).
 
 from typing import Dict, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from resslab_hub.models.api import DictionaryColumnModel
-from resslab_hub.models.database.dictionary import DictionaryColumn
+from resslab_hub.models.api import DatabaseReadmeModel, DictionaryColumnModel
+from resslab_hub.models.database.dictionary import DatabaseReadme, DictionaryColumn
 from resslab_hub.utils.database import get_session
 
 router = APIRouter(prefix="/dictionary", tags=["dictionary"])
@@ -41,3 +41,18 @@ async def get_dictionary(
             )
         )
     return dictionary
+
+
+@router.get("/{database}/readme", response_model=DatabaseReadmeModel)
+async def get_database_readme(
+    database: str,
+    session: AsyncSession = Depends(get_session),
+) -> DatabaseReadmeModel:
+    """
+    The contributor guide of one database: the README.md of its data-repo
+    folder, uploaded alongside the data. Raw markdown; the frontend renders it.
+    """
+    readme = await session.get(DatabaseReadme, database)
+    if readme is None:
+        raise HTTPException(status_code=404, detail=f"No README for {database}")
+    return DatabaseReadmeModel(database=readme.database, content=readme.content)

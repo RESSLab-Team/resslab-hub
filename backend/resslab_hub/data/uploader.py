@@ -12,8 +12,8 @@ from glob import iglob
 from io import StringIO
 from logging import debug, error, getLogger, info, warning
 from multiprocessing import get_context
-from os import path
-from typing import Any, Callable, List, Tuple
+from os import path, sep
+from typing import Any, Callable, List, Optional, Tuple
 
 from sqlalchemy import (
     Boolean,
@@ -45,7 +45,7 @@ from resslab_hub.models.database.connection import (
     ConnectionGlobalWest,
     ConnectionPanelZone,
 )
-from resslab_hub.models.database.dictionary import DictionaryColumn
+from resslab_hub.models.database.dictionary import DatabaseReadme, DictionaryColumn
 from resslab_hub.models.database.ductile_fracture import (
     DuctileFracture,
     DuctileFractureEpeqSimulation,
@@ -170,6 +170,7 @@ def initializer(log_level=None, log_format=None):
 class Type(Enum):
     ALL = "all"  # Triggers upload of all data types
     DICTIONARY = "dictionary"  # A *_data_dictionary.csv file
+    README = "readme"  # The README.md contributor guide of a database folder
     ALL_COLUMN = "all-columns"  # Main column table + related measurements
     ALL_BRACE = "all-braces"
     ALL_CONNECTION = "all-connections"
@@ -570,6 +571,55 @@ class DictionaryUploader(Uploader):
         return f"{path.basename(file_path)}: {len(rows)} dictionary columns"
 
 
+# Data-repo folder (relative to the archive root) -> frontend DatabaseId, for
+# the README.md each folder carries.
+README_DATABASES = {
+    "braces": "braces",
+    "columns": "columns",
+    "connections": "connections",
+    "hss_columns": "hss",
+    "material/cyclic_coupons": "cyclic",
+    "material/tensile_coupons": "tensile",
+    "material/ductile_fracture": "ductile-fracture",
+    "residual_stresses": "residuals",
+    "eccentric_braced_frames": "ebf",
+}
+
+
+def readme_database(file_path: str) -> Optional[str]:
+    """
+    The DatabaseId a README.md belongs to, from the folder it sits in. The
+    archive root is unknown here, so the deepest matching suffix wins
+    (``.../material/cyclic_coupons/README.md`` -> ``cyclic``).
+    """
+    folder = path.dirname(path.abspath(file_path)).replace(sep, "/")
+    for suffix, database in sorted(
+        README_DATABASES.items(), key=lambda item: -len(item[0])
+    ):
+        if folder == suffix or folder.endswith("/" + suffix):
+            return database
+    return None
+
+
+class ReadmeUploader(Uploader):
+    """
+    Stores a database folder's ``README.md`` verbatim so the frontend can
+    render the contributor guide next to the data dictionary.
+    """
+
+    def upload_one(self, file_path: str) -> str:
+        file_path = get_abs_path(file_path)
+        database = readme_database(file_path)
+        if database is None:
+            return f"Skipping README in unknown folder {path.dirname(file_path)}"
+        with open(file_path, encoding="utf-8-sig") as file:
+            content = file.read()
+        with Session() as session:
+            session.merge(DatabaseReadme(database=database, content=content))
+            session.commit()
+        return f"{database}/README.md: {len(content)} characters"
+
+
 def upload_one(input_type: Type, filename: str) -> str:
     """
     Handles individual file uploads based on type
@@ -588,6 +638,8 @@ def upload_one(input_type: Type, filename: str) -> str:
         match input_type:
             case Type.DICTIONARY:
                 uploader = DictionaryUploader()
+            case Type.README:
+                uploader = ReadmeUploader()
             case Type.BRACE:
                 uploader = TableUploader(Brace)
             case Type.COLUMN:
@@ -965,6 +1017,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     Type.DICTIONARY,
                     path.join(root_folder, "steel_braces_data_dictionary.csv"),
                 ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.BRACE_DISPLACEMENT,
                     path.join(root_folder, "force_displacement", "*.csv"),
@@ -978,6 +1031,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     Type.DICTIONARY,
                     path.join(root_folder, "steel_columns_data_dictionary.csv"),
                 ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.COLUMN_AXIAL_SHORTENING,
                     path.join(
@@ -1003,6 +1057,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     Type.DICTIONARY,
                     path.join(root_folder, "connections_data_dictionary.csv"),
                 ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.CONNECTION_BEAM,
                     path.join(root_folder, "Beam_moment_rotation", "*.csv"),
@@ -1036,6 +1091,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     Type.DICTIONARY,
                     path.join(root_folder, "steel_material_data_dictionary.csv"),
                 ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.MATERIAL_STRESS_STRAIN,
                     path.join(root_folder, "stress_strain", "*.csv"),
@@ -1052,6 +1108,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     Type.DICTIONARY,
                     path.join(root_folder, "residual_stresses_data_dictionary.csv"),
                 ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.RESIDUAL_STRESS_DISTRIBUTION_F1,
                     path.join(
@@ -1092,6 +1149,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     Type.DICTIONARY,
                     path.join(root_folder, "hss_columns_data_dictionary.csv"),
                 ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.HSS_COLUMN_MOMENT_ROTATION,
                     path.join(root_folder, "Moment_Rotation", "*.csv"),
@@ -1110,6 +1168,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                         root_folder, "eccentric_braced_frames_data_dictionary.csv"
                     ),
                 ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE,
                     path.join(root_folder, "processed_data", "*.csv"),
@@ -1123,6 +1182,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     Type.DICTIONARY,
                     path.join(root_folder, "tensile_coupons_data_dictionary.csv"),
                 ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.TENSILE_COUPON_STRESS_STRAIN,
                     path.join(root_folder, "stress_strain", "*.csv"),
@@ -1139,6 +1199,7 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     Type.DICTIONARY,
                     path.join(root_folder, "ductile_fracture_data_dictionary.csv"),
                 ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.DUCTILE_FRACTURE_FORCE_ELONGATION,
                     path.join(root_folder, "force_elongation", "*.csv"),

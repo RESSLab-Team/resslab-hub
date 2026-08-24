@@ -57,6 +57,12 @@ export function displayUnit(column: DictColumn): string | undefined {
 export const useDictionaryStore = defineStore('dictionary', () => {
   const columns = ref<Partial<Record<DatabaseId, DictColumn[]>>>({})
   const state = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  /**
+   * Contributor guides (the data repo's per-database `README.md`, served by
+   * `GET /dictionary/{database}/readme` as raw markdown), fetched on demand and
+   * kept for the session. `null` records a database that has none.
+   */
+  const readmes = ref<Partial<Record<DatabaseId, string | null>>>({})
 
   async function fetch(): Promise<void> {
     if (state.value === 'loading' || state.value === 'ready') return
@@ -82,5 +88,16 @@ export const useDictionaryStore = defineStore('dictionary', () => {
     return columnsFor(database).find((column) => column.name === name)
   }
 
-  return { columns, state, ready, fetch, columnsFor, columnFor }
+  async function fetchReadme(database: DatabaseId): Promise<void> {
+    if (database in readmes.value) return
+    try {
+      const { axiosInstance, baseUrl } = await import('@/plugins/axios')
+      const { data } = await axiosInstance.get(`${baseUrl}/dictionary/${database}/readme`)
+      readmes.value[database] = data.content
+    } catch {
+      readmes.value[database] = null
+    }
+  }
+
+  return { columns, state, ready, fetch, columnsFor, columnFor, readmes, fetchReadme }
 })

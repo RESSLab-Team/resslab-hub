@@ -273,6 +273,45 @@ def test_dictionary_uploader_replaces_previous_rows(tmp_path, db_session):
     assert rows[0].description == "New"
 
 
+def test_readme_uploader_keys_by_folder(tmp_path, db_session):
+    from resslab_hub.models.database.dictionary import DatabaseReadme
+
+    folder = tmp_path / "data" / "material" / "cyclic_coupons"
+    folder.mkdir(parents=True)
+    file_path = folder / "README.md"
+    file_path.write_text("# Cyclic coupons\n\nGuide.\n", encoding="utf-8")
+    upload_one(Type.README, str(file_path))
+
+    row = db_session.get(DatabaseReadme, "cyclic")
+    assert row is not None
+    assert row.content.startswith("# Cyclic coupons")
+
+
+def test_readme_uploader_replaces_previous_content(tmp_path, db_session):
+    from resslab_hub.models.database.dictionary import DatabaseReadme
+
+    folder = tmp_path / "braces"
+    folder.mkdir()
+    file_path = folder / "README.md"
+    file_path.write_text("old", encoding="utf-8")
+    upload_one(Type.README, str(file_path))
+    file_path.write_text("new", encoding="utf-8")
+    upload_one(Type.README, str(file_path))
+
+    assert db_session.get(DatabaseReadme, "braces").content == "new"
+
+
+def test_readme_uploader_skips_unknown_folder(tmp_path, db_session):
+    from resslab_hub.models.database.dictionary import DatabaseReadme
+
+    file_path = tmp_path / "README.md"
+    file_path.write_text("root readme", encoding="utf-8")
+    message = upload_one(Type.README, str(file_path))
+
+    assert "Skipping" in message
+    assert db_session.query(DatabaseReadme).count() == 0
+
+
 # ---------------------------------------------------------------------------
 # Derived *_count flags
 # ---------------------------------------------------------------------------

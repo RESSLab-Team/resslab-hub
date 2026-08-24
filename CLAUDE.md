@@ -146,6 +146,8 @@ Each component type has its own directory with a main CSV and a data dictionary.
 | Ductile Fracture | `material/ductile_fracture/` | `ductile_fracture.csv` | `ductile_fracture_data_dictionary.csv` |
 | Residual Stresses | `residual_stresses/` | `residual_stresses.csv` | `residual_stresses_data_dictionary.csv` |
 
+Each directory also carries a `README.md` written for contributors (identifier convention, expected response files with exact headers and units, how to submit); it is uploaded with the data (`Type.README` in `uploader.py`, folder-to-database map `README_DATABASES`) and rendered in the hub's submission form next to the dictionary table, so keep it in step with the uploader/validator when a folder or header changes. Do not duplicate the data dictionary inside it.
+
 Time-series test data (force-displacement, moment-rotation, stress-strain curves) lives in subdirectories: `force_displacement/`, `moment_rotation_strong/`, `moment_rotation_weak/`, `axial_shortening_rotation/`, `Panel_zone/`, `Global/`, `stress_strain/`, etc.
 
 ### Data Dictionary Format

@@ -1062,11 +1062,31 @@
       "no_check_badge": "Pas de contrôle automatique",
       "switch_confirm": "Cliquez à nouveau pour remplacer {count} expérience(s)"
     },
+    "guide": {
+      "title": "Guide de contribution",
+      "tab_guide": "Guide",
+      "tab_dictionary": "Dictionnaire de données",
+      "github": "Voir sur GitHub",
+      "loading": "Chargement du guide…",
+      "missing": "Aucun guide n’a encore été chargé pour cette base.",
+      "column": "Colonne",
+      "symbol": "Symbole",
+      "description": "Description",
+      "unit": "Unité",
+      "type": "Type",
+      "required": "Obligatoire",
+      "example": "Exemple",
+      "dictionary_hint": "{count} colonnes, issues du dictionnaire de données chargé avec les données. Les colonnes obligatoires ne peuvent pas être NA.",
+      "search": "Filtrer les colonnes…",
+      "no_match": "Aucune colonne ne correspond."
+    },
     "editor": {
+      "title": "Expériences",
       "add_experiment": "Ajouter une expérience manuellement",
       "import_csv": "Importer un CSV",
       "template": "Modèle CSV",
       "dictionary": "Dictionnaire de données",
+      "guide": "Guide de contribution",
       "import_ok": "{rows} expérience(s) chargée(s), {matched} colonnes reconnues.",
       "import_missing": "{count} colonne(s) requise(s) manquante(s), soumises comme NR.",
       "import_no_match": "Aucun en-tête ne correspond à cette base. Le fichier vise-t-il une autre base ?",
@@ -1095,7 +1115,8 @@
       "intro": "Partez du modèle CSV ci-dessous — il contient déjà les en-têtes exacts de cette base — et ouvrez le dictionnaire de données pour savoir ce qu’attend chaque colonne (unité, type, caractère obligatoire). Remplissez une ligne par expérience, puis déposez le fichier ici.",
       "intro_files": "Les réponses mesurées sont des fichiers distincts. Nommez chacun d’après le spécimen correspondant (B1.csv pour l’expérience dont l’identifiant est B1) et vous pourrez joindre tout le lot en une fois avec l’ajout en masse, ci-dessous.",
       "checking": "Vérification…",
-      "unchecked": "Non vérifié"
+      "unchecked": "Non vérifié",
+      "intro_guide": "Avant de commencer, lisez le guide de contribution ci-dessous, rédigé par les chercheurs pour cette base : il explique comment l’identifiant du spécimen est construit et quels fichiers de réponse sont attendus, avec leurs en-têtes de colonnes et unités exacts."
     },
     "status": {
       "idle": "Ajoutez au moins une expérience avec un identifiant pour activer la vérification automatique.",

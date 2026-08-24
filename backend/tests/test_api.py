@@ -273,6 +273,46 @@ async def test_validate_surfaces_range_warnings(client, tmp_path):
     assert any("verify" in w for w in body["valid_results"][0]["warnings"])
 
 
+async def test_readme_endpoint_serves_uploaded_markdown(client, tmp_path):
+    from resslab_hub.data.uploader import upload_one as upload
+
+    folder = tmp_path / "residual_stresses"
+    folder.mkdir()
+    (folder / "README.md").write_text("# Residual stresses\n", encoding="utf-8")
+    upload(Type.README, str(folder / "README.md"))
+
+    response = await client.get("/dictionary/residuals/readme")
+    assert response.status_code == 200
+    assert response.json() == {
+        "database": "residuals",
+        "content": "# Residual stresses\n",
+    }
+
+
+async def test_readme_endpoint_404_when_missing(client):
+    response = await client.get("/dictionary/braces/readme")
+    assert response.status_code == 404
+
+
+async def test_validate_ignores_readme_files(client, tmp_path):
+    # Data-repo archives carry the folder README next to the CSVs; like the
+    # dictionary it is metadata, not data, and must not reach the validator.
+    csv_path = tmp_path / "steel_braces.csv"
+    write_main_csv(csv_path, Brace, [{"id": "B1"}])
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w:gz") as tar:
+        tar.add(csv_path, arcname="braces/steel_braces.csv")
+        readme = b"# Braces\n"
+        info = tarfile.TarInfo(name="braces/README.md")
+        info.size = len(readme)
+        tar.addfile(info, io.BytesIO(readme))
+    response = await client.post(
+        "/validate", params={"type": "all-braces"}, files=_upload(buffer.getvalue())
+    )
+    assert response.status_code == 200
+    assert response.json()["valid"] is True
+
+
 # ---------------------------------------------------------------------------
 # /dictionary
 # ---------------------------------------------------------------------------
