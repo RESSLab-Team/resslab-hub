@@ -12,7 +12,6 @@ import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
-import { periwinkle, plum, yellowgreen } from '@/utils/vuetify'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -99,7 +98,6 @@ const {
           @change:searches="changeSearches"
         >
           <hss-double-chart
-            :color="periwinkle"
             :fields="failureModeFields"
             type="line"
             @change:searches="changeSearches"
@@ -114,7 +112,6 @@ const {
           @change:searches="changeSearches"
         >
           <hss-single-chart
-            :color="yellowgreen"
             :field="HSSColumnField.LoadingProtocol"
             :show-reset="false"
             flat
@@ -130,7 +127,6 @@ const {
           @change:searches="changeSearches"
         >
           <hss-single-chart
-            :color="plum"
             :field="HSSColumnField.SteelType"
             :show-reset="false"
             flat

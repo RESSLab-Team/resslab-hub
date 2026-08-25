@@ -12,7 +12,6 @@ import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
-import { apricot, mauve, sky } from '@/utils/vuetify'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -93,7 +92,6 @@ const {
           @change:searches="changeSearches"
         >
           <brace-double-chart
-            :color="sky"
             :fields="boundaryConditionFields"
             type="line"
             @change:searches="changeSearches"
@@ -108,7 +106,6 @@ const {
           @change:searches="changeSearches"
         >
           <brace-single-chart
-            :color="apricot"
             :field="BraceField.LoadingProtocol"
             :show-reset="false"
             flat
@@ -124,7 +121,6 @@ const {
           @change:searches="changeSearches"
         >
           <brace-single-chart
-            :color="mauve"
             :field="BraceField.Steel"
             :show-reset="false"
             flat

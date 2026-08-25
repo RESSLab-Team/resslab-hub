@@ -12,7 +12,6 @@ import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
-import { cobalt, mint, plum } from '@/utils/vuetify'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -103,7 +102,6 @@ const {
           @change:searches="changeSearches"
         >
           <column-double-chart
-            :color="mint"
             :fields="boundaryConditionFields"
             type="line"
             @change:searches="changeSearches"
@@ -116,11 +114,7 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <column-double-chart
-            :color="cobalt"
-            :fields="columnDepthFields"
-            @change:searches="changeSearches"
-          />
+          <column-double-chart :fields="columnDepthFields" @change:searches="changeSearches" />
         </chart-cell>
         <chart-cell
           quiet
@@ -131,7 +125,6 @@ const {
           @change:searches="changeSearches"
         >
           <column-single-chart
-            :color="plum"
             :field="ColumnField.SteelC"
             :show-reset="false"
             flat

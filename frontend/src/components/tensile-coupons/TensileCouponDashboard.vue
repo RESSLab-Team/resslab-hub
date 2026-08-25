@@ -12,7 +12,6 @@ import { TENSILE_COUPON_KEY, fetchTensileCoupons } from '@/components/tensile-co
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
-import { mauve, mint, sky } from '@/utils/vuetify'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -116,7 +115,6 @@ const {
           @change:searches="changeSearches"
         >
           <tensile-coupon-double-chart
-            :color="mint"
             :fields="profileYearFields"
             type="line"
             @change:searches="changeSearches"
@@ -130,7 +128,6 @@ const {
           @change:searches="changeSearches"
         >
           <tensile-coupon-double-chart
-            :color="mauve"
             :fields="profileThicknessFields"
             type="bar"
             @change:searches="changeSearches"
@@ -145,7 +142,6 @@ const {
           @change:searches="changeSearches"
         >
           <tensile-coupon-single-chart
-            :color="sky"
             :field="TensileCouponField.SteelGrade"
             :show-reset="false"
             flat

@@ -23,7 +23,7 @@ const emit = defineEmits<Emits>()
 
 // query via inject (not prop) so a filter change doesn't re-render this chart.
 const query = inject(dashboardQueryKey, toRef(props, 'query'))
-const { getCounts, countsSync, getRange } = useDataset(EBF_KEY, fetchEbfs)
+const { getCounts, countsSync, colorFor, getRange } = useDataset(EBF_KEY, fetchEbfs)
 
 // Synchronous counts for the crossfilter drag path — bound to this chart's request
 // fields so DoubleChart can repaint imperatively (off Vue's reactivity) mid-drag.
@@ -58,7 +58,7 @@ const {
     :animate="false"
     :all-counts="allCounts"
     :live-counts="getLiveCounts"
-    :color="color"
+    :color-for="colorFor(getRequestFields(fields)[1])"
     :counts="counts"
     :date-max="dateMax"
     :date-min="dateMin"

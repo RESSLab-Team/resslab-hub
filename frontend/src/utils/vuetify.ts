@@ -1,6 +1,6 @@
 import i18n from '@/plugins/i18n'
+import { blendHex } from '@/utils/palette'
 import colormap from 'colormap'
-import hexRgb from 'hex-rgb'
 
 export interface Color {
   base: string
@@ -55,11 +55,7 @@ export type SelectItem<V = string | number | object> = string | SelectItemObject
 
 /** Mix a hex color toward black by `amount` (0..1). */
 function darken(hex: string, amount: number): string {
-  const { red, green, blue } = hexRgb(hex)
-  const mix = (c: number) => Math.round(c * (1 - amount))
-  return (
-    '#' + [red, green, blue].map((c) => mix(c).toString(16).padStart(2, '0')).join('')
-  ).toUpperCase()
+  return blendHex(hex, '#000000', amount)
 }
 
 /** Build a sequential Color ramp from the 5 shades of a pastel hue family
@@ -122,26 +118,7 @@ export const primaryColors = [
   yellowgreen
 ]
 
-/** Multi-hue categorical palette — Okabe–Ito (colorblind-safe), handoff order.
-    Brand red stays reserved for selection/emphasis and is never a series color. */
-export const colorPalette: string[] = [
-  '#0072B2', // blue
-  '#E69F00', // amber
-  '#009E73', // green
-  '#CC79A7', // reddish purple
-  '#56B4E9', // sky
-  '#D55E00', // vermillion
-  '#5B6B78', // slate
-  '#332288' // indigo
-]
-
-export function getColorPalette(color: Color, count: number): string[] {
-  if (count <= 1) {
-    return [color.base]
-  }
-  // Categorical series get distinct pastel hues rather than a single-hue ramp.
-  return Array.from({ length: count }, (_, index) => colorPalette[index % colorPalette.length])
-}
+export { colorPalette } from '@/utils/palette'
 
 /** Perceptually-uniform sequential scales for continuous/ordered data
     (fragility families, density ramps). Defaults to viridis; magma/inferno/

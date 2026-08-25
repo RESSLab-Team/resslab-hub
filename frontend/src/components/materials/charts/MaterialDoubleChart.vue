@@ -25,7 +25,7 @@ const emit = defineEmits<Emits>()
 
 // query via inject (not prop) so a filter change doesn't re-render this chart.
 const query = inject(dashboardQueryKey, toRef(props, 'query'))
-const { getCounts, countsSync, getRange, getDateRange } = useDataset<MaterialModel>(
+const { getCounts, countsSync, colorFor, getRange, getDateRange } = useDataset<MaterialModel>(
   MATERIAL_KEY,
   fetchMaterials
 )
@@ -67,7 +67,7 @@ const {
     :animate="false"
     :all-counts="allCounts"
     :live-counts="getLiveCounts"
-    :color="color"
+    :color-for="colorFor(getRequestFields(fields)[1])"
     :counts="counts"
     :date-max="dateMax"
     :date-min="dateMin"

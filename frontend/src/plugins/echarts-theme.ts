@@ -16,6 +16,8 @@
    stack is inlined to mirror epfl-tokens.css.
    ============================================================ */
 
+import { colorPalette } from '@/utils/palette'
+
 // Exported so components can measure text in the exact font ECharts renders
 // (e.g. laying the legend out inline after a title — see DoubleChart.vue).
 export const SANS = "'Suisse Int\\'l', 'SuisseIntl', Arial, 'Helvetica Neue', Helvetica, sans-serif"
@@ -35,18 +37,10 @@ export const INK_SLATE = '#5b6b78'
 // bands and selected/hovered lines. Never a series fill.
 export const RED = '#e30713'
 
-// Categorical series palette — Okabe–Ito (colorblind-safe), handoff order.
-// EPFL red stays reserved for selection/emphasis and is never a series color.
-const SERIES = [
-  '#0072b2', // blue
-  '#e69f00', // amber
-  '#009e73', // green
-  '#cc79a7', // reddish purple
-  '#56b4e9', // sky
-  '#d55e00', // vermillion
-  INK_SLATE, // slate
-  '#332288' // indigo
-]
+// Categorical series palette — Okabe–Ito (colorblind-safe), handoff order; the
+// single definition lives in utils/palette.ts. EPFL red stays reserved for
+// selection/emphasis and is never a series color.
+const SERIES = colorPalette
 
 const axisCommon = {
   axisLine: { lineStyle: { color: AXIS, width: 1 } },

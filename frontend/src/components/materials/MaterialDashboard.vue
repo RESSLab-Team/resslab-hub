@@ -12,7 +12,6 @@ import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
-import { apricot, periwinkle, plum } from '@/utils/vuetify'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -95,7 +94,6 @@ const {
           @change:searches="changeSearches"
         >
           <material-double-chart
-            :color="periwinkle"
             :fields="profileFields"
             type="line"
             @change:searches="changeSearches"
@@ -109,7 +107,6 @@ const {
           @change:searches="changeSearches"
         >
           <material-double-chart
-            :color="apricot"
             :fields="profileThicknessFields"
             type="bar"
             @change:searches="changeSearches"
@@ -124,7 +121,6 @@ const {
           @change:searches="changeSearches"
         >
           <material-single-chart
-            :color="plum"
             :field="MaterialField.Type"
             :show-reset="false"
             flat

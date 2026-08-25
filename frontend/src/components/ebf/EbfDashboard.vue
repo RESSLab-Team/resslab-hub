@@ -13,7 +13,6 @@ import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
 import { sectionTypeMapping } from '@/utils/ebf'
-import { cobalt, mauve, mint, peach, sky } from '@/utils/vuetify'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -115,7 +114,6 @@ const {
           @change:searches="changeSearches"
         >
           <ebf-double-chart
-            :color="peach"
             :fields="yearSectionFields"
             type="line"
             @change:searches="changeSearches"
@@ -129,7 +127,6 @@ const {
           @change:searches="changeSearches"
         >
           <ebf-double-chart
-            :color="mauve"
             :fields="yearLinkFields"
             type="line"
             @change:searches="changeSearches"
@@ -147,7 +144,6 @@ const {
           @change:searches="changeSearches"
         >
           <ebf-single-chart
-            :color="cobalt"
             :field="EccentricBracedFrameField.LPTyp"
             :show-reset="false"
             flat
@@ -163,7 +159,6 @@ const {
           @change:searches="changeSearches"
         >
           <ebf-single-chart
-            :color="mint"
             :field="EccentricBracedFrameField.LConfi"
             :show-reset="false"
             flat
@@ -179,7 +174,6 @@ const {
           @change:searches="changeSearches"
         >
           <ebf-single-chart
-            :color="sky"
             :field="EccentricBracedFrameField.SgFlgLink"
             :show-reset="false"
             flat

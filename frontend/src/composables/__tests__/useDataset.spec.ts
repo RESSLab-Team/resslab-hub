@@ -1,4 +1,6 @@
 import { useDataset } from '@/composables/useDataset'
+import { FALLBACK_CATEGORY_COLOR } from '@/utils/categoryColors'
+import { colorPalette } from '@/utils/palette'
 import { describe, expect, it, vi } from 'vitest'
 
 interface TestModel {
@@ -108,6 +110,34 @@ describe('useDataset crossfilter sync functions', () => {
     await dataset.ready()
     const response = await dataset.getCounts(['connection_type'], 't_dp_tot:>15')
     expect(dataset.countsSync(['connection_type'], 't_dp_tot:>15')).toEqual(response.data)
+  })
+})
+
+describe('useDataset.colorFor', () => {
+  it('answers the fallback grey before the dataset has loaded', () => {
+    const { colorFor } = bind()
+    expect(colorFor('connection_type')('WUF-W')).toBe(FALLBACK_CATEGORY_COLOR)
+  })
+
+  it('assigns slots by unfiltered frequency and ignores the active query', async () => {
+    const dataset = bind()
+    await dataset.ready()
+    const color = dataset.colorFor('connection_type')
+    // WUF-W (2 rows) leads; BFP and RBS tie at 1 and fall back to alphabetical
+    expect(color('WUF-W')).toBe(colorPalette[0])
+    expect(color('BFP')).toBe(colorPalette[1])
+    expect(color('RBS')).toBe(colorPalette[2])
+    // a filter that leaves RBS alone (or first) must not move it
+    await dataset.getCounts(['connection_type'], 'connection_type:RBS')
+    expect(dataset.colorFor('connection_type')('RBS')).toBe(colorPalette[2])
+  })
+
+  it('shares one scale per field across bindings of the same key', async () => {
+    const key = `colors-${keySeq++}`
+    const ds1 = useDataset(key, async () => rows)
+    const ds2 = useDataset(key, async () => rows)
+    await ds1.ready()
+    expect(ds1.colorFor('connection_type')('BFP')).toBe(ds2.colorFor('connection_type')('BFP'))
   })
 })
 

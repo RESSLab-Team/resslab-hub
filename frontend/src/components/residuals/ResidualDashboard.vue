@@ -12,7 +12,6 @@ import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
-import { cobalt, peach, yellowgreen } from '@/utils/vuetify'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -94,7 +93,6 @@ const {
           @change:searches="changeSearches"
         >
           <residual-double-chart
-            :color="peach"
             :fields="profileFields"
             type="line"
             @change:searches="changeSearches"
@@ -108,7 +106,6 @@ const {
           @change:searches="changeSearches"
         >
           <residual-double-chart
-            :color="yellowgreen"
             :fields="[ResidualStressField.H, ResidualStressField.ProfileType]"
             type="bar"
             @change:searches="changeSearches"
@@ -123,7 +120,6 @@ const {
           @change:searches="changeSearches"
         >
           <residual-single-chart
-            :color="cobalt"
             :field="ResidualStressField.Steel"
             :show-reset="false"
             flat

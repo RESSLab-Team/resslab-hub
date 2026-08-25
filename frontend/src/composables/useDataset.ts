@@ -17,6 +17,13 @@
 import type { CountModel, DateRangeModel, MatrixModel, RangeModel } from '@/backend'
 import { counts, dateRange, matrix, range, totalCount } from '@/utils/aggregate'
 import type { Page } from '@/utils/backend'
+import {
+  CATEGORY_COLOR_OVERRIDES,
+  categoryColorScale,
+  categoryDomain,
+  FALLBACK_CATEGORY_COLOR,
+  type ColorScale
+} from '@/utils/categoryColors'
 import { filterRows, inferFieldTypes, type FieldTypes, type Row } from '@/utils/queryEngine'
 import type { AxiosResponse } from 'axios'
 
@@ -24,6 +31,9 @@ interface DatasetEntry {
   rows: Row[]
   fieldTypes: FieldTypes
   ready: Promise<void>
+  // Category color scales, one per field, built from the unfiltered rows on
+  // first use — every chart of the dashboard shares them (see colorFor).
+  colorScales: Map<string, ColorScale>
 }
 
 // Never expires: these are small, static research datasets — a page reload is
@@ -33,7 +43,12 @@ const cache = new Map<string, DatasetEntry>()
 function ensure(key: string, fetchAll: () => Promise<Row[]>): DatasetEntry {
   const existing = cache.get(key)
   if (existing) return existing
-  const entry: DatasetEntry = { rows: [], fieldTypes: {}, ready: Promise.resolve() }
+  const entry: DatasetEntry = {
+    rows: [],
+    fieldTypes: {},
+    ready: Promise.resolve(),
+    colorScales: new Map()
+  }
   entry.ready = fetchAll().then(
     (rows) => {
       entry.rows = rows
@@ -119,6 +134,28 @@ export function useDataset<M extends { id: string }>(
     const entry = load()
     if (!entry.rows.length) return []
     return counts(filterRows(entry.rows, query, entry.fieldTypes), fields)
+  }
+
+  // Stable color per value of a categorical field, keyed off the *unfiltered*
+  // dataset so filtering never repaints a category and every chart of the
+  // dashboard agrees. A plain function (not a ref): the crossfilter drag path
+  // builds its frames off Vue's reactivity. Before the rows have loaded it
+  // answers the fallback grey and does not memoize — the reactive counts that
+  // trigger the first real render only arrive once the dataset is ready.
+  function colorFor(field: string): ColorScale {
+    return (value) => {
+      const entry = load()
+      let scale = entry.colorScales.get(field)
+      if (!scale) {
+        if (!entry.rows.length) return FALLBACK_CATEGORY_COLOR
+        scale = categoryColorScale(
+          categoryDomain(counts(entry.rows, [field])),
+          CATEGORY_COLOR_OVERRIDES[`${key}:${field}`]
+        )
+        entry.colorScales.set(field, scale)
+      }
+      return scale(value)
+    }
   }
 
   async function getTotal(): Promise<AxiosResponse<CountModel[]>> {
@@ -220,6 +257,7 @@ export function useDataset<M extends { id: string }>(
   return {
     getCounts,
     countsSync,
+    colorFor,
     getTotal,
     getRange,
     getDateRange,

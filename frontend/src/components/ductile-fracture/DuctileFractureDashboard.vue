@@ -12,7 +12,6 @@ import { DUCTILE_FRACTURE_KEY, fetchDuctileFractures } from '@/components/ductil
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
-import { apricot, mauve, mint, periwinkle, sky } from '@/utils/vuetify'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -129,7 +128,6 @@ const {
           @change:searches="changeSearches"
         >
           <ductile-fracture-double-chart
-            :color="apricot"
             :fields="dateSpecimenFields"
             type="bar"
             @change:searches="changeSearches"
@@ -144,7 +142,6 @@ const {
           @change:searches="changeSearches"
         >
           <ductile-fracture-single-chart
-            :color="mauve"
             :field="DuctileFractureField.SpecimenType"
             :show-reset="false"
             flat
@@ -160,7 +157,6 @@ const {
           @change:searches="changeSearches"
         >
           <ductile-fracture-single-chart
-            :color="periwinkle"
             :field="DuctileFractureField.SteelType"
             :show-reset="false"
             flat
@@ -178,7 +174,6 @@ const {
           @change:searches="changeSearches"
         >
           <ductile-fracture-double-chart
-            :color="mint"
             :fields="triaxSpecimenFields"
             type="bar"
             @change:searches="changeSearches"
@@ -192,7 +187,6 @@ const {
           @change:searches="changeSearches"
         >
           <ductile-fracture-double-chart
-            :color="sky"
             :fields="lodeSpecimenFields"
             type="bar"
             @change:searches="changeSearches"

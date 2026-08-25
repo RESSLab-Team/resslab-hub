@@ -1,7 +1,6 @@
 import type { CountModel, DateRangeModel, MatrixModel, RangeModel } from '@/backend'
 import type { Value } from '@/utils/common'
 import { debounceAPIParameters, debounceDataTime } from '@/utils/common'
-import type { Color } from '@/utils/vuetify'
 import type { AxiosResponse } from 'axios'
 import { chain, debounce } from 'lodash'
 import { computed, onScopeDispose, ref, shallowRef, watch, type Ref } from 'vue'
@@ -13,7 +12,6 @@ import { cancelScheduled, scheduleFrameUpdate } from './frameScheduler'
 // updates from the same chart (latest-wins) without conflating separate charts.
 let chartInstanceId = 0
 const chartProps = {
-  color: Object as () => Color,
   query: String
 }
 

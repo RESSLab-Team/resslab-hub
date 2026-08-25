@@ -12,7 +12,6 @@ import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
-import { cobalt, peach, periwinkle, plum, sky } from '@/utils/vuetify'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -111,7 +110,6 @@ const {
           @change:searches="changeSearches"
         >
           <connection-double-chart
-            :color="periwinkle"
             :fields="typeYearFields"
             type="line"
             @change:searches="changeSearches"
@@ -126,7 +124,6 @@ const {
           @change:searches="changeSearches"
         >
           <connection-single-chart
-            :color="peach"
             :field="ConnectionField.ConnectionType"
             :show-reset="false"
             flat
@@ -142,7 +139,6 @@ const {
           @change:searches="changeSearches"
         >
           <connection-single-chart
-            :color="cobalt"
             :field="ConnectionField.SteelB"
             :show-reset="false"
             flat
@@ -160,11 +156,7 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <connection-double-chart
-            :color="sky"
-            :fields="beamFields"
-            @change:searches="changeSearches"
-          />
+          <connection-double-chart :fields="beamFields" @change:searches="changeSearches" />
         </chart-cell>
         <chart-cell
           :title="$t('dashboards.connection.chart_column_depth_doubler_plates')"
@@ -174,7 +166,6 @@ const {
           @change:searches="changeSearches"
         >
           <connection-double-chart
-            :color="plum"
             :fields="columnDoublerFields"
             @change:searches="changeSearches"
           />

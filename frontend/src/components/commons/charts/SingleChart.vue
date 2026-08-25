@@ -3,8 +3,8 @@ import type { Count } from '@/composables/chart'
 import { subscribeCrossfilter } from '@/composables/crossfilterBus'
 import { useEChart } from '@/composables/useEChart'
 import i18n from '@/plugins/i18n'
+import { categoryColorScale, categoryDomain, type ColorScale } from '@/utils/categoryColors'
 import type { Value } from '@/utils/common'
-import { getColorPalette, primaryColor, type Color } from '@/utils/vuetify'
 import { SANS } from '@/plugins/echarts-theme'
 import type { EChartsOption } from 'echarts'
 import { TreemapChart } from 'echarts/charts'
@@ -19,7 +19,9 @@ use([CanvasRenderer, TreemapChart, TooltipComponent])
 
 const props = withDefaults(
   defineProps<{
-    color?: Color
+    // Stable value → color lookup shared by every chart of the dashboard (see
+    // useDataset.colorFor). Omitted ⇒ a scale derived from the given counts.
+    colorFor?: ColorScale
     counts?: Count[]
     field: string
     labelPrefix?: string
@@ -36,7 +38,7 @@ const props = withDefaults(
     liveCounts?: (query?: string) => Count[]
   }>(),
   {
-    color: () => primaryColor,
+    colorFor: undefined,
     counts: () => [],
     flat: false,
     showReset: true,
@@ -62,6 +64,7 @@ const reverseMapping = computed(() => {
 
 // Plain builder shared by the reactive path and the imperative bus frames.
 function buildOption(countsData: Count[]): EChartsOption {
+  const colorFor = props.colorFor ?? categoryColorScale(categoryDomain(countsData))
   return {
     animation: props.animate,
     tooltip: {
@@ -80,12 +83,16 @@ function buildOption(countsData: Count[]): EChartsOption {
         top: 0,
         right: 0,
         bottom: 0,
+        // Color set per tile: the treemap otherwise maps `option.color` by the
+        // tile's rank after its own value sort, so a category would change hue
+        // whenever a filter reshuffled the ranking.
         data: countsData.map((count) => {
           const label = props.mapping.get(count.name) ?? count.name
           return {
             name: label,
             value: count.value,
-            originalName: count.name
+            originalName: count.name,
+            itemStyle: { color: colorFor(count.name) }
           }
         }),
         breadcrumb: {
@@ -127,8 +134,7 @@ function buildOption(countsData: Count[]): EChartsOption {
           }
         }
       }
-    ],
-    color: getColorPalette(props.color, countsData.length)
+    ]
   }
 }
 const option = computed<EChartsOption>(() => buildOption(props.counts))

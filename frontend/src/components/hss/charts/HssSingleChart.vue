@@ -20,7 +20,7 @@ const emit = defineEmits<Emits>()
 // query via inject (not prop) so a filter change doesn't re-render this chart —
 // it updates only when its own counts change. See dashboardQueryKey.
 const query = inject(dashboardQueryKey, toRef(props, 'query'))
-const { getCounts, countsSync } = useDataset<HSSColumnModel>(HSS_KEY, fetchHsss)
+const { getCounts, countsSync, colorFor } = useDataset<HSSColumnModel>(HSS_KEY, fetchHsss)
 const { counts, changeSearches } = useSingleChart<HSSColumnField>(
   emit,
   props.field,
@@ -36,7 +36,7 @@ const getLiveCounts = (liveQuery?: string) => toSingleCounts(countsSync([props.f
 <template>
   <single-chart
     :animate="false"
-    :color="color"
+    :color-for="colorFor(field)"
     :counts="counts"
     :live-counts="getLiveCounts"
     :flat="flat"

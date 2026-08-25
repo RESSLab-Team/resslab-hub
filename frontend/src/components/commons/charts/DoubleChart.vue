@@ -9,11 +9,10 @@ import DistributionBrush, {
 import type { DoubleField, DoubleFields } from '@/composables/chart'
 import { SANS } from '@/plugins/echarts-theme'
 import i18n from '@/plugins/i18n'
-import { sum, type Value } from '@/utils/common'
+import { categoryColorScale, categoryDomain, type ColorScale } from '@/utils/categoryColors'
+import { type Value } from '@/utils/common'
 import { mapDateToNumber } from '@/utils/date'
 import { toBins, type BinData } from '@/utils/statistics'
-import type { Color } from '@/utils/vuetify'
-import { getColorPalette, primaryColor } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
 import { BarChart, LineChart } from 'echarts/charts'
 import {
@@ -47,7 +46,10 @@ use([
 
 const props = withDefaults(
   defineProps<{
-    color?: Color
+    // Stable value → color lookup for the second (stacked) field, shared by
+    // every chart of the dashboard (see useDataset.colorFor). Omitted ⇒ a scale
+    // derived from `allCounts`.
+    colorFor?: ColorScale
     counts?: CountModel[]
     // Full unfiltered counts for the distribution brush — never changes shape.
     allCounts?: CountModel[]
@@ -72,7 +74,7 @@ const props = withDefaults(
     liveCounts?: (query?: string) => CountModel[]
   }>(),
   {
-    color: () => primaryColor,
+    colorFor: undefined,
     allCounts: () => [],
     counts: () => [],
     dateMin: undefined,
@@ -199,25 +201,19 @@ function buildCountMap(countsData: CountModel[]): Map<string, number> {
   return map
 }
 const isHistogram = computed<boolean>(() => actualNumberRange.value !== undefined)
+// Stacking/legend order of the second field: by total in the *unfiltered*
+// dataset (ties alphabetical), so neither the order nor — through colorFor —
+// the colors move when a filter reshuffles the filtered totals.
+const secondDomain = computed<string[]>(() => categoryDomain(props.allCounts, 1))
+const colorFor = computed<ColorScale>(
+  () => props.colorFor ?? categoryColorScale(secondDomain.value)
+)
 // The brush overview replicates the main chart's stacked series — same category
-// order, same palette colours (getColorPalette), same counting — but built from
-// the stable unfiltered allCounts so it never collapses as filters apply. When
-// nothing is filtered, allCounts === counts, so the brush is pixel-for-pixel the
-// chart's distribution.
-const brushSecondKeys = computed<string[]>(() =>
-  chain(props.allCounts)
-    .groupBy((count) => count.names[1])
-    .map((values, key) => ({ key, value: values.map((count) => count.value).reduce(sum) }))
-    .sortBy(
-      (item) => -item.value,
-      (item) => item.key
-    )
-    .map((item) => item.key)
-    .value()
-)
-const brushColors = computed<string[]>(() =>
-  getColorPalette(props.color, brushSecondKeys.value.length)
-)
+// order, same colours, same counting — but built from the stable unfiltered
+// allCounts so it never collapses as filters apply. When nothing is filtered,
+// allCounts === counts, so the brush is pixel-for-pixel the chart's distribution.
+const brushSecondKeys = secondDomain
+const brushColors = computed<string[]>(() => brushSecondKeys.value.map(colorFor.value))
 // Unique sorted x positions (numeric values / day numbers) across all series, so
 // stacked area series line up on a shared axis.
 function sortedUnique(values: number[]): number[] {
@@ -318,18 +314,23 @@ const unfilteredYMax = computed<number | undefined>(() => {
 function buildOption(countsData: CountModel[]): EChartsOption {
   const firstKeysValue = deriveFirstKeys(countsData)
   const countMap = buildCountMap(countsData)
+  // Keys present in the (filtered) data, in the stable unfiltered order; a key
+  // missing from allCounts (still loading) falls back to its filtered rank.
+  const domainIndex = new Map(secondDomain.value.map((key, index) => [key, index]))
   const secondKeys: string[] = chain(countsData)
     .groupBy((count) => count.names[1])
     .map((values, key) => ({
       key: key,
-      value: values.map((count) => count.value).reduce(sum)
+      value: values.reduce((total, count) => total + count.value, 0)
     }))
     .sortBy(
+      (item) => domainIndex.get(item.key) ?? Number.MAX_SAFE_INTEGER,
       (item) => -item.value,
       (item) => item.key
     )
     .map((item) => item.key)
     .value()
+  const colorForValue = colorFor.value
   const mapSecondNameValue = unref(mapSecondName)
   // Header row: the variable the colour encodes (e.g. "Number of doubler plates")
   // followed inline by the legend, centred as a group above the plot. Both use
@@ -419,6 +420,9 @@ function buildOption(countsData: CountModel[]): EChartsOption {
       id: serie.name,
       name: mapSecondNameValue(serie.name),
       type: props.type,
+      // Per-series color (not the positional `option.color` list) so a category
+      // keeps its hue whatever its rank in the current selection.
+      color: colorForValue(serie.name),
       showSymbol: serie.data.length === 1, // show symbol to avoid empty chart
       stack: secondField.value,
       areaStyle: {},
@@ -426,8 +430,7 @@ function buildOption(countsData: CountModel[]): EChartsOption {
         focus: 'series'
       },
       data: serie.data
-    })),
-    color: getColorPalette(props.color, secondKeys.length)
+    }))
   }
   return option
 }
