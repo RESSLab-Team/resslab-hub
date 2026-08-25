@@ -20,6 +20,22 @@ export const queryKeyValueSeparator = ':'
 // (staggered) counts. See useDashboard's provide below.
 export const dashboardQueryKey: InjectionKey<Ref<string | undefined>> = Symbol('dashboardQuery')
 
+/**
+ * The committed query with `field`'s clause replaced by `value` (or removed when
+ * undefined): what a brush publishes as a live frame mid-drag, so the frame
+ * filters by the drag *plus* every already-applied filter (see crossfilterBus).
+ */
+export function withFieldClause(
+  query: string | undefined,
+  field: string,
+  value?: string
+): string | undefined {
+  const base = query ? query.split(queryFieldSeparator) : []
+  const clauses = base.filter((clause) => !clause.startsWith(field + queryKeyValueSeparator))
+  if (value) clauses.push(`${field}${queryKeyValueSeparator}${value}`)
+  return clauses.length ? clauses.join(queryFieldSeparator) : undefined
+}
+
 export function useDashboard<M>(
   route: RouteLocationNormalizedLoaded,
   router: Router,

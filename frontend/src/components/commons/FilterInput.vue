@@ -14,11 +14,13 @@ import DateDistributionBrush from '@/components/commons/sliders/DateDistribution
 import DistributionBrush, {
   type BrushSeries
 } from '@/components/commons/sliders/DistributionBrush.vue'
+import { publishLive, publishSettle } from '@/composables/crossfilterBus'
+import { dashboardQueryKey, withFieldClause } from '@/composables/dashboard'
 import { isBrushDragging } from '@/composables/interactionState'
 import type { Value } from '@/utils/common'
 import { mapDateToNumber } from '@/utils/date'
 import type { FilterDescriptor } from '@/utils/filterProfile'
-import { computed, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 
 const props = withDefaults(
   defineProps<{
@@ -38,6 +40,15 @@ const emit = defineEmits<{
 
 /** Bars read as data, not chrome — the muted blue the dashboards' charts use. */
 const BRUSH_COLOR = '#A4BCE3'
+
+// The dashboard's committed query, for the live frames a drag publishes: each
+// frame is that query with this column's clause swapped for the drag position
+// (see crossfilterBus.ts), so the charts and the table follow the handles
+// without a reactive re-render, and the value commits once on pointer-up.
+const query = inject(dashboardQueryKey, ref<string | undefined>(undefined))
+function publishDrag(value: string | undefined): void {
+  publishLive(withFieldClause(query.value, props.filter.key, value))
+}
 
 /* ---- value-set filters (categorical, boolean, and the text shortcuts) ---- */
 
@@ -134,28 +145,38 @@ const numericRange = computed<[number, number]>(() => {
   return numericExtent.value
 })
 
-function commitNumeric(next: [number, number]): void {
+/** The clause for a window, or undefined when the handles sit at both ends —
+ *  "no filter" drops the clause rather than sending a range matching everything. */
+function numericValue(next: [number, number]): string | undefined {
   const [lo, hi] = numericExtent.value
-  // Handles at both ends mean "no filter" — drop the clause rather than sending
-  // a range that matches everything.
-  if (next[0] <= lo && next[1] >= hi) return emit('update', undefined)
-  emit('update', `${next[0]}<<${next[1]}`)
+  return next[0] <= lo && next[1] >= hi ? undefined : `${next[0]}<<${next[1]}`
+}
+
+function commitNumeric(next: [number, number]): void {
+  emit('update', numericValue(next))
 }
 
 function changeNumeric(next: [number, number]): void {
-  liveRange.value = next
-  // A drag emits on every frame; only the number fields commit immediately (the
-  // rail's charts are static, but the table and every dashboard chart re-filter).
-  if (!isBrushDragging.value) {
-    liveRange.value = undefined
-    commitNumeric(next)
+  // A drag emits on every frame: hold the window locally for the brush and
+  // publish it to the bus, so the dashboard follows live without committing.
+  // The number fields (no drag) commit at once.
+  if (isBrushDragging.value) {
+    liveRange.value = next
+    publishDrag(numericValue(next))
+    return
   }
+  liveRange.value = undefined
+  commitNumeric(next)
 }
 
+// Pointer-up: commit through Vue first, then settle the bus (see DoubleChart) so
+// the committed recompute lands with the charts unfrozen. Fires for a no-op
+// click too, so nothing can stay frozen.
 function endNumericDrag(): void {
   const next = liveRange.value
   liveRange.value = undefined
   if (next) commitNumeric(next)
+  publishSettle()
 }
 
 /* ---- date ---- */
@@ -180,25 +201,30 @@ const dateRange = computed<[string, string]>(() => {
   return [props.filter.dateMin ?? '', props.filter.dateMax ?? '']
 })
 
+function dateValue(next: [string, string]): string | undefined {
+  const open = next[0] <= (props.filter.dateMin ?? '') && next[1] >= (props.filter.dateMax ?? '')
+  return open ? undefined : `${next[0]}<<${next[1]}`
+}
+
 function commitDate(next: [string, string]): void {
-  if (next[0] <= (props.filter.dateMin ?? '') && next[1] >= (props.filter.dateMax ?? '')) {
-    return emit('update', undefined)
-  }
-  emit('update', `${next[0]}<<${next[1]}`)
+  emit('update', dateValue(next))
 }
 
 function changeDate(next: [string, string]): void {
-  liveDate.value = next
-  if (!isBrushDragging.value) {
-    liveDate.value = undefined
-    commitDate(next)
+  if (isBrushDragging.value) {
+    liveDate.value = next
+    publishDrag(dateValue(next))
+    return
   }
+  liveDate.value = undefined
+  commitDate(next)
 }
 
 function endDateDrag(): void {
   const next = liveDate.value
   liveDate.value = undefined
   if (next) commitDate(next)
+  publishSettle()
 }
 </script>
 

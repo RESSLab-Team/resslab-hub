@@ -27,11 +27,7 @@ import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { chain, clone, range } from 'lodash'
 import { isBrushDragging } from '@/composables/interactionState'
 import { publishLive, publishSettle, subscribeCrossfilter } from '@/composables/crossfilterBus'
-import {
-  dashboardQueryKey,
-  queryFieldSeparator,
-  queryKeyValueSeparator
-} from '@/composables/dashboard'
+import { dashboardQueryKey, withFieldClause } from '@/composables/dashboard'
 import { computed, inject, onBeforeUnmount, onMounted, onUnmounted, ref, unref, watch } from 'vue'
 
 use([
@@ -497,14 +493,10 @@ const unsubscribe = subscribeCrossfilter({
 })
 onUnmounted(unsubscribe)
 
-// Build the `field:value` clause for the dragged range and splice it into the
-// committed query (replacing any prior clause for this field), so a live frame
-// filters by the current drag *plus* every already-applied filter.
-function withFieldClause(field: string, value?: string): string | undefined {
-  const base = query.value ? query.value.split(queryFieldSeparator) : []
-  const clauses = base.filter((clause) => !clause.startsWith(field + queryKeyValueSeparator))
-  if (value) clauses.push(`${field}${queryKeyValueSeparator}${value}`)
-  return clauses.length ? clauses.join(queryFieldSeparator) : undefined
+// The live frame for the dragged range: the committed query with this field's
+// clause swapped for the drag position (see withFieldClause in dashboard.ts).
+function liveFrame(field: string, value?: string): string | undefined {
+  return withFieldClause(query.value, field, value)
 }
 
 function numberSearchValue(value?: [number, number]): string | undefined {
@@ -529,7 +521,7 @@ function dateSearchValue(value?: [string, string]): string | undefined {
 watch(actualNumberRange, (value) => {
   const searchValue = numberSearchValue(value)
   if (isBrushDragging.value && props.liveCounts) {
-    publishLive(withFieldClause(props.fields[0], searchValue))
+    publishLive(liveFrame(props.fields[0], searchValue))
   } else {
     emit('change:searches', props.fields[0], searchValue)
   }
@@ -537,7 +529,7 @@ watch(actualNumberRange, (value) => {
 watch(actualDateRange, (value) => {
   const searchValue = dateSearchValue(value)
   if (isBrushDragging.value && props.liveCounts) {
-    publishLive(withFieldClause(props.fields[0], searchValue))
+    publishLive(liveFrame(props.fields[0], searchValue))
   } else {
     emit('change:searches', props.fields[0], searchValue)
   }
