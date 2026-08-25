@@ -984,12 +984,10 @@ function downloadZip(): void {
                 >
                   <span
                     v-if="header.categoryColor && cellText(header, item)"
-                    :class="['cell-category', { tag: header.cellVariant === 'tag' }]"
+                    class="tag cell-category"
                     :style="{ '--category-color': categoryColor(header, item) }"
+                    >{{ cellText(header, item) }}</span
                   >
-                    <i class="cell-category__swatch" aria-hidden="true" />
-                    {{ cellText(header, item) }}
-                  </span>
                   <span
                     v-else-if="header.cellVariant === 'tag' && cellText(header, item)"
                     class="tag"
@@ -1556,26 +1554,16 @@ function downloadZip(): void {
 .tag {
   /* inherits the global .tag pill styling */
 }
-/* Category value: a 10px square swatch (the ECharts legend marker) in the
-   chart's color for that value, then the text in ink — the color identifies,
-   the text stays readable. Falls back to the muted grey until the dataset's
-   scale is known. Inside a tag pill the chrome takes a light tint of it. */
+/* Category value: a tag pill in the chart's color for that value — text and
+   border in the color (text pulled slightly toward ink so amber/sky stay
+   legible), background a desaturated tint of it. Falls back to the muted grey
+   until the dataset's scale is known. */
 .cell-category {
   --category-color: #c1c1c1;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  color: color-mix(in srgb, var(--category-color) 80%, var(--fg));
+  border-color: var(--category-color);
+  background: color-mix(in srgb, var(--category-color) 12%, var(--bg));
   white-space: nowrap;
-}
-.cell-category__swatch {
-  flex: none;
-  width: 10px;
-  height: 10px;
-  background: var(--category-color);
-}
-.cell-category.tag {
-  border-color: color-mix(in srgb, var(--category-color) 45%, var(--border));
-  background: color-mix(in srgb, var(--category-color) 10%, var(--bg));
 }
 
 /* Loading indicator — a single EPFL-red segment with square ends marching along
