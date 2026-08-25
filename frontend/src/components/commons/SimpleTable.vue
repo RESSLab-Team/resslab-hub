@@ -1,7 +1,10 @@
 <script setup lang="ts" generic="M extends { id: string }">
 import CheckboxDialog, { type CheckBoxDialogItem } from '@/components/commons/CheckboxDialog.vue'
+import FilterInput from '@/components/commons/FilterInput.vue'
 import TextSubscript, { stripSubSup } from '@/components/commons/TextSubscript.vue'
+import { isBrushDragging } from '@/composables/interactionState'
 import { DownloadType, type Column, type ColumnType } from '@/composables/table'
+import { useFilterProfile } from '@/composables/useAutoFilters'
 import { useColumnWidths, type MeasurableColumn } from '@/composables/useColumnWidths'
 import { useVirtualRows } from '@/composables/useVirtualRows'
 import i18n from '@/plugins/i18n'
@@ -13,7 +16,8 @@ import {
 } from '@/stores/dictionary'
 import { useNotificationStore } from '@/stores/notification'
 import type { ColorScale } from '@/utils/categoryColors'
-import { shareCurrentUrl, type Searches } from '@/utils/common'
+import { shareCurrentUrl, type Searches, type Value } from '@/utils/common'
+import type { FilterDescriptor } from '@/utils/filterProfile'
 import { formatValue } from '@/utils/queryEngine'
 import type { DatabaseId } from '@/utils/navigation'
 import type { DataOptions } from '@/utils/vuetify'
@@ -29,7 +33,7 @@ import {
   mdiSortAscending,
   mdiSortDescending
 } from '@mdi/js'
-import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -488,8 +492,47 @@ function emitOptions(): void {
 // the hover-out close for as long as it's there.
 const menuHasFocus = ref(false)
 function toggleMenu(header: TableHeader, open: boolean): void {
-  if (!open && menuHasFocus.value) return
+  // A histogram drag also wanders off the popover; keep it open until pointer-up.
+  if (!open && (menuHasFocus.value || isBrushDragging.value)) return
   openMenuKey.value = open ? header.key : undefined
+}
+
+// The dashboard's profiled filters (see useAutoFilters) give the menu the same
+// inputs as the rail — a value list for categories, a histogram with bounds for
+// numbers — where the column's declared type would only offer a text box.
+const filterProfile = useFilterProfile(() => props.databaseId)
+const filterByKey = computed(
+  () => new Map(filterProfile.value.map((descriptor) => [descriptor.key, descriptor]))
+)
+const slots = useSlots()
+/**
+ * The profiled filter to render in a column's menu, or undefined to fall back to
+ * the declared-type inputs: free text keeps its instant native input, and a
+ * column with a custom select item (the connection-type pictures) keeps its
+ * select.
+ */
+function richFilterFor(header: TableHeader): FilterDescriptor | undefined {
+  if (slots[`header-select-item.${header.key}`]) return undefined
+  const descriptor = filterByKey.value.get(header.key)
+  if (!descriptor) return undefined
+  switch (descriptor.kind) {
+    case 'categorical':
+    case 'boolean':
+      return descriptor.options ? descriptor : undefined
+    case 'numeric':
+      return descriptor.binEdges ? descriptor : undefined
+    case 'date':
+      return descriptor.dateMin && descriptor.dateMax ? descriptor : undefined
+    default:
+      return undefined
+  }
+}
+// The rail's inputs clear with `undefined`; the searches object holds no key for
+// a cleared filter (see useDashboard.changeSearches), so drop it rather than
+// storing an empty value the query builder would have to skip.
+function setColumnSearch(header: TableHeader, value?: Value): void {
+  if (value === undefined) delete columnSearches.value[header.key]
+  else columnSearches.value[header.key] = value
 }
 function onMenuFocusOut(event: FocusEvent): void {
   const root = event.currentTarget as HTMLElement
@@ -874,9 +917,23 @@ function downloadZip(): void {
                         <v-icon size="16" :icon="mdiClose" />
                         {{ $t('commons.clear_sort') }}
                       </button>
-                      <div class="stbl-menu-filter">
+                      <div class="stbl-menu-filter" :class="{ 'is-rich': !!richFilterFor(header) }">
+                        <!-- The rail's input for this column (value list, histogram
+                             with its bounds below, date range). Mounted only while
+                             this menu is open: the ECharts brush is the one thing
+                             here too heavy to keep around for every column. -->
+                        <template v-if="richFilterFor(header)">
+                          <filter-input
+                            v-if="openMenuKey === header.key"
+                            fields="below"
+                            :filter="richFilterFor(header)!"
+                            :meta="false"
+                            :value="columnSearches[header.key]"
+                            @update="setColumnSearch(header, $event)"
+                          />
+                        </template>
                         <v-select
-                          v-if="header.options"
+                          v-else-if="header.options"
                           v-bind="vInputBind"
                           :model-value="(columnSearches[header.key] as string)"
                           :label="$t('commons.filter')"
@@ -1418,6 +1475,15 @@ function downloadZip(): void {
 }
 .stbl-menu-filter {
   padding: 2px 10px 6px;
+}
+/* The rail's inputs need room for a histogram or a value list with counts;
+   the popover is otherwise sized to its sort rows. */
+.stbl-menu-filter.is-rich {
+  width: 280px;
+  padding-top: 6px;
+}
+.stbl-menu-filter.is-rich .afr-options {
+  margin: 0 -4px;
 }
 .stbl-menu-input {
   width: 100%;

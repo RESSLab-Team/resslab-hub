@@ -17,11 +17,13 @@ const props = withDefaults(
     // Stacked series with [dayNumber, count] points (already numeric positions).
     series?: BrushSeries[]
     type?: 'bar' | 'line'
+    fields?: 'sides' | 'below'
   }>(),
   {
     modelValue: undefined,
     series: () => [],
-    type: 'bar'
+    type: 'bar',
+    fields: 'sides'
   }
 )
 const emit = defineEmits<{
@@ -43,6 +45,7 @@ const rangeNumber = computed<[number, number] | undefined>({
 
 <template>
   <distribution-brush
+    :fields="fields"
     :formatter="mapNumberToDate"
     :max="maxNumber"
     :min="minNumber"

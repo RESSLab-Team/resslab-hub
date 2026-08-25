@@ -53,6 +53,10 @@ const props = withDefaults(
     binEdges?: number[]
     // Render the handle/bound values through a formatter (used by the date variant).
     formatter?: (value: number) => string
+    // Where the min/max fields sit: flanking the chart (chart strips, the rail),
+    // or on their own line below it, under the handles they belong to (popovers,
+    // where width is scarce and height is not).
+    fields?: 'sides' | 'below'
   }>(),
   {
     modelValue: undefined,
@@ -60,7 +64,8 @@ const props = withDefaults(
     step: 1,
     type: 'bar',
     binEdges: undefined,
-    formatter: undefined
+    formatter: undefined,
+    fields: 'sides'
   }
 )
 const emit = defineEmits<{
@@ -329,8 +334,12 @@ function setLocal(value: [number, number]): void {
   localRange.value = next
 }
 
+// Fractional steps (0.001 for a ratio column) would otherwise surface float
+// noise like 0.30000000000000004 in the chip and the URL: round to the step's
+// own decimals.
+const stepDecimals = computed<number>(() => Math.max(0, -Math.floor(Math.log10(props.step))))
 function snap(v: number): number {
-  return Math.round(v / props.step) * props.step
+  return Number((Math.round(v / props.step) * props.step).toFixed(stepDecimals.value))
 }
 // Pointer x → real value (through axis space, so binned charts invert the bin
 // mapping back to a real value).
@@ -462,10 +471,12 @@ const displayMax = computed(() =>
 </script>
 
 <template>
-  <div class="dist-brush">
+  <div class="dist-brush" :class="{ 'dist-brush--stacked': fields === 'below' }">
+    <!-- DOM order is always min, chart, max; the stacked layout reorders with
+         flex `order` so the chart takes the first line and the fields the second. -->
     <v-text-field
       v-if="!formatter"
-      :class="fieldClass"
+      :class="[fieldClass, 'dist-brush__min']"
       density="compact"
       hide-details
       :max="actualMax"
@@ -476,7 +487,7 @@ const displayMax = computed(() =>
       variant="underlined"
       @change="onMinChanged"
     />
-    <span v-else class="dist-brush__bound">{{ displayMin }}</span>
+    <span v-else class="dist-brush__bound dist-brush__min">{{ displayMin }}</span>
     <div ref="chartEl" class="dist-brush__chart">
       <v-chart
         class="dist-brush__canvas"
@@ -497,7 +508,7 @@ const displayMax = computed(() =>
     </div>
     <v-text-field
       v-if="!formatter"
-      :class="fieldClass"
+      :class="[fieldClass, 'dist-brush__max']"
       density="compact"
       hide-details
       :max="actualMax"
@@ -508,7 +519,7 @@ const displayMax = computed(() =>
       variant="underlined"
       @change="onMaxChanged"
     />
-    <span v-else class="dist-brush__bound">{{ displayMax }}</span>
+    <span v-else class="dist-brush__bound dist-brush__max">{{ displayMax }}</span>
   </div>
 </template>
 
@@ -517,6 +528,33 @@ const displayMax = computed(() =>
   display: flex;
   align-items: stretch;
   gap: 10px;
+}
+/* Fields below the chart: the chart wraps onto its own full-width line first,
+   the bounds share the line under it, each under the handle it controls. */
+.dist-brush--stacked {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+.dist-brush--stacked .dist-brush__chart {
+  order: -1;
+  flex: 1 1 100%;
+}
+.dist-brush--stacked :deep(.v-text-field),
+.dist-brush--stacked .dist-brush__bound {
+  flex: 0 0 auto;
+  width: 72px;
+  align-self: auto;
+}
+.dist-brush--stacked :deep(.dist-brush__min .v-field__input),
+.dist-brush--stacked :deep(.dist-brush__min .v-field__input input),
+.dist-brush--stacked .dist-brush__bound.dist-brush__min {
+  text-align: left;
+}
+.dist-brush--stacked :deep(.dist-brush__max .v-field__input),
+.dist-brush--stacked :deep(.dist-brush__max .v-field__input input),
+.dist-brush--stacked .dist-brush__bound.dist-brush__max {
+  text-align: right;
 }
 .dist-brush__chart {
   position: relative;

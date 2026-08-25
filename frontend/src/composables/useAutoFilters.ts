@@ -26,7 +26,16 @@ import {
 } from '@/utils/filterProfile'
 import type { DatabaseId } from '@/utils/navigation'
 import type { Row } from '@/utils/queryEngine'
-import { computed, ref, shallowRef, type ComputedRef, type Ref } from 'vue'
+import {
+  computed,
+  ref,
+  shallowReactive,
+  shallowRef,
+  toValue,
+  type ComputedRef,
+  type MaybeRefOrGetter,
+  type Ref
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export interface LabeledFilter extends FilterDescriptor {
@@ -59,6 +68,25 @@ export interface AutoFilterOptions<M extends { id: string }> {
 // cached for the life of the page, so a second visit to a dashboard reuses this.
 const profiles = new Map<string, FilterDescriptor[]>()
 
+// The same profiles keyed by database, for consumers that live below the
+// dashboard and only know which database they show (the table's column-header
+// menus). Reactive so a table mounted before profiling finishes picks the
+// descriptors up when they land.
+const profilesByDatabase = shallowReactive(new Map<DatabaseId, FilterDescriptor[]>())
+
+/**
+ * The profiled descriptors of a database once its dashboard has run
+ * {@link useAutoFilters} — empty until then, or when nothing profiled it.
+ */
+export function useFilterProfile(
+  database: MaybeRefOrGetter<DatabaseId | undefined>
+): ComputedRef<FilterDescriptor[]> {
+  return computed(() => {
+    const id = toValue(database)
+    return (id && profilesByDatabase.get(id)) ?? []
+  })
+}
+
 export function useAutoFilters<M extends { id: string }>(
   options: AutoFilterOptions<M>
 ): {
@@ -74,6 +102,7 @@ export function useAutoFilters<M extends { id: string }>(
   // (each with its option list and histogram bins) would cost more than it buys.
   const descriptors = shallowRef<FilterDescriptor[]>(profiles.get(options.datasetKey) ?? [])
   const loading = ref<boolean>(descriptors.value.length === 0)
+  if (!loading.value) profilesByDatabase.set(options.database, descriptors.value)
 
   if (loading.value) {
     Promise.all([dictionary.fetch(), dataset.ready()])
@@ -83,6 +112,7 @@ export function useAutoFilters<M extends { id: string }>(
           cached ??
           profileColumns(dataset.rowsSync() as Row[], dictionary.columnsFor(options.database))
         profiles.set(options.datasetKey, profile)
+        profilesByDatabase.set(options.database, profile)
         descriptors.value = profile
         if (import.meta.env.DEV && !cached) auditProfile(options.database, profile)
       })
