@@ -16,7 +16,7 @@ import {
 } from '@/stores/dictionary'
 import { useNotificationStore } from '@/stores/notification'
 import type { ColorScale } from '@/utils/categoryColors'
-import { shareCurrentUrl, type Searches, type Value } from '@/utils/common'
+import { isStructuredFilterValue, shareCurrentUrl, type Searches, type Value } from '@/utils/common'
 import type { FilterDescriptor } from '@/utils/filterProfile'
 import { formatValue } from '@/utils/queryEngine'
 import type { DatabaseId } from '@/utils/navigation'
@@ -531,8 +531,26 @@ function richFilterFor(header: TableHeader): FilterDescriptor | undefined {
 // a cleared filter (see useDashboard.changeSearches), so drop it rather than
 // storing an empty value the query builder would have to skip.
 function setColumnSearch(header: TableHeader, value?: Value): void {
-  if (value === undefined) delete columnSearches.value[header.key]
+  if (value === undefined || value === '') delete columnSearches.value[header.key]
   else columnSearches.value[header.key] = value
+}
+// A rich column offers both inputs — the rail's (value list / histogram) and a
+// typed box for one exact number or a text fragment. They write the same key,
+// so whichever holds the value owns it and the other is greyed out until it is
+// cleared. The grammar tells them apart: the rail's inputs emit `=value`,
+// arrays and `lo<<hi`; the typed box stores bare text.
+function richValueFor(header: TableHeader): Value | undefined {
+  const value = columnSearches.value[header.key]
+  return isStructuredFilterValue(value) ? value : undefined
+}
+function typedValueFor(header: TableHeader): string | undefined {
+  const value = columnSearches.value[header.key]
+  if (isStructuredFilterValue(value) || !hasColumnFilter(header)) return undefined
+  return String(value)
+}
+/** Booleans and dates gain nothing from a text box; numbers and categories do. */
+function hasTypedInput(filter: FilterDescriptor): boolean {
+  return filter.kind === 'numeric' || filter.kind === 'categorical'
 }
 function onMenuFocusOut(event: FocusEvent): void {
   const root = event.currentTarget as HTMLElement
@@ -923,13 +941,36 @@ function downloadZip(): void {
                              this menu is open: the ECharts brush is the one thing
                              here too heavy to keep around for every column. -->
                         <template v-if="richFilterFor(header)">
-                          <filter-input
-                            v-if="openMenuKey === header.key"
-                            fields="below"
-                            :filter="richFilterFor(header)!"
-                            :meta="false"
-                            :value="columnSearches[header.key]"
-                            @update="setColumnSearch(header, $event)"
+                          <div
+                            class="stbl-menu-rich"
+                            :class="{ 'is-off': typedValueFor(header) !== undefined }"
+                            :aria-disabled="typedValueFor(header) !== undefined"
+                          >
+                            <filter-input
+                              v-if="openMenuKey === header.key"
+                              fields="below"
+                              :filter="richFilterFor(header)!"
+                              :meta="false"
+                              :value="richValueFor(header)"
+                              @update="setColumnSearch(header, $event)"
+                            />
+                          </div>
+                          <!-- One exact number, or a text fragment, typed instead
+                               of brushed or ticked. -->
+                          <input
+                            v-if="hasTypedInput(richFilterFor(header)!)"
+                            class="stbl-menu-input stbl-menu-typed"
+                            :type="richFilterFor(header)!.kind === 'numeric' ? 'number' : 'search'"
+                            :disabled="richValueFor(header) !== undefined"
+                            :value="typedValueFor(header) ?? ''"
+                            :placeholder="
+                              richFilterFor(header)!.kind === 'numeric'
+                                ? $t('commons.exact_value')
+                                : $t('commons.contains_text')
+                            "
+                            @input="
+                              setColumnSearch(header, ($event.target as HTMLInputElement).value)
+                            "
                           />
                         </template>
                         <v-select
@@ -1484,6 +1525,19 @@ function downloadZip(): void {
 }
 .stbl-menu-filter.is-rich .afr-options {
   margin: 0 -4px;
+}
+/* Whichever of the two inputs holds the filter owns it: the other fades and
+   stops taking the pointer until the value is cleared. */
+.stbl-menu-rich.is-off {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.stbl-menu-typed {
+  margin-top: 10px;
+}
+.stbl-menu-typed:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 .stbl-menu-input {
   width: 100%;

@@ -44,6 +44,19 @@ export function formatFilterValue(value: Value, t: Translate): string {
   return text.includes(',') ? t('commons.n_selected', { n: text.split(',').length }) : text
 }
 
+/**
+ * Whether a filter value was written in the structured grammar the rail's
+ * inputs emit — an exact match (`=value`), a value set (array) or a range
+ * (`lo<<hi`) — as opposed to the bare text a typed filter box holds. Where a
+ * column offers both inputs, this decides which one owns the value.
+ */
+export function isStructuredFilterValue(value: Value | undefined): boolean {
+  if (value === undefined || value === null || value === '') return false
+  if (Array.isArray(value)) return value.length > 0
+  const text = String(value)
+  return text.startsWith('=') || text.includes('<<')
+}
+
 export const publicPath: string = import.meta.env.BASE_URL ?? ''
 
 export const globalSearchKey = 'search'

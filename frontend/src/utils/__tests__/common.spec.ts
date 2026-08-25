@@ -1,5 +1,22 @@
-import { filterColumnValue, shareCurrentUrl, sum } from '@/utils/common'
+import { filterColumnValue, isStructuredFilterValue, shareCurrentUrl, sum } from '@/utils/common'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+
+describe('common.isStructuredFilterValue', () => {
+  it('recognises the grammar the rail inputs emit', () => {
+    expect(isStructuredFilterValue('=RBS')).toBe(true)
+    expect(isStructuredFilterValue(['RBS', 'WUF-W'])).toBe(true)
+    expect(isStructuredFilterValue('20<<80')).toBe(true)
+  })
+
+  it('treats typed text, numbers and empty values as unstructured', () => {
+    expect(isStructuredFilterValue('RBS')).toBe(false)
+    expect(isStructuredFilterValue('0.17')).toBe(false)
+    expect(isStructuredFilterValue(42)).toBe(false)
+    expect(isStructuredFilterValue('')).toBe(false)
+    expect(isStructuredFilterValue([])).toBe(false)
+    expect(isStructuredFilterValue(undefined)).toBe(false)
+  })
+})
 
 describe('common.sum', () => {
   it('adds two numbers (used as a reduce seed)', () => {

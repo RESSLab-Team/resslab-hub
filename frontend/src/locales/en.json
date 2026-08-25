@@ -482,6 +482,8 @@
     "max_download": "You cannot download more than {max} items.",
     "search": "Search",
     "filter": "Filter",
+    "exact_value": "Exact value",
+    "contains_text": "Contains…",
     "sort_asc": "Sort ascending",
     "sort_desc": "Sort descending",
     "clear_sort": "Clear sort",

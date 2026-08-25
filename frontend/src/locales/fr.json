@@ -579,6 +579,8 @@
     "max_download": "Vous ne pouvez pas télécharger plus de {max} éléments.",
     "search": "Rechercher",
     "filter": "Filtrer",
+    "exact_value": "Valeur exacte",
+    "contains_text": "Contient…",
     "sort_asc": "Trier par ordre croissant",
     "sort_desc": "Trier par ordre décroissant",
     "clear_sort": "Supprimer le tri",
