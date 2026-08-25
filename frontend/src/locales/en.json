@@ -487,6 +487,7 @@
     "sort_asc": "Sort ascending",
     "sort_desc": "Sort descending",
     "clear_sort": "Clear sort",
+    "clear_filter": "Clear filter",
     "column_options": "Column options",
     "reset_filters": "Reset filters",
     "download": "Download",

@@ -26,6 +26,7 @@ import {
   mdiChevronDown,
   mdiClose,
   mdiDownload,
+  mdiFilterRemoveOutline,
   mdiMagnify,
   mdiMenuDown,
   mdiMenuUp,
@@ -1022,6 +1023,18 @@ function downloadZip(): void {
                           :items="booleanOptions"
                         />
                       </div>
+                      <!-- Drops this column's filter, whichever input set it.
+                           Stays open, like the filter edits, so the inputs are
+                           seen coming back. -->
+                      <button
+                        v-if="hasColumnFilter(header)"
+                        type="button"
+                        class="stbl-menu-item"
+                        @click="setColumnSearch(header, undefined)"
+                      >
+                        <v-icon size="16" :icon="mdiFilterRemoveOutline" />
+                        {{ $t('commons.clear_filter') }}
+                      </button>
                       <div class="stbl-menu-sep" />
                       <!-- Full column title (+ unit) as a caption — the visible
                            header may be ellipsised or swapped to its short label. -->
