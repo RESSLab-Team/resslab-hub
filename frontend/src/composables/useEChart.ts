@@ -23,11 +23,21 @@ import { init } from 'echarts/core'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { onBeforeUnmount, onMounted, type Ref } from 'vue'
 
+/** Payload of ECharts' `legendselectchanged` (fired after its own toggle). */
+export interface LegendSelectChangedParams {
+  /** Display name of the legend entry that was clicked. */
+  name: string
+  /** The legend's selection map as ECharts left it, keyed by display name. */
+  selected: Record<string, boolean>
+}
+
 export type EChartHandlers = Partial<
   Record<
     'click' | 'mouseover' | 'mouseout' | 'axisareaselected',
     (params: CallbackDataParams) => void
-  >
+  > & {
+    legendselectchanged: (params: LegendSelectChangedParams) => void
+  }
 >
 
 /**
@@ -37,7 +47,7 @@ export type EChartHandlers = Partial<
  *
  * @param el        the container element (a plain <div>, sized by CSS)
  * @param initial   builds the option for the first paint on mount
- * @param handlers  optional event handlers (currently just `click`)
+ * @param handlers  optional event handlers, keyed by ECharts event name
  */
 export function useEChart(
   el: Ref<HTMLElement | undefined>,
@@ -59,7 +69,9 @@ export function useEChart(
     // vue-echarts did via THEME_KEY / canvasInitOptions.
     chart = init(el.value, echartsTheme, canvasInitOptions)
     for (const [event, handler] of Object.entries(handlers)) {
-      chart.on(event, (params) => handler(params as CallbackDataParams))
+      // Each event carries its own payload shape (see EChartHandlers); the map
+      // is keyed so the host's handler matches, and the cast just erases that.
+      chart.on(event, (params) => (handler as (params: unknown) => void)(params))
     }
     render(initial())
 

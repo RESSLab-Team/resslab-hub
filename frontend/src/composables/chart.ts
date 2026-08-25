@@ -134,6 +134,17 @@ export interface MappingField<T> {
   id: T
   mapping: Map<string, string>
 }
+/**
+ * Invert a raw-value → display-label mapping so a label coming back from the
+ * chart (a legend entry, a treemap tile) can be turned into the raw value the
+ * query understands. Labels that were never mapped pass through unchanged via
+ * the `?? name` fallback at the call site.
+ */
+export function invertMapping(mapping: Map<string, string>): Map<string, string> {
+  const inverse = new Map<string, string>()
+  for (const [key, label] of mapping.entries()) inverse.set(label, key)
+  return inverse
+}
 export interface RangeOption<F, M> {
   field: Record<string, F>
   getRange: (numberField: F) => Promise<AxiosResponse<M>>
