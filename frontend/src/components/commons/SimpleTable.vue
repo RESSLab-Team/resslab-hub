@@ -1552,17 +1552,17 @@ function downloadZip(): void {
   font-weight: 600;
 }
 .tag {
-  /* inherits the global .tag pill styling */
+  /* global .tag pill, minus its border — a ruled pill per row reads too heavy in a table */
+  border: 0;
 }
-/* Category value: a tag pill in the chart's color for that value — text and
-   border in the color (text pulled slightly toward ink so amber/sky stay
-   legible), background a desaturated tint of it. Falls back to the muted grey
-   until the dataset's scale is known. */
+/* Category value: a tag pill in the chart's color for that value — text in
+   the color (pulled slightly toward ink so amber/sky stay legible) on a
+   desaturated tint of it. Falls back to the muted grey until the dataset's
+   scale is known. */
 .cell-category {
   --category-color: #c1c1c1;
   color: color-mix(in srgb, var(--category-color) 80%, var(--fg));
-  border-color: var(--category-color);
-  background: color-mix(in srgb, var(--category-color) 12%, var(--bg));
+  background: color-mix(in srgb, var(--category-color) 14%, var(--bg));
   white-space: nowrap;
 }
 

@@ -46,8 +46,8 @@ export const TEXT_MIN = 110
 /** Content-fit caps — one absurdly long value must not balloon a column. */
 export const CAP_TEXT = 480
 export const CAP_NUMBER = 260
-/** `tag` pill chrome: 8px padding each side + 1px borders (see `.tag`). */
-const TAG_EXTRA = 18
+/** `tag` pill chrome: 8px padding each side (the table drops the global border). */
+const TAG_EXTRA = 16
 /** Canvas can't apply `tnum`/`<sub>` metrics — pad every measurement a little. */
 const SAFETY_RATIO = 1.03
 const SAFETY_PX = 2
