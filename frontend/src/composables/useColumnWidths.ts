@@ -53,7 +53,7 @@ const SAFETY_RATIO = 1.03
 const SAFETY_PX = 2
 
 /** Font roles mirroring the table CSS (sizes from SimpleTable's scoped styles). */
-export type MeasureFont = 'body' | 'mono' | 'tag' | 'header'
+export type MeasureFont = 'body' | 'mono' | 'tag' | 'strong' | 'header'
 
 export type TextMeasurer = (text: string, font: MeasureFont) => number
 
@@ -111,6 +111,8 @@ function contextFont(font: MeasureFont): string {
       return `12px ${fontFamily}`
     case 'tag':
       return `600 11px ${fontFamily}`
+    case 'strong':
+      return `600 13px ${fontFamily}`
     default:
       return `13px ${fontFamily}`
   }
@@ -135,7 +137,7 @@ export function measureTableText(text: string, font: MeasureFont): number {
     // letter-spacing outside Chromium, so add it per character.
     if (font === 'header') width += text.length * 0.66
   } else {
-    width = text.length * (font === 'body' ? 7.5 : 7)
+    width = text.length * (font === 'body' || font === 'strong' ? 7.5 : 7)
   }
   width = width * SAFETY_RATIO + SAFETY_PX
   measureCache.set(key, width)
@@ -173,7 +175,14 @@ export function measureColumnIdeals(
     const headerMin = measure(headerText, 'header') + HEADER_CHROME + CELL_PAD
     // Category-colored cells render as tag pills whatever their variant.
     const isTag = column.cellVariant === 'tag' || column.categoryColor === true
-    const cellFont: MeasureFont = column.cellVariant === 'mono' ? 'mono' : isTag ? 'tag' : 'body'
+    const cellFont: MeasureFont =
+      column.cellVariant === 'mono'
+        ? 'mono'
+        : isTag
+        ? 'tag'
+        : column.cellVariant === 'strong'
+        ? 'strong'
+        : 'body'
     const tagExtra = isTag ? TAG_EXTRA : 0
     let contentW = 0
     for (const row of rows) {

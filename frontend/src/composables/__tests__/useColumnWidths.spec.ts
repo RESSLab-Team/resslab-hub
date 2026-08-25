@@ -64,6 +64,19 @@ describe('measureColumnIdeals', () => {
     expect(ratio.ideal).toBe('12345678%'.length * 7 + CELL_PAD + LAST_COL_EXTRA)
   })
 
+  it('measures strong (bold identifier) cells with the strong font role', () => {
+    const fonts: string[] = []
+    const spy: TextMeasurer = (text, font) => {
+      fonts.push(font)
+      return text.length * 7
+    }
+    const strong: MeasurableColumn[] = [
+      { key: 'name', title: 'Specimen', type: 'text', cellVariant: 'strong' }
+    ]
+    measureColumnIdeals(strong, [{ name: 'CNT_L1_M_C1_R1_0' }], spy)
+    expect(fonts).toEqual(['header', 'strong'])
+  })
+
   it('honours a fixed width override, skipping measurement entirely', () => {
     const fixed: MeasurableColumn[] = [
       { key: 'name', title: 'Specimen', type: 'text', width: 200 },

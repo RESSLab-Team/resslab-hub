@@ -162,6 +162,7 @@
     "experimental_program": "Programme expérimental",
     "experimental_program_short": "Programme",
     "id": "Désignation de l'éprouvette",
+    "id_short": "Éprouvette",
     "profile": "Section transversale",
     "profile_short": "Section",
     "profile_type": "Type de profilé",
@@ -173,6 +174,8 @@
     "thickness": "Épaisseur [mm]"
   },
   "hss": {
+    "id": "Désignation de l'éprouvette",
+    "id_short": "Éprouvette",
     "tube_section": "Section du poteau",
     "tube_section_short": "Section",
     "investigator": "Programme expérimental",

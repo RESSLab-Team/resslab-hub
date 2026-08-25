@@ -15,6 +15,11 @@ const columns: Column[] = [
     type: 'text'
   },
   {
+    value: ResidualStressField.Id,
+    type: 'text',
+    cellVariant: 'strong'
+  },
+  {
     value: ResidualStressField.Profile,
     type: 'text',
     cellVariant: 'mono'

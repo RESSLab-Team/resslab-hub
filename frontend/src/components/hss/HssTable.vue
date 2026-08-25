@@ -15,6 +15,12 @@ const columns: Column[] = [
     type: 'text'
   },
   {
+    value: HSSColumnField.Id,
+    type: 'text',
+    cellVariant: 'strong',
+    format: (value: unknown) => String(value ?? '').replaceAll('_', ' ')
+  },
+  {
     value: HSSColumnField.TubeSection,
     type: 'text',
     cellVariant: 'mono'

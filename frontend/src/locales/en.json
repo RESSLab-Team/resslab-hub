@@ -82,6 +82,7 @@
     "experimental_program": "Experimental Program",
     "experimental_program_short": "Program",
     "id": "Specimen Designation",
+    "id_short": "Specimen",
     "profile": "Cross Section",
     "profile_short": "Section",
     "profile_type": "Profile type",
@@ -93,6 +94,8 @@
     "thickness": "Thickness [mm]"
   },
   "hss": {
+    "id": "Specimen Designation",
+    "id_short": "Specimen",
     "tube_section": "Column Cross Section",
     "tube_section_short": "Section",
     "investigator": "Experimental Program",

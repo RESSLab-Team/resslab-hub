@@ -15,6 +15,11 @@ const columns: Column[] = [
     type: 'text'
   },
   {
+    value: DuctileFractureField.SpecimenDesignation,
+    type: 'text',
+    cellVariant: 'strong'
+  },
+  {
     value: DuctileFractureField.SteelType,
     categoryColor: true,
     type: 'text'
