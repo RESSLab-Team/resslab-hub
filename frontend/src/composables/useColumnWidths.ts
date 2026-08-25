@@ -48,6 +48,8 @@ export const CAP_TEXT = 480
 export const CAP_NUMBER = 260
 /** `tag` pill chrome: 8px padding each side + 1px borders (see `.tag`). */
 const TAG_EXTRA = 18
+/** Category swatch before the value: 10px square + 6px gap (see `.cell-category`). */
+const SWATCH_EXTRA = 16
 /** Canvas can't apply `tnum`/`<sub>` metrics — pad every measurement a little. */
 const SAFETY_RATIO = 1.03
 const SAFETY_PX = 2
@@ -68,6 +70,7 @@ export interface MeasurableColumn {
   type: ColumnType
   format?: (value: unknown) => string
   cellVariant?: 'mono' | 'tag' | 'strong'
+  categoryColor?: boolean
   /** Fixed width in px — skips measurement; the column never grows or shrinks. */
   width?: number
   /** Tight-space floor in px, overriding the type default. */
@@ -172,7 +175,8 @@ export function measureColumnIdeals(
     const headerMin = measure(headerText, 'header') + HEADER_CHROME + CELL_PAD
     const cellFont: MeasureFont =
       column.cellVariant === 'mono' ? 'mono' : column.cellVariant === 'tag' ? 'tag' : 'body'
-    const tagExtra = column.cellVariant === 'tag' ? TAG_EXTRA : 0
+    const tagExtra =
+      (column.cellVariant === 'tag' ? TAG_EXTRA : 0) + (column.categoryColor ? SWATCH_EXTRA : 0)
     let contentW = 0
     for (const row of rows) {
       const value = row[column.key]

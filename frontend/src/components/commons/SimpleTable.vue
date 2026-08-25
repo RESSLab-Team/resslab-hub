@@ -12,7 +12,9 @@ import {
   type DictColumn
 } from '@/stores/dictionary'
 import { useNotificationStore } from '@/stores/notification'
+import type { ColorScale } from '@/utils/categoryColors'
 import { shareCurrentUrl, type Searches } from '@/utils/common'
+import { formatValue } from '@/utils/queryEngine'
 import type { DatabaseId } from '@/utils/navigation'
 import type { DataOptions } from '@/utils/vuetify'
 import { booleanOptions } from '@/utils/vuetify'
@@ -37,6 +39,7 @@ interface TableHeader {
   options?: string[]
   format?: (value: unknown) => string
   cellVariant?: 'mono' | 'tag' | 'strong'
+  categoryColor?: boolean
   width?: number
   minWidth?: number
   // https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/labs/VDataTable/types.ts
@@ -79,6 +82,9 @@ const props = withDefaults(
     /** Dictionary database id — enables adaptive short header labels derived
      *  from the data dictionary symbols when the long titles don't fit. */
     databaseId?: DatabaseId
+    /** Category color scale per field (useDataset.colorFor) — paints the swatch of
+     *  `categoryColor` columns with the same color the charts use for that value. */
+    colorFor?: (field: string) => ColorScale
   }>(),
   {
     title: undefined,
@@ -96,7 +102,8 @@ const props = withDefaults(
     instant: false,
     liveCount: undefined,
     liveItems: undefined,
-    databaseId: undefined
+    databaseId: undefined,
+    colorFor: undefined
   }
 )
 const emit = defineEmits<{
@@ -396,6 +403,7 @@ const measurableColumns = computed<MeasurableColumn[]>(() =>
     type: header.type,
     format: header.format,
     cellVariant: header.cellVariant,
+    categoryColor: header.categoryColor,
     width: header.width,
     minWidth: header.minWidth
   }))
@@ -568,6 +576,15 @@ function cellText(header: TableHeader, item: M): string {
   return header.format ? header.format(value) : String(value)
 }
 
+// Keyed by the same string the aggregators group on (formatValue), so a boolean
+// or numeric category resolves to the color its chart tile/series wears.
+function categoryColor(header: TableHeader, item: M): string | undefined {
+  if (!header.categoryColor || !props.colorFor) return undefined
+  const value = (item as Record<string, unknown>)[header.key]
+  if (value === null || value === undefined) return undefined
+  return props.colorFor(header.key)(formatValue(value))
+}
+
 function resetFilters(): void {
   globalSearch.value = ''
   columnSearches.value = {}
@@ -638,6 +655,7 @@ function getTableHeader(column: Column): TableHeader {
     type: column.type,
     format: column.format,
     cellVariant: column.cellVariant,
+    categoryColor: column.categoryColor,
     width: column.width,
     minWidth: column.minWidth,
     options: column.options?.sort(),
@@ -964,9 +982,19 @@ function downloadZip(): void {
                   :title="cellText(header, item)"
                   :class="{ 'text-end': header.align === 'end' }"
                 >
-                  <span v-if="header.cellVariant === 'tag' && cellText(header, item)" class="tag">{{
-                    cellText(header, item)
-                  }}</span>
+                  <span
+                    v-if="header.categoryColor && cellText(header, item)"
+                    :class="['cell-category', { tag: header.cellVariant === 'tag' }]"
+                    :style="{ '--category-color': categoryColor(header, item) }"
+                  >
+                    <i class="cell-category__swatch" aria-hidden="true" />
+                    {{ cellText(header, item) }}
+                  </span>
+                  <span
+                    v-else-if="header.cellVariant === 'tag' && cellText(header, item)"
+                    class="tag"
+                    >{{ cellText(header, item) }}</span
+                  >
                   <span
                     v-else
                     :class="{
@@ -1527,6 +1555,27 @@ function downloadZip(): void {
 }
 .tag {
   /* inherits the global .tag pill styling */
+}
+/* Category value: a 10px square swatch (the ECharts legend marker) in the
+   chart's color for that value, then the text in ink — the color identifies,
+   the text stays readable. Falls back to the muted grey until the dataset's
+   scale is known. Inside a tag pill the chrome takes a light tint of it. */
+.cell-category {
+  --category-color: #c1c1c1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.cell-category__swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--category-color);
+}
+.cell-category.tag {
+  border-color: color-mix(in srgb, var(--category-color) 45%, var(--border));
+  background: color-mix(in srgb, var(--category-color) 10%, var(--bg));
 }
 
 /* Loading indicator — a single EPFL-red segment with square ends marching along

@@ -38,6 +38,10 @@ export interface Column {
   format?: (value: any) => string
   /** Design-system cell treatment: 'mono' = smaller section-name text, tag pill, bold identifier */
   cellVariant?: 'mono' | 'tag' | 'strong'
+  /** Prefix the value with its category swatch — for a field the dashboard's
+   *  charts also color by, so the table and the charts share one legend
+   *  (see useDataset.colorFor). */
+  categoryColor?: boolean
   /** Fixed column width in px — skips content-based auto-sizing entirely. */
   width?: number
   /** Width floor in px when space is tight, overriding the type default

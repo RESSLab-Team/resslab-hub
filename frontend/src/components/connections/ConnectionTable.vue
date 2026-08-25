@@ -44,6 +44,7 @@ const columns: Column[] = [
   },
   {
     value: ConnectionField.ConnectionType,
+    categoryColor: true,
     type: 'option',
     options: ['WUF-W', 'RBS', 'WUF-B', 'BFP', 'WFP', 'KBB', 'BEEP'],
     cellVariant: 'tag'
@@ -76,7 +77,7 @@ interface Emits extends TableEmits<ConnectionModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
-const { getTotal, getPage, countRowsSync, pageSync } = useDataset<ConnectionModel>(
+const { getTotal, getPage, countRowsSync, pageSync, colorFor } = useDataset<ConnectionModel>(
   CONNECTION_KEY,
   fetchConnections
 )
@@ -142,6 +143,7 @@ function getImageSource(item: string): string {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    :color-for="colorFor"
     database-id="connections"
     :columns="columns"
     hide-filter-only

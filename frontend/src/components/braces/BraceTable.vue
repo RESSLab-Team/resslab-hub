@@ -26,6 +26,7 @@ const columns: Column[] = [
   },
   {
     value: BraceField.Steel,
+    categoryColor: true,
     type: 'text'
   },
   {
@@ -42,7 +43,7 @@ interface Emits extends TableEmits<BraceModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
-const { getTotal, getPage, countRowsSync, pageSync } = useDataset<BraceModel>(
+const { getTotal, getPage, countRowsSync, pageSync, colorFor } = useDataset<BraceModel>(
   BRACE_KEY,
   fetchBraces
 )
@@ -84,6 +85,7 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    :color-for="colorFor"
     database-id="braces"
     :columns="columns"
     hide-toolbar

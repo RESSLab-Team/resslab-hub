@@ -16,6 +16,7 @@ const columns: Column[] = [
   },
   {
     value: DuctileFractureField.SteelType,
+    categoryColor: true,
     type: 'text'
   },
   {
@@ -25,6 +26,7 @@ const columns: Column[] = [
   },
   {
     value: DuctileFractureField.SpecimenType,
+    categoryColor: true,
     type: 'text',
     cellVariant: 'tag'
   },
@@ -41,7 +43,7 @@ interface Emits extends TableEmits<DuctileFractureModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
-const { getTotal, getPage, countRowsSync, pageSync } = useDataset<DuctileFractureModel>(
+const { getTotal, getPage, countRowsSync, pageSync, colorFor } = useDataset<DuctileFractureModel>(
   DUCTILE_FRACTURE_KEY,
   fetchDuctileFractures
 )
@@ -113,6 +115,7 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    :color-for="colorFor"
     database-id="ductile-fracture"
     :columns="columns"
     hide-toolbar

@@ -20,6 +20,7 @@ const columns: Column[] = [
   },
   {
     value: TensileCouponField.SteelGrade,
+    categoryColor: true,
     type: 'text'
   },
   {
@@ -38,7 +39,7 @@ interface Emits extends TableEmits<TensileCouponModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
-const { getTotal, getPage, countRowsSync, pageSync } = useDataset<TensileCouponModel>(
+const { getTotal, getPage, countRowsSync, pageSync, colorFor } = useDataset<TensileCouponModel>(
   TENSILE_COUPON_KEY,
   fetchTensileCoupons
 )
@@ -80,6 +81,7 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    :color-for="colorFor"
     database-id="tensile"
     :columns="columns"
     hide-toolbar

@@ -39,6 +39,7 @@ const columns: Column[] = [
   },
   {
     value: EccentricBracedFrameField.SgFlgLink,
+    categoryColor: true,
     titleKey: 'table.ebf.columns.steelMaterial',
     type: 'text'
   }
@@ -50,10 +51,8 @@ interface Emits extends TableEmits<EccentricBracedFrameModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
-const { getTotal, getPage, countRowsSync, pageSync } = useDataset<EccentricBracedFrameModel>(
-  EBF_KEY,
-  fetchEbfs
-)
+const { getTotal, getPage, countRowsSync, pageSync, colorFor } =
+  useDataset<EccentricBracedFrameModel>(EBF_KEY, fetchEbfs)
 const {
   clickRow,
   downloadFiles,
@@ -92,6 +91,7 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    :color-for="colorFor"
     database-id="ebf"
     :columns="columns"
     hide-toolbar

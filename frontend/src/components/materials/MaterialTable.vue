@@ -20,6 +20,7 @@ const columns: Column[] = [
   },
   {
     value: MaterialField.Type,
+    categoryColor: true,
     type: 'text'
   },
   {
@@ -38,7 +39,7 @@ interface Emits extends TableEmits<MaterialModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
-const { getTotal, getPage, countRowsSync, pageSync } = useDataset<MaterialModel>(
+const { getTotal, getPage, countRowsSync, pageSync, colorFor } = useDataset<MaterialModel>(
   MATERIAL_KEY,
   fetchMaterials
 )
@@ -80,6 +81,7 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    :color-for="colorFor"
     database-id="cyclic"
     :columns="columns"
     hide-toolbar
