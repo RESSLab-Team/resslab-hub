@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Count } from '@/composables/chart'
+import { invertMapping, type Count } from '@/composables/chart'
 import { subscribeCrossfilter } from '@/composables/crossfilterBus'
 import { useEChart } from '@/composables/useEChart'
 import i18n from '@/plugins/i18n'
@@ -52,13 +52,7 @@ const emit = defineEmits<{
   (e: 'mouseout'): void
 }>()
 
-const reverseMapping = computed(() => {
-  const reverse = new Map<string, string>()
-  for (const [key, value] of props.mapping.entries()) {
-    reverse.set(value, key)
-  }
-  return reverse
-})
+const reverseMapping = computed(() => invertMapping(props.mapping))
 
 // Plain builder shared by the reactive path and the imperative bus frames.
 function buildOption(countsData: Count[]): EChartsOption {

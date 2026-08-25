@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { CountModel } from '@/backend'
 import { measureTextWidth } from '@/components/commons/charts/utils'
-import { useEChart } from '@/composables/useEChart'
+import { useEChart, type LegendSelectChangedParams } from '@/composables/useEChart'
 import DateDistributionBrush from '@/components/commons/sliders/DateDistributionBrush.vue'
 import DistributionBrush, {
   type BrushSeries
 } from '@/components/commons/sliders/DistributionBrush.vue'
-import type { DoubleField, DoubleFields } from '@/composables/chart'
+import { invertMapping, type DoubleField, type DoubleFields } from '@/composables/chart'
 import { SANS } from '@/plugins/echarts-theme'
 import i18n from '@/plugins/i18n'
 import { sum, type Value } from '@/utils/common'
@@ -174,6 +174,18 @@ const mapSecondName = computed<(name: string) => string>(() => {
     return (name) => name
   } else {
     return (name) => secondField.mapping.get(name) ?? name
+  }
+})
+// Display label → raw value, for the legend: ECharts hands back the series
+// *name* (the mapped label, e.g. "Composite"), but the query wants the raw key
+// ("True"), the same one the data-point click gets for free via `seriesId`.
+const unmapSecondName = computed<(label: string) => string>(() => {
+  const secondField: DoubleField = props.fields[1]
+  if (typeof secondField === 'string') {
+    return (label) => label
+  } else {
+    const inverse = invertMapping(secondField.mapping)
+    return (label) => inverse.get(label) ?? label
   }
 })
 // While a brush is being dragged, derive the x categories/bins from the
@@ -439,7 +451,10 @@ const option = computed<EChartsOption>(() => buildOption(props.counts))
 // instead we push updates via `render`, so a filter tick repaints the canvas
 // without re-rendering this component's vnodes.
 const chartEl = ref<HTMLElement>()
-const { render } = useEChart(chartEl, () => option.value, { click })
+const { render, getInstance } = useEChart(chartEl, () => option.value, {
+  click,
+  legendselectchanged: legendSelectChanged
+})
 
 // Reactive renders (commit / tile click / rail), skipped while a drag is frozen —
 // during a drag the bus is authoritative, so we mustn't let a stale reactive frame
@@ -599,6 +614,16 @@ function click(params: CallbackDataParams): void {
     }
   }
   emit('change:searches', secondField.value, params.seriesId)
+}
+// The legend is a filter control, like clicking a bar of that series, not
+// ECharts' default show/hide switch. ECharts has already toggled the entry by
+// the time this fires, so re-select it synchronously (same tick, before paint:
+// no flicker). Otherwise, once the filter leaves this as the only series, it
+// would come back hidden. `legendSelect` emits `legendselected`, not this
+// event, so there is no re-entry.
+function legendSelectChanged(params: LegendSelectChangedParams): void {
+  getInstance()?.dispatchAction({ type: 'legendSelect', name: params.name })
+  emit('change:searches', secondField.value, unmapSecondName.value(params.name))
 }
 </script>
 
