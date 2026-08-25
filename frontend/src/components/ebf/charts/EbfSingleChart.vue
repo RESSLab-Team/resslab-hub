@@ -30,6 +30,8 @@ const valueMapping = computed(() => {
 // it updates only when its own counts change. See dashboardQueryKey.
 const query = inject(dashboardQueryKey, toRef(props, 'query'))
 const { getCounts, countsSync, colorFor } = useDataset(EBF_KEY, fetchEbfs)
+// Stable reference: a fresh closure per render would re-render the chart for nothing.
+const colorForField = colorFor(props.field)
 const { counts, changeSearches } = useSingleChart<EccentricBracedFrameField>(
   emit,
   props.field,
@@ -45,7 +47,7 @@ const getLiveCounts = (liveQuery?: string) => toSingleCounts(countsSync([props.f
 <template>
   <single-chart
     :animate="false"
-    :color-for="colorFor(field)"
+    :color-for="colorForField"
     :counts="counts"
     :live-counts="getLiveCounts"
     :flat="flat"

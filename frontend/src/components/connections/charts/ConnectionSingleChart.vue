@@ -23,6 +23,8 @@ const emit = defineEmits<Emits>()
 // it updates only when its own counts change. See dashboardQueryKey.
 const query = inject(dashboardQueryKey, toRef(props, 'query'))
 const { getCounts, countsSync, colorFor } = useDataset(CONNECTION_KEY, fetchConnections)
+// Stable reference: a fresh closure per render would re-render the chart for nothing.
+const colorForField = colorFor(props.field)
 const { counts, changeSearches } = useSingleChart<ConnectionField>(
   emit,
   props.field,
@@ -51,7 +53,7 @@ function mouseout(): void {
 <template>
   <single-chart
     :animate="false"
-    :color-for="colorFor(field)"
+    :color-for="colorForField"
     :counts="counts"
     :live-counts="getLiveCounts"
     :flat="flat"

@@ -23,6 +23,8 @@ const { getCounts, countsSync, colorFor, getRange } = useDataset(
   TENSILE_COUPON_KEY,
   fetchTensileCoupons
 )
+// Stable reference: a fresh closure per render would re-render the chart for nothing.
+const colorForSecond = colorFor(getRequestFields(props.fields)[1])
 
 // Synchronous counts for the crossfilter drag path — bound to this chart's request
 // fields so DoubleChart can repaint imperatively (off Vue's reactivity) mid-drag.
@@ -57,7 +59,7 @@ const {
     :animate="false"
     :all-counts="allCounts"
     :live-counts="getLiveCounts"
-    :color-for="colorFor(getRequestFields(fields)[1])"
+    :color-for="colorForSecond"
     :counts="counts"
     :date-max="dateMax"
     :date-min="dateMin"

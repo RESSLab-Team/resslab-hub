@@ -24,6 +24,8 @@ const { getCounts, countsSync, colorFor } = useDataset<DuctileFractureModel>(
   DUCTILE_FRACTURE_KEY,
   fetchDuctileFractures
 )
+// Stable reference: a fresh closure per render would re-render the chart for nothing.
+const colorForField = colorFor(props.field)
 const { counts, changeSearches } = useSingleChart<DuctileFractureField>(
   emit,
   props.field,
@@ -39,7 +41,7 @@ const getLiveCounts = (liveQuery?: string) => toSingleCounts(countsSync([props.f
 <template>
   <single-chart
     :animate="false"
-    :color-for="colorFor(field)"
+    :color-for="colorForField"
     :counts="counts"
     :live-counts="getLiveCounts"
     :flat="flat"
