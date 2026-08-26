@@ -39,8 +39,8 @@ const numeric: FilterDescriptor = {
   max: 100,
   binEdges: [0, 50, 100],
   bins: [
-    [0, 3, 0, 50],
-    [1, 1, 50, 100]
+    ['0', 3, 0, 50],
+    ['1', 1, 50, 100]
   ]
 }
 
