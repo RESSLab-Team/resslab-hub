@@ -1,4 +1,4 @@
-import { useContributionStore } from '@/stores/contribution'
+import { NO_TEST_DATA_MESSAGE, useContributionStore } from '@/stores/contribution'
 import { useDictionaryStore, type DictColumn } from '@/stores/dictionary'
 import { buildCsv } from '@/utils/contribution'
 import { postContribution } from '@/utils/submission'
@@ -53,6 +53,16 @@ function seededStore(columns: DictColumn[] = BRACE_COLUMNS) {
   const store = useContributionStore()
   store.selectDatabase('braces')
   return store
+}
+
+/** Braces expect a force-displacement file; give the row one named after its id. */
+function attachTestData(store: ReturnType<typeof seededStore>, uid: number, name?: string) {
+  const id = (store.rowByUid(uid)?.cells.id ?? '').trim()
+  store.timeSeries[`${uid}:force_displacement`] = {
+    name: name ?? `${id}.csv`,
+    content: 'Displacement [mm],Force [kN]\n0,0\n',
+    rows: 1
+  }
 }
 
 describe('buildCsv (multi-row)', () => {
@@ -115,6 +125,7 @@ describe('contribution store — experiment rows', () => {
     const store = seededStore()
     const row = store.rows[0]
     row.cells.id = 'B1'
+    attachTestData(store, row.uid)
     row.cells.area = '1.5' // Numeric is fine, but "investigator" is blank -> warning
 
     const warning = store.activeIssuesFor(row.uid).find((issue) => issue.level === 'warn')
@@ -154,6 +165,7 @@ describe('contribution store — experiment rows', () => {
     const row = store.rows[0]
     row.cells.id = 'B1'
     row.cells.investigator = 'X'
+    attachTestData(store, row.uid)
     row.cells.cycles = '1.5' // warns: will be truncated
 
     const warning = store.activeIssuesFor(row.uid).find((issue) => issue.column === 'cycles')
@@ -170,6 +182,7 @@ describe('contribution store — experiment rows', () => {
     const row = store.rows[0]
     row.cells.id = 'B1'
     row.cells.investigator = 'X'
+    attachTestData(store, row.uid)
     row.cells.area = 'not-a-number'
 
     const error = store.activeIssuesFor(row.uid).find((issue) => issue.level === 'error')
@@ -182,6 +195,7 @@ describe('contribution store — experiment rows', () => {
     const store = seededStore()
     store.importRows([{ id: 'B1' }, { id: 'B2' }])
     const [first, second] = store.rows
+    for (const row of store.rows) attachTestData(store, row.uid)
     for (const row of store.rows) {
       for (const issue of store.activeIssuesFor(row.uid)) store.dismissIssue(issue.key)
     }
@@ -216,6 +230,79 @@ describe('contribution store — experiment rows', () => {
     store.status = 'error'
     expect(store.checking).toBe(false)
     expect(store.unverified).toBe(true)
+  })
+
+  it('says up front that a database without a validator cannot be checked', async () => {
+    const dictionary = useDictionaryStore()
+    dictionary.columns = { braces: BRACE_COLUMNS, ebf: BRACE_COLUMNS }
+    dictionary.state = 'ready'
+    const store = useContributionStore()
+    store.selectDatabase('ebf')
+    expect(store.status).toBe('unsupported')
+    store.rows[0].cells.id = 'E1'
+    await nextTick()
+    expect(store.status).toBe('unsupported')
+    expect(store.checking).toBe(false)
+    store.selectDatabase('braces')
+    expect(store.status).toBe('idle')
+  })
+
+  it('warns when an experiment has no test data, until a file is attached', () => {
+    const store = seededStore()
+    const row = store.rows[0]
+    // No id yet: the missing id is the problem, not the missing file.
+    expect(store.activeIssuesFor(row.uid).some((i) => i.message === NO_TEST_DATA_MESSAGE)).toBe(
+      false
+    )
+    row.cells.id = 'B1'
+    row.cells.investigator = 'X'
+    const warning = store.activeIssuesFor(row.uid).find((issue) => issue.kindKey === null)
+    expect(warning?.level).toBe('warn')
+    expect(warning?.message).toBe(NO_TEST_DATA_MESSAGE)
+    expect(store.withoutTestDataCount).toBe(1)
+    store.dismissIssue(warning!.key)
+    expect(store.dismissedWarningMessages).toEqual([`B1: ${NO_TEST_DATA_MESSAGE}`])
+    attachTestData(store, row.uid)
+    expect(store.activeIssuesFor(row.uid)).toHaveLength(0)
+    expect(store.dismissedIssuesFor(row.uid)).toHaveLength(0)
+    expect(store.withoutTestDataCount).toBe(0)
+  })
+
+  it('warns when an attached file is not named after the specimen id', () => {
+    const store = seededStore()
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    row.cells.investigator = 'X'
+    attachTestData(store, row.uid, 'run_07_raw.csv')
+    const warning = store
+      .activeIssuesFor(row.uid)
+      .find((issue) => issue.kindKey === 'force_displacement')
+    expect(warning?.level).toBe('warn')
+    expect(warning?.message).toContain('run_07_raw.csv')
+    // Any capitalisation of the extension is fine; only the stem matters.
+    attachTestData(store, row.uid, 'B1.CSV')
+    expect(store.activeIssuesFor(row.uid)).toHaveLength(0)
+  })
+
+  it('summarises unresolved problems per experiment, in batch order', () => {
+    const store = seededStore()
+    store.importRows([{ id: 'B1', investigator: 'X' }, { id: 'B2', area: 'abc' }, { id: '' }])
+    const [first, second, third] = store.rows
+    attachTestData(store, first.uid)
+    const counts = store.problemSummary.map(({ issues, ...entry }) => ({
+      ...entry,
+      issues: issues.length
+    }))
+    expect(counts).toEqual([
+      { uid: second.uid, index: 1, id: 'B2', errors: 1, warnings: 2, issues: 3 },
+      { uid: third.uid, index: 2, id: '', errors: 1, warnings: 1, issues: 2 } // blank investigator warns
+    ])
+    expect(store.activeErrorCount).toBe(2)
+    for (const issue of store.activeIssuesFor(second.uid)) store.dismissIssue(issue.key)
+    const [remaining] = store.problemSummary
+    expect([remaining.errors, remaining.warnings]).toEqual([1, 0])
+    // A lone problem travels with the summary, so the bar can show it in place.
+    expect(remaining.issues.map((issue) => issue.column)).toEqual(['area'])
   })
 
   it('imports rows and counts client-side errors', () => {
@@ -307,6 +394,34 @@ describe('contribution store — submission', () => {
     const [, , , dismissed] = (postContribution as Mock).mock.calls[0]
     expect(dismissed).toHaveLength(1)
     expect(dismissed[0]).toMatch(/^B1: /)
+  })
+
+  it('shows the server’s own reason when a submission is refused', async () => {
+    const store = await submittableStore()
+    vi.mocked(postContribution).mockRejectedValue({
+      isAxiosError: true,
+      response: {
+        status: 400,
+        data: { detail: "Specimen id 'a/b' cannot be used as a file name: rule." }
+      }
+    })
+
+    await store.submit(CONTRIBUTOR)
+
+    expect(store.submitStatus).toBe('error')
+    expect(store.submitError).toBe("Specimen id 'a/b' cannot be used as a file name: rule.")
+  })
+
+  it('falls back to the archive message only when a 400 carries no detail', async () => {
+    const store = await submittableStore()
+    vi.mocked(postContribution).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 400, data: '<html>bad request</html>' }
+    })
+
+    await store.submit(CONTRIBUTOR)
+
+    expect(store.submitError).toContain('could not be read')
   })
 
   it('maps a 422 validation report onto the editor and reports the failure', async () => {

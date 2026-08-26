@@ -111,16 +111,16 @@ export const TIME_SERIES_KINDS: Partial<Record<DatabaseId, TimeSeriesKind[]>> = 
       requiredColumns: ['qp_coefficient']
     }
   ],
-  // The three databases below have no backend validator yet, so their required
-  // columns are unknown — files are only checked for having data rows. The
-  // directories mirror `get_args_all` so the archive layout stays correct.
   tensile: [
     {
       key: 'stress_strain',
       directory: 'material/tensile_coupons/stress_strain',
-      requiredColumns: []
+      requiredColumns: ['Sigma_true', 'e_true']
     }
   ],
+  // The two databases below have no backend validator yet, so their required
+  // columns are unknown — files are only checked for having data rows. The
+  // directories mirror `get_args_all` so the archive layout stays correct.
   ebf: [
     {
       key: 'processed_data',
@@ -129,13 +129,21 @@ export const TIME_SERIES_KINDS: Partial<Record<DatabaseId, TimeSeriesKind[]>> = 
     }
   ],
   'ductile-fracture': [
-    { key: 'force_elongation', directory: 'material/ductile_fracture/force_elongation', requiredColumns: [] },
+    {
+      key: 'force_elongation',
+      directory: 'material/ductile_fracture/force_elongation',
+      requiredColumns: []
+    },
     {
       key: 'force_elongation_simulation',
       directory: 'material/ductile_fracture/force_elongation_simulation',
       requiredColumns: []
     },
-    { key: 'force_radial', directory: 'material/ductile_fracture/force_radial', requiredColumns: [] },
+    {
+      key: 'force_radial',
+      directory: 'material/ductile_fracture/force_radial',
+      requiredColumns: []
+    },
     {
       key: 'force_radial_simulation',
       directory: 'material/ductile_fracture/force_radial_simulation',

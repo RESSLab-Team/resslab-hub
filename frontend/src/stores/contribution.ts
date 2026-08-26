@@ -38,9 +38,13 @@ function transportError(caught: unknown): string {
     const status = caught.response?.status
     if (status === 429) return 'Too many checks in a short time — wait a moment and retry.'
     if (status === 413) return 'The contribution is too large to validate in one request.'
+    // The backend explains its own refusals (an id that cannot be a file name,
+    // a specimen already in the repository, GitHub unreachable…) — show that,
+    // and only fall back to a generic line when there is nothing to show.
+    const detail = (caught.response?.data as { detail?: unknown } | undefined)?.detail
+    if (typeof detail === 'string' && detail) return detail
     if (status === 400) return 'The generated archive could not be read by the server.'
-    const detail = (caught.response?.data as { detail?: string } | undefined)?.detail
-    if (detail) return detail
+    if (status !== undefined) return `The server answered with status ${status}.`
   }
   return caught instanceof Error ? caught.message : String(caught)
 }
@@ -77,6 +81,22 @@ export interface CardIssue {
 
 function issueKey(uid: number, target: string, signature: string, message: string): string {
   return `${uid}|${target}|${signature}|${message}`
+}
+
+/** Warning on an experiment that would be submitted with its record only. */
+export const NO_TEST_DATA_MESSAGE =
+  'No test data attached — the experiment will be submitted with its metadata only.'
+
+/** One experiment's unresolved problems, for the summary under the status bar. */
+export interface ExperimentProblems {
+  uid: number
+  /** Position in the batch, for experiments without an id yet. */
+  index: number
+  id: string
+  errors: number
+  warnings: number
+  /** The unresolved problems themselves, so a lone one can be shown in place. */
+  issues: CardIssue[]
 }
 
 /** Idle time after the last edit before the server check fires. */
@@ -191,10 +211,52 @@ export const useContributionStore = defineStore('contribution', () => {
           message: file.issue.message
         })
       }
+      issues.push(...testDataIssues(row))
       map.set(row.uid, issues)
     })
     return map
   })
+
+  /**
+   * What the server cannot see about test data: the files are optional, so
+   * an experiment submitted with none is worth a second look, and a file
+   * whose own name is not the specimen id may have landed on the wrong card
+   * (the archive renames it to `<id>.csv`, so the name never reaches the
+   * validator). Both are warnings the contributor can dismiss.
+   */
+  function testDataIssues(row: ExperimentRow): CardIssue[] {
+    const id = (row.cells.id ?? '').trim()
+    const kinds = timeSeriesKindsFor(database.value)
+    if (id === '' || kinds.length === 0) return []
+
+    const issues: CardIssue[] = []
+    let attachedCount = 0
+    for (const kind of kinds) {
+      const attached = timeSeries.value[`${row.uid}:${kind.key}`]
+      if (!attached) continue
+      attachedCount++
+      const stem = attached.name.replace(/\.csv$/i, '')
+      if (stem !== id) {
+        const message = `The attached file is named "${attached.name}", not after the specimen id — check that it belongs to this experiment.`
+        issues.push({
+          key: issueKey(row.uid, kind.key, attached.name, message),
+          kindKey: kind.key,
+          level: 'warn',
+          message
+        })
+      }
+    }
+    if (attachedCount === 0) {
+      const message = NO_TEST_DATA_MESSAGE
+      issues.push({
+        key: issueKey(row.uid, 'file', '', message),
+        kindKey: null,
+        level: 'warn',
+        message
+      })
+    }
+    return issues
+  }
 
   /** Errors are never dismissible — they have to be fixed. */
   function isDismissed(issue: CardIssue): boolean {
@@ -249,6 +311,40 @@ export const useContributionStore = defineStore('contribution', () => {
     }
     return count
   })
+
+  /** Experiments that still have something to look at, in batch order. */
+  const problemSummary = computed<ExperimentProblems[]>(() =>
+    rows.value
+      .map((row, index) => {
+        const active = activeIssuesFor(row.uid)
+        return {
+          uid: row.uid,
+          index,
+          id: (row.cells.id ?? '').trim(),
+          errors: active.filter((issue) => issue.level === 'error').length,
+          warnings: active.filter((issue) => issue.level === 'warn').length,
+          issues: active
+        }
+      })
+      .filter((entry) => entry.errors > 0 || entry.warnings > 0)
+  )
+
+  /** Every unresolved error, client-side and server-side, batch-wide. */
+  const activeErrorCount = computed(
+    () =>
+      globalIssues.value.filter((entry) => entry.severity === 'error').length +
+      problemSummary.value.reduce((total, entry) => total + entry.errors, 0)
+  )
+
+  /** Experiments with an id but not one test-data file. */
+  const withoutTestDataCount = computed(() =>
+    rows.value.reduce(
+      (total, row) =>
+        total +
+        (activeIssuesFor(row.uid).some((issue) => issue.message === NO_TEST_DATA_MESSAGE) ? 1 : 0),
+      0
+    )
+  )
 
   /**
    * True while the server's verdict is unknown because a check is coming: one
@@ -308,7 +404,9 @@ export const useContributionStore = defineStore('contribution', () => {
   }
 
   function resetQualityCheck(): void {
-    status.value = 'idle'
+    // A database without a server validator never gets a check: say so up
+    // front instead of leaving the bar on "waiting for a pause in editing".
+    status.value = config.value && !config.value.qualityCheckSupported ? 'unsupported' : 'idle'
     response.value = null
     errorMessage.value = ''
   }
@@ -495,6 +593,9 @@ export const useContributionStore = defineStore('contribution', () => {
     checking,
     unverified,
     activeWarningCount,
+    activeErrorCount,
+    problemSummary,
+    withoutTestDataCount,
     dismissedCount,
     issuesFor,
     activeIssuesFor,

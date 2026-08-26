@@ -76,10 +76,7 @@ describe('validateHeaders', () => {
 
 describe('validateSheet', () => {
   it('flags a missing id and a bad numeric cell', () => {
-    const issues = validateSheet(COLUMNS, [
-      { id: '', area: 'abc' },
-      { id: 'B2' }
-    ])
+    const issues = validateSheet(COLUMNS, [{ id: '', area: 'abc' }, { id: 'B2' }])
     expect(issues.get(0)?.id?.level).toBe('error')
     expect(issues.get(0)?.area?.level).toBe('error')
     expect(issues.get(1)?.id).toBeUndefined()
@@ -89,5 +86,20 @@ describe('validateSheet', () => {
     const issues = validateSheet(COLUMNS, [{ id: 'B1' }, { id: 'B1' }])
     expect(issues.get(0)?.id?.message).toContain('Duplicate')
     expect(issues.get(1)?.id?.message).toContain('Duplicate')
+  })
+
+  it('rejects an id that cannot be a file name, like the server does', () => {
+    const issues = validateSheet(COLUMNS, [
+      { id: 'a/b' },
+      { id: '.hidden' },
+      { id: 'a:b' },
+      { id: 'S355 φ10 C+' },
+      { id: 'Mukaide_et_al_2016__P3325-C+' }
+    ])
+    expect(issues.get(0)?.id?.message).toContain('file name')
+    expect(issues.get(1)?.id?.message).toContain('file name')
+    expect(issues.get(2)?.id?.message).toContain('file name')
+    expect(issues.get(3)?.id).toBeUndefined()
+    expect(issues.get(4)?.id).toBeUndefined()
   })
 })

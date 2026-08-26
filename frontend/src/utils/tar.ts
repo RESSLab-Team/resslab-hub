@@ -30,10 +30,28 @@ function writeOctal(block: Uint8Array, offset: number, value: number, length: nu
   writeString(block, offset, value.toString(8).padStart(length - 1, '0'), length)
 }
 
+/**
+ * ustar keeps 100 bytes for the name; a longer path is split at a slash into
+ * a `prefix` (155 bytes) and the remaining name. Specimen ids are contributor
+ * chosen, so `material/cyclic_coupons/stress_strain/<id>.csv` can overflow.
+ */
+function splitPath(path: string): { prefix: string; name: string } {
+  if (encoder.encode(path).length <= 100) return { prefix: '', name: path }
+  for (let cut = path.indexOf('/'); cut !== -1; cut = path.indexOf('/', cut + 1)) {
+    const prefix = path.slice(0, cut)
+    const name = path.slice(cut + 1)
+    if (encoder.encode(prefix).length <= 155 && encoder.encode(name).length <= 100) {
+      return { prefix, name }
+    }
+  }
+  throw new RangeError(`Path "${path}" does not fit a ustar header`)
+}
+
 function buildHeader(path: string, size: number, mtimeSeconds: number): Uint8Array {
   const header = new Uint8Array(BLOCK)
+  const { prefix, name } = splitPath(path)
 
-  writeString(header, 0, path, 100) // name
+  writeString(header, 0, name, 100) // name
   writeOctal(header, 100, 0o644, 8) // mode
   writeOctal(header, 108, 0, 8) // uid
   writeOctal(header, 116, 0, 8) // gid
@@ -44,6 +62,7 @@ function buildHeader(path: string, size: number, mtimeSeconds: number): Uint8Arr
   writeString(header, 263, '00', 2) // version
   writeString(header, 265, 'root', 32) // uname
   writeString(header, 297, 'root', 32) // gname
+  writeString(header, 345, prefix, 155) // prefix (path before the name)
 
   // Checksum is the unsigned byte sum of the header with the checksum field
   // itself treated as eight spaces, written back as six octal digits + NUL + space.

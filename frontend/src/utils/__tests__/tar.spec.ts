@@ -45,6 +45,17 @@ describe('buildTar', () => {
     expect(two.length).toBe(BLOCK * 6)
   })
 
+  it('splits a long path into prefix and name at a slash', () => {
+    const id = 'S355_round_coupon_' + 'x'.repeat(60)
+    const path = `material/cyclic_coupons/stress_strain/${id}.csv`
+    const long = buildTar([{ path, content: '' }])
+    const name = field(long, 0, 100)
+    const prefix = field(long, 345, 155)
+    // tarfile reads the member as `prefix/name`; the name keeps the file name.
+    expect(`${prefix}/${name}`).toBe(path)
+    expect(name.endsWith(`${id}.csv`)).toBe(true)
+  })
+
   it('rejects a path too long for the ustar name field', () => {
     expect(() => buildTar([{ path: 'x'.repeat(101), content: '' }])).toThrow(RangeError)
   })

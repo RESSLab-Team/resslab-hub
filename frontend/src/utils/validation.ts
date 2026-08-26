@@ -18,6 +18,14 @@ export interface CellIssue {
   message: string
 }
 
+// Mirror of the backend's SAFE_ID_PATTERN (`data/common.py`): a specimen id
+// names its time-series file (`<id>.csv`) and becomes a path in the data
+// repository, so it has to be one safe path segment on every platform.
+// (`\p{Cc}` covers the C0/DEL control characters the server's byte ranges do.)
+const SAFE_ID = /^[\p{L}\p{N}][^<>:"/\\|?*\p{Cc}]*$/u
+export const SAFE_ID_RULE =
+  'it must start with a letter or digit and cannot contain / \\ < > : " | ? * or control characters'
+
 // A finite decimal literal. Deliberately rejects NaN/Infinity, which Python's
 // Decimal() would accept — letting them through would persist garbage numbers.
 const DECIMAL = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/
@@ -58,9 +66,7 @@ export function validateCell(column: DictColumn, raw: string): CellIssue | null 
 
   switch (column.type) {
     case 'Boolean':
-      return /^(yes|no)$/i.test(value)
-        ? null
-        : { level: 'error', message: "Must be 'yes' or 'no'" }
+      return /^(yes|no)$/i.test(value) ? null : { level: 'error', message: "Must be 'yes' or 'no'" }
 
     case 'SmallInteger':
     case 'Integer':
@@ -144,6 +150,13 @@ export function validateSheet(
     const id = (cells.id ?? '').trim()
     if (id === '') {
       setIssue(rowIndex, 'id', { level: 'error', message: 'A specimen id is required.' })
+      return
+    }
+    if (!SAFE_ID.test(id)) {
+      setIssue(rowIndex, 'id', {
+        level: 'error',
+        message: `Specimen id "${id}" cannot be used as a file name: ${SAFE_ID_RULE}.`
+      })
       return
     }
     idRows.set(id, [...(idRows.get(id) ?? []), rowIndex])

@@ -1133,7 +1133,12 @@
       "fail": "{count} erreur(s) bloquent cette contribution.",
       "unsupported": "La validation automatique n’est pas disponible pour cette base.",
       "error": "La vérification n’a pas pu aboutir :",
-      "client_errors": "{count} champ(s) en erreur",
+      "problems_errors": "{count} erreur(s)",
+      "problems_warnings": "{count} avertissement(s) non résolu(s)",
+      "show_problems": "Afficher le détail",
+      "hide_problems": "Masquer le détail",
+      "problems_hint": "Cliquez sur une expérience pour l’ouvrir et voir ses problèmes.",
+      "see_all_issues": "Voir les {count} problèmes",
       "check_now": "Vérifier maintenant",
       "warn_dismissed": "Vérifications passées — tous les avertissements ont été ignorés.",
       "dismissed": "{count} ignoré(s)"
@@ -1180,6 +1185,7 @@
     "dialog": {
       "title": "Soumettre pour relecture",
       "recap": "Vous soumettez {experiments} expérience(s) et {files} fichier(s) de mesures.",
+      "recap_no_data": "{count} expérience(s) sans données d’essai jointes.",
       "recap_dismissed": "{count} avertissement(s) écarté(s) seront listés pour le curateur.",
       "name": "Votre nom",
       "email": "E-mail",

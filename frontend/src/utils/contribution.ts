@@ -63,7 +63,7 @@ export const CONTRIBUTION_DATABASES: Record<DatabaseId, ContributionDatabase> = 
     type: Type.AllTensileCoupons,
     csvPath: 'material/tensile_coupons/tensile_coupons.csv',
     namespace: 'tensile_coupon',
-    qualityCheckSupported: false
+    qualityCheckSupported: true
   },
   'ductile-fracture': {
     type: Type.AllDuctileFractures,

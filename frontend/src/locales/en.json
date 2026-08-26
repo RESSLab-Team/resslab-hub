@@ -1133,7 +1133,12 @@
       "fail": "{count} error(s) block this contribution.",
       "unsupported": "Automated validation is not available for this database.",
       "error": "The check could not be completed:",
-      "client_errors": "{count} field(s) have errors",
+      "problems_errors": "{count} error(s)",
+      "problems_warnings": "{count} warning(s) unresolved",
+      "show_problems": "Show details",
+      "hide_problems": "Hide details",
+      "problems_hint": "Click an experiment to open it and see its problems.",
+      "see_all_issues": "See all {count} issues",
       "check_now": "Check now",
       "warn_dismissed": "Checks passed — every warning was dismissed.",
       "dismissed": "{count} dismissed"
@@ -1180,6 +1185,7 @@
     "dialog": {
       "title": "Submit for review",
       "recap": "You are submitting {experiments} experiment(s) and {files} test-data file(s).",
+      "recap_no_data": "{count} experiment(s) have no test data attached.",
       "recap_dismissed": "{count} dismissed warning(s) will be listed for the curator.",
       "name": "Your name",
       "email": "Email",

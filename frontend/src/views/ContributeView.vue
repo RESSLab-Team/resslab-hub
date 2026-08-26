@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import ContributionGuide from '@/components/contribute/ContributionGuide.vue'
 import ExperimentCards from '@/components/contribute/ExperimentCards.vue'
-import { useContributionStore } from '@/stores/contribution'
+import { useContributionStore, type CardIssue } from '@/stores/contribution'
 import { useDictionaryStore } from '@/stores/dictionary'
-import { CONTRIBUTION_DATABASES } from '@/utils/contribution'
+import { CONTRIBUTION_DATABASES, fieldLabel } from '@/utils/contribution'
 import { DATABASES, type DatabaseId } from '@/utils/navigation'
 import { loadContributor, saveContributor } from '@/utils/submission'
 import {
   mdiAlertOutline,
+  mdiArrowRight,
   mdiBellOffOutline,
   mdiCheck,
   mdiCheckCircleOutline,
+  mdiChevronRight,
+  mdiClose,
   mdiOpenInNew,
   mdiSend,
   mdiShieldCheckOutline
@@ -46,19 +49,30 @@ function pick(id: DatabaseId): void {
   store.selectDatabase(id)
 }
 
-/** One line summarizing the automatic server check. */
+/**
+ * One line summarizing the automatic server check. Client-side warnings (a
+ * blank required field, no test data) count with the server's, so a pass with
+ * something left to look at reads as a warning.
+ */
 const statusText = computed(() => {
   switch (store.status) {
     case 'running':
       return t('contribute.status.running')
     case 'pass':
-      return t('contribute.status.pass')
     case 'warn':
-      return store.activeWarningCount > 0
-        ? t('contribute.status.warn', { count: store.activeWarningCount })
-        : t('contribute.status.warn_dismissed')
+      // A client-side error (a bad id, a wrong type) blocks the batch even
+      // when the last server round trip passed.
+      if (store.activeErrorCount > 0) {
+        return t('contribute.status.fail', { count: store.activeErrorCount })
+      }
+      if (store.activeWarningCount > 0) {
+        return t('contribute.status.warn', { count: store.activeWarningCount })
+      }
+      return t(
+        store.status === 'warn' ? 'contribute.status.warn_dismissed' : 'contribute.status.pass'
+      )
     case 'fail':
-      return t('contribute.status.fail', { count: store.response?.error_count ?? 0 })
+      return t('contribute.status.fail', { count: store.activeErrorCount })
     case 'unsupported':
       return t('contribute.status.unsupported')
     case 'error':
@@ -68,10 +82,35 @@ const statusText = computed(() => {
   }
 })
 
-/** Once every warning is dismissed the bar reads as a pass. */
-const statusClass = computed(() =>
-  store.status === 'warn' && store.activeWarningCount === 0 ? 'pass' : store.status
-)
+/** Once every warning is dismissed the bar reads as a pass, and vice versa. */
+const statusClass = computed(() => {
+  if (store.status !== 'pass' && store.status !== 'warn') return store.status
+  if (store.activeErrorCount > 0) return 'fail'
+  return store.activeWarningCount > 0 ? 'warn' : 'pass'
+})
+
+// --- Problem summary --------------------------------------------------------
+// Errors and unresolved warnings, batch-wide, folded under the status line;
+// unfolded, one row per experiment that jumps to (and opens) its card.
+
+const cards = ref<InstanceType<typeof ExperimentCards> | null>(null)
+const showProblems = ref(false)
+const hasProblems = computed(() => store.activeErrorCount > 0 || store.activeWarningCount > 0)
+
+function reveal(uid: number): void {
+  cards.value?.reveal(uid)
+}
+
+function revealIssue(uid: number, issue: CardIssue): void {
+  cards.value?.revealIssue(uid, issue)
+}
+
+/** What a problem is about, the way the card labels it: the field, or the file kind. */
+function issueSubject(issue: CardIssue): string {
+  if (issue.column) return fieldLabel(store.database!, issue.column)
+  if (issue.kindKey) return t(`contribute.timeseries.kind.${issue.kindKey}`)
+  return ''
+}
 
 // --- Submission dialog ----------------------------------------------------
 
@@ -185,7 +224,7 @@ async function confirmSubmit(): Promise<void> {
               {{ $t('contribute.retry') }}
             </button>
           </p>
-          <experiment-cards v-else @open-guide="openGuide" />
+          <experiment-cards v-else ref="cards" @open-guide="openGuide" />
 
           <div v-if="store.globalIssues.length" class="global-issues">
             <p class="global-issues-title">{{ $t('contribute.global_issues') }}</p>
@@ -234,9 +273,35 @@ async function confirmSubmit(): Promise<void> {
             />
             {{ statusText }}
           </span>
-          <span v-if="store.clientErrorCount" class="client-errors">
-            {{ $t('contribute.status.client_errors', { count: store.clientErrorCount }) }}
-          </span>
+          <button
+            v-if="hasProblems"
+            class="problems-toggle"
+            type="button"
+            :aria-expanded="showProblems"
+            @click="showProblems = !showProblems"
+          >
+            <v-icon
+              class="chevron"
+              :class="{ open: showProblems }"
+              :icon="mdiChevronRight"
+              size="14"
+            />
+            <span v-if="store.activeErrorCount" class="err">
+              {{ $t('contribute.status.problems_errors', { count: store.activeErrorCount }) }}
+            </span>
+            <span v-if="store.activeWarningCount" class="wrn">
+              {{ $t('contribute.status.problems_warnings', { count: store.activeWarningCount }) }}
+            </span>
+            <span class="toggle-label">
+              {{
+                $t(
+                  showProblems
+                    ? 'contribute.status.hide_problems'
+                    : 'contribute.status.show_problems'
+                )
+              }}
+            </span>
+          </button>
           <span v-if="store.dismissedCount" class="dismissed">
             <v-icon :icon="mdiBellOffOutline" size="14" />
             {{ $t('contribute.status.dismissed', { count: store.dismissedCount }) }}
@@ -271,6 +336,57 @@ async function confirmSubmit(): Promise<void> {
               }}
             </button>
           </div>
+          <div v-if="hasProblems && showProblems" class="problems">
+            <p class="problems-hint">{{ $t('contribute.status.problems_hint') }}</p>
+            <div v-for="entry in store.problemSummary" :key="entry.uid" class="problem-row">
+              <span class="problem-id">
+                {{ entry.id || $t('contribute.editor.untitled', { n: entry.index + 1 }) }}
+              </span>
+              <!-- A lone problem is shown, and dismissable, right here; more than
+                   one is summarised and handed to the card. -->
+              <template v-if="entry.issues.length === 1">
+                <button
+                  class="problem-issue"
+                  :class="entry.issues[0].level"
+                  type="button"
+                  :title="entry.issues[0].message"
+                  @click="revealIssue(entry.uid, entry.issues[0])"
+                >
+                  <v-icon :icon="mdiAlertOutline" size="14" />
+                  <span class="problem-msg">
+                    <template v-if="issueSubject(entry.issues[0])"
+                      >{{ issueSubject(entry.issues[0]) }}:
+                    </template>
+                    {{ entry.issues[0].message }}
+                  </span>
+                </button>
+                <button
+                  v-if="entry.issues[0].level === 'warn'"
+                  class="problem-dismiss"
+                  type="button"
+                  :title="$t('contribute.editor.dismiss_hint')"
+                  @click="store.dismissIssue(entry.issues[0].key)"
+                >
+                  <v-icon :icon="mdiClose" size="14" />
+                  <span class="sr-only">{{ $t('contribute.editor.dismiss') }}</span>
+                </button>
+              </template>
+              <template v-else>
+                <span class="problem-counts">
+                  <span v-if="entry.errors" class="problem-count err">
+                    {{ $t('contribute.status.problems_errors', { count: entry.errors }) }}
+                  </span>
+                  <span v-if="entry.warnings" class="problem-count wrn">
+                    {{ $t('contribute.status.problems_warnings', { count: entry.warnings }) }}
+                  </span>
+                </span>
+                <button class="problem-more" type="button" @click="reveal(entry.uid)">
+                  {{ $t('contribute.status.see_all_issues', { count: entry.issues.length }) }}
+                  <v-icon :icon="mdiArrowRight" size="14" />
+                </button>
+              </template>
+            </div>
+          </div>
           <p v-if="store.submitStatus === 'error'" class="submit-error">
             {{ $t('contribute.submit_failed') }} {{ store.submitError }}
           </p>
@@ -293,6 +409,9 @@ async function confirmSubmit(): Promise<void> {
               files: curveCount
             })
           }}
+          <template v-if="store.withoutTestDataCount">
+            {{ $t('contribute.dialog.recap_no_data', { count: store.withoutTestDataCount }) }}
+          </template>
           <template v-if="store.dismissedWarningMessages.length">
             {{
               $t('contribute.dialog.recap_dismissed', {
@@ -624,15 +743,168 @@ async function confirmSubmit(): Promise<void> {
   grid-row: 1;
   justify-content: flex-end;
 }
-.client-errors,
+.problems-toggle,
 .dismissed,
 .submitted-note {
   grid-column: 1;
   font-size: 13px;
 }
-.client-errors {
+/* The fold: counts in their severity colours, the verb underlined like a link. */
+.problems-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg-muted);
+  text-align: left;
+  cursor: pointer;
+}
+.problems-toggle .chevron {
+  transition: transform 0.15s ease;
+}
+.problems-toggle .chevron.open {
+  transform: rotate(90deg);
+}
+.problems-toggle .err,
+.problem-count.err {
+  color: var(--epfl-red);
+  font-weight: 600;
+}
+.problems-toggle .wrn,
+.problem-count.wrn {
+  color: var(--epfl-orange);
+  font-weight: 600;
+}
+.problems-toggle .toggle-label {
+  text-decoration: underline;
+}
+.problems-toggle:hover .toggle-label {
+  color: var(--fg);
+}
+/* One row per experiment, capped so a long batch scrolls inside the bar. */
+.problems {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 40vh;
+  overflow-y: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+.problems-hint {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.problem-row {
+  display: grid;
+  grid-template-columns: minmax(0, 240px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+.problem-row:hover {
+  background: var(--bg-subtle);
+}
+.problem-id {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.problem-counts {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+/* The lone problem: same look as a card's issue line, one line, ellipsised. */
+.problem-issue {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.problem-issue.error {
   color: var(--epfl-red);
 }
+.problem-issue.warn {
+  color: var(--epfl-orange);
+}
+.problem-issue .v-icon {
+  flex: none;
+}
+.problem-msg {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.problem-issue:hover .problem-msg,
+.problem-issue:focus-visible .problem-msg {
+  text-decoration: underline;
+}
+.problem-dismiss,
+.problem-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: end;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.problem-dismiss {
+  padding: 3px;
+  border-radius: var(--radius);
+}
+.problem-dismiss:hover,
+.problem-dismiss:focus-visible {
+  background: var(--bg-subtle);
+  color: var(--fg);
+}
+.problem-more {
+  padding: 0;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.problem-more:hover,
+.problem-more:focus-visible {
+  color: var(--fg);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .problem-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .problem-id {
+    grid-column: 1 / -1;
+  }
+}
+
 .submitted-note,
 .dismissed {
   color: var(--fg-muted);

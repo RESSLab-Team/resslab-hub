@@ -103,14 +103,25 @@ function cardState(uid: number): 'fail' | 'warn' | 'checking' | 'unchecked' | 'p
   return store.unverified ? 'unchecked' : 'pass'
 }
 
-/** The element a problem points at: its field input, or its test-data row. */
+/**
+ * The element a problem points at: its field input, or its test-data row. A
+ * problem about test data as a whole (none attached) points at the first slot.
+ */
 function targetId(uid: number, issue: CardIssue): string {
-  return issue.column ? `f-${uid}-${issue.column}` : `s-${uid}-${issue.kindKey}`
+  if (issue.column) return `f-${uid}-${issue.column}`
+  return `s-${uid}-${issue.kindKey ?? kinds.value[0]?.key}`
 }
 
 // Briefly outlines the element a problem was just clicked from, so the jump is
 // visible when the target is already on screen.
 const flashed = ref('')
+
+function flash(id: string): void {
+  flashed.value = id
+  window.setTimeout(() => {
+    if (flashed.value === id) flashed.value = ''
+  }, 1600)
+}
 
 async function goToIssue(uid: number, issue: CardIssue): Promise<void> {
   const id = targetId(uid, issue)
@@ -122,11 +133,27 @@ async function goToIssue(uid: number, issue: CardIssue): Promise<void> {
   if (!element) return
   element.scrollIntoView({ block: 'center', behavior: 'smooth' })
   element.focus({ preventScroll: true })
-  flashed.value = id
-  window.setTimeout(() => {
-    if (flashed.value === id) flashed.value = ''
-  }, 1600)
+  flash(id)
 }
+
+/** Open an experiment and bring it on screen, from the summary under the status bar. */
+async function reveal(uid: number): Promise<void> {
+  if (!expanded.value.has(uid)) toggle(uid)
+  await nextTick()
+  const element = document.getElementById(`x-${uid}`)
+  if (!element) return
+  element.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  flash(`x-${uid}`)
+}
+
+/** Open an experiment and jump to one of its problems. */
+async function revealIssue(uid: number, issue: CardIssue): Promise<void> {
+  if (!expanded.value.has(uid)) toggle(uid)
+  await nextTick()
+  await goToIssue(uid, issue)
+}
+
+defineExpose({ reveal, revealIssue })
 
 // --- Expand / collapse ---------------------------------------------------
 /** Cards whose dismissed-warning list is unfolded. */
@@ -361,9 +388,10 @@ function chart(uid: number, kind: TimeSeriesKind) {
 
     <article
       v-for="(row, index) in store.rows"
+      :id="`x-${row.uid}`"
       :key="row.uid"
       class="card"
-      :class="store.levelFor(row.uid)"
+      :class="[store.levelFor(row.uid), { flashed: flashed === `x-${row.uid}` }]"
     >
       <button class="card-head" type="button" @click="toggle(row.uid)">
         <v-icon
@@ -769,6 +797,7 @@ function chart(uid: number, kind: TimeSeriesKind) {
   border-left: 3px solid var(--border-strong);
   margin-bottom: 10px;
   background: var(--bg);
+  scroll-margin-top: 12px;
 }
 .card:last-of-type {
   margin-bottom: 0;
@@ -1167,7 +1196,8 @@ function chart(uid: number, kind: TimeSeriesKind) {
   color: var(--epfl-orange);
 }
 .field.flashed input,
-.series.flashed {
+.series.flashed,
+.card.flashed {
   animation: flash 1.6s ease-out;
 }
 @keyframes flash {
@@ -1181,7 +1211,8 @@ function chart(uid: number, kind: TimeSeriesKind) {
 }
 @media (prefers-reduced-motion: reduce) {
   .field.flashed input,
-  .series.flashed {
+  .series.flashed,
+  .card.flashed {
     animation: none;
     box-shadow: 0 0 0 3px var(--epfl-red-soft, rgba(227, 6, 19, 0.22));
   }
