@@ -52,6 +52,8 @@ function seededStore(columns: DictColumn[] = BRACE_COLUMNS) {
   dictionary.state = 'ready'
   const store = useContributionStore()
   store.selectDatabase('braces')
+  // Most tests edit "the" row; the batch itself starts empty.
+  store.addRow()
   return store
 }
 
@@ -80,12 +82,19 @@ describe('buildCsv (multi-row)', () => {
 describe('contribution store — experiment rows', () => {
   beforeEach(() => setActivePinia(createPinia()))
 
-  it('starts with one row and resets rows on database change', () => {
-    const store = seededStore()
+  it('starts empty and clears the batch on database change', () => {
+    const dictionary = useDictionaryStore()
+    dictionary.columns = { braces: BRACE_COLUMNS }
+    dictionary.state = 'ready'
+    const store = useContributionStore()
+    expect(store.rows).toEqual([])
+    store.selectDatabase('braces')
+    expect(store.rows).toEqual([])
+    const uid = store.addRow()
     store.rows[0].cells.id = 'B1'
+    expect(store.rows[0].uid).toBe(uid)
     store.selectDatabase('columns')
-    expect(store.rows.length).toBe(1)
-    expect(store.rows[0].cells.id).toBeUndefined()
+    expect(store.rows).toEqual([])
   })
 
   it('adds, duplicates (clearing id) and removes rows', () => {
@@ -106,10 +115,12 @@ describe('contribution store — experiment rows', () => {
     expect(store.rows.length).toBe(2)
   })
 
-  it('always keeps at least one row', () => {
+  it('lets the last row go, back to the empty batch', () => {
     const store = seededStore()
     store.removeRow(store.rows[0].uid)
-    expect(store.rows.length).toBe(1)
+    expect(store.rows).toEqual([])
+    store.importRows([])
+    expect(store.rows).toEqual([])
   })
 
   it('drops a row’s attached time-series when it is removed', () => {
@@ -239,6 +250,7 @@ describe('contribution store — experiment rows', () => {
     const store = useContributionStore()
     store.selectDatabase('ebf')
     expect(store.status).toBe('unsupported')
+    store.addRow()
     store.rows[0].cells.id = 'E1'
     await nextTick()
     expect(store.status).toBe('unsupported')

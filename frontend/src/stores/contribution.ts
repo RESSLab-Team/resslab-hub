@@ -113,7 +113,8 @@ export const useContributionStore = defineStore('contribution', () => {
     cells
   })
 
-  const rows = ref<ExperimentRow[]>([newRow()])
+  /** Starts empty: a contributor imports a CSV or adds experiments by hand. */
+  const rows = ref<ExperimentRow[]>([])
   /** Attached time-series, keyed by `${row.uid}:${TimeSeriesKind.key}`. */
   const timeSeries = ref<Record<string, AttachedTimeSeries>>({})
 
@@ -374,15 +375,18 @@ export const useContributionStore = defineStore('contribution', () => {
     if (database.value === id) return
     // Columns differ per database; carried-over values would never reach the CSV.
     database.value = id
-    rows.value = [newRow()]
+    rows.value = []
     timeSeries.value = {}
     dismissed.value.clear()
     resetQualityCheck()
     resetSubmission()
   }
 
-  function addRow(): void {
-    rows.value.push(newRow())
+  /** Append a blank experiment; returns its uid so the editor can open it. */
+  function addRow(): number {
+    const row = newRow()
+    rows.value.push(row)
+    return row.uid
   }
 
   function duplicateRow(uid: number): void {
@@ -393,8 +397,7 @@ export const useContributionStore = defineStore('contribution', () => {
   }
 
   function removeRow(uid: number): void {
-    // Keep at least one row so the editor is never empty.
-    rows.value = rows.value.length > 1 ? rows.value.filter((row) => row.uid !== uid) : [newRow()]
+    rows.value = rows.value.filter((row) => row.uid !== uid)
     for (const key of Object.keys(timeSeries.value)) {
       if (key.startsWith(`${uid}:`)) delete timeSeries.value[key]
     }
@@ -402,7 +405,7 @@ export const useContributionStore = defineStore('contribution', () => {
 
   /** Replace all experiments from imported CSV rows. */
   function importRows(records: Array<Record<string, string>>): void {
-    rows.value = records.length ? records.map((cells) => newRow(cells)) : [newRow()]
+    rows.value = records.map((cells) => newRow(cells))
     timeSeries.value = {}
     dismissed.value.clear()
   }
@@ -586,7 +589,7 @@ export const useContributionStore = defineStore('contribution', () => {
 
   function reset(): void {
     database.value = null
-    rows.value = [newRow()]
+    rows.value = []
     timeSeries.value = {}
     dismissed.value.clear()
     resetQualityCheck()

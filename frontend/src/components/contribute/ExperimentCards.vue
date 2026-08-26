@@ -165,6 +165,13 @@ function toggleDismissed(uid: number): void {
 }
 
 const expanded = ref<Set<number>>(new Set())
+
+/** A hand-added experiment opens straight away: there is nothing to see folded. */
+function addExperiment(): void {
+  const uid = store.addRow()
+  expanded.value = new Set([...expanded.value, uid])
+}
+
 function toggle(uid: number): void {
   const next = new Set(expanded.value)
   if (next.has(uid)) next.delete(uid)
@@ -176,7 +183,7 @@ function toggle(uid: number): void {
 const importInput = ref<HTMLInputElement>()
 
 /** The drop zone takes the place of the toolbar button while nothing is entered. */
-const isEmptyBatch = computed(() => store.rows.length === 1 && !store.hasAnyId)
+const isEmptyBatch = computed(() => store.rows.length === 0)
 
 // dragenter/dragleave also fire for children, so count them instead of
 // toggling a flag — otherwise moving over the icon clears the highlight.
@@ -642,7 +649,7 @@ function chart(uid: number, kind: TimeSeriesKind) {
       </div>
     </article>
 
-    <button class="btn btn-secondary add-manual" type="button" @click="store.addRow()">
+    <button class="btn btn-secondary add-manual" type="button" @click="addExperiment()">
       <v-icon :icon="mdiPlus" size="15" />{{ $t('contribute.editor.add_experiment') }}
     </button>
   </div>
