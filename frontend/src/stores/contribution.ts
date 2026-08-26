@@ -7,7 +7,6 @@ import { mapResponse, type ExperimentReport, type ReportedIssue } from '@/utils/
 import { postContribution, type ContributorInfo } from '@/utils/submission'
 import { buildTarGz } from '@/utils/tar'
 import { timeSeriesKindsFor } from '@/utils/timeseries'
-import type { CellIssue } from '@/utils/validation'
 import { validateSheet, type SheetIssues } from '@/utils/validation'
 import type { ValidationResponse } from '@/utils/validationResponse'
 import { isValidationResponse } from '@/utils/validationResponse'
@@ -76,7 +75,18 @@ export interface CardIssue {
   /** Set for a field problem; `kindKey` is set instead for a test-data file. */
   column?: string
   kindKey?: string | null
-  level: 'error' | 'warn'
+  /**
+   * `todo` is a blank field on a draft experiment (one just added by hand):
+   * shown as a neutral hint, never counted as a problem. It becomes a real
+   * error or warning once the draft settles.
+   */
+  level: 'error' | 'warn' | 'todo'
+  message: string
+}
+
+/** What a field shows under its input: the issue's level and message. */
+export interface FieldIssue {
+  level: CardIssue['level']
   message: string
 }
 
@@ -102,6 +112,13 @@ export interface ExperimentProblems {
 
 /** Idle time after the last edit before the server check fires. */
 const AUTO_VALIDATE_DELAY_MS = 2000
+
+/**
+ * How long a hand-added experiment stays a draft with nobody editing it. A
+ * draft is also settled sooner when the contributor moves on to something
+ * else or fills in every required field (see `settle`).
+ */
+export const DRAFT_SETTLE_MS = 30_000
 
 export const useContributionStore = defineStore('contribution', () => {
   const dictionary = useDictionaryStore()
@@ -138,6 +155,54 @@ export const useContributionStore = defineStore('contribution', () => {
     rows.value.map((row) => (row.cells.id ?? '').trim()).filter((id) => id !== '')
   )
   const hasAnyId = computed(() => specimenIds.value.length > 0)
+
+  // --- Drafts -----------------------------------------------------------
+  // An experiment added by hand starts as a draft: its blank fields are hints,
+  // not errors, and the server check waits. It settles into a normally checked
+  // experiment when the contributor moves on (adds another, edits another,
+  // folds the card, asks for a check), completes it, or pauses for a while.
+
+  /** Uids of the experiments still being drafted. */
+  const drafts = ref<Set<number>>(new Set())
+  const checkPaused = computed(() => drafts.value.size > 0)
+
+  function isDraft(uid: number): boolean {
+    return drafts.value.has(uid)
+  }
+
+  let debounce: ReturnType<typeof setTimeout> | undefined
+  let settleTimer: ReturnType<typeof setTimeout> | undefined
+
+  /** Run the server check after a quiet delay, unless something rules it out. */
+  function scheduleCheck(): void {
+    clearTimeout(debounce)
+    if (!config.value?.qualityCheckSupported || !hasAnyId.value || checkPaused.value) return
+    debounce = setTimeout(() => {
+      if (status.value !== 'running') runQualityCheck()
+    }, AUTO_VALIDATE_DELAY_MS)
+  }
+
+  /** End one draft, or every draft when uid is omitted; the check resumes. */
+  function settle(uid?: number): void {
+    if (drafts.value.size === 0) return
+    if (uid === undefined) drafts.value.clear()
+    else if (!drafts.value.delete(uid)) return
+    if (drafts.value.size === 0) {
+      clearTimeout(settleTimer)
+      scheduleCheck()
+    }
+  }
+
+  /** The contributor is editing `uid`: working on another experiment ends the drafts. */
+  function touch(uid: number): void {
+    if (!drafts.value.has(uid)) settle()
+  }
+
+  /** Every required field (the id included) has a value. */
+  function isComplete(row: ExperimentRow): boolean {
+    const filled = (column: string) => (row.cells[column] ?? '').trim() !== ''
+    return filled('id') && columns.value.every((column) => column.nullable || filled(column.name))
+  }
 
   /** Per-cell client-side issues across all experiments. */
   const clientIssues = computed<SheetIssues>(() =>
@@ -185,12 +250,15 @@ export const useContributionStore = defineStore('contribution', () => {
       const issues: CardIssue[] = []
       const client = clientIssues.value.get(index) ?? {}
       const value = (column: string) => (row.cells[column] ?? '').trim()
+      const draft = drafts.value.has(row.uid)
 
       for (const [column, issue] of Object.entries(client)) {
         issues.push({
           key: issueKey(row.uid, column, value(column), issue.message),
           column,
-          level: issue.level,
+          // On a draft, what is still blank is a hint; what was typed wrong
+          // is feedback and keeps its level.
+          level: draft && value(column) === '' ? 'todo' : issue.level,
           message: issue.message
         })
       }
@@ -216,7 +284,11 @@ export const useContributionStore = defineStore('contribution', () => {
           message: file.issue.message
         })
       }
-      issues.push(...testDataIssues(row))
+      for (const issue of testDataIssues(row)) {
+        issues.push(
+          draft && issue.message === NO_TEST_DATA_MESSAGE ? { ...issue, level: 'todo' } : issue
+        )
+      }
       map.set(row.uid, issues)
     })
     return map
@@ -272,8 +344,14 @@ export const useContributionStore = defineStore('contribution', () => {
     return issuesByUid.value.get(uid) ?? []
   }
 
+  /** The problems that count: not dismissed, and not a draft's blank fields. */
   function activeIssuesFor(uid: number): CardIssue[] {
-    return issuesFor(uid).filter((issue) => !isDismissed(issue))
+    return issuesFor(uid).filter((issue) => issue.level !== 'todo' && !isDismissed(issue))
+  }
+
+  /** A draft's blank required fields, for its neutral "still to fill in" badge. */
+  function todoFor(uid: number): CardIssue[] {
+    return issuesFor(uid).filter((issue) => issue.level === 'todo')
   }
 
   function dismissedIssuesFor(uid: number): CardIssue[] {
@@ -286,9 +364,9 @@ export const useContributionStore = defineStore('contribution', () => {
     return issues.length ? 'warn' : 'pass'
   }
 
-  /** The live problem for a cell, so the field can show it inline. */
-  function cellIssueFor(uid: number, column: string): CellIssue | undefined {
-    const issue = activeIssuesFor(uid).find((entry) => entry.column === column)
+  /** The live problem (or draft hint) for a cell, so the field can show it inline. */
+  function cellIssueFor(uid: number, column: string): FieldIssue | undefined {
+    const issue = issuesFor(uid).find((entry) => entry.column === column && !isDismissed(entry))
     return issue ? { level: issue.level, message: issue.message } : undefined
   }
 
@@ -359,7 +437,10 @@ export const useContributionStore = defineStore('contribution', () => {
   const checking = computed(
     () =>
       status.value === 'running' ||
-      (status.value === 'idle' && !!config.value?.qualityCheckSupported && hasAnyId.value)
+      (status.value === 'idle' &&
+        !!config.value?.qualityCheckSupported &&
+        hasAnyId.value &&
+        !checkPaused.value)
   )
 
   /** The last check failed outright, so there is no verdict to report either. */
@@ -378,22 +459,30 @@ export const useContributionStore = defineStore('contribution', () => {
     rows.value = []
     timeSeries.value = {}
     dismissed.value.clear()
+    drafts.value.clear()
     resetQualityCheck()
     resetSubmission()
   }
 
-  /** Append a blank experiment; returns its uid so the editor can open it. */
+  /** Append a blank experiment as a draft; returns its uid so the editor can open it. */
   function addRow(): number {
+    // Starting another experiment is moving on from the previous draft.
+    settle()
     const row = newRow()
     rows.value.push(row)
+    drafts.value.add(row.uid)
     return row.uid
   }
 
   function duplicateRow(uid: number): void {
     const source = rowByUid(uid)
     if (!source) return
-    // Ids must be unique, so a copy starts without one.
-    rows.value.push(newRow({ ...source.cells, id: '' }))
+    settle()
+    // Ids must be unique, so a copy starts without one — as a draft, like a
+    // hand-added experiment.
+    const row = newRow({ ...source.cells, id: '' })
+    rows.value.push(row)
+    drafts.value.add(row.uid)
   }
 
   function removeRow(uid: number): void {
@@ -401,13 +490,15 @@ export const useContributionStore = defineStore('contribution', () => {
     for (const key of Object.keys(timeSeries.value)) {
       if (key.startsWith(`${uid}:`)) delete timeSeries.value[key]
     }
+    settle(uid)
   }
 
-  /** Replace all experiments from imported CSV rows. */
+  /** Replace all experiments from imported CSV rows (never drafts: a file is complete). */
   function importRows(records: Array<Record<string, string>>): void {
     rows.value = records.map((cells) => newRow(cells))
     timeSeries.value = {}
     dismissed.value.clear()
+    drafts.value.clear()
   }
 
   function resetQualityCheck(): void {
@@ -461,6 +552,9 @@ export const useContributionStore = defineStore('contribution', () => {
   async function runQualityCheck(): Promise<void> {
     const target = config.value
     if (!target || !database.value || columns.value.length === 0) return
+    // Asking for a check ends the drafts, and this call is the check.
+    settle()
+    clearTimeout(debounce)
 
     if (!target.qualityCheckSupported) {
       status.value = 'unsupported'
@@ -527,6 +621,7 @@ export const useContributionStore = defineStore('contribution', () => {
     const target = config.value
     if (!target || !database.value || !canSubmit.value) return
 
+    settle()
     submitStatus.value = 'submitting'
     submitError.value = ''
     try {
@@ -571,18 +666,22 @@ export const useContributionStore = defineStore('contribution', () => {
   // Auto-validate: any edit invalidates the last report and re-checks after a
   // quiet delay. Trailing-only, so continuous typing fires nothing; a failed
   // request is not auto-retried (the manual "Check now" button covers that).
-  let debounce: ReturnType<typeof setTimeout> | undefined
+  // While an experiment is being drafted the check waits instead, and a long
+  // pause settles the draft.
   watch(
     [rows, timeSeries],
     () => {
       if (status.value !== 'running') resetQualityCheck()
-      // Editing after a submission starts a new draft.
+      // Editing after a submission starts a new batch.
       if (submitStatus.value !== 'submitting') resetSubmission()
-      clearTimeout(debounce)
-      if (!config.value?.qualityCheckSupported || !hasAnyId.value) return
-      debounce = setTimeout(() => {
-        if (status.value !== 'running') runQualityCheck()
-      }, AUTO_VALIDATE_DELAY_MS)
+      // A draft with every required field filled is done: check it now.
+      for (const uid of [...drafts.value]) {
+        const row = rowByUid(uid)
+        if (row && isComplete(row)) drafts.value.delete(uid)
+      }
+      clearTimeout(settleTimer)
+      if (drafts.value.size > 0) settleTimer = setTimeout(() => settle(), DRAFT_SETTLE_MS)
+      scheduleCheck()
     },
     { deep: true }
   )
@@ -592,6 +691,7 @@ export const useContributionStore = defineStore('contribution', () => {
     rows.value = []
     timeSeries.value = {}
     dismissed.value.clear()
+    drafts.value.clear()
     resetQualityCheck()
     resetSubmission()
   }
@@ -618,6 +718,10 @@ export const useContributionStore = defineStore('contribution', () => {
     experimentCount,
     specimenIds,
     hasAnyId,
+    checkPaused,
+    isDraft,
+    settle,
+    touch,
     clientIssues,
     clientErrorCount,
     globalIssues,
@@ -630,6 +734,7 @@ export const useContributionStore = defineStore('contribution', () => {
     dismissedCount,
     issuesFor,
     activeIssuesFor,
+    todoFor,
     dismissedIssuesFor,
     levelFor,
     cellIssueFor,

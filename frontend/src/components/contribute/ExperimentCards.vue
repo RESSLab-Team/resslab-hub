@@ -72,9 +72,13 @@ function toggleFieldGroup(id: FieldGroupId): void {
   openFieldGroups.value = next
 }
 
-/** Cell problems this row has inside one group, so the head can carry a count. */
+/** Cell problems this row has inside one group, so the head can carry a count.
+ *  A draft's "still to fill in" hints are not problems and do not count. */
 function issuesIn(uid: number, columns: { name: string }[]): number {
-  return columns.filter((column) => store.cellIssueFor(uid, column.name)).length
+  return columns.filter((column) => {
+    const issue = store.cellIssueFor(uid, column.name)
+    return issue && issue.level !== 'todo'
+  }).length
 }
 
 /** A group holding a problem is always open: a contributor cannot fix what a
@@ -95,12 +99,15 @@ const groupOfColumn = computed(() => {
 /**
  * A card is only green once the server has actually judged it. Until then it
  * reads as pending, so a batch does not flash "No issues" the moment it loads.
+ * A draft (just added by hand) reads as work in progress instead, and while it
+ * holds the check back the other cards have no verdict either.
  */
-function cardState(uid: number): 'fail' | 'warn' | 'checking' | 'unchecked' | 'pass' {
+function cardState(uid: number): 'fail' | 'warn' | 'draft' | 'checking' | 'unchecked' | 'pass' {
   const level = store.levelFor(uid)
   if (level !== 'pass') return level
+  if (store.isDraft(uid)) return 'draft'
   if (store.checking) return 'checking'
-  return store.unverified ? 'unchecked' : 'pass'
+  return store.unverified || store.checkPaused ? 'unchecked' : 'pass'
 }
 
 /**
@@ -174,8 +181,11 @@ function addExperiment(): void {
 
 function toggle(uid: number): void {
   const next = new Set(expanded.value)
-  if (next.has(uid)) next.delete(uid)
-  else next.add(uid)
+  if (next.has(uid)) {
+    next.delete(uid)
+    // Folding a draft away reads as "done with it".
+    store.settle(uid)
+  } else next.add(uid)
   expanded.value = next
 }
 
@@ -243,6 +253,7 @@ function attachText(uid: number, kind: TimeSeriesKind, name: string, text: strin
     return false
   }
   store.timeSeries[`${uid}:${kind.key}`] = { name, content: text, rows: check.rows }
+  store.touch(uid)
   return true
 }
 
@@ -285,6 +296,7 @@ async function onBulkAttach(event: Event): Promise<void> {
 
 function removeSeries(uid: number, kind: TimeSeriesKind): void {
   delete store.timeSeries[`${uid}:${kind.key}`]
+  store.touch(uid)
 }
 
 function chart(uid: number, kind: TimeSeriesKind) {
@@ -424,6 +436,9 @@ function chart(uid: number, kind: TimeSeriesKind) {
               $t('contribute.editor.issue_count', { count: store.activeIssuesFor(row.uid).length })
             }}
           </template>
+          <template v-else-if="cardState(row.uid) === 'draft' && store.todoFor(row.uid).length">
+            {{ $t('contribute.editor.todo_count', { count: store.todoFor(row.uid).length }) }}
+          </template>
           <template v-else-if="cardState(row.uid) === 'checking'">
             {{ $t('contribute.editor.checking') }}
           </template>
@@ -448,7 +463,10 @@ function chart(uid: number, kind: TimeSeriesKind) {
           </button>
         </div>
 
-        <section v-if="store.issuesFor(row.uid).length" class="card-section">
+        <section
+          v-if="store.activeIssuesFor(row.uid).length || store.dismissedIssuesFor(row.uid).length"
+          class="card-section"
+        >
           <h3>{{ $t('contribute.editor.problems') }}</h3>
 
           <div
@@ -580,12 +598,17 @@ function chart(uid: number, kind: TimeSeriesKind) {
                   :id="`f-${row.uid}-${column.name}`"
                   v-model="row.cells[column.name]"
                   type="text"
+                  @input="store.touch(row.uid)"
                 />
                 <small
                   v-if="store.cellIssueFor(row.uid, column.name)"
                   :class="store.cellIssueFor(row.uid, column.name)!.level"
                 >
-                  {{ store.cellIssueFor(row.uid, column.name)!.message }}
+                  {{
+                    store.cellIssueFor(row.uid, column.name)!.level === 'todo'
+                      ? $t('contribute.editor.todo')
+                      : store.cellIssueFor(row.uid, column.name)!.message
+                  }}
                 </small>
               </div>
             </div>
@@ -857,6 +880,12 @@ function chart(uid: number, kind: TimeSeriesKind) {
 .dot.unchecked {
   background: var(--border-strong);
 }
+/* A draft: hollow, so it reads as "not there yet" rather than as a verdict. */
+.dot.draft {
+  box-sizing: border-box;
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+}
 /* Sits in the status dot's place while the server verdict is pending — same
    box as .dot (border included) so swapping the two shifts nothing. */
 .spinner {
@@ -928,7 +957,8 @@ function chart(uid: number, kind: TimeSeriesKind) {
   color: var(--epfl-red);
 }
 .badge.checking,
-.badge.unchecked {
+.badge.unchecked,
+.badge.draft {
   color: var(--fg-muted);
   font-weight: 400;
 }
@@ -1201,6 +1231,10 @@ function chart(uid: number, kind: TimeSeriesKind) {
 }
 .field small.warn {
   color: var(--epfl-orange);
+}
+/* A draft's blank required field: a hint, in the label's grey, no border. */
+.field small.todo {
+  color: var(--fg-muted);
 }
 .field.flashed input,
 .series.flashed,

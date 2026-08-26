@@ -1105,6 +1105,8 @@
       "untitled": "Experiment {n}",
       "issue_count": "{count} issue(s)",
       "clean": "No issues",
+      "todo": "Still to fill in",
+      "todo_count": "{count} still to fill in",
       "duplicate": "Duplicate",
       "remove": "Remove",
       "problems": "Problems",
@@ -1127,6 +1129,7 @@
     "status": {
       "idle": "Add at least one experiment with an identifier to enable the automatic check.",
       "pending": "Waiting for a pause in editing to run the check…",
+      "drafting": "Fill in the new experiment. The check runs once you move on, complete it, or pause for a while.",
       "running": "Checking against the hub’s validator…",
       "pass": "All checks passed.",
       "warn": "Checks passed with {count} warning(s) — please review them.",

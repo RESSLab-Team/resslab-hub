@@ -1,9 +1,10 @@
-import { NO_TEST_DATA_MESSAGE, useContributionStore } from '@/stores/contribution'
+import { defaultApi } from '@/plugins/axios'
+import { DRAFT_SETTLE_MS, NO_TEST_DATA_MESSAGE, useContributionStore } from '@/stores/contribution'
 import { useDictionaryStore, type DictColumn } from '@/stores/dictionary'
 import { buildCsv } from '@/utils/contribution'
 import { postContribution } from '@/utils/submission'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
 import { nextTick } from 'vue'
 
 vi.mock('@/utils/submission', async (importOriginal) => ({
@@ -14,6 +15,11 @@ vi.mock('@/utils/submission', async (importOriginal) => ({
 // jsdom has no CompressionStream; the archive itself is covered by tar tests.
 vi.mock('@/utils/tar', () => ({
   buildTarGz: vi.fn(async () => new File(['tar'], 'contribution.tar.gz'))
+}))
+
+// The automatic check's request: answered clean, counted by the draft tests.
+vi.mock('@/plugins/axios', () => ({
+  defaultApi: { validateData: vi.fn(async () => ({ data: { valid: true, results: [] } })) }
 }))
 
 const BRACE_COLUMNS: DictColumn[] = [
@@ -46,14 +52,17 @@ const BRACE_COLUMNS: DictColumn[] = [
   }
 ]
 
-function seededStore(columns: DictColumn[] = BRACE_COLUMNS) {
+function seededStore(columns: DictColumn[] = BRACE_COLUMNS, { draft = false } = {}) {
   const dictionary = useDictionaryStore()
   dictionary.columns = { braces: columns }
   dictionary.state = 'ready'
   const store = useContributionStore()
   store.selectDatabase('braces')
-  // Most tests edit "the" row; the batch itself starts empty.
+  // Most tests edit "the" row; the batch itself starts empty. A hand-added
+  // row is a draft with its blank fields muted, so settle it unless a test is
+  // about drafting itself.
   store.addRow()
+  if (!draft) store.settle()
   return store
 }
 
@@ -327,6 +336,152 @@ describe('contribution store — experiment rows', () => {
     expect(store.experimentCount).toBe(2)
     expect(store.specimenIds).toEqual(['B1'])
     expect(store.clientErrorCount).toBeGreaterThanOrEqual(2)
+  })
+})
+
+describe('contribution store — drafts', () => {
+  const validateData = defaultApi.validateData as unknown as Mock
+
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.useFakeTimers()
+    validateData.mockClear()
+  })
+  afterEach(() => vi.useRealTimers())
+
+  it('shows a hand-added experiment’s blank fields as hints, not problems', () => {
+    const store = seededStore(BRACE_COLUMNS, { draft: true })
+    const uid = store.rows[0].uid
+    expect(store.isDraft(uid)).toBe(true)
+    expect(store.checkPaused).toBe(true)
+    expect(store.activeErrorCount).toBe(0)
+    expect(store.activeWarningCount).toBe(0)
+    expect(store.problemSummary).toEqual([])
+    expect(store.levelFor(uid)).toBe('pass')
+    expect(store.todoFor(uid).map((issue) => issue.column)).toEqual(['id', 'investigator'])
+    expect(store.cellIssueFor(uid, 'id')?.level).toBe('todo')
+    // Submission still waits for an id; the draft only changes how it is shown.
+    expect(store.clientErrorCount).toBe(1)
+    expect(store.canSubmit).toBe(false)
+  })
+
+  it('still flags what was typed wrong on a draft', async () => {
+    const store = seededStore(BRACE_COLUMNS, { draft: true })
+    const row = store.rows[0]
+    row.cells.area = 'abc'
+    row.cells.id = 'a/b'
+    await nextTick()
+    expect(store.isDraft(row.uid)).toBe(true)
+    expect(store.cellIssueFor(row.uid, 'area')?.level).toBe('error')
+    expect(store.cellIssueFor(row.uid, 'id')?.level).toBe('error')
+    expect(store.activeErrorCount).toBe(2)
+    // The blank one is still a hint.
+    expect(store.cellIssueFor(row.uid, 'investigator')?.level).toBe('todo')
+  })
+
+  it('mutes the missing-test-data warning while drafting', async () => {
+    const store = seededStore(BRACE_COLUMNS, { draft: true })
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    await nextTick()
+    expect(store.withoutTestDataCount).toBe(0)
+    expect(store.todoFor(row.uid).some((issue) => issue.message === NO_TEST_DATA_MESSAGE)).toBe(
+      true
+    )
+    store.settle()
+    expect(store.withoutTestDataCount).toBe(1)
+  })
+
+  it('holds the server check back while drafting and runs it after a long pause', async () => {
+    const store = seededStore(BRACE_COLUMNS, { draft: true })
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    await nextTick()
+    expect(store.checking).toBe(false)
+    vi.advanceTimersByTime(5000)
+    expect(validateData).not.toHaveBeenCalled()
+    expect(store.status).toBe('idle')
+
+    // Typing shortly before the pause would have ended keeps the draft alive.
+    vi.advanceTimersByTime(DRAFT_SETTLE_MS - 10_000)
+    row.cells.area = '10'
+    await nextTick()
+    vi.advanceTimersByTime(10_000)
+    expect(store.isDraft(row.uid)).toBe(true)
+    expect(validateData).not.toHaveBeenCalled()
+
+    vi.advanceTimersByTime(DRAFT_SETTLE_MS)
+    expect(store.isDraft(row.uid)).toBe(false)
+    expect(store.checkPaused).toBe(false)
+    expect(store.checking).toBe(true)
+    await vi.advanceTimersByTimeAsync(2000)
+    expect(validateData).toHaveBeenCalledTimes(1)
+    expect(store.status).toBe('pass')
+  })
+
+  it('settles a draft when the contributor moves on to another experiment', async () => {
+    const store = seededStore(BRACE_COLUMNS, { draft: true })
+    const first = store.rows[0].uid
+    store.rows[0].cells.id = 'B1'
+    await nextTick()
+
+    // Adding another experiment ends the first draft.
+    const second = store.addRow()
+    expect(store.isDraft(first)).toBe(false)
+    expect(store.isDraft(second)).toBe(true)
+    expect(store.activeWarningCount).toBeGreaterThan(0) // B1's blank investigator, now a warning
+
+    // Editing the first again ends the second draft too.
+    store.touch(first)
+    expect(store.isDraft(second)).toBe(false)
+    expect(store.checkPaused).toBe(false)
+
+    // Editing a draft itself keeps it a draft.
+    const third = store.addRow()
+    store.touch(third)
+    expect(store.isDraft(third)).toBe(true)
+    store.settle(third)
+    expect(store.isDraft(third)).toBe(false)
+  })
+
+  it('settles a draft as soon as every required field is filled', async () => {
+    const store = seededStore(BRACE_COLUMNS, { draft: true })
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    await nextTick()
+    expect(store.isDraft(row.uid)).toBe(true)
+    row.cells.investigator = 'X'
+    await nextTick()
+    expect(store.isDraft(row.uid)).toBe(false)
+    expect(store.checking).toBe(true)
+  })
+
+  it('settles the drafts on an explicit check, and checks once', async () => {
+    const store = seededStore(BRACE_COLUMNS, { draft: true })
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    await nextTick()
+    await store.runQualityCheck()
+    expect(store.isDraft(row.uid)).toBe(false)
+    expect(validateData).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(DRAFT_SETTLE_MS)
+    expect(validateData).toHaveBeenCalledTimes(1)
+  })
+
+  it('never drafts imported rows; a duplicate starts as one', () => {
+    const store = seededStore(BRACE_COLUMNS, { draft: true })
+    store.importRows([{ id: 'B1' }, { id: '' }])
+    expect(store.checkPaused).toBe(false)
+    expect(store.rows.every((row) => !store.isDraft(row.uid))).toBe(true)
+    expect(store.activeErrorCount).toBeGreaterThan(0)
+
+    store.duplicateRow(store.rows[0].uid)
+    const copy = store.rows[2]
+    expect(store.isDraft(copy.uid)).toBe(true)
+    expect(store.cellIssueFor(copy.uid, 'id')?.level).toBe('todo')
+
+    store.removeRow(copy.uid)
+    expect(store.checkPaused).toBe(false)
   })
 })
 

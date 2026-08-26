@@ -1105,6 +1105,8 @@
       "untitled": "Expérience {n}",
       "issue_count": "{count} problème(s)",
       "clean": "Aucun problème",
+      "todo": "Reste à remplir",
+      "todo_count": "{count} à remplir",
       "duplicate": "Dupliquer",
       "remove": "Retirer",
       "problems": "Problèmes",
@@ -1127,6 +1129,7 @@
     "status": {
       "idle": "Ajoutez au moins une expérience avec un identifiant pour activer la vérification automatique.",
       "pending": "En attente d’une pause dans la saisie pour lancer la vérification…",
+      "drafting": "Remplissez la nouvelle expérience. La vérification se lance quand vous passez à autre chose, la complétez ou faites une pause.",
       "running": "Vérification par le validateur du hub…",
       "pass": "Toutes les vérifications sont passées.",
       "warn": "Vérifications passées avec {count} avertissement(s) — merci de les relire.",

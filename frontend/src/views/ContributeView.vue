@@ -16,6 +16,7 @@ import {
   mdiChevronRight,
   mdiClose,
   mdiOpenInNew,
+  mdiPencilOutline,
   mdiSend,
   mdiShieldCheckOutline
 } from '@mdi/js'
@@ -82,12 +83,15 @@ const statusText = computed(() => {
         ? t('contribute.status.error_short')
         : `${t('contribute.status.error')} ${store.errorMessage}`
     default:
+      // A draft holds the check back; say what ends it rather than "waiting".
+      if (store.checkPaused) return t('contribute.status.drafting')
       return store.hasAnyId ? t('contribute.status.pending') : t('contribute.status.idle')
   }
 })
 
 /** Once every warning is dismissed the bar reads as a pass, and vice versa. */
 const statusClass = computed(() => {
+  if (store.status === 'idle' && store.checkPaused) return 'drafting'
   if (store.status !== 'pass' && store.status !== 'warn') return store.status
   if (store.activeErrorCount > 0) return 'fail'
   return store.activeWarningCount > 0 ? 'warn' : 'pass'
@@ -271,6 +275,8 @@ async function confirmSubmit(): Promise<void> {
                   ? mdiCheck
                   : statusClass === 'running'
                   ? mdiShieldCheckOutline
+                  : statusClass === 'drafting'
+                  ? mdiPencilOutline
                   : mdiAlertOutline
               "
               size="15"
@@ -747,6 +753,10 @@ async function confirmSubmit(): Promise<void> {
 .status.fail,
 .status.error {
   color: var(--epfl-red);
+}
+.status.drafting {
+  color: var(--fg-muted);
+  font-weight: 500;
 }
 .bar-actions {
   display: flex;
