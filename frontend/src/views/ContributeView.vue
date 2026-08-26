@@ -17,6 +17,7 @@ import {
   mdiClose,
   mdiOpenInNew,
   mdiPencilOutline,
+  mdiTrayArrowUp,
   mdiSend,
   mdiShieldCheckOutline
 } from '@mdi/js'
@@ -67,6 +68,10 @@ const statusText = computed(() => {
       if (store.activeErrorCount > 0) {
         return t('contribute.status.fail', { count: store.activeErrorCount })
       }
+      // The record checks out; the files it expects are still to come.
+      if (store.awaitingTestDataCount > 0) {
+        return t('contribute.status.awaiting_test_data', { count: store.awaitingTestDataCount })
+      }
       if (store.activeWarningCount > 0) {
         return t('contribute.status.warn', { count: store.activeWarningCount })
       }
@@ -94,6 +99,7 @@ const statusClass = computed(() => {
   if (store.status === 'idle' && store.checkPaused) return 'drafting'
   if (store.status !== 'pass' && store.status !== 'warn') return store.status
   if (store.activeErrorCount > 0) return 'fail'
+  if (store.awaitingTestDataCount > 0) return 'awaiting'
   return store.activeWarningCount > 0 ? 'warn' : 'pass'
 })
 
@@ -277,6 +283,8 @@ async function confirmSubmit(): Promise<void> {
                   ? mdiShieldCheckOutline
                   : statusClass === 'drafting'
                   ? mdiPencilOutline
+                  : statusClass === 'awaiting'
+                  ? mdiTrayArrowUp
                   : mdiAlertOutline
               "
               size="15"
@@ -754,6 +762,7 @@ async function confirmSubmit(): Promise<void> {
 .status.error {
   color: var(--epfl-red);
 }
+.status.awaiting,
 .status.drafting {
   color: var(--fg-muted);
   font-weight: 500;

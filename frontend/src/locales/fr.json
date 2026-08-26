@@ -1125,7 +1125,8 @@
       "checking": "Vérification…",
       "unchecked": "Non vérifié",
       "intro_guide": "Avant de commencer, lisez le guide de contribution ci-dessous, rédigé par les chercheurs pour cette base : il explique comment l’identifiant du spécimen est construit et quels fichiers de réponse sont attendus, avec leurs en-têtes de colonnes et unités exacts.",
-      "bulk_ambiguous": "Choisissez le type de réponse pour : {files}"
+      "bulk_ambiguous": "Choisissez le type de réponse pour : {files}",
+      "todo_files": "Données d'essai à joindre"
     },
     "status": {
       "idle": "Ajoutez au moins une expérience avec un identifiant pour activer la vérification automatique.",
@@ -1146,7 +1147,8 @@
       "see_all_issues": "Voir les {count} problèmes",
       "check_now": "Vérifier maintenant",
       "warn_dismissed": "Vérifications passées — tous les avertissements ont été ignorés.",
-      "dismissed": "{count} ignoré(s)"
+      "dismissed": "{count} ignoré(s)",
+      "awaiting_test_data": "{count} expérience(s) attendent encore leurs données d'essai : déposez les fichiers sur les cartes, ou tous à la fois dans la zone de dépôt groupé."
     },
     "timeseries": {
       "rows": "{count} lignes",

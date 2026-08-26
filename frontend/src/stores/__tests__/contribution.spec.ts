@@ -278,28 +278,57 @@ describe('contribution store — experiment rows', () => {
     expect(store.status).toBe('idle')
   })
 
-  it('flags a missing required file as an error, until it is attached', () => {
+  it('hints at a missing required file until the batch has test data, then flags it', () => {
     const store = seededStore()
-    const row = store.rows[0]
-    // No id yet: the missing id is the problem, not the missing file.
-    expect(store.activeIssuesFor(row.uid).some((i) => i.kindKey !== undefined)).toBe(false)
-    row.cells.id = 'B1'
-    row.cells.investigator = 'X'
-    const error = store.activeIssuesFor(row.uid).find((issue) => issue.kindKey !== undefined)
+    store.importRows([
+      { id: 'B1', investigator: 'X' },
+      { id: 'B2', investigator: 'X' }
+    ])
+    const [first, second] = store.rows
+    // Nothing attached anywhere yet: a hint on both, and no submission.
+    for (const row of store.rows) {
+      expect(store.activeIssuesFor(row.uid)).toHaveLength(0)
+      expect(store.todoFor(row.uid).map((issue) => issue.message)).toEqual([
+        MISSING_REQUIRED_MESSAGE
+      ])
+      expect(store.kindStatus(row.uid, FORCE_DISPLACEMENT)).toBe('todo')
+    }
+    expect(store.awaitingTestDataCount).toBe(2)
+    expect(store.fileErrorCount).toBe(0)
+    expect(store.withoutTestDataCount).toBe(0)
+
+    // The first file arrives: the other experiment's slot is now a problem.
+    attachTestData(store, first.uid)
+    expect(store.kindStatus(first.uid, FORCE_DISPLACEMENT)).toBe('ok')
+    const error = store.activeIssuesFor(second.uid).find((issue) => issue.kindKey !== undefined)
     expect(error?.level).toBe('error')
     expect(error?.kindKey).toBe('force_displacement')
     expect(error?.message).toBe(MISSING_REQUIRED_MESSAGE)
-    expect(store.kindStatus(row.uid, FORCE_DISPLACEMENT)).toBe('missing_required')
-    expect(store.withoutTestDataCount).toBe(1)
+    expect(store.kindStatus(second.uid, FORCE_DISPLACEMENT)).toBe('missing_required')
+    expect(store.awaitingTestDataCount).toBe(0)
     expect(store.fileErrorCount).toBe(1)
+    expect(store.withoutTestDataCount).toBe(1)
     // Errors cannot be dismissed away.
     store.dismissIssue(error!.key)
-    expect(store.activeIssuesFor(row.uid)).toHaveLength(1)
-    attachTestData(store, row.uid)
-    expect(store.activeIssuesFor(row.uid)).toHaveLength(0)
-    expect(store.kindStatus(row.uid, FORCE_DISPLACEMENT)).toBe('ok')
-    expect(store.withoutTestDataCount).toBe(0)
+    expect(store.activeIssuesFor(second.uid)).toHaveLength(1)
+    attachTestData(store, second.uid)
+    expect(store.activeIssuesFor(second.uid)).toHaveLength(0)
     expect(store.fileErrorCount).toBe(0)
+    expect(store.withoutTestDataCount).toBe(0)
+    // A fresh import starts over with hints.
+    store.importRows([{ id: 'B3', investigator: 'X' }])
+    expect(store.kindStatus(store.rows[0].uid, FORCE_DISPLACEMENT)).toBe('todo')
+  })
+
+  it('never lets a batch through while a required file is still a hint', async () => {
+    const store = seededStore()
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    row.cells.investigator = 'X'
+    await nextTick()
+    store.status = 'pass'
+    expect(store.awaitingTestDataCount).toBe(1)
+    expect(store.canSubmit).toBe(false)
   })
 
   it('only warns about missing test data when the database requires none', () => {
@@ -470,8 +499,9 @@ describe('contribution store — drafts', () => {
     )
     expect(store.kindStatus(row.uid, FORCE_DISPLACEMENT)).toBe('todo')
     store.settle()
-    expect(store.withoutTestDataCount).toBe(1)
-    expect(store.fileErrorCount).toBe(1)
+    // Still a hint: no test data has reached the batch yet.
+    expect(store.awaitingTestDataCount).toBe(1)
+    expect(store.fileErrorCount).toBe(0)
   })
 
   it('holds the server check back while drafting and runs it after a long pause', async () => {

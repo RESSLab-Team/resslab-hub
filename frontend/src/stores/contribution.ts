@@ -181,6 +181,14 @@ export const useContributionStore = defineStore('contribution', () => {
 
   /** Uids of the experiments still being drafted. */
   const drafts = ref<Set<number>>(new Set())
+  /**
+   * Whether any test data has been attached to this batch. Until then an
+   * expected file that is absent is a hint, not an error: a CSV import
+   * lands a whole batch at once and the files come next, and turning every
+   * card red before the contributor has had the chance is no help. Once the
+   * files start arriving, the ones still missing are real problems.
+   */
+  const testDataStarted = ref(false)
   const checkPaused = computed(() => drafts.value.size > 0)
 
   function isDraft(uid: number): boolean {
@@ -341,7 +349,7 @@ export const useContributionStore = defineStore('contribution', () => {
             key: issueKey(row.uid, kind.key, '', MISSING_REQUIRED_MESSAGE),
             kindKey: kind.key,
             missing: true,
-            level: draft ? 'todo' : 'error',
+            level: draft || !testDataStarted.value ? 'todo' : 'error',
             message: MISSING_REQUIRED_MESSAGE
           })
         }
@@ -388,6 +396,7 @@ export const useContributionStore = defineStore('contribution', () => {
     const content = normalizeCsvText(raw)
     const report = checkTimeSeriesFile(kind, content)
     timeSeries.value[`${uid}:${kind.key}`] = { name, content, rows: report.rows, report }
+    testDataStarted.value = true
     touch(uid)
   }
 
@@ -504,6 +513,15 @@ export const useContributionStore = defineStore('contribution', () => {
     }, 0)
   )
 
+  /** Experiments whose expected file is still a hint (no test data attached to the batch yet). */
+  const awaitingTestDataCount = computed(() => {
+    let count = 0
+    for (const uid of issuesByUid.value.keys()) {
+      if (todoFor(uid).some((issue) => issue.missing && issue.kindKey)) count++
+    }
+    return count
+  })
+
   /** Test-data errors the server cannot see (an expected file that is absent). */
   const fileErrorCount = computed(() => {
     let count = 0
@@ -546,6 +564,7 @@ export const useContributionStore = defineStore('contribution', () => {
     timeSeries.value = {}
     dismissed.value.clear()
     drafts.value.clear()
+    testDataStarted.value = false
     resetQualityCheck()
     resetSubmission()
   }
@@ -585,6 +604,7 @@ export const useContributionStore = defineStore('contribution', () => {
     timeSeries.value = {}
     dismissed.value.clear()
     drafts.value.clear()
+    testDataStarted.value = false
   }
 
   function resetQualityCheck(): void {
@@ -690,6 +710,7 @@ export const useContributionStore = defineStore('contribution', () => {
       hasAnyId.value &&
       clientErrorCount.value === 0 &&
       fileErrorCount.value === 0 &&
+      awaitingTestDataCount.value === 0 &&
       !checking.value &&
       (status.value === 'pass' || status.value === 'warn') &&
       submitStatus.value !== 'submitting'
@@ -782,6 +803,7 @@ export const useContributionStore = defineStore('contribution', () => {
     timeSeries.value = {}
     dismissed.value.clear()
     drafts.value.clear()
+    testDataStarted.value = false
     resetQualityCheck()
     resetSubmission()
   }
@@ -821,6 +843,7 @@ export const useContributionStore = defineStore('contribution', () => {
     activeErrorCount,
     problemSummary,
     withoutTestDataCount,
+    awaitingTestDataCount,
     fileErrorCount,
     dismissedCount,
     issuesFor,

@@ -110,9 +110,19 @@ const groupOfColumn = computed(() => {
 function cardState(uid: number): 'fail' | 'warn' | 'draft' | 'checking' | 'unchecked' | 'pass' {
   const level = store.levelFor(uid)
   if (level !== 'pass') return level
-  if (store.isDraft(uid)) return 'draft'
+  // Something still to do (a blank field, a file to attach) reads the same
+  // way as a draft: not there yet, not a verdict.
+  if (store.isDraft(uid) || store.todoFor(uid).length) return 'draft'
   if (store.checking) return 'checking'
   return store.unverified || store.checkPaused ? 'unchecked' : 'pass'
+}
+
+/** The badge of a card with hints: blank fields are counted, files are named. */
+function todoLabel(uid: number): string {
+  const todos = store.todoFor(uid)
+  const fields = todos.filter((issue) => issue.column).length
+  if (fields > 0) return t('contribute.editor.todo_count', { count: fields })
+  return t('contribute.editor.todo_files')
 }
 
 /**
@@ -513,7 +523,7 @@ function noteFor(kind: TimeSeriesKind): string {
             }}
           </template>
           <template v-else-if="cardState(row.uid) === 'draft' && store.todoFor(row.uid).length">
-            {{ $t('contribute.editor.todo_count', { count: store.todoFor(row.uid).length }) }}
+            {{ todoLabel(row.uid) }}
           </template>
           <template v-else-if="cardState(row.uid) === 'checking'">
             {{ $t('contribute.editor.checking') }}
@@ -817,10 +827,11 @@ function noteFor(kind: TimeSeriesKind): string {
                 @change="onSlotAttach(row.uid, kind, $event)"
               />
               <small
-                v-if="store.kindStatus(row.uid, kind) === 'missing_required'"
-                class="series-issues error"
+                v-if="['missing_required', 'todo'].includes(store.kindStatus(row.uid, kind))"
+                class="series-issues"
+                :class="store.kindStatus(row.uid, kind) === 'todo' ? 'todo' : 'error'"
               >
-                {{ $t('contribute.timeseries.state.missing_required') }}
+                {{ $t(`contribute.timeseries.state.${store.kindStatus(row.uid, kind)}`) }}
               </small>
             </template>
           </div>
@@ -1571,6 +1582,9 @@ function noteFor(kind: TimeSeriesKind): string {
 }
 .series-issues .warn {
   color: var(--epfl-orange);
+}
+.series-issues.todo {
+  color: var(--fg-muted);
 }
 .series-issues .link {
   margin-left: 4px;

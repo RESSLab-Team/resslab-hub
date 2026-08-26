@@ -1125,7 +1125,8 @@
       "checking": "Checking…",
       "unchecked": "Not checked",
       "intro_guide": "Before you start, read the contribution guide below, written by the researchers for this database: it explains how the specimen identifier is built and which response files are expected, with their exact column headers and units.",
-      "bulk_ambiguous": "Pick the response type for: {files}"
+      "bulk_ambiguous": "Pick the response type for: {files}",
+      "todo_files": "Test data to attach"
     },
     "status": {
       "idle": "Add at least one experiment with an identifier to enable the automatic check.",
@@ -1146,7 +1147,8 @@
       "see_all_issues": "See all {count} issues",
       "check_now": "Check now",
       "warn_dismissed": "Checks passed — every warning was dismissed.",
-      "dismissed": "{count} dismissed"
+      "dismissed": "{count} dismissed",
+      "awaiting_test_data": "{count} experiment(s) still need their test data: drop the files on the cards, or all at once in the bulk strip."
     },
     "timeseries": {
       "rows": "{count} rows",
