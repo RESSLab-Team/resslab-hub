@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ContributionGuide from '@/components/contribute/ContributionGuide.vue'
 import ExperimentCards from '@/components/contribute/ExperimentCards.vue'
+import FailureDetails from '@/components/contribute/FailureDetails.vue'
 import { useContributionStore, type CardIssue } from '@/stores/contribution'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { CONTRIBUTION_DATABASES, fieldLabel } from '@/utils/contribution'
@@ -76,7 +77,10 @@ const statusText = computed(() => {
     case 'unsupported':
       return t('contribute.status.unsupported')
     case 'error':
-      return `${t('contribute.status.error')} ${store.errorMessage}`
+      // The details block under the bar carries the message and the report.
+      return store.checkFailure
+        ? t('contribute.status.error_short')
+        : `${t('contribute.status.error')} ${store.errorMessage}`
     default:
       return store.hasAnyId ? t('contribute.status.pending') : t('contribute.status.idle')
   }
@@ -387,9 +391,18 @@ async function confirmSubmit(): Promise<void> {
               </template>
             </div>
           </div>
-          <p v-if="store.submitStatus === 'error'" class="submit-error">
-            {{ $t('contribute.submit_failed') }} {{ store.submitError }}
-          </p>
+          <failure-details
+            v-if="store.submitStatus === 'error' && store.submitFailure"
+            class="submit-error"
+            :report="store.submitFailure"
+            :label="$t('contribute.submit_failed')"
+          />
+          <failure-details
+            v-else-if="store.status === 'error' && store.checkFailure"
+            class="submit-error"
+            :report="store.checkFailure"
+            :label="$t('contribute.status.error')"
+          />
           <p class="draft-note">{{ $t('contribute.draft_notice') }}</p>
         </footer>
       </div>

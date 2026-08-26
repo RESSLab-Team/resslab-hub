@@ -1133,6 +1133,7 @@
       "fail": "{count} error(s) block this contribution.",
       "unsupported": "Automated validation is not available for this database.",
       "error": "The check could not be completed:",
+      "error_short": "The check could not be completed.",
       "problems_errors": "{count} error(s)",
       "problems_warnings": "{count} warning(s) unresolved",
       "show_problems": "Show details",
@@ -1173,6 +1174,21 @@
         "triax_simulation": "Triaxiality (simulation)"
       },
       "attach": "Attach file"
+    },
+    "failure": {
+      "details": "Show details",
+      "hide_details": "Hide details",
+      "when": "When",
+      "request": "Request",
+      "status": "HTTP status",
+      "batch": "Batch",
+      "experiments": "{count} experiment(s)",
+      "files": "{count} test-data file(s)",
+      "report": "Report a bug",
+      "report_hint": "Opens a prefilled issue on GitHub — the details above are included, your name and email are not.",
+      "copy": "Copy details",
+      "copied": "Details copied to the clipboard.",
+      "copy_failed": "The details could not be copied — select the text above instead."
     },
     "submitting": "Submitting…",
     "submit_failed": "The submission failed:",

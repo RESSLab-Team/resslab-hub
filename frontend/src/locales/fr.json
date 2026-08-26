@@ -1133,6 +1133,7 @@
       "fail": "{count} erreur(s) bloquent cette contribution.",
       "unsupported": "La validation automatique n’est pas disponible pour cette base.",
       "error": "La vérification n’a pas pu aboutir :",
+      "error_short": "La vérification n’a pas pu aboutir.",
       "problems_errors": "{count} erreur(s)",
       "problems_warnings": "{count} avertissement(s) non résolu(s)",
       "show_problems": "Afficher le détail",
@@ -1173,6 +1174,21 @@
         "triax_simulation": "Triaxialité (simulation)"
       },
       "attach": "Joindre un fichier"
+    },
+    "failure": {
+      "details": "Afficher le détail",
+      "hide_details": "Masquer le détail",
+      "when": "Quand",
+      "request": "Requête",
+      "status": "Statut HTTP",
+      "batch": "Lot",
+      "experiments": "{count} expérience(s)",
+      "files": "{count} fichier(s) de données d’essai",
+      "report": "Signaler un bug",
+      "report_hint": "Ouvre un ticket prérempli sur GitHub — les détails ci-dessus sont inclus, pas votre nom ni votre e-mail.",
+      "copy": "Copier le détail",
+      "copied": "Détail copié dans le presse-papiers.",
+      "copy_failed": "Le détail n’a pas pu être copié — sélectionnez le texte ci-dessus."
     },
     "submitting": "Envoi…",
     "submit_failed": "La soumission a échoué :",

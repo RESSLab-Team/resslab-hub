@@ -1,6 +1,7 @@
 import { defaultApi } from '@/plugins/axios'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
+import { describeFailure, type FailureReport } from '@/utils/failureReport'
 import type { DatabaseId } from '@/utils/navigation'
 import { mapResponse, type ExperimentReport, type ReportedIssue } from '@/utils/qualityReport'
 import { postContribution, type ContributorInfo } from '@/utils/submission'
@@ -119,9 +120,12 @@ export const useContributionStore = defineStore('contribution', () => {
   const status = ref<QualityCheckStatus>('idle')
   const response = ref<ValidationResponse | null>(null)
   const errorMessage = ref('')
+  /** The technical side of a failed check, for the details fold and bug reports. */
+  const checkFailure = ref<FailureReport | null>(null)
 
   const submitStatus = ref<'idle' | 'submitting' | 'submitted' | 'error'>('idle')
   const submitError = ref('')
+  const submitFailure = ref<FailureReport | null>(null)
   const pullRequestUrl = ref('')
   const pullRequestNumber = ref(0)
 
@@ -409,6 +413,17 @@ export const useContributionStore = defineStore('contribution', () => {
     status.value = config.value && !config.value.qualityCheckSupported ? 'unsupported' : 'idle'
     response.value = null
     errorMessage.value = ''
+    checkFailure.value = null
+  }
+
+  /** What was being checked or submitted, for a failure report. */
+  function failureContext(): Omit<Parameters<typeof describeFailure>[1], 'operation' | 'message'> {
+    return {
+      database: database.value ?? undefined,
+      type: config.value?.type,
+      experiments: rows.value.length,
+      files: Object.keys(timeSeries.value).length
+    }
   }
 
   /**
@@ -468,6 +483,11 @@ export const useContributionStore = defineStore('contribution', () => {
     } catch (caught) {
       status.value = 'error'
       errorMessage.value = transportError(caught)
+      checkFailure.value = describeFailure(caught, {
+        operation: 'validate',
+        message: errorMessage.value,
+        ...failureContext()
+      })
     }
   }
 
@@ -529,12 +549,18 @@ export const useContributionStore = defineStore('contribution', () => {
       }
       submitStatus.value = 'error'
       submitError.value = transportError(caught)
+      submitFailure.value = describeFailure(caught, {
+        operation: 'submit',
+        message: submitError.value,
+        ...failureContext()
+      })
     }
   }
 
   function resetSubmission(): void {
     submitStatus.value = 'idle'
     submitError.value = ''
+    submitFailure.value = null
     pullRequestUrl.value = ''
     pullRequestNumber.value = 0
   }
@@ -574,8 +600,10 @@ export const useContributionStore = defineStore('contribution', () => {
     status,
     response,
     errorMessage,
+    checkFailure,
     submitStatus,
     submitError,
+    submitFailure,
     pullRequestUrl,
     pullRequestNumber,
     canSubmit,

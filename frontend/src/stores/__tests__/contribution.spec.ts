@@ -410,6 +410,13 @@ describe('contribution store — submission', () => {
 
     expect(store.submitStatus).toBe('error')
     expect(store.submitError).toBe("Specimen id 'a/b' cannot be used as a file name: rule.")
+    // The technical side travels with it, for the details fold and the bug link.
+    expect(store.submitFailure?.status).toBe(400)
+    expect(store.submitFailure?.operation).toBe('submit')
+    expect(store.submitFailure?.database).toBe('braces')
+    expect(store.submitFailure?.experiments).toBe(1)
+    store.resetSubmission()
+    expect(store.submitFailure).toBeNull()
   })
 
   it('falls back to the archive message only when a 400 carries no detail', async () => {
