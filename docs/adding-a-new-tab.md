@@ -304,6 +304,18 @@ And make sure `upload-data` still picks up the aggregate via `all` (it already d
 
 Optionally add a `validate-new-things` rule — the existing `validate-%:` pattern works if the directory name matches.
 
+### 4.1 Validator (mandatory — tensile coupons, EBF and ductile fracture all missed this, see #274)
+
+File: `backend/resslab_hub/data/validator.py`
+
+The uploader and the validator are two separate dispatch tables, and only the first one was on this checklist. Without a validator branch, `validate_one_file` raises `NotImplementedError`, `/validate` answers 500, and the contribution editor has to lock the database (`qualityCheckSupported: false` in `frontend/src/utils/contribution.ts`), which means nobody can submit to it through the hub.
+
+1. **`validate_one_file()` branches**, mirroring the uploader:
+   - `Type.NEW_THING` → `TableValidator(NewThing)`
+   - `Type.NEW_THING_SUB` → `CsvFileValidator(NewThing, [<the exact headers the uploader reads>], "id")` for each time-series type.
+2. **`PRIMARY_TYPE_MAP`** — add `Type.NEW_THING_SUB: Type.NEW_THING` for each child type. `PRIMARY_TYPES` and the primary-CSV lookup in `validate_all` derive from it.
+3. Frontend: in `frontend/src/utils/contribution.ts` set `qualityCheckSupported: true`, and in `frontend/src/utils/timeseries.ts` give each kind the same `requiredColumns` as the validator (`tests/test_contribution_layout.py` pins the directories; `TestTensileCoupons` in `tests/test_validator.py` is the model for the backend test).
+
 ---
 
 ## Step 5 — Backend: Alembic migration

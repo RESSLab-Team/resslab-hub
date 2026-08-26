@@ -2,6 +2,7 @@
 Handle / requests
 """
 
+from logging import warning
 from os import path
 from secrets import compare_digest
 from tempfile import TemporaryDirectory
@@ -22,6 +23,8 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from resslab_hub import __name__ as name
 from resslab_hub import __version__
 from resslab_hub.config import settings
+from resslab_hub.contributions.github import configured
+from resslab_hub.contributions.submission import flag_repo_duplicates
 from resslab_hub.data.uploader import Type, upload_all
 from resslab_hub.data.validator import validate_all
 from resslab_hub.models import Info
@@ -224,6 +227,14 @@ async def validate_data(
             results = validate_all(
                 type, [tmpdir], cpu=1, check_duplicate_ids=check_duplicates
             )
+            # Same repo-level duplicate check the submission enforces, so a
+            # contributor learns about a clash while editing, not on submit.
+            # Best effort: GitHub being unreachable must not fail the check.
+            if check_duplicates and configured():
+                try:
+                    await flag_repo_duplicates(tmpdir, type, results)
+                except Exception as exc:  # noqa: BLE001
+                    warning(f"Data-repo duplicate check skipped: {exc}")
 
             # A validation report is a successful operation even when the data
             # has errors: 200 with valid=false. 4xx is reserved for transport

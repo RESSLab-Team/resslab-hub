@@ -29,7 +29,13 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session
 
-from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
+from resslab_hub.data.common import (
+    SAFE_ID_PATTERN,
+    SAFE_ID_RULE,
+    get_abs_path,
+    get_file_encoding,
+    is_empty_row,
+)
 from resslab_hub.data.count_flags import COUNT_FLAGS
 from resslab_hub.data.uploader import (
     Type,
@@ -43,6 +49,7 @@ from resslab_hub.models.database.connection import Connection
 from resslab_hub.models.database.hss_column import HSSColumn
 from resslab_hub.models.database.material import Material
 from resslab_hub.models.database.residual_stress import ResidualStress
+from resslab_hub.models.database.tensile_coupon import TensileCoupon
 from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
@@ -281,12 +288,22 @@ class TableValidator(Validator):
                         self._check_range(
                             result, row_num, column_name, value, range_stats
                         )
-                        if (
-                            self.check_duplicate_ids
-                            and column_name == self.id_column_key
-                            and value.strip()
-                        ):
-                            specimen_id = value.strip()
+                        if column_name != self.id_column_key or not value.strip():
+                            continue
+                        specimen_id = value.strip()
+                        # The id names the time-series file and ends up as a
+                        # path in the data repository: refuse anything that
+                        # cannot be a file name, here where the contributor
+                        # sees it on the cell, rather than at submission.
+                        if not SAFE_ID_PATTERN.fullmatch(specimen_id):
+                            result.add_error(
+                                row_num,
+                                column_name,
+                                value,
+                                f"Specimen id '{specimen_id}' cannot be used as "
+                                f"a file name: {SAFE_ID_RULE}.",
+                            )
+                        if self.check_duplicate_ids:
                             if specimen_id in existing_ids:
                                 result.add_error(
                                     row_num,
@@ -612,6 +629,10 @@ def validate_one_file(input_type: Type, filename: str) -> Validator:
             )
         case Type.MATERIAL_STRESS_STRAIN:
             validator = CsvFileValidator(Material, ["Sigma_true", "e_true"], "id")
+        case Type.TENSILE_COUPON:
+            validator = TableValidator(TensileCoupon)
+        case Type.TENSILE_COUPON_STRESS_STRAIN:
+            validator = CsvFileValidator(TensileCoupon, ["Sigma_true", "e_true"], "id")
         case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
             validator = CsvFileValidator(
                 ResidualStress,
@@ -665,7 +686,12 @@ PRIMARY_TYPE_MAP = {
     Type.RESIDUAL_STRESS_DISTRIBUTION_W1: Type.RESIDUAL_STRESS,
     Type.RESIDUAL_STRESS_QP_COEFFICIENT: Type.RESIDUAL_STRESS,
     Type.HSS_COLUMN_MOMENT_ROTATION: Type.HSS_COLUMN,
+    Type.TENSILE_COUPON_STRESS_STRAIN: Type.TENSILE_COUPON,
 }
+
+#: The record-per-experiment tables; every other validated type is a
+#: time-series file keyed to one of these through ``PRIMARY_TYPE_MAP``.
+PRIMARY_TYPES = frozenset(PRIMARY_TYPE_MAP.values())
 
 
 def validate_with_primary(
@@ -768,19 +794,7 @@ def validate_all(
     ]
 
     # Split into primary and subsidiary types
-    primary_types = [
-        arg
-        for arg in args
-        if arg[0]
-        in [
-            Type.BRACE,
-            Type.COLUMN,
-            Type.CONNECTION,
-            Type.MATERIAL,
-            Type.RESIDUAL_STRESS,
-            Type.HSS_COLUMN,
-        ]
-    ]
+    primary_types = [arg for arg in args if arg[0] in PRIMARY_TYPES]
     subsidiary_types = [arg for arg in args if arg not in primary_types]
     info(
         f"Found {len(primary_types)} primary types"
@@ -789,18 +803,8 @@ def validate_all(
 
     # Create mapping of primary CSV paths
     primary_csv_paths = {
-        Type.BRACE: next((f for t, f in primary_types if t == Type.BRACE), None),
-        Type.COLUMN: next((f for t, f in primary_types if t == Type.COLUMN), None),
-        Type.CONNECTION: next(
-            (f for t, f in primary_types if t == Type.CONNECTION), None
-        ),
-        Type.MATERIAL: next((f for t, f in primary_types if t == Type.MATERIAL), None),
-        Type.RESIDUAL_STRESS: next(
-            (f for t, f in primary_types if t == Type.RESIDUAL_STRESS), None
-        ),
-        Type.HSS_COLUMN: next(
-            (f for t, f in primary_types if t == Type.HSS_COLUMN), None
-        ),
+        primary: next((f for t, f in primary_types if t == primary), None)
+        for primary in PRIMARY_TYPES
     }
 
     results = []

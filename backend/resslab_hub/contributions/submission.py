@@ -9,7 +9,8 @@ provenance record through the Git Data API.
 
 Security invariants (epic #255): client-supplied paths are never trusted — the
 only writable locations are derived here from the uploader's own type map; ids
-must match a strict filename pattern; CSV cells that could be read as
+must be safe file names (``SAFE_ID_PATTERN``, shared with the validator so the
+quality check reports a bad id before submission); CSV cells that could be read as
 spreadsheet formulas are prefix-escaped.
 """
 
@@ -24,14 +25,13 @@ from decimal import Decimal, InvalidOperation
 from fnmatch import fnmatch
 from hashlib import sha256
 from os import path, walk
-from typing import List, Optional
+from time import monotonic
+from typing import Dict, List, Optional, Set, Tuple
 
 from resslab_hub.contributions.github import DataRepoClient, NewFile
+from resslab_hub.data.common import SAFE_ID_PATTERN, SAFE_ID_RULE
 from resslab_hub.data.uploader import Type, get_args_all
 from resslab_hub.data.validator import ValidationResult, validate_all
-
-#: One path segment: no separators, no leading dot, no shell/format oddities.
-SAFE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._ -]*$")
 
 #: Cells starting with these can execute as formulas when the CSV is opened in
 #: a spreadsheet. Numbers are exempt: "-1.5" is data, not a formula.
@@ -164,7 +164,8 @@ def batch_ids(header: List[str], rows: List[List[str]]) -> List[str]:
             raise SubmissionError(400, "Every experiment needs a specimen id.")
         if not SAFE_ID_PATTERN.fullmatch(value):
             raise SubmissionError(
-                400, f"Specimen id '{value}' contains unsupported characters."
+                400,
+                f"Specimen id '{value}' cannot be used as a file name: {SAFE_ID_RULE}.",
             )
         if value in ids:
             raise SubmissionError(
@@ -247,6 +248,76 @@ def build_pr_body(
             *[f"- {warning}" for warning in dismissed_warnings],
         ]
     return "\n".join(lines)
+
+
+#: The data repository's primary CSV is re-read from GitHub at most this often
+#: per type, so the editor's automatic check can consult it on every run.
+REPO_IDS_TTL_SECONDS = 300
+_repo_ids_cache: Dict[Type, Tuple[float, Set[str]]] = {}
+
+
+async def repo_ids(
+    input_type: Type, client: Optional[DataRepoClient] = None
+) -> Set[str]:
+    """Specimen ids at the data repository's HEAD, cached per type."""
+    cached = _repo_ids_cache.get(input_type)
+    if cached and monotonic() - cached[0] < REPO_IDS_TTL_SECONDS:
+        return cached[1]
+    layout = _layout_for(input_type)
+    client = client or DataRepoClient()
+    header, rows = _read_csv(await client.get_file_text(layout.primary_csv))
+    id_index = header.index("id")
+    ids = {row[id_index].strip() for row in rows if id_index < len(row)}
+    _repo_ids_cache[input_type] = (monotonic(), ids)
+    return ids
+
+
+async def flag_repo_duplicates(
+    tmpdir: str,
+    input_type: Type,
+    results: List[ValidationResult],
+    client: Optional[DataRepoClient] = None,
+) -> None:
+    """Flag batch ids that already exist in the data repository.
+
+    ``submit_contribution`` refuses them (409); running the same check inside
+    ``/validate`` puts the error on the id cell while the contributor is still
+    editing. Catches what the database check cannot: specimens merged into the
+    repository but not yet ingested. Ids the validator already reported as
+    database duplicates are left alone rather than flagged twice.
+    """
+    layout = _layout_for(input_type)
+    primary = next(
+        (
+            result
+            for result in results
+            if result.file_path.replace("\\", "/").endswith(layout.primary_csv)
+        ),
+        None,
+    )
+    if primary is None:
+        return
+    with open(path.join(tmpdir, layout.primary_csv), encoding="utf-8") as file:
+        # csv.reader, not _read_csv: the validator numbers data rows from 1
+        # including blank ones, and the errors have to land on the same rows.
+        rows = list(csv.reader(io.StringIO(file.read().lstrip("\ufeff"))))
+    if not rows or "id" not in rows[0]:
+        return
+    id_index = rows[0].index("id")
+    flagged = {
+        error.row for error in primary.errors if error.column == "id" and error.row
+    }
+    existing = await repo_ids(input_type, client)
+    for row_num, row in enumerate(rows[1:], start=1):
+        value = row[id_index].strip() if id_index < len(row) else ""
+        if value and value in existing and row_num not in flagged:
+            primary.add_error(
+                row_num,
+                "id",
+                value,
+                f"Specimen id '{value}' already exists in the data repository "
+                f"(merged, awaiting ingestion) — ids must be unique.",
+            )
 
 
 async def submit_contribution(

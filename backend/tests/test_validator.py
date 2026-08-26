@@ -10,12 +10,17 @@ database (they seed existing data to compare against).
 import csv
 from pathlib import Path
 
-from resslab_hub.data.uploader import Type, upload_one
+from resslab_hub.data.uploader import Type, get_args_all, upload_one
 from resslab_hub.data.validator import (
+    PRIMARY_TYPE_MAP,
+    PRIMARY_TYPES,
+    CsvFileValidator,
     TableValidator,
     ValidationResult,
+    validate_one_file,
 )
 from resslab_hub.models.database.brace import Brace
+from resslab_hub.models.database.tensile_coupon import TensileCoupon
 from tests.conftest import write_main_csv
 
 BRACE_COLUMNS = [c.key for c in Brace.__table__.columns]
@@ -158,6 +163,45 @@ class TestTableValidator:
         result = TableValidator(Brace).validate_one(str(file_path))
 
         assert result.file_path.endswith("braces.csv")
+
+
+class TestTensileCoupons:
+    """Tensile coupons validate like cyclic coupons: a record table plus one
+    stress-strain file per specimen, keyed by ``<id>.csv`` (issue #274)."""
+
+    def test_record_table_dispatches_to_the_model(self):
+        validator = validate_one_file(Type.TENSILE_COUPON, "tensile_coupons.csv")
+        assert isinstance(validator, TableValidator)
+        assert validator.base_model is TensileCoupon
+
+    def test_stress_strain_requires_the_uploader_columns(self):
+        validator = validate_one_file(Type.TENSILE_COUPON_STRESS_STRAIN, "T1.csv")
+        assert isinstance(validator, CsvFileValidator)
+        assert validator.base_model is TensileCoupon
+        # The columns the uploader reads (cf. ``upload_one``).
+        assert set(validator.required_columns) == {"Sigma_true", "e_true"}
+        assert validator.foreign_key_field == "id"
+
+    def test_stress_strain_is_keyed_to_the_record_table(self):
+        assert (
+            PRIMARY_TYPE_MAP[Type.TENSILE_COUPON_STRESS_STRAIN] is Type.TENSILE_COUPON
+        )
+        assert Type.TENSILE_COUPON in PRIMARY_TYPES
+
+    def test_every_uploaded_type_has_a_validator(self):
+        # The contribution editor only unlocks a database once its whole
+        # layout validates; a NotImplementedError here would surface as a 500.
+        for arg_type, _ in get_args_all(Type.ALL_TENSILE_COUPON, ""):
+            if arg_type in (Type.DICTIONARY, Type.README):
+                continue
+            validate_one_file(arg_type, "x.csv")
+
+    def test_well_formed_record_is_valid(self, tmp_path: Path, monkeypatch):
+        monkeypatch.setattr(TableValidator, "_range_stats", lambda self: {})
+        file_path = tmp_path / "tensile_coupons.csv"
+        write_main_csv(file_path, TensileCoupon, [{"id": "batch1-bfl-A3"}])
+        result = TableValidator(TensileCoupon).validate_one(str(file_path))
+        assert result.is_valid(), result.errors
 
 
 class TestRangeWarnings:

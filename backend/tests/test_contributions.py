@@ -17,6 +17,8 @@ from resslab_hub.contributions.submission import (
     batch_ids,
     check_paths,
     escape_formula,
+    flag_repo_duplicates,
+    repo_ids,
     submit_contribution,
 )
 from resslab_hub.data.uploader import Type
@@ -154,6 +156,30 @@ def test_batch_ids_rejects_duplicates_and_bad_names():
     with pytest.raises(SubmissionError):
         batch_ids(header, [["", "1"]])
     assert batch_ids(header, [["B9", "1"], ["B10.a", "2"]]) == ["B9", "B10.a"]
+
+
+@pytest.mark.parametrize(
+    "specimen_id",
+    [
+        "Mukaide_et_al_2016__P3325-C+",  # a real hss_columns id
+        "S355 φ10 C1",  # spaces and non-Latin letters
+        "RC#1",
+        "A(1)",
+    ],
+)
+def test_batch_ids_accepts_real_world_names(specimen_id):
+    assert batch_ids(["id"], [[specimen_id]]) == [specimen_id]
+
+
+@pytest.mark.parametrize(
+    "specimen_id",
+    ["a/b", "a\\b", "a:b", ".hidden", "_x", "-x", "a?b", "a*b", "a\tb"],
+)
+def test_batch_ids_rejects_unsafe_file_names(specimen_id):
+    with pytest.raises(SubmissionError) as caught:
+        batch_ids(["id"], [[specimen_id]])
+    assert caught.value.status_code == 400
+    assert "file name" in caught.value.detail
 
 
 # --- submission flow --------------------------------------------------------
@@ -303,6 +329,65 @@ async def test_submit_unsupported_type(tmp_path, monkeypatch):
     assert caught.value.status_code == 422
 
 
+# --- repo duplicate check inside /validate ----------------------------------
+
+
+def primary_result(tmp_path) -> ValidationResult:
+    target = tmp_path / "braces" / "steel_braces.csv"
+    return ValidationResult(target.name, str(target))
+
+
+async def test_flag_repo_duplicates_marks_ids_at_repo_head(tmp_path, monkeypatch):
+    monkeypatch.setattr(submission, "_repo_ids_cache", {})
+    make_batch(tmp_path, "id,f_y,name\nB9,400,New\nB1,300,Clash\n\nB2,1,Clash\n")
+    result = primary_result(tmp_path)
+    await flag_repo_duplicates(
+        str(tmp_path),
+        Type.ALL_BRACE,
+        [result],
+        client=FakeClient({"braces/steel_braces.csv": REPO_CSV}),
+    )
+    assert [(err.row, err.value) for err in result.errors] == [(2, "B1"), (4, "B2")]
+    assert all(err.column == "id" for err in result.errors)
+    assert "data repository" in result.errors[0].message
+
+
+async def test_flag_repo_duplicates_skips_ids_already_flagged(tmp_path, monkeypatch):
+    # The validator already reported B1 as a database duplicate: one error.
+    monkeypatch.setattr(submission, "_repo_ids_cache", {})
+    make_batch(tmp_path, "id,f_y,name\nB1,300,Clash\n")
+    result = primary_result(tmp_path)
+    result.add_error(1, "id", "B1", "already exists in the database")
+    await flag_repo_duplicates(
+        str(tmp_path),
+        Type.ALL_BRACE,
+        [result],
+        client=FakeClient({"braces/steel_braces.csv": REPO_CSV}),
+    )
+    assert len(result.errors) == 1
+
+
+async def test_flag_repo_duplicates_without_primary_result(tmp_path, monkeypatch):
+    monkeypatch.setattr(submission, "_repo_ids_cache", {})
+    make_batch(tmp_path)
+    await flag_repo_duplicates(str(tmp_path), Type.ALL_BRACE, [], client=FakeClient({}))
+
+
+async def test_repo_ids_are_cached_per_type(monkeypatch):
+    monkeypatch.setattr(submission, "_repo_ids_cache", {})
+    calls = []
+
+    class CountingClient(FakeClient):
+        async def get_file_text(self, path, ref=None):
+            calls.append(path)
+            return await super().get_file_text(path, ref)
+
+    client = CountingClient({"braces/steel_braces.csv": REPO_CSV})
+    assert await repo_ids(Type.ALL_BRACE, client) == {"B1", "B2"}
+    assert await repo_ids(Type.ALL_BRACE, client) == {"B1", "B2"}
+    assert calls == ["braces/steel_braces.csv"]
+
+
 # --- duplicate-id check in the validator ------------------------------------
 
 
@@ -341,6 +426,27 @@ def test_validator_flags_in_batch_duplicates(tmp_path, monkeypatch):
     validator = TableValidator(Brace, check_duplicate_ids=True)
     result = validator.validate_one(brace_csv(tmp_path, f"{row}\n{row}\n"))
     assert any("more than once" in err.message for err in result.errors)
+
+
+def test_validator_reports_unsafe_ids_on_the_cell(tmp_path, monkeypatch):
+    # The submission would refuse the id anyway; the validator flags it first
+    # so the editor shows the problem on the id field during the auto-check.
+    stub_db(monkeypatch, set())
+    columns = list(Brace.__table__.c)
+    row = ",".join("a/b" if col.key == "id" else "NR" for col in columns)
+    validator = TableValidator(Brace)
+    result = validator.validate_one(brace_csv(tmp_path, f"{row}\n"))
+    errors = [err for err in result.errors if "file name" in err.message]
+    assert len(errors) == 1
+    assert (errors[0].row, errors[0].column) == (1, "id")
+
+
+def test_validator_accepts_ids_with_plus_and_unicode(tmp_path, monkeypatch):
+    stub_db(monkeypatch, set())
+    columns = list(Brace.__table__.c)
+    row = ",".join("S355 φ10 C+" if col.key == "id" else "NR" for col in columns)
+    result = TableValidator(Brace).validate_one(brace_csv(tmp_path, f"{row}\n"))
+    assert not [err for err in result.errors if err.column == "id"]
 
 
 def test_validator_default_skips_duplicate_check(tmp_path, monkeypatch):
