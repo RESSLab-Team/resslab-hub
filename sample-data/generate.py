@@ -424,6 +424,29 @@ def distribution(s: Series, scale: float, tilt: float = 0.0, flip: bool = False)
     return out
 
 
+def monotonic(
+    s: Series, scale: float, profile, x_sign: float = 1.0
+) -> list[list[float]]:
+    """A single pull to fracture: x grows to its peak, y follows `profile(u)`,
+    a fraction of the peak as a function of the progress u in [0, 1]."""
+    out = []
+    for i in range(s.rows):
+        u = i / (s.rows - 1) if s.rows > 1 else 0.0
+        out.append([x_sign * s.x_peak * scale * u, s.y_peak * scale * profile(u)])
+    return out
+
+
+def tension(u: float) -> float:
+    """Elastic rise, power-law hardening to the ultimate load, then necking."""
+    if u < 0.05:
+        return 0.75 * u / 0.05
+    hardening = min(1.0, (u - 0.05) / 0.6)
+    y = 0.75 + 0.25 * (1 - (1 - hardening) ** 2)
+    if u > 0.65:
+        y -= 0.2 * ((u - 0.65) / 0.35) ** 1.5
+    return y
+
+
 def coefficients(s: Series, scale: float) -> list[list[float]]:
     """The quarter-point fit: a handful of numbers, one per column of the file."""
     return [[s.y_peak * scale * value] for value in (1.0, -0.55, 0.32, -0.18)[: s.rows]]
@@ -449,11 +472,22 @@ SHAPES = {
     "distribution_flange_tilted": lambda s, scale: distribution(s, scale, tilt=0.8),
     "distribution_web": lambda s, scale: distribution(s, scale, flip=True),
     "coefficients": coefficients,
+    # Coupons and notched bars pulled once to fracture.
+    "tension": lambda s, scale: monotonic(s, scale, tension),
+    # Radial contraction of the neck: the same pull, x running negative.
+    "tension_radial": lambda s, scale: monotonic(s, scale, tension, x_sign=-1.0),
+    # Simulation outputs along the elongation: strain accumulates, the Lode
+    # angle swings from 1 to -1, the triaxiality climbs from 1/3 as the neck forms.
+    "growth": lambda s, scale: monotonic(s, scale, lambda u: u**1.6),
+    "lode": lambda s, scale: monotonic(s, scale, lambda u: 1 - 2 * u**0.6),
+    "triaxiality": lambda s, scale: monotonic(s, scale, lambda u: 0.33 + 0.67 * u),
 }
 
 ROTATION = ["Chord Rotation [rads]", "Moment [kN-mm]"]
 DRIFT = ["Total story drift angle (rad)", "Force in the actuator (kN)"]
 COORDINATE = ["coordinate", "residual_stress"]
+ELONGATION_LOAD = ["Elongation [mm]", "Load [kN]"]
+RADIAL_LOAD = ["Radial elongation [mm]", "Load [kN]"]
 
 # The filename is the foreign key, so each is written as <specimen id>.csv beside
 # the record it belongs to. Peaks and row counts follow the real directories.
@@ -566,6 +600,87 @@ TIME_SERIES: dict[str, list[Series]] = {
             rows=200,
             cycles=7,
         )
+    ],
+    "tensile_coupons": [
+        Series(
+            "material/tensile_coupons/stress_strain",
+            ["e_true", "Sigma_true"],
+            "tension",
+            x_peak=0.25,
+            y_peak=520,
+            rows=150,
+        )
+    ],
+    "eccentric_braced_frames": [
+        # Link shear V against the total link rotation gamma_t, cycled to failure.
+        Series(
+            "eccentric_braced_frames/processed_data",
+            ["gamma_t", "V"],
+            "hysteresis",
+            x_peak=0.11,
+            y_peak=300,
+            rows=400,
+            cycles=12,
+        )
+    ],
+    "ductile_fracture": [
+        # The measured pull, and the calibrated simulation of the same test.
+        Series(
+            "material/ductile_fracture/force_elongation",
+            ELONGATION_LOAD,
+            "tension",
+            x_peak=0.64,
+            y_peak=10,
+            rows=400,
+        ),
+        Series(
+            "material/ductile_fracture/force_elongation_simulation",
+            ELONGATION_LOAD,
+            "tension",
+            x_peak=0.64,
+            y_peak=10,
+            rows=200,
+        ),
+        Series(
+            "material/ductile_fracture/force_radial",
+            RADIAL_LOAD,
+            "tension_radial",
+            x_peak=1.0,
+            y_peak=10,
+            rows=400,
+        ),
+        Series(
+            "material/ductile_fracture/force_radial_simulation",
+            RADIAL_LOAD,
+            "tension_radial",
+            x_peak=0.9,
+            y_peak=10,
+            rows=200,
+        ),
+        Series(
+            "material/ductile_fracture/equivalent_plastic_strain_elongation_simulation",
+            ["Elongation [mm]", "Equivalent plastic strain"],
+            "growth",
+            x_peak=0.64,
+            y_peak=4.6,
+            rows=200,
+        ),
+        Series(
+            "material/ductile_fracture/lode_angle_elongation_simulation",
+            ["Elongation [mm]", "Lode angle"],
+            "lode",
+            x_peak=0.64,
+            y_peak=1.0,
+            rows=200,
+        ),
+        Series(
+            "material/ductile_fracture/triaxiality_elongation_simulation",
+            ["Elongation [mm]", "Triaxiality"],
+            "triaxiality",
+            x_peak=0.64,
+            y_peak=1.0,
+            rows=200,
+        ),
     ],
     "residual_stresses": [
         Series(

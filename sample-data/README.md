@@ -32,7 +32,7 @@ Per database:
 |---|---|
 | `<name>.csv` | 15 experiments, all type-valid → quality check **passes**, with range warnings on the last 3 |
 | `<name>.invalid.csv` | The same batch with type errors seeded into 2 rows → quality check **fails** |
-| `<subdir>/DEMO-*.csv` | Measured response (time-series), one per experiment, 60 rows |
+| `<subdir>/DEMO-*.csv` | Measured response (time-series), one per experiment and per response type the database has (every database has at least one); row counts follow the real files |
 
 The directory layout mirrors what the backend expects inside an upload archive
 (`get_args_all` in `backend/resslab_hub/data/uploader.py`).
