@@ -11,8 +11,12 @@
 import type { ExperimentRow } from '@/stores/contribution'
 import { CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { DatabaseId } from '@/utils/navigation'
-import { timeSeriesKindsFor } from '@/utils/timeseries'
-import type { FileValidationResult, ValidationIssue, ValidationResponse } from '@/utils/validationResponse'
+import { fileStemFor, timeSeriesKindsFor } from '@/utils/timeseries'
+import type {
+  FileValidationResult,
+  ValidationIssue,
+  ValidationResponse
+} from '@/utils/validationResponse'
 
 export type Severity = 'error' | 'warning'
 export type ExperimentLevel = 'pass' | 'warn' | 'fail'
@@ -73,7 +77,7 @@ export function mapResponse(
   response: ValidationResponse
 ): QualityReport {
   const csvPath = CONTRIBUTION_DATABASES[database].csvPath
-  const kindByDir = new Map(timeSeriesKindsFor(database).map((kind) => [kind.directory, kind.key]))
+  const kindByDir = new Map(timeSeriesKindsFor(database).map((kind) => [kind.directory, kind]))
 
   const reports = new Map<number, ExperimentReport>()
   for (const row of rows) {
@@ -95,7 +99,10 @@ export function mapResponse(
 
   const global: ReportedIssue[] = []
 
-  const eachIssue = (file: FileValidationResult, visit: (i: ValidationIssue, s: Severity) => void) => {
+  const eachIssue = (
+    file: FileValidationResult,
+    visit: (i: ValidationIssue, s: Severity) => void
+  ) => {
     for (const issue of file.errors ?? []) visit(issue, 'error')
     for (const issue of file.warnings ?? []) visit(issue, 'warning')
   }
@@ -115,8 +122,12 @@ export function mapResponse(
         })
       })
     } else {
-      const kindKey = kindByDir.get(dirname(file.path)) ?? null
-      const uid = uidById.get(stem(file.path))
+      const kind = kindByDir.get(dirname(file.path))
+      const kindKey = kind?.key ?? null
+      // A kind may name its files differently from the bare id (EBF: `id74.csv`).
+      const uid = [...uidById].find(
+        ([id]) => (kind ? fileStemFor(kind, id) : id) === stem(file.path)
+      )?.[1]
       eachIssue(file, (issue, severity) => {
         if (uid === undefined) {
           global.push({ issue, severity })

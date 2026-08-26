@@ -91,3 +91,25 @@ describe('mapResponse — time-series kind disambiguation', () => {
     expect(report.experiments[0].level).toBe('pass')
   })
 })
+
+describe('mapResponse — file naming', () => {
+  it('matches an EBF file by its id-prefixed stem', () => {
+    const response: ValidationResponse = {
+      valid: false,
+      message: '',
+      error_count: 1,
+      results: [
+        {
+          file: 'id74.csv',
+          path: 'eccentric_braced_frames/processed_data/id74.csv',
+          valid: false,
+          errors: [{ row: 2, column: 'V', value: 'x', message: 'Must be a number' }],
+          warnings: []
+        }
+      ]
+    }
+    const report = mapResponse('ebf', rows('74'), response)
+    expect(report.global).toEqual([])
+    expect(report.experiments[0].fileIssues.map((f) => f.kindKey)).toEqual(['processed_data'])
+  })
+})

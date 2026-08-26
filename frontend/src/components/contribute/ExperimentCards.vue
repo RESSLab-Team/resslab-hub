@@ -8,7 +8,12 @@ import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import { readCsvTable } from '@/utils/csv'
 import { sparkline } from '@/utils/sparkline'
 import { downloadDictionary, downloadTemplate } from '@/utils/templates'
-import { checkTimeSeriesFile, timeSeriesKindsFor, type TimeSeriesKind } from '@/utils/timeseries'
+import {
+  fileStemFor,
+  kindsMatchingHeaders,
+  timeSeriesKindsFor,
+  type TimeSeriesKind
+} from '@/utils/timeseries'
 import {
   mdiAlertOutline,
   mdiBellOffOutline,
@@ -25,7 +30,7 @@ import {
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n({ useScope: 'global' })
+const { t, te } = useI18n({ useScope: 'global' })
 const store = useContributionStore()
 const notification = useNotificationStore()
 
@@ -242,66 +247,116 @@ const bulkInput = ref<HTMLInputElement>()
 const bulkKindKey = ref('')
 const bulkKind = computed(() => kinds.value.find((kind) => kind.key === bulkKindKey.value))
 
-function attachText(uid: number, kind: TimeSeriesKind, name: string, text: string): boolean {
-  const check = checkTimeSeriesFile(kind, text)
-  if (!check.ok) {
-    notification.notify(
-      check.error === 'empty'
-        ? t('contribute.timeseries.error_empty')
-        : t('contribute.timeseries.error_columns', { columns: check.missing.join(', ') })
-    )
-    return false
-  }
-  store.timeSeries[`${uid}:${kind.key}`] = { name, content: text, rows: check.rows }
-  store.touch(uid)
-  return true
+// One drag counter per drop target (see `dragDepth`): a slot is keyed like
+// `store.timeSeries`, the bulk strip is `bulk`.
+const dragOver = ref<Record<string, number>>({})
+function dragEnter(key: string): void {
+  dragOver.value[key] = (dragOver.value[key] ?? 0) + 1
+}
+function dragLeave(key: string): void {
+  dragOver.value[key] = Math.max(0, (dragOver.value[key] ?? 0) - 1)
+}
+function isOver(key: string): boolean {
+  return (dragOver.value[key] ?? 0) > 0
+}
+
+async function attachFile(uid: number, kind: TimeSeriesKind, file: File): Promise<void> {
+  store.attachSeries(uid, kind, file.name, await file.text())
 }
 
 async function onSlotAttach(uid: number, kind: TimeSeriesKind, event: Event): Promise<void> {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   input.value = ''
-  if (file) attachText(uid, kind, file.name, await file.text())
+  if (file) await attachFile(uid, kind, file)
 }
 
-/** Bulk attach: each file's stem is matched (case-sensitively) to an experiment id. */
-async function onBulkAttach(event: Event): Promise<void> {
-  const input = event.target as HTMLInputElement
-  const files = Array.from(input.files ?? [])
-  input.value = ''
-  const kind = bulkKind.value
-  if (!kind || files.length === 0) return
+/** A file dropped on a slot lands there whatever its name; a second file is ignored. */
+async function onSlotDrop(uid: number, kind: TimeSeriesKind, event: DragEvent): Promise<void> {
+  dragOver.value[`${uid}:${kind.key}`] = 0
+  const files = Array.from(event.dataTransfer?.files ?? [])
+  if (files.length === 0) return
+  if (files.length > 1) notification.notify(t('contribute.editor.drop_one_file'))
+  await attachFile(uid, kind, files[0])
+}
 
-  const uidById = new Map(
-    store.rows
-      .map((row) => [(row.cells.id ?? '').trim(), row.uid] as const)
-      .filter(([id]) => id !== '')
-  )
+/**
+ * Bulk attach: each file's stem is matched (case-sensitively) to an
+ * experiment id through the kind's naming rule, and the kind is read from
+ * the file's headers unless the dropdown names one. Kinds that share a
+ * header set (beam / beam west, the F1/F2/W1 distributions) cannot be told
+ * apart from the content, so those files wait for the dropdown.
+ */
+async function attachMany(files: File[]): Promise<void> {
+  if (files.length === 0) return
+  const ids = store.rows
+    .map((row) => [(row.cells.id ?? '').trim(), row.uid] as const)
+    .filter(([id]) => id !== '')
   let attached = 0
   const unmatched: string[] = []
+  const ambiguous: string[] = []
   for (const file of files) {
-    const uid = uidById.get(file.name.replace(/\.csv$/i, ''))
-    if (uid === undefined) {
+    const text = await file.text()
+    let kind = bulkKind.value
+    if (!kind) {
+      const matches = kindsMatchingHeaders(kinds.value, text)
+      if (matches.length !== 1) {
+        ambiguous.push(file.name)
+        continue
+      }
+      kind = matches[0]
+    }
+    const stem = file.name.replace(/\.csv$/i, '')
+    const match = ids.find(([id]) => fileStemFor(kind!, id) === stem)
+    if (!match) {
       unmatched.push(file.name)
       continue
     }
-    if (attachText(uid, kind, file.name, await file.text())) attached++
+    store.attachSeries(match[1], kind, file.name, text)
+    attached++
   }
   let message = t('contribute.editor.bulk_result', { attached })
   if (unmatched.length) {
     message += ' ' + t('contribute.editor.bulk_unmatched', { files: unmatched.join(', ') })
   }
+  if (ambiguous.length) {
+    message += ' ' + t('contribute.editor.bulk_ambiguous', { files: ambiguous.join(', ') })
+  }
   notification.notify(message)
 }
 
-function removeSeries(uid: number, kind: TimeSeriesKind): void {
-  delete store.timeSeries[`${uid}:${kind.key}`]
-  store.touch(uid)
+async function onBulkAttach(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement
+  const files = Array.from(input.files ?? [])
+  input.value = ''
+  await attachMany(files)
+}
+
+async function onBulkDrop(event: DragEvent): Promise<void> {
+  dragOver.value.bulk = 0
+  await attachMany(Array.from(event.dataTransfer?.files ?? []))
 }
 
 function chart(uid: number, kind: TimeSeriesKind) {
   const attached = store.timeSeries[`${uid}:${kind.key}`]
-  return attached ? sparkline(attached.content) : null
+  return attached ? sparkline(attached.report.x, attached.report.y) : null
+}
+
+/** The live problems of one slot, shown under the file. */
+function seriesIssues(uid: number, kind: TimeSeriesKind): CardIssue[] {
+  return store.activeIssuesFor(uid).filter((issue) => issue.kindKey === kind.key)
+}
+
+/** The file name a slot expects for this experiment, `<id>` while it has none. */
+function expectedName(uid: number, kind: TimeSeriesKind): string {
+  const id = (store.rowByUid(uid)?.cells.id ?? '').trim()
+  return `${fileStemFor(kind, id || '<id>')}.csv`
+}
+
+/** The sign / content conventions of a kind, when the README states any. */
+function noteFor(kind: TimeSeriesKind): string {
+  const key = `contribute.timeseries.note.${kind.key}`
+  return te(key) ? t(key) : ''
 }
 </script>
 
@@ -373,7 +428,15 @@ function chart(uid: number, kind: TimeSeriesKind) {
     </button>
 
     <!-- Bulk attach: pick a response type, drop many <id>.csv files at once. -->
-    <div v-if="kinds.length" class="bulk">
+    <div
+      v-if="kinds.length"
+      class="bulk"
+      :class="{ over: isOver('bulk') }"
+      @dragenter.prevent="dragEnter('bulk')"
+      @dragover.prevent
+      @dragleave.prevent="dragLeave('bulk')"
+      @drop.prevent="onBulkDrop"
+    >
       <span class="bulk-label">{{ $t('contribute.editor.bulk_attach') }}</span>
       <tool-select
         v-model="bulkKindKey"
@@ -388,7 +451,7 @@ function chart(uid: number, kind: TimeSeriesKind) {
       />
       <button
         class="btn btn-secondary btn-sm"
-        :disabled="!bulkKind || !store.hasAnyId"
+        :disabled="!store.hasAnyId"
         type="button"
         @click="bulkInput?.click()"
       >
@@ -428,6 +491,19 @@ function chart(uid: number, kind: TimeSeriesKind) {
           <span v-for="column in headlineColumns" :key="column.name" class="headline-item">
             <span class="k">{{ fieldLabel(store.database!, column.name) }}</span>
             <span class="v">{{ row.cells[column.name]?.trim() || '—' }}</span>
+          </span>
+        </span>
+        <span v-if="kinds.length" class="kinds">
+          <span
+            v-for="kind in kinds"
+            :key="kind.key"
+            class="kind-chip"
+            :class="store.kindStatus(row.uid, kind)"
+            :title="`${$t(`contribute.timeseries.kind.${kind.key}`)}: ${$t(
+              `contribute.timeseries.state.${store.kindStatus(row.uid, kind)}`
+            )}`"
+          >
+            <span class="kind-dot" />{{ $t(`contribute.timeseries.short.${kind.key}`) }}
           </span>
         </span>
         <span class="badge" :class="cardState(row.uid)">
@@ -622,10 +698,63 @@ function chart(uid: number, kind: TimeSeriesKind) {
             :id="`s-${row.uid}-${kind.key}`"
             :key="kind.key"
             class="series"
-            :class="{ flashed: flashed === `s-${row.uid}-${kind.key}` }"
+            :class="[
+              store.kindStatus(row.uid, kind),
+              {
+                flashed: flashed === `s-${row.uid}-${kind.key}`,
+                over: isOver(`${row.uid}:${kind.key}`),
+                empty: !store.timeSeries[`${row.uid}:${kind.key}`]
+              }
+            ]"
             tabindex="-1"
+            @dragenter.prevent="dragEnter(`${row.uid}:${kind.key}`)"
+            @dragover.prevent
+            @dragleave.prevent="dragLeave(`${row.uid}:${kind.key}`)"
+            @drop.prevent="onSlotDrop(row.uid, kind, $event)"
           >
-            <span class="series-name">{{ $t(`contribute.timeseries.kind.${kind.key}`) }}</span>
+            <span class="series-name">
+              <span class="series-dot" />
+              {{ $t(`contribute.timeseries.kind.${kind.key}`) }}
+              <span class="series-tag" :class="{ required: kind.required }">
+                {{
+                  $t(
+                    kind.required
+                      ? 'contribute.timeseries.required'
+                      : 'contribute.timeseries.optional'
+                  )
+                }}
+              </span>
+              <info-tooltip interactive>
+                <div class="series-help">
+                  <p>
+                    <strong>{{ $t('contribute.timeseries.help_columns') }}</strong>
+                    <template v-for="(column, i) in kind.columns" :key="column.name">
+                      <template v-if="i > 0">, </template>
+                      <code>{{ column.name }}</code>
+                      <template v-if="column.unit !== '-'"> ({{ column.unit }})</template>
+                    </template>
+                  </p>
+                  <p>
+                    {{
+                      $t('contribute.timeseries.help_file', { name: expectedName(row.uid, kind) })
+                    }}
+                  </p>
+                  <p v-if="noteFor(kind)">{{ noteFor(kind) }}</p>
+                  <p>
+                    {{
+                      $t(
+                        kind.required
+                          ? 'contribute.timeseries.help_required'
+                          : 'contribute.timeseries.help_optional'
+                      )
+                    }}
+                    <button class="link" type="button" @click="emit('open-guide', 'guide')">
+                      {{ $t('contribute.editor.guide') }}
+                    </button>
+                  </p>
+                </div>
+              </info-tooltip>
+            </span>
             <template v-if="store.timeSeries[`${row.uid}:${kind.key}`]">
               <svg
                 v-if="chart(row.uid, kind)"
@@ -634,7 +763,11 @@ function chart(uid: number, kind: TimeSeriesKind) {
               >
                 <polyline :points="chart(row.uid, kind)!.points" />
               </svg>
+              <span v-else class="spark spark-empty" />
               <span class="series-meta">
+                <span class="series-file">{{
+                  store.timeSeries[`${row.uid}:${kind.key}`].name
+                }}</span>
                 {{
                   $t('contribute.timeseries.rows', {
                     count: store.timeSeries[`${row.uid}:${kind.key}`].rows
@@ -644,20 +777,37 @@ function chart(uid: number, kind: TimeSeriesKind) {
               <button
                 class="btn btn-ghost btn-sm"
                 type="button"
-                @click="removeSeries(row.uid, kind)"
+                @click="store.removeSeries(row.uid, kind)"
               >
                 <v-icon :icon="mdiClose" size="13" />{{ $t('contribute.editor.remove') }}
               </button>
+              <div v-if="seriesIssues(row.uid, kind).length" class="series-issues">
+                <small
+                  v-for="issue in seriesIssues(row.uid, kind)"
+                  :key="issue.key"
+                  :class="issue.level"
+                >
+                  {{ issue.message }}
+                  <button
+                    v-if="issue.level === 'warn'"
+                    class="link"
+                    type="button"
+                    :title="$t('contribute.editor.dismiss_hint')"
+                    @click="store.dismissIssue(issue.key)"
+                  >
+                    {{ $t('contribute.editor.dismiss') }}
+                  </button>
+                </small>
+              </div>
             </template>
             <template v-else>
               <button
-                class="btn btn-secondary btn-sm"
+                class="series-drop"
                 type="button"
                 @click="slotInputs[`${row.uid}:${kind.key}`]?.click()"
               >
-                <v-icon :icon="mdiUploadOutline" size="13" />{{
-                  $t('contribute.timeseries.attach')
-                }}
+                <v-icon :icon="mdiTrayArrowUp" size="15" />
+                {{ $t('contribute.timeseries.drop_here', { name: expectedName(row.uid, kind) }) }}
               </button>
               <input
                 :ref="(el) => (slotInputs[`${row.uid}:${kind.key}`] = el as HTMLInputElement)"
@@ -666,6 +816,12 @@ function chart(uid: number, kind: TimeSeriesKind) {
                 type="file"
                 @change="onSlotAttach(row.uid, kind, $event)"
               />
+              <small
+                v-if="store.kindStatus(row.uid, kind) === 'missing_required'"
+                class="series-issues error"
+              >
+                {{ $t('contribute.timeseries.state.missing_required') }}
+              </small>
             </template>
           </div>
         </section>
@@ -741,6 +897,14 @@ function chart(uid: number, kind: TimeSeriesKind) {
   border: 1px solid var(--border-subtle);
   background: var(--bg-subtle);
   border-radius: var(--radius);
+}
+.bulk.over {
+  border-color: var(--epfl-red);
+  border-style: dashed;
+  background: var(--bg);
+}
+.bulk.over * {
+  pointer-events: none;
 }
 .bulk-label {
   font-size: 12.5px;
@@ -844,7 +1008,7 @@ function chart(uid: number, kind: TimeSeriesKind) {
    badge always ends at the same right edge. */
 .card-head {
   display: grid;
-  grid-template-columns: 18px 9px minmax(0, 220px) minmax(0, 1fr) auto auto;
+  grid-template-columns: 18px 9px minmax(0, 220px) minmax(0, 1fr) auto auto auto;
   align-items: center;
   gap: 14px;
   width: 100%;
@@ -974,12 +1138,77 @@ function chart(uid: number, kind: TimeSeriesKind) {
    and the verdict, so they drop rather than squeeze to two characters. */
 @media (max-width: 1023px) {
   .card-head {
-    grid-template-columns: 18px 9px minmax(0, 1fr) auto auto;
+    grid-template-columns: 18px 9px minmax(0, 1fr) auto auto auto;
     gap: 12px;
   }
   .headline {
     display: none;
   }
+}
+@media (max-width: 559px) {
+  .kind-chip .kind-label {
+    display: none;
+  }
+}
+
+/* One chip per response type: a dot in the slot's state and a short label.
+   The dot alone carries the state so the row stays quiet; red and orange
+   mean the same as on the card, hollow means "nothing there yet". */
+.kinds {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.kind-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.kind-dot,
+.series-dot {
+  box-sizing: border-box;
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+}
+.kind-chip.ok,
+.series.ok .series-dot {
+  color: var(--fg);
+}
+.kind-chip.ok .kind-dot,
+.series.ok .series-dot {
+  border-color: var(--epfl-green-text);
+  background: var(--epfl-green-text);
+}
+.kind-chip.warn,
+.kind-chip.error,
+.kind-chip.missing_required {
+  color: var(--fg);
+}
+.kind-chip.warn .kind-dot,
+.series.warn .series-dot {
+  border-color: var(--epfl-orange);
+  background: var(--epfl-orange);
+}
+.kind-chip.error .kind-dot,
+.series.error .series-dot {
+  border-color: var(--epfl-red);
+  background: var(--epfl-red);
+}
+.kind-chip.missing_required .kind-dot,
+.series.missing_required .series-dot {
+  border-color: var(--epfl-red);
+  background: transparent;
 }
 @media (max-width: 559px) {
   .card-head {
@@ -1259,19 +1488,159 @@ function chart(uid: number, kind: TimeSeriesKind) {
   }
 }
 
-/* Name, preview, count, action — fixed tracks so the rows read as a table. */
+/* Name, preview, count, action — fixed tracks so the rows read as a table.
+   Every row is a drop target: dropping on an empty slot fills it, on a filled
+   one replaces the file. */
 .series {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 132px minmax(70px, auto) auto;
   align-items: center;
-  gap: 14px;
-  padding: 10px 0;
+  gap: 10px 14px;
+  padding: 10px 6px;
+  margin: 0 -6px;
   border-bottom: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
 }
 .series:last-child {
   border-bottom: none;
 }
+.series.over {
+  outline: 2px dashed var(--epfl-red);
+  outline-offset: -2px;
+  background: var(--bg-subtle);
+}
+/* While a file hovers, the children must not steal dragenter/dragleave. */
+.series.over * {
+  pointer-events: none;
+}
 .series .spark {
+  grid-column: 2;
+}
+.series-meta {
+  grid-column: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.series-file {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fg);
+}
+.series .btn-ghost {
+  grid-column: 4;
+}
+/* Nothing attached yet: a dashed target takes the preview and count tracks. */
+.series-drop {
+  grid-column: 2 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1.5px dashed var(--border-strong);
+  background: transparent;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+.series-drop:hover,
+.series-drop:focus-visible {
+  border-color: var(--epfl-red);
+  color: var(--fg);
+  background: var(--bg-subtle);
+}
+.series.missing_required .series-drop {
+  border-color: var(--epfl-red);
+}
+.series-issues {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+.series-issues.error,
+.series-issues .error {
+  color: var(--epfl-red);
+}
+.series-issues .warn {
+  color: var(--epfl-orange);
+}
+.series-issues .link {
+  margin-left: 4px;
+  font-size: 11.5px;
+}
+.series-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.series-tag {
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  color: var(--fg-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.series-tag.required {
+  color: var(--epfl-red);
+}
+.series-help {
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.series-help p {
+  margin: 0 0 6px;
+}
+.series-help p:last-child {
+  margin-bottom: 0;
+}
+.series-help code {
+  padding: 0 3px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 12px;
+}
+.series-help .link {
+  color: inherit;
+  font-size: inherit;
+}
+@media (max-width: 700px) {
+  .series {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .series .spark {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .series-meta,
+  .series .btn-ghost {
+    grid-column: 2;
+  }
+  .series-drop {
+    grid-column: 1 / -1;
+  }
+}
+.series-meta {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.spark-empty {
+  display: block;
+}
+.spark {
   grid-column: 2;
 }
 .series-meta {

@@ -1,12 +1,19 @@
 import { defaultApi } from '@/plugins/axios'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
+import { normalizeCsvText } from '@/utils/csv'
 import { describeFailure, type FailureReport } from '@/utils/failureReport'
 import type { DatabaseId } from '@/utils/navigation'
 import { mapResponse, type ExperimentReport, type ReportedIssue } from '@/utils/qualityReport'
 import { postContribution, type ContributorInfo } from '@/utils/submission'
 import { buildTarGz } from '@/utils/tar'
-import { timeSeriesKindsFor } from '@/utils/timeseries'
+import {
+  checkTimeSeriesFile,
+  fileStemFor,
+  timeSeriesKindsFor,
+  type TimeSeriesKind,
+  type TimeSeriesReport
+} from '@/utils/timeseries'
 import { validateSheet, type SheetIssues } from '@/utils/validation'
 import type { ValidationResponse } from '@/utils/validationResponse'
 import { isValidationResponse } from '@/utils/validationResponse'
@@ -52,9 +59,15 @@ function transportError(caught: unknown): string {
 /** A measured-response file attached to an experiment, held in memory until upload. */
 export interface AttachedTimeSeries {
   name: string
+  /** Normalized text (LF, final newline, no BOM): what the archive carries. */
   content: string
   rows: number
+  /** What the client found in the file; its errors are the server's too. */
+  report: TimeSeriesReport
 }
+
+/** One test-data slot of a card, for the minimalist chip in the card head. */
+export type KindStatus = 'ok' | 'missing' | 'missing_required' | 'error' | 'warn' | 'todo'
 
 /** One experiment (a data row) with a stable client-only id. */
 export interface ExperimentRow {
@@ -75,6 +88,8 @@ export interface CardIssue {
   /** Set for a field problem; `kindKey` is set instead for a test-data file. */
   column?: string
   kindKey?: string | null
+  /** The experiment has no file where one is expected. */
+  missing?: true
   /**
    * `todo` is a blank field on a draft experiment (one just added by hand):
    * shown as a neutral hint, never counted as a problem. It becomes a real
@@ -97,6 +112,8 @@ function issueKey(uid: number, target: string, signature: string, message: strin
 /** Warning on an experiment that would be submitted with its record only. */
 export const NO_TEST_DATA_MESSAGE =
   'No test data attached — the experiment will be submitted with its metadata only.'
+/** Error on a slot every experiment of the database is expected to fill. */
+export const MISSING_REQUIRED_MESSAGE = 'Required test data is missing.'
 
 /** One experiment's unresolved problems, for the summary under the status bar. */
 export interface ExperimentProblems {
@@ -275,8 +292,14 @@ export const useContributionStore = defineStore('contribution', () => {
           message: cell.issue.message
         })
       }
+      const local = testDataIssues(row, draft)
       for (const file of report?.fileIssues ?? []) {
         const attached = file.kindKey ? timeSeries.value[`${row.uid}:${file.kindKey}`] : undefined
+        // The client reads the file the way the server does, so a file it
+        // already rejects is not reported twice.
+        if (local.some((issue) => issue.kindKey === file.kindKey && issue.level === 'error')) {
+          continue
+        }
         issues.push({
           key: issueKey(row.uid, file.kindKey ?? 'file', attached?.name ?? '', file.issue.message),
           kindKey: file.kindKey,
@@ -284,24 +307,26 @@ export const useContributionStore = defineStore('contribution', () => {
           message: file.issue.message
         })
       }
-      for (const issue of testDataIssues(row)) {
-        issues.push(
-          draft && issue.message === NO_TEST_DATA_MESSAGE ? { ...issue, level: 'todo' } : issue
-        )
-      }
+      issues.push(...local)
       map.set(row.uid, issues)
     })
     return map
   })
 
   /**
-   * What the server cannot see about test data: the files are optional, so
-   * an experiment submitted with none is worth a second look, and a file
-   * whose own name is not the specimen id may have landed on the wrong card
-   * (the archive renames it to `<id>.csv`, so the name never reaches the
-   * validator). Both are warnings the contributor can dismiss.
+   * The test-data problems of one experiment, per response type:
+   *  - a slot the database expects filled and that is empty is an error (a
+   *    neutral hint while the experiment is a draft); with no slot expected,
+   *    an experiment with no file at all gets the blanket warning instead;
+   *  - what the file check found: its errors are the server's (a missing
+   *    column, a value that is not a number), its warnings are for the
+   *    contributor to judge (values on the wrong scale);
+   *  - a file whose own name is not the specimen's may have landed on the
+   *    wrong card (the archive renames it, so the name never reaches the
+   *    validator).
+   * Keys embed the filename, so a dismissed warning comes back with a new file.
    */
-  function testDataIssues(row: ExperimentRow): CardIssue[] {
+  function testDataIssues(row: ExperimentRow, draft: boolean): CardIssue[] {
     const id = (row.cells.id ?? '').trim()
     const kinds = timeSeriesKindsFor(database.value)
     if (id === '' || kinds.length === 0) return []
@@ -310,29 +335,79 @@ export const useContributionStore = defineStore('contribution', () => {
     let attachedCount = 0
     for (const kind of kinds) {
       const attached = timeSeries.value[`${row.uid}:${kind.key}`]
-      if (!attached) continue
+      if (!attached) {
+        if (kind.required) {
+          issues.push({
+            key: issueKey(row.uid, kind.key, '', MISSING_REQUIRED_MESSAGE),
+            kindKey: kind.key,
+            missing: true,
+            level: draft ? 'todo' : 'error',
+            message: MISSING_REQUIRED_MESSAGE
+          })
+        }
+        continue
+      }
       attachedCount++
-      const stem = attached.name.replace(/\.csv$/i, '')
-      if (stem !== id) {
-        const message = `The attached file is named "${attached.name}", not after the specimen id — check that it belongs to this experiment.`
+      const push = (level: CardIssue['level'], message: string) =>
         issues.push({
           key: issueKey(row.uid, kind.key, attached.name, message),
           kindKey: kind.key,
-          level: 'warn',
+          level,
           message
         })
+      for (const message of attached.report.errors) push('error', message)
+      for (const message of attached.report.warnings) push('warn', message)
+      const stem = attached.name.replace(/\.csv$/i, '')
+      const expected = fileStemFor(kind, id)
+      if (stem !== expected) {
+        push(
+          'warn',
+          `The attached file is named "${attached.name}", not "${expected}.csv" after the specimen id — check that it belongs to this experiment.`
+        )
       }
     }
-    if (attachedCount === 0) {
-      const message = NO_TEST_DATA_MESSAGE
+    if (attachedCount === 0 && !kinds.some((kind) => kind.required)) {
       issues.push({
-        key: issueKey(row.uid, 'file', '', message),
+        key: issueKey(row.uid, 'file', '', NO_TEST_DATA_MESSAGE),
         kindKey: null,
-        level: 'warn',
-        message
+        missing: true,
+        level: draft ? 'todo' : 'warn',
+        message: NO_TEST_DATA_MESSAGE
       })
     }
     return issues
+  }
+
+  /**
+   * Attach a measured-response file to an experiment. Nothing is refused:
+   * the file is read (and tidied for the data repository), what is wrong
+   * with it becomes issues on the card, and the contributor fixes or
+   * replaces it from there.
+   */
+  function attachSeries(uid: number, kind: TimeSeriesKind, name: string, raw: string): void {
+    const content = normalizeCsvText(raw)
+    const report = checkTimeSeriesFile(kind, content)
+    timeSeries.value[`${uid}:${kind.key}`] = { name, content, rows: report.rows, report }
+    touch(uid)
+  }
+
+  function removeSeries(uid: number, kind: TimeSeriesKind): void {
+    delete timeSeries.value[`${uid}:${kind.key}`]
+    touch(uid)
+  }
+
+  /** The state of one test-data slot, for the chip in the card head. */
+  function kindStatus(uid: number, kind: TimeSeriesKind): KindStatus {
+    const attached = timeSeries.value[`${uid}:${kind.key}`]
+    const issues = issuesFor(uid).filter(
+      (issue) => issue.kindKey === kind.key && !isDismissed(issue)
+    )
+    if (issues.some((issue) => issue.level === 'error')) {
+      return attached ? 'error' : 'missing_required'
+    }
+    if (issues.some((issue) => issue.level === 'todo')) return 'todo'
+    if (issues.some((issue) => issue.level === 'warn')) return 'warn'
+    return attached ? 'ok' : 'missing'
   }
 
   /** Errors are never dismissible — they have to be fixed. */
@@ -419,15 +494,26 @@ export const useContributionStore = defineStore('contribution', () => {
       problemSummary.value.reduce((total, entry) => total + entry.errors, 0)
   )
 
-  /** Experiments with an id but not one test-data file. */
+  /** Experiments with an id but not one test-data file, drafts and dismissals aside. */
   const withoutTestDataCount = computed(() =>
-    rows.value.reduce(
-      (total, row) =>
-        total +
-        (activeIssuesFor(row.uid).some((issue) => issue.message === NO_TEST_DATA_MESSAGE) ? 1 : 0),
-      0
-    )
+    rows.value.reduce((total, row) => {
+      const kinds = timeSeriesKindsFor(database.value)
+      const none = !kinds.some((kind) => timeSeries.value[`${row.uid}:${kind.key}`])
+      const flagged = activeIssuesFor(row.uid).some((issue) => issue.missing)
+      return total + (none && flagged ? 1 : 0)
+    }, 0)
   )
+
+  /** Test-data errors the server cannot see (an expected file that is absent). */
+  const fileErrorCount = computed(() => {
+    let count = 0
+    for (const uid of issuesByUid.value.keys()) {
+      count += activeIssuesFor(uid).filter(
+        (issue) => issue.kindKey !== undefined && issue.level === 'error'
+      ).length
+    }
+    return count
+  })
 
   /**
    * True while the server's verdict is unknown because a check is coming: one
@@ -542,7 +628,10 @@ export const useContributionStore = defineStore('contribution', () => {
       for (const kind of timeSeriesKindsFor(database.value!)) {
         const attached = timeSeries.value[`${row.uid}:${kind.key}`]
         if (attached) {
-          entries.push({ path: `${kind.directory}/${id}.csv`, content: attached.content })
+          entries.push({
+            path: `${kind.directory}/${fileStemFor(kind, id)}.csv`,
+            content: attached.content
+          })
         }
       }
     }
@@ -600,6 +689,7 @@ export const useContributionStore = defineStore('contribution', () => {
     () =>
       hasAnyId.value &&
       clientErrorCount.value === 0 &&
+      fileErrorCount.value === 0 &&
       !checking.value &&
       (status.value === 'pass' || status.value === 'warn') &&
       submitStatus.value !== 'submitting'
@@ -731,6 +821,7 @@ export const useContributionStore = defineStore('contribution', () => {
     activeErrorCount,
     problemSummary,
     withoutTestDataCount,
+    fileErrorCount,
     dismissedCount,
     issuesFor,
     activeIssuesFor,
@@ -738,6 +829,9 @@ export const useContributionStore = defineStore('contribution', () => {
     dismissedIssuesFor,
     levelFor,
     cellIssueFor,
+    attachSeries,
+    removeSeries,
+    kindStatus,
     dismissIssue,
     restoreIssue,
     restoreDismissed,

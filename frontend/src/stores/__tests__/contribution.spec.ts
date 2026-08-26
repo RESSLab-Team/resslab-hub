@@ -1,8 +1,15 @@
 import { defaultApi } from '@/plugins/axios'
-import { DRAFT_SETTLE_MS, NO_TEST_DATA_MESSAGE, useContributionStore } from '@/stores/contribution'
+import {
+  DRAFT_SETTLE_MS,
+  MISSING_REQUIRED_MESSAGE,
+  NO_TEST_DATA_MESSAGE,
+  useContributionStore
+} from '@/stores/contribution'
 import { useDictionaryStore, type DictColumn } from '@/stores/dictionary'
 import { buildCsv } from '@/utils/contribution'
 import { postContribution } from '@/utils/submission'
+import { buildTarGz } from '@/utils/tar'
+import { timeSeriesKindsFor } from '@/utils/timeseries'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
 import { nextTick } from 'vue'
@@ -66,14 +73,17 @@ function seededStore(columns: DictColumn[] = BRACE_COLUMNS, { draft = false } = 
   return store
 }
 
+const FORCE_DISPLACEMENT = timeSeriesKindsFor('braces')[0]
+
 /** Braces expect a force-displacement file; give the row one named after its id. */
-function attachTestData(store: ReturnType<typeof seededStore>, uid: number, name?: string) {
+function attachTestData(
+  store: ReturnType<typeof seededStore>,
+  uid: number,
+  name?: string,
+  content = 'Displacement [mm],Force [kN]\n0,0\n1,10\n'
+) {
   const id = (store.rowByUid(uid)?.cells.id ?? '').trim()
-  store.timeSeries[`${uid}:force_displacement`] = {
-    name: name ?? `${id}.csv`,
-    content: 'Displacement [mm],Force [kN]\n0,0\n',
-    rows: 1
-  }
+  store.attachSeries(uid, FORCE_DISPLACEMENT, name ?? `${id}.csv`, content)
 }
 
 describe('buildCsv (multi-row)', () => {
@@ -135,7 +145,7 @@ describe('contribution store — experiment rows', () => {
   it('drops a row’s attached time-series when it is removed', () => {
     const store = seededStore()
     const uid = store.rows[0].uid
-    store.timeSeries[`${uid}:force_displacement`] = { name: 'x.csv', content: 'a\n1', rows: 1 }
+    attachTestData(store, uid, 'x.csv')
     store.addRow()
     store.removeRow(uid)
     expect(store.timeSeries[`${uid}:force_displacement`]).toBeUndefined()
@@ -268,25 +278,89 @@ describe('contribution store — experiment rows', () => {
     expect(store.status).toBe('idle')
   })
 
-  it('warns when an experiment has no test data, until a file is attached', () => {
+  it('flags a missing required file as an error, until it is attached', () => {
     const store = seededStore()
     const row = store.rows[0]
     // No id yet: the missing id is the problem, not the missing file.
-    expect(store.activeIssuesFor(row.uid).some((i) => i.message === NO_TEST_DATA_MESSAGE)).toBe(
-      false
-    )
+    expect(store.activeIssuesFor(row.uid).some((i) => i.kindKey !== undefined)).toBe(false)
     row.cells.id = 'B1'
     row.cells.investigator = 'X'
+    const error = store.activeIssuesFor(row.uid).find((issue) => issue.kindKey !== undefined)
+    expect(error?.level).toBe('error')
+    expect(error?.kindKey).toBe('force_displacement')
+    expect(error?.message).toBe(MISSING_REQUIRED_MESSAGE)
+    expect(store.kindStatus(row.uid, FORCE_DISPLACEMENT)).toBe('missing_required')
+    expect(store.withoutTestDataCount).toBe(1)
+    expect(store.fileErrorCount).toBe(1)
+    // Errors cannot be dismissed away.
+    store.dismissIssue(error!.key)
+    expect(store.activeIssuesFor(row.uid)).toHaveLength(1)
+    attachTestData(store, row.uid)
+    expect(store.activeIssuesFor(row.uid)).toHaveLength(0)
+    expect(store.kindStatus(row.uid, FORCE_DISPLACEMENT)).toBe('ok')
+    expect(store.withoutTestDataCount).toBe(0)
+    expect(store.fileErrorCount).toBe(0)
+  })
+
+  it('only warns about missing test data when the database requires none', () => {
+    const dictionary = useDictionaryStore()
+    dictionary.columns = { braces: BRACE_COLUMNS, connections: BRACE_COLUMNS }
+    dictionary.state = 'ready'
+    const store = useContributionStore()
+    store.selectDatabase('connections')
+    store.addRow()
+    store.settle()
+    const row = store.rows[0]
+    row.cells.id = 'C1'
+    row.cells.investigator = 'X'
+    const kinds = timeSeriesKindsFor('connections')
+    expect(kinds.every((kind) => !kind.required)).toBe(true)
     const warning = store.activeIssuesFor(row.uid).find((issue) => issue.kindKey === null)
     expect(warning?.level).toBe('warn')
     expect(warning?.message).toBe(NO_TEST_DATA_MESSAGE)
+    expect(kinds.map((kind) => store.kindStatus(row.uid, kind))).toEqual(kinds.map(() => 'missing'))
     expect(store.withoutTestDataCount).toBe(1)
     store.dismissIssue(warning!.key)
-    expect(store.dismissedWarningMessages).toEqual([`B1: ${NO_TEST_DATA_MESSAGE}`])
-    attachTestData(store, row.uid)
+    expect(store.dismissedWarningMessages).toEqual([`C1: ${NO_TEST_DATA_MESSAGE}`])
+    expect(store.withoutTestDataCount).toBe(0)
+    store.attachSeries(row.uid, kinds[0], 'C1.csv', 'Chord Rotation [rads],Moment [kN-mm]\n0,0\n')
     expect(store.activeIssuesFor(row.uid)).toHaveLength(0)
     expect(store.dismissedIssuesFor(row.uid)).toHaveLength(0)
-    expect(store.withoutTestDataCount).toBe(0)
+  })
+
+  it('keeps a file with errors, blocks on them, and lets a range warning be dismissed', () => {
+    const store = seededStore()
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    row.cells.investigator = 'X'
+    attachTestData(store, row.uid, 'B1.csv', 'Displacement [mm],Load [kN]\n0,0\n1,10\n')
+    expect(store.timeSeries[`${row.uid}:force_displacement`]?.rows).toBe(2)
+    const error = store.activeIssuesFor(row.uid).find((issue) => issue.level === 'error')
+    expect(error?.message).toContain('Force [kN]')
+    expect(store.kindStatus(row.uid, FORCE_DISPLACEMENT)).toBe('error')
+    expect(store.fileErrorCount).toBe(1)
+
+    // Forces in N instead of kN: kept, but worth a look.
+    attachTestData(store, row.uid, 'B1.csv', 'Displacement [mm],Force [kN]\n0,0\n1,1500000\n')
+    const warning = store.activeIssuesFor(row.uid).find((issue) => issue.level === 'warn')
+    expect(warning?.message).toContain('far above')
+    expect(store.kindStatus(row.uid, FORCE_DISPLACEMENT)).toBe('warn')
+    expect(store.fileErrorCount).toBe(0)
+    store.dismissIssue(warning!.key)
+    expect(store.kindStatus(row.uid, FORCE_DISPLACEMENT)).toBe('ok')
+    // A new file is a new question.
+    attachTestData(store, row.uid, 'B1.csv', 'Displacement [mm],Force [kN]\n0,0\n1,2500000\n')
+    expect(store.kindStatus(row.uid, FORCE_DISPLACEMENT)).toBe('warn')
+  })
+
+  it('tidies an attached file for the data repository', () => {
+    const store = seededStore()
+    const row = store.rows[0]
+    row.cells.id = 'B1'
+    attachTestData(store, row.uid, 'B1.csv', '\uFEFFDisplacement [mm],Force [kN]\r\n0,0\r\n1,10')
+    expect(store.timeSeries[`${row.uid}:force_displacement`]?.content).toBe(
+      'Displacement [mm],Force [kN]\n0,0\n1,10\n'
+    )
   })
 
   it('warns when an attached file is not named after the specimen id', () => {
@@ -300,6 +374,7 @@ describe('contribution store — experiment rows', () => {
       .find((issue) => issue.kindKey === 'force_displacement')
     expect(warning?.level).toBe('warn')
     expect(warning?.message).toContain('run_07_raw.csv')
+    expect(warning?.message).toContain('"B1.csv"')
     // Any capitalisation of the extension is fine; only the stem matters.
     attachTestData(store, row.uid, 'B1.CSV')
     expect(store.activeIssuesFor(row.uid)).toHaveLength(0)
@@ -315,15 +390,19 @@ describe('contribution store — experiment rows', () => {
       issues: issues.length
     }))
     expect(counts).toEqual([
-      { uid: second.uid, index: 1, id: 'B2', errors: 1, warnings: 2, issues: 3 },
+      // bad area, blank investigator, no force-displacement file
+      { uid: second.uid, index: 1, id: 'B2', errors: 2, warnings: 1, issues: 3 },
       { uid: third.uid, index: 2, id: '', errors: 1, warnings: 1, issues: 2 } // blank investigator warns
     ])
-    expect(store.activeErrorCount).toBe(2)
+    expect(store.activeErrorCount).toBe(3)
     for (const issue of store.activeIssuesFor(second.uid)) store.dismissIssue(issue.key)
     const [remaining] = store.problemSummary
-    expect([remaining.errors, remaining.warnings]).toEqual([1, 0])
-    // A lone problem travels with the summary, so the bar can show it in place.
-    expect(remaining.issues.map((issue) => issue.column)).toEqual(['area'])
+    expect([remaining.errors, remaining.warnings]).toEqual([2, 0])
+    // The problems travel with the summary, so the bar can show them in place.
+    expect(remaining.issues.map((issue) => issue.column ?? issue.kindKey)).toEqual([
+      'area',
+      'force_displacement'
+    ])
   })
 
   it('imports rows and counts client-side errors', () => {
@@ -379,17 +458,20 @@ describe('contribution store — drafts', () => {
     expect(store.cellIssueFor(row.uid, 'investigator')?.level).toBe('todo')
   })
 
-  it('mutes the missing-test-data warning while drafting', async () => {
+  it('mutes the missing required file while drafting', async () => {
     const store = seededStore(BRACE_COLUMNS, { draft: true })
     const row = store.rows[0]
     row.cells.id = 'B1'
     await nextTick()
     expect(store.withoutTestDataCount).toBe(0)
-    expect(store.todoFor(row.uid).some((issue) => issue.message === NO_TEST_DATA_MESSAGE)).toBe(
+    expect(store.fileErrorCount).toBe(0)
+    expect(store.todoFor(row.uid).some((issue) => issue.message === MISSING_REQUIRED_MESSAGE)).toBe(
       true
     )
+    expect(store.kindStatus(row.uid, FORCE_DISPLACEMENT)).toBe('todo')
     store.settle()
     expect(store.withoutTestDataCount).toBe(1)
+    expect(store.fileErrorCount).toBe(1)
   })
 
   it('holds the server check back while drafting and runs it after a long pause', async () => {
@@ -499,6 +581,7 @@ describe('contribution store — submission', () => {
     const row = store.rows[0]
     row.cells.id = 'B1'
     row.cells.investigator = 'X'
+    attachTestData(store, row.uid)
     await nextTick()
     store.status = 'pass'
     return store
@@ -511,6 +594,10 @@ describe('contribution store — submission', () => {
     const row = store.rows[0]
     row.cells.id = 'B1'
     row.cells.investigator = 'X'
+    await nextTick()
+    store.status = 'pass'
+    expect(store.canSubmit).toBe(false) // the required file is missing
+    attachTestData(store, row.uid)
     await nextTick()
     store.status = 'pass'
     expect(store.canSubmit).toBe(true)
@@ -546,6 +633,7 @@ describe('contribution store — submission', () => {
     const store = seededStore()
     const row = store.rows[0]
     row.cells.id = 'B1' // "investigator" left blank -> warning
+    attachTestData(store, row.uid)
     const warning = store.activeIssuesFor(row.uid).find((issue) => issue.level === 'warn')
     store.dismissIssue(warning!.key)
     await nextTick()
@@ -628,6 +716,32 @@ describe('contribution store — submission', () => {
     expect(store.submitStatus).toBe('error')
     expect(store.status).toBe('fail')
     expect(store.response?.error_count).toBe(1)
+  })
+
+  it('names EBF files after the repository convention in the archive', async () => {
+    const dictionary = useDictionaryStore()
+    dictionary.columns = { braces: BRACE_COLUMNS, ebf: BRACE_COLUMNS }
+    dictionary.state = 'ready'
+    const store = useContributionStore()
+    store.selectDatabase('ebf')
+    store.importRows([{ id: '74', investigator: 'X' }])
+    const row = store.rows[0]
+    store.attachSeries(
+      row.uid,
+      timeSeriesKindsFor('ebf')[0],
+      'id74.csv',
+      'data_ind,gamma_t,V\n1,0,0\n'
+    )
+    expect(store.activeIssuesFor(row.uid)).toHaveLength(0)
+    await nextTick()
+    // No validator for EBF, so force the verdict the submit path needs.
+    store.status = 'pass'
+    vi.mocked(postContribution).mockResolvedValue({ pr_url: 'u', pr_number: 1, branch: 'b' })
+    await store.submit(CONTRIBUTOR)
+    const entries = vi.mocked(buildTarGz).mock.calls.at(-1)![0]
+    expect(entries.map((entry) => entry.path)).toContain(
+      'eccentric_braced_frames/processed_data/id74.csv'
+    )
   })
 
   it('does nothing when the batch is not submittable', async () => {

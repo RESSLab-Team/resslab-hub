@@ -7,6 +7,7 @@ import { GHOST_CONFIGS } from '@/components/curation/ghost'
 import { useDataset } from '@/composables/useDataset'
 import { useCurationStore } from '@/stores/curation'
 import { kindForFile } from '@/utils/curation'
+import { requiredColumns } from '@/utils/timeseries'
 import { parseCsv } from '@/utils/csv'
 import type { DatabaseId } from '@/utils/navigation'
 import { mdiAlertOutline, mdiClose } from '@mdi/js'
@@ -64,7 +65,7 @@ function buildPreview(file: CurationFile, text: string): Preview | null {
   const headers = parsed[0].map((header) => header.trim())
   const kind = kindForFile(props.database, file)
   // Prefer the kind's declared columns; fall back to the first two.
-  const wanted = kind?.requiredColumns.length ? kind.requiredColumns : headers.slice(0, 2)
+  const wanted = kind?.columns.length ? requiredColumns(kind) : headers.slice(0, 2)
   const xIndex = Math.max(headers.indexOf(wanted[0]), 0)
   const yIndex = wanted.length > 1 ? Math.max(headers.indexOf(wanted[1]), 1) : 1
   const data: number[][] = []
@@ -95,7 +96,9 @@ function buildPreview(file: CurationFile, text: string): Preview | null {
 }
 
 function specimenId(file: CurationFile): string {
-  return file.experiment_id ?? file.path.slice(file.path.lastIndexOf('/') + 1).replace(/\.csv$/i, '')
+  return (
+    file.experiment_id ?? file.path.slice(file.path.lastIndexOf('/') + 1).replace(/\.csv$/i, '')
+  )
 }
 
 watch(
@@ -134,7 +137,8 @@ watch(
 const config = GHOST_CONFIGS[props.database]
 const countFields = countFieldsFor(props.database)
 const datasetReady = ref(0)
-const dataset = config && countFields.length ? useDataset<{ id: string }>(config.key, config.fetchAll) : null
+const dataset =
+  config && countFields.length ? useDataset<{ id: string }>(config.key, config.fetchAll) : null
 dataset?.ready().then(() => datasetReady.value++)
 
 const overlayIds = ref<string[]>([])
