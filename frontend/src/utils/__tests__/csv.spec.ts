@@ -1,4 +1,4 @@
-import { parseCsv, readCsvTable } from '@/utils/csv'
+import { normalizeCsvText, parseCsv, readCsvTable } from '@/utils/csv'
 import { describe, expect, it } from 'vitest'
 
 describe('parseCsv', () => {
@@ -67,5 +67,21 @@ describe('readCsvTable', () => {
     const table = readCsvTable('id,bogus\nB1,x\n', columns)
     expect(table.rows[0]).toEqual({ id: 'B1' })
     expect(table.unknown).toEqual(['bogus'])
+  })
+})
+
+describe('normalizeCsvText', () => {
+  it('leaves a clean file untouched', () => {
+    expect(normalizeCsvText('a,b\n1,2\n')).toBe('a,b\n1,2\n')
+  })
+
+  it('drops the BOM, converts CRLF and CR, and adds the final newline', () => {
+    expect(normalizeCsvText('\uFEFFa,b\r\n1,2')).toBe('a,b\n1,2\n')
+    expect(normalizeCsvText('a,b\r1,2\r')).toBe('a,b\n1,2\n')
+  })
+
+  it('collapses trailing blank lines and keeps an empty file empty', () => {
+    expect(normalizeCsvText('a,b\n1,2\n\n\n')).toBe('a,b\n1,2\n')
+    expect(normalizeCsvText('')).toBe('')
   })
 })

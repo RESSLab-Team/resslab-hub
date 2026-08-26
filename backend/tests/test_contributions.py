@@ -18,6 +18,7 @@ from resslab_hub.contributions.submission import (
     check_paths,
     escape_formula,
     flag_repo_duplicates,
+    normalize_csv_text,
     repo_ids,
     submit_contribution,
 )
@@ -469,6 +470,43 @@ def test_check_range_mixes_float_stats_with_decimal_values():
     TableValidator._check_range(quiet, 1, "col", "0.5", {"col": (20, 0.0, 0.0)})
     assert quiet.warnings == []
     assert quiet.errors == []
+
+
+async def test_submit_normalizes_time_series_line_endings(tmp_path, monkeypatch):
+    # Spreadsheet exports come with a BOM, CRLF endings and no final newline;
+    # the data repository's CI rejects all three, so the PR must not carry them.
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    batch = write_archive(
+        tmp_path,
+        {
+            "braces/steel_braces.csv": "id,f_y,name\nB9,400,New one\n",
+            "braces/force_displacement/B9.csv": (
+                "\ufeffDisplacement [mm],Force [kN]\r\n0,0\r\n1,2"
+            ),
+        },
+    )
+    await submit_contribution(
+        str(batch), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    by_path = {f.path: f.content for f in client.committed}
+    assert by_path["braces/force_displacement/B9.csv"] == (
+        "Displacement [mm],Force [kN]\n0,0\n1,2\n"
+    )
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("a,b\n1,2\n", "a,b\n1,2\n"),
+        ("a,b\r\n1,2", "a,b\n1,2\n"),
+        ("a,b\r1,2\r", "a,b\n1,2\n"),
+        ("\ufeffa,b\n1,2\n\n\n", "a,b\n1,2\n"),
+        ("", ""),
+    ],
+)
+def test_normalize_csv_text(text, expected):
+    assert normalize_csv_text(text) == expected
 
 
 async def test_submit_preserves_repo_crlf_line_endings(tmp_path, monkeypatch):

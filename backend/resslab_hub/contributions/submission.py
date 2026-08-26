@@ -152,6 +152,18 @@ def _write_csv(
     return out.getvalue()
 
 
+def normalize_csv_text(text: str) -> str:
+    """
+    Make a contributor's CSV acceptable to the data repository's line-ending
+    check without touching its data: drop a UTF-8 BOM, use LF line endings,
+    and end the file with exactly one newline. Spreadsheet exports routinely
+    violate all three, and none is worth bouncing a submission for.
+    """
+    text = text.lstrip("\ufeff").replace("\r\n", "\n").replace("\r", "\n")
+    text = text.rstrip("\n")
+    return text + "\n" if text else ""
+
+
 def batch_ids(header: List[str], rows: List[List[str]]) -> List[str]:
     try:
         id_index = header.index("id")
@@ -401,8 +413,8 @@ async def submit_contribution(
     for rel in _archive_files(tmpdir):
         if rel == layout.primary_csv or rel in layout.dictionary_csvs:
             continue
-        with open(path.join(tmpdir, rel), encoding="utf-8") as file:
-            files.append(NewFile(rel, file.read()))
+        with open(path.join(tmpdir, rel), encoding="utf-8", newline="") as file:
+            files.append(NewFile(rel, normalize_csv_text(file.read())))
         curve_count += 1
 
     submitted_at = datetime.now(timezone.utc).isoformat(timespec="seconds")

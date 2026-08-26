@@ -8,6 +8,20 @@
  * quotes itself.
  */
 
+/**
+ * Make a contributor's CSV acceptable to the data repository without touching
+ * its data: drop a UTF-8 BOM, use LF line endings, end with exactly one
+ * newline. Spreadsheet exports routinely violate all three and the data
+ * repository's CI rejects them; the server applies the same rule on submit.
+ */
+export function normalizeCsvText(text: string): string {
+  const body = text
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/\n+$/, '')
+  return body ? body + '\n' : ''
+}
+
 /** Split CSV text into rows of raw cell strings. */
 export function parseCsv(text: string): string[][] {
   const rows: string[][] = []
