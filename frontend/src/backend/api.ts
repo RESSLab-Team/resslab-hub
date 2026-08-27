@@ -1004,6 +1004,23 @@ export interface CountModel {
     'names': Array<string>;
     'value': number;
 }
+/**
+ * One message of a submission\'s discussion thread.  Bodies are raw GitHub-flavoured markdown — the review screen renders and sanitizes them client-side, the same way it renders a database README.
+ */
+export interface CurationComment {
+    'id': number;
+    'author': string;
+    'author_type': string;
+    'body': string;
+    'html_url': string;
+    'created_at': string;
+    'updated_at': string;
+    'is_body': boolean;
+}
+export interface CurationCommentsResponse {
+    'pr_number': number;
+    'items': Array<CurationComment>;
+}
 export interface CurationContributor {
     'name'?: string;
     'institution'?: string;
@@ -5828,6 +5845,40 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+         * @summary Get Contribution Comments
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionComments: async (prNumber: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'prNumber' is not null or undefined
+            assertParamExists('getContributionComments', 'prNumber', prNumber)
+            const localVarPath = `/contributions/{pr_number}/comments`
+                .replace('{pr_number}', encodeURIComponent(String(prNumber)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
          * @summary Get Contribution File
          * @param {number} prNumber 
@@ -6164,6 +6215,19 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+         * @summary Get Contribution Comments
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getContributionComments(prNumber: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CurationCommentsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getContributionComments(prNumber, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getContributionComments']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
          * @summary Get Contribution File
          * @param {number} prNumber 
@@ -6312,6 +6376,16 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getContribution(prNumber, options).then((request) => request(axios, basePath));
         },
         /**
+         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+         * @summary Get Contribution Comments
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionComments(prNumber: number, options?: RawAxiosRequestConfig): AxiosPromise<CurationCommentsResponse> {
+            return localVarFp.getContributionComments(prNumber, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
          * @summary Get Contribution File
          * @param {number} prNumber 
@@ -6434,6 +6508,17 @@ export class DefaultApi extends BaseAPI {
      */
     public getContribution(prNumber: number, options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).getContribution(prNumber, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+     * @summary Get Contribution Comments
+     * @param {number} prNumber 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getContributionComments(prNumber: number, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getContributionComments(prNumber, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

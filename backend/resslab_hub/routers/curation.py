@@ -39,6 +39,8 @@ from resslab_hub.contributions.submission import (
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import validate_all
 from resslab_hub.models.curation import (
+    CurationComment,
+    CurationCommentsResponse,
     CurationContributor,
     CurationDetail,
     CurationExperiment,
@@ -64,6 +66,9 @@ MAX_CURVE_FILES = 100
 
 LIST_TTL_SECONDS = 60
 DETAIL_TTL_SECONDS = 600
+#: Comments are the one part of a PR that moves without the head sha moving,
+#: so their cache is keyed on the number alone and expires quickly.
+COMMENTS_TTL_SECONDS = 30
 
 
 class _TTLCache:
@@ -420,6 +425,67 @@ async def get_contribution_validation(
     detail = await _build_detail(client, pull, input_type)
     response = await _build_validation(client, detail, input_type)
     _cache.put(("validation", pr_number, head_sha), response, DETAIL_TTL_SECONDS)
+    return response
+
+
+@router.get(
+    "/contributions/{pr_number}/comments", response_model=CurationCommentsResponse
+)
+@limiter.limit("30/minute")
+async def get_contribution_comments(
+    request: Request, pr_number: int
+) -> CurationCommentsResponse:
+    """
+    The submission's discussion, oldest first, with the pull request body as
+    the opening entry (it is the submission summary the contributor wrote).
+
+    Read-only: replying, requesting changes and approving still happen on
+    GitHub until per-user auth (#247) and curator roles (#248) land.
+    """
+    if not configured():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Curation is not enabled on this deployment.",
+        )
+    client = DataRepoClient()
+    pull, _ = await _fetch_pull(client, pr_number)
+    cached = _cache.get(("comments", pr_number))
+    if cached is not None:
+        return cached
+    try:
+        comments = await client.list_issue_comments(pr_number)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"The discussion could not be read from the data repository: {exc}",
+        )
+    items = [
+        CurationComment(
+            id=0,
+            author=pull.get("author", ""),
+            author_type=pull.get("author_type", ""),
+            body=pull.get("body", ""),
+            html_url=pull["html_url"],
+            created_at=pull["created_at"],
+            updated_at=pull["created_at"],
+            is_body=True,
+        )
+    ]
+    items.extend(
+        CurationComment(
+            id=comment["id"],
+            author=comment["author"],
+            author_type=comment["author_type"],
+            body=comment["body"],
+            html_url=comment["html_url"],
+            created_at=comment["created_at"],
+            updated_at=comment["updated_at"],
+            is_body=False,
+        )
+        for comment in comments
+    )
+    response = CurationCommentsResponse(pr_number=pr_number, items=items)
+    _cache.put(("comments", pr_number), response, COMMENTS_TTL_SECONDS)
     return response
 
 

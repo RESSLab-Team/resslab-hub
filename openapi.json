@@ -333,6 +333,46 @@
         }
       }
     },
+    "/contributions/{pr_number}/comments": {
+      "get": {
+        "summary": "Get Contribution Comments",
+        "description": "The submission's discussion, oldest first, with the pull request body as\nthe opening entry (it is the submission summary the contributor wrote).\n\nRead-only: replying, requesting changes and approving still happen on\nGitHub until per-user auth (#247) and curator roles (#248) land.",
+        "operationId": "get_contribution_comments",
+        "parameters": [
+          {
+            "name": "pr_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pr Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationCommentsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/contributions/{pr_number}/files": {
       "get": {
         "summary": "Get Contribution File",
@@ -10892,6 +10932,76 @@
         ],
         "title": "CountModel",
         "description": "Count"
+      },
+      "CurationComment": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "author": {
+            "type": "string",
+            "title": "Author"
+          },
+          "author_type": {
+            "type": "string",
+            "title": "Author Type"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "html_url": {
+            "type": "string",
+            "title": "Html Url"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "is_body": {
+            "type": "boolean",
+            "title": "Is Body"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "author",
+          "author_type",
+          "body",
+          "html_url",
+          "created_at",
+          "updated_at",
+          "is_body"
+        ],
+        "title": "CurationComment",
+        "description": "One message of a submission's discussion thread.\n\nBodies are raw GitHub-flavoured markdown \u2014 the review screen renders and\nsanitizes them client-side, the same way it renders a database README."
+      },
+      "CurationCommentsResponse": {
+        "properties": {
+          "pr_number": {
+            "type": "integer",
+            "title": "Pr Number"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CurationComment"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pr_number",
+          "items"
+        ],
+        "title": "CurationCommentsResponse"
       },
       "CurationContributor": {
         "properties": {

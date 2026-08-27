@@ -57,6 +57,31 @@ class CurationFile(BaseModel):
     experiment_id: Optional[str] = None
 
 
+class CurationComment(BaseModel):
+    """One message of a submission's discussion thread.
+
+    Bodies are raw GitHub-flavoured markdown — the review screen renders and
+    sanitizes them client-side, the same way it renders a database README.
+    """
+
+    #: GitHub comment id; 0 for the synthetic pull-request-body entry.
+    id: int
+    author: str
+    #: GitHub account type: "User", or "Bot" for the submission App itself.
+    author_type: str
+    body: str
+    html_url: str
+    created_at: str
+    updated_at: str
+    #: True for the pull request body — the submission summary, shown first.
+    is_body: bool
+
+
+class CurationCommentsResponse(BaseModel):
+    pr_number: int
+    items: List[CurationComment]
+
+
 class CurationExperiment(BaseModel):
     """One submitted row of the primary CSV, keyed by repo column name."""
 

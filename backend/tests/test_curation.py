@@ -20,6 +20,7 @@ from resslab_hub.routers.curation import (
     _parse_pr_body,
     _type_for_branch,
     get_contribution,
+    get_contribution_comments,
     get_contribution_file,
     get_contribution_validation,
     list_contributions,
@@ -65,9 +66,37 @@ def make_pull(**overrides) -> dict:
         "created_at": "2026-08-01T12:00:00+00:00",
         "updated_at": "2026-08-01T12:00:00+00:00",
         "body": build_pr_body(CONTRIBUTOR, Type.ALL_BRACE, 1, 1, []),
+        "author": "resslab-hub-contribution-pipeline[bot]",
+        "author_type": "Bot",
     }
     pull.update(overrides)
     return pull
+
+
+def make_comment(**overrides) -> dict:
+    comment = {
+        "id": 101,
+        "author": "dlignos",
+        "author_type": "User",
+        "body": "Could you confirm the coupon orientation?",
+        "html_url": "https://github.com/x/pull/7#issuecomment-101",
+        "created_at": "2026-08-02T09:00:00+00:00",
+        "updated_at": "2026-08-02T09:00:00+00:00",
+    }
+    comment.update(overrides)
+    return comment
+
+
+PR_COMMENTS = [
+    make_comment(),
+    make_comment(
+        id=102,
+        author="resslab-hub-contribution-pipeline[bot]",
+        author_type="Bot",
+        body="Validation re-ran: 0 errors.",
+        created_at="2026-08-02T10:00:00+00:00",
+    ),
+]
 
 
 PR_FILES = [
@@ -80,9 +109,12 @@ PR_FILES = [
 class FakeClient:
     """In-memory double for the curation read path."""
 
-    def __init__(self, pulls=None, files=None, texts=None):
+    def __init__(self, pulls=None, files=None, texts=None, comments=None):
         self.pulls = pulls if pulls is not None else [make_pull()]
         self.files = files if files is not None else list(PR_FILES)
+        self.comments = comments if comments is not None else list(PR_COMMENTS)
+        #: Counts GitHub round-trips so a test can prove the TTL cache holds.
+        self.comment_calls = 0
         # (path, ref) -> text; ref None = base branch.
         self.texts = (
             texts
@@ -109,6 +141,10 @@ class FakeClient:
 
     async def get_file_text(self, path, ref=None):
         return self.texts[(path, ref)]
+
+    async def list_issue_comments(self, number):
+        self.comment_calls += 1
+        return self.comments
 
 
 def make_request() -> Request:
@@ -332,3 +368,73 @@ async def test_files_serves_only_submission_files(monkeypatch):
     with pytest.raises(HTTPException) as caught:
         await get_contribution_file(make_request(), 7, ".github/workflows/ci.yml")
     assert caught.value.status_code == 404
+
+
+# --- comments ---------------------------------------------------------------
+
+
+async def test_comments_open_with_the_pull_request_body(monkeypatch):
+    use_client(monkeypatch, FakeClient())
+    response = await get_contribution_comments(make_request(), 7)
+
+    assert response.pr_number == 7
+    assert len(response.items) == 3
+    body = response.items[0]
+    assert body.is_body is True
+    assert body.id == 0
+    assert body.author_type == "Bot"
+    assert "Ada Lovelace" in body.body
+    assert body.html_url == "https://github.com/x/pull/7"
+
+
+async def test_comments_keep_github_order_and_fields(monkeypatch):
+    use_client(monkeypatch, FakeClient())
+    response = await get_contribution_comments(make_request(), 7)
+
+    assert [item.id for item in response.items] == [0, 101, 102]
+    assert [item.is_body for item in response.items] == [True, False, False]
+    first = response.items[1]
+    assert first.author == "dlignos"
+    assert first.author_type == "User"
+    assert first.body == "Could you confirm the coupon orientation?"
+    assert first.html_url.endswith("#issuecomment-101")
+    assert first.created_at == "2026-08-02T09:00:00+00:00"
+
+
+async def test_comments_on_a_submission_with_no_replies(monkeypatch):
+    use_client(monkeypatch, FakeClient(comments=[]))
+    response = await get_contribution_comments(make_request(), 7)
+
+    assert [item.is_body for item in response.items] == [True]
+
+
+async def test_comments_cached_between_calls(monkeypatch):
+    client = FakeClient()
+    use_client(monkeypatch, client)
+    await get_contribution_comments(make_request(), 7)
+    await get_contribution_comments(make_request(), 7)
+
+    assert client.comment_calls == 1
+
+
+async def test_comments_404_on_closed_or_foreign_pull(monkeypatch):
+    use_client(monkeypatch, FakeClient(pulls=[make_pull(state="closed")]))
+    with pytest.raises(HTTPException) as caught:
+        await get_contribution_comments(make_request(), 7)
+    assert caught.value.status_code == 404
+
+    use_client(monkeypatch, FakeClient(pulls=[make_pull(head_ref="feature/other")]))
+    with pytest.raises(HTTPException) as caught:
+        await get_contribution_comments(make_request(), 7)
+    assert caught.value.status_code == 404
+
+
+async def test_comments_502_when_github_fails(monkeypatch):
+    class Failing(FakeClient):
+        async def list_issue_comments(self, number):
+            raise RuntimeError("boom")
+
+    use_client(monkeypatch, Failing())
+    with pytest.raises(HTTPException) as caught:
+        await get_contribution_comments(make_request(), 7)
+    assert caught.value.status_code == 502
