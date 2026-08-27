@@ -106,9 +106,7 @@ def upgrade():
         for flag in flags:
             op.add_column(
                 parent,
-                sa.Column(
-                    flag, sa.SmallInteger(), nullable=False, server_default="0"
-                ),
+                sa.Column(flag, sa.SmallInteger(), nullable=False, server_default="0"),
             )
         sets = ", ".join(
             f'"{flag}" = CASE WHEN EXISTS '
