@@ -7,11 +7,12 @@ from abc import ABC, abstractmethod
 from csv import DictReader, reader
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+from functools import lru_cache
 from glob import iglob
 from logging import debug, error, getLogger, info
 from multiprocessing import get_context
-from os import path
-from typing import Any, List
+from os import path, stat
+from typing import Any, FrozenSet, List
 
 from sqlalchemy import (
     BigInteger,
@@ -423,6 +424,21 @@ class TableValidator(Validator):
             result.add_error(row, column.key, value, f"Validation error: {str(e)}")
 
 
+@lru_cache(maxsize=32)
+def primary_csv_ids(path: str, mtime_ns: int, size: int) -> FrozenSet[str]:
+    """The ``id`` column of a primary CSV, parsed once per file.
+
+    Every time-series file of an upload checks its foreign key against the
+    same primary CSV; re-reading it per file made the cost of one request
+    grow with (files x rows), which an unauthenticated ``/validate`` of a
+    2000-member archive turns into gigabytes of decoding. The mtime and size
+    in the key keep a rewritten file from hitting a stale entry.
+    """
+    encoding = get_file_encoding(path)
+    with open(path, encoding=encoding) as file:
+        return frozenset((row.get("id") or "") for row in DictReader(file)) - {""}
+
+
 class CsvFileValidator(Validator):
     """
     Validator for CSV files with specific column requirements
@@ -442,21 +458,18 @@ class CsvFileValidator(Validator):
 
     def _check_primary_csv(self, foreign_key: str) -> bool:
         """Check if the foreign key exists in the primary CSV being uploaded"""
-        info(f"Checking primary CSV: {self.primary_csv_path}")
         if not self.primary_csv_path:
             return False
 
         try:
-            encoding = get_file_encoding(get_abs_path(self.primary_csv_path))
-            with open(get_abs_path(self.primary_csv_path), encoding=encoding) as file:
-                csv_reader = DictReader(file)
-                # return any(row.get("id") == foreign_key for row in csv_reader)
-                for row in csv_reader:
-                    if row.get("id") == foreign_key:
-                        info(f"Match found for foreign key: {foreign_key}")
-                        return True
+            primary = get_abs_path(self.primary_csv_path)
+            info = stat(primary)
+            found = foreign_key in primary_csv_ids(
+                primary, info.st_mtime_ns, info.st_size
+            )
+            if not found:
                 error(f"No match found for foreign key: {foreign_key}")
-                return False
+            return found
         except Exception as e:
             error(f"Error checking primary CSV: {str(e)}")
             return False

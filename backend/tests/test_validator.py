@@ -261,3 +261,32 @@ class TestRangeWarnings:
 
     def test_empty_table_never_warns(self, tmp_path: Path, db_session):
         assert not self._area_warnings(self._validate_area(tmp_path, "10000"))
+
+
+class TestPrimaryCsvIds:
+    def test_parses_once_and_tracks_rewrites(self, tmp_path):
+        from resslab_hub.data.validator import CsvFileValidator, primary_csv_ids
+
+        primary = tmp_path / "steel_braces.csv"
+        primary.write_text("id,area\nB1,10\nB2,12\n")
+        validator = CsvFileValidator(None, [], "brace_id", str(primary))
+        primary_csv_ids.cache_clear()
+
+        assert validator._check_primary_csv("B1") is True
+        assert validator._check_primary_csv("B9") is False
+        # The second lookup came from the cache, not another scan of the file.
+        assert primary_csv_ids.cache_info().misses == 1
+        assert primary_csv_ids.cache_info().hits == 1
+
+        # A rewritten primary (new size) is read again.
+        primary.write_text("id,area\nB1,10\nB2,12\nB9,14\n")
+        assert validator._check_primary_csv("B9") is True
+        assert primary_csv_ids.cache_info().misses == 2
+
+    def test_no_primary_means_no_match(self):
+        from resslab_hub.data.validator import CsvFileValidator
+
+        assert (
+            CsvFileValidator(None, [], "brace_id", None)._check_primary_csv("B1")
+            is False
+        )

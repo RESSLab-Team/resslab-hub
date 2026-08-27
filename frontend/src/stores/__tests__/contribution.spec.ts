@@ -7,6 +7,7 @@ import {
 } from '@/stores/contribution'
 import { useDictionaryStore, type DictColumn } from '@/stores/dictionary'
 import { buildCsv } from '@/utils/contribution'
+import type { IntakePlan } from '@/utils/intake'
 import { postContribution } from '@/utils/submission'
 import { buildTarGz } from '@/utils/tar'
 import { timeSeriesKindsFor } from '@/utils/timeseries'
@@ -444,6 +445,115 @@ describe('contribution store — experiment rows', () => {
     expect(store.experimentCount).toBe(2)
     expect(store.specimenIds).toEqual(['B1'])
     expect(store.clientErrorCount).toBeGreaterThanOrEqual(2)
+  })
+})
+
+describe('contribution store — bulk intake', () => {
+  beforeEach(() => setActivePinia(createPinia()))
+
+  function plan(overrides: Partial<IntakePlan> = {}): IntakePlan {
+    return {
+      primary: null,
+      primaryCandidates: [],
+      matched: [],
+      pending: [],
+      skipped: [],
+      noise: 0,
+      ...overrides
+    }
+  }
+  const CURVE = 'Displacement [mm],Force [kN]\n0,0\n1,10\n'
+  const intakeFile = (path: string) => ({
+    path,
+    name: path.slice(path.lastIndexOf('/') + 1),
+    size: 0,
+    text: async () => CURVE
+  })
+
+  it('merges rows by id, keeping the attachments of the ones it updates', () => {
+    const store = seededStore()
+    store.importRows([{ id: 'B1', area: '10' }, { id: 'B2' }])
+    attachTestData(store, store.rows[0].uid)
+    const counts = store.mergeRows([{ id: 'B1', area: '11' }, { id: 'B3' }, { id: '' }])
+    expect(counts).toEqual({ added: 2, updated: 1 })
+    expect(store.rows.map((row) => row.cells.id)).toEqual(['B1', 'B2', 'B3', ''])
+    expect(store.rows[0].cells.area).toBe('11')
+    expect(store.timeSeries[`${store.rows[0].uid}:force_displacement`]).toBeDefined()
+    expect(store.rows.some((row) => store.isDraft(row.uid))).toBe(false)
+  })
+
+  it('applies a plan: primary rows first, so files can land on the new experiments', () => {
+    const store = seededStore()
+    store.importRows([])
+    const summary = store.applyIntake(
+      plan({
+        primary: {
+          file: intakeFile('braces/steel_braces.csv'),
+          table: { rows: [{ id: 'B1' }, { id: 'B2' }], matched: ['id'], unknown: [], missing: [] }
+        },
+        matched: [
+          {
+            file: intakeFile('braces/force_displacement/B2.csv'),
+            kind: FORCE_DISPLACEMENT,
+            id: 'B2',
+            text: CURVE
+          }
+        ],
+        pending: [
+          {
+            id: 1,
+            file: intakeFile('B9.csv'),
+            text: CURVE,
+            reason: 'orphan',
+            kinds: [FORCE_DISPLACEMENT]
+          }
+        ],
+        skipped: [intakeFile('notes.xlsx')],
+        noise: 2
+      })
+    )
+    expect(summary).toMatchObject({
+      primaryName: 'steel_braces.csv',
+      added: 2,
+      updated: 0,
+      attached: { force_displacement: 1 },
+      skipped: ['notes.xlsx'],
+      noise: 2
+    })
+    expect(store.lastIntake).toEqual(summary)
+    const b2 = store.rows.find((row) => row.cells.id === 'B2')!
+    expect(store.timeSeries[`${b2.uid}:force_displacement`]?.name).toBe('B2.csv')
+    expect(store.pendingFiles.map((entry) => entry.file.name)).toEqual(['B9.csv'])
+    // Files have started arriving: the missing one on B1 is now a real error.
+    const b1 = store.rows.find((row) => row.cells.id === 'B1')!
+    expect(store.kindStatus(b1.uid, FORCE_DISPLACEMENT)).toBe('missing_required')
+  })
+
+  it('lets a pending file be placed or ignored, and drops the report with the batch', () => {
+    const store = seededStore()
+    store.importRows([{ id: 'B1' }])
+    const pending = {
+      id: 7,
+      file: intakeFile('run_07.csv'),
+      text: CURVE,
+      reason: 'orphan' as const,
+      kinds: [FORCE_DISPLACEMENT]
+    }
+    store.applyIntake(
+      plan({ pending: [pending, { ...pending, id: 8, file: intakeFile('x.csv') }] })
+    )
+    expect(store.pendingFiles).toHaveLength(2)
+    store.assignPending(7, store.rows[0].uid, FORCE_DISPLACEMENT)
+    expect(store.timeSeries[`${store.rows[0].uid}:force_displacement`]?.name).toBe('run_07.csv')
+    store.ignorePending(8)
+    expect(store.pendingFiles).toEqual([])
+    // A second drop of the same path replaces the earlier pending entry.
+    store.applyIntake(plan({ pending: [pending] }))
+    store.applyIntake(plan({ pending: [{ ...pending, id: 9 }] }))
+    expect(store.pendingFiles.map((entry) => entry.id)).toEqual([9])
+    store.selectDatabase('columns')
+    expect(store.pendingFiles).toEqual([])
+    expect(store.lastIntake).toBeNull()
   })
 })
 

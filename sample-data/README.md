@@ -94,9 +94,9 @@ as a record whose `id` matches, or validation fails with "Foreign key … not
 found in primary CSV".
 
 One file is written per experiment, so a 15-experiment batch produces 15
-attachments per subdirectory — which is what the editor's **bulk attach** is
-for: it matches files to experiments by filename stem, so the whole set can be
-dropped in at once.
+attachments per subdirectory — which is what the editor's drop zone is for: a
+whole `sample-data/<db>/` folder (or a zip of it) lands in one go, the primary
+CSV recognised by its headers, each curve file by its folder name and stem.
 
 ### Curve shapes
 
@@ -130,12 +130,18 @@ validator, not to stand in for real data.
 
 1. Start the backend, database and `npm run dev`.
 2. Go to `/contribute/new` and pick the matching database.
-3. **Import CSV** in the toolbar, and choose `<name>.csv` → 15 experiment cards.
-4. Bulk-attach a time-series directory: pick the kind, select all 15 files.
-5. Validation runs automatically ~2 s after you stop editing. Expect: 12 clean
+3. Drop the `sample-data/<db>/` folder on the editor (or **Choose a folder**,
+   or zip it and drop the zip) → 15 experiment cards with every curve file
+   attached. The "Last drop" report notes that `<name>.invalid.csv` also looked
+   like a primary CSV and was left alone.
+4. Validation runs automatically ~2 s after you stop editing. Expect: 12 clean
    cards, 3 cards with range warnings on the fields listed by the generator.
-6. Repeat with `<name>.invalid.csv` to see errors (rows 2 and 7) alongside the
-   warnings — a realistic mixed batch.
+5. Drop `<name>.invalid.csv` on its own to see errors (rows 2 and 7) alongside
+   the warnings — a realistic mixed batch. A second drop merges by id, so the
+   attachments stay.
+6. To see the report's resolution controls, drop a few curve files loose (no
+   folder) on Residual stresses: F1, F2 and W1 share headers, so the files are
+   listed as ambiguous with a "set all" select.
 
 Import aligns headers against the selected database's dictionary columns and
 refuses a file with no overlap, so step 2 must match the file.

@@ -59,6 +59,18 @@ def test_rejects_symlink_member(tmp_path):
         safe_extract_targz(buffer, str(tmp_path))
 
 
+def test_accepts_a_bulk_contribution(tmp_path):
+    # 200 specimens with three response files each — the batch size the
+    # contribution editor's folder drop is meant for — fits under the cap.
+    members = [("columns/steel_columns.csv", b"id\n")] + [
+        (f"columns/{kind}/C{i}.csv", b"x")
+        for i in range(200)
+        for kind in ("moment_rotation_strong", "moment_rotation_weak", "axial")
+    ]
+    safe_extract_targz(_targz(members), str(tmp_path))
+    assert len(list((tmp_path / "columns" / "axial").iterdir())) == 200
+
+
 def test_rejects_too_many_members(tmp_path):
     archive = _targz([(f"f{i}.csv", b"x") for i in range(MAX_MEMBERS + 5)])
     with pytest.raises(ArchiveTooLarge):

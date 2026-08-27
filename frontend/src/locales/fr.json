@@ -1084,24 +1084,18 @@
       "example": "Exemple",
       "dictionary_hint": "{count} colonnes, issues du dictionnaire de données chargé avec les données. Les colonnes obligatoires ne peuvent pas être NA.",
       "search": "Filtrer les colonnes…",
-      "no_match": "Aucune colonne ne correspond."
+      "no_match": "Aucune colonne ne correspond.",
+      "layout_title": "Organisation attendue",
+      "layout_hint": "À quoi ressemble le dossier de soumission ; déposez-le entier dans l’éditeur.",
+      "layout_primary": "une ligne par essai",
+      "layout_kit": "Télécharger le kit de départ"
     },
     "editor": {
       "title": "Expériences",
       "add_experiment": "Ajouter une expérience manuellement",
-      "import_csv": "Importer un CSV",
       "template": "Modèle CSV",
       "dictionary": "Dictionnaire de données",
       "guide": "Guide de contribution",
-      "import_ok": "{rows} expérience(s) chargée(s), {matched} colonnes reconnues.",
-      "import_missing": "{count} colonne(s) requise(s) manquante(s), soumises comme NR.",
-      "import_no_match": "Aucun en-tête ne correspond à cette base. Le fichier vise-t-il une autre base ?",
-      "bulk_attach": "Joindre des données d’essai en masse",
-      "bulk_kind": "Type de réponse (auto)",
-      "bulk_pick": "Choisir les fichiers",
-      "bulk_hint": "déposez les fichiers ici ou choisissez-les : chacun est associé à une expérience par son nom, p. ex. B1.csv, et son type de réponse est lu dans ses en-têtes",
-      "bulk_result": "{attached} fichier(s) joint(s).",
-      "bulk_unmatched": "Aucune expérience correspondante : {files}",
       "untitled": "Expérience {n}",
       "issue_count": "{count} problème(s)",
       "clean": "Aucun problème",
@@ -1117,16 +1111,15 @@
       "dismissed_count": "{count} avertissement(s) ignoré(s)",
       "restore": "Rétablir cet avertissement",
       "restore_all": "Rétablir",
-      "drop_title": "Déposez un CSV ici, ou cliquez pour parcourir",
-      "drop_hint": "Une ligne par expérience — les en-têtes sont associés aux colonnes de cette base.",
       "drop_one_file": "Seul le premier fichier a été importé.",
-      "intro": "Partez du modèle CSV ci-dessous — il contient déjà les en-têtes exacts de cette base — et ouvrez le dictionnaire de données pour savoir ce qu’attend chaque colonne (unité, type, caractère obligatoire). Remplissez une ligne par expérience, puis déposez le fichier ici.",
-      "intro_files": "Les réponses mesurées sont des fichiers distincts. Nommez chacun d’après le spécimen correspondant (B1.csv pour l’expérience dont l’identifiant est B1) et vous pourrez joindre tout le lot en une fois avec l’ajout en masse, ci-dessous.",
+      "intro": "Partez du kit de départ : c’est le dossier de soumission organisé comme il faut — le CSV modèle avec les en-têtes exacts de cette base, et un fichier d’exemple par type de réponse. Remplissez une ligne par essai (le dictionnaire des données précise ce que chaque colonne attend), puis déposez le dossier entier ici.",
+      "intro_files": "Les réponses mesurées sont des fichiers séparés, un par essai, nommés d’après l’éprouvette (B1.csv pour l’essai dont l’identifiant est B1) et rangés dans le dossier de leur type de réponse. Déposez le dossier, un zip de celui-ci ou les fichiers eux-mêmes : ils sont associés aux essais par leur nom.",
       "checking": "Vérification…",
       "unchecked": "Non vérifié",
       "intro_guide": "Avant de commencer, lisez le guide de contribution ci-dessous, rédigé par les chercheurs pour cette base : il explique comment l’identifiant du spécimen est construit et quels fichiers de réponse sont attendus, avec leurs en-têtes de colonnes et unités exacts.",
-      "bulk_ambiguous": "Choisissez le type de réponse pour : {files}",
-      "todo_files": "Données d'essai à joindre"
+      "todo_files": "Données d'essai à joindre",
+      "starter_kit": "Kit de départ",
+      "starter_kit_hint": "Un zip avec le dossier tel qu’attendu : le CSV modèle, un fichier d’exemple par type de réponse et un court README"
     },
     "status": {
       "idle": "Ajoutez au moins une expérience avec un identifiant pour activer la vérification automatique.",
@@ -1244,7 +1237,8 @@
         "epeq_simulation": "Déformation plastique équivalente au point de rupture en fonction de l'allongement, simulée.",
         "lode_simulation": "Angle de Lode au point de rupture en fonction de l'allongement, simulé.",
         "triax_simulation": "Triaxialité au point de rupture en fonction de l'allongement, simulée."
-      }
+      },
+      "help_example": "Télécharger un fichier d’exemple"
     },
     "failure": {
       "details": "Afficher le détail",
@@ -1282,7 +1276,44 @@
       "cancel": "Annuler",
       "confirm": "Soumettre"
     },
-    "global_issues": "Problèmes non liés à une expérience précise"
+    "global_issues": "Problèmes non liés à une expérience précise",
+    "intake": {
+      "title": "Déposez votre dossier de soumission ici — ou un zip, ou des fichiers CSV",
+      "hint_files": "Le CSV des essais, plus un fichier par essai et par type de réponse, nommé d’après l’identifiant de l’essai (B1.csv) dans son dossier : {folders}. Les fichiers sont associés par leur nom ; ce qui n’a pas pu être placé est listé dessous pour que vous tranchiez.",
+      "hint_csv": "Une ligne par essai ; les en-têtes sont associés aux colonnes de cette base.",
+      "choose_folder": "Choisir un dossier",
+      "choose_files": "Choisir des fichiers",
+      "reading": "Lecture de {count} fichier(s)…",
+      "loaded": "{added} essai(s) ajouté(s), {updated} mis à jour.",
+      "attached": "{count} fichier(s) attaché(s).",
+      "to_resolve": "{count} fichier(s) demandent votre attention, voir dessous.",
+      "nothing": "Rien de reconnu dans ce qui a été déposé.",
+      "report_title": "Dernier dépôt",
+      "dismiss": "Fermer",
+      "line_primary": "{name} : {added} essai(s) ajouté(s), {updated} mis à jour.",
+      "line_attached": "{kind} : {count} fichier(s) attaché(s).",
+      "line_missing": "{kind} : {count} essai(s) encore sans fichier.",
+      "line_candidates": "Ressemblaient aussi à un CSV d’essais, laissés de côté : {files}",
+      "line_skipped": "Pas des CSV, ignorés : {files}",
+      "reason": {
+        "orphan": "{count} fichier(s) ne correspondent à aucun essai",
+        "ambiguous": "{count} fichier(s) pourraient être de plusieurs types de réponse",
+        "unknown": "{count} fichier(s) ne correspondent à aucun type de réponse",
+        "foreign": "{count} fichier(s) ressemblent au CSV d’essais d’une autre base"
+      },
+      "reason_hint": {
+        "orphan": "Le nom n’est pas un identifiant d’éprouvette de ce lot. Choisissez l’essai, ou ignorez le fichier.",
+        "ambiguous": "Ces types de réponse partagent les mêmes en-têtes. Rangez les fichiers dans des dossiers nommés d’après le type de réponse, ou choisissez-le ici.",
+        "unknown": "Les en-têtes ne correspondent à aucun des fichiers attendus. Vérifiez les colonnes, ou choisissez le type de réponse si seule l’orthographe des en-têtes diffère.",
+        "foreign": "Il a une colonne id mais pas les champs de cette base. Est-il destiné à une autre base ?"
+      },
+      "set_all": "Tous ceux-ci sont",
+      "pick_kind": "Type de réponse…",
+      "pick_experiment": "Essai…",
+      "attach": "Attacher",
+      "ignore": "Ignorer",
+      "ignore_all": "Ignorer tout le reste"
+    }
   },
   "curation": {
     "eyebrow": "Curation",

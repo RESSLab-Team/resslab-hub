@@ -49,7 +49,9 @@ security = HTTPBasic()
 # Reject obviously oversized uploads before we read the body. The archive
 # extraction caps (safe_archive.py) remain the authoritative guard against a
 # lying Content-Length; this just fails fast on the honest ones.
-MAX_REQUEST_BYTES = 25 * 2**20  # 25 MB
+# A 200-specimen batch with three curve files each gzips to roughly 10 MB;
+# the archive's own uncompressed caps (safe_archive) bound what it expands to.
+MAX_REQUEST_BYTES = 50 * 2**20  # 50 MB
 
 
 def enforce_request_size(request: Request) -> None:

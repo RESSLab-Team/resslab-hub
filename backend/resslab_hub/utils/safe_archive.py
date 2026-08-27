@@ -17,8 +17,10 @@ member headers declare each entry's uncompressed size, so we can total them
 import tarfile
 from typing import BinaryIO
 
-#: Maximum number of files in one archive.
-MAX_MEMBERS = 500
+#: Maximum number of files in one archive. A bulk contribution is one
+#: primary CSV plus one curve file per experiment and response type: 200
+#: column specimens with their three responses are 601 members.
+MAX_MEMBERS = 2000
 #: Maximum declared uncompressed size of any single member.
 MAX_MEMBER_BYTES = 50 * 2**20  # 50 MB
 #: Maximum declared uncompressed size of the whole archive.

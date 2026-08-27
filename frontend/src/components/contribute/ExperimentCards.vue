@@ -1,19 +1,26 @@
 <script setup lang="ts">
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import ToolSelect from '@/components/commons/tools/ToolSelect.vue'
-import { useContributionStore, type CardIssue } from '@/stores/contribution'
+import IntakeReport from '@/components/contribute/IntakeReport.vue'
+import { useContributionStore, type CardIssue, type IntakeSummary } from '@/stores/contribution'
 import { useNotificationStore } from '@/stores/notification'
 import { fieldLabel } from '@/utils/contribution'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
-import { readCsvTable } from '@/utils/csv'
-import { sparkline } from '@/utils/sparkline'
-import { downloadDictionary, downloadTemplate } from '@/utils/templates'
 import {
-  fileStemFor,
-  kindsMatchingHeaders,
-  timeSeriesKindsFor,
-  type TimeSeriesKind
-} from '@/utils/timeseries'
+  classifyIntake,
+  collectFromDataTransfer,
+  collectFromFileList,
+  expandArchives,
+  type IntakeFile,
+  type IntakePlan
+} from '@/utils/intake'
+import { sparkline } from '@/utils/sparkline'
+import {
+  downloadDictionary,
+  downloadExampleSeries,
+  downloadStarterKit,
+  downloadTemplate
+} from '@/utils/templates'
+import { fileStemFor, timeSeriesKindsFor, type TimeSeriesKind } from '@/utils/timeseries'
 import {
   mdiAlertOutline,
   mdiBellOffOutline,
@@ -22,10 +29,11 @@ import {
   mdiClose,
   mdiContentCopy,
   mdiDownloadOutline,
+  mdiFolderOutline,
+  mdiPackageVariantClosed,
   mdiPlus,
   mdiRestore,
-  mdiTrayArrowUp,
-  mdiUploadOutline
+  mdiTrayArrowUp
 } from '@mdi/js'
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -204,61 +212,23 @@ function toggle(uid: number): void {
   expanded.value = next
 }
 
-// --- CSV import ----------------------------------------------------------
-const importInput = ref<HTMLInputElement>()
+// --- Intake ----------------------------------------------------------------
+// One zone takes the whole submission: the primary CSV, the curve files, a
+// folder holding both, or a zip of it. `utils/intake.ts` places every file
+// and the store applies the plan; what could not be placed is listed in the
+// report below the zone for the contributor to resolve.
 
-/** The drop zone takes the place of the toolbar button while nothing is entered. */
+/** The zone is the whole stage while nothing is entered, a strip afterwards. */
 const isEmptyBatch = computed(() => store.rows.length === 0)
 
-// dragenter/dragleave also fire for children, so count them instead of
-// toggling a flag — otherwise moving over the icon clears the highlight.
-const dragDepth = ref(0)
-const dragging = computed(() => dragDepth.value > 0)
+const filesInput = ref<HTMLInputElement>()
+const folderInput = ref<HTMLInputElement>()
+/** Files being read, for the progress note; 0 when idle. */
+const reading = ref(0)
 
-async function onDrop(event: DragEvent): Promise<void> {
-  dragDepth.value = 0
-  const files = Array.from(event.dataTransfer?.files ?? [])
-  if (files.length === 0) return
-  if (files.length > 1) notification.notify(t('contribute.editor.drop_one_file'))
-  await loadCsv(files[0])
-}
-
-async function importFile(event: Event): Promise<void> {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  input.value = ''
-  if (file) await loadCsv(file)
-}
-
-async function loadCsv(file: File): Promise<void> {
-  try {
-    const columnNames = store.columns.map((column) => column.name)
-    const table = readCsvTable(await file.text(), columnNames)
-    if (table.matched.length === 0) {
-      throw new Error(t('contribute.editor.import_no_match'))
-    }
-    store.importRows(table.rows)
-    let message = t('contribute.editor.import_ok', {
-      rows: table.rows.length,
-      matched: table.matched.length
-    })
-    if (table.missing.length) {
-      message += ' ' + t('contribute.editor.import_missing', { count: table.missing.length })
-    }
-    notification.notify(message)
-  } catch (caught) {
-    notification.notify(caught instanceof Error ? caught.message : String(caught))
-  }
-}
-
-// --- Time-series attach --------------------------------------------------
-const slotInputs = ref<Record<string, HTMLInputElement | null>>({})
-const bulkInput = ref<HTMLInputElement>()
-const bulkKindKey = ref('')
-const bulkKind = computed(() => kinds.value.find((kind) => kind.key === bulkKindKey.value))
-
-// One drag counter per drop target (see `dragDepth`): a slot is keyed like
-// `store.timeSeries`, the bulk strip is `bulk`.
+// One drag counter per drop target (see below): dragenter/dragleave also fire
+// for children, so count them instead of toggling a flag. A slot is keyed like
+// `store.timeSeries`, the intake zone is `intake`.
 const dragOver = ref<Record<string, number>>({})
 function dragEnter(key: string): void {
   dragOver.value[key] = (dragOver.value[key] ?? 0) + 1
@@ -269,6 +239,66 @@ function dragLeave(key: string): void {
 function isOver(key: string): boolean {
   return (dragOver.value[key] ?? 0) > 0
 }
+
+/** The folder names of the response types, for the zone's hint. */
+const kindFolders = computed(() =>
+  kinds.value.map((kind) => kind.directory.slice(kind.directory.lastIndexOf('/') + 1)).join(', ')
+)
+
+/** One line for the snackbar; the report under the zone carries the detail. */
+function intakeLine(summary: IntakeSummary, plan: IntakePlan): string {
+  const parts: string[] = []
+  if (summary.primaryName) {
+    parts.push(t('contribute.intake.loaded', { added: summary.added, updated: summary.updated }))
+  }
+  const attached = Object.values(summary.attached).reduce((total, count) => total + count, 0)
+  if (attached) parts.push(t('contribute.intake.attached', { count: attached }))
+  if (plan.pending.length)
+    parts.push(t('contribute.intake.to_resolve', { count: plan.pending.length }))
+  if (parts.length === 0) parts.push(t('contribute.intake.nothing'))
+  return parts.join(' ')
+}
+
+async function intake(files: IntakeFile[]): Promise<void> {
+  if (files.length === 0 || !store.database || !store.config) return
+  reading.value = files.length
+  try {
+    const expanded = await expandArchives(files)
+    reading.value = expanded.length
+    const csvPath = store.config.csvPath
+    const plan = await classifyIntake(expanded, {
+      columns: store.columns.map((column) => column.name),
+      primaryName: csvPath.slice(csvPath.lastIndexOf('/') + 1),
+      kinds: kinds.value,
+      ids: store.specimenIds,
+      aliases: (kind) => [t(`contribute.timeseries.kind.${kind.key}`)]
+    })
+    const summary = store.applyIntake(plan)
+    notification.notify(intakeLine(summary, plan))
+  } catch (caught) {
+    notification.notify(caught instanceof Error ? caught.message : String(caught))
+  } finally {
+    reading.value = 0
+  }
+}
+
+async function onIntakeDrop(event: DragEvent): Promise<void> {
+  dragOver.value.intake = 0
+  if (!event.dataTransfer) return
+  // The directory entries must be read before anything awaits (see intake.ts).
+  const files = await collectFromDataTransfer(event.dataTransfer)
+  await intake(files)
+}
+
+async function onIntakePick(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement
+  const files = collectFromFileList(input.files ?? [])
+  input.value = ''
+  await intake(files)
+}
+
+// --- Time-series attach, one slot at a time ------------------------------
+const slotInputs = ref<Record<string, HTMLInputElement | null>>({})
 
 async function attachFile(uid: number, kind: TimeSeriesKind, file: File): Promise<void> {
   store.attachSeries(uid, kind, file.name, await file.text())
@@ -288,63 +318,6 @@ async function onSlotDrop(uid: number, kind: TimeSeriesKind, event: DragEvent): 
   if (files.length === 0) return
   if (files.length > 1) notification.notify(t('contribute.editor.drop_one_file'))
   await attachFile(uid, kind, files[0])
-}
-
-/**
- * Bulk attach: each file's stem is matched (case-sensitively) to an
- * experiment id through the kind's naming rule, and the kind is read from
- * the file's headers unless the dropdown names one. Kinds that share a
- * header set (beam / beam west, the F1/F2/W1 distributions) cannot be told
- * apart from the content, so those files wait for the dropdown.
- */
-async function attachMany(files: File[]): Promise<void> {
-  if (files.length === 0) return
-  const ids = store.rows
-    .map((row) => [(row.cells.id ?? '').trim(), row.uid] as const)
-    .filter(([id]) => id !== '')
-  let attached = 0
-  const unmatched: string[] = []
-  const ambiguous: string[] = []
-  for (const file of files) {
-    const text = await file.text()
-    let kind = bulkKind.value
-    if (!kind) {
-      const matches = kindsMatchingHeaders(kinds.value, text)
-      if (matches.length !== 1) {
-        ambiguous.push(file.name)
-        continue
-      }
-      kind = matches[0]
-    }
-    const stem = file.name.replace(/\.csv$/i, '')
-    const match = ids.find(([id]) => fileStemFor(kind!, id) === stem)
-    if (!match) {
-      unmatched.push(file.name)
-      continue
-    }
-    store.attachSeries(match[1], kind, file.name, text)
-    attached++
-  }
-  let message = t('contribute.editor.bulk_result', { attached })
-  if (unmatched.length) {
-    message += ' ' + t('contribute.editor.bulk_unmatched', { files: unmatched.join(', ') })
-  }
-  if (ambiguous.length) {
-    message += ' ' + t('contribute.editor.bulk_ambiguous', { files: ambiguous.join(', ') })
-  }
-  notification.notify(message)
-}
-
-async function onBulkAttach(event: Event): Promise<void> {
-  const input = event.target as HTMLInputElement
-  const files = Array.from(input.files ?? [])
-  input.value = ''
-  await attachMany(files)
-}
-
-async function onBulkDrop(event: DragEvent): Promise<void> {
-  dragOver.value.bulk = 0
-  await attachMany(Array.from(event.dataTransfer?.files ?? []))
 }
 
 function chart(uid: number, kind: TimeSeriesKind) {
@@ -380,16 +353,17 @@ function noteFor(kind: TimeSeriesKind): string {
       </h2>
       <div class="toolbar">
         <button
-          v-if="!isEmptyBatch"
           class="btn btn-secondary btn-sm"
           type="button"
-          @click="importInput?.click()"
+          :title="$t('contribute.editor.starter_kit_hint')"
+          @click="downloadStarterKit(store.database!, store.columns, kinds)"
         >
-          <v-icon :icon="mdiTrayArrowUp" size="14" />{{ $t('contribute.editor.import_csv') }}
+          <v-icon :icon="mdiPackageVariantClosed" size="14" />{{
+            $t('contribute.editor.starter_kit')
+          }}
         </button>
-        <input ref="importInput" accept=".csv,text/csv" hidden type="file" @change="importFile" />
         <button
-          class="btn btn-secondary btn-sm"
+          class="btn btn-ghost btn-sm"
           type="button"
           @click="downloadTemplate(store.database!, store.columns)"
         >
@@ -421,62 +395,49 @@ function noteFor(kind: TimeSeriesKind): string {
       </p>
     </div>
 
-    <button
-      v-if="isEmptyBatch"
-      class="dropzone"
-      :class="{ over: dragging }"
-      type="button"
-      @click="importInput?.click()"
-      @dragenter.prevent="dragDepth++"
-      @dragover.prevent
-      @dragleave.prevent="dragDepth--"
-      @drop.prevent="onDrop"
-    >
-      <v-icon :icon="mdiTrayArrowUp" size="30" />
-      <span class="drop-title">{{ $t('contribute.editor.drop_title') }}</span>
-      <span class="drop-hint">{{ $t('contribute.editor.drop_hint') }}</span>
-    </button>
-
-    <!-- Bulk attach: pick a response type, drop many <id>.csv files at once. -->
+    <!-- Intake: the whole submission at once — a folder, a zip, or files. -->
     <div
-      v-if="kinds.length"
-      class="bulk"
-      :class="{ over: isOver('bulk') }"
-      @dragenter.prevent="dragEnter('bulk')"
+      class="intake"
+      :class="{ over: isOver('intake'), compact: !isEmptyBatch, reading: reading > 0 }"
+      @dragenter.prevent="dragEnter('intake')"
       @dragover.prevent
-      @dragleave.prevent="dragLeave('bulk')"
-      @drop.prevent="onBulkDrop"
+      @dragleave.prevent="dragLeave('intake')"
+      @drop.prevent="onIntakeDrop"
     >
-      <span class="bulk-label">{{ $t('contribute.editor.bulk_attach') }}</span>
-      <tool-select
-        v-model="bulkKindKey"
-        class="bulk-select"
-        :items="
-          kinds.map((kind) => ({
-            title: $t(`contribute.timeseries.kind.${kind.key}`),
-            value: kind.key
-          }))
-        "
-        :placeholder="$t('contribute.editor.bulk_kind')"
-      />
-      <button
-        class="btn btn-secondary btn-sm"
-        :disabled="!store.hasAnyId"
-        type="button"
-        @click="bulkInput?.click()"
-      >
-        <v-icon :icon="mdiUploadOutline" size="14" />{{ $t('contribute.editor.bulk_pick') }}
-      </button>
+      <v-icon class="intake-icon" :icon="mdiTrayArrowUp" :size="isEmptyBatch ? 30 : 20" />
+      <div class="intake-text">
+        <span class="drop-title">{{ $t('contribute.intake.title') }}</span>
+        <span class="drop-hint">
+          {{
+            kinds.length
+              ? $t('contribute.intake.hint_files', { folders: kindFolders })
+              : $t('contribute.intake.hint_csv')
+          }}
+        </span>
+      </div>
+      <div class="intake-actions">
+        <button class="btn btn-secondary btn-sm" type="button" @click="folderInput?.click()">
+          <v-icon :icon="mdiFolderOutline" size="14" />{{ $t('contribute.intake.choose_folder') }}
+        </button>
+        <button class="btn btn-secondary btn-sm" type="button" @click="filesInput?.click()">
+          <v-icon :icon="mdiTrayArrowUp" size="14" />{{ $t('contribute.intake.choose_files') }}
+        </button>
+      </div>
       <input
-        ref="bulkInput"
-        accept=".csv,text/csv"
+        ref="filesInput"
+        accept=".csv,.zip,text/csv,application/zip"
         hidden
         multiple
         type="file"
-        @change="onBulkAttach"
+        @change="onIntakePick"
       />
-      <span class="bulk-hint">{{ $t('contribute.editor.bulk_hint') }}</span>
+      <input ref="folderInput" hidden multiple type="file" webkitdirectory @change="onIntakePick" />
+      <span v-if="reading" class="intake-reading">
+        {{ $t('contribute.intake.reading', { count: reading }) }}
+      </span>
     </div>
+
+    <intake-report v-if="store.lastIntake || store.pendingFiles.length" />
 
     <article
       v-for="(row, index) in store.rows"
@@ -762,6 +723,11 @@ function noteFor(kind: TimeSeriesKind): string {
                       {{ $t('contribute.editor.guide') }}
                     </button>
                   </p>
+                  <p>
+                    <button class="link" type="button" @click="downloadExampleSeries(kind)">
+                      {{ $t('contribute.timeseries.help_example') }}
+                    </button>
+                  </p>
                 </div>
               </info-tooltip>
             </span>
@@ -896,43 +862,6 @@ function noteFor(kind: TimeSeriesKind): string {
   cursor: pointer;
 }
 
-/* Bulk attach — a subdued strip so it reads as a batch tool, not a third row
-   of primary actions. Label and hint keep their own rows on narrow screens. */
-.bulk {
-  display: flex;
-  align-items: center;
-  gap: 10px 14px;
-  flex-wrap: wrap;
-  padding: 10px 14px;
-  margin-bottom: 16px;
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-subtle);
-  border-radius: var(--radius);
-}
-.bulk.over {
-  border-color: var(--epfl-red);
-  border-style: dashed;
-  background: var(--bg);
-}
-.bulk.over * {
-  pointer-events: none;
-}
-.bulk-label {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--fg);
-}
-.bulk-select {
-  min-width: 220px;
-  flex: 0 1 260px;
-}
-.bulk-hint {
-  flex: 1 1 200px;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--fg-muted);
-}
-
 .intro {
   margin-bottom: 16px;
   font-size: 13.5px;
@@ -955,46 +884,82 @@ function noteFor(kind: TimeSeriesKind): string {
   border-style: dashed;
 }
 
-.dropzone {
+/* Intake — the stage while the batch is empty, a strip once it has rows.
+   Buttons live inside the zone, so the drag counter (not pointer-events)
+   keeps the highlight steady; children stop taking events only mid-drag. */
+.intake {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   width: 100%;
   padding: clamp(28px, 6vh, 44px) 20px;
   margin-bottom: 16px;
   border: 2px dashed var(--border-strong);
   background: var(--bg);
   color: var(--fg-muted);
-  font: inherit;
-  cursor: pointer;
+  text-align: center;
   border-radius: var(--radius);
 }
-.dropzone:hover,
-.dropzone:focus-visible {
-  border-color: var(--epfl-red);
+.intake.compact {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px 14px;
+  padding: 10px 14px;
+  border-width: 1px;
   background: var(--bg-subtle);
+  text-align: left;
 }
-.dropzone.over {
+.intake.over {
   border-color: var(--epfl-red);
   background: var(--bg-subtle);
   color: var(--epfl-red);
 }
-/* The children would otherwise fire dragleave on the parent as the pointer
-   crosses them, and the counter would drift. */
-.dropzone * {
+.intake.over * {
   pointer-events: none;
+}
+.intake.reading {
+  opacity: 0.7;
+}
+.intake-icon {
+  flex: none;
+}
+.intake-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 72ch;
+}
+.intake.compact .intake-text {
+  flex: 1 1 260px;
+  gap: 2px;
 }
 .drop-title {
   font-size: 14px;
   font-weight: 700;
   color: var(--fg);
 }
-.dropzone.over .drop-title {
+.intake.compact .drop-title {
+  font-size: 12.5px;
+}
+.intake.over .drop-title {
   color: var(--epfl-red);
 }
 .drop-hint {
   font-size: 12px;
+  line-height: 1.45;
+}
+.intake-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.intake-reading {
+  flex-basis: 100%;
+  font-size: 12px;
+  font-style: italic;
 }
 
 .card {
@@ -1219,6 +1184,14 @@ function noteFor(kind: TimeSeriesKind): string {
 .kind-chip.missing_required .kind-dot,
 .series.missing_required .series-dot {
   border-color: var(--epfl-red);
+  background: transparent;
+}
+/* Still to attach (a draft, or a batch whose files have not started
+   arriving): hollow like "missing", dotted so it reads as a to-do. */
+.kind-chip.todo .kind-dot,
+.series.todo .series-dot {
+  border-style: dotted;
+  border-color: var(--fg-muted);
   background: transparent;
 }
 @media (max-width: 559px) {

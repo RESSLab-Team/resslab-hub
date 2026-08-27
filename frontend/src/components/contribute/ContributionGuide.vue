@@ -22,7 +22,9 @@ import {
 import { contributionGuideUrl } from '@/utils/contribution'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
-import { mdiChevronRight, mdiMagnify, mdiOpenInNew } from '@mdi/js'
+import { downloadStarterKit, layoutEntries, layoutRoot } from '@/utils/templates'
+import { timeSeriesKindsFor } from '@/utils/timeseries'
+import { mdiChevronRight, mdiMagnify, mdiOpenInNew, mdiPackageVariantClosed } from '@mdi/js'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { computed, ref, watch } from 'vue'
@@ -70,6 +72,14 @@ const html = computed(() => {
   const base = githubUrl.value.replace(/README\.md$/, '')
   return rewriteLinks(DOMPurify.sanitize(raw), base)
 })
+
+// --- Expected layout --------------------------------------------------------
+// Rendered from the response-type table, so the hint exists even for a
+// database whose README has not been written yet.
+
+const kinds = computed(() => timeSeriesKindsFor(props.database))
+const layout = computed(() => layoutEntries(props.database, kinds.value))
+const root = computed(() => layoutRoot(props.database))
 
 // --- Dictionary -----------------------------------------------------------
 
@@ -168,6 +178,44 @@ defineExpose({ show })
     </header>
 
     <div v-if="expanded && tab === 'guide'" class="body">
+      <section class="layout">
+        <h4>{{ $t('contribute.guide.layout_title') }}</h4>
+        <p class="state">{{ $t('contribute.guide.layout_hint') }}</p>
+        <ul class="tree">
+          <li class="tree-root">
+            <code>{{ root }}</code>
+          </li>
+          <li v-for="entry in layout" :key="entry.path" class="tree-entry">
+            <code>{{ entry.path }}</code>
+            <span v-if="!entry.kind" class="tree-desc">
+              {{ $t('contribute.guide.layout_primary') }}
+            </span>
+            <span v-else class="tree-desc">
+              <span class="tree-tag" :class="{ required: entry.kind.required }">
+                {{
+                  $t(
+                    entry.kind.required
+                      ? 'contribute.timeseries.required'
+                      : 'contribute.timeseries.optional'
+                  )
+                }}
+              </span>
+              {{ $t(`contribute.timeseries.kind.${entry.kind.key}`) }} —
+              <template v-for="(column, i) in entry.kind.columns" :key="column.name">
+                <template v-if="i > 0">, </template><code>{{ column.name }}</code>
+              </template>
+            </span>
+          </li>
+        </ul>
+        <button
+          class="kit"
+          type="button"
+          @click="downloadStarterKit(props.database, columns, kinds)"
+        >
+          <v-icon :icon="mdiPackageVariantClosed" size="14" />
+          {{ $t('contribute.guide.layout_kit') }}
+        </button>
+      </section>
       <p v-if="readme === undefined" class="state">{{ $t('contribute.guide.loading') }}</p>
       <p v-else-if="readme === null" class="state">
         {{ $t('contribute.guide.missing') }}
@@ -547,5 +595,67 @@ defineExpose({ show })
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
+}
+
+/* Expected layout — a small tree above the README. */
+.layout {
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.layout h4 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.tree {
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.tree code {
+  font-size: 12px;
+}
+.tree-entry {
+  padding-left: 16px;
+}
+.tree-desc {
+  display: block;
+  padding-left: 12px;
+  color: var(--fg-muted);
+}
+.tree-tag {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.tree-tag.required {
+  border-color: var(--epfl-red);
+  color: var(--epfl-red);
+}
+.kit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>

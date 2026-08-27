@@ -1084,24 +1084,18 @@
       "example": "Example",
       "dictionary_hint": "{count} columns, from the data dictionary uploaded with the data. Required columns cannot be NA.",
       "search": "Filter columns…",
-      "no_match": "No column matches."
+      "no_match": "No column matches.",
+      "layout_title": "Expected layout",
+      "layout_hint": "What the submission folder looks like; drop it whole on the editor.",
+      "layout_primary": "one row per experiment",
+      "layout_kit": "Download the starter kit"
     },
     "editor": {
       "title": "Experiments",
       "add_experiment": "Add an experiment manually",
-      "import_csv": "Import CSV",
       "template": "Template CSV",
       "dictionary": "Data dictionary",
       "guide": "Contribution guide",
-      "import_ok": "Loaded {rows} experiment(s), {matched} columns matched.",
-      "import_missing": "{count} required column(s) were missing and will be submitted as NR.",
-      "import_no_match": "No column headers matched this database. Is the file for a different database?",
-      "bulk_attach": "Bulk attach test data",
-      "bulk_kind": "Response type (auto)",
-      "bulk_pick": "Choose files",
-      "bulk_hint": "drop files here or choose them: each is matched to an experiment by name, e.g. B1.csv, and its response type is read from its headers",
-      "bulk_result": "{attached} file(s) attached.",
-      "bulk_unmatched": "No experiment matched: {files}",
       "untitled": "Experiment {n}",
       "issue_count": "{count} issue(s)",
       "clean": "No issues",
@@ -1117,16 +1111,15 @@
       "dismissed_count": "{count} warning(s) dismissed",
       "restore": "Restore this warning",
       "restore_all": "Restore",
-      "drop_title": "Drop a CSV here, or click to browse",
-      "drop_hint": "One row per experiment — headers are matched to this database’s columns.",
       "drop_one_file": "Only the first file was imported.",
-      "intro": "Start from the Template CSV below — it already carries this database’s exact column headers — and open the Data dictionary if you need to know what a column expects (unit, type, whether it is required). Fill in one row per experiment, then drop the file here.",
-      "intro_files": "Measured responses are separate files. Name each one after the specimen it belongs to (B1.csv for the experiment whose id is B1) and you can attach the whole set in one go with bulk attach, below.",
+      "intro": "Start from the starter kit: it is the submission folder laid out the way it should be — the template CSV with this database’s exact column headers, and one example file per response type. Fill in one row per experiment (the Data dictionary says what each column expects), then drop the whole folder here.",
+      "intro_files": "Measured responses are separate files, one per experiment, named after the specimen it belongs to (B1.csv for the experiment whose id is B1) and placed in the folder of their response type. Drop the folder, a zip of it, or the files themselves: they are matched to the experiments by name.",
       "checking": "Checking…",
       "unchecked": "Not checked",
       "intro_guide": "Before you start, read the contribution guide below, written by the researchers for this database: it explains how the specimen identifier is built and which response files are expected, with their exact column headers and units.",
-      "bulk_ambiguous": "Pick the response type for: {files}",
-      "todo_files": "Test data to attach"
+      "todo_files": "Test data to attach",
+      "starter_kit": "Starter kit",
+      "starter_kit_hint": "A zip with the folder laid out as expected: the template CSV, one example file per response type, and a short README"
     },
     "status": {
       "idle": "Add at least one experiment with an identifier to enable the automatic check.",
@@ -1244,7 +1237,8 @@
         "epeq_simulation": "Equivalent plastic strain at the fracture location versus elongation, from the simulation.",
         "lode_simulation": "Lode angle at the fracture location versus elongation, from the simulation.",
         "triax_simulation": "Stress triaxiality at the fracture location versus elongation, from the simulation."
-      }
+      },
+      "help_example": "Download an example file"
     },
     "failure": {
       "details": "Show details",
@@ -1282,7 +1276,44 @@
       "cancel": "Cancel",
       "confirm": "Submit"
     },
-    "global_issues": "Problems not tied to a single experiment"
+    "global_issues": "Problems not tied to a single experiment",
+    "intake": {
+      "title": "Drop your submission folder here — or a zip, or CSV files",
+      "hint_files": "The experiments CSV, plus one file per experiment and response type named after the experiment’s id (B1.csv) in its folder: {folders}. Files are matched by name; what cannot be placed is listed below for you to sort out.",
+      "hint_csv": "One row per experiment; the headers are matched to this database’s columns.",
+      "choose_folder": "Choose a folder",
+      "choose_files": "Choose files",
+      "reading": "Reading {count} file(s)…",
+      "loaded": "{added} experiment(s) added, {updated} updated.",
+      "attached": "{count} file(s) attached.",
+      "to_resolve": "{count} file(s) need your attention, see below.",
+      "nothing": "Nothing recognised in what was dropped.",
+      "report_title": "Last drop",
+      "dismiss": "Dismiss",
+      "line_primary": "{name}: {added} experiment(s) added, {updated} updated.",
+      "line_attached": "{kind}: {count} file(s) attached.",
+      "line_missing": "{kind}: {count} experiment(s) still without a file.",
+      "line_candidates": "Also looked like an experiments CSV, left alone: {files}",
+      "line_skipped": "Not CSV, skipped: {files}",
+      "reason": {
+        "orphan": "{count} file(s) match no experiment",
+        "ambiguous": "{count} file(s) could be several response types",
+        "unknown": "{count} file(s) match no response type",
+        "foreign": "{count} file(s) look like another database’s experiments CSV"
+      },
+      "reason_hint": {
+        "orphan": "The name is not a specimen id of this batch. Pick the experiment, or ignore the file.",
+        "ambiguous": "These response types share the same headers. Put the files in folders named after the response type, or pick it here.",
+        "unknown": "The headers match none of the expected files. Check the columns, or pick the response type if the headers are only spelt differently.",
+        "foreign": "It has an id column but not this database’s fields. Is it meant for another database?"
+      },
+      "set_all": "All of these are",
+      "pick_kind": "Response type…",
+      "pick_experiment": "Experiment…",
+      "attach": "Attach",
+      "ignore": "Ignore",
+      "ignore_all": "Ignore all remaining"
+    }
   },
   "curation": {
     "eyebrow": "Curation",

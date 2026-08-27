@@ -3,6 +3,7 @@ import { useDictionaryStore } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import { normalizeCsvText } from '@/utils/csv'
 import { describeFailure, type FailureReport } from '@/utils/failureReport'
+import type { IntakePending, IntakePlan } from '@/utils/intake'
 import type { DatabaseId } from '@/utils/navigation'
 import { mapResponse, type ExperimentReport, type ReportedIssue } from '@/utils/qualityReport'
 import { postContribution, type ContributorInfo } from '@/utils/submission'
@@ -127,6 +128,22 @@ export interface ExperimentProblems {
   issues: CardIssue[]
 }
 
+/** What the last bulk drop did, for the report shown under the drop zone. */
+export interface IntakeSummary {
+  /** Name of the primary CSV that was read, if any. */
+  primaryName: string | null
+  /** Experiments added by that CSV, and experiments it updated (same id). */
+  added: number
+  updated: number
+  /** Other files that also looked like a primary CSV and were left alone. */
+  primaryCandidates: string[]
+  /** Curve files attached, per response type key. */
+  attached: Record<string, number>
+  /** Files that are not CSV. */
+  skipped: string[]
+  noise: number
+}
+
 /** Idle time after the last edit before the server check fires. */
 const AUTO_VALIDATE_DELAY_MS = 2000
 
@@ -151,6 +168,9 @@ export const useContributionStore = defineStore('contribution', () => {
   const rows = ref<ExperimentRow[]>([])
   /** Attached time-series, keyed by `${row.uid}:${TimeSeriesKind.key}`. */
   const timeSeries = ref<Record<string, AttachedTimeSeries>>({})
+  /** Curve files from a bulk drop that still need a home. */
+  const pendingFiles = ref<IntakePending[]>([])
+  const lastIntake = ref<IntakeSummary | null>(null)
 
   const status = ref<QualityCheckStatus>('idle')
   const response = ref<ValidationResponse | null>(null)
@@ -562,6 +582,7 @@ export const useContributionStore = defineStore('contribution', () => {
     database.value = id
     rows.value = []
     timeSeries.value = {}
+    clearIntake()
     dismissed.value.clear()
     drafts.value.clear()
     testDataStarted.value = false
@@ -602,9 +623,92 @@ export const useContributionStore = defineStore('contribution', () => {
   function importRows(records: Array<Record<string, string>>): void {
     rows.value = records.map((cells) => newRow(cells))
     timeSeries.value = {}
+    clearIntake()
     dismissed.value.clear()
     drafts.value.clear()
     testDataStarted.value = false
+  }
+
+  /**
+   * Add imported rows to the batch instead of replacing it: a row whose id is
+   * already there updates that experiment (its attached files stay, keyed by
+   * uid), the others are appended. Rows without an id are always appended.
+   * Never drafts: a file is complete.
+   */
+  function mergeRows(records: Array<Record<string, string>>): { added: number; updated: number } {
+    settle()
+    let added = 0
+    let updated = 0
+    for (const cells of records) {
+      const id = (cells.id ?? '').trim()
+      const existing = id ? rows.value.find((row) => (row.cells.id ?? '').trim() === id) : undefined
+      if (existing) {
+        existing.cells = { ...existing.cells, ...cells }
+        updated++
+      } else {
+        rows.value.push(newRow(cells))
+        added++
+      }
+    }
+    return { added, updated }
+  }
+
+  // --- Bulk intake ------------------------------------------------------
+  // A dropped folder, zip or set of files arrives as an `IntakePlan` (see
+  // `utils/intake.ts`): the primary CSV merges into the batch, the curve
+  // files that were placed attach, and the rest waits in `pendingFiles` for
+  // the contributor to assign or ignore.
+
+  function uidForId(id: string): number | undefined {
+    return rows.value.find((row) => (row.cells.id ?? '').trim() === id)?.uid
+  }
+
+  function applyIntake(plan: IntakePlan): IntakeSummary {
+    const summary: IntakeSummary = {
+      primaryName: plan.primary?.file.name ?? null,
+      added: 0,
+      updated: 0,
+      primaryCandidates: plan.primaryCandidates.map((file) => file.path),
+      attached: {},
+      skipped: plan.skipped.map((file) => file.path),
+      noise: plan.noise
+    }
+    if (plan.primary) {
+      const counts = mergeRows(plan.primary.table.rows)
+      summary.added = counts.added
+      summary.updated = counts.updated
+    }
+    for (const match of plan.matched) {
+      const uid = uidForId(match.id)
+      if (uid === undefined) continue
+      attachSeries(uid, match.kind, match.file.name, match.text)
+      summary.attached[match.kind.key] = (summary.attached[match.kind.key] ?? 0) + 1
+    }
+    // A file dropped again replaces its earlier pending entry (same path).
+    const paths = new Set(plan.pending.map((entry) => entry.file.path))
+    pendingFiles.value = [
+      ...pendingFiles.value.filter((entry) => !paths.has(entry.file.path)),
+      ...plan.pending
+    ]
+    lastIntake.value = summary
+    return summary
+  }
+
+  /** Give a pending file a home: it attaches like any other and leaves the list. */
+  function assignPending(pendingId: number, uid: number, kind: TimeSeriesKind): void {
+    const entry = pendingFiles.value.find((item) => item.id === pendingId)
+    if (!entry) return
+    attachSeries(uid, kind, entry.file.name, entry.text)
+    pendingFiles.value = pendingFiles.value.filter((item) => item.id !== pendingId)
+  }
+
+  function ignorePending(pendingId: number): void {
+    pendingFiles.value = pendingFiles.value.filter((item) => item.id !== pendingId)
+  }
+
+  function clearIntake(): void {
+    pendingFiles.value = []
+    lastIntake.value = null
   }
 
   function resetQualityCheck(): void {
@@ -801,6 +905,7 @@ export const useContributionStore = defineStore('contribution', () => {
     database.value = null
     rows.value = []
     timeSeries.value = {}
+    clearIntake()
     dismissed.value.clear()
     drafts.value.clear()
     testDataStarted.value = false
@@ -864,6 +969,13 @@ export const useContributionStore = defineStore('contribution', () => {
     duplicateRow,
     removeRow,
     importRows,
+    mergeRows,
+    pendingFiles,
+    lastIntake,
+    applyIntake,
+    assignPending,
+    ignorePending,
+    clearIntake,
     resetQualityCheck,
     runQualityCheck,
     reset
