@@ -1,6 +1,12 @@
 import type { CurationDetail } from '@/backend'
 import { CURVE_SOURCES } from '@/components/curation/curves'
-import { cohortQueryFor, GHOST_CONFIGS, requestFieldsFor } from '@/components/curation/ghost'
+import {
+  cohortQueryFor,
+  GHOST_CONFIGS,
+  isEmptyBrush,
+  mergeBrush,
+  requestFieldsFor
+} from '@/components/curation/ghost'
 import { cellValue, databaseIdForType, isMissing, toExperimentRows } from '@/utils/curation'
 import type { DatabaseId } from '@/utils/navigation'
 import { timeSeriesKindsFor } from '@/utils/timeseries'
@@ -69,6 +75,59 @@ describe('cohortQueryFor', () => {
   it('is undefined when nothing is selectable, so the cohort is the whole database', () => {
     expect(cohortQueryFor(cells, [])).toBeUndefined()
     expect(cohortQueryFor(cells, ['protocol'])).toBeUndefined()
+  })
+})
+
+describe('isEmptyBrush', () => {
+  it('treats a cleared brush as no selection', () => {
+    expect(isEmptyBrush(null)).toBe(true)
+    expect(isEmptyBrush(undefined)).toBe(true)
+    expect(isEmptyBrush({ clauses: {} })).toBe(true)
+    expect(isEmptyBrush({ ids: [] })).toBe(true)
+  })
+
+  it('recognises a real selection', () => {
+    expect(isEmptyBrush({ clauses: { f_y: '300<<400' } })).toBe(false)
+    expect(isEmptyBrush({ ids: ['B1'] })).toBe(false)
+  })
+})
+
+describe('mergeBrush', () => {
+  const criteria = 'steel:S355,;shape:HSS Square,'
+
+  it('leaves the criteria query untouched without a selection', () => {
+    expect(mergeBrush(criteria, null)).toBe(criteria)
+    expect(mergeBrush(criteria, { clauses: {} })).toBe(criteria)
+    expect(mergeBrush(criteria, { ids: [] })).toBe(criteria)
+  })
+
+  it('splices a brushed numeric range in beside the criteria', () => {
+    expect(mergeBrush(criteria, { clauses: { f_y: '300<<400' } })).toBe(
+      `${criteria};f_y:300<<400`
+    )
+  })
+
+  it('makes a single brushed category exact, so S355 does not keep S355J2', () => {
+    expect(mergeBrush(undefined, { clauses: { steel: 'S355' } })).toBe('steel:S355,')
+  })
+
+  it('leaves a multi-value category set alone — it already matches exactly', () => {
+    expect(mergeBrush(undefined, { clauses: { steel: 'S355,S690' } })).toBe('steel:S355,S690')
+  })
+
+  it('maps the derived-axis id fallback onto an exact id clause', () => {
+    expect(mergeBrush(undefined, { ids: ['B1'] })).toBe('id:B1,')
+    expect(mergeBrush(undefined, { ids: ['B1', 'B2'] })).toBe('id:B1,B2')
+  })
+
+  it('replaces the criterion on a field the curator then brushed', () => {
+    expect(mergeBrush(criteria, { clauses: { steel: 'S460' } })).toBe(
+      'shape:HSS Square,;steel:S460,'
+    )
+  })
+
+  it('builds a query from scratch when no criteria are active', () => {
+    expect(mergeBrush(undefined, { clauses: { f_y: '300<<400' } })).toBe('f_y:300<<400')
   })
 })
 

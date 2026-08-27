@@ -1,20 +1,27 @@
 <script setup lang="ts">
 import type { CurationDetail } from '@/backend'
 import SimpleParallelChart from '@/components/commons/charts/SimpleParallelChart.vue'
-import { GHOST_CONFIGS, requestFieldsFor } from '@/components/curation/ghost'
+import { GHOST_CONFIGS, isEmptyBrush, requestFieldsFor } from '@/components/curation/ghost'
+import type { ParallelSelection } from '@/composables/chart'
 import ToolSwitch from '@/components/commons/tools/ToolSwitch.vue'
 import { useDataset } from '@/composables/useDataset'
 import { CONTRIBUTION_DATABASES, fieldLabel } from '@/utils/contribution'
 import { cellValue, isMissing } from '@/utils/curation'
 import type { DatabaseId } from '@/utils/navigation'
 import { mdiAccountGroupOutline, mdiAlertOutline, mdiInformationOutline } from '@mdi/js'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 /**
  * Ghost mode (prototype "comparison with similar experiments" section): the
  * submitted specimen(s) drawn in red over the existing database (grey ghost
  * lines) on the same parallel-coordinates axes as the public dashboard,
  * introduced by a cohort banner that spells out the like-for-like criteria.
+ *
+ * The chart is also the cohort's second filter: brushing an axis narrows the
+ * cohort that the count and the test-data overlays below draw from, without
+ * narrowing the chart itself — the brush origin keeps showing the criteria
+ * cohort so the bands stay meaningful (the dashboards' self-exclusion idiom).
+ * "Zoom to selection" is what redraws the axes on the brushed rows.
  */
 const props = defineProps<{
   database: DatabaseId
@@ -23,13 +30,18 @@ const props = defineProps<{
   /** Criteria the curator has switched on (owned by the review view). */
   fields: string[]
   restrict: boolean
-  /** Query the criteria compile to — `undefined` means the whole database. */
+  /** What the criteria alone compile to — `undefined` = the whole database. */
+  criteriaQuery?: string
+  /** Criteria narrowed by the brush: what the rest of the review screen uses. */
   cohortQuery?: string
+  /** Committed brush, owned by the review view (it feeds the data preview). */
+  brush: ParallelSelection | null
 }>()
 
 const emit = defineEmits<{
   (e: 'update:fields', value: string[]): void
   (e: 'update:restrict', value: boolean): void
+  (e: 'update:brush', value: ParallelSelection | null): void
 }>()
 
 const config = GHOST_CONFIGS[props.database]
@@ -97,23 +109,57 @@ function toggle(candidate: Candidate): void {
 
 const requestFields = computed(() => (config ? requestFieldsFor(config.fields) : []))
 
+// Zoom is the chart's own affair — it only swaps which rows the axes are drawn
+// on. A brush reset (criteria change, another experiment) drops it too.
+const zoomed = ref(false)
+watch(
+  () => props.brush,
+  (brush) => {
+    if (!brush) zoomed.value = false
+  }
+)
+
+/**
+ * Rows the chart itself draws: the criteria cohort while brushing (so the
+ * bands keep their full domain), the brushed subset once zoomed.
+ */
+const chartQuery = computed(() => (zoomed.value ? props.cohortQuery : props.criteriaQuery))
+
 const chart = computed(() => {
   if (!config || !dataset || state.value !== 'ready') return null
   void readyTick.value
-  const cohort = dataset.matrixSync(requestFields.value, props.cohortQuery)
+  const cohort = dataset.matrixSync(requestFields.value, chartQuery.value)
   const cohortIds = (cohort.ids ?? []) as string[]
   const cohortData = (cohort.data ?? []) as unknown as (string | number)[][]
   const submissionIds = props.detail.experiments.map((experiment) => experiment.id)
   const submissionData = props.detail.experiments.map((experiment) =>
     requestFields.value.map((field) => cellValue(experiment.cells[field]) as string | number)
   )
+  // Submitted rows are appended after the filter, so no brush and no zoom can
+  // drop the specimen under review from its own comparison.
   return {
     ids: [...cohortIds, ...submissionIds],
     data: [...cohortData, ...submissionData],
-    cohortCount: cohortIds.length,
-    highlightIds: submissionIds
+    drawnCount: cohortIds.length,
+    pinnedIds: submissionIds
   }
 })
+
+/** Cohort sizes: criteria alone, and what the brush leaves of it. */
+const similarCount = computed(() => {
+  if (!dataset || state.value !== 'ready') return 0
+  void readyTick.value
+  return dataset.countRowsSync(props.criteriaQuery)
+})
+const brushedCount = computed(() => {
+  if (!dataset || state.value !== 'ready' || !props.brush) return null
+  void readyTick.value
+  return dataset.countRowsSync(props.cohortQuery)
+})
+
+function onBrushCommit(selection: ParallelSelection): void {
+  emit('update:brush', isEmptyBrush(selection) ? null : selection)
+}
 
 const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].namespace}.`)
 </script>
@@ -133,7 +179,12 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
         <div class="cohort-h">
           <v-icon :icon="mdiAccountGroupOutline" size="16" />
           <b>{{ $t('curation.cohort.banner_title') }}</b>
-          <span class="ct">{{ $t('curation.cohort.count', { count: chart.cohortCount }) }}</span>
+          <span class="ct">
+            {{ $t('curation.cohort.count', { count: similarCount }) }}
+            <template v-if="brushedCount !== null">
+              · {{ $t('curation.cohort.brushed', { count: brushedCount }) }}
+            </template>
+          </span>
         </div>
         <p class="cohort-lead">{{ $t('curation.cohort.lead') }}</p>
         <p class="cohort-hint">{{ $t('curation.cohort.criteria_hint') }}</p>
@@ -155,7 +206,7 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
         <div class="cohort-foot">
           <tool-switch v-model="restrictModel" :label="$t('curation.cohort.restrict')" />
         </div>
-        <p v-if="restrict && !cohortQuery" class="cohort-note">
+        <p v-if="restrict && !criteriaQuery" class="cohort-note">
           <v-icon :icon="mdiInformationOutline" size="14" />
           {{ $t('curation.cohort.no_criteria') }}
         </p>
@@ -167,7 +218,7 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
           <span>
             {{
               $t('curation.cohort.ghosts', {
-                count: chart.cohortCount,
+                count: chart.drawnCount,
                 added: detail.experiments.length
               })
             }}
@@ -177,23 +228,31 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
           :animate="false"
           :data="chart.data"
           :fields="config.fields"
-          :highlight-ids="chart.highlightIds"
           :ids="chart.ids"
-          :is-filtered="false"
+          :is-filtered="brush !== null"
           :label-prefix="labelPrefix"
+          :pinned-ids="chart.pinnedIds"
           :request-fields="requestFields"
+          :zoomed="zoomed"
+          @brush:commit="onBrushCommit"
+          @update:zoomed="zoomed = $event"
         />
         <div class="chartleg">
           <span class="li">
             <span class="sw sel"></span>
             {{ $t('curation.cohort.legend_new', { id: selected?.id ?? '' }) }}
           </span>
+          <span v-if="brushedCount !== null" class="li">
+            <span class="sw brushed"></span>
+            {{ $t('curation.cohort.legend_brushed', { count: brushedCount }) }}
+          </span>
           <span class="li">
             <span class="sw ghost"></span>
-            {{ $t('curation.cohort.legend_ghost', { count: chart.cohortCount }) }}
+            {{ $t('curation.cohort.legend_ghost', { count: chart.drawnCount }) }}
           </span>
         </div>
         <p class="charthint">{{ $t('curation.cohort.hint') }}</p>
+        <p class="charthint">{{ $t('curation.cohort.brush_hint') }}</p>
       </div>
     </template>
   </section>
@@ -356,6 +415,12 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
   width: 12px;
   height: 12px;
   background: var(--epfl-red);
+}
+.chartleg .sw.brushed {
+  width: 16px;
+  height: 0;
+  border-top: 2px solid var(--epfl-red);
+  opacity: 0.75;
 }
 .chartleg .sw.ghost {
   width: 16px;

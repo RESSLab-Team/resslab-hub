@@ -24,7 +24,12 @@ import * as connections from '@/components/connections/data'
 import * as hss from '@/components/hss/data'
 import * as materials from '@/components/materials/data'
 import * as residuals from '@/components/residuals/data'
-import { isDivision, type ParallelField } from '@/composables/chart'
+import {
+  isDivision,
+  spliceQueryClause,
+  type ParallelField,
+  type ParallelSelection
+} from '@/composables/chart'
 import { isMissing } from '@/utils/curation'
 import type { DatabaseId } from '@/utils/navigation'
 
@@ -152,6 +157,43 @@ export function cohortQueryFor(
     .filter((field) => !isMissing(cells[field]))
     .map((field) => `${field}:${(cells[field] ?? '').trim()},`)
   return clauses.length ? clauses.join(';') : undefined
+}
+
+/** True when a brush carries no selection — every band cleared. */
+export function isEmptyBrush(selection: ParallelSelection | null | undefined): boolean {
+  if (!selection) return true
+  if (selection.ids) return selection.ids.length === 0
+  return Object.keys(selection.clauses ?? {}).length === 0
+}
+
+/**
+ * The cohort query narrowed by a parallel-chart brush: the criteria clauses
+ * with the brushed axes' clauses spliced in.
+ *
+ * A brushed axis replaces the criterion on the same field rather than
+ * intersecting with it — safe, because the brush is drawn on rows that already
+ * passed the criteria, so the selection is a subset either way.
+ *
+ * Single-value clauses get the same trailing comma `cohortQueryFor` uses: the
+ * query engine treats any expression containing a comma as exact set
+ * membership, and without it a brush on `S355` would also keep `S355J2`. Range
+ * (`min<<max`) and multi-value clauses already read exactly.
+ */
+export function mergeBrush(
+  query: string | undefined,
+  selection: ParallelSelection | null | undefined
+): string | undefined {
+  if (isEmptyBrush(selection)) return query
+  if (selection?.ids) {
+    const ids = selection.ids
+    return spliceQueryClause(query, 'id', ids.length === 1 ? `${ids[0]},` : ids.join(','))
+  }
+  let merged = query
+  for (const [field, value] of Object.entries(selection?.clauses ?? {})) {
+    const exact = value.includes(',') || value.includes('<<') ? value : `${value},`
+    merged = spliceQueryClause(merged, field, exact)
+  }
+  return merged
 }
 
 /** Flat request-field list for a set of parallel axes (division axes expand). */

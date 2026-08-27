@@ -1383,12 +1383,15 @@
       "loading": "Chargement de la base existante…",
       "unavailable": "Le jeu de données existant n'a pas pu être chargé.",
       "restrict": "Restreindre aux expériences similaires",
-      "count": "{count} expériences",
+      "count": "{count} similaires",
+      "brushed": "{count} sélectionnées",
       "chart_title": "Coordonnées parallèles · Nouveau spécimen vs cohorte",
       "ghosts": "{count} fantômes + {added} nouveau(x)",
       "legend_new": "Nouveau spécimen · {id}",
+      "legend_brushed": "{count} sélectionnées",
       "legend_ghost": "{count} similaires (fantômes)",
       "hint": "Chaque ligne grise est une expérience existante sur tous les axes ; la ligne rouge est cette soumission.",
+      "brush_hint": "Glissez le long d'un axe pour sélectionner un sous-ensemble : le décompte de la cohorte et les courbes de comparaison ci-dessous suivent la sélection. « Zoomer sur la sélection » redessine les axes dessus.",
       "criteria_hint": "Critères définissant une expérience comparable",
       "not_reported": "non renseigné",
       "no_criteria": "Aucun critère actif — la cohorte est la base entière."
@@ -1416,9 +1419,17 @@
       }
     },
     "notes": {
-      "title": "Notes du curateur",
-      "on_github": "La discussion avec le contributeur se déroule sur la pull request, où chaque commentaire est archivé.",
-      "open_discussion": "Ouvrir la discussion"
+      "title": "Discussion",
+      "on_github": "Les réponses, demandes de modification et validations se font sur la pull request tant que les rôles de curateur ne sont pas en place.",
+      "open_discussion": "Ouvrir la discussion",
+      "loading": "Chargement de la discussion…",
+      "error": "La discussion n'a pas pu être chargée.",
+      "empty": "Aucun message pour le moment.",
+      "no_body": "Message sans contenu.",
+      "bot": "bot",
+      "summary": "soumission",
+      "refresh": "Actualiser la discussion",
+      "unknown_author": "Auteur inconnu"
     }
   }
 }

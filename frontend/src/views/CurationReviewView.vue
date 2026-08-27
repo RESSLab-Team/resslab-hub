@@ -4,7 +4,9 @@ import CohortPanel from '@/components/curation/CohortPanel.vue'
 import DataPreviewPanel from '@/components/curation/DataPreviewPanel.vue'
 import MetadataPanel from '@/components/curation/MetadataPanel.vue'
 import QualityFlagsRail from '@/components/curation/QualityFlagsRail.vue'
-import { cohortQueryFor, GHOST_CONFIGS } from '@/components/curation/ghost'
+import ReviewThread from '@/components/curation/ReviewThread.vue'
+import { cohortQueryFor, GHOST_CONFIGS, mergeBrush } from '@/components/curation/ghost'
+import type { ParallelSelection } from '@/composables/chart'
 import { useDataset } from '@/composables/useDataset'
 import { useCurationStore } from '@/stores/curation'
 import { useDictionaryStore } from '@/stores/dictionary'
@@ -18,7 +20,7 @@ import {
   mdiOpenInNew,
   mdiSendOutline
 } from '@mdi/js'
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
@@ -53,9 +55,22 @@ const selectedFiles = computed(() => {
 // same cohort — refining it in one place refines both.
 const cohortFields = ref<string[]>([])
 const restrictCohort = ref(true)
-const cohortQuery = computed(() => {
+const criteriaQuery = computed(() => {
   if (!restrictCohort.value || !selected.value) return undefined
   return cohortQueryFor(selected.value.cells, cohortFields.value)
+})
+
+// Second cohort filter: the committed brush on the parallel chart. It lives
+// here rather than in the cohort panel because the data preview's overlay
+// candidates have to follow it too.
+const brush = ref<ParallelSelection | null>(null)
+const cohortQuery = computed(() => mergeBrush(criteriaQuery.value, brush.value))
+
+// A brush is only meaningful against the axes it was drawn on: changing the
+// criteria or the experiment redraws them, so drop it. Nulling it also flips
+// the chart's `isFiltered` prop, whose watch clears the covers and the zoom.
+watch([selectedUid, criteriaQuery], () => {
+  brush.value = null
 })
 
 // "Existing range" ghost hints: observed min–max of each numeric dictionary
@@ -192,20 +207,22 @@ async function selectIssue(uid: number, column: string): Promise<void> {
             :experiment="selected"
             :ranges="ranges"
           />
+          <cohort-panel
+            v-model:brush="brush"
+            v-model:fields="cohortFields"
+            v-model:restrict="restrictCohort"
+            :cohort-query="cohortQuery"
+            :criteria-query="criteriaQuery"
+            :database="database"
+            :detail="detail"
+            :selected-uid="selectedUid"
+          />
           <data-preview-panel
             v-if="selected"
             :cohort-query="cohortQuery"
             :database="database"
             :files="selectedFiles"
             :pr-number="detail.pr_number"
-          />
-          <cohort-panel
-            v-model:fields="cohortFields"
-            v-model:restrict="restrictCohort"
-            :cohort-query="cohortQuery"
-            :database="database"
-            :detail="detail"
-            :selected-uid="selectedUid"
           />
         </div>
       </div>
@@ -219,13 +236,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
             @select="selectIssue"
           />
 
-          <div class="notes">
-            <p class="sech">{{ $t('curation.notes.title') }}</p>
-            <p class="notes-text">{{ $t('curation.notes.on_github') }}</p>
-            <a class="notes-link" :href="detail.pr_url" target="_blank" rel="noreferrer">
-              {{ $t('curation.notes.open_discussion') }} →
-            </a>
-          </div>
+          <review-thread :pr-number="detail.pr_number" :pr-url="detail.pr_url" />
         </div>
 
         <div class="val-actions" :title="$t('curation.actions.disabled_tooltip')">
@@ -434,30 +445,6 @@ async function selectIssue(uid: number, column: string): Promise<void> {
   overflow-y: auto;
   min-height: 0;
   padding: 22px clamp(20px, 1.8vw, 32px);
-}
-.notes {
-  margin-top: 28px;
-}
-.sech {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 700;
-  margin: 0 0 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-}
-.notes-text {
-  font-size: 13px;
-  color: var(--fg-muted);
-  line-height: 1.55;
-  margin: 0 0 8px;
-}
-.notes-link {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--epfl-red);
-  text-decoration: none;
 }
 .val-actions {
   padding: 18px 24px;

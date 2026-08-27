@@ -1383,12 +1383,15 @@
       "loading": "Loading the existing database…",
       "unavailable": "The existing dataset could not be loaded.",
       "restrict": "Restrict to similar experiments",
-      "count": "{count} experiments",
+      "count": "{count} similar",
+      "brushed": "{count} brushed",
       "chart_title": "Parallel coordinates · New specimen vs cohort",
       "ghosts": "{count} ghosts + {added} new",
       "legend_new": "New specimen · {id}",
+      "legend_brushed": "{count} brushed",
       "legend_ghost": "{count} similar (ghost)",
       "hint": "Each grey line is one existing experiment across all axes; the red line is this submission.",
+      "brush_hint": "Drag along an axis to brush a subset: the cohort count and the comparison curves below follow the brushed experiments. \"Zoom selection\" redraws the axes on them.",
       "criteria_hint": "Criteria defining a comparable experiment",
       "not_reported": "not reported",
       "no_criteria": "No criterion is active — the cohort is the whole database."
@@ -1416,9 +1419,17 @@
       }
     },
     "notes": {
-      "title": "Curator notes",
-      "on_github": "Discussion with the contributor happens on the pull request, where every comment is recorded.",
-      "open_discussion": "Open the discussion"
+      "title": "Discussion",
+      "on_github": "Replying, requesting changes and approving happen on the pull request until curator roles are in place.",
+      "open_discussion": "Open the discussion",
+      "loading": "Loading the discussion…",
+      "error": "The discussion could not be loaded.",
+      "empty": "No messages yet.",
+      "no_body": "No message body.",
+      "bot": "bot",
+      "summary": "submission",
+      "refresh": "Refresh the discussion",
+      "unknown_author": "Unknown author"
     }
   }
 }

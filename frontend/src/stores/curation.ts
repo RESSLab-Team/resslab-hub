@@ -7,7 +7,7 @@
  * the GitHub-backed endpoints.
  */
 
-import type { CurationDetail, CurationSummary } from '@/backend'
+import type { CurationComment, CurationDetail, CurationSummary } from '@/backend'
 import type { ValidationResponse } from '@/utils/validationResponse'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -20,6 +20,7 @@ export const useCurationStore = defineStore('curation', () => {
   const details = ref(new Map<number, CurationDetail>())
   const validations = ref(new Map<number, ValidationResponse>())
   const fileTexts = ref(new Map<string, string>())
+  const comments = ref(new Map<number, CurationComment[]>())
 
   async function fetchList(force = false): Promise<void> {
     if (listState.value === 'loading' || (listState.value === 'ready' && !force)) return
@@ -54,6 +55,20 @@ export const useCurationStore = defineStore('curation', () => {
     return response
   }
 
+  /**
+   * The submission's discussion. Unlike the rest of the curation state this
+   * one moves while a curator is on the page (someone replies on GitHub), so
+   * `force` skips the cache for the panel's refresh button.
+   */
+  async function fetchComments(prNumber: number, force = false): Promise<CurationComment[]> {
+    const cached = comments.value.get(prNumber)
+    if (cached && !force) return cached
+    const { defaultApi } = await import('@/plugins/axios')
+    const { data } = await defaultApi.getContributionComments(prNumber)
+    comments.value.set(prNumber, data.items)
+    return data.items
+  }
+
   async function fetchFileText(prNumber: number, path: string): Promise<string> {
     const key = `${prNumber}:${path}`
     const cached = fileTexts.value.get(key)
@@ -72,6 +87,7 @@ export const useCurationStore = defineStore('curation', () => {
     fetchList,
     fetchDetail,
     fetchValidation,
-    fetchFileText
+    fetchFileText,
+    fetchComments
   }
 })

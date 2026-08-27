@@ -35,6 +35,11 @@ const props = withDefaults(
     // Ids selected by the committed id clause (line click / derived-axis
     // fallback), painted as the red overlay when no brush selection exists.
     highlightIds?: string[]
+    // Rows that must stay red whatever the brush does — the curation screen's
+    // submitted specimens. Unlike `highlightIds` these survive a gesture (the
+    // mid-drag overlay merge only touches the 'selection' series) and a zoom,
+    // so the reviewed specimen never blends into the cohort.
+    pinnedIds?: string[]
     // Local (in-browser) filtering is instant, so disable ECharts animation
     // entirely — the enter/update/exit transitions otherwise read as a load and
     // cost frames on every filter tick.
@@ -47,6 +52,7 @@ const props = withDefaults(
     labelPrefix: '',
     zoomed: false,
     highlightIds: () => [],
+    pinnedIds: () => [],
     animate: true,
     requestFields: () => []
   }
@@ -197,6 +203,17 @@ const overlayRows = computed<(string | number)[][]>(() => {
   return rows
 })
 
+/** Always-red rows, independent of the brush and of the zoom state. */
+const pinnedRows = computed<(string | number)[][]>(() => {
+  if (!props.pinnedIds.length) return []
+  const targets = new Set(props.pinnedIds)
+  const rows: (string | number)[][] = []
+  props.ids.forEach((id, i) => {
+    if (targets.has(id)) rows.push(projectedRows.value[i])
+  })
+  return rows
+})
+
 const option = computed<EChartsOption>(() => ({
   animation: props.animate,
   parallel: {
@@ -246,6 +263,17 @@ const option = computed<EChartsOption>(() => ({
       z: 10,
       lineStyle: { color: RED, width: 1.2, opacity: 0.75 },
       data: overlayRows.value
+    },
+    // Its own series, above the overlay: the gesture-time merge replaces
+    // 'selection' wholesale, and a zoom empties it — neither may drop the
+    // pinned rows. Heavier stroke so they read apart from brushed cohort rows.
+    {
+      id: 'pinned',
+      type: 'parallel',
+      silent: true,
+      z: 11,
+      lineStyle: { color: RED, width: 2, opacity: 1 },
+      data: pinnedRows.value
     }
   ]
 }))
