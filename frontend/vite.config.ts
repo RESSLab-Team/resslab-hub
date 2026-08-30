@@ -136,6 +136,9 @@ export default defineConfig({
     ]
   },
   server: {
+    // Git worktrees run one Vite per branch; wt-setup.sh puts the branch's port in
+    // .env.worktree and tmux-dev.sh exports it. The main checkout keeps 5173.
+    port: Number(process.env.FRONTEND_PORT) || 5173,
     warmup: {
       // Warm every route view; Vite transforms their whole import graphs in the
       // background right after boot, so first navigation to any route is instant

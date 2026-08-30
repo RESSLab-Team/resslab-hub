@@ -70,6 +70,16 @@ make dev-frontend
 # http://127.0.0.1:5173
 ```
 
+#### Parallel worktrees (one branch = its own servers + Claude Code session)
+
+```bash
+make new BRANCH=feat/my-thing      # worktree + deps + secrets + ports + tmux session, attached (wt create + attach)
+make wt-open BRANCH=feat/my-thing  # open that branch's frontend
+make wt-land BRANCH=feat/my-thing  # rebase, PR, squash-merge into dev, remove the worktree
+```
+
+Everything about it — ports, the shared vs per-branch database, what Claude may and may not do in a worktree — is in [docs/worktree-dev-environment.md](docs/worktree-dev-environment.md).
+
 #### Visual Studio Code
 
 Run configurations are in `.vscode`: https://code.visualstudio.com/docs/editor/debugging

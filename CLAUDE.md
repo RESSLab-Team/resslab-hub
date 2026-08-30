@@ -14,7 +14,7 @@ RESSLab-Hub is a fullstack research database for structural steel components (br
 
 ```bash
 make install          # Install all dependencies (npm + uv sync + frontend)
-make dev-all          # database + frontend (new tab) + backend together
+make dev-all          # tmux session: database + backend + frontend + claude + shell
 make dev-database     # Start PostgreSQL via Docker Compose
 make dev-backend      # Start FastAPI backend (http://127.0.0.1:8000)
 make dev-frontend     # Start Vite dev server (http://127.0.0.1:5173)
@@ -63,26 +63,20 @@ npm run test:unit -- path/to/file.spec.ts  # Run a single test file
 npm run api           # Regenerate TypeScript client from openapi.json
 ```
 
-### Dev server (worktrees)
+### Dev servers and worktrees
 
-After you make frontend changes, keep a Vite dev server running for the current
-worktree and tell me the URL — don't make me cd in and start it myself.
+Every checkout — the main one and each git worktree under `.claude/worktrees/<branch>` — gets its own tmux session `resslab-hub/<branch>` with `backend`, `frontend`, `claude` and `shell` windows (`scripts/tmux-dev.sh`; `make new BRANCH=feat/x` creates the worktree and attaches, `wt create` alone starts it detached through `.wt.toml`). Full guide: `docs/worktree-dev-environment.md`.
 
-1. Run it from the worktree's own `frontend/` directory. Worktrees have
-   `node_modules` symlinked, so `npm run dev` works with no fresh install.
-2. First check whether one is already serving this worktree — a background task
-   you started in an earlier turn, or `pgrep -af vite | grep <worktree path>`.
-   If so, reuse it; don't spawn a second server.
-3. Otherwise start it in the background on a per-worktree port so parallel
-   worktrees don't collide:
-   `npm run dev -- --port <PORT>` where `<PORT>` = 5173 + a small offset derived
-   from the worktree name (main checkout = 5173). Vite falls back to the next
-   free port if it's taken.
-4. Data-backed pages need the backend too (`make dev-backend` + `make
-   dev-database`); it's read from `VITE_APP_BACKEND_URL` (http://127.0.0.1:8000
-   in `.env.development`). Pure UI/layout changes render without it.
-5. At the end of your response, print the actual URL Vite bound to (read it from
-   the server log), e.g. http://localhost:5175/
+- **Ports**: a worktree's `.env.worktree` holds its `BACKEND_PORT` / `FRONTEND_PORT` (hashed from the branch name, 18xxx/19xxx); the main checkout uses 8000/5173. Read them from that file — never guess, never start a second server on a port that is already served. `scripts/wt-open.sh [frontend|backend]` prints and opens the URL.
+- **Reuse before starting**: the tmux session already runs both servers (`tmux list-windows -t "resslab-hub/<branch>"`). If you must start one yourself, `set -a; . .env.worktree; set +a` first so vite, uvicorn and pytest pick the worktree's values.
+- **Finish** a frontend or backend change by printing its URL: `http://localhost:$FRONTEND_PORT/` or `http://127.0.0.1:$BACKEND_PORT/docs`.
+
+#### Working in a worktree — rules
+
+- **You own exactly one branch**: the worktree's. Commit and push to it freely. Never push `dev`, `stage` or `main`, never push another branch, never force-push — `scripts/git-push-guard.sh` refuses it in git itself, and the session's deny rules refuse it before that. Landing into `dev` is a human's job, from the main checkout, with `scripts/wt-land.sh`.
+- **The database is shared**: `postgres` on `localhost:5433` holds the 3.4 GB dev dataset every worktree reads. Worktrees run with `DATABASE_UPGRADE=false`; never run `alembic upgrade`/`downgrade`, `make database-upgrade` or `make upload-data` against it. A branch that adds a migration first runs `make db-branch` (clones `resslab_hub_template` into `resslab_hub_<slug>` and turns migrations on for this worktree only); `make db-branch-drop` returns to the shared DB.
+- **Tests**: `pytest` reads `POSTGRES_TEST_DB` from `.env.worktree` (a per-worktree throwaway database) so parallel worktrees don't drop each other's test DB — keep it exported.
+- **Network**: read the web freely. Anything that writes outward (`curl -X POST`, `gh pr create`, …) or runs downloaded code (`curl … | sh`, `npx -y …`) prompts the user by design; don't work around a prompt.
 
 ## Architecture
 
@@ -97,7 +91,7 @@ FastAPI + SQLAlchemy 2.0 async + PostgreSQL. Key files:
 - `routers/` — one file per component type (braces, columns, connections, materials [cyclic coupons], tensile_coupon, ductile_fracture, residual_stress, hss_columns, eccentric_braced_frame) plus `analytics.py` and `root.py`
 - `data/generate_model.py` — reads CSV data dictionaries from `resslab-hub-data` repo and generates both ORM models and Pydantic schemas
 
-**Model generation workflow**: When the data schema changes, run `make generate-model` (requires the sibling `resslab-hub-data` repo, resolved as `../../resslab-hub-data` from `backend/`), then create an Alembic migration with `make database-revision`.
+**Model generation workflow**: When the data schema changes, run `make generate-model` (requires the `resslab-hub-data` repo; `backend/Makefile` finds it through `RESSLAB_DATA_DIR`, default `../../resslab-hub-data`, which worktrees export as an absolute path from `.env.worktree`), then create an Alembic migration with `make database-revision`.
 
 ### Frontend (`frontend/src/`)
 
@@ -123,7 +117,7 @@ Vue 3 + TypeScript + Vite + Vuetify 3 + Pinia.
 
 ### Related Repositories
 
-- `resslab-hub-data` — CSV data files and data dictionaries that drive schema generation; a sibling of this checkout (`../resslab-hub-data`; backend tooling resolves it as `../../resslab-hub-data` from `backend/`). Git worktrees of this repo living in the same parent directory resolve it identically. See below.
+- `resslab-hub-data` — CSV data files and data dictionaries that drive schema generation. `backend/Makefile` reaches it through `RESSLAB_DATA_DIR` (default `../../resslab-hub-data`, i.e. a sibling of the main checkout); git worktrees live deeper in the tree, so `scripts/wt-setup.sh` writes the absolute path into their `.env.worktree`. See below.
 - `resslab-hub-scripts` — MATLAB scripts for component models and fragility curves
 
 ## resslab-hub-data Repository
