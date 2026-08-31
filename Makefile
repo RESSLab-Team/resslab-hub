@@ -1,4 +1,4 @@
-.PHONY: install hooks dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data upload-data-test backup-dump new db-template db-branch db-branch-drop db-status wt-land wt-open
+.PHONY: install hooks dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data upload-data-test backup-dump new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-open
 
 install:
 	npm install
@@ -67,11 +67,17 @@ new:                    ## make new BRANCH=feat/x [BASE=origin/dev]  — worktre
 
 go: new                 ## make go BRANCH=feat/x  — same thing, truthful verb: jump to the branch's session, creating branch/worktree/session as needed (tab completion: wtgo, scripts/wt-go.bash)
 
-db-template:            ## copy the shared dev DB into resslab_hub_template (once, from the main checkout)
+db-template-light:      ## build the ~20 MB resslab_hub_light template from the data repo (main CSVs + 1 series file per type, ~30 s)
+	scripts/wt-db.sh template-light
+
+db-template:            ## copy the shared dev DB into resslab_hub_template (full 3.4 GB, for branches that need real data volumes)
 	scripts/wt-db.sh template
 
-db-branch:              ## clone the template into this worktree's own DB and turn migrations on
+db-branch:              ## clone a template (light if it exists) into this worktree's own DB and turn migrations on
 	scripts/wt-db.sh create
+
+db-branch-full:         ## same, but force the full 3.4 GB template
+	scripts/wt-db.sh create full
 
 db-branch-drop:         ## drop this worktree's DB and go back to the shared one
 	scripts/wt-db.sh drop

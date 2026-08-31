@@ -121,6 +121,12 @@ precompute-fracture-figures:
 upload-data:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all $(RESSLAB_DATA_DIR)
 
+# The ~20 MB dataset behind the light per-worktree template (make db-template-light
+# at the root): every main table, dictionary and README, one measurement file per
+# series type.
+upload-data-light:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all $(RESSLAB_DATA_DIR) --series-limit 1
+
 upload-data-test:
 	ENV_FOR_DYNACONF=test $(MAKE) upload-data
 

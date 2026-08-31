@@ -7,8 +7,9 @@ ROOT="${ROOT:-$(cd "$WT_LIB_DIR/.." && pwd)}"
 BASE_BRANCH="${WT_BASE_BRANCH:-dev}"   # what scripts/wt-land.sh merges into
 PROTECTED_BRANCHES="dev stage main"    # never pushed from a worktree
 DB_CONTAINER="${DB_CONTAINER:-resslab-hub-database-1}"
-SHARED_DB="postgres"                   # the dev dataset every worktree shares by default
-TEMPLATE_DB="resslab_hub_template"     # idle copy of SHARED_DB that branch clones are made from
+SHARED_DB="postgres"                   # the full 3.4 GB dev dataset (read-only habits apply)
+TEMPLATE_DB="resslab_hub_template"     # idle copy of SHARED_DB for branches that need real data volumes
+LIGHT_TEMPLATE_DB="resslab_hub_light"  # ~20 MB build from the data repo: main CSVs + 1 series file per type
 MAIN_BACKEND_PORT=8000
 MAIN_FRONTEND_PORT=5173
 
