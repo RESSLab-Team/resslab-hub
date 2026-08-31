@@ -102,9 +102,7 @@ describe('mergeBrush', () => {
   })
 
   it('splices a brushed numeric range in beside the criteria', () => {
-    expect(mergeBrush(criteria, { clauses: { f_y: '300<<400' } })).toBe(
-      `${criteria};f_y:300<<400`
-    )
+    expect(mergeBrush(criteria, { clauses: { f_y: '300<<400' } })).toBe(`${criteria};f_y:300<<400`)
   })
 
   it('makes a single brushed category exact, so S355 does not keep S355J2', () => {

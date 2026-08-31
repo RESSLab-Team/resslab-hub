@@ -37,7 +37,11 @@ async function load(force = false): Promise<void> {
   }
 }
 
-watch(() => props.prNumber, () => load(), { immediate: true })
+watch(
+  () => props.prNumber,
+  () => load(),
+  { immediate: true }
+)
 
 /** Comment bodies are GitHub markdown from a third party — sanitize, always. */
 function bodyHtml(body: string): string {
