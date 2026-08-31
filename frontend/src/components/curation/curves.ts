@@ -91,15 +91,18 @@ export const CURVE_SOURCES: Partial<Record<DatabaseId, Record<string, CurveSourc
   residuals: {
     distribution_f1: {
       countField: 'distribution_F1_count',
-      fetch: (id) => residualsApi.getResidualStressesDistributionF1(id, CURVE_SIZE).then((r) => r.data)
+      fetch: (id) =>
+        residualsApi.getResidualStressesDistributionF1(id, CURVE_SIZE).then((r) => r.data)
     },
     distribution_f2: {
       countField: 'distribution_F2_count',
-      fetch: (id) => residualsApi.getResidualStressesDistributionF2(id, CURVE_SIZE).then((r) => r.data)
+      fetch: (id) =>
+        residualsApi.getResidualStressesDistributionF2(id, CURVE_SIZE).then((r) => r.data)
     },
     distribution_w1: {
       countField: 'distribution_W1_count',
-      fetch: (id) => residualsApi.getResidualStressesDistributionW1(id, CURVE_SIZE).then((r) => r.data)
+      fetch: (id) =>
+        residualsApi.getResidualStressesDistributionW1(id, CURVE_SIZE).then((r) => r.data)
     }
   }
 }
@@ -120,11 +123,7 @@ export function countFieldsFor(database: DatabaseId): string[] {
 // overlay curves, and these are the heaviest payloads on the screen.
 const cache = new Map<string, Promise<number[][]>>()
 
-export function fetchCurve(
-  database: DatabaseId,
-  kindKey: string,
-  id: string
-): Promise<number[][]> {
+export function fetchCurve(database: DatabaseId, kindKey: string, id: string): Promise<number[][]> {
   const cacheKey = `${database}:${kindKey}:${id}`
   const hit = cache.get(cacheKey)
   if (hit) return hit
