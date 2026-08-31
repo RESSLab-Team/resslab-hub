@@ -5,7 +5,8 @@
 #   - commit-msg : enforce Conventional Commits (commitlint)
 #   - pre-commit : ESLint + Prettier on staged frontend files,
 #                  Python pre-commit framework on staged backend files
-#   - pre-push   : full type-check (vue-tsc) and full backend lint
+#   - pre-push   : worktree push guard (own branch only, never dev/stage/main),
+#                  full type-check (vue-tsc) and full backend lint
 #
 # Skip a single commit/push (escape hatch): LEFTHOOK=0 git commit ...
 
@@ -46,6 +47,13 @@ pre-commit:
 pre-push:
   parallel: true
   jobs:
+    # Inside a git worktree, only the worktree's own branch may be pushed and
+    # dev/stage/main never — Claude sessions live in worktrees. The main
+    # checkout is exempt (scripts/wt-land.sh lands branches from there).
+    - name: push-guard
+      run: bash scripts/git-push-guard.sh
+      use_stdin: true
+
     - name: frontend-type-check
       root: "frontend/"
       run: npm run type-check

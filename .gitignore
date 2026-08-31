@@ -34,3 +34,6 @@ lefthook-local.yml
 # Design / chart handoff bundles (kept locally, never committed)
 design_handoff_resslab_hub/
 handoff_dashboard_charts/
+
+# Per-worktree ports/DB settings written by scripts/wt-setup.sh
+.env.worktree
