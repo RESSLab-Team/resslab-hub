@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CountModel } from '@/backend'
-import { measureTextWidth } from '@/components/commons/charts/utils'
+import { buildAxisTooltipFormatter, measureTextWidth } from '@/components/commons/charts/utils'
 import { useEChart, type LegendSelectChangedParams } from '@/composables/useEChart'
 import DateDistributionBrush from '@/components/commons/sliders/DateDistributionBrush.vue'
 import DistributionBrush, {
@@ -428,7 +428,10 @@ function buildOption(countsData: CountModel[]): EChartsOption {
       axisPointer: {
         type: props.type === 'bar' ? 'shadow' : undefined
       },
-      confine: true
+      confine: true,
+      // Square colour chips per series, matching the rest of the charts —
+      // ECharts' built-in axis marker is a circle with no option to change it.
+      formatter: buildAxisTooltipFormatter()
     },
     series: getSerie(secondKeys, firstKeysValue, countMap).map((serie) => ({
       id: serie.name,

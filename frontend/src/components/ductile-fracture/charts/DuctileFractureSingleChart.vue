@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DuctileFractureField, DuctileFractureModel } from '@/backend'
+import { DuctileFractureField, type DuctileFractureModel } from '@/backend'
 import SingleChart from '@/components/commons/charts/SingleChart.vue'
 import {
   singleChartProps,
@@ -10,6 +10,7 @@ import {
 import { dashboardQueryKey } from '@/composables/dashboard'
 import { useDataset } from '@/composables/useDataset'
 import { DUCTILE_FRACTURE_KEY, fetchDuctileFractures } from '@/components/ductile-fracture/data'
+import { getDuctileFractureSpecimenImage } from '@/utils/component'
 import { inject, toRef } from 'vue'
 
 const props = defineProps(singleChartProps<DuctileFractureField>())
@@ -36,6 +37,9 @@ const { counts, changeSearches } = useSingleChart<DuctileFractureField>(
 // Synchronous counts for the crossfilter drag path — same mapping as the
 // composable's reactive `counts`, so live frames are pixel-identical.
 const getLiveCounts = (liveQuery?: string) => toSingleCounts(countsSync([props.field], liveQuery))
+
+const imageFor =
+  props.field === DuctileFractureField.SpecimenType ? getDuctileFractureSpecimenImage : undefined
 </script>
 
 <template>
@@ -47,6 +51,7 @@ const getLiveCounts = (liveQuery?: string) => toSingleCounts(countsSync([props.f
     :flat="flat"
     :show-reset="showReset"
     :field="field"
+    :image-for="imageFor"
     label-prefix="ductile_fracture."
     @change:searches="changeSearches"
   >

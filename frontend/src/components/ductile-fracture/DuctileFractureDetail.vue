@@ -4,11 +4,15 @@ import CommonDetail from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import DuctileFracturePlotSlot from '@/components/ductile-fracture/charts/DuctileFracturePlotSlot.vue'
 import SemDialog from '@/components/ductile-fracture/sem/SemDialog.vue'
-import { getDuctileFractureImage } from '@/utils/component'
+import {
+  getDuctileFractureFigure,
+  getDuctileFractureImage,
+  getDuctileFractureSpecimenImage
+} from '@/utils/component'
 import type { DuctileFracturePlotId } from '@/utils/ductile_fracture'
 import { formatNumber } from '@/utils/formatter'
 import { mdiMagnifyPlusOutline } from '@mdi/js'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   ductileFracture: DuctileFractureModel
@@ -42,6 +46,21 @@ const twoFigures = computed(() => rightOptions.value.length > 0)
 const showPlots = computed(() => leftOptions.value.length > 0 || twoFigures.value)
 
 const semOpen = ref(false)
+
+// The geometry drawing is generated per specimen (make precompute-fracture-figures)
+// and committed, so a specimen added to the data repo since the last run has none.
+// Fall back to the sketch of its geometry family, then to the generic placeholder.
+const figureFailed = ref(false)
+watch(
+  () => props.ductileFracture.id,
+  () => (figureFailed.value = false)
+)
+const figureSrc = computed(() =>
+  figureFailed.value
+    ? getDuctileFractureSpecimenImage(props.ductileFracture.specimen_type) ??
+      getDuctileFractureImage()
+    : getDuctileFractureFigure(props.ductileFracture.id)
+)
 </script>
 
 <template>
@@ -146,7 +165,7 @@ const semOpen = ref(false)
           </div>
         </v-col>
         <v-col cols="6">
-          <v-img :src="getDuctileFractureImage()" />
+          <v-img :src="figureSrc" @error="figureFailed = true" />
         </v-col>
       </v-row>
       <v-row v-if="ductileFracture.has_sem">
