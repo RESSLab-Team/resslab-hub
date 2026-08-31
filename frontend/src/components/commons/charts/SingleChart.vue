@@ -74,21 +74,20 @@ function buildOption(countsData: Count[]): EChartsOption {
   const colorFor = props.colorFor ?? categoryColorScale(categoryDomain(countsData))
   return {
     animation: props.animate,
-    tooltip: props.imageFor
-      ? {
-          trigger: 'item',
-          // A figure makes the tooltip taller than its chart cell, so hang it
-          // off <body> to escape the card's clipping and place it by hand —
-          // left to itself (or to `confine`) it sits right on top of the chart
-          // the reader is pointing at.
-          appendTo: 'body',
-          position: buildFigureTooltipPosition(() => chartEl.value?.getBoundingClientRect()),
-          formatter: buildFigureTooltipFormatter(props.imageFor, rawCategory)
-        }
-      : {
-          trigger: 'item',
-          confine: true
-        },
+    tooltip: {
+      trigger: 'item',
+      // Every treemap tooltip gets the colour chip and the house type scale;
+      // only the ones carrying a figure outgrow their cell, and those hang off
+      // <body> and are placed by hand — left to themselves (or to `confine`)
+      // they sit right on top of the chart the reader is pointing at.
+      formatter: buildFigureTooltipFormatter(props.imageFor, rawCategory),
+      ...(props.imageFor
+        ? {
+            appendTo: 'body',
+            position: buildFigureTooltipPosition(() => chartEl.value?.getBoundingClientRect())
+          }
+        : { confine: true })
+    },
     series: [
       {
         type: 'treemap',

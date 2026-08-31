@@ -65,6 +65,23 @@ describe('buildFigureTooltipFormatter', () => {
   const params = (name: string, value: number) =>
     ({ name, value, data: { originalName: name } } as unknown as CallbackDataParams)
 
+  it('marks the hovered category with a square colour chip', async () => {
+    const { buildFigureTooltipFormatter } = await loadUtils()
+    const format = buildFigureTooltipFormatter(undefined, (p) => p.name)
+    const html = format({ name: 'RBS', value: 120, color: '#0072b2' } as CallbackDataParams)
+    expect(html).toContain('background:#0072b2')
+    expect(html).not.toContain('border-radius') // squares, never circles
+  })
+
+  // Gradients and patterns arrive as objects, which cannot paint a chip.
+  it('skips the chip when the colour is not a plain string', async () => {
+    const { buildFigureTooltipFormatter } = await loadUtils()
+    const format = buildFigureTooltipFormatter(undefined, (p) => p.name)
+    const html = format({ name: 'RBS', value: 1, color: { type: 'linear' } } as CallbackDataParams)
+    expect(html).toContain('RBS')
+    expect(html).not.toContain('<span')
+  })
+
   it('appends the figure of the hovered category', async () => {
     const { buildFigureTooltipFormatter } = await loadUtils()
     const format = buildFigureTooltipFormatter(
@@ -154,5 +171,34 @@ describe('buildFigureTooltipPosition', () => {
     const { buildFigureTooltipPosition } = await loadUtils()
     const place = buildFigureTooltipPosition(() => undefined)
     expect(place([12, 34], null, null, null, size)).toEqual([12, 34])
+  })
+})
+
+describe('buildAxisTooltipFormatter', () => {
+  const row = (seriesName: string, value: number, color: string) =>
+    ({ seriesName, value, color, axisValueLabel: '2021' } as unknown as CallbackDataParams)
+
+  it('titles with the axis value and lists a square chip per series', async () => {
+    const { buildAxisTooltipFormatter } = await loadUtils()
+    const html = buildAxisTooltipFormatter()([row('CNT', 15, '#0072b2'), row('GP', 10, '#e69f00')])
+    expect(html).toContain('2021')
+    expect(html).toContain('background:#0072b2')
+    expect(html).toContain('background:#e69f00')
+    expect(html).toContain('CNT')
+    expect(html).toContain('15')
+    expect(html).not.toContain('border-radius') // squares, never circles
+  })
+
+  it('reads the count out of a category/value tuple', async () => {
+    const { buildAxisTooltipFormatter } = await loadUtils()
+    const tuple = { seriesName: 'CNT', value: ['2021', 42], color: '#0072b2' }
+    const html = buildAxisTooltipFormatter()([tuple as unknown as CallbackDataParams])
+    expect(html).toContain('42')
+  })
+
+  it('shows a dash where a series has no value at that point', async () => {
+    const { buildAxisTooltipFormatter } = await loadUtils()
+    const empty = { seriesName: 'GP', value: null, color: '#e69f00' }
+    expect(buildAxisTooltipFormatter()([empty as unknown as CallbackDataParams])).toContain('-')
   })
 })
