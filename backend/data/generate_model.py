@@ -22,8 +22,8 @@ def get_sqlalchemy_type(type_str: str) -> str:
 def get_pydantic_type(type_str: str) -> str:
     """Convert CSV type string to Pydantic type"""
     type_mapping = {
-        "Numeric": "Decimal",
-        "DecimalFloat": "Decimal",
+        "Numeric": "float",
+        "DecimalFloat": "float",
         "SmallInteger": "int",
         "BigInteger": "int",
         "Integer": "int",

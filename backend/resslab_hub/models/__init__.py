@@ -1,6 +1,7 @@
 """
 Model definitions
 """
+
 from pydantic import BaseModel
 
 

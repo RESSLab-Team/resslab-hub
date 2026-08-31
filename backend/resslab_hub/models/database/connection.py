@@ -1,6 +1,7 @@
 """
 Connection Database Models
 """
+
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -9,10 +10,8 @@ from sqlalchemy import (
     Numeric,
     SmallInteger,
     String,
-    func,
-    select,
+    text,
 )
-from sqlalchemy.orm import column_property
 
 from resslab_hub.models.database.common import DecimalFloat
 from resslab_hub.utils.database import Base
@@ -241,33 +240,10 @@ class Connection(Base):  # type: ignore
     longitude = Column(DecimalFloat, nullable=False)
     # END_OF_GENERATED_CODE
 
-    beam_count = column_property(
-        select(func.count(ConnectionBeam.id))
-        .where(ConnectionBeam.connection_id == id)
-        .correlate_except(ConnectionBeam)
-        .scalar_subquery()  # type: ignore
-    )
-    beam_west_count = column_property(
-        select(func.count(ConnectionBeamWest.id))
-        .where(ConnectionBeamWest.connection_id == id)
-        .correlate_except(ConnectionBeamWest)
-        .scalar_subquery()  # type: ignore
-    )
-    global_count = column_property(
-        select(func.count(ConnectionGlobal.id))
-        .where(ConnectionGlobal.connection_id == id)
-        .correlate_except(ConnectionGlobal)
-        .scalar_subquery()  # type: ignore
-    )
-    global_west_count = column_property(
-        select(func.count(ConnectionGlobalWest.id))
-        .where(ConnectionGlobalWest.connection_id == id)
-        .correlate_except(ConnectionGlobalWest)
-        .scalar_subquery()  # type: ignore
-    )
-    panel_zone_count = column_property(
-        select(func.count(ConnectionPanelZone.id))
-        .where(ConnectionPanelZone.connection_id == id)
-        .correlate_except(ConnectionPanelZone)
-        .scalar_subquery()  # type: ignore
-    )
+    # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
+    # of every upload (see resslab_hub/data/count_flags.py).
+    beam_count = Column(SmallInteger, nullable=False, server_default=text("0"))
+    beam_west_count = Column(SmallInteger, nullable=False, server_default=text("0"))
+    global_count = Column(SmallInteger, nullable=False, server_default=text("0"))
+    global_west_count = Column(SmallInteger, nullable=False, server_default=text("0"))
+    panel_zone_count = Column(SmallInteger, nullable=False, server_default=text("0"))

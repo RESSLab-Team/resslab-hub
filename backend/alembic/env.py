@@ -12,7 +12,12 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(config.config_file_name)
+# disable_existing_loggers=False: upgrade_database() runs this at app import,
+# and the default (True) would silence already-configured loggers (uvicorn's
+# included) — which turned startup errors like "address already in use" into a
+# bare, traceback-less exit.
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # add your model's MetaData object here
 # for 'autogenerate' support

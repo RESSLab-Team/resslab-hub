@@ -1,6 +1,7 @@
 """
 Column Database Models
 """
+
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -9,8 +10,6 @@ from sqlalchemy import (
     Numeric,
     SmallInteger,
     String,
-    func,
-    select,
     text,
 )
 from sqlalchemy.orm import column_property
@@ -158,21 +157,10 @@ class ColumnEntity(Base):  # type: ignore
 
     built_up = column_property(section_c.ilike(text("'%built_up%'")))
 
-    axial_shortening_count = column_property(
-        select(func.count(ColumnAxialShortening.id))
-        .where(ColumnAxialShortening.column_id == id)
-        .correlate_except(ColumnAxialShortening)
-        .scalar_subquery()  # type: ignore
+    # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
+    # of every upload (see resslab_hub/data/count_flags.py).
+    axial_shortening_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )
-    moment_strong_count = column_property(
-        select(func.count(ColumnMomentStrong.id))
-        .where(ColumnMomentStrong.column_id == id)
-        .correlate_except(ColumnMomentStrong)
-        .scalar_subquery()  # type: ignore
-    )
-    moment_weak_count = column_property(
-        select(func.count(ColumnMomentWeak.id))
-        .where(ColumnMomentWeak.column_id == id)
-        .correlate_except(ColumnMomentWeak)
-        .scalar_subquery()  # type: ignore
-    )
+    moment_strong_count = Column(SmallInteger, nullable=False, server_default=text("0"))
+    moment_weak_count = Column(SmallInteger, nullable=False, server_default=text("0"))

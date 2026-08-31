@@ -1,6 +1,7 @@
 """
 Material Database Models
 """
+
 from sqlalchemy import (
     BigInteger,
     Column,
@@ -10,7 +11,6 @@ from sqlalchemy import (
     SmallInteger,
     String,
     func,
-    select,
     text,
 )
 from sqlalchemy.orm import column_property
@@ -122,9 +122,6 @@ class Material(Base):  # type: ignore
 
     year = column_property(func.extract("year", date))
 
-    stress_strain_count = column_property(
-        select(func.count(MaterialStressStrain.id))
-        .where(MaterialStressStrain.material_id == id)
-        .correlate_except(MaterialStressStrain)
-        .scalar_subquery()  # type: ignore
-    )
+    # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
+    # of every upload (see resslab_hub/data/count_flags.py).
+    stress_strain_count = Column(SmallInteger, nullable=False, server_default=text("0"))
