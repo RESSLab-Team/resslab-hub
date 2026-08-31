@@ -57,6 +57,38 @@ describe('aggregate.matrix', () => {
       ]
     })
   })
+
+  it('returns the identical model for a repeated call', () => {
+    const fields = ['connection_type', 't_dp']
+    const first = matrix(rows, 'id', fields)
+    expect(matrix(rows, 'id', fields)).toBe(first)
+  })
+
+  // A drag re-projects overlapping subsets frame after frame; the row tuples are
+  // reused so only the two outer arrays are allocated.
+  it('reuses the per-row tuples across different row subsets', () => {
+    const fields = ['connection_type', 't_dp']
+    const all = matrix(rows, 'id', fields)
+    const subset = matrix(rows.slice(1, 3), 'id', fields)
+    expect(subset.data[0]).toBe(all.data[1])
+    expect(subset.data[1]).toBe(all.data[2])
+    expect(subset).toEqual({
+      ids: ['2', '3'],
+      data: [
+        ['RBS', 0],
+        ['WUF-W', 5]
+      ]
+    })
+  })
+
+  it('rebuilds tuples when the field list or id field changes', () => {
+    const first = matrix(rows, 'id', ['connection_type', 't_dp'])
+    const narrowed = matrix(rows, 'id', ['t_dp'])
+    expect(narrowed.data[0]).not.toBe(first.data[0])
+    expect(narrowed.data).toEqual([[10], [0], [5], [null]])
+    const rekeyed = matrix(rows, 'connection_type', ['t_dp'])
+    expect(rekeyed.ids).toEqual(['WUF-W', 'RBS', 'WUF-W', 'null'])
+  })
 })
 
 describe('aggregate edge cases', () => {
