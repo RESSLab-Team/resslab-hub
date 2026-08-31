@@ -9,10 +9,13 @@
 # Reads the hook's JSON payload on stdin, derives the tmux session the agent
 # lives in (resslab-hub/<branch> naming, see session_name() in wt-lib.sh — but
 # self-contained so the installed copy in ~/.local/bin works for any repo),
-# and raises a notification titled with the session name. Clicking it opens a
-# new terminal window attached to that tmux session (an extra tmux client is
-# harmless; close the window to detach). GNOME Wayland offers no way to focus
-# an existing window from a script, hence a fresh client rather than a raise.
+# and raises a notification titled with the session name. Clicking it jumps to
+# that session: if a terminal already has a tmux client attached, that client
+# switches to the session (your open terminal becomes the right place — GNOME
+# Wayland offers no way to raise a window from a script, but flipping what an
+# attached client shows needs no window management at all); only when no client
+# exists does it open a new terminal attached to the session. Either way the
+# claude pane is selected, so the prompt that asked for you is in front.
 #
 # The hook process must return immediately, so the interactive notify-send
 # (which blocks until the notification is clicked or dismissed) runs in a
@@ -33,11 +36,34 @@ if [ "$KIND" = --worker ]; then
     now=$(date +%s); last=$(cat "$IDFILE.opened" 2>/dev/null || echo 0)
     [ $((now - last)) -lt 3 ] && return 0
     echo "$now" > "$IDFILE.opened"
-    if [ -n "$SESSION" ] && tmux has-session -t "=$SESSION" 2>/dev/null; then
+
+    # Resolve the session at click time, not notification time: the server may
+    # have restarted or the session been recreated since the notification rose.
+    local sess="$SESSION"
+    if [ -z "$sess" ] || ! tmux has-session -t "=$sess" 2>/dev/null; then
+      sess=$(tmux list-panes -a -F '#{session_name} #{pane_current_path}' 2>/dev/null |
+        awk -v p="$CWD" '$2 == p {print $1; exit}')
+    fi
+
+    if [ -n "$sess" ] && tmux has-session -t "=$sess" 2>/dev/null; then
+      # Put the claude pane in front so the waiting prompt is what you see.
+      local pane
+      pane=$(tmux list-panes -s -t "=$sess" -F '#{pane_id} #{pane_title}' 2>/dev/null |
+        awk '$2 == "claude" {print $1; exit}')
+      [ -n "$pane" ] && tmux select-pane -t "$pane" 2>/dev/null
+      # A terminal with a tmux client attached is the place the user already
+      # looks at: flip the most recently used client to this session instead of
+      # spawning another window. Only with no client anywhere do we open one.
+      local client
+      client=$(tmux list-clients -F '#{client_activity} #{client_name}' 2>/dev/null |
+        sort -rn | awk 'NR==1 {print $2}')
+      if [ -n "$client" ]; then
+        tmux switch-client -c "$client" -t "=$sess" 2>/dev/null && return 0
+      fi
       if command -v gnome-terminal >/dev/null 2>&1; then
-        gnome-terminal --window -- tmux attach-session -t "=$SESSION"
+        gnome-terminal --window -- tmux attach-session -t "=$sess"
       elif command -v x-terminal-emulator >/dev/null 2>&1; then
-        x-terminal-emulator -e tmux attach-session -t "=$SESSION"
+        x-terminal-emulator -e tmux attach-session -t "=$sess"
       fi
     else
       if command -v gnome-terminal >/dev/null 2>&1; then
