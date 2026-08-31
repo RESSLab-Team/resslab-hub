@@ -7,11 +7,12 @@ from abc import ABC, abstractmethod
 from csv import DictReader, reader
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+from functools import lru_cache
 from glob import iglob
 from logging import debug, error, getLogger, info
 from multiprocessing import get_context
-from os import path
-from typing import Any, List
+from os import path, stat
+from typing import Any, FrozenSet, List
 
 from sqlalchemy import (
     BigInteger,
@@ -23,11 +24,20 @@ from sqlalchemy import (
     SmallInteger,
     String,
     create_engine,
+    func,
+    select,
     text,
 )
 from sqlalchemy.orm import Session
 
-from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
+from resslab_hub.data.common import (
+    SAFE_ID_PATTERN,
+    SAFE_ID_RULE,
+    get_abs_path,
+    get_file_encoding,
+    is_empty_row,
+)
+from resslab_hub.data.count_flags import COUNT_FLAGS
 from resslab_hub.data.uploader import (
     Type,
     get_args_all,
@@ -40,6 +50,7 @@ from resslab_hub.models.database.connection import Connection
 from resslab_hub.models.database.hss_column import HSSColumn
 from resslab_hub.models.database.material import Material
 from resslab_hub.models.database.residual_stress import ResidualStress
+from resslab_hub.models.database.tensile_coupon import TensileCoupon
 from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
@@ -59,8 +70,12 @@ class ValidationError:
 
 
 class ValidationResult:
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, file_path: str = None):
         self.filename = filename
+        # Absolute path of the validated file. The router derives the
+        # archive-relative path from this so time-series kinds that share a
+        # basename (e.g. every residual-stress ``<id>.csv``) stay distinct.
+        self.file_path = file_path if file_path is not None else filename
         self.errors: List[ValidationError] = []
         self.error_count: Integer = 0
         self.warnings: List[ValidationError] = []
@@ -100,18 +115,110 @@ class Validator(ABC):
         """
 
 
+# A range warning needs at least this many existing values before "the norm"
+# means anything.
+RANGE_MIN_COUNT = 20
+
+
 class TableValidator(Validator):
     """
     Validator for table data (csv files with headers matching table columns)
     """
 
-    def __init__(self, base_model: Any, id_column_key: str = "id"):
+    def __init__(
+        self,
+        base_model: Any,
+        id_column_key: str = "id",
+        check_duplicate_ids: bool = False,
+    ):
         self.base_model = base_model
         self.id_column_key = id_column_key
+        # Opt-in (contribution checks only): the data-repo CI validates the
+        # full repo CSVs, whose ids are all already in the database — flagging
+        # those as duplicates would make that CI permanently red.
+        self.check_duplicate_ids = check_duplicate_ids
+
+    def _existing_ids(self) -> set:
+        """Ids already in the table; empty when the database is unreachable."""
+        id_column = self.base_model.__table__.c[self.id_column_key]
+        try:
+            with Session(engine) as session:
+                return {row[0] for row in session.execute(select(id_column))}
+        except Exception:
+            return set()
+
+    def _range_stats(self) -> dict:
+        """Per-column (count, min, max) over existing data, one query per file.
+
+        Returns {} when the database is unreachable, keeping this validator
+        usable without a database (header/type checks still run).
+        """
+        numeric_columns = [
+            column
+            for column in self.base_model.__table__.c
+            if isinstance(column.type, (Integer, Numeric))
+        ]
+        if not numeric_columns:
+            return {}
+        aggregates = []
+        for column in numeric_columns:
+            aggregates.extend([func.count(column), func.min(column), func.max(column)])
+        try:
+            with Session(engine) as session:
+                row = session.execute(select(*aggregates)).one()
+        except Exception:
+            return {}
+        return {
+            column.key: (row[i * 3], row[i * 3 + 1], row[i * 3 + 2])
+            for i, column in enumerate(numeric_columns)
+            if row[i * 3] >= RANGE_MIN_COUNT
+        }
+
+    @staticmethod
+    def _check_range(
+        result: ValidationResult, row: int, column_name: str, value: str, stats: dict
+    ):
+        """Warn when a value is far outside the range of existing data.
+
+        The value is not necessarily wrong — the warning asks the contributor
+        to double-check it. "Far outside" = beyond one full span of the
+        observed [min, max] on either side.
+        """
+        if column_name not in stats:
+            return
+        try:
+            number = Decimal(value)
+        except (InvalidOperation, ValueError):
+            return
+        _, minimum, maximum = stats[column_name]
+        # The driver returns Decimal for Numeric columns but float/int for the
+        # others; normalize so the arithmetic below never mixes float with
+        # Decimal (e.g. an all-zero Float column made `minimum - span` raise).
+        minimum = Decimal(str(minimum))
+        maximum = Decimal(str(maximum))
+        span = maximum - minimum
+        if span == 0:
+            span = abs(maximum) or Decimal(1)
+        if number < minimum - span or number > maximum + span:
+
+            def plain(bound) -> str:
+                return format(Decimal(bound).normalize(), "f")
+
+            result.add_warning(
+                row,
+                column_name,
+                value,
+                f"Value is far outside the range of existing data for this "
+                f"column ({plain(minimum)} to {plain(maximum)}) — "
+                f"please verify it.",
+            )
 
     def validate_one(self, file_path: str) -> ValidationResult:
         file_path = get_abs_path(file_path)
-        result = ValidationResult(path.basename(file_path))
+        result = ValidationResult(path.basename(file_path), file_path)
+        range_stats = self._range_stats()
+        existing_ids = self._existing_ids() if self.check_duplicate_ids else set()
+        seen_ids: set = set()
 
         try:
             encoding = get_file_encoding(file_path)
@@ -120,8 +227,12 @@ class TableValidator(Validator):
                 headers = next(csv_reader)
 
                 debug(f"Validating headers for {path.basename(file_path)}")
-                # Validate headers
-                expected_columns = {col.key for col in self.base_model.__table__.c}
+                # Validate headers. Derived *_count flags are physical columns
+                # on the model but have no CSV header (recomputed at upload),
+                # so they are never required from a contributed file.
+                expected_columns = {
+                    col.key for col in self.base_model.__table__.c
+                } - set(COUNT_FLAGS.get(self.base_model, {}))
 
                 debug(f"Expected columns: {expected_columns}")
                 debug(f"Found columns: {headers}")
@@ -175,6 +286,42 @@ class TableValidator(Validator):
 
                         column = self.base_model.__table__.c[column_name]
                         self._validate_field(result, row_num, column, value)
+                        self._check_range(
+                            result, row_num, column_name, value, range_stats
+                        )
+                        if column_name != self.id_column_key or not value.strip():
+                            continue
+                        specimen_id = value.strip()
+                        # The id names the time-series file and ends up as a
+                        # path in the data repository: refuse anything that
+                        # cannot be a file name, here where the contributor
+                        # sees it on the cell, rather than at submission.
+                        if not SAFE_ID_PATTERN.fullmatch(specimen_id):
+                            result.add_error(
+                                row_num,
+                                column_name,
+                                value,
+                                f"Specimen id '{specimen_id}' cannot be used as "
+                                f"a file name: {SAFE_ID_RULE}.",
+                            )
+                        if self.check_duplicate_ids:
+                            if specimen_id in existing_ids:
+                                result.add_error(
+                                    row_num,
+                                    column_name,
+                                    value,
+                                    f"Specimen id '{specimen_id}' already exists "
+                                    f"in the database — ids must be unique.",
+                                )
+                            elif specimen_id in seen_ids:
+                                result.add_error(
+                                    row_num,
+                                    column_name,
+                                    value,
+                                    f"Specimen id '{specimen_id}' appears more "
+                                    f"than once in this contribution.",
+                                )
+                            seen_ids.add(specimen_id)
 
         except Exception as e:
             result.add_error(0, "file", file_path, f"Failed to process file: {str(e)}")
@@ -277,6 +424,21 @@ class TableValidator(Validator):
             result.add_error(row, column.key, value, f"Validation error: {str(e)}")
 
 
+@lru_cache(maxsize=32)
+def primary_csv_ids(path: str, mtime_ns: int, size: int) -> FrozenSet[str]:
+    """The ``id`` column of a primary CSV, parsed once per file.
+
+    Every time-series file of an upload checks its foreign key against the
+    same primary CSV; re-reading it per file made the cost of one request
+    grow with (files x rows), which an unauthenticated ``/validate`` of a
+    2000-member archive turns into gigabytes of decoding. The mtime and size
+    in the key keep a rewritten file from hitting a stale entry.
+    """
+    encoding = get_file_encoding(path)
+    with open(path, encoding=encoding) as file:
+        return frozenset((row.get("id") or "") for row in DictReader(file)) - {""}
+
+
 class CsvFileValidator(Validator):
     """
     Validator for CSV files with specific column requirements
@@ -296,21 +458,18 @@ class CsvFileValidator(Validator):
 
     def _check_primary_csv(self, foreign_key: str) -> bool:
         """Check if the foreign key exists in the primary CSV being uploaded"""
-        info(f"Checking primary CSV: {self.primary_csv_path}")
         if not self.primary_csv_path:
             return False
 
         try:
-            encoding = get_file_encoding(get_abs_path(self.primary_csv_path))
-            with open(get_abs_path(self.primary_csv_path), encoding=encoding) as file:
-                csv_reader = DictReader(file)
-                # return any(row.get("id") == foreign_key for row in csv_reader)
-                for row in csv_reader:
-                    if row.get("id") == foreign_key:
-                        info(f"Match found for foreign key: {foreign_key}")
-                        return True
+            primary = get_abs_path(self.primary_csv_path)
+            info = stat(primary)
+            found = foreign_key in primary_csv_ids(
+                primary, info.st_mtime_ns, info.st_size
+            )
+            if not found:
                 error(f"No match found for foreign key: {foreign_key}")
-                return False
+            return found
         except Exception as e:
             error(f"Error checking primary CSV: {str(e)}")
             return False
@@ -321,7 +480,7 @@ class CsvFileValidator(Validator):
             relative_path = path.relpath(
                 file_path, start=path.join(path.sep, *file_path.split(path.sep)[:7])
             )
-            result = ValidationResult(path.basename(file_path))
+            result = ValidationResult(path.basename(file_path), file_path)
             filename = path.splitext(path.basename(file_path))[0]
             encoding = get_file_encoding(file_path)
 
@@ -337,7 +496,7 @@ class CsvFileValidator(Validator):
                         0,
                         "headers",
                         csv_reader.fieldnames,
-                        f"Missing required columns" f": {', '.join(missing_columns)}",
+                        f"Missing required columns: {', '.join(missing_columns)}",
                     )
                     return result
 
@@ -483,6 +642,10 @@ def validate_one_file(input_type: Type, filename: str) -> Validator:
             )
         case Type.MATERIAL_STRESS_STRAIN:
             validator = CsvFileValidator(Material, ["Sigma_true", "e_true"], "id")
+        case Type.TENSILE_COUPON:
+            validator = TableValidator(TensileCoupon)
+        case Type.TENSILE_COUPON_STRESS_STRAIN:
+            validator = CsvFileValidator(TensileCoupon, ["Sigma_true", "e_true"], "id")
         case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
             validator = CsvFileValidator(
                 ResidualStress,
@@ -536,11 +699,19 @@ PRIMARY_TYPE_MAP = {
     Type.RESIDUAL_STRESS_DISTRIBUTION_W1: Type.RESIDUAL_STRESS,
     Type.RESIDUAL_STRESS_QP_COEFFICIENT: Type.RESIDUAL_STRESS,
     Type.HSS_COLUMN_MOMENT_ROTATION: Type.HSS_COLUMN,
+    Type.TENSILE_COUPON_STRESS_STRAIN: Type.TENSILE_COUPON,
 }
+
+#: The record-per-experiment tables; every other validated type is a
+#: time-series file keyed to one of these through ``PRIMARY_TYPE_MAP``.
+PRIMARY_TYPES = frozenset(PRIMARY_TYPE_MAP.values())
 
 
 def validate_with_primary(
-    input_type: Type, filename: str, primary_csv_paths: dict = None
+    input_type: Type,
+    filename: str,
+    primary_csv_paths: dict = None,
+    check_duplicate_ids: bool = False,
 ) -> ValidationResult:
     """Helper function to create validator with appropriate primary CSV
     Args:
@@ -552,6 +723,8 @@ def validate_with_primary(
     """Helper function to create validator with appropriate primary CSV"""
     try:
         validator = validate_one_file(input_type, filename)
+        if isinstance(validator, TableValidator):
+            validator.check_duplicate_ids = check_duplicate_ids
         if isinstance(validator, CsvFileValidator):
             primary_type = PRIMARY_TYPE_MAP.get(input_type)
             if primary_type and primary_csv_paths:
@@ -564,8 +737,43 @@ def validate_with_primary(
         raise
 
 
+# A single file validates in milliseconds, but the ``spawn`` pool re-imports the
+# whole app (~100 MB, ~0.4 s) in every worker. That overhead only pays off for
+# the bulk validation path (thousands of files); below this many tasks -- e.g. a
+# single contribution's record plus its handful of time-series files -- running
+# inline is both faster and far lighter on memory (no per-core interpreter fan-out
+# that OOM-kills a memory-capped pod).
+_PARALLEL_MIN_TASKS = 32
+
+
+def _run_validations(
+    tasks, primary_csv_paths, cpu, log_level, log_format, check_duplicate_ids=False
+) -> List[ValidationResult]:
+    """Validate a batch of files, using a process pool only for bulk inputs."""
+    if not tasks:
+        return []
+    workers = min(cpu, len(tasks))
+    if workers <= 1 or len(tasks) < _PARALLEL_MIN_TASKS:
+        return [
+            validate_with_primary(t, f, primary_csv_paths, check_duplicate_ids)
+            for t, f in tasks
+        ]
+    with get_context("spawn").Pool(
+        workers,
+        initializer=initializer,
+        initargs=(log_level, log_format),
+    ) as pool:
+        return pool.starmap(
+            validate_with_primary,
+            [(t, f, primary_csv_paths, check_duplicate_ids) for t, f in tasks],
+        )
+
+
 def validate_all(
-    input_type: Type, filenames: List[str], cpu=None
+    input_type: Type,
+    filenames: List[str],
+    cpu=None,
+    check_duplicate_ids: bool = False,
 ) -> List[ValidationResult]:
     """
     Validate all files in parallel
@@ -588,22 +796,18 @@ def validate_all(
     wildcard_args = [
         arg for filename in filenames for arg in get_args_all(input_type, filename)
     ]
-    args = [(arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])]
+    args = [
+        (arg[0], filename)
+        for arg in wildcard_args
+        for filename in iglob(arg[1])
+        # Dictionary CSVs and READMEs are upload metadata, not contributed
+        # data: archives from the data repo contain them, but there is nothing
+        # to validate.
+        if arg[0] not in (Type.DICTIONARY, Type.README)
+    ]
 
     # Split into primary and subsidiary types
-    primary_types = [
-        arg
-        for arg in args
-        if arg[0]
-        in [
-            Type.BRACE,
-            Type.COLUMN,
-            Type.CONNECTION,
-            Type.MATERIAL,
-            Type.RESIDUAL_STRESS,
-            Type.HSS_COLUMN,
-        ]
-    ]
+    primary_types = [arg for arg in args if arg[0] in PRIMARY_TYPES]
     subsidiary_types = [arg for arg in args if arg not in primary_types]
     info(
         f"Found {len(primary_types)} primary types"
@@ -612,18 +816,8 @@ def validate_all(
 
     # Create mapping of primary CSV paths
     primary_csv_paths = {
-        Type.BRACE: next((f for t, f in primary_types if t == Type.BRACE), None),
-        Type.COLUMN: next((f for t, f in primary_types if t == Type.COLUMN), None),
-        Type.CONNECTION: next(
-            (f for t, f in primary_types if t == Type.CONNECTION), None
-        ),
-        Type.MATERIAL: next((f for t, f in primary_types if t == Type.MATERIAL), None),
-        Type.RESIDUAL_STRESS: next(
-            (f for t, f in primary_types if t == Type.RESIDUAL_STRESS), None
-        ),
-        Type.HSS_COLUMN: next(
-            (f for t, f in primary_types if t == Type.HSS_COLUMN), None
-        ),
+        primary: next((f for t, f in primary_types if t == primary), None)
+        for primary in PRIMARY_TYPES
     }
 
     results = []
@@ -631,21 +825,20 @@ def validate_all(
     # First validate primary files
     if primary_types:
         debug(f"Validating primary types: {[t.name for t, _ in primary_types]}")
-
-        with get_context("spawn").Pool(
-            cpu,
-            initializer=initializer,
-            initargs=(current_log_level, current_log_format),
-        ) as pool:
-            try:
-                primary_results = pool.starmap(
-                    validate_with_primary,
-                    [(t, f, primary_csv_paths) for t, f in primary_types],
+        try:
+            results.extend(
+                _run_validations(
+                    primary_types,
+                    primary_csv_paths,
+                    cpu,
+                    current_log_level,
+                    current_log_format,
+                    check_duplicate_ids,
                 )
-                results.extend(primary_results)
-            except Exception as e:
-                error(f"Error in validate_all: {str(e)}")
-                error(f"Traceback: {traceback.format_exc()}")
+            )
+        except Exception as e:
+            error(f"Error in validate_all: {str(e)}")
+            error(f"Traceback: {traceback.format_exc()}")
         # Check if all primary validations passed before proceeding
         # primary_errors = any(not result.is_valid() for result in primary_results)
         # if primary_errors:
@@ -655,17 +848,15 @@ def validate_all(
     # Then validate subsidiary files
     if subsidiary_types:
         debug(f"Validating subsidiary types: {[t.name for t, _ in subsidiary_types]}")
-
-        with get_context("spawn").Pool(
-            cpu,
-            initializer=initializer,
-            initargs=(current_log_level, current_log_format),
-        ) as pool:
-            subsidiary_results = pool.starmap(
-                validate_with_primary,
-                [(t, f, primary_csv_paths) for t, f in subsidiary_types],
+        results.extend(
+            _run_validations(
+                subsidiary_types,
+                primary_csv_paths,
+                cpu,
+                current_log_level,
+                current_log_format,
             )
-            results.extend(subsidiary_results)
+        )
 
     # Log results
     for result in results:
