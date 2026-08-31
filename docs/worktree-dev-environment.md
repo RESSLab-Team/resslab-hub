@@ -61,6 +61,7 @@ git config --global push.default current      # a bare `git push` can only targe
 git config --global push.autoSetupRemote true
 
 printf '**/.claude/worktrees/\n' >> ~/.config/git/ignore
+echo 'source ~/code/resslab-hub/scripts/wt-go.bash' >> ~/.bashrc   # wtgo <branch> + tab completion
 printf 'bind s choose-tree -wZ -O name\n' >> ~/.tmux.conf   # prefix+s: sessions sorted "<repo>/<branch>"; -w keeps each
                                                             # session's single dev window visible (-s would hide the four
                                                             # panes behind a second expand)
@@ -94,8 +95,10 @@ separator = "-"                                         # feat/foo → feat-foo,
 ## Daily workflow
 
 ```bash
-make new BRANCH=feat/123-thing       # = wt create feat/123-thing origin/dev + attach; ~3 min the first time (deps)
-                                     # base is origin/dev, fetched first (see Gotchas); prefix+d detaches, prefix+s switches
+wtgo feat/<TAB>                      # go to a branch's session: tab-completes worktrees and branches; creates
+                                     # branch (from fetched origin/dev), worktree (~3 min first time) and session
+                                     # only when missing. `make go BRANCH=…` / `make new BRANCH=…` do the same
+                                     # without completion; prefix+d detaches, prefix+s switches
 make wt-open BRANCH=feat/123-thing   # frontend in the browser; TARGET=backend for /docs
 make db-status                       # which DB this worktree uses
 make db-branch                       # only if the branch needs a migration or rewrites data
