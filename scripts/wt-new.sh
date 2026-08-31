@@ -8,7 +8,9 @@ SCRIPTS="$(dirname "$(readlink -f "$0")")"
 . "$SCRIPTS/wt-lib.sh"
 branch="${1:-}"; base="${2:-origin/dev}"
 [ -n "$branch" ] || die "usage: wt-new.sh <branch> [base]"
-in_worktree && die "run wt-new from the main checkout: $(main_checkout)"
+# Work against the main checkout wherever this runs from — a worktree cwd, or a
+# shell whose environment carries a stale ROOT from an old tmux session.
+ROOT="$(main_checkout)"
 cd "$ROOT"
 if [ -z "$(worktree_path_for "$branch")" ]; then
   # A local ref can silently be stale (a branch cut from it then lacks recent

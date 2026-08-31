@@ -7,6 +7,14 @@
 set -euo pipefail
 SCRIPTS="$(dirname "$(readlink -f "$0")")"
 . "$SCRIPTS/wt-lib.sh"
+# ROOT arrives exported from wt-new.sh / wt-setup.sh; wt-lib has read it, so drop
+# the export before any tmux command. If this command is the one that starts the
+# tmux server, an exported ROOT becomes part of the server's environment, every
+# shell in every window inherits it, and any wt script run from those shells then
+# targets this checkout no matter what directory it is run from. The
+# set-environment call scrubs a server that an earlier version already poisoned.
+export -n ROOT || true
+tmux set-environment -gu ROOT 2>/dev/null || true
 load_env_worktree
 BRANCH="$(current_branch)"
 SESSION="$(session_name "$BRANCH")"
@@ -36,10 +44,17 @@ docker ps --format '{{.Names}}' | grep -qx "$DB_CONTAINER" || (cd "$MAIN" && doc
 # Every window exports .env.worktree so pytest (POSTGRES_TEST_DB), the Makefiles
 # (BACKEND_PORT, RESSLAB_DATA_DIR) and vite (FRONTEND_PORT) all see the same values.
 LOAD='set -a; [ -f "$(git rev-parse --show-toplevel)/.env.worktree" ] && . "$(git rev-parse --show-toplevel)/.env.worktree"; set +a'
+# Mirror the server windows' output to plain files: the claude window's agent
+# runs sandboxed with no access to the tmux socket, so log files inside the
+# checkout are the only way it can see why a server misbehaves. Fresh per session.
+LOGS="$ROOT/.wt-logs"; mkdir -p "$LOGS"
+pipe_log() { : > "$LOGS/$1.log"; tmux pipe-pane -t "=$SESSION:$1" -o "exec cat >> '$LOGS/$1.log'"; }
 tmux new-session -d -s "$SESSION" -n backend -c "$ROOT/backend"
 tmux send-keys -t "=$SESSION:backend" "$LOAD; make dev" C-m
+pipe_log backend
 tmux new-window -t "=$SESSION" -n frontend -c "$ROOT/frontend"
 tmux send-keys -t "=$SESSION:frontend" "$LOAD; make dev" C-m
+pipe_log frontend
 tmux new-window -t "=$SESSION" -n claude -c "$ROOT"
 tmux send-keys -t "=$SESSION:claude" "$LOAD; claude" C-m
 tmux new-window -t "=$SESSION" -n shell -c "$ROOT"

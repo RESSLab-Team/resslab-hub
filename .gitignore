@@ -37,3 +37,6 @@ handoff_dashboard_charts/
 
 # Per-worktree ports/DB settings written by scripts/wt-setup.sh
 .env.worktree
+
+# Server window output mirrored by scripts/tmux-dev.sh (pipe-pane)
+.wt-logs/
