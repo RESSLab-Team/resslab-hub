@@ -35,7 +35,7 @@ import {
   mdiRestore,
   mdiTrayArrowUp
 } from '@mdi/js'
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t, te } = useI18n({ useScope: 'global' })
@@ -67,6 +67,54 @@ const headlineColumns = computed(() => {
   return store.columns.filter((column) => picked.includes(column.name))
 })
 
+// --- Sticky heads ----------------------------------------------------------
+// An experiment head, and the head of the group being filled in, stay pinned
+// while their own content scrolls past, so the title a contributor is reading
+// fields under — and the button that folds it away — are always in reach. A
+// group head pins directly under its card head, so its offset has to follow
+// that head's real height, which grows when the response-type chips wrap on a
+// narrow screen. Every head holds the same shape, so one measurement sizes them
+// all; only a width change can alter it, hence one observer on the list rather
+// than one per card.
+const editorEl = ref<HTMLElement>()
+const cardHeadHeight = ref('44px')
+let headObserver: ResizeObserver | undefined
+
+function measureCardHead(): void {
+  const head = editorEl.value?.querySelector<HTMLElement>('.card-head')
+  if (head) cardHeadHeight.value = `${head.offsetHeight}px`
+}
+
+// The first card carries the measurement, so re-measure whenever the batch (or
+// the database behind the chips) changes under it.
+watch([() => store.rows.length, kinds], async () => {
+  await nextTick()
+  measureCardHead()
+})
+
+onMounted(() => {
+  measureCardHead()
+  if ('ResizeObserver' in window && editorEl.value) {
+    headObserver = new ResizeObserver(measureCardHead)
+    headObserver.observe(editorEl.value)
+  }
+})
+onUnmounted(() => headObserver?.disconnect())
+
+/**
+ * Folding from a pinned head: the content the reader was in vanishes from above
+ * them, which would drop them further down the batch. Hold the head where it
+ * was on screen instead — it also absorbs the reflow when a group opens on the
+ * cards above this one, the groups being shared across cards.
+ */
+async function keepHeadInView(head: HTMLElement | null): Promise<void> {
+  if (!head) return
+  const before = head.getBoundingClientRect().top
+  await nextTick()
+  const after = head.getBoundingClientRect().top
+  if (Math.abs(after - before) > 1) window.scrollBy(0, after - before)
+}
+
 // --- Field groups --------------------------------------------------------
 // The editor used to render one input per column in a single grid, which is 70
 // to 150 inputs for a real database. Same categories as the filter rail, so a
@@ -79,10 +127,11 @@ const openFieldGroups = ref<Set<FieldGroupId>>(
   new Set<FieldGroupId>(['experimental_program_details'])
 )
 
-function toggleFieldGroup(id: FieldGroupId): void {
+function toggleFieldGroup(id: FieldGroupId, event?: MouseEvent): void {
   const next = new Set(openFieldGroups.value)
   if (!next.delete(id)) next.add(id)
   openFieldGroups.value = next
+  if (event) void keepHeadInView(event.currentTarget as HTMLElement)
 }
 
 /** Cell problems this row has inside one group, so the head can carry a count.
@@ -202,7 +251,7 @@ function addExperiment(): void {
   expanded.value = new Set([...expanded.value, uid])
 }
 
-function toggle(uid: number): void {
+function toggle(uid: number, event?: MouseEvent): void {
   const next = new Set(expanded.value)
   if (next.has(uid)) {
     next.delete(uid)
@@ -210,6 +259,7 @@ function toggle(uid: number): void {
     store.settle(uid)
   } else next.add(uid)
   expanded.value = next
+  if (event) void keepHeadInView(event.currentTarget as HTMLElement)
 }
 
 // --- Intake ----------------------------------------------------------------
@@ -344,7 +394,7 @@ function noteFor(kind: TimeSeriesKind): string {
 </script>
 
 <template>
-  <div class="block editor">
+  <div ref="editorEl" class="block editor" :style="{ '--card-head-h': cardHeadHeight }">
     <!-- Section bar: what this block is on the left, its tools on the right. -->
     <div class="block-bar">
       <h2 class="block-h">
@@ -444,9 +494,12 @@ function noteFor(kind: TimeSeriesKind): string {
       :id="`x-${row.uid}`"
       :key="row.uid"
       class="card"
-      :class="[store.levelFor(row.uid), { flashed: flashed === `x-${row.uid}` }]"
+      :class="[
+        store.levelFor(row.uid),
+        { flashed: flashed === `x-${row.uid}`, open: expanded.has(row.uid) }
+      ]"
     >
-      <button class="card-head" type="button" @click="toggle(row.uid)">
+      <button class="card-head" type="button" @click="toggle(row.uid, $event)">
         <v-icon
           class="chevron"
           :class="{ open: expanded.has(row.uid) }"
@@ -609,7 +662,7 @@ function noteFor(kind: TimeSeriesKind): string {
               class="field-group-head"
               type="button"
               :aria-expanded="isFieldGroupOpen(row.uid, group.id, group.items)"
-              @click="toggleFieldGroup(group.id)"
+              @click="toggleFieldGroup(group.id, $event)"
             >
               <v-icon
                 class="chevron"
@@ -962,12 +1015,24 @@ function noteFor(kind: TimeSeriesKind): string {
   font-style: italic;
 }
 
+/* How far down the viewport a pinned head has to start: above the mobile
+   breakpoint the sidebar is the chrome and nothing overlays the page, below it
+   the app header owns the first 56px (`.mhdr` in assets/styles/app.css). */
+.editor {
+  --stick-top: 0px;
+}
+@media (max-width: 1023px) {
+  .editor {
+    --stick-top: 56px;
+  }
+}
+
 .card {
   border: 1px solid var(--border);
   border-left: 3px solid var(--border-strong);
   margin-bottom: 10px;
   background: var(--bg);
-  scroll-margin-top: 12px;
+  scroll-margin-top: calc(var(--stick-top) + 12px);
 }
 .card:last-of-type {
   margin-bottom: 0;
@@ -983,6 +1048,9 @@ function noteFor(kind: TimeSeriesKind): string {
    headline columns then line up from one card to the next, and the verdict
    badge always ends at the same right edge. */
 .card-head {
+  position: sticky;
+  top: var(--stick-top);
+  z-index: 2;
   display: grid;
   grid-template-columns: 18px 9px minmax(0, 220px) minmax(0, 1fr) auto auto auto;
   align-items: center;
@@ -990,10 +1058,15 @@ function noteFor(kind: TimeSeriesKind): string {
   width: 100%;
   padding: 13px 16px;
   border: none;
-  background: transparent;
+  /* Opaque, and carrying the body's top rule while pinned: the fields have to
+     pass under a line rather than under a floating title. */
+  background: var(--bg);
   font: inherit;
   text-align: left;
   cursor: pointer;
+}
+.card.open .card-head {
+  border-bottom: 1px solid var(--border-subtle);
 }
 .card-head:hover {
   background: var(--bg-subtle);
@@ -1205,7 +1278,6 @@ function noteFor(kind: TimeSeriesKind): string {
 
 .card-body {
   padding: 16px;
-  border-top: 1px solid var(--border-subtle);
 }
 .card-actions {
   display: flex;
@@ -1331,13 +1403,18 @@ function noteFor(kind: TimeSeriesKind): string {
 .field-group + .field-group {
   margin-top: 4px;
 }
+/* Pinned right under the card head it belongs to, and only for as long as its
+   own fields are on screen — the next group's head takes over from there. */
 .field-group-head {
+  position: sticky;
+  top: calc(var(--stick-top) + var(--card-head-h, 44px));
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 6px;
   width: 100%;
   padding: 7px 8px;
-  background: none;
+  background: var(--bg);
   border: 0;
   border-radius: 4px;
   cursor: pointer;
