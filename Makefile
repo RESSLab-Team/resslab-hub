@@ -65,6 +65,8 @@ backup-dump:
 new:                    ## make new BRANCH=feat/x [BASE=origin/dev]  — worktree + deps + session, attached
 	scripts/wt-new.sh $(BRANCH) $(BASE)
 
+go: new                 ## make go BRANCH=feat/x  — same thing, truthful verb: jump to the branch's session, creating branch/worktree/session as needed (tab completion: wtgo, scripts/wt-go.bash)
+
 db-template:            ## copy the shared dev DB into resslab_hub_template (once, from the main checkout)
 	scripts/wt-db.sh template
 
