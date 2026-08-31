@@ -11,7 +11,19 @@
       "Bash(uv run pytest *)",
       "Bash(npm run type-check)",
       "Bash(npm run lint)",
-      "Bash(npm run test:unit *)"
+      "Bash(npm run test:unit *)",
+      "Bash(curl http://localhost:*)",
+      "Bash(curl http://127.0.0.1:*)",
+      "Bash(curl -s http://localhost:*)",
+      "Bash(curl -s http://127.0.0.1:*)",
+      "Bash(curl -sS http://localhost:*)",
+      "Bash(curl -sS http://127.0.0.1:*)",
+      "Bash(curl -fsS http://localhost:*)",
+      "Bash(curl -fsS http://127.0.0.1:*)",
+      "Bash(curl -i http://localhost:*)",
+      "Bash(curl -i http://127.0.0.1:*)",
+      "Bash(curl -I http://localhost:*)",
+      "Bash(curl -I http://127.0.0.1:*)"
     ],
     "ask": [
       "Bash(curl * -X *)",
