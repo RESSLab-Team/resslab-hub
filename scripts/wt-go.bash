@@ -18,7 +18,7 @@ _wtgo() {
   local wts
   wts=$(git -C "$_WTGO_ROOT" worktree list --porcelain 2>/dev/null |
           sed -n 's#^branch refs/heads/##p' | grep -Ev '^(dev|stage|main)$')
-  COMPREPLY=( $(compgen -W "$wts" -- "$cur") )
+  COMPREPLY=( $(compgen -W "all $wts" -- "$cur") )
   if [ ${#COMPREPLY[@]} -eq 0 ]; then
     local branches
     branches=$( { echo "$wts"
