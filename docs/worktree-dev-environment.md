@@ -14,7 +14,7 @@ wt create feat/123-thing origin/dev
        ├─ writes .claude/settings.local.json     (sandbox + ask/deny rules for the Claude session)
        ├─ make install && make hooks
        └─ scripts/tmux-dev.sh --no-attach          → tmux session "resslab-hub/feat/123-thing"
-                                                      windows: backend | frontend | claude | shell
+                                                      one window: claude (left half) | backend / frontend / shell (right)
 wt remove feat/123-thing
   └─ .wt.toml → scripts/wt-teardown.sh   (kills the session, frees the ports, drops a branch DB)
 ```
@@ -33,7 +33,7 @@ own copy ([Database](#database)).
 | `~/.config/git/ignore`                  |                                                   | machine | `**/.claude/worktrees/` so nested worktrees never show as untracked     |
 | `.wt.toml`                              | repo root, committed                              | repo    | three hooks → the two scripts below                                     |
 | `scripts/wt-setup.sh`                   | committed                                         | repo    | everything a worktree needs to run, in one idempotent script            |
-| `scripts/tmux-dev.sh`                   | committed                                         | repo    | the 4-window session; also `make dev-all` in the main checkout          |
+| `scripts/tmux-dev.sh`                   | committed                                         | repo    | the 4-pane session; also `make dev-all` in the main checkout          |
 | `scripts/wt-teardown.sh`                | committed                                         | repo    | mirror of setup, run by `wt remove`                                     |
 | `scripts/wt-db.sh`                      | committed                                         | repo    | `make db-template` / `db-branch` / `db-branch-drop` / `db-status`       |
 | `scripts/wt-open.sh`                    | committed                                         | repo    | `make wt-open [TARGET=backend] [BRANCH=…]` — prints and opens the URL   |
@@ -97,12 +97,17 @@ make db-branch                       # only if the branch needs a migration or r
 make wt-land BRANCH=feat/123-thing   # from the main checkout: rebase → PR → squash-merge → cleanup
 ```
 
-Inside the session: `backend` and `frontend` windows run `make dev` with the
+Inside the session: the `backend` and `frontend` panes run `make dev` with the
 worktree's ports; `claude` is the agent; `shell` has `.env.worktree` exported.
 Both URLs are printed when the session starts and by `wt-open`. The `backend`
-and `frontend` windows also mirror their output to `.wt-logs/*.log` in the
-checkout (`tmux pipe-pane`), so the sandboxed agent in the `claude` window,
+and `frontend` panes also mirror their output to `.wt-logs/*.log` in the
+checkout (`tmux pipe-pane`), so the sandboxed agent in the `claude` pane,
 which cannot reach the tmux socket, can still read the server logs.
+
+Layout: `claude` fills the left half and has focus on attach; `backend`,
+`frontend` and `shell` stack in the right half. `prefix+arrows` move between
+panes, `prefix+z` zooms the focused pane to full screen and back, and the
+`prefix+s` / `prefix+w` pickers preview the whole layout per session.
 
 `wt list` / `wt status` show every worktree; `wt cleanup` removes those whose
 branch is merged.
@@ -117,7 +122,7 @@ checkout keeps 8000/5173 through the Makefile / vite defaults.
 `.env.worktree` is the single source: `backend/Makefile` reads `BACKEND_PORT`
 and `RESSLAB_DATA_DIR`, `vite.config.ts` reads `FRONTEND_PORT`,
 `frontend/.env.development.local` carries `VITE_APP_BACKEND_URL` for the
-matching backend, and `tmux-dev.sh` exports the file in every window. CORS is
+matching backend, and `tmux-dev.sh` exports the file in every pane. CORS is
 `*` in dev, so no other cross-service URL needs to move.
 
 ## Database
@@ -144,7 +149,7 @@ to, so clones are instant.
 `pytest` creates and drops a throwaway `POSTGRES_TEST_DB`; `wt-setup.sh` makes it
 `resslab_hub_test_<slug>` per worktree so two test runs can't drop each other's
 database. It is read from the process environment before dotenv loads, which
-is why the tmux windows export `.env.worktree` rather than rely on `secrets/.env`.
+is why the tmux panes export `.env.worktree` rather than rely on `secrets/.env`.
 
 ## What Claude may do in a worktree
 
@@ -252,7 +257,7 @@ checked out in a worktree (cli/cli#13380).
 3. In `wt-lib.sh`: the DB container/name/template, `BASE_BRANCH`,
    `PROTECTED_BRANCHES`, the main checkout's ports. In `wt-setup.sh`: the list
    of gitignored files to seed and the env keys to rewrite. In `tmux-dev.sh`:
-   the window list.
+   the pane list.
 4. Make every hardcoded port a variable with the old value as default —
    including the ones services use to find each other (proxy targets,
    `VITE_*_URL`, CORS origins, OAuth redirect URIs). Miss one and worktrees
@@ -261,5 +266,5 @@ checked out in a worktree (cli/cli#13380).
    `.gitignore`; add the repo to `autoMode.environment`; write the _Working in
    a worktree_ section of `CLAUDE.md`.
 6. Smoke test: `wt create test/smoke`, check both servers on the printed URLs,
-   commit and push from the `claude` window, try `git push origin HEAD:dev`
+   commit and push from the `claude` pane, try `git push origin HEAD:dev`
    (must be refused), `wt remove test/smoke`, confirm `tmux ls` is clean.
