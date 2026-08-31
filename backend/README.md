@@ -47,11 +47,26 @@ make upload-data
 
 # Upload data to test database
 make upload-data-test
-
-# Upload data to prod database
-# You firstly need to setup the port forwarding
-ssh -NL 5432:localhost:5432 root@resslab-hub.epfl.ch
-
-#Then upload locally (forwarded to prod) (with the correct database credential)
-make upload-data
 ```
+
+### Upload data to the dev cluster
+
+`dev` runs on the EPFL ENAC Kubernetes cluster (`prod` / `test` are still on the old Ansible-managed VM — keep using SSH for those). The dev DB isn't exposed publicly, so port-forward it first:
+
+```bash
+kubectl -n epfl-resslab-resslab-hub-dev port-forward svc/resslab-hub-db-dev 5432:5432
+```
+
+Set `secrets/.env` (at the **repo root**, not under `backend/` — the Makefile loads `../secrets/.env`) with the dev creds from Infisical (`/epfl-resslab/resslab-hub/db`, env slug `dev`):
+
+```env
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=<DB_USER>
+POSTGRES_PASSWORD=<DB_PASSWORD>
+API_PASSWORD=<any non-empty value>
+```
+
+If your local machine already runs a Postgres on 5432, port-forward to a different port (e.g. `5433:5432`) and set `POSTGRES_PORT=5433` in the `.env`.
+
+Then from `backend/`, run `make upload-data`. Note: it **erases** existing data in the tables it touches.

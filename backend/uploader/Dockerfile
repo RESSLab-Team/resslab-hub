@@ -1,29 +1,26 @@
-FROM python:3.10-alpine as build-stage
+FROM python:3.12-slim AS build-stage
 WORKDIR /app
-RUN apk add --no-cache \
-    gcc \
-    musl-dev
-RUN pip install poetry
-COPY ./pyproject.toml ./poetry.lock* /app/
-RUN poetry export --output requirements.txt
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+ENV UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1
 
+COPY pyproject.toml uv.lock /app/
+RUN uv sync --frozen --no-dev --no-install-project
 
-FROM python:3.10-alpine as production-stage
-WORKDIR /app
-RUN apk add --no-cache \
-    g++ \
-    gcc \
-    musl-dev \
-    postgresql-dev
-
-COPY --from=build-stage /app/requirements.txt /app
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY ./alembic.ini ./pyproject.toml ./README.md /app/
+COPY README.md /app/
 COPY ./resslab_hub /app/resslab_hub
+RUN uv pip install --no-deps . \
+    && test -d /app/.venv/lib/python3.12/site-packages/resslab_hub
+
+
+FROM python:3.12-slim AS production-stage
+WORKDIR /app
+
+COPY --from=build-stage /app/.venv /app/.venv
+COPY ./alembic.ini /app/
 COPY ./alembic /app/alembic
 COPY ./data /app/data
 
-RUN pip install --no-cache-dir .
+ENV PATH="/app/.venv/bin:${PATH}" \
+    PYTHONUNBUFFERED=1
 
 ENTRYPOINT [ "python", "-m", "data.uploader" ]

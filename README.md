@@ -11,12 +11,10 @@
 
 Prerequisites:
 
-- [Python](https://www.python.org/) 3.10
+- [uv](https://docs.astral.sh/uv/) (manages Python automatically)
 - [Make](https://www.gnu.org/software/make/)
-- [Poetry](https://python-poetry.org/)
-- [Node.js](https://nodejs.org/) 16.x
-- [Docker](https://www.docker.com/)
-  - [Docker Compose](https://docs.docker.com/compose/) 1.27.0+
+- [Node.js](https://nodejs.org/) ≥ 18 (CI uses the current LTS)
+- [Docker](https://www.docker.com/) with the [Compose v2 plugin](https://docs.docker.com/compose/)
 
 ### Secrets
 
@@ -32,11 +30,12 @@ mkdir -p secrets && echo POSTGRES_PASSWORD=changeit > secrets/.env
 make install
 ```
 
+Git hooks (commitlint + lint/format) are managed by [Lefthook](https://lefthook.dev) and installed automatically by `make install`. Skip with `LEFTHOOK=0`.
+
 #### for MAC OS
 
-1. Do not hesitate to use pyenv to setup python3.9.6 at least
-2. Use brew to install openssl and postgresql
-3. if you encounter any problem, clear your poetry cache
+1. Use brew to install openssl and postgresql
+2. if you encounter any problem, clear your uv cache (`uv cache clean`)
 
 https://github.com/psycopg/psycopg2/issues/1200#issuecomment-776159466
 
@@ -70,6 +69,16 @@ make dev-backend
 make dev-frontend
 # http://127.0.0.1:5173
 ```
+
+#### Parallel worktrees (one branch = its own servers + Claude Code session)
+
+```bash
+make new BRANCH=feat/my-thing      # worktree + deps + secrets + ports + tmux session, attached (wt create + attach)
+make wt-open BRANCH=feat/my-thing  # open that branch's frontend
+make wt-land BRANCH=feat/my-thing  # rebase, PR, squash-merge into dev, remove the worktree
+```
+
+Everything about it — ports, the shared vs per-branch database, what Claude may and may not do in a worktree — is in [docs/worktree-dev-environment.md](docs/worktree-dev-environment.md).
 
 #### Visual Studio Code
 
