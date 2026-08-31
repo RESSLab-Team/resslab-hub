@@ -1,0 +1,2809 @@
+/* RESSLab Hub — EPFL-grounded redesign styles
+   Adapted from the Claude Design handoff prototype (app.css). */
+
+/* ================ BASE / VUETIFY HARMONIZATION ================ */
+.v-application {
+  font-family: var(--font-sans) !important;
+  color: var(--fg);
+  background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Links are never underlined (EPFL DS underlines them by default; the redesign
+   rejects that). Underline only where explicitly opted back in. */
+a {
+  text-decoration: none;
+}
+/* ================ BRUTALIST: FLAT CORNERS + NO ELEVATION ================
+   Square every corner across the app and Vuetify's own components, from one
+   broad rule rather than per-component overrides. Genuine circles (legend /
+   status dots, slider thumbs, toggle knobs) opt back in with border-radius:50%
+   locally and are not matched here. Custom classes inherit 0 via --radius. */
+.v-application .v-card,
+.v-application .v-btn,
+.v-application .v-btn__overlay,
+.v-application .v-field,
+.v-application .v-field__outline__start,
+.v-application .v-field__outline__end,
+.v-application .v-chip,
+.v-application .v-sheet,
+.v-application .v-list,
+.v-application .v-menu > .v-overlay__content,
+.v-application .v-overlay__content > .v-card,
+.v-application .v-tooltip > .v-overlay__content,
+.v-application .v-snackbar__wrapper,
+.v-application .v-alert,
+.v-application .v-input__control {
+  border-radius: 0 !important;
+}
+/* Flat, hairline-bordered surfaces — no card elevation shadows anywhere. */
+.v-application .v-card {
+  box-shadow: none !important;
+}
+
+/* ================ TITLE ROLES ================
+   Five canonical title treatments, driven by the --title-* tokens in
+   epfl-tokens.css. Use these classes directly on new markup; existing
+   component classes below are rewritten to consume the same tokens, so
+   every card / section / panel / eyebrow title stays uniform app-wide. */
+.t-page {
+  margin: 0;
+  font-size: var(--title-page-size);
+  font-weight: var(--title-page-weight);
+  line-height: var(--title-page-lh);
+  letter-spacing: var(--title-page-tracking);
+}
+.t-card {
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
+  line-height: 1.3;
+  color: var(--fg);
+}
+.t-panel {
+  font-size: var(--title-panel-size);
+  font-weight: var(--title-panel-weight);
+  letter-spacing: var(--title-panel-tracking);
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.t-eyebrow {
+  font-size: var(--title-eyebrow-size);
+  font-weight: var(--title-eyebrow-weight);
+  letter-spacing: var(--title-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--epfl-red);
+}
+.t-subhead {
+  font-size: var(--title-subhead-size);
+  font-weight: var(--title-subhead-weight);
+  letter-spacing: var(--title-subhead-tracking);
+  color: var(--fg);
+}
+
+/* Eyebrows share one font role (the eyebrow token). One rule so every eyebrow
+   variant picks it up. */
+.t-eyebrow,
+.eyebrow,
+.hero-eyebrow,
+.section-eyebrow,
+.logos-eyebrow,
+.cd-eyebrow,
+.cd-section-h,
+.drawer-body h2 {
+  font-family: var(--title-eyebrow-font);
+}
+/* Two-tone split (EyebrowText.vue): primary segment red, qualifier muted —
+   matches the handoff's `<span class="red">…</span><span class="mut">…</span>`. */
+.ey-red {
+  color: var(--epfl-red);
+}
+.ey-mut {
+  color: var(--fg-subtle);
+}
+
+/* ================ APP SHELL (SIDEBAR LAYOUT) ================ */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  background: var(--bg-app);
+  width: 100%;
+}
+.app-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.app-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ================ SIDEBAR ================ */
+.sidebar {
+  width: 260px;
+  flex: 0 0 260px;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0 0;
+  overflow-y: auto;
+  z-index: 100;
+}
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  text-decoration: none;
+  color: inherit;
+}
+.sidebar-brand .brand-mark {
+  width: 52px;
+  height: 52px;
+  display: block;
+  flex: none;
+  color: var(--fg);
+}
+.brand-hub {
+  color: var(--primary);
+}
+
+.sidebar-brand-name {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.2;
+}
+.sidebar-brand-name small {
+  display: block;
+  white-space: normal;
+  overflow-wrap: break-word;
+  font-weight: 400;
+  font-size: 10px;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+.sidebar-section {
+  padding: 16px 24px 6px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  font-weight: 700;
+}
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 24px;
+  color: var(--fg);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+  position: relative;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all var(--t-fast);
+}
+.sidebar-link:hover {
+  background: var(--bg-subtle);
+  color: var(--epfl-red);
+}
+.sidebar-link.is-active {
+  color: var(--epfl-red);
+}
+/* Active = short inset red tab (handoff .ed-link.on), no background fill. */
+.sidebar-link.is-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background: var(--epfl-red);
+}
+.sidebar-group {
+  display: flex;
+  align-items: stretch;
+}
+.sidebar-group .sidebar-group-link {
+  flex: 1;
+}
+.sidebar-group.is-active .sidebar-group-link {
+  color: var(--epfl-red);
+}
+.sidebar-group.is-active .sidebar-group-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background: var(--epfl-red);
+}
+.sidebar-group-toggle {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  color: var(--fg-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.sidebar-group-toggle:hover {
+  background: var(--bg-subtle);
+  color: var(--epfl-red);
+}
+.sidebar-group-toggle .v-icon {
+  transition: transform var(--t-fast);
+}
+.sidebar-group-toggle .chevron-open {
+  transform: rotate(180deg);
+}
+/* Nested group: the sub-links share one continuous vertical rule, built from a
+   per-child left border so the active child can recolour its own segment red —
+   rather than drawing a second bar beside a separate container rule. */
+.sidebar-children {
+  margin: 2px 0 6px 24px;
+}
+.sidebar-child {
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
+  font-size: 13px;
+  font-weight: 400;
+}
+/* The rule itself turns red on the active sub-link — and the top-level inset
+   bar (inherited via .sidebar-link.is-active::before) is suppressed here. */
+.sidebar-child.is-active {
+  border-left-color: var(--epfl-red);
+}
+.sidebar-child.is-active::before {
+  display: none;
+}
+.sidebar-link .count {
+  margin-left: auto;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--fg-muted);
+  font-weight: 400;
+  font-feature-settings: 'tnum';
+}
+.sidebar-link.is-active .count {
+  color: var(--epfl-red);
+}
+.sidebar-foot {
+  margin-top: auto;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--fg-muted);
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+}
+/* Compact dark-mode square to match the handoff footer scale (.ed-foot .sq). */
+.sidebar-foot .hdr-icon-btn {
+  width: 26px;
+  height: 26px;
+}
+
+/* Mobile top bar + sidebar overlay */
+.mhdr {
+  display: none;
+  align-items: center;
+  gap: 14px;
+  height: 56px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+.mhdr-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--fg);
+  text-decoration: none;
+}
+.mhdr-brand .brand-mark {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  color: var(--fg);
+}
+.mhdr-brand-name {
+  line-height: 1.2;
+}
+.mhdr-brand-name small {
+  display: block;
+  white-space: normal;
+  overflow-wrap: break-word;
+  font-weight: 400;
+  font-size: 10px;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+.sidebar-scrim {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .mhdr {
+    display: flex;
+  }
+  .sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1005;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+  }
+  .sidebar-scrim.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: -280px;
+    height: 100%;
+    transition: left 0.25s ease-in-out;
+    z-index: 1010;
+  }
+  .sidebar.open {
+    left: 0;
+  }
+}
+
+/* ================ ICON BUTTON ================ */
+.hdr-icon-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all var(--t-fast);
+  padding: 0;
+}
+.hdr-icon-btn:hover {
+  border-color: var(--fg);
+  color: var(--epfl-red);
+}
+
+/* ================ HOME / HERO ================ */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(420px, 38%) 1fr;
+  position: relative;
+  background: var(--bg);
+  align-items: stretch;
+  min-height: 520px;
+}
+/* ONE white panel, floating vertically centred over the media edge. The video is
+   pulled 120px under this column (see .hero-img), so the panel's right edge always
+   rides over it by that much, with the video showing above and below the panel.
+   The panel itself carries the background — its children must NOT paint their own
+   (that produced ragged per-line white boxes whose reach into the video depended
+   on how the text happened to wrap). */
+.hero-text {
+  position: relative;
+  z-index: 2;
+  align-self: center;
+  background: var(--bg);
+  padding: 48px 48px 48px 64px;
+  /* Keeps the hero strictly taller than the panel, so the video always shows
+     above and below its right edge — without this, a narrow viewport wraps the
+     text until the panel fills the hero and the overlap reads as a plain seam. */
+  margin: 44px 0;
+}
+.hero-eyebrow {
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--epfl-red);
+  font-weight: var(--title-eyebrow-weight);
+  margin-bottom: 18px;
+}
+.hero-title {
+  font-size: 44px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.hero-title em {
+  font-style: normal;
+  color: var(--epfl-red);
+}
+.hero-lede {
+  margin: 20px 0 26px;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--fg-muted);
+  max-width: 560px;
+}
+.hero-cta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.hero-img {
+  position: relative;
+  margin-left: -120px; /* overlap signature move */
+  background: var(--epfl-gray-200);
+  min-height: 520px;
+  overflow: hidden;
+}
+.hero-img video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hero-img-credit {
+  position: absolute;
+  bottom: 14px;
+  right: 18px;
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  padding: 3px 8px;
+  letter-spacing: 0.02em;
+  z-index: 1;
+}
+
+/* ================ BUTTONS ================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 22px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--t-fast);
+  line-height: 1;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--epfl-red);
+  color: #fff;
+  border-color: var(--epfl-red);
+}
+.btn-primary:hover {
+  background: var(--epfl-red-dark);
+  border-color: var(--epfl-red-dark);
+  color: #fff;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+.btn-secondary:hover {
+  background: var(--bg-subtle);
+  border-color: var(--fg);
+  color: var(--fg);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--fg);
+  border-color: transparent;
+  padding: 8px 12px;
+}
+.btn-ghost:hover {
+  background: var(--bg-subtle);
+  color: var(--epfl-red);
+}
+.btn-sm {
+  padding: 7px 12px;
+  font-size: 12px;
+}
+.btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ================ KEY NUMBERS ================ */
+.keynums {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.keynum {
+  padding: 36px 36px 32px;
+  border-right: 1px solid var(--border-subtle);
+}
+.keynum:last-child {
+  border-right: 0;
+}
+.keynum-num {
+  font-size: 56px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--fg);
+  letter-spacing: -0.02em;
+  font-feature-settings: 'tnum';
+}
+.keynum-bar {
+  width: 32px;
+  height: 3px;
+  background: var(--epfl-red);
+  margin: 14px 0 12px;
+}
+/* Live fetch in flight (snapshot value shown): the bar slides right and back,
+   never changing size. One keyframe cycle is a full round trip ending at the
+   left edge, and HomeView only drops this class on an `animationiteration`
+   boundary — so even the fastest fetch shows one clean trip and the bar is
+   back home when it settles (the number then counts up to the live value). */
+.keynum-bar--loading {
+  animation: keynum-pingpong 0.9s ease-in-out infinite;
+}
+@keyframes keynum-pingpong {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+}
+/* Live fetch failed: the archived snapshot value stays (tooltip on the tile). */
+.keynum-bar--stale {
+  background: var(--fg-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .keynum-bar--loading {
+    animation: none;
+  }
+}
+.keynum-label {
+  font-size: 13px;
+  color: var(--fg-muted);
+  line-height: 1.4;
+  max-width: 220px;
+}
+
+/* ================ SECTION ================ */
+.section {
+  padding: 72px 64px;
+}
+.section-bg-subtle {
+  background: var(--bg-subtle);
+}
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  gap: 32px;
+}
+.section-eyebrow {
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--epfl-red);
+  font-weight: var(--title-eyebrow-weight);
+  margin-bottom: 8px;
+}
+.section-title {
+  font-size: 32px;
+  font-weight: 400;
+  margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  max-width: 720px;
+}
+.section-sub {
+  margin-top: 14px;
+  color: var(--fg-muted);
+  max-width: 580px;
+  font-size: 15px;
+}
+.section-link {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: 1px solid var(--epfl-red);
+  padding-bottom: 2px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.section-link:hover {
+  color: var(--epfl-red);
+}
+
+/* ================ CATEGORY TILES (HOME) ================ */
+/* Separated cards, not a hairline sheet: each tile carries its own border and
+   the grid gap lets the app-shell background read between them. */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.cat-tile {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 28px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--fg);
+  transition: background var(--t-fast), border-color var(--t-fast);
+  min-height: 200px;
+}
+/* Flat by design (--radius is 0 and the system avoids shadows) — a card lifts
+   by darkening its edge, the same cue as .mat-thumb on the tool pages. */
+.cat-tile:hover {
+  background: var(--bg-subtle);
+  border-color: var(--fg);
+}
+.cat-tile:hover .cat-arrow {
+  transform: translateX(4px);
+  color: var(--epfl-red);
+}
+.cat-tile-icon {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg);
+}
+.cat-tile-title {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+.cat-tile-desc {
+  font-size: 13px;
+  color: var(--fg-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+/* The dashboard's own description — richer copy the compact laptop tiles have no
+   room for. The ultrawide column layout turns it on (see the home split below). */
+.cat-tile-desc-long {
+  display: none;
+  font-size: 13px;
+  color: var(--fg-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+.cat-tile-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 12px;
+  font-size: 12px;
+  color: var(--fg-muted);
+  border-top: 1px solid var(--border-subtle);
+}
+.cat-tile-meta strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+.cat-tile-meta .cat-tab {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cat-arrow {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  width: 18px;
+  height: 18px;
+  color: var(--fg-muted);
+  transition: transform var(--t-fast), color var(--t-fast);
+}
+
+/* ================ HOME 2-COL (MAP / VIDEO) ================ */
+.split-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+.split-7-5 {
+  display: grid;
+  grid-template-columns: 7fr 5fr;
+  gap: 32px;
+}
+.surface {
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.surface-pad {
+  padding: 28px 32px;
+}
+.map-frame {
+  position: relative;
+  min-height: 460px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.map-frame > * {
+  flex: 1;
+}
+.video-frame {
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border: 1px solid var(--border);
+  position: relative;
+}
+.video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ================ LOGOS STRIP ================ */
+.logos {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  padding: 32px 64px;
+  border-top: 1px solid var(--border);
+}
+.logos-eyebrow {
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--fg-muted); /* muted variant — this is a strip label, not a kicker */
+  font-weight: var(--title-eyebrow-weight);
+  flex: 0 0 auto;
+}
+.logos-items {
+  flex: 1;
+  display: flex;
+  /* Clustered after the label rather than spread across the strip — spaced-out
+     logos read as filler, grouped ones as a credit line. */
+  justify-content: flex-start;
+  align-items: center;
+  gap: 24px 44px;
+  flex-wrap: wrap;
+}
+.logos img {
+  max-height: 40px;
+  max-width: 160px;
+  opacity: 0.75;
+  transition: opacity var(--t-fast);
+  display: block;
+}
+.logos a:hover img {
+  opacity: 1;
+}
+body.theme-dark .logos img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* ================ TOOL PAGES (MODEL / FRAGILITY) ================ */
+.tool-page {
+  background: var(--bg);
+  min-height: calc(100vh - 56px);
+}
+
+/* Layout, controls and surfaces for the tool pages live in tool-pages.css
+   (ported from the EPFL design handoff). Only the page base and the result-table
+   styling remain here. */
+
+/* Result tables (model pages) */
+.tool-page table thead th {
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: var(--fg-muted) !important;
+  font-weight: 700 !important;
+  background: var(--bg-subtle) !important;
+}
+.tool-page table tbody tr:hover td {
+  background: var(--bg-subtle) !important;
+}
+
+/* ================ DASHBOARD ================ */
+.dash {
+  background: var(--bg);
+  position: relative;
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Rail layout: grid with the filter rail beside the main column ---- */
+.dash-with-rail {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+}
+.dash-with-rail.rail-collapsed {
+  grid-template-columns: 56px 1fr;
+}
+.dash-with-rail[data-filter-pos='right'] {
+  grid-template-columns: 1fr 280px;
+}
+.dash-with-rail[data-filter-pos='right'].rail-collapsed {
+  grid-template-columns: 1fr 56px;
+}
+.dash-with-rail[data-filter-pos='right'] > .dash-filters {
+  order: 2;
+}
+.dash-with-rail[data-filter-pos='right'] > .dash-main {
+  order: 1;
+}
+.dash-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ---- Filter rail ---- */
+.dash-filters {
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+  padding: 0 0 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.dash-filters-right {
+  border-right: 0;
+  border-left: 1px solid var(--border);
+}
+.dash-filters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 1;
+}
+.dash-filters-head-l {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-filters-head h6 {
+  margin: 0;
+  font-size: var(--title-panel-size);
+  text-transform: uppercase;
+  letter-spacing: var(--title-panel-tracking);
+  color: var(--fg);
+  font-weight: var(--title-panel-weight);
+}
+.dash-filters-active-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--epfl-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 0;
+  font-feature-settings: 'tnum';
+}
+.dash-filters-head-r {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dash-filters-head .reset {
+  font-size: 11px;
+  color: var(--epfl-red);
+  cursor: pointer;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+}
+.dash-filters-head .reset:hover {
+  color: var(--epfl-red-dark);
+}
+.dash-filters-collapse-btn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-muted);
+  border-radius: var(--radius);
+  padding: 0;
+}
+.dash-filters-collapse-btn:hover {
+  color: var(--epfl-red);
+  border-color: var(--epfl-red);
+}
+
+/* Collapsed icon-strip variant */
+.dash-filters-collapsed {
+  padding: 0;
+  width: 56px;
+  align-items: center;
+}
+.dash-filters-collapsed > .dash-filters-collapse-btn {
+  margin: 16px auto 8px;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+}
+.dash-filters-collapsed-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+}
+.dash-filter-icon-row {
+  position: relative;
+}
+.dash-filter-icon {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg);
+  border-radius: var(--radius);
+  padding: 0;
+  font-family: inherit;
+}
+.dash-filter-icon:hover {
+  background: var(--bg-subtle);
+}
+.dash-filter-icon.is-active {
+  color: var(--epfl-red);
+}
+.dash-filter-icon-row.is-open .dash-filter-icon {
+  background: var(--bg-subtle);
+  border-color: var(--border);
+}
+.dash-filter-icon-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  background: var(--epfl-red);
+  border-radius: 50%;
+  border: 1.5px solid var(--bg);
+}
+.dash-filters-collapsed-reset {
+  margin: auto 0 16px;
+  width: 28px;
+  height: 28px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--fg-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  padding: 0;
+}
+.dash-filters-collapsed-reset:hover {
+  color: var(--epfl-red);
+  border-color: var(--epfl-red);
+  border-style: solid;
+}
+
+/* Popover for collapsed-rail group expansion */
+.dash-filter-popover {
+  position: absolute;
+  top: 0;
+  width: 260px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--epfl-red);
+  box-shadow: var(--shadow);
+  z-index: 5;
+}
+.dash-filter-popover-right {
+  left: calc(100% + 6px);
+}
+.dash-filter-popover-left {
+  right: calc(100% + 6px);
+}
+.dash-filter-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg);
+}
+.dash-filter-popover-x {
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--fg-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: var(--radius);
+}
+.dash-filter-popover-x:hover {
+  color: var(--epfl-red);
+  background: var(--bg-subtle);
+}
+.dash-filter-popover-body {
+  padding: 12px 14px 14px;
+}
+
+/* Overlay drawer (narrow viewport) */
+.filters-overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: -340px;
+  width: 320px;
+  max-width: 100%;
+  background: var(--bg);
+  border-right: 2px solid var(--epfl-red);
+  z-index: 1021;
+  transition: left 0.25s ease-in-out;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.filters-overlay.open {
+  left: 0;
+}
+.dash-filters-overlay {
+  position: static !important;
+  height: auto !important;
+  border: 0 !important;
+  flex: 1;
+}
+.dash-filters-trigger {
+  position: relative;
+  flex: 0 0 auto;
+}
+.dash-filters-trigger-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 6px;
+  background: var(--epfl-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 0;
+}
+
+/* Filter groups */
+.filter-group {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.filter-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--title-panel-size);
+  text-transform: uppercase;
+  letter-spacing: var(--title-panel-tracking);
+  color: var(--fg-muted);
+  font-weight: var(--title-panel-weight);
+  margin-bottom: 10px;
+}
+.filter-group-head .count {
+  background: var(--bg-subtle);
+  padding: 1px 6px;
+  font-size: 10px;
+  color: var(--fg);
+}
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.chip {
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all var(--t-fast);
+  font-weight: 500;
+  color: var(--fg);
+  font-family: inherit;
+}
+.chip:hover {
+  border-color: var(--fg);
+}
+.chip.on {
+  background: var(--epfl-black);
+  color: var(--epfl-white);
+  border-color: var(--epfl-black);
+}
+.chip.on-red {
+  background: var(--epfl-red);
+  color: var(--epfl-white);
+  border-color: var(--epfl-red);
+}
+
+.range-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.range-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--fg);
+  border-radius: var(--radius);
+}
+.range-row input:focus {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -1px;
+}
+.range-track {
+  position: relative;
+  height: 4px;
+  background: var(--bg-subtle);
+  margin: 12px 0 6px;
+}
+.range-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--epfl-red);
+}
+
+/* ---- Auto-generated filter rail ---- */
+.afr {
+  padding-bottom: 0;
+}
+.afr-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.afr-search-icon {
+  position: absolute;
+  left: 28px;
+  color: var(--fg-muted);
+  pointer-events: none;
+}
+.afr-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px 7px 30px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--fg);
+  border-radius: var(--radius);
+}
+.afr-search input:focus {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -1px;
+}
+.afr-empty {
+  margin: 0;
+  padding: 16px 20px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.afr-list {
+  flex: 1;
+  min-height: 0;
+}
+
+/* One category of variables. The header is what a reader scans; the rows inside
+   are indented so the hierarchy reads at a glance. */
+.afr-group {
+  border-bottom: 1px solid var(--border);
+}
+.afr-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 20px;
+  background: var(--bg-subtle);
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--fg);
+}
+.afr-group-head:hover {
+  background: var(--bg-hover, var(--bg-subtle));
+}
+.afr-group-caret {
+  flex: 0 0 auto;
+  color: var(--fg-muted);
+  transition: transform var(--t-fast);
+}
+.afr-group-caret.open {
+  transform: rotate(90deg);
+}
+.afr-group-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.afr-group-count {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
+}
+.afr-group-active {
+  flex: 0 0 auto;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--epfl-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
+.afr-group-body .afr-head {
+  padding-left: 32px;
+}
+.afr-group-body .afr-row:last-child {
+  border-bottom: 0;
+}
+
+/* One filter */
+.afr-row {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.afr-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 20px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--fg);
+}
+.afr-head:hover {
+  background: var(--bg-subtle);
+}
+.afr-row.is-active .afr-head {
+  box-shadow: inset 2px 0 0 var(--epfl-red);
+}
+.afr-caret {
+  flex: 0 0 auto;
+  color: var(--fg-muted);
+  transition: transform var(--t-fast);
+}
+.afr-row.is-open .afr-caret {
+  transform: rotate(180deg);
+}
+.afr-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.afr-unit {
+  color: var(--fg-muted);
+  font-size: 11px;
+}
+.afr-summary {
+  flex: 0 1 auto;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--epfl-red);
+  font-variant-numeric: tabular-nums;
+}
+.afr-clear {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.afr-clear:hover {
+  color: var(--epfl-red);
+}
+.afr-body {
+  padding: 2px 20px 14px;
+}
+
+/* Value list: the bar behind each row *is* the distribution. */
+.afr-options {
+  display: flex;
+  flex-direction: column;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.afr-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 12px;
+  isolation: isolate;
+  background: none;
+  border: 0;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: var(--fg);
+}
+.afr-option:hover {
+  background: var(--bg-subtle);
+}
+.afr-option-bar {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  z-index: -1;
+  background: var(--bg-subtle);
+  border-left: 2px solid #a4bce3;
+}
+.afr-option.on .afr-option-bar {
+  border-left-color: var(--epfl-red);
+}
+.afr-option input[type='checkbox'] {
+  flex: 0 0 auto;
+  accent-color: var(--epfl-red);
+  margin: 0;
+}
+.afr-option-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.afr-option.on .afr-option-value {
+  font-weight: 600;
+}
+.afr-option-count {
+  flex: 0 0 auto;
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+/* Read-only shortcuts under a text search — quieter than a checkbox list. */
+.afr-options-quiet {
+  margin-top: 8px;
+  max-height: 150px;
+}
+.afr-text {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--fg);
+  border-radius: var(--radius);
+}
+.afr-text:focus {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -1px;
+}
+.afr-meta {
+  margin: 8px 0 0;
+  font-size: 10px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* The brush's flanking bounds are sized for a chart strip; the rail is far
+   narrower, so trim them and give the plot the room. Selectors are deliberately
+   one level deeper than the brush's own scoped rules so these win the tie. */
+.afr .afr-body .dist-brush {
+  gap: 6px;
+}
+.afr .afr-body .dist-brush .v-text-field {
+  flex: 0 0 36px;
+  width: 36px;
+}
+.afr .afr-body .dist-brush .dist-brush__bound {
+  flex: 0 0 62px;
+  width: 62px;
+  font-size: 11px;
+}
+
+/* Rail responsive: hide the inline rail below 1100px (overlay takes over) */
+@media (max-width: 1099px) {
+  .dash-with-rail,
+  .dash-with-rail[data-filter-pos='right'],
+  .dash-with-rail.rail-collapsed,
+  .dash-with-rail[data-filter-pos='right'].rail-collapsed {
+    grid-template-columns: 1fr;
+  }
+  .dash-with-rail > .dash-filters {
+    display: none;
+  }
+}
+.dash-head {
+  padding: 24px 32px 18px;
+  border-bottom: 1px solid var(--border);
+}
+/* Database pages (DashboardShell, root `.dash`) run the header straight into the
+   filters/table below, so the rule reads as clutter. Tool pages (ToolShell, root
+   `.tool-page`) keep it — there the header separates unrelated content.
+   Descendant, not child: the ultrawide split nests these under
+   `.dash-split > .dash-col-main`, and `display: contents` does not restore a
+   child relationship for selector matching. */
+.dash .dash-head {
+  border-bottom: none;
+}
+
+/* Squares the toolbar's bottom padding to its 32px sides, giving the search band
+   room to breathe above the divider (the .dash-head border is gone on these
+   pages, so this rule carries the first horizontal line). */
+.dash .dash-toolbar {
+  padding-bottom: 32px;
+}
+
+.dash-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.dash-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Database pages close the header with a framed mark of the section you are in.
+   The row starts below the eyebrow, so the box stretches to exactly the height
+   of the title + description block and squares itself off that height. Its
+   right edge lands on the same 32px inset as the toolbar buttons below. */
+.dash-head-split {
+  position: relative;
+}
+/* Reserves the gutter the mark sits in — the mark itself is out of flow, so it
+   can size off the text block without feeding its own height back into it. */
+.dash-head-main {
+  padding-right: 10rem;
+}
+.dash-head-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  /* Squares off the text-block height, capped so a long description can never
+     grow the mark wider than the gutter reserved above. */
+  max-height: 9rem;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg);
+  /* At this scale the chrome-weight stroke reads as a slab — thin it so the
+     mark keeps the precision of a technical drawing. */
+  --rl-icon-stroke: 1.25;
+}
+.dash-head-icon .v-icon {
+  width: 58%;
+  height: 58%;
+}
+/* Narrower screens keep the mark but drop it back into the flow, where it sits
+   beside the title instead of spanning the text block — the description then
+   gets the full width back. Its stroke climbs to chrome weight as it shrinks. */
+@media (max-width: 900px) {
+  .dash-head-main {
+    padding-right: 0;
+  }
+  /* Keep the mark on the title's line rather than letting it wrap below. */
+  .dash-head-row {
+    flex-wrap: nowrap;
+  }
+  .dash-title {
+    min-width: 0;
+  }
+  .dash-head-icon {
+    position: static;
+    flex: 0 0 auto;
+    height: 3rem;
+    max-height: none;
+    --rl-icon-stroke: 1.5;
+  }
+}
+@media (max-width: 560px) {
+  .dash-head-icon {
+    height: 2.5rem;
+    --rl-icon-stroke: 1.8;
+  }
+}
+.dash-title {
+  margin: 0;
+  font-size: var(--title-page-size);
+  font-weight: var(--title-page-weight);
+  line-height: var(--title-page-lh);
+  letter-spacing: var(--title-page-tracking);
+}
+.dash-title-count {
+  color: var(--fg-muted);
+  font-weight: 300;
+  margin-left: 14px;
+  font-feature-settings: 'tnum';
+  /* Wrap the count as a whole — breaking between the number and its label
+     strands the unit ("85" above, "specimens" below) on its own line. */
+  white-space: nowrap;
+}
+.dash-desc {
+  margin: 12px 0 0;
+  color: var(--fg-muted);
+  font-size: 14px;
+  max-width: 780px;
+  line-height: 1.5;
+}
+.eyebrow {
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--epfl-red);
+  font-weight: var(--title-eyebrow-weight);
+}
+
+/* Active filter bar */
+.dash-active-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 32px;
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.dash-active-filters strong {
+  color: var(--fg-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+.fchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px 3px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fg);
+}
+.fchip-x {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--fg-muted);
+  border-left: 1px solid var(--border-subtle);
+  margin-left: 4px;
+  padding-left: 4px;
+}
+.fchip-x:hover {
+  color: var(--epfl-red);
+}
+.chip-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  background: transparent;
+  color: var(--fg-muted);
+  border: 1px dashed var(--border);
+  cursor: pointer;
+  font-family: inherit;
+}
+.chip-clear:hover {
+  color: var(--epfl-red);
+  border-color: var(--epfl-red);
+}
+
+/* Charts strip: flex (not grid), so cell width follows content rather than a
+   fixed column ratio. A distribution/date brush (DoubleChart) needs real room
+   for the brush + legend to read — below ~450px it wraps to its own line
+   rather than cramping — while a treemap tile (SingleChart) is comfortable
+   narrower. Flex-wrap grows per line, so a cell left alone on a line (wrapped,
+   or the odd one out) stretches to fill it instead of leaving a void. */
+.charts-strip,
+.charts-strip-2cols,
+.charts-strip-1col {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.chart-cell {
+  flex: 1 1 260px;
+  min-width: 260px;
+  padding: 18px 22px 16px;
+  border-right: 1px solid var(--border);
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  /* Each cell is a fixed-size box (min-height above + flex-basis width), so
+     contain its layout: a chart re-rendering on a filter change can't reflow its
+     sibling cells or the rest of the page. */
+  contain: layout;
+}
+/* Charts with a distribution/date brush (DoubleChart) claim a wider, more
+   growable share so the brush never cramps under ~450px. */
+.chart-cell:has(.double-chart__canvas) {
+  flex: 2 1 450px;
+  min-width: 450px;
+}
+.chart-cell:last-child {
+  border-right: 0;
+}
+.chart-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 12px;
+}
+.chart-head h5 {
+  margin: 0;
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
+}
+/* Per-cell meta / hint → eyebrow-role kicker, matching the handoff
+   chart-system .cs-stripcell .ch / .cs-card .ck meta (eyebrow role tokens). */
+.chart-head .info {
+  font-family: var(--title-eyebrow-font);
+  /* One notch below the shared eyebrow size — these per-cell hints read as fine
+     print, not page eyebrows. */
+  font-size: 0.625rem; /* 10 */
+  font-weight: var(--title-eyebrow-weight);
+  letter-spacing: var(--title-eyebrow-tracking);
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* Filtered state: the hint becomes an actionable "remove filter" affordance —
+   same kicker type, but accent-colored with a cross icon to read as a button. */
+.chart-head .info--clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--epfl-red);
+}
+.chart-head .info--clear:hover {
+  text-decoration: underline;
+}
+.chart-cell .v-card {
+  box-shadow: none !important;
+  background: transparent !important;
+}
+.chart-body {
+  flex: 1;
+  min-height: 0;
+}
+/* Single (treemap) tiles: fill the cell's full height instead of sitting at
+   their min-height with blank space below — the double/parallel charts size
+   themselves (aspect-ratio / explicit px height) so are left alone here. */
+.chart-cell .v-card:has(.single-chart__canvas) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.chart-cell .v-card:has(.single-chart__canvas) .v-card-text {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.chart-cell .single-chart__frame {
+  flex: 1;
+  min-height: 100px;
+}
+
+/* Toolbar row: global search + filters trigger (design handoff dash-toolbar) */
+.dash-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.dash-search {
+  position: relative;
+  flex: 0 0 320px;
+}
+.dash-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--fg-muted);
+}
+.dash-search input {
+  width: 100%;
+  padding: 10px 14px 10px 36px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--fg);
+  border-radius: var(--radius);
+}
+.dash-search input:focus {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+.dash-toolbar-spacer {
+  flex: 1;
+}
+/* Share view + Filters read as one action pair, tighter than the toolbar gap. */
+.dash-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+@media (max-width: 900px) {
+  .dash-toolbar {
+    padding: 12px 16px;
+  }
+  .dash-search {
+    flex: 1 1 auto;
+  }
+}
+
+/* Table zone */
+.dash-table {
+  padding: 0 32px 24px;
+}
+.dash-table .v-card {
+  box-shadow: none !important;
+  border: 0 !important;
+}
+/* Full-bleed table (design handoff: table spans the dashboard edge-to-edge) */
+.dash-table-full {
+  padding: 0;
+}
+.dash-table-full .v-card {
+  box-shadow: none !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* Table pager (design handoff dash-pager) */
+.dash-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.dash-pager strong {
+  color: var(--fg);
+}
+.dash-pager-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.dash-pager-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pager-size {
+  margin-left: 10px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.pager-size:focus {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -1px;
+}
+.pager-btns {
+  display: flex;
+  gap: 4px;
+}
+.pager-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg);
+  border-radius: var(--radius);
+  transition: border-color var(--t-fast);
+}
+.pager-btn:hover {
+  border-color: var(--fg);
+}
+.pager-btn.on {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+.pager-btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.pager-ellipsis {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-muted);
+}
+
+/* DETAIL DRAWER */
+.drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1020;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+}
+.drawer-scrim.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: -780px;
+  width: 760px;
+  max-width: 100%;
+  background: var(--bg);
+  border-left: 2px solid var(--epfl-red);
+  z-index: 1021;
+  transition: right 0.25s ease-in-out;
+  overflow-y: auto;
+}
+.drawer.open {
+  right: 0;
+}
+@media (max-width: 900px) {
+  .drawer {
+    width: 100vw;
+    right: -100vw;
+  }
+}
+
+/* ================ DETAIL PANEL (drawer body content) ================ */
+/* The detail panel is drawer-native; when a legacy dashboard still renders
+   it inline, give it a surface border instead. */
+.detail-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.drawer .detail-panel {
+  border: 0;
+}
+.drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 32px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+/* Sticky only inside the drawer — legacy dashboards still render the detail
+   panel inline, where a sticky head would pin to the page viewport. */
+.drawer .drawer-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.drawer-body {
+  padding: 24px 32px 80px;
+}
+/* Legacy detail slots still use bare h2/h3 headings — style them like
+   cd-section-h until each detail component is migrated. */
+.drawer-body h2,
+.cd-section-h {
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--epfl-red);
+  font-weight: var(--title-eyebrow-weight);
+  margin: 28px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.drawer-body h3 {
+  font-size: var(--title-subhead-size);
+  font-weight: var(--title-subhead-weight);
+  letter-spacing: var(--title-subhead-tracking);
+  color: var(--fg);
+  margin: 0 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.cd-section-h-sub {
+  color: var(--fg); /* ink + lighter rule distinguishes the sub-divider; size inherited */
+  border-bottom-color: var(--border-subtle);
+  margin-top: 18px;
+}
+
+.cd-title-block {
+  min-width: 0;
+}
+.cd-eyebrow {
+  font-size: var(--title-eyebrow-size);
+  letter-spacing: var(--title-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--epfl-red);
+  font-weight: var(--title-eyebrow-weight);
+  margin: 0 0 6px;
+}
+.cd-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+  font-feature-settings: 'tnum';
+}
+.cd-title-year {
+  font-weight: 300;
+  color: var(--fg-muted);
+}
+.cd-title-id {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--fg-muted);
+  margin-top: 4px;
+}
+.cd-head-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+/* Publication ref row — a quiet hairline-ruled row, not a boxed panel. */
+.cd-publication {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 18px;
+}
+.cd-publication-label {
+  font-size: var(--title-panel-size);
+  text-transform: uppercase;
+  letter-spacing: var(--title-panel-tracking);
+  font-weight: var(--title-panel-weight);
+  color: var(--fg-muted);
+  flex: 0 0 88px;
+}
+.cd-publication-ref {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg);
+  text-decoration: none;
+  display: inline;
+}
+a.cd-publication-ref {
+  color: var(--fg); /* quiet ink link; red is reserved for the hover affordance */
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1px;
+}
+a.cd-publication-ref:hover {
+  color: var(--epfl-red);
+  border-bottom-color: var(--epfl-red);
+}
+.cd-publication-ref .v-icon {
+  margin-left: 4px;
+  opacity: 0.55;
+  vertical-align: baseline;
+}
+
+/* Chart carousel */
+.cd-carousel {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  margin-bottom: 24px;
+}
+.cd-carousel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+  gap: 16px;
+}
+/* Card-title bar reads as an uppercase muted label on the grey head (handoff). */
+.cd-carousel-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.cd-carousel-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+.cd-carousel-btn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: var(--radius);
+}
+.cd-carousel-btn:hover {
+  border-color: var(--epfl-red);
+  color: var(--epfl-red);
+}
+.cd-carousel-counter {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--fg-muted);
+  min-width: 36px;
+  text-align: center;
+}
+.cd-carousel-body {
+  display: flex;
+  gap: 0;
+  padding: 12px 14px 12px;
+}
+.cd-chart-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px solid var(--border-subtle);
+  padding: 0 8px;
+}
+.cd-chart-wrap:last-child {
+  border-right: 0;
+}
+/* The chart is a <v-responsive> with no intrinsic width; in this column flex
+   with align-items:center it would collapse to 0 width (and, via aspect-ratio,
+   0 height), so ECharts paints into a 0x0 box and the chart looks dead. Give it
+   a definite width — max-width on the responsive keeps it capped and centered. */
+.cd-chart-wrap .v-responsive {
+  width: 100%;
+}
+.cd-chart-label {
+  font-size: var(--title-panel-size);
+  font-weight: var(--title-panel-weight);
+  letter-spacing: var(--title-panel-tracking);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 4px;
+  align-self: flex-start;
+}
+
+/* Two-col layouts */
+.cd-twocol {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 28px;
+  align-items: start;
+}
+.cd-twocol + .cd-twocol {
+  margin-top: 12px;
+}
+
+/* Property list — hairline-ruled key/value rows (handoff .cd-prop). */
+.cd-prop-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.cd-prop-block-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+/* Sub-section label (e.g. BEAM / COLUMN) — red, borderless, well ventilated. */
+.cd-prop-sub {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--epfl-red);
+  margin-bottom: 6px;
+}
+.prop-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+/* Composite-slab variant stays a compact inline wrap, not a ruled list. */
+.cd-prop-block-row .prop-item {
+  padding: 2px 0;
+  border-bottom: 0;
+  gap: 6px;
+}
+.prop-name {
+  color: var(--fg-muted);
+}
+.prop-val {
+  font-weight: 500;
+  text-align: right;
+  color: var(--fg);
+  font-feature-settings: 'tnum';
+}
+.prop-val.mono {
+  font-family: var(--font-sans);
+}
+.prop-unit {
+  color: var(--fg-subtle);
+  font-weight: 400;
+  font-size: 11px;
+  margin-left: 3px;
+}
+
+/* Schematic column */
+.cd-schematic {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cd-schematic-frame {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+}
+.cd-schematic-frame img,
+.cd-schematic-frame .v-img {
+  max-width: 100%;
+  max-height: 140px;
+  display: block;
+}
+.cd-schematic-frame-sm {
+  min-height: 110px;
+}
+.cd-schematic-frame-sm img,
+.cd-schematic-frame-sm .v-img {
+  max-height: 100px;
+}
+.cd-schematic-cap {
+  font-size: 11px;
+  color: var(--fg-muted);
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+/* KPI strip */
+.cd-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--border);
+  background: var(--border);
+  gap: 1px;
+}
+.cd-kpi {
+  background: var(--bg);
+  padding: 16px 18px 14px;
+}
+.cd-kpi-num {
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  font-feature-settings: 'tnum';
+  margin-bottom: 8px;
+}
+.cd-kpi-lbl {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  color: var(--fg);
+  margin-bottom: 2px;
+}
+.cd-kpi-hint {
+  font-size: 11px;
+  color: var(--fg-muted);
+  line-height: 1.4;
+}
+
+.cd-foot {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Tags (table cells, detail chips) */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+}
+.tag-red {
+  color: var(--epfl-red);
+  border-color: var(--epfl-red);
+}
+.tag-canard {
+  color: var(--epfl-canard);
+  border-color: var(--epfl-canard);
+}
+
+/* Narrower viewports — collapse detail two-col + carousel charts */
+@media (max-width: 900px) {
+  .cd-twocol {
+    grid-template-columns: 1fr;
+  }
+  .cd-carousel-body {
+    flex-direction: column;
+  }
+  .cd-chart-wrap {
+    border-right: 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .cd-chart-wrap:last-child {
+    border-bottom: 0;
+  }
+  .cd-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .drawer-head {
+    padding: 18px 20px 14px;
+  }
+  .drawer-body {
+    padding: 18px 20px 60px;
+  }
+}
+
+/* ================ FOOTER ================ */
+.ftr {
+  background: var(--epfl-black);
+  color: #fff;
+  padding: 56px 64px 24px;
+}
+.ftr-top {
+  display: grid;
+  grid-template-columns: 220px repeat(4, 1fr);
+  gap: 48px;
+}
+.ftr-logo img {
+  height: 32px;
+  filter: brightness(0) invert(1);
+}
+.ftr-tagline {
+  color: #c1c1c1;
+  font-size: 13px;
+  line-height: 1.55;
+  margin-top: 14px;
+}
+.ftr-col h6 {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  font-weight: 700;
+  margin: 0 0 14px;
+}
+.ftr-col a {
+  display: block;
+  color: #c1c1c1;
+  font-size: 13px;
+  text-decoration: none;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.ftr-col a:hover {
+  color: #fff;
+}
+.ftr-bot {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid #444;
+  font-size: 12px;
+  color: #8e8e8e;
+}
+.ftr-bot a {
+  color: #c1c1c1;
+  text-decoration: none;
+}
+
+/* ================ UTIL ================ */
+.feather {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ================ RESPONSIVE ================ */
+/* Smaller laptops: at 38% the hero panel bottoms out at its 420px floor and the
+   display-size title wraps it far taller than the media beside it. Give the
+   panel half the hero and step the type down a notch. */
+@media (min-width: 768px) and (max-width: 1599px) {
+  .hero {
+    grid-template-columns: minmax(420px, 48%) 1fr;
+  }
+  .hero-text {
+    padding: 40px 40px 40px 48px;
+  }
+  .hero-title {
+    font-size: 36px;
+  }
+}
+@media (max-width: 1280px) {
+  .keynums {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .split-7-5 {
+    grid-template-columns: 1fr;
+  }
+  .ftr-top {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 767px) {
+  .section {
+    padding: 40px 20px;
+  }
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .hero-text {
+    /* Stacked layout: no overlap to preserve, no strips to reserve. */
+    margin: 0;
+    padding: 40px 20px;
+  }
+  .hero-title {
+    font-size: 32px;
+  }
+  .hero-img {
+    margin-left: 0;
+    min-height: 280px;
+  }
+  .keynums {
+    grid-template-columns: 1fr;
+  }
+  .cat-grid {
+    grid-template-columns: 1fr;
+  }
+  .split-2 {
+    grid-template-columns: 1fr;
+  }
+  .logos {
+    padding: 32px 20px;
+  }
+  .ftr {
+    padding: 40px 20px 20px;
+  }
+  .ftr-top {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .dash-head {
+    padding: 20px 16px 16px;
+  }
+  .dash-title {
+    font-size: 28px;
+  }
+  .dash-active-filters {
+    padding: 10px 16px;
+  }
+  .dash-table {
+    padding: 0 8px 16px;
+  }
+  .chart-cell {
+    flex-basis: 100% !important;
+    min-width: 0 !important;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+}
+
+/* ================ ULTRAWIDE (≥2100px) ================
+   On a 3440px-class monitor a single centred column leaves most of the screen
+   empty and pushes the map and photos far below the fold. Above 2100px the home
+   page and the database/tool pages each split into columns; below it every page
+   keeps its normal laptop layout (home: databases full-width, then the
+   map | video row).
+
+   All splits use the same trick: the wrappers are `display: contents` by
+   default, so below the breakpoint the DOM flows exactly as it did before this
+   rule existed — the columns only become real boxes inside the media query.
+   2100px is chosen to clear a maximised 1920px window (which, minus the ~192px
+   app sidebar, has nowhere near the room for two columns). */
+.home-split,
+.dash-split,
+.dash-col-main,
+.dash-col-side {
+  display: contents;
+}
+
+@media (min-width: 2100px) {
+  /* ---- Home: hero on top, then two columns ----
+     The hero and the key numbers keep the full width — the split starts below
+     them: databases in the left column; map and video in the right one (until
+     2400px, where the video splits off into a third — see below). The photo
+     strip and the partners strip close the page full-width, in that order, so
+     the partners land right before the footer as they always did. */
+  .home-split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      'hero     hero'
+      'kpis     kpis'
+      'data     maphead'
+      'data     map'
+      'data     tools'
+      'gallery  gallery'
+      'partners partners';
+    align-content: start;
+  }
+  .home-split > * {
+    min-width: 0;
+  }
+  .hp-hero {
+    grid-area: hero;
+  }
+  .hp-kpis {
+    grid-area: kpis;
+  }
+  .hp-data {
+    grid-area: data;
+    border-right: 1px solid var(--border);
+  }
+  .hp-gallery {
+    grid-area: gallery;
+    border-top: 1px solid var(--border);
+  }
+  .home-split .section {
+    padding: 32px 48px;
+  }
+  /* The tiles fill the column: the section is a flex chain whose grid absorbs
+     the height the map/video column sets, and equal `1fr` rows share it out —
+     so the databases list runs exactly as far down as the column beside it. */
+  .home-split .hp-data {
+    display: flex;
+    flex-direction: column;
+  }
+  /* As many ~300px tiles per row as the data column carries — two in the pair
+     tier, three once the column widens on a full-size monitor. */
+  .home-split .cat-grid {
+    flex: 1;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 16px;
+  }
+  .home-split .cat-tile {
+    min-height: 0;
+    padding: 18px 20px 16px;
+  }
+  /* With the extra height the tiles trade the terse blurb for the dashboard's
+     summary sentence — shown instead of, not on top of, the short one, since
+     the summary opens with the same words. */
+  .home-split .cat-tile-desc {
+    display: none;
+  }
+  .home-split .cat-tile-desc-long {
+    display: block;
+  }
+  /* The dataset section's own head competes with nine cards for the column. */
+  .home-split .hp-data .section-head {
+    margin-bottom: 16px;
+  }
+  .home-split .hp-data .section-sub {
+    display: none;
+  }
+  /* The reach section holds head, map and video in one box; dissolve it (and
+     its inner 7/5 split) so the three parts can be placed independently. */
+  .hp-reach,
+  .hp-reach .split-7-5 {
+    display: contents;
+  }
+  .hp-reach > .section-head {
+    grid-area: maphead;
+    align-self: start;
+    padding: 32px 48px 12px;
+  }
+  /* Owns its column now, so it gets real height instead of a strip's share. */
+  .hp-reach .map-frame {
+    grid-area: map;
+    margin: 0 48px 32px;
+    min-height: clamp(380px, 42vh, 700px);
+  }
+  .hp-reach .tools-panel {
+    grid-area: tools;
+    margin: 0 48px 32px;
+    align-self: start;
+  }
+  /* Partners: the usual full-width strip, closing the page before the footer. */
+  .hp-partners {
+    grid-area: partners;
+  }
+
+  /* ---- Database pages: table left, charts pinned right ---- */
+  .dash-split {
+    display: grid;
+    /* Close to an even split. The charts column earns the extra width: at this
+       size a strip fits all its cells on ONE row, so widening it turns vertical
+       scrolling into charts you can already see. */
+    grid-template-columns: minmax(0, 1fr) minmax(520px, 0.85fr);
+    flex: 1;
+  }
+  /* Bound to the viewport so the table (the only growable child) absorbs the
+     leftover height and the pager always lands just above the fold. */
+  .dash-col-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 100vh;
+  }
+  .dash-col-main .dash-table-full {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Charts stay put while the table scrolls beside them. `align-self: start`
+     plus a viewport cap keeps the sticky box from stretching the grid row (the
+     same shape as .tool-page .rail) — the main column keeps the grid's default
+     `stretch` so the table can run the full height. */
+  .dash-col-side {
+    display: block;
+    min-width: 0;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow-y: auto;
+    border-left: 1px solid var(--border);
+  }
+  /* Cells keep their natural wrap here (a strip of three fits across a ~1400px
+     column), but each gets more height than the 220px strip default — the
+     column is tall and the point is to read the charts, not to stack them. */
+  .dash-col-side .chart-cell {
+    min-height: clamp(260px, 30vh, 380px);
+  }
+  .dash-col-side .charts-strip:last-child {
+    border-bottom: 0;
+  }
+}
+
+/* ---- Home, very large screens: the video gets a third column ----
+   databases | map | video, with the gallery and partners strips still closing
+   the page full-width. Three columns give the databases section enough width
+   that COMPACT tiles already land at roughly the map/video height — so the
+   two-column tier's stretched rows and summary sentences switch back off and
+   the cards return to their minimal laptop size and content. */
+@media (min-width: 2400px) {
+  .home-split {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'hero     hero     hero'
+      'kpis     kpis     kpis'
+      'data     maphead  tools'
+      'data     map      tools'
+      'gallery  gallery  gallery'
+      'partners partners partners';
+  }
+  /* The video column starts level with the map's heading, not under the map. */
+  .hp-reach .tools-panel {
+    margin-top: 32px;
+  }
+  /* Pinned to 3-up: left to `auto-fill`, the narrower end of this tier fits
+     only two tiles per row, and the resulting 5-row stack becomes the tallest
+     thing in the grid — inflating the shared rows and pushing the map away
+     from its own heading. Three rows of nine keeps the section at map height. */
+  .home-split .cat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: auto;
+  }
+  .home-split .cat-tile-desc {
+    display: block;
+  }
+  .home-split .cat-tile-desc-long {
+    display: none;
+  }
+}
+
+/* Tutorial video + modelling-tool links (home "worldwide reach" section).
+   Extracted from inline styles so the ultrawide layout can re-flow the panel. */
+.tools-panel {
+  display: flex;
+  flex-direction: column;
+}
+.tools-panel-copy {
+  margin-top: 24px;
+}
+.tools-panel-eyebrow {
+  margin-bottom: 10px;
+}
+.tools-panel-blurb {
+  margin: 0 0 16px;
+  color: var(--fg-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.tools-panel-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 420px) {
+  .mhdr-brand-name small {
+    display: none;
+  }
+}

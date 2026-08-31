@@ -1,19 +1,33 @@
 <script setup lang="ts">
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_columns
 import LegendChart from '@/components/commons/charts/LegendChart.vue'
-import SurfaceGlChart from '@/components/commons/charts/SurfaceGlChart.vue'
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import UnitSlider, { type UnitSliderItem } from '@/components/commons/sliders/UnitSlider.vue'
-import TitleRow from '@/components/commons/TitleRow.vue'
+import ToolShell from '@/components/commons/ToolShell.vue'
+import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
 import type { EChartsGlOption } from '@/utils/echarts-gl'
 import { univariateOption } from '@/utils/fragility'
 import { subscripts } from '@/utils/unicode'
 import { getColorMap } from '@/utils/vuetify'
 import type { EChartsOption, SeriesOption } from 'echarts'
 import { range } from 'lodash'
-import { computed, reactive, ref } from 'vue'
-const parameters: UnitSliderItem<keyof Variables>[] = [
+import { computed, defineAsyncComponent, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n({ useScope: 'global' })
+
+// Lazy-load the 3D surface so the heavy echarts-gl (WebGL) bundle only loads
+// when a 3D plot is actually rendered.
+const SurfaceGlChart = defineAsyncComponent(
+  () => import('@/components/commons/charts/SurfaceGlChart.vue')
+)
+
+const parameters: {
+  key: keyof Variables
+  label: string
+  min: number
+  max: number
+  unit?: string
+}[] = [
   {
     key: 'hTw',
     label: 'h / tw',
@@ -43,6 +57,7 @@ const variables = reactive<Variables>({
 const alphaColorPalette = getColorMap(alphas.length)
 const legendItems = ref([
   ...alphas.map((_, index) => ({
+    id: `DS${index + 1}`,
     label: `DS${index + 1}`,
     indexToFilter: index,
     color: alphaColorPalette[index],
@@ -50,14 +65,16 @@ const legendItems = ref([
     selected: true
   })),
   {
-    label: 'Univariate',
+    id: 'univariate',
+    label: t('tools.column_fragility.legend_univariate'),
     color: 'black',
     icon: 'mdi-rectangle',
     selected: true,
     indexToFilter: -1
   },
   {
-    label: 'Multivariate',
+    id: 'multivariate',
+    label: t('tools.column_fragility.legend_multivariate'),
     color: 'black',
     icon: 'mdi-dots-horizontal',
     selected: true,
@@ -68,10 +85,10 @@ const indexSelected = computed<number[]>(() =>
   legendItems.value.filter((d) => d.indexToFilter >= 0 && d.selected).map((d) => d.indexToFilter)
 )
 const univariateSelected = computed<boolean>(
-  () => legendItems.value.find((d) => d.label === 'Univariate')?.selected || false
+  () => legendItems.value.find((d) => d.id === 'univariate')?.selected || false
 )
 const multivariateSelected = computed<boolean>(
-  () => legendItems.value.find((d) => d.label === 'Multivariate')?.selected || false
+  () => legendItems.value.find((d) => d.id === 'multivariate')?.selected || false
 )
 const variateOption = computed<EChartsOption>(() => {
   const series: SeriesOption[] = []
@@ -96,7 +113,7 @@ const variateOption = computed<EChartsOption>(() => {
         }
       ],
       maxSdr,
-      'Univariate '
+      `${t('tools.column_fragility.legend_univariate')} `
     )
     const selectedUnivariateSeries: SeriesOption[] = (option.series as SeriesOption[]).filter(
       (_, index) => indexSelected.value.includes(index)
@@ -115,7 +132,9 @@ const variateOption = computed<EChartsOption>(() => {
       },
       series: alphas.map((alpha, index) => ({
         type: 'line',
-        name: `Multivariate P(DS≥ds${subscripts[(index + 1).toString()]})`,
+        name: `${t('tools.column_fragility.legend_multivariate')} P(DS≥ds${
+          subscripts[(index + 1).toString()]
+        })`,
         showSymbol: false,
         animation: false,
         itemStyle: {
@@ -246,74 +265,60 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
 </script>
 
 <template>
-  <div>
-    <v-row>
-      <v-col cols="12">
-        <title-row hide-unit>
-          <h1>Fragility Curve Plotter for Wide-Flange Steel Columns</h1>
-          <p>
-            This module plots univariate and multivariate fragility curves for wide-flange steel
-            columns depending on their primary loading and geometric characteristics. For further
-            information please refer to
-            <a
-              target="_blank"
-              href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
-              >Elkady et al. (2018)</a
-            >.
-          </p>
-        </title-row>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="6">
-        <v-row>
-          <v-col cols="12">
-            <v-card>
-              <v-card-title>
-                Parameters
-                <info-tooltip>
-                  Please provide the imposed gravity-induced axial load ratio, Pg/Pyn and the web
-                  slenderness ratio, h/tw of the wide-flange cross section of the steel column.
-                </info-tooltip>
-              </v-card-title>
-              <v-card-text>
-                <v-row>
-                  <v-col v-for="item in parameters" :key="item.key">
-                    <unit-slider
-                      v-model="variables[item.key]"
-                      :label="item.label"
-                      :max="item.max"
-                      :min="item.min"
-                      :unit="item.unit"
-                    />
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="12">
-            <h2>Fragility Curves</h2>
-            <v-row>
-              <v-col cols="9">
-                <unit-chart :aspect-ratio="2" :option="variateOption" x-unit="rad" />
-              </v-col>
-              <v-col cols="3">
-                <legend-chart v-model="legendItems" :separators-index="[4]" />
-              </v-col>
-            </v-row>
-          </v-col>
-        </v-row>
-      </v-col>
-      <v-col cols="6">
-        <h2>Surface Fragility Curves</h2>
-        <v-row>
-          <v-col v-for="(item, index) in surfaceOptions" :key="index" cols="6">
-            <surface-gl-chart :option="item" />
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
-  </div>
+  <tool-shell
+    :eyebrow="$t('tools.common.fragility_eyebrow')"
+    :title="$t('tools.column_fragility.title')"
+    layout="parambar"
+  >
+    <template #intro>
+      <i18n-t keypath="tools.column_fragility.intro" tag="span" scope="global">
+        <template #reference>
+          <a
+            target="_blank"
+            href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
+            >{{ $t('tools.column_fragility.intro_reference') }}</a
+          >
+        </template>
+      </i18n-t>
+    </template>
+
+    <template #parambar>
+      <div v-for="item in parameters" :key="item.key" class="pb-group pb-slider">
+        <tool-slider
+          v-model="variables[item.key]"
+          :label="item.label"
+          :max="item.max"
+          :min="item.min"
+          :unit="item.unit"
+        />
+      </div>
+    </template>
+
+    <template #stage>
+      <div class="st-chart">
+        <div class="chart-cap">
+          <div class="chart-cap-t">
+            <h2 class="chart-h">{{ $t('tools.column_fragility.fragility_curves') }}</h2>
+            <p class="chart-sub">{{ $t('tools.column_fragility.fragility_curves_sub') }}</p>
+          </div>
+        </div>
+        <div class="curve-row">
+          <div class="tchart h-chart">
+            <unit-chart fill :option="variateOption" x-unit="rad" />
+          </div>
+          <legend-chart v-model="legendItems" :separators-index="[4]" />
+        </div>
+      </div>
+
+      <div class="e-surfaces-head">
+        <h3 class="chart-h">{{ $t('tools.column_fragility.surface_fragility_curves') }}</h3>
+        <p class="chart-sub">{{ $t('tools.column_fragility.surface_fragility_curves_sub') }}</p>
+      </div>
+      <div class="st-surfaces">
+        <div v-for="(item, index) in surfaceOptions" :key="index" class="tchart h-surface">
+          <surface-gl-chart fill :option="item" />
+        </div>
+      </div>
+    </template>
+  </tool-shell>
 </template>

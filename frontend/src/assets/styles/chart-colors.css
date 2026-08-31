@@ -1,0 +1,250 @@
+/* ============================================================
+   EPFL Design System — Chart Colors
+   Source: EPFL-ENAC/co2-calculator @ frontend/src/constant/charts.ts
+
+   16 hue families × 5 shades, designed as soft pastels so the
+   brand red can stay reserved for primary actions and emphasis.
+   Each family ships a `default` palette and a higher-saturation
+   `colorblind` variant; the variants live in separate selectors
+   (`:root` vs `:root.colorblind`) so a single class toggle flips
+   the entire chart palette.
+
+   Twelve product categories alias into the hue families — use
+   the `--chart-cat-*` tokens for category-level series colors.
+   ============================================================ */
+
+:root {
+  /* ──────────── DEFAULT PALETTE ──────────── */
+
+  /* Yellow */
+  --chart-yellow-darker: #fff381;
+  --chart-yellow-dark: #fffa9c;
+  --chart-yellow: #fffeba;
+  --chart-yellow-light: #ffffd4;
+  --chart-yellow-lighter: #ffffe8;
+
+  /* Peach */
+  --chart-peach-darker: #fdd279;
+  --chart-peach-dark: #ffdf96;
+  --chart-peach: #ffebb5;
+  --chart-peach-light: #fff4d4;
+  --chart-peach-lighter: #fffbe8;
+
+  /* Apricot */
+  --chart-apricot-darker: #fabf75;
+  --chart-apricot-dark: #ffd093;
+  --chart-apricot: #ffe0b3;
+  --chart-apricot-light: #ffe8c4;
+  --chart-apricot-lighter: #fff0d5;
+
+  /* Lavender */
+  --chart-lavender-darker: #a69ccc;
+  --chart-lavender-dark: #bbb3db;
+  --chart-lavender: #d1cbe8;
+  --chart-lavender-light: #e6d9f4;
+  --chart-lavender-lighter: #f2e6f2;
+
+  /* Mauve */
+  --chart-mauve-darker: #bba3ce;
+  --chart-mauve-dark: #c8b5d8;
+  --chart-mauve: #d5c7e2;
+  --chart-mauve-light: #e2d9ec;
+  --chart-mauve-lighter: #ede8f2;
+
+  /* Lilac */
+  --chart-lilac-darker: #d0a9cf;
+  --chart-lilac-dark: #ddbddc;
+  --chart-lilac: #e9d2e9;
+  --chart-lilac-light: #f0dcf0;
+  --chart-lilac-lighter: #f5e6f5;
+
+  /* Plum */
+  --chart-plum-darker: #c19acd;
+  --chart-plum-dark: #cfb0da;
+  --chart-plum: #ddc6e6;
+  --chart-plum-light: #eadcf1;
+  --chart-plum-lighter: #f3ecf7;
+
+  /* Cobalt */
+  --chart-cobalt-darker: #b0b7de;
+  --chart-cobalt-dark: #c5cae9;
+  --chart-cobalt: #d4d9ec;
+  --chart-cobalt-light: #dee3ef;
+  --chart-cobalt-lighter: #ebeff9;
+
+  /* Periwinkle */
+  --chart-periwinkle-darker: #a5add8;
+  --chart-periwinkle-dark: #bac0e4;
+  --chart-periwinkle: #cfd4ee;
+  --chart-periwinkle-light: #d9dee9;
+  --chart-periwinkle-lighter: #e3e8f4;
+
+  /* Sky blue */
+  --chart-sky-darker: #a4bce3;
+  --chart-sky-dark: #b8ccec;
+  --chart-sky: #ceddf4;
+  --chart-sky-light: #d9e8f8;
+  --chart-sky-lighter: #e5f2fc;
+
+  /* Baby blue */
+  --chart-baby-darker: #a2cbed;
+  --chart-baby-dark: #b6d8f4;
+  --chart-baby: #cde5fa;
+  --chart-baby-light: #d9e8f8;
+  --chart-baby-lighter: #e5f2fc;
+
+  /* Aqua */
+  --chart-aqua-darker: #a1d9f7;
+  --chart-aqua-dark: #b5e4fc;
+  --chart-aqua: #cde5fa;
+  --chart-aqua-light: #d9edfc;
+  --chart-aqua-lighter: #e5f5fe;
+
+  /* Mint */
+  --chart-mint-darker: #a4d6d5;
+  --chart-mint-dark: #b9e2e1;
+  --chart-mint: #cfedec;
+  --chart-mint-light: #d9f2f1;
+  --chart-mint-lighter: #e6f7f6;
+
+  /* Light green */
+  --chart-green-darker: #a8d3ae;
+  --chart-green-dark: #bce0c1;
+  --chart-green: #d1ebd5;
+  --chart-green-light: #e6f5ea;
+  --chart-green-lighter: #f2fbf2;
+
+  /* Pale yellow-green */
+  --chart-yellowgreen-darker: #abcf84;
+  --chart-yellowgreen-dark: #c0dea0;
+  --chart-yellowgreen: #d5ebbe;
+  --chart-yellowgreen-light: #e5f2d4;
+  --chart-yellowgreen-lighter: #f0f8ea;
+
+  /* Light lavender */
+  --chart-lightlavender-darker: #c0a9d8;
+  --chart-lightlavender-dark: #d3bde4;
+  --chart-lightlavender: #e6d1ee;
+  --chart-lightlavender-light: #f0d9f4;
+  --chart-lightlavender-lighter: #f5e6f5;
+
+  /* ──────────── CATEGORY ALIASES ────────────
+     Map product category → "darker" shade of its hue family.
+     Use the family scale (e.g. --chart-peach-light) for sub-
+     categories within that category. */
+  --chart-cat-process-emissions: var(--chart-peach-darker);
+  --chart-cat-buildings-energy-combustion: var(--chart-apricot-darker);
+  --chart-cat-buildings-room: var(--chart-lilac-darker);
+  --chart-cat-equipment: var(--chart-plum-darker);
+  --chart-cat-external-cloud-and-ai: var(--chart-lavender-darker);
+  --chart-cat-purchases: var(--chart-green-darker);
+  --chart-cat-research-facilities: var(--chart-yellowgreen-darker);
+  --chart-cat-professional-travel: var(--chart-baby-darker);
+  --chart-cat-commuting: var(--chart-aqua-darker);
+  --chart-cat-food: var(--chart-mint-darker);
+  --chart-cat-waste: var(--chart-periwinkle-darker);
+  --chart-cat-embodied-energy: var(--chart-sky-darker);
+}
+
+/* ──────────── COLORBLIND PALETTE ──────────── */
+/* Toggle with <html class="colorblind"> or any ancestor that
+   carries the .colorblind class. Same token names, higher
+   saturation, better hue separation. */
+
+.colorblind {
+  --chart-yellow-darker: #d4a017;
+  --chart-yellow-dark: #e5b84f;
+  --chart-yellow: #f5d882;
+  --chart-yellow-light: #fae8b0;
+  --chart-yellow-lighter: #fdf5d9;
+
+  --chart-peach-darker: #d97b2e;
+  --chart-peach-dark: #e89b5c;
+  --chart-peach: #f5b97e;
+  --chart-peach-light: #f9d4ab;
+  --chart-peach-lighter: #fce9d3;
+
+  --chart-apricot-darker: #c97a3e;
+  --chart-apricot-dark: #dc9b66;
+  --chart-apricot: #edb88e;
+  --chart-apricot-light: #f4d3b5;
+  --chart-apricot-lighter: #fae9d9;
+
+  --chart-lavender-darker: #5b7fc7;
+  --chart-lavender-dark: #7a9dd6;
+  --chart-lavender: #9abbe5;
+  --chart-lavender-light: #bdd5f0;
+  --chart-lavender-lighter: #dde9f8;
+
+  --chart-mauve-darker: #7091cc;
+  --chart-mauve-dark: #8fadd9;
+  --chart-mauve: #adc7e6;
+  --chart-mauve-light: #cbddf2;
+  --chart-mauve-lighter: #e5eef9;
+
+  --chart-lilac-darker: #8aa3d1;
+  --chart-lilac-dark: #a5bbde;
+  --chart-lilac: #c0d3eb;
+  --chart-lilac-light: #d9e5f4;
+  --chart-lilac-lighter: #edf3fa;
+
+  --chart-plum-darker: #6385c6;
+  --chart-plum-dark: #7fa0d6;
+  --chart-plum: #9fbbe6;
+  --chart-plum-light: #c1d4f2;
+  --chart-plum-lighter: #e0ebf9;
+
+  --chart-cobalt-darker: #5a89c2;
+  --chart-cobalt-dark: #7aa4d6;
+  --chart-cobalt: #9dc1e7;
+  --chart-cobalt-light: #c2dbf2;
+  --chart-cobalt-lighter: #e4f1fb;
+
+  --chart-periwinkle-darker: #4a7bb8;
+  --chart-periwinkle-dark: #6996cc;
+  --chart-periwinkle: #8ab2e0;
+  --chart-periwinkle-light: #afcfed;
+  --chart-periwinkle-lighter: #d4e6f6;
+
+  --chart-sky-darker: #3d8fc9;
+  --chart-sky-dark: #5fa8d9;
+  --chart-sky: #82c2e8;
+  --chart-sky-light: #acdaf2;
+  --chart-sky-lighter: #d4edf9;
+
+  --chart-baby-darker: #2ba3d4;
+  --chart-baby-dark: #52bce3;
+  --chart-baby: #7ad3f0;
+  --chart-baby-light: #a8e4f6;
+  --chart-baby-lighter: #d1f2fb;
+
+  --chart-aqua-darker: #00a3b8;
+  --chart-aqua-dark: #2dbdd0;
+  --chart-aqua: #5dd6e6;
+  --chart-aqua-light: #91e6f0;
+  --chart-aqua-lighter: #c5f3f8;
+
+  --chart-mint-darker: #00a896;
+  --chart-mint-dark: #2dc2b3;
+  --chart-mint: #5dd9cf;
+  --chart-mint-light: #91e9e0;
+  --chart-mint-lighter: #c5f4f0;
+
+  --chart-green-darker: #3d9970;
+  --chart-green-dark: #5fb591;
+  --chart-green: #82d1b2;
+  --chart-green-light: #ace3d0;
+  --chart-green-lighter: #d4f1e8;
+
+  --chart-yellowgreen-darker: #7aa832;
+  --chart-yellowgreen-dark: #9ac156;
+  --chart-yellowgreen: #b9d97e;
+  --chart-yellowgreen-light: #d1e8a8;
+  --chart-yellowgreen-lighter: #e8f4d1;
+
+  --chart-lightlavender-darker: #6b8acc;
+  --chart-lightlavender-dark: #8aa5db;
+  --chart-lightlavender: #aac0ea;
+  --chart-lightlavender-light: #ccdcf3;
+  --chart-lightlavender-lighter: #e6eef9;
+}

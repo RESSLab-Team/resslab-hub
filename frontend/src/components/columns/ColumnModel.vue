@@ -3,15 +3,20 @@
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SectionSelector from '@/components/commons/SectionSelector.vue'
-import UnitSlider, { type Variable } from '@/components/commons/sliders/UnitSlider.vue'
-import TitleRow from '@/components/commons/TitleRow.vue'
+import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
+import type { Variable } from '@/utils/model'
+import ToolShell from '@/components/commons/ToolShell.vue'
 import UnitTableRow, { type UnitTableRowData } from '@/components/commons/UnitTableRow.vue'
+import UnitToggle from '@/components/commons/UnitToggle.vue'
 import { publicPath, type Section } from '@/utils/common'
-import { variableBind, type Point } from '@/utils/model'
+import type { Point } from '@/utils/model'
 import { primaryColor, secondaryColor } from '@/utils/vuetify'
 import type { EChartsOption } from 'echarts'
 import { clamp, omit } from 'lodash'
 import { computed, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n({ useScope: 'global' })
 
 interface Result {
   ke: number
@@ -359,157 +364,147 @@ function getResult(output: Envelope | Backbone): Result {
   }
 }
 
-function getOption(backbone: Result, envelope: Result): EChartsOption {
-  return {
-    xAxis: {
-      name: 'Chord Rotation, θ'
+// Computed rather than built inline in the template: a template call would mint a
+// fresh option object on every re-render and vue-echarts would push each one
+// through `setOption`. Series carry stable ids so a parameter change merges into
+// the rendered series instead of replacing them.
+const chartOption = computed<EChartsOption>(() => ({
+  xAxis: {
+    name: t('tools.column_model.chart_x_axis')
+  },
+  yAxis: {
+    name: t('tools.column_model.chart_y_axis')
+  },
+  series: [
+    {
+      id: 'backbone',
+      type: 'line',
+      name: t('tools.column_model.series_monotonic_backbone'),
+      data: backboneResult.value.points,
+      color: primaryColor.base
     },
-    yAxis: {
-      name: 'Moment, M'
-    },
-    series: [
-      {
-        type: 'line',
-        name: 'Monotonic Backbone',
-        data: backbone.points,
-        color: primaryColor.base
-      },
-      {
-        type: 'line',
-        name: 'First-Cycle Envelope',
-        data: envelope.points,
-        color: secondaryColor.base
-      }
-    ]
-  }
-}
+    {
+      id: 'envelope',
+      type: 'line',
+      name: t('tools.column_model.series_first_cycle_envelope'),
+      data: envelopeResult.value.points,
+      color: secondaryColor.base
+    }
+  ]
+}))
 
-function getTableColumns(...results: Result[]): Record<string, number | undefined>[] {
-  return results.map((result) => omit(result, 'points'))
-}
+const tableColumns = computed<Record<string, number | undefined>[]>(() =>
+  [backboneResult.value, envelopeResult.value].map((result) => omit(result, 'points'))
+)
 
-defineExpose({ vars, backbone, envelope })
+const paramCount = computed(() => steelShapeDimensions.length + memberProperties.value.length)
+
+defineExpose({ vars, backbone, envelope, variables, onSectionChanged })
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12">
-      <title-row>
-        <h1>Predictive Model for Steel wide Flange Columns</h1>
-        <p>
-          For further information refer to
-          <a href="" target="_blank"> Lignos et al. (2019) </a>
-        </p>
-      </title-row>
-    </v-col>
-    <v-col cols="6">
-      <v-row>
-        <v-col>
-          <v-card>
-            <v-card-title>
-              Select Steel Profile
-              <info-tooltip>
-                Here, you may choose to either select a W-Shape from the AISC database or input your
-                own dimensions using the sliders below
-              </info-tooltip>
-            </v-card-title>
-            <v-card-text>
-              <section-selector @update:section="onSectionChanged($event)" />
-              <v-row>
-                <v-col v-for="item in steelShapeDimensions" :key="item.key" v-bind="variableBind">
-                  <unit-slider
-                    v-model="variables[item.key]"
-                    :disabled="!!section"
-                    :label="item.text"
-                    :max="item.max"
-                    :min="item.min"
-                    :unit="item.unit"
-                  />
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <v-card>
-            <v-card-title>
-              Specify Member and Loading Properties
-              <info-tooltip>
-                Here you need to specify the beam full length (L), the beam unbraced length
-                (L<sub>b</sub>), which is defined as the distance from the column face to the
-                nearest lateral brace, the expected yield stress, F<sub>y</sub> of the steel
-                material, the capping-to-yield ratio <sup>Mc</sup>/<sub>My</sub>, the expected
-                residual strength ratio, K, and the ultimate rotation &theta;<sub>u</sub> of the
-                steel component.
-              </info-tooltip>
-            </v-card-title>
-            <v-card-text>
-              <v-row>
-                <v-col v-for="item in memberProperties" :key="item.key" v-bind="variableBind">
-                  <unit-slider
-                    v-model="variables[item.key]"
-                    :label="item.text"
-                    :max="item.max"
-                    :min="item.min"
-                    :unit="item.unit"
-                  />
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col cols="6">
-      <v-img height="400px" :src="publicPath + 'img/column/component.png'" />
-    </v-col>
-    <v-col cols="6">
-      <v-row justify="center">
-        <v-col cols="12" lg="8" xl="6">
-          <v-card>
-            <v-card-text>
-              <unit-chart
-                :option="getOption(backboneResult, envelopeResult)"
-                x-unit="rad"
-                y-unit="kN⋅mm"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col cols="6">
-      <v-card>
-        <v-card-title>
-          Predictive Model for Columns
-          <info-tooltip>Provided that the steel member is in double curvature</info-tooltip>
-        </v-card-title>
-        <v-card-text>
-          <v-table density="compact">
-            <thead>
-              <tr>
-                <th class="text-center">Parameter</th>
-                <th class="text-center">Unit</th>
-                <th class="text-center">Monotonic Backbone</th>
-                <th class="text-center">First Cycle Envelope</th>
-              </tr>
-            </thead>
-            <tbody>
-              <unit-table-row
-                v-for="item in rows"
-                :key="item.key"
-                :field="item.key"
-                :text="item.text"
-                :unit="item.unit"
-                :fraction-digit="item.fractionDigit"
-                :columns="getTableColumns(backboneResult, envelopeResult)"
-              />
-            </tbody>
-          </v-table>
-        </v-card-text>
-      </v-card>
-    </v-col>
-  </v-row>
+  <tool-shell
+    :eyebrow="$t('tools.common.model_eyebrow')"
+    :title="$t('tools.column_model.title')"
+    :param-count="paramCount"
+  >
+    <template #actions><unit-toggle /></template>
+    <template #intro>
+      <i18n-t keypath="tools.column_model.intro" tag="span" scope="global">
+        <template #link>
+          <a href="" target="_blank">{{ $t('tools.column_model.intro_link') }}</a>
+        </template>
+      </i18n-t>
+    </template>
+
+    <template #rail>
+      <div class="tool-card">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.column_model.select_steel_profile') }}
+          <info-tooltip>{{ $t('tools.column_model.select_steel_profile_help') }}</info-tooltip>
+        </div>
+        <div class="tfield">
+          <section-selector @update:section="onSectionChanged($event)" />
+        </div>
+        <div v-for="item in steelShapeDimensions" :key="item.key" class="tfield">
+          <tool-slider
+            v-model="variables[item.key]"
+            :disabled="!!section"
+            :label="item.text"
+            :max="item.max"
+            :min="item.min"
+            :unit="item.unit"
+          />
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.column_model.member_loading_properties') }}
+          <info-tooltip>{{ $t('tools.column_model.member_loading_properties_help') }}</info-tooltip>
+        </div>
+        <div v-for="item in memberProperties" :key="item.key" class="tfield">
+          <tool-slider
+            v-model="variables[item.key]"
+            :label="item.text"
+            :max="item.max"
+            :min="item.min"
+            :unit="item.unit"
+          />
+        </div>
+      </div>
+    </template>
+
+    <template #stage>
+      <div class="st-block st-chart">
+        <div class="chart-cap">
+          <div class="chart-cap-t">
+            <h2 class="chart-h">{{ $t('tools.column_model.backbone_curve') }}</h2>
+            <p class="chart-sub">{{ $t('tools.column_model.backbone_curve_sub') }}</p>
+          </div>
+        </div>
+        <div class="tchart h-chart">
+          <unit-chart fill :option="chartOption" x-unit="rad" y-unit="kN⋅mm" />
+        </div>
+      </div>
+
+      <div class="st-block st-table">
+        <div class="tool-card-h with-info">
+          {{ $t('tools.column_model.predictive_model') }}
+          <info-tooltip>{{ $t('tools.column_model.predictive_model_help') }}</info-tooltip>
+        </div>
+        <v-table density="compact">
+          <thead>
+            <tr>
+              <th class="text-center">{{ $t('tools.column_model.table_parameter') }}</th>
+              <th class="text-center">{{ $t('tools.column_model.table_unit') }}</th>
+              <th class="text-center">{{ $t('tools.column_model.table_monotonic_backbone') }}</th>
+              <th class="text-center">{{ $t('tools.column_model.table_first_cycle_envelope') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <unit-table-row
+              v-for="item in rows"
+              :key="item.key"
+              :field="item.key"
+              :text="item.text"
+              :unit="item.unit"
+              :fraction-digit="item.fractionDigit"
+              :columns="tableColumns"
+            />
+          </tbody>
+        </v-table>
+      </div>
+
+      <div class="st-block st-schem">
+        <figure class="tool-schematic">
+          <img
+            :alt="$t('tools.column_model.schematic_alt')"
+            :src="publicPath + 'img/column/component.png'"
+          />
+          <figcaption>{{ $t('tools.column_model.figcaption') }}</figcaption>
+        </figure>
+      </div>
+    </template>
+  </tool-shell>
 </template>

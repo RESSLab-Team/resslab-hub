@@ -1,3 +1,8 @@
+// The landing page ships with the entry chunk: statically importing it saves a
+// router-resolve → fetch round trip on every first visit. Its heavy pieces
+// (map, API client) already load lazily from within the view. Every other
+// route stays a dynamic import.
+import HomeView from '@/views/HomeView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -6,7 +11,12 @@ const router = createRouter({
     {
       path: '/',
       name: 'Home',
-      component: () => import('@/views/HomeView.vue')
+      component: HomeView
+    },
+    {
+      path: '/about',
+      name: 'About',
+      component: () => import('@/views/AboutView.vue')
     },
     {
       path: '/connections',
@@ -80,11 +90,23 @@ const router = createRouter({
       children: [
         {
           path: '',
-          redirect: '/materials/database'
+          redirect: '/materials/cyclic-coupons'
         },
         {
           path: 'database',
+          redirect: '/materials/cyclic-coupons'
+        },
+        {
+          path: 'cyclic-coupons',
           component: () => import('@/views/MaterialsDatabase.vue')
+        },
+        {
+          path: 'tensile-coupons',
+          component: () => import('@/views/TensileCouponsDatabase.vue')
+        },
+        {
+          path: 'ductile-fracture',
+          component: () => import('@/views/DuctileFractureDatabase.vue')
         },
         {
           path: 'model',
@@ -137,6 +159,26 @@ const router = createRouter({
           component: () => import('@/views/EbfDatabase.vue')
         }
       ]
+    },
+    {
+      path: '/contribute',
+      redirect: '/contribute/new'
+    },
+    {
+      path: '/contribute/new',
+      name: 'ContributeNew',
+      component: () => import('@/views/ContributeView.vue')
+    },
+    {
+      path: '/curation',
+      name: 'CurationQueue',
+      component: () => import('@/views/CurationQueueView.vue')
+    },
+    {
+      path: '/curation/:prNumber(\\d+)',
+      name: 'CurationReview',
+      component: () => import('@/views/CurationReviewView.vue'),
+      props: true
     }
   ]
 })

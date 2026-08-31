@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ConnectionFragility from "@/components/connections/ConnectionFragility.vue";
+import ConnectionFragility from '@/components/connections/ConnectionFragility.vue'
 </script>
 
 <template>

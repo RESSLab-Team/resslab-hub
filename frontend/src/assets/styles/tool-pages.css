@@ -1,0 +1,747 @@
+/* ============================================================
+   Tool pages — "Rail + Stage" layout (single page scroll)
+   Ported from the EPFL design handoff (handoff_tool_layout/).
+   Uses the app's design tokens (--bg / --fg / --border / --epfl-red …)
+   so every rule inverts correctly in dark mode — no hardcoded hex.
+
+   Scroll model mirrors the DASHBOARD pages: the window scrolls the
+   whole page. Inputs sit in a STICKY rail (or a sticky parameter bar
+   for archetype E) that stays put — like `.dash-filters`. The primary
+   chart gets `position: sticky` so it never scrolls out of view while
+   the secondary results (table / schematic / surfaces) scroll beneath
+   it. ≤899px the rail becomes a right-hand Parameters drawer.
+   ============================================================ */
+
+.tool-page {
+  --rail-w: 340px;
+  --pad: 32px;
+  --topbar-h: 56px;
+
+  /* ── Rail density ────────────────────────────────────────
+     The model rails stack up to ten sliders, so how much room a
+     control can afford is a function of VIEWPORT HEIGHT, not width.
+     These are the compact tier — short laptop viewports; two
+     min-height steps down in RESPONSIVE REGIMES relax them back to
+     the handoff's original spacing as the viewport grows.
+     `--card-pad` has to be a token either way: the ratio readout
+     bleeds to the card edges with a matching negative margin. */
+  --card-pad: 14px;
+  --card-head-gap: 10px;
+  --field-gap: 16px;
+  --rail-pad: 14px;
+  --rail-gap: 12px;
+  --group-gap: 14px;
+  --group-head-gap: 9px;
+  /* consumed by ToolSlider's scoped styles */
+  --tsl-head-gap: 2px;
+  --tsl-track-h: 16px;
+  --tsl-thumb: 12px;
+  --tsl-ends-gap: -1px;
+  --tsl-label-size: 12.5px;
+  --tsl-val-size: 12px;
+  --tsl-ends-size: 9px;
+
+  background: var(--bg);
+  min-height: calc(100vh - var(--topbar-h));
+}
+
+/* ── Body: RAIL + STAGE ────────────────────────────────────── */
+.tool-body {
+  display: grid;
+  grid-template-columns: var(--rail-w) 1fr;
+  align-items: start;
+}
+
+/* input rail — sticky column that stays put (mirrors .dash-filters).
+   `align-self: stretch` fills the grid row (whose height the stage's real content
+   drives) and `max-height: 100vh` caps it to the viewport — instead of a hard
+   `height: 100vh`, which would force the row (and thus the whole page, below the
+   header) taller than the viewport and scroll even when the content fits. */
+.tool-page .rail {
+  position: sticky;
+  top: 0;
+  align-self: stretch;
+  max-height: 100vh;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+  padding: var(--rail-pad);
+  display: flex;
+  flex-direction: column;
+  gap: var(--rail-gap);
+}
+
+/* stage — flows in the single page scroll */
+.tool-page .stage {
+  min-width: 0;
+  background: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Stage blocks ──────────────────────────────────────────── */
+.tool-page .st-block {
+  padding: 20px var(--pad);
+  min-width: 0;
+}
+.tool-page .st-block + .st-block {
+  border-top: 1px solid var(--border);
+}
+.tool-page .st-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* chart caption row */
+.tool-page .chart-cap {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+/* Title + kicker stack on the left of the caption row, leaving the right slot
+   free for whatever a chart wants to hang there. */
+.tool-page .chart-cap-t {
+  min-width: 0;
+}
+.tool-page .chart-h {
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
+  margin: 0;
+  color: var(--fg);
+}
+.tool-page .chart-sub {
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  color: var(--fg-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 3px 0 0;
+}
+
+/* Charts need an EXPLICIT height so ECharts has a box to track. */
+.tool-page .tchart {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  min-height: 0;
+}
+.tool-page .h-chart {
+  height: clamp(300px, 44vh, 460px);
+}
+.tool-page .h-surface {
+  height: clamp(300px, 42vh, 400px);
+}
+.tool-page .h-mini {
+  height: clamp(240px, 30vh, 320px);
+}
+
+/* two charts side by side (archetypes B / C) — stacks below 1000px */
+.tool-page .st-charts-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 999px) {
+  .tool-page .st-charts-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 3D surface stack (archetype E) — tiles two-up when wide */
+.tool-page .st-surfaces {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+@media (max-width: 699px) {
+  .tool-page .st-surfaces {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* curve + checkbox legend beside it (archetype E) */
+.tool-page .curve-row {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  min-height: 0;
+}
+.tool-page .curve-row .tchart {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.tool-page .curve-row > :last-child {
+  flex: 0 0 auto;
+}
+@media (max-width: 899px) {
+  .tool-page .curve-row {
+    flex-direction: column;
+  }
+}
+
+/* ── Results table ─────────────────────────────────────────── */
+.tool-page .st-table .v-table,
+.tool-page .st-table table {
+  background: transparent;
+  width: 100%;
+}
+
+/* ── Experiment schematic (archetypes A / B / C — in the STAGE) ─ */
+.tool-page .st-schem {
+  padding-bottom: 26px;
+}
+.tool-page .tool-schematic {
+  margin: 0;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+.tool-page .tool-schematic img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tool-page .tool-schematic.is-small img {
+  max-height: 220px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+.tool-page .st-schem .tool-schematic img {
+  max-height: clamp(240px, 40vh, 420px);
+  object-fit: contain;
+  margin: 0 auto;
+}
+.tool-page .tool-schematic figcaption {
+  font-size: 11px;
+  color: var(--fg-muted);
+  padding: 10px 14px;
+  line-height: 1.4;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Thumbnail switcher (archetype D) ──────────────────────── */
+.tool-page .mat-thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.tool-page .frag-thumbs {
+  grid-template-columns: 1fr 1fr;
+}
+.tool-page .mat-thumb {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: 8px 10px 10px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.tool-page .mat-thumb:hover {
+  border-color: var(--fg);
+}
+.tool-page .mat-thumb.is-active {
+  border-color: var(--fg);
+  box-shadow: inset 0 -3px 0 var(--epfl-red);
+}
+.tool-page .mat-thumb-chart {
+  pointer-events: none;
+}
+.tool-page .mat-thumb-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg);
+  margin-top: 4px;
+}
+/* Muted qualifier under a thumbnail's label (handoff `.thumb .tm`). */
+.tool-page .mat-thumb-meta {
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  margin-top: 2px;
+}
+
+/* ── Rail cards / fields / controls ────────────────────────── */
+.tool-page .tool-card {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: var(--card-pad);
+}
+.tool-page .tool-card-h {
+  font-size: var(--title-panel-size);
+  font-weight: var(--title-panel-weight);
+  text-transform: uppercase;
+  letter-spacing: var(--title-panel-tracking);
+  color: var(--fg);
+  padding-bottom: calc(var(--card-head-gap) - 2px);
+  margin-bottom: var(--card-head-gap);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tool-page .tool-card-h.with-info {
+  justify-content: space-between;
+}
+.tool-page .tfield {
+  margin-bottom: var(--field-gap);
+}
+.tool-page .tfield:last-child {
+  margin-bottom: 0;
+}
+.tool-page .tfield-label {
+  font-size: var(--title-panel-size);
+  text-transform: uppercase;
+  letter-spacing: var(--title-panel-tracking);
+  color: var(--fg);
+  font-weight: var(--title-panel-weight);
+  margin-bottom: 6px;
+}
+
+/* Ratio readout — dark emphasis bar bled to the card edges */
+.tool-page .tfield-ratio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--field-gap) calc(-1 * var(--card-pad)) calc(-1 * var(--card-pad));
+  padding: 10px var(--card-pad);
+  background: var(--epfl-control-fill);
+  color: var(--fg-inverse);
+  font-size: 13px;
+  font-style: italic;
+}
+.tool-page .tfield-ratio span {
+  opacity: 0.85;
+}
+.tool-page .tfield-ratio strong {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  color: var(--fg-inverse);
+  font-weight: 600;
+  font-style: normal;
+  font-feature-settings: 'tnum';
+}
+
+/* Parameter groups (material model) */
+.tool-page .tool-param-group {
+  margin-bottom: var(--group-gap);
+}
+.tool-page .tool-param-group:last-child {
+  margin-bottom: 0;
+}
+.tool-page .tool-param-group-h {
+  font-size: var(--title-panel-size);
+  text-transform: uppercase;
+  letter-spacing: var(--title-panel-tracking);
+  color: var(--fg);
+  font-weight: var(--title-panel-weight);
+  margin-bottom: var(--group-head-gap);
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.tool-page .tool-param-group .tslider {
+  margin-bottom: var(--field-gap);
+}
+.tool-page .tool-param-group .tslider:last-child {
+  margin-bottom: 0;
+}
+.tool-page .mat-a-groups {
+  margin-top: var(--group-gap);
+  padding-top: calc(var(--group-gap) - 2px);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Rail schematic (small reference figure kept in the rail — arch. D) */
+.tool-page .rail .tool-schematic.is-small {
+  padding: 4px;
+}
+
+/* ── Archetype E — horizontal parameter bar, no left rail ──── */
+.tool-page.has-parambar .tool-body {
+  grid-template-columns: 1fr;
+  display: block;
+}
+.tool-page .e-body {
+  display: flex;
+  flex-direction: column;
+}
+.tool-page .e-parambar {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  padding: 14px var(--pad);
+  display: flex;
+  align-items: flex-end;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.tool-page .e-parambar .pb-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 230px;
+}
+.tool-page .e-parambar .pb-group.pb-seg {
+  min-width: 220px;
+}
+.tool-page .e-parambar .pb-lbl {
+  font-size: var(--title-panel-size);
+  letter-spacing: var(--title-panel-tracking);
+  text-transform: uppercase;
+  color: var(--fg);
+  font-weight: var(--title-panel-weight);
+}
+.tool-page .e-results {
+  padding: 20px var(--pad);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ── Mobile "Parameters" trigger + scrim + drawer chrome ───── */
+.tool-page .tool-params-trigger {
+  display: none;
+}
+.tool-page .drawer-close {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 2;
+}
+.tool-page .drawer-close .dt {
+  font-size: var(--title-panel-size);
+  letter-spacing: var(--title-panel-tracking);
+  text-transform: uppercase;
+  font-weight: var(--title-panel-weight);
+}
+.tool-page .drawer-close .x {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+.tool-page .tool-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1020;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+}
+.tool-page.params-open .tool-scrim {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ═══════════════════════ RESPONSIVE REGIMES ═══════════════════ */
+
+/* ── VERTICAL DENSITY — the rail relaxes as the viewport gets taller.
+   The compact defaults sit on `.tool-page` above and cover short laptop
+   viewports (a 1440×900 laptop lands around 780px of usable height). These
+   two steps walk the rail back up: ~1080p gets an intermediate tier, and a
+   genuinely tall screen gets the handoff's original spacing. Only the tokens
+   move — no rule below needs a height-specific override. */
+@media (min-height: 800px) {
+  .tool-page {
+    --card-pad: 17px;
+    --card-head-gap: 12px;
+    --field-gap: 17px;
+    --rail-pad: 16px;
+    --rail-gap: 14px;
+    --group-gap: 18px;
+    --group-head-gap: 11px;
+    --tsl-head-gap: 4px;
+    --tsl-track-h: 19px;
+    --tsl-thumb: 13px;
+    --tsl-ends-gap: 0px;
+    --tsl-label-size: 13.5px;
+    --tsl-val-size: 12.5px;
+    --tsl-ends-size: 9.5px;
+  }
+}
+
+@media (min-height: 1000px) {
+  .tool-page {
+    --card-pad: 20px;
+    --card-head-gap: 14px;
+    --field-gap: 18px;
+    --rail-pad: 18px;
+    --rail-gap: 16px;
+    --group-gap: 22px;
+    --group-head-gap: 14px;
+    --tsl-head-gap: 7px;
+    --tsl-track-h: 22px;
+    --tsl-thumb: 14px;
+    --tsl-ends-gap: 2px;
+    --tsl-label-size: 14px;
+    --tsl-val-size: 13px;
+    --tsl-ends-size: 10px;
+  }
+}
+
+/* WIDE — give the rail and padding more room */
+@media (min-width: 1600px) {
+  .tool-page {
+    --rail-w: 400px;
+    --pad: 48px;
+  }
+}
+
+/* LAPTOP — narrow the rail */
+@media (max-width: 1199px) {
+  .tool-page {
+    --rail-w: 300px;
+    --pad: 26px;
+  }
+}
+
+/* Offset the sticky elements below the 56px global mobile header
+   (App.vue .mhdr, shown ≤1023px). */
+@media (max-width: 1023px) {
+  .tool-page .rail {
+    top: var(--topbar-h);
+    height: calc(100vh - var(--topbar-h));
+  }
+  .tool-page .e-parambar {
+    top: var(--topbar-h);
+  }
+}
+
+/* TABLET & MOBILE (<900px) — Parameters DRAWER
+   The rail slides in from the right; results take the full width. */
+@media (max-width: 899px) {
+  .tool-body {
+    grid-template-columns: 1fr;
+    display: block;
+  }
+
+  /* Parameters trigger bar under the header */
+  .tool-page .tool-params-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px var(--pad) 0;
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+    color: var(--fg);
+    cursor: pointer;
+  }
+  .tool-page .tool-params-trigger .ct {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    color: var(--fg-inverse);
+    background: var(--epfl-red);
+    padding: 1px 6px;
+  }
+
+  /* rail becomes a fixed right-hand slide-over drawer */
+  .tool-page .rail {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    height: auto;
+    width: min(380px, 90vw);
+    z-index: 1021;
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+    border-right: 0;
+    border-left: 2px solid var(--epfl-red);
+    padding: 0 0 18px;
+    gap: 0;
+  }
+  .tool-page.params-open .rail {
+    transform: none;
+  }
+  .tool-page .rail > .tool-card,
+  .tool-page .rail > .tool-schematic,
+  .tool-page .rail > figure {
+    margin: 16px 16px 0;
+  }
+  .tool-page .drawer-close {
+    display: flex;
+  }
+
+  /* E parameter bar wraps; sliders share the row */
+  .tool-page .e-parambar {
+    padding: 12px 16px;
+    gap: 18px;
+  }
+  .tool-page .e-parambar .pb-group {
+    min-width: 150px;
+    flex: 1 1 150px;
+  }
+  .tool-page .e-parambar .pb-group.pb-seg {
+    flex: 1 1 100%;
+  }
+}
+
+/* MOBILE (<560px) */
+@media (max-width: 559px) {
+  .tool-page {
+    --pad: 16px;
+  }
+  .tool-page .h-chart {
+    height: clamp(260px, 42vh, 360px);
+  }
+  .tool-page .h-surface {
+    height: clamp(240px, 38vh, 320px);
+  }
+  .tool-page .mat-thumbs {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-page * {
+    transition: none !important;
+  }
+}
+
+/* ═══════════════════ ULTRAWIDE (≥2100px) ═══════════════════
+   Same threshold as the home / database splits in app.css. A tool page is a
+   short list of result blocks stacked under one another, which on a 3440px-class
+   monitor means scrolling past a lot of empty side margin. Above 2100px the
+   results move into two columns so a model page fits the viewport.
+
+   Purely additive: every rule is scoped to a stage archetype, and none of the
+   markup changes — the same blocks are simply placed differently. */
+@media (min-width: 2100px) {
+  /* ---- The rail goes two cards wide ----
+     Once the results sit in two columns the RAIL is the tallest thing on a model
+     page (eight sliders across four cards), and it — not the stage — is what
+     makes the page scroll. It has the horizontal room here, so lay its cards out
+     two-up instead of stacking them. */
+  .tool-page {
+    --rail-w: 640px;
+  }
+  .tool-page .rail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-content: start;
+  }
+  /* A rail built from ONE card (the material model) has nothing to pair, so the
+     card spans both tracks and its parameter groups go side by side instead —
+     three groups abreast is the same height saving as two cards abreast.
+     Matched via the always-present (mobile-only) .drawer-close sibling rather
+     than :only-child, which never matches because of it. */
+  .tool-page .rail > .drawer-close + .tool-card:last-child {
+    grid-column: 1 / -1;
+  }
+  .tool-page .rail > .drawer-close + .tool-card:last-child .mat-a-groups {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 24px;
+  }
+
+  /* ---- Archetypes A/B/C: charts left, secondary results right ---- */
+  .tool-page .stage:not(.e-body) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    align-content: start;
+  }
+  .tool-page .stage:not(.e-body) > .st-block {
+    grid-column: 1;
+    border-top: 0;
+  }
+  /* The predictive-model table and the experiment schematic are what the charts
+     are read AGAINST, so they belong beside them, not a scroll away. */
+  .tool-page .stage:not(.e-body) > .st-table,
+  .tool-page .stage:not(.e-body) > .st-schem {
+    grid-column: 2;
+    border-left: 1px solid var(--border);
+  }
+  .tool-page .stage:not(.e-body) > .st-table ~ .st-schem {
+    border-top: 1px solid var(--border);
+  }
+  /* The schematic shares its column with the results table, so it gets a tighter
+     cap than the full-width layout's 40vh. */
+  .tool-page .stage:not(.e-body) .st-schem .tool-schematic img {
+    max-height: clamp(200px, 30vh, 360px);
+  }
+  /* Connection's schematic carries TWO figures (subassembly + backbone key);
+     stacked they alone outrun the viewport, so pair them side by side. */
+  .tool-page .st-schem .tool-schematic:has(img + img) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+  .tool-page .st-schem .tool-schematic:has(img + img) figcaption {
+    grid-column: 1 / -1;
+  }
+  /* The stage's primary column is ~1600px here, so a two-chart page keeps its
+     pair side by side rather than falling back to the ≤999px stacked layout. */
+
+  /* ---- Archetype D (stage-d): focus chart beside its thumbnail switcher ---- */
+  .tool-page .stage-d {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tool-page .stage-d > .st-chart {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    grid-template-areas:
+      'cap cap'
+      'chart thumbs';
+    column-gap: 24px;
+  }
+  .tool-page .stage-d > .st-chart > .chart-cap {
+    grid-area: cap;
+  }
+  .tool-page .stage-d > .st-chart > .tchart {
+    grid-area: chart;
+  }
+  .tool-page .stage-d > .st-chart > .mat-thumbs {
+    grid-area: thumbs;
+    align-content: start;
+  }
+  /* Four protocol previews go 2×2 in the side column; the two fragility panels
+     stack. Both keep the thumbnails legible at column width. */
+  .tool-page .stage-d .mat-thumbs {
+    grid-template-columns: 1fr 1fr;
+  }
+  .tool-page .stage-d .frag-thumbs {
+    grid-template-columns: 1fr;
+  }
+
+  /* ---- Archetype E (parambar): curve left, 3D surfaces right ---- */
+  .tool-page .e-results {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 32px;
+    align-content: start;
+  }
+  .tool-page .e-results > .st-chart {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .tool-page .e-results > .e-surfaces-head {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .tool-page .e-results > .st-surfaces {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
