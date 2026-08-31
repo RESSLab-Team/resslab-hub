@@ -14,7 +14,11 @@ import { CanvasRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import ResetChartButton from '@/components/commons/ResetChartButton.vue'
-import { buildFigureTooltipFormatter, preloadImages } from '@/components/commons/charts/utils'
+import {
+  buildFigureTooltipFormatter,
+  buildFigureTooltipPosition,
+  preloadImages
+} from '@/components/commons/charts/utils'
 
 use([CanvasRenderer, TreemapChart, TooltipComponent])
 
@@ -74,11 +78,11 @@ function buildOption(countsData: Count[]): EChartsOption {
       ? {
           trigger: 'item',
           // A figure makes the tooltip taller than its chart cell, so hang it
-          // off <body> to escape the card's clipping. `confine` then clamps it
-          // to the viewport rather than to the cell (measured: without it the
-          // figure runs off the top of the window when the chart sits high).
+          // off <body> to escape the card's clipping and place it by hand —
+          // left to itself (or to `confine`) it sits right on top of the chart
+          // the reader is pointing at.
           appendTo: 'body',
-          confine: true,
+          position: buildFigureTooltipPosition(() => chartEl.value?.getBoundingClientRect()),
           formatter: buildFigureTooltipFormatter(props.imageFor, rawCategory)
         }
       : {

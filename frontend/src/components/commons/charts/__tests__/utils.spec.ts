@@ -108,3 +108,51 @@ describe('buildFigureTooltipFormatter', () => {
     expect(format([params('GP', 37)])).toContain('<img src="/img/gp.png"')
   })
 })
+
+describe('buildFigureTooltipPosition', () => {
+  // A dashboard chart cell: 480x100, sitting `top` px down the window.
+  const chartRect = (top: number) =>
+    ({ left: 40, top, right: 520, bottom: top + 100, width: 480, height: 100 } as DOMRect)
+  const size = {
+    contentSize: [240, 300] as [number, number],
+    viewSize: [480, 100] as [number, number]
+  }
+  // Results come back in chart space; page space is what the window clamps to.
+  const toPage = (xy: [number, number], top: number) => [40 + xy[0], top + xy[1]]
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 900 })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 })
+  })
+
+  it('sits just off the cursor, not across the window', async () => {
+    const { buildFigureTooltipPosition } = await loadUtils()
+    const place = buildFigureTooltipPosition(() => chartRect(300))
+    const [x, y] = toPage(place([100, 50], null, null, null, size), 300)
+    expect(x).toBe(40 + 100 + 16) // offset to the right of the pointer
+    expect(y).toBe(300 + 50 - 150) // centred on it vertically
+  })
+
+  it('flips to the left of the cursor when the right would overflow', async () => {
+    const { buildFigureTooltipPosition } = await loadUtils()
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 700 })
+    const place = buildFigureTooltipPosition(() => chartRect(300))
+    // Pointer at page x 500: 500 + 16 + 240 runs past the 700px window.
+    const [x] = toPage(place([460, 50], null, null, null, size), 300)
+    expect(x + 240).toBeLessThanOrEqual(500) // entirely left of the pointer
+  })
+
+  it('shifts back into the window instead of running off the bottom', async () => {
+    const { buildFigureTooltipPosition } = await loadUtils()
+    const place = buildFigureTooltipPosition(() => chartRect(700))
+    const [, y] = toPage(place([100, 50], null, null, null, size), 700)
+    expect(y + 300).toBeLessThanOrEqual(800)
+    expect(y).toBeGreaterThanOrEqual(0)
+  })
+
+  it('falls back to the cursor when the chart is not measurable yet', async () => {
+    const { buildFigureTooltipPosition } = await loadUtils()
+    const place = buildFigureTooltipPosition(() => undefined)
+    expect(place([12, 34], null, null, null, size)).toEqual([12, 34])
+  })
+})
