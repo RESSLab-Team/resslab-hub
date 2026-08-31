@@ -7,6 +7,14 @@
 set -euo pipefail
 SCRIPTS="$(dirname "$(readlink -f "$0")")"
 . "$SCRIPTS/wt-lib.sh"
+# ROOT arrives exported from wt-new.sh / wt-setup.sh; wt-lib has read it, so drop
+# the export before any tmux command. If this command is the one that starts the
+# tmux server, an exported ROOT becomes part of the server's environment, every
+# shell in every window inherits it, and any wt script run from those shells then
+# targets this checkout no matter what directory it is run from. The
+# set-environment call scrubs a server that an earlier version already poisoned.
+export -n ROOT || true
+tmux set-environment -gu ROOT 2>/dev/null || true
 load_env_worktree
 BRANCH="$(current_branch)"
 SESSION="$(session_name "$BRANCH")"
