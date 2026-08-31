@@ -67,6 +67,7 @@ npm run api           # Regenerate TypeScript client from openapi.json
 
 Every checkout — the main one and each git worktree under `.claude/worktrees/<branch>` — gets its own tmux session `resslab-hub/<branch>` with `backend`, `frontend`, `claude` and `shell` windows (`scripts/tmux-dev.sh`; `make new BRANCH=feat/x` creates the worktree and attaches, `wt create` alone starts it detached through `.wt.toml`). Full guide: `docs/worktree-dev-environment.md`.
 
+- **Know where you are**: you are in a worktree exactly when `.env.worktree` exists at the repo root (equivalently, your path contains `.claude/worktrees/`). The tmux windows, the claude one included, start with that file exported, so `echo $WT_BRANCH $BACKEND_PORT $FRONTEND_PORT` orients you instantly; in a shell without them, `set -a; . .env.worktree; set +a` first.
 - **Ports**: a worktree's `.env.worktree` holds its `BACKEND_PORT` / `FRONTEND_PORT` (hashed from the branch name, 18xxx/19xxx); the main checkout uses 8000/5173. Read them from that file — never guess, never start a second server on a port that is already served. `scripts/wt-open.sh [frontend|backend]` prints and opens the URL.
 - **Reuse before starting**: the tmux session already runs both servers (`tmux list-windows -t "resslab-hub/<branch>"`). If you must start one yourself, `set -a; . .env.worktree; set +a` first so vite, uvicorn and pytest pick the worktree's values.
 - **Finish** a frontend or backend change by printing its URL: `http://localhost:$FRONTEND_PORT/` or `http://127.0.0.1:$BACKEND_PORT/docs`.
