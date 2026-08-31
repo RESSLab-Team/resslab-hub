@@ -41,6 +41,8 @@ own copy ([Database](#database)).
 | `scripts/git-push-guard.sh`             | committed, wired in `lefthook.yml`                | repo    | a worktree may push only its own branch, never `dev`/`stage`/`main`     |
 | `scripts/claude-worktree-settings.json` | committed                                         | repo    | template for each worktree's `.claude/settings.local.json`              |
 | `scripts/wt-lib.sh`                     | committed                                         | repo    | the shared helpers (ports, names, env file, psql)                       |
+| `scripts/claude-notify.sh`              | committed → `~/.local/bin/claude-notify`          | machine | Claude Code hook → desktop notification, click opens the session        |
+| `scripts/claude-notify-install.sh`      | committed, run by hand                            | machine | installs the above: `~/.local/bin` copy + `~/.claude/settings.json` hooks |
 | `~/.claude/settings.json`               |                                                   | machine | auto mode default, sandbox on, `autoMode.environment` for this repo     |
 
 `wt`'s own docs are the reference for anything about it: `docs/configuration.md`
@@ -59,7 +61,10 @@ git config --global push.default current      # a bare `git push` can only targe
 git config --global push.autoSetupRemote true
 
 printf '**/.claude/worktrees/\n' >> ~/.config/git/ignore
-printf 'bind s choose-tree -sZ -O name\n' >> ~/.tmux.conf   # prefix+s: sessions sorted "<repo>/<branch>"
+printf 'bind s choose-tree -wZ -O name\n' >> ~/.tmux.conf   # prefix+s: sessions sorted "<repo>/<branch>"; -w keeps each
+                                                            # session's single dev window visible (-s would hide the four
+                                                            # panes behind a second expand)
+scripts/claude-notify-install.sh              # desktop notifications when an agent needs you (see below)
 ln -s /mnt/data/Documents/Code/resslab-hub-data ~/code/resslab-hub-data   # the data repo, as the Makefile expects it
 ```
 
@@ -111,6 +116,23 @@ panes, `prefix+z` zooms the focused pane to full screen and back, and the
 
 `wt list` / `wt status` show every worktree; `wt cleanup` removes those whose
 branch is merged.
+
+### Desktop notifications
+
+With `scripts/claude-notify-install.sh` run once, every Claude Code session on
+the machine — whatever repo it is in — raises a desktop notification titled
+with its tmux session name (`resslab-hub/<branch>`) when it needs a permission,
+has been waiting on input for a minute, or finishes a task. Clicking the
+notification opens a new terminal window attached to that tmux session (GNOME
+Wayland cannot raise an existing window from a script, and extra tmux clients
+are harmless — close the window to detach). A newer notification for the same
+session replaces the older one instead of stacking.
+
+The installer copies `scripts/claude-notify.sh` to `~/.local/bin/claude-notify`
+and registers it in `~/.claude/settings.json` under the `Notification`
+(`permission_prompt`, `idle_prompt`) and `Stop` hooks — user-level because
+Claude can't edit that file itself (see Gotchas). Re-run it after changing the
+script.
 
 ## Ports
 
@@ -254,6 +276,8 @@ checked out in a worktree (cli/cli#13380).
 2. Copy `.wt.toml` and `scripts/wt-lib.sh`, `wt-setup.sh`, `wt-teardown.sh`,
    `tmux-dev.sh`, `git-push-guard.sh`, `claude-worktree-settings.json`
    (`wt-db.sh`, `wt-open.sh`, `wt-land.sh` if the shape fits).
+   `claude-notify.sh` needs no copying — the `~/.local/bin` install is
+   machine-wide and derives the session name from any repo's origin + branch.
 3. In `wt-lib.sh`: the DB container/name/template, `BASE_BRANCH`,
    `PROTECTED_BRANCHES`, the main checkout's ports. In `wt-setup.sh`: the list
    of gitignored files to seed and the env keys to rewrite. In `tmux-dev.sh`:
