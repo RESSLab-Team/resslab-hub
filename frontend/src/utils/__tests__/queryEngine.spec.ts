@@ -139,6 +139,44 @@ describe('queryEngine.filterRows memoization', () => {
     expect(second).not.toBe(first)
     expect(second).toEqual(first)
   })
+
+  // A dashboard frame interleaves the committed query with the parallel chart's
+  // self-excluded one; a single-entry memo missed on every call in that order.
+  it('keeps both queries cached when two alternate (parallel-chart interleave)', () => {
+    const a = filterRows(rows, 'slab:true', types)
+    const b = filterRows(rows, 'date:1998<<2010', types)
+    expect(filterRows(rows, 'slab:true', types)).toBe(a)
+    expect(filterRows(rows, 'date:1998<<2010', types)).toBe(b)
+    expect(compileQuery('slab:true', types)).toBe(compileQuery('slab:true', types))
+  })
+
+  it('evicts the coldest query past capacity, still filtering correctly', () => {
+    const oldest = filterRows(rows, 't_dp:>0', types)
+    // 8 further distinct queries push the first one out of an 8-slot memo.
+    const recent = Array.from({ length: 8 }, (_, i) => `date:>${1900 + i}`)
+    recent.forEach((query) => filterRows(rows, query, types))
+    const evicted = filterRows(rows, 't_dp:>0', types)
+    expect(evicted).not.toBe(oldest)
+    expect(evicted).toEqual(oldest)
+    // the most recent query is still warm
+    expect(filterRows(rows, recent[7], types)).toBe(filterRows(rows, recent[7], types))
+  })
+
+  it('caches per rows array, so two datasets do not evict each other', () => {
+    const otherRows = [...rows]
+    const first = filterRows(rows, 'connection_type:WUF', types)
+    const other = filterRows(otherRows, 'connection_type:WUF', types)
+    expect(filterRows(rows, 'connection_type:WUF', types)).toBe(first)
+    expect(filterRows(otherRows, 'connection_type:WUF', types)).toBe(other)
+  })
+
+  it('drops cached results when the same rows are paired with new field types', () => {
+    const first = filterRows(rows, 'connection_type:WUF', types)
+    const otherTypes = inferFieldTypes(rows)
+    const second = filterRows(rows, 'connection_type:WUF', otherTypes)
+    expect(second).not.toBe(first)
+    expect(second).toEqual(first)
+  })
 })
 
 describe('queryEngine exact match (`=`)', () => {

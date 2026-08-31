@@ -52,16 +52,60 @@ export function dateRange(rows: Row[], field: string): DateRangeModel {
   return { min: min ?? '', max: max ?? '' }
 }
 
+// Per-row conversion cache. The parallel chart rebuilds its matrix on every drag
+// frame, and the filtered set changes each time — but the row objects in it do
+// not (the dataset cache never mutates rows), so their converted tuples can be
+// reused instead of allocating one array per row per frame. WeakMap-keyed, so a
+// reloaded dataset's rows take their tuples with them. Two invariants: rows stay
+// immutable (a mutated row would keep serving its stale tuple), and consumers
+// only read the tuples — the same array now appears in several models.
+const matrixRowCache = new WeakMap<
+  Row,
+  { idField: string; id: string; fields: string[]; tuple: (string | number | null)[] }
+>()
+
+// Result memo: a settled query re-runs the same call, and returning the identical
+// model makes the chart's shallowRef writes no-ops instead of a repaint. Keyed on
+// argument identity — filterRows now returns stable arrays (utils/queryEngine).
+let matrixMemo: { rows: Row[]; idField: string; fields: string[]; result: MatrixModel } | undefined
+
 /**
  * Per-row id + field values for the parallel-coordinates chart (`get_matrix`).
  * NaN numbers collapse to null, matching the backend's `__clean_value`.
  */
 export function matrix(rows: Row[], idField: string, fields: string[]): MatrixModel {
-  const ids = rows.map((row) => String(row[idField]))
-  const data = rows.map((row) => fields.map((field) => cleanValue(row[field])))
+  if (
+    matrixMemo &&
+    matrixMemo.rows === rows &&
+    matrixMemo.idField === idField &&
+    matrixMemo.fields === fields
+  ) {
+    return matrixMemo.result
+  }
+  const ids: string[] = new Array(rows.length)
+  const data: (string | number | null)[][] = new Array(rows.length)
+  for (let index = 0; index < rows.length; index += 1) {
+    const row = rows[index]
+    let cached = matrixRowCache.get(row)
+    // Field lists are stable per chart, so an identity check is enough; a
+    // mismatch just rebuilds the tuple rather than serving the wrong columns.
+    if (!cached || cached.fields !== fields || cached.idField !== idField) {
+      cached = {
+        idField,
+        id: String(row[idField]),
+        fields,
+        tuple: fields.map((field) => cleanValue(row[field]))
+      }
+      matrixRowCache.set(row, cached)
+    }
+    ids[index] = cached.id
+    data[index] = cached.tuple
+  }
   // MatrixModel.data is a generated placeholder type (`DataInnerInner`); the
   // chart consumer casts it to `(string | number)[][]`, so cast here too.
-  return { ids, data: data as unknown as MatrixModel['data'] }
+  const result = { ids, data: data as unknown as MatrixModel['data'] }
+  matrixMemo = { rows, idField, fields, result }
+  return result
 }
 
 function toNumber(value: unknown): number | undefined {

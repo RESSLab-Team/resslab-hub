@@ -216,6 +216,12 @@ const secondDomain = computed<string[]>(() => categoryDomain(props.allCounts, 1)
 const colorFor = computed<ColorScale>(
   () => props.colorFor ?? categoryColorScale(secondDomain.value)
 )
+// Rank of each category in the stable unfiltered order. Computed, not rebuilt
+// inside buildOption: the domain is filter-independent, so a drag would
+// otherwise re-allocate this map on every frame.
+const domainIndex = computed<Map<string, number>>(
+  () => new Map(secondDomain.value.map((key, index) => [key, index]))
+)
 // The brush overview replicates the main chart's stacked series — same category
 // order, same colours, same counting — but built from the stable unfiltered
 // allCounts so it never collapses as filters apply. When nothing is filtered,
@@ -324,7 +330,7 @@ function buildOption(countsData: CountModel[]): EChartsOption {
   const countMap = buildCountMap(countsData)
   // Keys present in the (filtered) data, in the stable unfiltered order; a key
   // missing from allCounts (still loading) falls back to its filtered rank.
-  const domainIndex = new Map(secondDomain.value.map((key, index) => [key, index]))
+  const rankOf = domainIndex.value
   const secondKeys: string[] = chain(countsData)
     .groupBy((count) => count.names[1])
     .map((values, key) => ({
@@ -332,7 +338,7 @@ function buildOption(countsData: CountModel[]): EChartsOption {
       value: values.reduce((total, count) => total + count.value, 0)
     }))
     .sortBy(
-      (item) => domainIndex.get(item.key) ?? Number.MAX_SAFE_INTEGER,
+      (item) => rankOf.get(item.key) ?? Number.MAX_SAFE_INTEGER,
       (item) => -item.value,
       (item) => item.key
     )
