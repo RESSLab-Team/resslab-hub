@@ -126,10 +126,13 @@ With `scripts/claude-notify-install.sh` run once, every Claude Code session on
 the machine — whatever repo it is in — raises a desktop notification titled
 with its tmux session name (`resslab-hub/<branch>`) when it needs a permission,
 has been waiting on input for a minute, or finishes a task. Clicking the
-notification opens a new terminal window attached to that tmux session (GNOME
-Wayland cannot raise an existing window from a script, and extra tmux clients
-are harmless — close the window to detach). A newer notification for the same
-session replaces the older one instead of stacking.
+notification jumps to that session, claude pane selected: a terminal that
+already has a tmux client attached is flipped to the session (GNOME Wayland
+cannot raise a window from a script, but changing what your open terminal
+shows needs no window management); a new attached terminal opens only when no
+client exists. The session is re-resolved at click time, so a notification
+survives a tmux restart. A newer notification for the same session replaces
+the older one instead of stacking.
 
 The installer copies `scripts/claude-notify.sh` to `~/.local/bin/claude-notify`
 and registers it in `~/.claude/settings.json` under the `Notification`
