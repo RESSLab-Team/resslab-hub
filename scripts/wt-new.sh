@@ -10,6 +10,25 @@ SCRIPTS="$(dirname "$(readlink -f "$0")")"
 . "$SCRIPTS/wt-lib.sh"
 branch="${1:-}"; base="${2:-origin/dev}"
 [ -n "$branch" ] || die "usage: wt-new.sh <branch> [base]"
+
+# `wtgo all` — after a reboot: bring every set-up worktree's session back,
+# detached, then hand over the session picker. Only worktrees carrying a
+# .env.worktree count: one without (an agent scratch checkout) would fall back
+# to the main checkout's ports and collide with it.
+if [ "$branch" = all ]; then
+  ROOT="$(main_checkout)"
+  started=0
+  while IFS= read -r p; do
+    { [ "$p" != "$ROOT" ] && [ -f "$p/.env.worktree" ]; } || continue
+    echo "==> $p"
+    ROOT="$p" "$SCRIPTS/tmux-dev.sh" --no-attach || echo "warning: session for $p failed"
+    started=$((started + 1))
+  done < <(git -C "$ROOT" worktree list --porcelain | sed -n 's#^worktree ##p')
+  [ "$started" -gt 0 ] || die "no set-up worktrees found (none has a .env.worktree)"
+  echo "$started session(s) up — pick one (prefix+s later works too):"
+  if [ -n "${TMUX:-}" ]; then exec tmux choose-tree -wZ -O name
+  else exec tmux attach-session \; choose-tree -wZ -O name; fi
+fi
 # A worktree holding the default branch becomes wt's "main" and breaks path
 # resolution (see the guide's gotchas); stage/main are just as off-limits.
 case " $PROTECTED_BRANCHES " in *" $branch "*) die "$branch never gets a worktree — work on a feature branch";; esac

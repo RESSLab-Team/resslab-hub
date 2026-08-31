@@ -95,6 +95,7 @@ separator = "-"                                         # feat/foo → feat-foo,
 ## Daily workflow
 
 ```bash
+wtgo all                             # after a reboot: every set-up worktree's session, detached, then the picker
 wtgo feat/<TAB>                      # go to a branch's session: tab-completes worktrees and branches; creates
                                      # branch (from fetched origin/dev), worktree (~3 min first time) and session
                                      # only when missing. `make go BRANCH=…` / `make new BRANCH=…` do the same
@@ -106,7 +107,9 @@ make wt-land BRANCH=feat/123-thing   # from the main checkout: rebase → PR →
 ```
 
 Inside the session: the `backend` and `frontend` panes run `make dev` with the
-worktree's ports; `claude` is the agent; `shell` has `.env.worktree` exported.
+worktree's ports; `claude` resumes the checkout's last agent conversation
+(`claude --continue`, falling back to a fresh one on a new worktree); `shell`
+has `.env.worktree` exported.
 Both URLs are printed when the session starts and by `wt-open`. The `backend`
 and `frontend` panes also mirror their output to `.wt-logs/*.log` in the
 checkout (`tmux pipe-pane`), so the sandboxed agent in the `claude` pane,

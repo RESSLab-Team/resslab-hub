@@ -70,7 +70,10 @@ tmux send-keys -t "$P_BACKEND" "$LOAD; make dev" C-m
 pipe_log backend "$P_BACKEND"
 tmux send-keys -t "$P_FRONTEND" "$LOAD; make dev" C-m
 pipe_log frontend "$P_FRONTEND"
-tmux send-keys -t "$P_CLAUDE" "$LOAD; claude" C-m
+# Resume the checkout's last agent conversation when there is one (a recreated
+# session picks up where its agent left off); a fresh worktree has none, the
+# flag exits nonzero, and a new conversation starts instead.
+tmux send-keys -t "$P_CLAUDE" "$LOAD; claude --continue || claude" C-m
 tmux send-keys -t "$P_SHELL" "$LOAD; clear" C-m
 tmux select-pane -t "$P_CLAUDE"
 
