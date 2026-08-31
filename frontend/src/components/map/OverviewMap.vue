@@ -5,10 +5,12 @@ import {
   bracesApi,
   columnsApi,
   connectionsApi,
+  ductileFractureApi,
   ebfApi,
   hssApi,
   materialsApi,
-  residualsApi
+  residualsApi,
+  tensileCouponApi
 } from '@/plugins/axios'
 import { typesNames } from '@/utils/backend'
 import {
@@ -17,20 +19,25 @@ import {
   locationBraceFields,
   locationColumnFields,
   locationConnectionFields,
+  locationDuctileFractureFields,
   locationEbfFields,
   locationHSSColumnFields,
   locationMaterialFields,
   locationResidualStressFields,
+  locationTensileCouponFields,
   type LocationHSSColumn,
   type LocationEbf,
   type LocationBrace,
   type LocationColumn,
   type LocationConnection,
+  type LocationDuctileFracture,
   type LocationMaterial,
-  type LocationResidualStress
+  type LocationResidualStress,
+  type LocationTensileCoupon
 } from '@/utils/overviewmap'
 import { PieChart, scaleColor, scaleRadius } from '@/utils/piechart'
-import { rollups, select } from 'd3'
+import { rollups } from 'd3-array'
+import { select } from 'd3-selection'
 import {
   Control,
   DivIcon,
@@ -43,49 +50,71 @@ import {
 } from 'leaflet'
 import 'leaflet.markercluster'
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n({ useScope: 'global' })
+
+// Maps an English category identifier (used for logic/comparison) to its
+// translated display label. The identifier itself is never translated.
+const categoryLabelKeys: Record<string, string> = {
+  Connections: 'map.category_connections',
+  Columns: 'map.category_columns',
+  Braces: 'map.category_braces',
+  'Cyclic Coupons': 'map.category_cyclic_coupons',
+  'Residual Stresses': 'map.category_residual_stresses',
+  'HSS Columns': 'map.category_hss_columns',
+  'EBF Links': 'map.category_ebf_links',
+  'Tensile Coupons': 'map.category_tensile_coupons',
+  'Ductile Fracture': 'map.category_ductile_fracture'
+}
+
+function categoryLabel(type: string): string {
+  const key = categoryLabelKeys[type]
+  return key ? t(key) : type
+}
 
 // Reactive references to store various locations from API calls
 const connectionsLocations = ref<LocationConnection[]>([])
-connectionsApi.getConnectionsFields([...locationConnectionFields]).then((res) => {
-  connectionsLocations.value = (res.data as LocationConnection[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const columnsLocations = ref<LocationColumn[]>([])
-columnsApi.getColumnsFields(locationColumnFields).then((res) => {
-  columnsLocations.value = (res.data as LocationColumn[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const bracesLocations = ref<LocationBrace[]>([])
-bracesApi.getBracesFields(locationBraceFields).then((res) => {
-  bracesLocations.value = (res.data as LocationBrace[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const materialsLocations = ref<LocationMaterial[]>([])
-materialsApi.getMaterialsFields(locationMaterialFields).then((res) => {
-  materialsLocations.value = (res.data as LocationMaterial[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const residualStressesLocations = ref<LocationResidualStress[]>([])
-residualsApi.getResidualStressesFields(locationResidualStressFields).then((res) => {
-  residualStressesLocations.value = (res.data as LocationResidualStress[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const hssColumnsLocations = ref<LocationHSSColumn[]>([])
-hssApi.getHssColumnsFields(locationHSSColumnFields).then((res) => {
-  hssColumnsLocations.value = (res.data as LocationHSSColumn[]).filter(hasCoordinates)
-  updateMap()
-})
-
 const ebfLocations = ref<LocationEbf[]>([])
-ebfApi.getEccentricBracedFramesFields(locationEbfFields).then((res) => {
-  ebfLocations.value = (res.data as LocationEbf[]).filter(hasCoordinates)
-  updateMap()
-})
+const tensileCouponLocations = ref<LocationTensileCoupon[]>([])
+const ductileFractureLocations = ref<LocationDuctileFracture[]>([])
+
+// Fetch every component type's locations in parallel and rebuild the map a single
+// time once they all resolve, instead of rebuilding it on each of the 9 responses.
+Promise.all([
+  connectionsApi.getConnectionsFields([...locationConnectionFields]).then((res) => {
+    connectionsLocations.value = (res.data as LocationConnection[]).filter(hasCoordinates)
+  }),
+  columnsApi.getColumnsFields(locationColumnFields).then((res) => {
+    columnsLocations.value = (res.data as LocationColumn[]).filter(hasCoordinates)
+  }),
+  bracesApi.getBracesFields(locationBraceFields).then((res) => {
+    bracesLocations.value = (res.data as LocationBrace[]).filter(hasCoordinates)
+  }),
+  materialsApi.getMaterialsFields(locationMaterialFields).then((res) => {
+    materialsLocations.value = (res.data as LocationMaterial[]).filter(hasCoordinates)
+  }),
+  residualsApi.getResidualStressesFields(locationResidualStressFields).then((res) => {
+    residualStressesLocations.value = (res.data as LocationResidualStress[]).filter(hasCoordinates)
+  }),
+  hssApi.getHssColumnsFields(locationHSSColumnFields).then((res) => {
+    hssColumnsLocations.value = (res.data as LocationHSSColumn[]).filter(hasCoordinates)
+  }),
+  ebfApi.getEccentricBracedFramesFields(locationEbfFields).then((res) => {
+    ebfLocations.value = (res.data as LocationEbf[]).filter(hasCoordinates)
+  }),
+  tensileCouponApi.getTensileCouponsFields(locationTensileCouponFields).then((res) => {
+    tensileCouponLocations.value = (res.data as LocationTensileCoupon[]).filter(hasCoordinates)
+  }),
+  ductileFractureApi.getDuctileFracturesFields(locationDuctileFractureFields).then((res) => {
+    ductileFractureLocations.value = (res.data as LocationDuctileFracture[]).filter(hasCoordinates)
+  })
+]).then(() => updateMap())
 
 // Computed property to get the total number of markers
 const dataLength = computed(
@@ -96,7 +125,9 @@ const dataLength = computed(
     materialsLocations.value.length +
     residualStressesLocations.value.length +
     hssColumnsLocations.value.length +
-    ebfLocations.value.length
+    ebfLocations.value.length +
+    tensileCouponLocations.value.length +
+    ductileFractureLocations.value.length
 )
 
 // Reference to the map container element
@@ -160,10 +191,12 @@ const markers = computed<Marker[]>(() => {
     createMarkers(connectionsLocations.value, 'Connections'),
     createMarkers(columnsLocations.value, 'Columns'),
     createMarkers(bracesLocations.value, 'Braces'),
-    createMarkers(materialsLocations.value, 'Materials'),
+    createMarkers(materialsLocations.value, 'Cyclic Coupons'),
     createMarkers(residualStressesLocations.value, 'Residual Stresses'),
     createMarkers(hssColumnsLocations.value, 'HSS Columns'),
-    createMarkers(ebfLocations.value, 'EBF Links')
+    createMarkers(ebfLocations.value, 'EBF Links'),
+    createMarkers(tensileCouponLocations.value, 'Tensile Coupons'),
+    createMarkers(ductileFractureLocations.value, 'Ductile Fracture')
   ].flat()
 })
 
@@ -178,7 +211,9 @@ const legend = computed(() => {
       div.innerHTML += `<input id="checkbox_${type.replace(
         /\s/g,
         ''
-      )}" type='checkbox' checked /> <i style='background: ${scaleColor(type)}'> </i> ${type} <br>`
+      )}" type='checkbox' checked /> <i style='background: ${scaleColor(
+        type
+      )}'> </i> ${categoryLabel(type)} <br>`
     }
 
     return div

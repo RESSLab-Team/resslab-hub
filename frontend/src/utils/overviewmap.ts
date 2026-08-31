@@ -5,6 +5,8 @@ import type {
   ColumnModel,
   ConnectionField,
   ConnectionModel,
+  DuctileFractureField,
+  DuctileFractureModel,
   EccentricBracedFrameField,
   EccentricBracedFrameModel,
   HSSColumnField,
@@ -12,9 +14,12 @@ import type {
   MaterialField,
   MaterialModel,
   ResidualStressField,
-  ResidualStressModel
+  ResidualStressModel,
+  TensileCouponField,
+  TensileCouponModel
 } from '@/backend'
 import TooltipContent from '@/components/map/TooltipContent.vue'
+import i18n from '@/plugins/i18n'
 import { typesNames, type Type } from '@/utils/backend'
 import { MarkerSVG, scaleColor } from '@/utils/piechart'
 import { divIcon, Marker } from 'leaflet'
@@ -80,6 +85,24 @@ const _locationHSSColumnFields = [
   'url'
 ] as const
 export const locationHSSColumnFields: HSSColumnField[] = [..._locationHSSColumnFields]
+const _locationTensileCouponFields = [
+  ...locationCommonFields,
+  'link',
+  'investigator',
+  'year',
+  'experimental_program'
+] as const
+export const locationTensileCouponFields: TensileCouponField[] = [..._locationTensileCouponFields]
+const _locationDuctileFractureFields = [
+  ...locationCommonFields,
+  'link',
+  'experimental_program',
+  'specimen_designation',
+  'specimen_type'
+] as const
+export const locationDuctileFractureFields: DuctileFractureField[] = [
+  ..._locationDuctileFractureFields
+]
 const _locationEbfFields = [
   'id',
   'investigator',
@@ -112,6 +135,14 @@ export type LocationResidualStress = Pick<
 >
 export type LocationHSSColumn = Pick<HSSColumnModel, (typeof _locationHSSColumnFields)[number]>
 export type LocationEbf = Pick<EccentricBracedFrameModel, (typeof _locationEbfFields)[number]>
+export type LocationTensileCoupon = Pick<
+  TensileCouponModel,
+  (typeof _locationTensileCouponFields)[number]
+>
+export type LocationDuctileFracture = Pick<
+  DuctileFractureModel,
+  (typeof _locationDuctileFractureFields)[number]
+>
 
 type LocationGlobal =
   | LocationBrace
@@ -121,6 +152,8 @@ type LocationGlobal =
   | LocationResidualStress
   | LocationHSSColumn
   | LocationEbf
+  | LocationTensileCoupon
+  | LocationDuctileFracture
 
 type LocationWithCoordinates = LocationGlobal & { latitude: number; longitude: number }
 
@@ -146,8 +179,10 @@ export function createMarkers(data: LocationGlobal[], type: Type) {
     // Create a container element to mount the Vue tooltip component
     const container = document.createElement('div')
 
-    // Create the Vue app with your TooltipContent component and pass props
-    createApp(TooltipContent, { data: d, type }).mount(container)
+    // Create the Vue app with your TooltipContent component and pass props.
+    // Install the shared i18n instance so $t / useI18n resolve inside this
+    // detached popup app (it is not part of the main app's component tree).
+    createApp(TooltipContent, { data: d, type }).use(i18n).mount(container)
 
     // Create a marker with a popup bound to the container's innerHTML
     const marker = new Marker([d.latitude, d.longitude], {
