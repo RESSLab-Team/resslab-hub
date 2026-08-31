@@ -24,7 +24,11 @@ const props = withDefaults(
 )
 
 type Database = 'aisc' | 'european' | 'japanese'
-const databases: Database[] = ['aisc', 'european', 'japanese']
+const databaseItems: SelectItem<Database>[] = [
+  { title: 'AISC', value: 'aisc' },
+  { title: 'European', value: 'european' },
+  { title: 'Japanese', value: 'japanese' }
+]
 
 const database = ref<Database>('aisc')
 const section = ref<Section>()
@@ -60,18 +64,22 @@ watch(section, (value) => {
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="6">
-      <v-select
-        v-model="database"
-        hide-details
-        :items="databases"
-        label="Select Database"
-        variant="outlined"
-      />
-    </v-col>
-    <v-col cols="6">
-      <search-select v-model="section" :items="sections" label="Select Section" />
-    </v-col>
-  </v-row>
+  <div class="section-selector">
+    <v-select
+      v-model="database"
+      hide-details
+      :items="databaseItems"
+      :label="$t('commons.select_database')"
+      variant="outlined"
+    />
+    <search-select v-model="section" :items="sections" :label="$t('commons.select_section')" />
+  </div>
 </template>
+
+<style scoped>
+.section-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+</style>

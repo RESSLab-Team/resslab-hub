@@ -1,10 +1,40 @@
 import type { Page } from '@/utils/backend'
-import { filterColumnValue, globalSearchKey, type Searches, type Value } from '@/utils/common'
-import { computed, ref, triggerRef, unref, watch } from 'vue'
+import {
+  debounceAPITime,
+  filterColumnValue,
+  globalSearchKey,
+  type Searches,
+  type Value
+} from '@/utils/common'
+import { debounce } from 'lodash'
+import { computed, provide, ref, triggerRef, unref, watch, type InjectionKey, type Ref } from 'vue'
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router'
 
 export const queryFieldSeparator = ';'
 export const queryKeyValueSeparator = ':'
+
+// Charts read the active filter query through provide/inject rather than a prop.
+// A prop change re-renders every chart on each filter tick (their heaviest work
+// is i18n + option rebuild); injecting keeps `query` off their prop list, so the
+// dashboard's re-render skips the charts and they update only via their own
+// (staggered) counts. See useDashboard's provide below.
+export const dashboardQueryKey: InjectionKey<Ref<string | undefined>> = Symbol('dashboardQuery')
+
+/**
+ * The committed query with `field`'s clause replaced by `value` (or removed when
+ * undefined): what a brush publishes as a live frame mid-drag, so the frame
+ * filters by the drag *plus* every already-applied filter (see crossfilterBus).
+ */
+export function withFieldClause(
+  query: string | undefined,
+  field: string,
+  value?: string
+): string | undefined {
+  const base = query ? query.split(queryFieldSeparator) : []
+  const clauses = base.filter((clause) => !clause.startsWith(field + queryKeyValueSeparator))
+  if (value) clauses.push(`${field}${queryKeyValueSeparator}${value}`)
+  return clauses.length ? clauses.join(queryFieldSeparator) : undefined
+}
 
 export function useDashboard<M>(
   route: RouteLocationNormalizedLoaded,
@@ -12,6 +42,15 @@ export function useDashboard<M>(
   field: object
 ) {
   const fields: string[] = Object.values(field)
+  // URL keys accepted back into `searches`: the component's own fields, plus
+  // derived-ratio keys (`a/b`, both sides known) written by parallel-chart
+  // brushes on division axes.
+  function isKnownKey(key: string): boolean {
+    if (fields.includes(key)) return true
+    if (!key.includes('/')) return false
+    const parts = key.split('/', 2)
+    return parts.length === 2 && parts.every((part) => fields.includes(part))
+  }
 
   const search = ref<string>('')
   const searches = ref<Searches>({})
@@ -50,26 +89,35 @@ export function useDashboard<M>(
     return queries.join(queryFieldSeparator)
   })
 
-  watch(
-    () => [searches.value, search.value],
-    () => {
-      const query = {
-        ...searches.value,
-        ...(search.value ? { [globalSearchKey]: search.value } : {})
-      }
-      if (router) {
-        router.push({ query })
-      }
-    },
-    { immediate: true, deep: true }
-  )
+  // Expose query to descendant charts without prop-drilling (see dashboardQueryKey).
+  provide(dashboardQueryKey, query)
+
+  // Mirror the filter state into the URL, but debounced and via replace (not
+  // push): a slider drag mutates searches on every tick, which previously fired
+  // an un-debounced router.push per tick — flooding the history stack and
+  // re-running the route.query → searches write-back below each time. Debouncing
+  // coalesces a drag into a single navigation; replace keeps the back button
+  // returning to the pre-filter view instead of stepping through every tick.
+  const syncQueryToRouter = debounce(() => {
+    if (!router) return
+    const query = {
+      ...searches.value,
+      ...(search.value ? { [globalSearchKey]: search.value } : {})
+    }
+    router.replace({ query })
+  }, debounceAPITime)
+
+  watch(() => [searches.value, search.value], syncQueryToRouter, {
+    immediate: true,
+    deep: true
+  })
 
   watch(
     () => route.query,
     (newQuery) => {
       // Update or add keys from newQuery
       Object.entries(newQuery)
-        .filter(([key]) => fields.includes(key))
+        .filter(([key]) => isKnownKey(key))
         .forEach(([key, value]) => {
           const newValue = parseValue(value)
           if (newValue !== undefined) {

@@ -1,13 +1,17 @@
 import type { CountModel } from '@/backend'
 import type { Page } from '@/utils/backend'
 import type { Searches } from '@/utils/common'
-import { debounceAPIParameters, debounceAPITime } from '@/utils/common'
+import { debounceAPIParameters, debounceDataTime } from '@/utils/common'
 import type { DataOptions } from '@/utils/vuetify'
 import type { AxiosResponse } from 'axios'
 import download from 'downloadjs'
-import JSZip from 'jszip'
 import { debounce } from 'lodash'
-import { computed, ref, unref, watch, type Ref } from 'vue'
+import { computed, onScopeDispose, ref, shallowRef, unref, watch, type Ref } from 'vue'
+import { subscribeCrossfilter } from './crossfilterBus'
+import { cancelScheduled, scheduleFrameUpdate } from './frameScheduler'
+
+// Unique per table instance for the frame scheduler's latest-wins coalescing.
+let tableInstanceId = 0
 
 export enum DownloadType {
   Main = 'main',
@@ -19,10 +23,30 @@ export type ColumnType = 'text' | 'option' | 'number' | 'boolean'
 export interface Column {
   value: string
   type: ColumnType
+  /** Literal header text (e.g. `kL/r<sub>y</sub>`). Prefer `titleKey` for
+   *  locale-resolved titles — it keeps the `_short` convention working. */
   title?: string
+  /** Locale key for the header, when it isn't `{prefix}{value}`. Like prefix
+   *  columns, a sibling `{titleKey}_short` key provides the adaptive short label. */
+  titleKey?: string
+  /** Adaptive short header label. string = explicit override, false = never
+   *  shorten, undefined = derive from `_short` locale keys or the data
+   *  dictionary symbol. */
+  shortTitle?: string | false
   options?: string[]
   filterOnly?: boolean
   format?: (value: any) => string
+  /** Design-system cell treatment: 'mono' = smaller section-name text, tag pill, bold identifier */
+  cellVariant?: 'mono' | 'tag' | 'strong'
+  /** Render the value as a tag pill in its category color — for a field the
+   *  dashboard's charts also color by, so the table and the charts share one
+   *  legend (see useDataset.colorFor). */
+  categoryColor?: boolean
+  /** Fixed column width in px — skips content-based auto-sizing entirely. */
+  width?: number
+  /** Width floor in px when space is tight, overriding the type default
+   *  (content fit for numbers/booleans, 110px for text/option). */
+  minWidth?: number
 }
 
 export const tableProps = {
@@ -59,10 +83,29 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
     size?: number
   ) => Promise<AxiosResponse<P>>,
   getMainCsv: (ids: string[]) => Promise<AxiosResponse>,
-  notify: (message: string) => void
+  notify: (message: string) => void,
+  // Optional crossfilter drag source (the sync half of useDataset). When given,
+  // a brush drag streams the current page live from the in-memory dataset into
+  // `liveItems`/`liveCount` — display-only overlays for SimpleTable; pagination
+  // keeps riding the committed totalFilteredCount. Both clear on pointer-up.
+  live?: {
+    countRowsSync: (query?: string) => number
+    pageSync: (
+      query?: string,
+      sortBy?: string[],
+      sortDesc?: boolean[],
+      page?: number,
+      size?: number
+    ) => M[]
+  }
 ) {
   const loading = ref<boolean>(false)
-  const items = ref<M[]>([]) as Ref<M[]>
+  // shallowRef: rows are replaced wholesale each page and each ConnectionModel
+  // carries ~100 fields — deep reactivity would proxy-wrap every field, which
+  // Vuetify's transformItems then pays a getter tax on for every cell. The rows
+  // are read-only here, so a shallow ref keeps them as plain objects.
+  const items = shallowRef<M[]>([])
+  const updateKey = `table-${tableInstanceId++}`
   const options = ref<DataOptions>()
   const totalCount = ref<number>()
   const totalFilteredCount = ref<number>()
@@ -104,11 +147,14 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
         : []
     ].flat()
     Promise.all(filePromises)
-      .then((files) => {
+      .then(async (files) => {
         if (files.length === 0) {
           notify('Nothing to download')
           return null
         }
+        // Lazy: jszip is ~100 kB and only needed when the export button is
+        // actually used — keep it out of the dashboard chunks.
+        const { default: JSZip } = await import('jszip')
         const zip = new JSZip()
         files.forEach((file) => {
           zip.file(file.filename, file.content)
@@ -145,20 +191,55 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
         )
           .then((response) => response.data)
           .then((page) => {
-            items.value = page.items
-            totalFilteredCount.value = page.total || 0
-            emit('update:page', page)
+            // Stagger the write so the table doesn't share a flush with the
+            // charts (all recompute on the same filter change).
+            scheduleFrameUpdate(updateKey, () => {
+              items.value = page.items
+              totalFilteredCount.value = page.total || 0
+              emit('update:page', page)
+            })
           })
           .finally(() => {
             loading.value = false
           })
       }
     },
-    debounceAPITime,
+    debounceDataTime,
     debounceAPIParameters
   )
+  // A trailing debounce fire or queued frame task must not write refs of a
+  // disposed component.
+  onScopeDispose(() => {
+    debouncedGetPage.cancel()
+    cancelScheduled(updateKey)
+  })
 
   watch(() => [query.value, options], debouncedGetPage, { immediate: true, deep: true })
+
+  // Live crossfilter rows: the light-DOM virtualized body re-renders its visible
+  // rows in a few ms, so the table can track a drag frame-for-frame like the charts.
+  const liveCount = ref<number>()
+  const liveItems = shallowRef<M[]>()
+  if (live) {
+    const unsubscribe = subscribeCrossfilter({
+      onLive: (liveQuery) => {
+        liveCount.value = live.countRowsSync(liveQuery)
+        const opts = options.value
+        liveItems.value = live.pageSync(
+          liveQuery,
+          opts?.sortBy?.map((sort) => sort.key),
+          opts?.sortBy?.map((sort) => sort.order === 'desc'),
+          opts?.page,
+          opts?.itemsPerPage === -1 ? 1000 : opts?.itemsPerPage
+        )
+      },
+      onSettle: () => {
+        liveCount.value = undefined
+        liveItems.value = undefined
+      }
+    })
+    onScopeDispose(unsubscribe)
+  }
 
   return {
     items,
@@ -169,6 +250,8 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
     search,
     searches,
     clickRow,
-    downloadFiles
+    downloadFiles,
+    liveCount,
+    liveItems
   }
 }

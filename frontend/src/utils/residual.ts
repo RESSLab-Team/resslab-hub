@@ -2,6 +2,7 @@
 //Removing warning for unused variables as they might be used in the future
 //They exist in the matlab code and might be used in the future
 import type { ResidualStressModel } from '@/backend'
+import i18n from '@/plugins/i18n'
 import { colorPalette } from '@/utils/vuetify'
 import type { LineSeriesOption } from 'echarts'
 
@@ -299,7 +300,7 @@ export function createLineSeries(
 
   const flangeSeries = [
     {
-      name: 'Measured residual stresses' + (flange_nr_data == 2 ? ' F1' : ''),
+      name: i18n.global.t('enum.measuredResidualStresses') + (flange_nr_data == 2 ? ' F1' : ''),
       showSymbol: true,
       lineStyle: {
         width: 3
@@ -308,7 +309,7 @@ export function createLineSeries(
       data: distributionF1.map((x) => [b ? x[0] - b / 2 : x[0], x[1]])
     },
     {
-      name: 'Measured residual stresses F2',
+      name: i18n.global.t('enum.measuredResidualStressesF2'),
       showSymbol: true,
       lineStyle: {
         width: 3
@@ -362,12 +363,14 @@ export function createLineSeries(
       data: x3.map((x) => [x, BT_flange_RS(x)])
     }
   ]
-    .filter((d) => (d.name == 'Measured residual stresses F2' ? flange_nr_data == 2 : true))
+    .filter((d) =>
+      d.name == i18n.global.t('enum.measuredResidualStressesF2') ? flange_nr_data == 2 : true
+    )
     .map((d) => ({ ...d })) as LineSeriesOption[]
 
   const webSeries = [
     {
-      name: 'Measured residual stresses',
+      name: i18n.global.t('enum.measuredResidualStresses'),
       showSymbol: true,
       lineStyle: {
         width: 3

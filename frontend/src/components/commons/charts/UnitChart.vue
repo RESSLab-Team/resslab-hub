@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { initOptions, updateOptions } from '@/components/commons/charts/utils'
+import { initOptions } from '@/components/commons/charts/utils'
 import { useUnits } from '@/composables/unit'
-import type { EChartsOption, SeriesOption, TooltipComponentFormatterCallbackParams } from 'echarts'
+import type {
+  EChartsOption,
+  SeriesOption,
+  SetOptionOpts,
+  TooltipComponentFormatterCallbackParams
+} from 'echarts'
 import { LineChart } from 'echarts/charts'
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import type { XAXisOption, YAXisOption } from 'echarts/types/dist/shared'
-import { cloneDeep, merge, round } from 'lodash'
+import { merge, round } from 'lodash'
 import { computed } from 'vue'
 import VChart from 'vue-echarts'
 
@@ -21,13 +26,18 @@ const props = withDefaults(
     aspectRatio?: number
     maxWidth?: number
     legendSide?: boolean
+    /** Fill the parent's height instead of sizing by aspect ratio.
+        Used by the Rail+Stage tool layout, where the containing block
+        sets an explicit height (.h-chart / grid cell) and ECharts tracks it. */
+    fill?: boolean
   }>(),
   {
     xUnit: undefined,
     yUnit: undefined,
     aspectRatio: 1,
     maxWidth: undefined,
-    legendSide: false
+    legendSide: false,
+    fill: false
   }
 )
 
@@ -36,28 +46,44 @@ const axisLabelMaxDigits = 2
 const { ratio: xRatio, unitLabel: xUnitLabel } = useUnits(props.xUnit)
 const { ratio: yRatio, unitLabel: yUnitLabel } = useUnits(props.yUnit)
 
+// A bottom legend (multi-series, not the right-rail variant) gets a hairline
+// fence and extra padding below the x-axis label; single-series charts don't.
+const seriesCount = computed(() => {
+  const s = props.option.series
+  return Array.isArray(s) ? s.length : s ? 1 : 0
+})
+const showLegendRule = computed(() => !props.legendSide && seriesCount.value > 1)
+
 const actualOption = computed<EChartsOption>(() => {
-  const option = cloneDeep(props.option)
-  const xAXisOption: XAXisOption = option.xAxis as XAXisOption
-  const yAXisOption: YAXisOption = option.yAxis as YAXisOption
+  const xAXisOption: XAXisOption = props.option.xAxis as XAXisOption
+  const yAXisOption: YAXisOption = props.option.yAxis as YAXisOption
   const defaultOption: EChartsOption = {
     grid: {
-      left: 60,
-      top: props.legendSide ? 10 : 40,
+      // The rotated y-axis name sits at `left - nameGap` from the container
+      // edge (74 - 44 = 30px), while `nameGap` itself is what keeps the name
+      // clear of the tick labels. The moment charts render 6-digit kN⋅mm
+      // labels ~40px wide, so nameGap has little room to shrink further.
+      left: 74,
+      top: props.legendSide ? 10 : 16,
       right: props.legendSide ? 200 : 20,
-      bottom: 40
+      // Reserve a legend band only when the legend actually sits below the plot.
+      bottom: props.legendSide ? 40 : showLegendRule.value ? 78 : 40
     },
     legend: {
       type: 'scroll',
-      top: props.legendSide ? 80 : 0,
-      right: props.legendSide ? 0 : undefined,
-      orient: props.legendSide ? 'vertical' : 'horizontal'
+      // Legend sits below the plot (handoff); many-series charts keep a vertical
+      // legend on the right. A thin, wide swatch reads as a line — not a square —
+      // which suits these line charts.
+      ...(props.legendSide
+        ? { top: 80, right: 0, orient: 'vertical' as const }
+        : { bottom: 4, left: 'center' as const, orient: 'horizontal' as const }),
+      icon: 'rect',
+      itemWidth: 18,
+      itemHeight: 2
     },
     xAxis: {
+      // Axis-name styling (grey/regular) comes from the global theme.
       nameLocation: 'middle',
-      nameTextStyle: {
-        fontWeight: 'bold'
-      },
       nameGap: 26,
       max: xAXisOption?.max,
       axisLabel: {
@@ -66,11 +92,9 @@ const actualOption = computed<EChartsOption>(() => {
       }
     },
     yAxis: {
+      // Name rides along the axis (rotated, mid-height) — never above the plot.
       nameLocation: 'middle',
-      nameTextStyle: {
-        fontWeight: 'bold'
-      },
-      nameGap: 50,
+      nameGap: 44,
       max: yAXisOption?.max,
       axisLabel: {
         formatter: (value: number) => `${round(value, axisLabelMaxDigits)}`,
@@ -106,33 +130,104 @@ const actualOption = computed<EChartsOption>(() => {
     }
   }
 
-  const overrideOption: EChartsOption = {
+  // Merge the caller's config over the defaults WITHOUT the series, so the
+  // (potentially large) data arrays are never deep-cloned or deep-merged.
+  const { series, ...rest } = props.option
+  const merged = merge(defaultOption, rest, {
     xAxis: {
       name: props.xUnit ? `${xAXisOption.name} [${xUnitLabel.value}]` : xAXisOption.name
     },
     yAxis: {
       name: props.yUnit ? `${yAXisOption.name} [${yUnitLabel.value}]` : yAXisOption.name
-    },
-    series: (option.series as SeriesOption[]).map((serie) =>
-      merge(serie, {
-        data: (serie.data as [number, number][]).map((v) => [
+    }
+  }) as EChartsOption
+
+  // Scale every point exactly once into fresh arrays; never mutate props.option.
+  // Every series also gets a stable id so ECharts can map the incoming series
+  // onto the ones already rendered and update them in place (see below).
+  merged.series = (series as SeriesOption[] | undefined)?.map(
+    (serie, index) =>
+      ({
+        id: serie.id ?? serie.name ?? `s${index}`,
+        ...serie,
+        data: (serie.data as [number, number][] | undefined)?.map((v): [number, number] => [
           v[0] / xRatio.value,
           v[1] / yRatio.value
         ])
-      })
-    )
-  }
-  return merge(defaultOption, option, overrideOption)
+      } as SeriesOption)
+  )
+  return merged
+})
+
+// How each `setOption` is applied. `replaceMerge: ['series']` tears every series
+// component down and rebuilds it — the chart replays its entry animation, which
+// is what makes a slider drag look like a full redraw. It's only needed when the
+// SET of series changes (a panel switch dropping a curve would otherwise leave a
+// stale one behind). So compare the series ids against the previous render and
+// pay for the replace only then; steady-state updates — a slider moving a curve —
+// merge in place and animate as a data transition.
+//
+// `previousSeriesKey` is a plain (non-reactive) per-instance variable: this
+// computed is invalidated exactly when `actualOption` changes, and vue-echarts
+// reads it while handling that same change, so the two stay in step.
+let previousSeriesKey: string | null = null
+const chartUpdateOptions = computed<SetOptionOpts>(() => {
+  const key = ((actualOption.value.series as SeriesOption[] | undefined) ?? [])
+    .map((serie) => serie.id)
+    .join('|')
+  const seriesSetChanged = key !== previousSeriesKey
+  previousSeriesKey = key
+  return seriesSetChanged ? { notMerge: false, replaceMerge: ['series'] } : { notMerge: false }
 })
 </script>
 
 <template>
-  <v-responsive :aspect-ratio="aspectRatio" :max-width="maxWidth">
+  <div v-if="fill" class="uc-wrap uc-fill">
     <v-chart
       autoresize
       :init-options="initOptions"
       :option="actualOption"
-      :update-options="updateOptions"
+      :update-options="chartUpdateOptions"
     />
+    <span v-if="showLegendRule" class="uc-legend-rule" />
+  </div>
+  <v-responsive v-else :aspect-ratio="aspectRatio" :max-width="maxWidth">
+    <div class="uc-wrap">
+      <v-chart
+        autoresize
+        :init-options="initOptions"
+        :option="actualOption"
+        :update-options="chartUpdateOptions"
+      />
+      <span v-if="showLegendRule" class="uc-legend-rule" />
+    </div>
   </v-responsive>
 </template>
+
+<style scoped>
+.uc-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+/* Fill mode: the wrapper takes the block's full height (no aspect-ratio box);
+   vue-echarts autoresize tracks the container. */
+.uc-fill {
+  min-height: 0;
+}
+.uc-fill > :deep(.echarts) {
+  width: 100%;
+  height: 100%;
+}
+/* Hairline that fences the bottom legend off from the plot + x-axis label
+   (handoff). Offsets track the grid (left 74 / right 20) and the legend band —
+   all fixed in px, so the rule stays put at any chart height. */
+.uc-legend-rule {
+  position: absolute;
+  left: 74px;
+  right: 20px;
+  bottom: 32px;
+  border-top: 1px solid var(--border);
+  pointer-events: none;
+}
+</style>

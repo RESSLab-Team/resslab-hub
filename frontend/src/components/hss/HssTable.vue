@@ -3,6 +3,8 @@ import { HSSColumnField, type HSSColumnModel } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { HSS_KEY, fetchHsss } from '@/components/hss/data'
 import { hssApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { toRef } from 'vue'
@@ -10,12 +12,18 @@ import { toRef } from 'vue'
 const columns: Column[] = [
   {
     value: HSSColumnField.Investigator,
-    title: 'Experimental Program',
     type: 'text'
   },
   {
+    value: HSSColumnField.Id,
+    type: 'text',
+    cellVariant: 'strong',
+    format: (value: unknown) => String(value ?? '').replaceAll('_', ' ')
+  },
+  {
     value: HSSColumnField.TubeSection,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: HSSColumnField.AxialLoadRatio,
@@ -37,10 +45,16 @@ interface Emits extends TableEmits<HSSColumnModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<HSSColumnModel>(
+  HSS_KEY,
+  fetchHsss
+)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -60,11 +74,11 @@ const {
       getCsv: (id) => hssApi.getHssColumnsMomentRotationCsv(id)
     }
   ],
-  () => hssApi.getHssColumnsCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    hssApi.getHssColumns(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => hssApi.getHssColumnsCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 </script>
 
@@ -73,40 +87,32 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    database-id="hss"
     :columns="columns"
+    hide-toolbar
     :items="items"
+    :live-count="liveCount"
+    :live-items="liveItems"
+    instant
     :loading="loading"
     prefix="hss."
     :query="query"
-    title="HSS Columns"
+    :title="$t('table.hss.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"
     @download="downloadFiles"
   >
     <template #title>
-      HSS Columns
+      {{ $t('table.hss.title') }}
       <info-tooltip>
-        <p>
-          The HSS Columns Database presents data from early 1975 on columns under reversed cyclic
-          and monotonic loading. The primary data involve the deduced moment chord rotation of the
-          column.
-        </p>
-        How to use?
+        <p>{{ $t('table.hss.tooltip.intro') }}</p>
+        {{ $t('table.hss.tooltip.howToUse') }}
         <ul>
-          <li>
-            Filter the table by making selections in the various plots around the table, or by using
-            the filters and dropdowns above the table headers.
-          </li>
-          <li>Click on a row to see the data of a single test.</li>
-          <li>
-            Download specific tests results by selecting the test (left-most column) and click
-            "Download" below.
-          </li>
-          <li>
-            Share specific tests results by selecting the test (left-most column) and click "Share"
-            below.
-          </li>
+          <li>{{ $t('table.hss.tooltip.bulletFilter') }}</li>
+          <li>{{ $t('table.hss.tooltip.bulletClick') }}</li>
+          <li>{{ $t('table.hss.tooltip.bulletDownload') }}</li>
+          <li>{{ $t('table.hss.tooltip.bulletShare') }}</li>
         </ul>
       </info-tooltip>
     </template>

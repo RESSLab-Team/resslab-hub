@@ -1,53 +1,39 @@
 <script setup lang="ts">
 import { ConnectionField, type ConnectionModel } from '@/backend'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
+import ChartCell from '@/components/commons/ChartCell.vue'
+import DashboardShell from '@/components/commons/DashboardShell.vue'
 import ConnectionDoubleChart from '@/components/connections/charts/ConnectionDoubleChart.vue'
 import ConnectionParallelChart from '@/components/connections/charts/ConnectionParallelChart.vue'
 import ConnectionSingleChart from '@/components/connections/charts/ConnectionSingleChart.vue'
 import ConnectionDetail from '@/components/connections/ConnectionDetail.vue'
 import ConnectionTable from '@/components/connections/ConnectionTable.vue'
-import ResetChartButton from '@/components/commons/ResetChartButton.vue'
-import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { CONNECTION_KEY, PARALLEL_FIELDS, fetchConnections } from '@/components/connections/data'
+import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
+import { useCountsStore } from '@/stores/counts'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import colors from 'vuetify/lib/util/colors'
 
 const route = useRoute()
 const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
   useDashboard<ConnectionModel>(route, router, ConnectionField)
 
-const parallelFields: ParallelField<ConnectionField>[] = [
-  {
-    id: ConnectionField.DB,
-    name: 'Beam Depth\ndb [mm]'
-  },
-  {
-    id: ConnectionField.DC,
-    name: 'Column Depth\ndc [mm]'
-  },
-  {
-    id: ConnectionField.TCf,
-    name: 'Column flange\nThickness [mm]'
-  },
-  {
-    id: {
-      dividend: ConnectionField.DB,
-      divisor: ConnectionField.DC
-    },
-    name: 'db / dc'
-  },
-  {
-    id: ConnectionField.GMaxGY
-  },
-  {
-    id: ConnectionField.RuRnPlN
-  },
-  {
-    id: ConnectionField.ConnectionType,
-    name: 'Connection\nType'
-  }
+const countsStore = useCountsStore()
+onMounted(() => countsStore.fetch())
+
+const parallelFields = PARALLEL_FIELDS
+
+const parallelFilterFields: string[] = [
+  ConnectionField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
 ]
 const beamFields: DoubleFields<ConnectionField> = [
   ConnectionField.DB,
@@ -59,179 +45,149 @@ const beamFields: DoubleFields<ConnectionField> = [
     ])
   }
 ]
+
+// Hoisted to stable references so the double-charts that consume them don't get
+// a fresh array prop (and thus re-render) on every dashboard re-render.
+const typeYearFields: [ConnectionField, ConnectionField] = [
+  ConnectionField.Date,
+  ConnectionField.ConnectionType
+]
+const columnDoublerFields: [ConnectionField, ConnectionField] = [
+  ConnectionField.DC,
+  ConnectionField.NDp
+]
+
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file, and fieldGroups.ts
+// decides which category of the rail it shows up under.
+const {
+  filters,
+  groups: filterGroups,
+  loading: filtersLoading
+} = useAutoFilters({
+  database: 'connections',
+  datasetKey: CONNECTION_KEY,
+  fetchAll: fetchConnections,
+  i18nPrefix: 'connection.'
+})
 </script>
 
 <template>
-  <v-row>
-    <v-col md="6">
-      <v-row>
-        <v-col cols="12">
-          <connection-table
-            v-model:search="search"
-            v-model:searches="searches"
-            :query="query"
-            @click:row="clickTableRow"
-            @update:page="updatePage"
-          />
-        </v-col>
-      </v-row>
-      <v-row v-if="!item">
-        <v-col cols="12">
-          <connection-parallel-chart
-            :color="colors.orange"
-            :fields="parallelFields"
-            :query="query"
-            @change:searches="changeSearches"
-          />
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col md="6">
-      <v-row v-if="item">
-        <v-col cols="12">
-          <connection-detail :connection="item" @close="closeDetail" />
-        </v-col>
-      </v-row>
-      <v-row v-else>
-        <v-col cols="12">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              <div>
-                Connection Type
-                <info-tooltip>
-                  <p>
-                    This rectangle below displays the proportion of each connection type in the
-                    database. Connection types are categorised according to AISC-358-16 Prequalified
-                    connections. See also the evolution of connection types studied over the years
-                    on the right.
-                  </p>
-                  How to use?
-                  <ul>
-                    <li>
-                      See the connection type drawing by hovering over the corresponding type in the
-                      rectangle
-                    </li>
-                    <li>
-                      Filter the Database for a specific connection type or dates by clicking on the
-                      rectangle of using the dates sliders
-                    </li>
-                  </ul>
-                </info-tooltip>
-              </div>
-              <reset-chart-button
-                :field="[ConnectionField.Date, ConnectionField.ConnectionType]"
-                :is-filtered="[ConnectionField.Date, ConnectionField.ConnectionType].some(field => query.includes(field as string))"
-                @change:searches="changeSearches"
-              />
-            </v-card-title>
-            <v-card-text>
-              <v-row>
-                <v-col cols="12" sm="6">
-                  <connection-single-chart
-                    :field="ConnectionField.ConnectionType"
-                    :query="query"
-                    :show-reset="false"
-                    flat
-                    @change:searches="changeSearches"
-                  />
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <connection-double-chart
-                    :fields="[ConnectionField.Date, ConnectionField.ConnectionType]"
-                    :query="query"
-                    type="line"
-                    @change:searches="changeSearches"
-                  />
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col sm="6">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              <div>
-                Beam Depth [mm]
-                <info-tooltip>
-                  <p>This histogram displays the distribution of column depths in the Database.</p>
-                  How to use?
-                  <ul>
-                    <li>
-                      Filter database for specific column depths, by clicking on a bar or using the
-                      slider below
-                    </li>
-                    <li>
-                      Filter database depending on the presence of doubler plates welded in the
-                      panel zone (0/1/2) by clicking on the legend.
-                    </li>
-                  </ul>
-                </info-tooltip>
-              </div>
+  <dashboard-shell
+    v-model:search="search"
+    :eyebrow="$t('dashboards.common.eyebrow_components')"
+    :title="$t('dashboards.connection.title')"
+    :count="countsStore.counts.connections"
+    :description="$t('dashboards.connection.description')"
+    database-id="connections"
+    i18n-prefix="connection."
+    :filters="filters"
+    :filter-groups="filterGroups"
+    :filters-loading="filtersLoading"
+    :searches="searches"
+    :detail-open="!!item"
+    @change:searches="changeSearches"
+    @close:detail="closeDetail"
+  >
+    <template #table>
+      <connection-table
+        v-model:search="search"
+        v-model:searches="searches"
+        :query="query"
+        @click:row="clickTableRow"
+        @update:page="updatePage"
+      />
+    </template>
 
-              <reset-chart-button
-                :field="beamFields"
-                :is-filtered="beamFields.some(field => query.includes(field as string))"
-                @change:searches="changeSearches"
-              />
-            </v-card-title>
-            <v-card-text>
-              <connection-double-chart
-                :color="colors.blue"
-                :fields="beamFields"
-                :query="query"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col sm="6">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              <div>
-                Column Depth [mm]
-                <info-tooltip>
-                  <p>This histogram displays the distribution of column depths in the Database.</p>
-                  How to use?
-                  <ul>
-                    <li>
-                      Filter database for specific column depths, by clicking on a bar or using the
-                      slider below
-                    </li>
-                    <li>
-                      Filter database depending on the presence of doubler plates welded in the
-                      panel zone (0/1/2) by clicking on the legend.
-                    </li>
-                  </ul>
-                </info-tooltip>
-              </div>
-              <reset-chart-button
-                :field="[ConnectionField.DC, ConnectionField.NDp]"
-                :is-filtered="[ConnectionField.DC, ConnectionField.NDp].some(field => query.includes(field as string))"
-                @change:searches="changeSearches"
-              />
-            </v-card-title>
-            <v-card-text>
-              <connection-double-chart
-                :color="colors.green"
-                :fields="[ConnectionField.DC, ConnectionField.NDp]"
-                :query="query"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12">
-          <connection-single-chart
-            :color="colors.deepPurple"
-            :field="ConnectionField.SteelB"
-            :query="query"
-            :show-reset="true"
+    <template #charts>
+      <!-- Row 1: distributions -->
+      <div class="charts-strip">
+        <chart-cell
+          :title="$t('dashboards.connection.chart_tests_per_year_type')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="typeYearFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <connection-double-chart
+            :fields="typeYearFields"
+            type="line"
             @change:searches="changeSearches"
-          >
-            <template #title> <steel-type-card-title /> </template>
-          </connection-single-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+          />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.connection.chart_connection_type')"
+          :hint="$t('dashboards.common.hint_click_tile_to_filter')"
+          :field="ConnectionField.ConnectionType"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <connection-single-chart
+            :field="ConnectionField.ConnectionType"
+            :show-reset="false"
+            flat
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.connection.chart_beam_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="ConnectionField.SteelB"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <connection-single-chart
+            :field="ConnectionField.SteelB"
+            :show-reset="false"
+            flat
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+      </div>
+
+      <!-- Row 2: stacked histograms -->
+      <div class="charts-strip charts-strip-2cols">
+        <chart-cell
+          :title="$t('dashboards.connection.chart_beam_depth_slab')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="beamFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <connection-double-chart :fields="beamFields" @change:searches="changeSearches" />
+        </chart-cell>
+        <chart-cell
+          :title="$t('dashboards.connection.chart_column_depth_doubler_plates')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="columnDoublerFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <connection-double-chart
+            :fields="columnDoublerFields"
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+      </div>
+
+      <!-- Row 3: parallel coordinates (full width) -->
+      <div class="charts-strip charts-strip-1col">
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <connection-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+        </chart-cell>
+      </div>
+    </template>
+
+    <template #detail>
+      <connection-detail v-if="item" :connection="item" @close="closeDetail" />
+    </template>
+  </dashboard-shell>
 </template>

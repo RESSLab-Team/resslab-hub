@@ -1,25 +1,28 @@
 <script setup lang="ts">
 import { EccentricBracedFrameField, type EccentricBracedFrameModel } from '@/backend'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
-import ResetChartButton from '@/components/commons/ResetChartButton.vue'
-
-import EbfTable from '@/components/ebf/EbfTable.vue'
-import EbfDetail from '@/components/ebf/EbfDetail.vue'
-import EbfParallelChart from '@/components/ebf/charts/EbfParallelChart.vue'
+import ChartCell from '@/components/commons/ChartCell.vue'
+import DashboardShell from '@/components/commons/DashboardShell.vue'
 import EbfDoubleChart from '@/components/ebf/charts/EbfDoubleChart.vue'
+import EbfParallelChart from '@/components/ebf/charts/EbfParallelChart.vue'
 import EbfSingleChart from '@/components/ebf/charts/EbfSingleChart.vue'
-
+import EbfDetail from '@/components/ebf/EbfDetail.vue'
+import EbfTable from '@/components/ebf/EbfTable.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { EBF_KEY, fetchEbfs } from '@/components/ebf/data'
 import { useDashboard } from '@/composables/dashboard'
-import { useRoute, useRouter } from 'vue-router'
-import colors from 'vuetify/lib/util/colors'
-
+import { useAutoFilters } from '@/composables/useAutoFilters'
+import { useCountsStore } from '@/stores/counts'
 import { sectionTypeMapping } from '@/utils/ebf'
+import { onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
 const route = useRoute()
 const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
   useDashboard<EccentricBracedFrameModel>(route, router, EccentricBracedFrameField)
+
+const countsStore = useCountsStore()
+onMounted(() => countsStore.fetch())
 
 const parallelFields: ParallelField<EccentricBracedFrameField>[] = [
   { id: EccentricBracedFrameField.E, name: 'e [mm]' },
@@ -34,6 +37,16 @@ const parallelFields: ParallelField<EccentricBracedFrameField>[] = [
   }
 ]
 
+const parallelFilterFields: string[] = [
+  EccentricBracedFrameField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
+]
 const yearSectionFields: DoubleFields<EccentricBracedFrameField> = [
   EccentricBracedFrameField.Year,
   {
@@ -41,7 +54,6 @@ const yearSectionFields: DoubleFields<EccentricBracedFrameField> = [
     mapping: sectionTypeMapping
   }
 ]
-
 const yearLinkFields: DoubleFields<EccentricBracedFrameField> = [
   EccentricBracedFrameField.Year,
   {
@@ -50,143 +62,141 @@ const yearLinkFields: DoubleFields<EccentricBracedFrameField> = [
   }
 ]
 
-const loadingProtocolField = EccentricBracedFrameField.LPTyp
-const testSetupField = EccentricBracedFrameField.LConfi
-const steelField = EccentricBracedFrameField.SgFlgLink
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file, and fieldGroups.ts
+// decides which category of the rail it shows up under.
+const {
+  filters,
+  groups: filterGroups,
+  loading: filtersLoading
+} = useAutoFilters({
+  database: 'ebf',
+  datasetKey: EBF_KEY,
+  fetchAll: fetchEbfs,
+  i18nPrefix: 'ebf.'
+})
 </script>
 
 <template>
-  <v-row>
-    <v-col md="6">
-      <v-row>
-        <v-col cols="12">
-          <ebf-table
-            v-model:search="search"
-            v-model:searches="searches"
-            :query="query"
-            @click:row="clickTableRow"
-            @update:page="updatePage"
-          />
-        </v-col>
-      </v-row>
-      <v-row v-if="!item">
-        <v-col cols="12">
-          <ebf-parallel-chart
-            :color="colors.orange"
-            :fields="parallelFields"
-            :query="query"
+  <dashboard-shell
+    v-model:search="search"
+    :eyebrow="$t('dashboards.common.eyebrow_components')"
+    :title="$t('dashboards.ebf.title')"
+    :count="countsStore.counts.ebf"
+    :description="$t('dashboards.ebf.description')"
+    database-id="ebf"
+    i18n-prefix="ebf."
+    :filters="filters"
+    :filter-groups="filterGroups"
+    :filters-loading="filtersLoading"
+    :searches="searches"
+    :detail-open="!!item"
+    @change:searches="changeSearches"
+    @close:detail="closeDetail"
+  >
+    <template #table>
+      <ebf-table
+        v-model:search="search"
+        v-model:searches="searches"
+        :query="query"
+        @click:row="clickTableRow"
+        @update:page="updatePage"
+      />
+    </template>
+
+    <template #charts>
+      <div class="charts-strip charts-strip-2cols">
+        <chart-cell
+          :title="$t('dashboards.ebf.chart_tests_per_year_section')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="yearSectionFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <ebf-double-chart
+            :fields="yearSectionFields"
+            type="line"
             @change:searches="changeSearches"
           />
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col md="6">
-      <v-row v-if="item">
-        <v-col cols="12">
-          <ebf-detail :eccentric-braced-frame="item" @close="closeDetail" />
-        </v-col>
-      </v-row>
-      <v-row v-else>
-        <v-col cols="12" md="6">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              Section Type
-              <reset-chart-button
-                :field="yearSectionFields"
-                :is-filtered="yearSectionFields.some(field => query.includes(field as string))"
-                @change:searches="changeSearches"
-              />
-            </v-card-title>
-            <v-card-text>
-              <ebf-double-chart
-                :fields="yearSectionFields"
-                :query="query"
-                type="line"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12" md="6">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              Link Type
-              <reset-chart-button
-                :field="yearLinkFields"
-                :is-filtered="yearLinkFields.some(field => query.includes(field as string))"
-                @change:searches="changeSearches"
-              />
-            </v-card-title>
-            <v-card-text>
-              <ebf-double-chart
-                :fields="yearLinkFields"
-                :query="query"
-                :color="colors.purple"
-                type="line"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col>
-          <ebf-single-chart
-            :show-reset="true"
-            :color="colors.red"
-            :field="loadingProtocolField"
-            :query="query"
+        </chart-cell>
+        <chart-cell
+          :title="$t('dashboards.ebf.chart_tests_per_year_classification')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="yearLinkFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <ebf-double-chart
+            :fields="yearLinkFields"
+            type="line"
             @change:searches="changeSearches"
-          >
-            <template #title>
-              <div>
-                Loading Protocol
-                <info-tooltip>
-                  <p>This chart shows the different loading protocols used in EBF tests.</p>
-                </info-tooltip>
-              </div>
-            </template>
-          </ebf-single-chart>
-        </v-col>
-        <v-col cols="12">
+          />
+        </chart-cell>
+      </div>
+
+      <div class="charts-strip">
+        <chart-cell
+          quiet
+          :title="$t('dashboards.ebf.chart_loading_protocol')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="EccentricBracedFrameField.LPTyp"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
           <ebf-single-chart
-            :show-reset="true"
-            :color="colors.blue"
-            :field="testSetupField"
-            :query="query"
+            :field="EccentricBracedFrameField.LPTyp"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
-          >
-            <template #title>
-              <div>
-                Test Configuration
-                <info-tooltip>
-                  <p>This chart shows the different test configurations:</p>
-                  <ul>
-                    <li>TF1 = Isolated link</li>
-                    <li>TF2 = Link in bare frame</li>
-                    <li>TF2C = Link in composite frame</li>
-                    <li>TF3 = Link in system</li>
-                    <li>TF4 = Edge link in bare frame</li>
-                    <li>TF4c = Edge link in composite frame</li>
-                    <li>TF5 = Continuous link</li>
-                  </ul>
-                </info-tooltip>
-              </div>
-            </template>
-          </ebf-single-chart>
-        </v-col>
-        <v-col>
+          />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.ebf.chart_test_configuration')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="EccentricBracedFrameField.LConfi"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
           <ebf-single-chart
-            :show-reset="true"
-            :color="colors.deepPurple"
-            :field="steelField"
-            :query="query"
+            :field="EccentricBracedFrameField.LConfi"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
-          >
-            <template #title>
-              <steel-type-card-title />
-            </template>
-          </ebf-single-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+          />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.ebf.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="EccentricBracedFrameField.SgFlgLink"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <ebf-single-chart
+            :field="EccentricBracedFrameField.SgFlgLink"
+            :show-reset="false"
+            flat
+            @change:searches="changeSearches"
+          />
+        </chart-cell>
+      </div>
+
+      <div class="charts-strip charts-strip-1col">
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <ebf-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+        </chart-cell>
+      </div>
+    </template>
+
+    <template #detail>
+      <ebf-detail v-if="item" :eccentric-braced-frame="item" @close="closeDetail" />
+    </template>
+  </dashboard-shell>
 </template>

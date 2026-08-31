@@ -1,39 +1,40 @@
 <script setup lang="ts">
 import { HSSColumnField, type HSSColumnModel } from '@/backend'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-
-import HssTable from '@/components/hss/HssTable.vue'
-import HssDetail from '@/components/hss/HssDetail.vue'
-import HssParallelChart from '@/components/hss/charts/HssParallelChart.vue'
+import ChartCell from '@/components/commons/ChartCell.vue'
+import DashboardShell from '@/components/commons/DashboardShell.vue'
 import HssDoubleChart from '@/components/hss/charts/HssDoubleChart.vue'
+import HssParallelChart from '@/components/hss/charts/HssParallelChart.vue'
 import HssSingleChart from '@/components/hss/charts/HssSingleChart.vue'
-import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
-import ResetChartButton from '@/components/commons/ResetChartButton.vue'
-
-import type { DoubleFields, ParallelField } from '@/composables/chart'
+import HssDetail from '@/components/hss/HssDetail.vue'
+import HssTable from '@/components/hss/HssTable.vue'
+import { HSS_KEY, PARALLEL_FIELDS, fetchHsss } from '@/components/hss/data'
+import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
+import { useCountsStore } from '@/stores/counts'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import colors from 'vuetify/lib/util/colors'
-
-import { testConfigurationNameMapping } from '@/utils/hss'
 
 const route = useRoute()
 const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
   useDashboard<HSSColumnModel>(route, router, HSSColumnField)
 
-const parallelFields: ParallelField<HSSColumnField>[] = [
-  { id: HSSColumnField.ThetaPPos100fitRad, name: 'θp [rad]' },
-  { id: HSSColumnField.DepthOverT, name: 'D/t' },
-  { id: HSSColumnField.AxialLoadRatio, name: 'Pg/Py' },
-  { id: HSSColumnField.LoadingAngle, name: 'Load Angle [degrees]' },
-  {
-    id: HSSColumnField.TestConfiguration,
-    name: 'Configuration',
-    mapping: testConfigurationNameMapping
-  }
-]
+const countsStore = useCountsStore()
+onMounted(() => countsStore.fetch())
 
+const parallelFields = PARALLEL_FIELDS
+
+const parallelFilterFields: string[] = [
+  HSSColumnField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
+]
 const failureModeFields: DoubleFields<HSSColumnField> = [
   HSSColumnField.Date,
   {
@@ -44,102 +45,111 @@ const failureModeFields: DoubleFields<HSSColumnField> = [
     ])
   }
 ]
-const loadingProtocolField = HSSColumnField.LoadingProtocol
-const steelField = HSSColumnField.SteelType
+
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file, and fieldGroups.ts
+// decides which category of the rail it shows up under.
+const {
+  filters,
+  groups: filterGroups,
+  loading: filtersLoading
+} = useAutoFilters({
+  database: 'hss',
+  datasetKey: HSS_KEY,
+  fetchAll: fetchHsss,
+  i18nPrefix: 'hss.'
+})
 </script>
 
 <template>
-  <v-row>
-    <v-col md="6">
-      <v-row>
-        <v-col cols="12">
-          <hss-table
-            v-model:search="search"
-            v-model:searches="searches"
-            :query="query"
-            @click:row="clickTableRow"
-            @update:page="updatePage"
-          />
-        </v-col>
-      </v-row>
-      <v-row v-if="!item">
-        <v-col cols="12"
-          ><hss-parallel-chart
-            :color="colors.orange"
-            :fields="parallelFields"
-            :query="query"
+  <dashboard-shell
+    v-model:search="search"
+    :eyebrow="$t('dashboards.common.eyebrow_components')"
+    :title="$t('dashboards.hss.title')"
+    :count="countsStore.counts.hss"
+    :description="$t('dashboards.hss.description')"
+    database-id="hss"
+    i18n-prefix="hss."
+    :filters="filters"
+    :filter-groups="filterGroups"
+    :filters-loading="filtersLoading"
+    :searches="searches"
+    :detail-open="!!item"
+    @change:searches="changeSearches"
+    @close:detail="closeDetail"
+  >
+    <template #table>
+      <hss-table
+        v-model:search="search"
+        v-model:searches="searches"
+        :query="query"
+        @click:row="clickTableRow"
+        @update:page="updatePage"
+      />
+    </template>
+
+    <template #charts>
+      <div class="charts-strip">
+        <chart-cell
+          :title="$t('dashboards.hss.chart_tests_per_year_failure_mode')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="failureModeFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <hss-double-chart
+            :fields="failureModeFields"
+            type="line"
             @change:searches="changeSearches"
           />
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col md="6">
-      <v-row v-if="item">
-        <v-col cols="12"> <hss-detail :hss-column="item" @close="closeDetail" /> </v-col>
-      </v-row>
-      <v-row v-else>
-        <v-col cols="12" md="6">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              Failure Mode
-              <reset-chart-button
-                :field="failureModeFields"
-                :is-filtered="failureModeFields.some(field => query.includes(field as string))"
-                @change:searches="changeSearches"
-            /></v-card-title>
-            <v-card-text>
-              <hss-double-chart
-                :fields="failureModeFields"
-                :query="query"
-                type="line"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12" md="6">
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.hss.chart_loading_protocol')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="HSSColumnField.LoadingProtocol"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
           <hss-single-chart
-            :show-reset="true"
-            :color="colors.blue"
-            :field="loadingProtocolField"
-            :query="query"
-            style="height: 300px"
+            :field="HSSColumnField.LoadingProtocol"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
-          >
-            <template #title>
-              <div>
-                Loading Protocol
-                <info-tooltip>
-                  <p>
-                    This rectangle below displays the proportion of each loading protocol in the
-                    database. See also the evolution of test data over the years on the right.
-                  </p>
-                  How to use?
-                  <ul>
-                    <li>
-                      Filter the Database for a specific loading protocol type or dates by clicking
-                      on the rectangle of using the dates sliders.
-                    </li>
-                  </ul>
-                </info-tooltip>
-              </div>
-            </template>
-          </hss-single-chart>
-        </v-col>
-        <v-col>
+          />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.hss.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="HSSColumnField.SteelType"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
           <hss-single-chart
-            :show-reset="true"
-            :color="colors.deepPurple"
-            :field="steelField"
-            :query="query"
+            :field="HSSColumnField.SteelType"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
-          >
-            <template #title>
-              <steel-type-card-title />
-            </template>
-          </hss-single-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+          />
+        </chart-cell>
+      </div>
+
+      <div class="charts-strip charts-strip-1col">
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <hss-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+        </chart-cell>
+      </div>
+    </template>
+
+    <template #detail>
+      <hss-detail v-if="item" :hss-column="item" @close="closeDetail" />
+    </template>
+  </dashboard-shell>
 </template>

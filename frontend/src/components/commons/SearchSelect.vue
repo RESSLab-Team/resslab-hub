@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { SelectItem } from '@/utils/vuetify'
 import { mdiMagnify } from '@mdi/js'
-import { computed, ref, unref, watch } from 'vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 // TODO add genericity https://github.com/vuejs/rfcs/discussions/436
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,51 +23,26 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value?: V): void
 }>()
 
-const search = ref<string>()
+const { t } = useI18n({ useScope: 'global' })
 
 const value = computed<V | undefined>({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: (value) => emit('update:modelValue', value ?? undefined)
 })
-const actualItems = computed<SelectItem[]>(() => {
-  const searchValue = unref(search)
-  if (!searchValue) {
-    return props.items
-  }
-  const substring = searchValue.toLowerCase()
-  return props.items.filter((item) => {
-    const value = typeof item === 'string' ? item : item.title.toString()
-    return value.toLowerCase().includes(substring)
-  })
-})
-const hint = computed<string>(() => `${actualItems.value.length} items`)
-
-watch(
-  () => props.items,
-  () => (search.value = undefined)
-)
 </script>
 
 <template>
-  <v-select
+  <!-- Type-to-filter select: shows every item when empty, narrows as you type. -->
+  <v-autocomplete
     v-model="value"
+    autocomplete="off"
     clearable
     hide-details
-    :items="actualItems"
+    :items="items"
     :label="label"
+    :menu-props="{ maxHeight: 340 }"
+    :no-data-text="t('commons.no_results')"
+    :prepend-inner-icon="mdiMagnify"
     variant="outlined"
-  >
-    <template #prepend-item>
-      <v-list-item>
-        <v-text-field
-          v-model="search"
-          :prepend-inner-icon="mdiMagnify"
-          clearable
-          :hint="hint"
-          persistent-hint
-          variant="outlined"
-        />
-      </v-list-item>
-    </template>
-  </v-select>
+  />
 </template>

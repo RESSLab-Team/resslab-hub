@@ -3,6 +3,8 @@ import { ColumnField, type ColumnModel } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { COLUMN_KEY, fetchColumns } from '@/components/columns/data'
 import { columnsApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { toRef } from 'vue'
@@ -14,11 +16,13 @@ const columns: Column[] = [
   },
   {
     value: ColumnField.SpecimenDesignation,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'strong'
   },
   {
     value: ColumnField.SectionC,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: ColumnField.PGOverPYm,
@@ -44,10 +48,16 @@ interface Emits extends TableEmits<ColumnModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync } = useDataset<ColumnModel>(
+  COLUMN_KEY,
+  fetchColumns
+)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -77,11 +87,11 @@ const {
       getCsv: (id) => columnsApi.getColumnsMomentWeakCsv(id)
     }
   ],
-  () => columnsApi.getColumnsCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    columnsApi.getColumns(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => columnsApi.getColumnsCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 </script>
 
@@ -90,8 +100,13 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    database-id="columns"
     :columns="columns"
+    hide-toolbar
+    :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
+    instant
     :loading="loading"
     prefix="column."
     :query="query"
@@ -101,28 +116,15 @@ const {
     @download="downloadFiles"
   >
     <template #title>
-      Columns
+      {{ $t('table.column.title') }}
       <info-tooltip>
-        <p>
-          The Columns Database presents data from early 1970s on columns under reversed cyclic and
-          monotonic loading. The primary data involve the deduced moment chord rotation of the
-          column and deduced column axial shortening versus chord rotation.
-        </p>
-        How to use?
+        <p>{{ $t('table.column.tooltip.intro') }}</p>
+        {{ $t('table.column.tooltip.howToUse') }}
         <ul>
-          <li>
-            Filter the table by making selections in the various plots around the table, or by using
-            the filters and dropdowns above the table headers.
-          </li>
-          <li>Click on a row to see the data of a single test.</li>
-          <li>
-            Download specific tests results by selecting the test (left-most column) and click
-            "Download" below.
-          </li>
-          <li>
-            Share specific tests results by selecting the test (left-most column) and click "Share"
-            below.
-          </li>
+          <li>{{ $t('table.column.tooltip.bulletFilter') }}</li>
+          <li>{{ $t('table.column.tooltip.bulletClick') }}</li>
+          <li>{{ $t('table.column.tooltip.bulletDownload') }}</li>
+          <li>{{ $t('table.column.tooltip.bulletShare') }}</li>
         </ul>
       </info-tooltip>
     </template>

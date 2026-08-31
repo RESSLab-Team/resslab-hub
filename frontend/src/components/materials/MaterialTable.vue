@@ -2,6 +2,8 @@
 import { MaterialField, type MaterialModel } from '@/backend'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { MATERIAL_KEY, fetchMaterials } from '@/components/materials/data'
 import { materialsApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { toRef } from 'vue'
@@ -13,10 +15,12 @@ const columns: Column[] = [
   },
   {
     value: MaterialField.Id,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'strong'
   },
   {
     value: MaterialField.Type,
+    categoryColor: true,
     type: 'text'
   },
   {
@@ -35,10 +39,16 @@ interface Emits extends TableEmits<MaterialModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync, colorFor } = useDataset<MaterialModel>(
+  MATERIAL_KEY,
+  fetchMaterials
+)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -58,11 +68,11 @@ const {
       getCsv: (id) => materialsApi.getMaterialsStressStrainCsv(id)
     }
   ],
-  () => materialsApi.getMaterialsCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    materialsApi.getMaterials(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => materialsApi.getMaterialsCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 </script>
 
@@ -71,12 +81,18 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    :color-for="colorFor"
+    database-id="cyclic"
     :columns="columns"
+    hide-toolbar
+    :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
+    instant
     :loading="loading"
     prefix="material."
     :query="query"
-    title="Materials"
+    :title="$t('table.material.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"

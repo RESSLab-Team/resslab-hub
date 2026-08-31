@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import EyebrowText from '@/components/commons/EyebrowText.vue'
+import GroupedProperties from '@/components/commons/GroupedProperties.vue'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
-import PropertyItem from '@/components/commons/PropertyItem.vue'
-import { mdiClose } from '@mdi/js'
+import type { DatabaseId } from '@/utils/navigation'
+import { mdiClose, mdiOpenInNew } from '@mdi/js'
 import type { AxiosResponse } from 'axios'
 import type { LineSeriesOption } from 'echarts'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 export interface DetailCarouselItem {
   count?: number
@@ -15,19 +17,37 @@ export interface DetailCarouselItem {
   axisPointerType?: string
   xAxisName: string
   yAxisName: string
+  xAxisMin?: number
+  yAxisMin?: number
+  xAxisMax?: number
+  yAxisMax?: number
 }
 
 export interface Props {
   reference: string
-  link: string | undefined
+  link: string | null | undefined
+  /** Uppercase kicker above the title, e.g. "RBS · Connection". */
+  eyebrow?: string
+  /** Monospace specimen identifier shown under the title. */
+  specimenId?: string
   carouselItems?: DetailCarouselItem[][]
   carouselHeight?: number
   aspectRatio?: number
+  /**
+   * Pass both to append the grouped "all recorded properties" section under the
+   * drawer's curated highlights (see GroupedProperties.vue).
+   */
+  databaseId?: DatabaseId
+  record?: object
 }
 const props = withDefaults(defineProps<Props>(), {
+  eyebrow: undefined,
+  specimenId: undefined,
   carouselItems: () => [],
   carouselHeight: 300,
-  aspectRatio: 1.5
+  aspectRatio: 1.5,
+  databaseId: undefined,
+  record: undefined
 })
 const emit = defineEmits<{
   (e: 'close'): void
@@ -38,6 +58,7 @@ type SeriesCarouselItem = Omit<DetailCarouselItem, 'promise'> & {
 }
 
 const seriesCarouselItems = ref<SeriesCarouselItem[][]>([])
+const page = ref<number>(0)
 
 watch(
   () => props.carouselItems,
@@ -63,68 +84,95 @@ watch(
         )
       )
     ).filter((row) => row.length > 0)
+    page.value = 0
   },
   {
     immediate: true
   }
 )
+
+const currentPage = computed<SeriesCarouselItem[]>(
+  () => seriesCarouselItems.value[page.value] ?? []
+)
+const pageTitle = computed<string>(() => currentPage.value.map((item) => item.title).join(' · '))
+
+function previousPage(): void {
+  const total = seriesCarouselItems.value.length
+  page.value = (page.value - 1 + total) % total
+}
+function nextPage(): void {
+  const total = seriesCarouselItems.value.length
+  page.value = (page.value + 1) % total
+}
 </script>
 
 <template>
-  <v-card>
-    <v-card-title class="d-flex">
-      <slot name="title" />
-      <v-spacer />
-      <v-btn color="primary" :prepend-icon="mdiClose" variant="text" @click="emit('close')">
-        Close
-      </v-btn>
-    </v-card-title>
-    <v-card-text>
-      <p>
-        <property-item name="Publication">
-          <a v-if="link" :href="link" target="_blank">
-            {{ reference }}
-          </a>
-          <span v-else>{{ reference }}</span>
-        </property-item>
-      </p>
-      <v-carousel
-        v-if="seriesCarouselItems.length > 0"
-        :height="carouselHeight"
-        hide-delimiters
-        :show-arrows="seriesCarouselItems.length > 1"
-      >
-        <v-carousel-item
-          v-for="(carouselItem, carouselIndex) in seriesCarouselItems"
-          :key="carouselIndex"
-        >
-          <v-row>
-            <template v-for="(item, index) in carouselItem" :key="index">
-              <v-col class="d-flex justify-center" :cols="12 / carouselItem.length">
-                <unit-line-chart
-                  :aspect-ratio="aspectRatio"
-                  :max-width="carouselHeight * aspectRatio"
-                  v-bind="item"
-                />
-              </v-col>
-            </template>
-          </v-row>
-        </v-carousel-item>
-      </v-carousel>
+  <div class="detail-panel">
+    <div class="drawer-head">
+      <div class="cd-title-block">
+        <div v-if="eyebrow" class="cd-eyebrow"><eyebrow-text :text="eyebrow" /></div>
+        <h2 class="cd-title"><slot name="title" /></h2>
+        <div v-if="specimenId" class="cd-title-id">{{ specimenId }}</div>
+      </div>
+      <div class="cd-head-actions">
+        <slot name="actions" />
+        <button class="hdr-icon-btn" :aria-label="$t('commons.close')" @click="emit('close')">
+          <v-icon :icon="mdiClose" size="16" />
+        </button>
+      </div>
+    </div>
+
+    <div class="drawer-body">
+      <div class="cd-publication">
+        <div class="cd-publication-label">{{ $t('commons.publication') }}</div>
+        <a v-if="link" class="cd-publication-ref" :href="link" target="_blank" rel="noreferrer">
+          {{ reference }}
+          <v-icon :icon="mdiOpenInNew" size="11" />
+        </a>
+        <span v-else class="cd-publication-ref">{{ reference }}</span>
+      </div>
+
+      <div v-if="seriesCarouselItems.length > 0" class="cd-carousel">
+        <div class="cd-carousel-head">
+          <div class="cd-carousel-title">{{ pageTitle }}</div>
+          <div v-if="seriesCarouselItems.length > 1" class="cd-carousel-nav">
+            <button
+              class="cd-carousel-btn"
+              :aria-label="$t('commons.previous')"
+              @click="previousPage"
+            >
+              ‹
+            </button>
+            <span class="cd-carousel-counter">
+              {{ page + 1 }} / {{ seriesCarouselItems.length }}
+            </span>
+            <button class="cd-carousel-btn" :aria-label="$t('commons.next')" @click="nextPage">
+              ›
+            </button>
+          </div>
+        </div>
+        <div class="cd-carousel-body">
+          <div v-for="(item, index) in currentPage" :key="`${page}-${index}`" class="cd-chart-wrap">
+            <div v-if="currentPage.length > 1" class="cd-chart-label">{{ item.title }}</div>
+            <unit-line-chart
+              :aspect-ratio="aspectRatio"
+              :max-width="carouselHeight * aspectRatio"
+              v-bind="item"
+              title=""
+            />
+          </div>
+        </div>
+      </div>
+
       <slot v-if="$slots.body" name="body" />
       <template v-else>
-        <h2>Loading and Geometric Parameters</h2>
+        <h3 class="cd-section-h">{{ $t('commons.loading_geometric_parameters') }}</h3>
         <slot name="parameters" />
-        <h2>Steel Material Designation</h2>
+        <h3 class="cd-section-h">{{ $t('commons.steel_material_designation') }}</h3>
         <slot name="designation" />
       </template>
-    </v-card-text>
-  </v-card>
-</template>
 
-<style lang="scss" scoped>
-.v-carousel__item > .v-responsive__content {
-  display: flex;
-  justify-content: center;
-}
-</style>
+      <grouped-properties v-if="databaseId && record" :database="databaseId" :record="record" />
+    </div>
+  </div>
+</template>

@@ -9,6 +9,9 @@ import { computed, ref, watch } from 'vue'
 
 import { createLineSeries, validateResidualModelParams } from '@/utils/residual'
 import type { LineSeriesOption } from 'echarts'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n({ useScope: 'global' })
 
 const props = defineProps<{
   residual: ResidualStressModel
@@ -34,8 +37,7 @@ watch(
   () => props.residual,
   (residual) => {
     if (!hasValidParameters.value) {
-      errorMessage.value =
-        'The graph cannot be displayed because the input material model parameters are not available.'
+      errorMessage.value = t('detail.residual.error_message')
       return Promise.resolve()
     } else {
       errorMessage.value = ''
@@ -80,7 +82,7 @@ watch(
             {
               noCount: true,
               series: flangeSeries,
-              title: 'Flange distribution',
+              title: t('detail.residual.flange_distribution'),
               xAxisName: 'bf [mm]',
               yAxisName: 'σ 0,f [MPa]'
             }
@@ -89,7 +91,7 @@ watch(
             {
               noCount: true,
               series: webSeries,
-              title: 'Web distribution',
+              title: t('detail.residual.web_distribution'),
               axisPointerType: 'y',
               xAxisName: 'σ 0,w [MPa]',
               yAxisName: 'h [mm]'
@@ -107,6 +109,8 @@ watch(
 
 <template>
   <common-detail
+    database-id="residuals"
+    :record="residual"
     :reference="residual.reference"
     :link="residual.link"
     :carousel-items="hasValidParameters ? carouselItems : []"
@@ -124,51 +128,60 @@ watch(
 
       <v-row>
         <v-col class="mt-6" cols="6">
-          <h2 class="mb-2">Structural Steel Element</h2>
+          <h2 class="mb-2">{{ $t('detail.residual.structural_steel_element') }}</h2>
           <p class="mb-6">
-            <property-item name="Profile type">
+            <property-item :name="$t('detail.residual.profile_type')">
               {{ residual.profile_type }}
             </property-item>
-            <property-item name="Cross section">
+            <property-item :name="$t('detail.residual.cross_section')">
               {{ residual.profile }}
             </property-item>
           </p>
-          <h2 class="mb-2">Steel Material Designation</h2>
+          <h2 class="mb-2">{{ $t('detail.residual.steel_material_designation') }}</h2>
           <p class="mb-6">
-            <property-item name="Steel type">
+            <property-item :name="$t('detail.residual.steel_type')">
               {{ residual.steel }}
             </property-item>
-            <property-item name="Nominal yield stress" unit="MPa">
+            <property-item :name="$t('detail.residual.nominal_yield_stress')" unit="MPa">
               {{ formatNumber(residual.fy_n) }}
             </property-item>
-            <property-item name="Expected yield stress" unit="MPa">
+            <property-item :name="$t('detail.residual.expected_yield_stress')" unit="MPa">
               {{ formatNumber(residual.fy_e) }}
             </property-item>
-            <property-item name="Measured yield stress (flange)" unit="MPa">
+            <property-item :name="$t('detail.residual.measured_yield_stress_flange')" unit="MPa">
               {{ formatNumber(residual.fy_mf) }}
             </property-item>
-            <property-item name="Measured yield stress (web)" unit="MPa">
+            <property-item :name="$t('detail.residual.measured_yield_stress_web')" unit="MPa">
               {{ formatNumber(residual.fy_mw) }}
             </property-item>
           </p>
-          <h2 class="mb-2">Cross-Sectional Geometric Properties</h2>
+          <h2 class="mb-2">{{ $t('detail.residual.cross_sectional_geometric_properties') }}</h2>
           <p class="mb-6">
-            <property-item name="Height of the cross section" unit="mm">
+            <property-item :name="$t('detail.residual.height_of_the_cross_section')" unit="mm">
               {{ formatNumber(residual.h) }}
             </property-item>
-            <property-item name="Width of the cross section" unit="mm">
+            <property-item :name="$t('detail.residual.width_of_the_cross_section')" unit="mm">
               {{ formatNumber(residual.b) }}
             </property-item>
-            <property-item name="Web thickness of the cross section" unit="mm">
+            <property-item
+              :name="$t('detail.residual.web_thickness_of_the_cross_section')"
+              unit="mm"
+            >
               {{ formatNumber(residual.tw) }}
             </property-item>
-            <property-item name="Flange thickness of the cross section" unit="mm">
+            <property-item
+              :name="$t('detail.residual.flange_thickness_of_the_cross_section')"
+              unit="mm"
+            >
               {{ formatNumber(residual.tf) }}
             </property-item>
-            <property-item name="Fillet radii of the cross section" unit="mm">
+            <property-item
+              :name="$t('detail.residual.fillet_radii_of_the_cross_section')"
+              unit="mm"
+            >
               {{ formatNumber(residual.r) }}
             </property-item>
-            <property-item name="Area of the cross section" unit="mm">
+            <property-item :name="$t('detail.residual.area_of_the_cross_section')" unit="mm">
               {{ formatNumber(residual.A) }}
             </property-item>
           </p>
