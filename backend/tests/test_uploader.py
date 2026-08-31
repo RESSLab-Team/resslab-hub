@@ -21,6 +21,7 @@ from resslab_hub.data.uploader import (
     TableUploader,
     Type,
     Uploader,
+    cap_series,
     upload_all,
     upload_one,
 )
@@ -355,3 +356,30 @@ def test_upload_all_recomputes_flags(tmp_path, db_session):
 
     flags = {b.id: b.displacement_count for b in db_session.query(Brace).all()}
     assert flags == {"B1": 1, "B2": 0}
+
+
+# ---------------------------------------------------------------------------
+# cap_series: the pure filter behind `upload-data-light` (per-worktree light DB)
+# ---------------------------------------------------------------------------
+def test_cap_series_caps_measurements_but_keeps_everything_else():
+    args = [
+        (Type.BRACE, "braces/steel_braces.csv"),
+        (Type.DICTIONARY, "braces/steel_braces_data_dictionary.csv"),
+        (Type.DICTIONARY, "columns/steel_columns_data_dictionary.csv"),
+        (Type.README, "braces/README.md"),
+        (Type.README, "columns/README.md"),
+        (Type.BRACE_DISPLACEMENT, "braces/force_displacement/b.csv"),
+        (Type.BRACE_DISPLACEMENT, "braces/force_displacement/a.csv"),
+        (Type.COLUMN_MOMENT_STRONG, "columns/moment_rotation_strong/x.csv"),
+    ]
+
+    capped = cap_series(args, 1)
+
+    # main tables and every per-folder dictionary/README survive untouched
+    for kept in args[:5]:
+        assert kept in capped
+    # one file per series type, chosen alphabetically so reruns are identical
+    assert (Type.BRACE_DISPLACEMENT, "braces/force_displacement/a.csv") in capped
+    assert (Type.BRACE_DISPLACEMENT, "braces/force_displacement/b.csv") not in capped
+    assert (Type.COLUMN_MOMENT_STRONG, "columns/moment_rotation_strong/x.csv") in capped
+    assert len(capped) == 7

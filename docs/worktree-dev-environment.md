@@ -20,8 +20,9 @@ wt remove feat/123-thing
 ```
 
 Nothing is shared between worktrees except the git object store and the one
-Postgres container — and the database _is_ shared unless a branch asks for its
-own copy ([Database](#database)).
+Postgres container — and inside it each worktree gets its own throwaway ~20 MB
+clone of the light template, falling back to the shared full dataset only when
+no template exists yet ([Database](#database)).
 
 ## Moving parts
 
@@ -35,7 +36,7 @@ own copy ([Database](#database)).
 | `scripts/wt-setup.sh`                   | committed                                         | repo    | everything a worktree needs to run, in one idempotent script            |
 | `scripts/tmux-dev.sh`                   | committed                                         | repo    | the 4-pane session; also `make dev-all` in the main checkout          |
 | `scripts/wt-teardown.sh`                | committed                                         | repo    | mirror of setup, run by `wt remove`                                     |
-| `scripts/wt-db.sh`                      | committed                                         | repo    | `make db-template` / `db-branch` / `db-branch-drop` / `db-status`       |
+| `scripts/wt-db.sh`                      | committed                                         | repo    | `make db-template-light` / `db-template` / `db-branch[-full]` / `db-branch-drop` / `db-status` |
 | `scripts/wt-open.sh`                    | committed                                         | repo    | `make wt-open [TARGET=backend] [BRANCH=…]` — prints and opens the URL   |
 | `scripts/wt-land.sh`                    | committed                                         | repo    | `make wt-land BRANCH=…` — rebase, PR, squash-merge into `dev`, clean up |
 | `scripts/git-push-guard.sh`             | committed, wired in `lefthook.yml`                | repo    | a worktree may push only its own branch, never `dev`/`stage`/`main`     |
@@ -102,7 +103,7 @@ wtgo feat/<TAB>                      # go to a branch's session: tab-completes w
                                      # without completion; prefix+d detaches, prefix+s switches
 make wt-open BRANCH=feat/123-thing   # frontend in the browser; TARGET=backend for /docs
 make db-status                       # which DB this worktree uses
-make db-branch                       # only if the branch needs a migration or rewrites data
+make db-branch                       # re-clone the (light) template if setup couldn't; `db-branch-full` for the 3.4 GB copy
 make wt-land BRANCH=feat/123-thing   # from the main checkout: rebase → PR → squash-merge → cleanup
 ```
 
@@ -158,24 +159,36 @@ matching backend, and `tmux-dev.sh` exports the file in every pane. CORS is
 
 ## Database
 
-One container (`resslab-hub-database-1`, host port 5433), one 3.4 GB dev
-dataset in database `postgres`. The backend runs `alembic upgrade head` at
-startup, which is exactly what must **not** happen from a random branch against
-a shared database — so:
+One container (`resslab-hub-database-1`, host port 5433) holds the 3.4 GB dev
+dataset in database `postgres` plus two idle templates that branch clones are
+made from. Every new worktree gets its own throwaway clone of the **light**
+template (`wt-setup.sh` runs `wt-db.sh create`), so a branch can migrate,
+upload, or corrupt its database without touching anything shared — and since
+the clone is ~20 MB, it costs under a second:
 
-|                    | shared (default)                                          | branch DB (`make db-branch`)                            |
-| ------------------ | --------------------------------------------------------- | ------------------------------------------------------- |
-| `POSTGRES_DB`      | `postgres`                                                | `resslab_hub_<slug>` cloned from `resslab_hub_template` |
-| `DATABASE_UPGRADE` | `false`                                                   | `true`                                                  |
-| cost               | none                                                      | ~1 min, 3.4 GB on disk, dropped by `wt remove`          |
-| use when           | reading data, UI work, API changes without schema changes | migrations, uploader changes, anything that writes      |
+|                    | light branch DB (default)                                                                        | full branch DB (`make db-branch-full`)                | shared (`wt-db.sh drop`)              |
+| ------------------ | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------- |
+| `POSTGRES_DB`      | `resslab_hub_<slug>` from `resslab_hub_light`                                                    | `resslab_hub_<slug>` from `resslab_hub_template`      | `postgres`                            |
+| contents           | every main table, dictionary and README; one measurement file per series type                    | everything                                            | everything                            |
+| `DATABASE_UPGRADE` | `true`                                                                                           | `true`                                                | `false`                               |
+| cost               | < 1 s, ~20 MB, dropped by `wt remove`                                                            | ~1 min, 3.4 GB on disk, dropped by `wt remove`        | none                                  |
+| use when           | almost everything: UI work, API and schema changes, migrations, uploader changes, anything that writes | real data volumes, browsing curves across many specimens | read-only look at the full dataset |
 
-`make db-template` (once, from the main checkout; re-run after a big data
-upload) copies the shared DB into `resslab_hub_template` with
-`pg_dump | psql`. It has to be a copy: Postgres refuses `CREATE DATABASE …
-TEMPLATE x` while anything is connected to `x`, and the shared DB always has
-connections from other worktrees' backends. The template is never connected
-to, so clones are instant.
+`make db-template-light` (once, re-run when the data repo changes) builds
+`resslab_hub_light` from the data repo: `alembic upgrade head` for the schema,
+then the uploader with `--series-limit 1`, which keeps every main CSV,
+dictionary and README but only the alphabetically-first measurement file per
+series type (~30 s total). The `*_count` flags are recomputed from what was
+actually uploaded, so specimens without curves correctly show "no test data".
+If the light template doesn't exist yet, `wt-setup.sh` says so and leaves the
+worktree on the shared DB with migrations off; build it and run `make db-branch`.
+
+`make db-template` (from the main checkout; re-run after a big data upload)
+copies the shared DB into `resslab_hub_template` with `pg_dump | psql`. Both
+have to be idle copies: Postgres refuses `CREATE DATABASE … TEMPLATE x` while
+anything is connected to `x`, and the shared DB always has connections from
+other worktrees' backends. The templates are never connected to, so clones are
+instant.
 
 `pytest` creates and drops a throwaway `POSTGRES_TEST_DB`; `wt-setup.sh` makes it
 `resslab_hub_test_<slug>` per worktree so two test runs can't drop each other's
@@ -254,9 +267,10 @@ checked out in a worktree (cli/cli#13380).
 - **Start the database from the main checkout.** Compose names its project
   after the directory; `docker compose up` in a worktree would create a second
   project fighting for port 5433. `tmux-dev.sh` does the right thing.
-- **The shared DB must never be migrated from a worktree.** `DATABASE_UPGRADE`
-  is forced off there; `make api` already sets it. `make db-branch` is the
-  opt-in.
+- **The shared DB must never be migrated from a worktree.** A worktree normally
+  never touches it — setup clones the light template and turns migrations on
+  for the clone only. When no template exists yet the worktree falls back to
+  the shared DB with `DATABASE_UPGRADE` forced off; `make api` already sets it.
 - **`lefthook` refuses commits from a checkout where it isn't installed**
   (`assert_lefthook_installed`); `wt-setup.sh` runs `make hooks`.
 - **The sandbox cannot reach `localhost`.** Verified: a sandboxed

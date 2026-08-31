@@ -4,6 +4,7 @@ CLI for uploading csv to database
 
 import traceback
 from abc import ABC, abstractmethod
+from collections import Counter
 from csv import DictReader, reader
 from datetime import datetime
 from decimal import Decimal
@@ -217,6 +218,28 @@ class Type(Enum):
     DUCTILE_FRACTURE_EPEQ_SIMULATION = "ductile-fracture-epeq-simulation"
     DUCTILE_FRACTURE_LODE_SIMULATION = "ductile-fracture-lode-simulation"
     DUCTILE_FRACTURE_TRIAX_SIMULATION = "ductile-fracture-triax-simulation"
+
+
+# Main-table types: uploaded before everything else so the per-experiment
+# measurement rows have their foreign-key targets in place.
+PRIMARY_TYPES = frozenset(
+    {
+        Type.BRACE,
+        Type.COLUMN,
+        Type.CONNECTION,
+        Type.MATERIAL,
+        Type.RESIDUAL_STRESS,
+        Type.HSS_COLUMN,
+        Type.ECCENTRIC_BRACED_FRAME,
+        Type.TENSILE_COUPON,
+        Type.DUCTILE_FRACTURE,
+    }
+)
+
+# Types never capped by upload_all's series_limit: the main tables plus the
+# one-per-folder dictionary/README files (capping those per Type would keep a
+# single component's dictionary and drop the other eight).
+SERIES_EXEMPT_TYPES = PRIMARY_TYPES | {Type.DICTIONARY, Type.README}
 
 
 # Abstract base class defining the upload interface
@@ -1273,14 +1296,36 @@ def upload_parallel(upload_args, cpu=None):
         return pool.starmap(upload_one, upload_args, chunksize=1)
 
 
-def upload_all(input_type: Type, filenames: List[str]):
+def cap_series(
+    args: List[Tuple[Type, str]], series_limit: int
+) -> List[Tuple[Type, str]]:
+    """
+    Keep every main-table, dictionary and README file, but at most
+    ``series_limit`` measurement files per series type. Files are considered in
+    sorted order so the same exemplars survive every run.
+    """
+    kept: List[Tuple[Type, str]] = []
+    per_type: Counter = Counter()
+    for upload_type, file_path in sorted(args, key=lambda a: (a[0].value, a[1])):
+        if upload_type not in SERIES_EXEMPT_TYPES:
+            if per_type[upload_type] >= series_limit:
+                continue
+            per_type[upload_type] += 1
+        kept.append((upload_type, file_path))
+    return kept
+
+
+def upload_all(
+    input_type: Type, filenames: List[str], series_limit: Optional[int] = None
+):
     """
     Main upload orchestration:
     1. Collects all (Type, filepath) tuples via get_args_all
     2. Expands wildcards into actual filenames
-    3. Splits into primary (main tables) and subsidiary (measurements) types
-    4. Processes primary tables first (required for foreign key constraints)
-    5. Processes subsidiary data in parallel
+    3. Caps measurement files per series type when series_limit is given
+    4. Splits into primary (main tables) and subsidiary (measurements) types
+    5. Processes primary tables first (required for foreign key constraints)
+    6. Processes subsidiary data in parallel
     """
 
     cpu = get_safe_cpu_count()
@@ -1292,23 +1337,11 @@ def upload_all(input_type: Type, filenames: List[str]):
     ]
     args = [(arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])]
 
-    primary_types = [
-        arg
-        for arg in args
-        if arg[0]
-        in [
-            Type.BRACE,
-            Type.COLUMN,
-            Type.CONNECTION,
-            Type.MATERIAL,
-            Type.RESIDUAL_STRESS,
-            Type.HSS_COLUMN,
-            Type.ECCENTRIC_BRACED_FRAME,
-            Type.TENSILE_COUPON,
-            Type.DUCTILE_FRACTURE,
-        ]
-    ]
-    subsidiary_types = [arg for arg in args if arg not in primary_types]
+    if series_limit is not None:
+        args = cap_series(args, series_limit)
+
+    primary_types = [arg for arg in args if arg[0] in PRIMARY_TYPES]
+    subsidiary_types = [arg for arg in args if arg[0] not in PRIMARY_TYPES]
 
     primary_results = upload_parallel(primary_types, cpu) if primary_types else []
     subsidiary_results = (

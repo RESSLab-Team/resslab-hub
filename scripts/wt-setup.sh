@@ -73,6 +73,16 @@ set_env_var secrets/.env POSTGRES_TEST_DB "resslab_hub_test_$SLUG"
 if [ "$DB_NAME" = "$SHARED_DB" ]; then set_env_var secrets/.env DATABASE_UPGRADE false
 else set_env_var secrets/.env DATABASE_UPGRADE true; fi
 
+# 3b. Own throwaway database: clone the ~20 MB light template (sub-second) so
+#     this worktree can migrate, upload, or break its DB without touching the
+#     shared dataset. Best-effort: without the container or a template we stay
+#     on the shared DB and say so; `make db-branch` retries later.
+if [ "$DB_NAME" = "$SHARED_DB" ]; then
+  if ROOT="$ROOT" "$(tooling wt-db.sh)" create; then :
+  else echo "note: staying on the shared $SHARED_DB — build the light template once with 'make db-template-light', then run 'make db-branch' here"
+  fi
+fi
+
 # 4. Claude Code runs sandboxed here with the ask/deny rules from the template.
 #    .claude/ is gitignored, so the worktree's copy never reaches a commit.
 mkdir -p .claude

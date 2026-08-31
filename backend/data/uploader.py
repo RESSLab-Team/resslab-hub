@@ -14,6 +14,14 @@ def main():
     parser.add_argument("type", type=Type, choices=list(Type))
     parser.add_argument("filenames", nargs="+", help="data input file pattern")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument(
+        "--series-limit",
+        type=int,
+        default=None,
+        help="upload at most N measurement files per series type; main tables, "
+        "dictionaries and READMEs are always uploaded in full (used to build "
+        "the lightweight per-worktree database template)",
+    )
 
     args = parser.parse_args()
     input_type: Type = args.type
@@ -28,7 +36,7 @@ def main():
     debug(f"Connecting to {engine.url}")
     debug(f"Log level set to {log_level}")
 
-    upload_all(input_type, filenames)
+    upload_all(input_type, filenames, series_limit=args.series_limit)
 
 
 if __name__ == "__main__":
