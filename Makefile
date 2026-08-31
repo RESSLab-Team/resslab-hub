@@ -62,8 +62,8 @@ backup-dump:
 	@docker compose exec database sh -c 'pg_dumpall -U postgres' > ${DEST_FOLDER}/all-databases.sql
 
 # --- git worktrees (docs/worktree-dev-environment.md)
-new:                    ## make new BRANCH=feat/x [BASE=stage]  — worktree + deps + session, attached
-	scripts/wt-new.sh $(BRANCH) $(or $(BASE),stage)
+new:                    ## make new BRANCH=feat/x [BASE=origin/dev]  — worktree + deps + session, attached
+	scripts/wt-new.sh $(BRANCH) $(BASE)
 
 db-template:            ## copy the shared dev DB into resslab_hub_template (once, from the main checkout)
 	scripts/wt-db.sh template

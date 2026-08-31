@@ -5,7 +5,7 @@ own tmux session, with its own Claude Code session and its own backend +
 frontend dev servers — and how to replicate the setup in another repository.
 
 ```
-wt create feat/123-thing stage
+wt create feat/123-thing origin/dev
   └─ .wt.toml → scripts/wt-setup.sh                (idempotent)
        ├─ seeds secrets/.env, docker-compose.override.yml, frontend/.env.development.local
        ├─ hashes the branch name → .env.worktree  (BACKEND_PORT 18xxx, FRONTEND_PORT 19xxx, DB, test DB, data dir)
@@ -88,8 +88,8 @@ separator = "-"                                         # feat/foo → feat-foo,
 ## Daily workflow
 
 ```bash
-make new BRANCH=feat/123-thing       # = wt create feat/123-thing stage + attach; ~3 min the first time (deps)
-                                     # base is stage (dev lags — see Gotchas); prefix+d detaches, prefix+s switches
+make new BRANCH=feat/123-thing       # = wt create feat/123-thing origin/dev + attach; ~3 min the first time (deps)
+                                     # base is origin/dev, fetched first (see Gotchas); prefix+d detaches, prefix+s switches
 make wt-open BRANCH=feat/123-thing   # frontend in the browser; TARGET=backend for /docs
 make db-status                       # which DB this worktree uses
 make db-branch                       # only if the branch needs a migration or rewrites data
@@ -178,9 +178,9 @@ reviewer.
 `scripts/wt-land.sh <branch>` (or `make wt-land BRANCH=…`), from the main checkout:
 
 1. refuses if the worktree has uncommitted/untracked changes, or if `origin/dev`
-   isn't an ancestor of the branch (a branch cut from `stage` while `dev` lags
-   would drag every missing commit into its PR — fast-forward `dev` first:
-   `git push origin stage:dev`);
+   isn't an ancestor of the branch (a branch cut from a stale or diverged base
+   would drag every commit `dev` is missing into its PR; rebase the branch onto
+   `origin/dev` first, or bring `dev` up to date);
 2. rebases the branch onto `origin/dev`, pushes with `--force-with-lease`;
 3. `gh pr create --base dev --fill` if there is no PR, then
    `gh pr merge --squash --auto` (falls back to an immediate squash-merge on a
@@ -195,9 +195,12 @@ checked out in a worktree (cli/cli#13380).
 
 ## Gotchas
 
-- **`dev` lags `stage`.** At the time of writing `stage` is 242 commits ahead.
-  Base new branches on `stage` (`wt create x stage`) and fast-forward `dev`
-  before landing, or `wt-land` refuses.
+- **A local ref makes a stale base.** `wt create x somebranch` hands the base
+  straight to `git worktree add`, which resolves your local `somebranch`, at
+  whatever commit your checkout last saw it (a stale local `stage` once handed
+  every new worktree a template with a known bug). `wt-new.sh` therefore
+  defaults to `origin/dev` and fetches it first; if you pass a base yourself,
+  prefer the `origin/` form.
 - **`wt create` runs `post_create`; some builds also run `post_checkout`.**
   `wt-setup.sh` is idempotent so double runs are harmless, and both hooks point
   at it so `wt co` / `wt pr` set a worktree up too. Post-hooks only _warn_ on
