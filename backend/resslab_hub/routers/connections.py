@@ -1,7 +1,7 @@
 """
 Handle /connections requests
 """
-from decimal import Decimal
+
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -174,12 +174,12 @@ async def get_connections_distinct(
     return await component.get_distinct(session, [field.value for field in fields])
 
 
-@router.get("/{connection_id}/beam", response_model=List[List[Decimal]])
+@router.get("/{connection_id}/beam", response_model=List[List[float]])
 async def get_connections_beam(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get beam series from connection
     """
@@ -197,12 +197,12 @@ async def get_connections_beam_csv(
     return await beam_component.get_csv(session, connection_id)
 
 
-@router.get("/{connection_id}/beam-west", response_model=List[List[Decimal]])
+@router.get("/{connection_id}/beam-west", response_model=List[List[float]])
 async def get_connections_beam_west(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get beam west series from connection
     """
@@ -220,12 +220,12 @@ async def get_connections_beam_west_csv(
     return await beam_west_component.get_csv(session, connection_id)
 
 
-@router.get("/{connection_id}/global", response_model=List[List[Decimal]])
+@router.get("/{connection_id}/global", response_model=List[List[float]])
 async def get_connections_global(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get global series from connection
     """
@@ -243,12 +243,12 @@ async def get_connections_global_csv(
     return await global_component.get_csv(session, connection_id)
 
 
-@router.get("/{connection_id}/global-west", response_model=List[List[Decimal]])
+@router.get("/{connection_id}/global-west", response_model=List[List[float]])
 async def get_connections_global_west(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get global west series from connection
     """
@@ -266,12 +266,12 @@ async def get_connections_global_west_csv(
     return await global_west_component.get_csv(session, connection_id)
 
 
-@router.get("/{connection_id}/panel-zones", response_model=List[List[Decimal]])
+@router.get("/{connection_id}/panel-zones", response_model=List[List[float]])
 async def get_connections_panel_zones(
     session: AsyncSession = Depends(get_session),
     connection_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get panel zone series from connection
     """

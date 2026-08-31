@@ -2,7 +2,6 @@
 Handle /eccentric-braced-frame requests
 """
 
-from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Path, Query
@@ -132,13 +131,13 @@ async def get_eccentric_braced_frames_distinct(
 
 
 @router.get(
-    "/{eccentric_braced_frame_id}/shear-link-angle", response_model=List[List[Decimal]]
+    "/{eccentric_braced_frame_id}/shear-link-angle", response_model=List[List[float]]
 )
 async def get_eccentric_braced_frames_shear_link_angle(
     session: AsyncSession = Depends(get_session),
     eccentric_braced_frame_id: str = Path(...),
     size: int = Query(1024, ge=0),
-) -> List[List[Decimal]]:
+) -> List[List[float]]:
     """
     Get shear-link-angle series from Eccentric Braced Frame
     """
