@@ -99,7 +99,10 @@ make wt-land BRANCH=feat/123-thing   # from the main checkout: rebase → PR →
 
 Inside the session: `backend` and `frontend` windows run `make dev` with the
 worktree's ports; `claude` is the agent; `shell` has `.env.worktree` exported.
-Both URLs are printed when the session starts and by `wt-open`.
+Both URLs are printed when the session starts and by `wt-open`. The `backend`
+and `frontend` windows also mirror their output to `.wt-logs/*.log` in the
+checkout (`tmux pipe-pane`), so the sandboxed agent in the `claude` window,
+which cannot reach the tmux socket, can still read the server logs.
 
 `wt list` / `wt status` show every worktree; `wt cleanup` removes those whose
 branch is merged.
