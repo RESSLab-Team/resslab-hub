@@ -7,7 +7,8 @@ frontend dev servers — and how to replicate the setup in another repository.
 ```
 wt create feat/123-thing origin/dev
   └─ .wt.toml → scripts/wt-setup.sh                (idempotent)
-       ├─ seeds secrets/.env, docker-compose.override.yml, frontend/.env.development.local
+       ├─ seeds secrets/.env, docker-compose.override.yml, frontend/.env.development.local,
+       │        sample-data/ batch folders (fieldGroups.spec.ts and the contribution flow need them)
        ├─ hashes the branch name → .env.worktree  (BACKEND_PORT 18xxx, FRONTEND_PORT 19xxx, DB, test DB, data dir)
        ├─ points this frontend at this backend, this backend at the right DB with migrations OFF
        ├─ writes .claude/settings.local.json     (sandbox + ask/deny rules for the Claude session)
@@ -226,7 +227,11 @@ checked out in a worktree (cli/cli#13380).
   every `curl` goes through the classifier (read-only GETs are allowed by
   default) and the ask rules (write forms prompt). Verified both ways: with
   the exclusion, `curl` to the worktree's own frontend and backend returns
-  200 from inside a Claude session.
+  200 from inside a Claude session. The common read-only forms against
+  `http://localhost:...` / `http://127.0.0.1:...` (bare, `-s`, `-sS`, `-fsS`,
+  `-i`, `-I`) are also in `permissions.allow`, so the agent's usual "did my
+  change work" checks skip the classifier entirely; ask rules still win for
+  write forms, so a localhost POST prompts like any other.
 - **Disk.** Each worktree carries its own `node_modules` + `.venv` (~770 MB).
   `wt`'s `docs/examples.md` has shared-cache hooks if that hurts. A branch DB is
   another 3.4 GB — keep one alive at a time.

@@ -29,6 +29,23 @@ for f in secrets/.env docker-compose.override.yml frontend/.env.development.loca
 done
 [ -f secrets/.env ] || die "no secrets/.env in $MAIN to seed from — create it first (README > Secrets)"
 
+# 1b. Sample contribution batches. The CSVs are generated and untracked
+#     (sample-data/.gitignore), but fieldGroups.spec.ts reads their headers and
+#     the contribution flow wants drop-in test data, so a worktree without them
+#     starts broken. Copy only the generated batch folders: the top-level files
+#     (generate.py, README.md) are tracked and belong to the branch.
+if ! find sample-data -name '*.csv' -print -quit 2>/dev/null | grep -q .; then
+  found=""
+  for d in "$MAIN"/sample-data/*/; do
+    if [ -d "$d" ]; then cp -r "$d" sample-data/; found=yes; fi
+  done
+  if [ -n "$found" ]; then
+    echo "seeded sample-data/ from $MAIN"
+  else
+    echo "note: no generated sample-data in $MAIN; run 'make sample-data' (here or there) if you need it"
+  fi
+fi
+
 # 2. Ports and names. A previous run may have cloned a branch DB: keep it.
 branch_ports "$BRANCH"
 SLUG="$(slug "$BRANCH")"
