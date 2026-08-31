@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# One tmux session per checkout, named "<repo>/<branch>", with four windows:
-# backend (uvicorn), frontend (vite), claude, shell. Ports come from .env.worktree
+# One tmux session per checkout, named "<repo>/<branch>", one window with four
+# titled panes: claude (left half), backend (uvicorn), frontend (vite), shell
+# stacked on the right. Ports come from .env.worktree
 # (written by wt-setup.sh); the main checkout keeps 8000/5173.
 #   scripts/tmux-dev.sh              create the session for this checkout, or attach if it exists
 #   scripts/tmux-dev.sh --no-attach  create it detached (what the wt hook does)
@@ -10,7 +11,7 @@ SCRIPTS="$(dirname "$(readlink -f "$0")")"
 # ROOT arrives exported from wt-new.sh / wt-setup.sh; wt-lib has read it, so drop
 # the export before any tmux command. If this command is the one that starts the
 # tmux server, an exported ROOT becomes part of the server's environment, every
-# shell in every window inherits it, and any wt script run from those shells then
+# shell in every pane inherits it, and any wt script run from those shells then
 # targets this checkout no matter what directory it is run from. The
 # set-environment call scrubs a server that an earlier version already poisoned.
 export -n ROOT || true
@@ -41,25 +42,37 @@ if tmux has-session -t "=$SESSION" 2>/dev/null; then print_urls; attach; exit 0;
 # worktree would create a second project fighting for the same host port.
 docker ps --format '{{.Names}}' | grep -qx "$DB_CONTAINER" || (cd "$MAIN" && docker compose up -d database)
 
-# Every window exports .env.worktree so pytest (POSTGRES_TEST_DB), the Makefiles
+# Every pane exports .env.worktree so pytest (POSTGRES_TEST_DB), the Makefiles
 # (BACKEND_PORT, RESSLAB_DATA_DIR) and vite (FRONTEND_PORT) all see the same values.
 LOAD='set -a; [ -f "$(git rev-parse --show-toplevel)/.env.worktree" ] && . "$(git rev-parse --show-toplevel)/.env.worktree"; set +a'
-# Mirror the server windows' output to plain files: the claude window's agent
-# runs sandboxed with no access to the tmux socket, so log files inside the
-# checkout are the only way it can see why a server misbehaves. Fresh per session.
+# Mirror the server panes' output to plain files: the claude pane's agent runs
+# sandboxed with no access to the tmux socket, so log files inside the checkout
+# are the only way it can see why a server misbehaves. Fresh per session.
 LOGS="$ROOT/.wt-logs"; mkdir -p "$LOGS"
-pipe_log() { : > "$LOGS/$1.log"; tmux pipe-pane -t "=$SESSION:$1" -o "exec cat >> '$LOGS/$1.log'"; }
-tmux new-session -d -s "$SESSION" -n backend -c "$ROOT/backend"
-tmux send-keys -t "=$SESSION:backend" "$LOAD; make dev" C-m
-pipe_log backend
-tmux new-window -t "=$SESSION" -n frontend -c "$ROOT/frontend"
-tmux send-keys -t "=$SESSION:frontend" "$LOAD; make dev" C-m
-pipe_log frontend
-tmux new-window -t "=$SESSION" -n claude -c "$ROOT"
-tmux send-keys -t "=$SESSION:claude" "$LOAD; claude" C-m
-tmux new-window -t "=$SESSION" -n shell -c "$ROOT"
-tmux send-keys -t "=$SESSION:shell" "$LOAD; clear" C-m
-tmux select-window -t "=$SESSION:shell"
+pipe_log() { : > "$LOGS/$1.log"; tmux pipe-pane -t "$2" -o "exec cat >> '$LOGS/$1.log'"; }
+
+# One window, four titled panes: claude fills the left half; the right half
+# stacks backend / frontend / shell. prefix+arrows move between panes, prefix+z
+# zooms one to full screen, and the prefix+s / prefix+w previews show the whole
+# layout at a glance. claude has focus when you attach.
+tmux new-session -d -s "$SESSION" -n dev -c "$ROOT"
+P_CLAUDE="$(tmux display-message -p -t "=$SESSION:dev" '#{pane_id}')"
+P_BACKEND="$(tmux split-window -h -l 50% -P -F '#{pane_id}' -t "$P_CLAUDE" -c "$ROOT/backend")"
+P_FRONTEND="$(tmux split-window -v -l 67% -P -F '#{pane_id}' -t "$P_BACKEND" -c "$ROOT/frontend")"
+P_SHELL="$(tmux split-window -v -l 50% -P -F '#{pane_id}' -t "$P_FRONTEND" -c "$ROOT")"
+tmux select-pane -t "$P_CLAUDE" -T claude
+tmux select-pane -t "$P_BACKEND" -T backend
+tmux select-pane -t "$P_FRONTEND" -T frontend
+tmux select-pane -t "$P_SHELL" -T shell
+tmux set-option -w -t "=$SESSION:dev" pane-border-status top
+
+tmux send-keys -t "$P_BACKEND" "$LOAD; make dev" C-m
+pipe_log backend "$P_BACKEND"
+tmux send-keys -t "$P_FRONTEND" "$LOAD; make dev" C-m
+pipe_log frontend "$P_FRONTEND"
+tmux send-keys -t "$P_CLAUDE" "$LOAD; claude" C-m
+tmux send-keys -t "$P_SHELL" "$LOAD; clear" C-m
+tmux select-pane -t "$P_CLAUDE"
 
 print_urls
 attach
