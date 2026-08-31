@@ -4,17 +4,28 @@
 # for variable values.
 #
 # Install once:  echo 'source ~/code/resslab-hub/scripts/wt-go.bash' >> ~/.bashrc
-# Then:          wtgo feat/<TAB>     lists worktrees and branches starting feat/
+#
+# Completion is two-tier: while your input matches an existing worktree, only
+# worktrees are offered — a bare `wtgo <TAB>` is exactly "what was I working
+# on". Only when nothing matches does it widen to every local and origin
+# branch, minus dev/stage/main (never checked out in a worktree).
 _WTGO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 wtgo() { "$_WTGO_ROOT/scripts/wt-new.sh" "$@"; }
 
 _wtgo() {
   local cur=${COMP_WORDS[COMP_CWORD]}
-  local refs
-  refs=$( { git -C "$_WTGO_ROOT" worktree list --porcelain | sed -n 's#^branch refs/heads/##p'
-            git -C "$_WTGO_ROOT" for-each-ref --format='%(refname:short)' refs/heads refs/remotes/origin |
-              sed 's#^origin/##'; } 2>/dev/null | grep -Ev '^(HEAD|origin)$' | sort -u )
-  COMPREPLY=( $(compgen -W "$refs" -- "$cur") )
+  local wts
+  wts=$(git -C "$_WTGO_ROOT" worktree list --porcelain 2>/dev/null |
+          sed -n 's#^branch refs/heads/##p' | grep -Ev '^(dev|stage|main)$')
+  COMPREPLY=( $(compgen -W "$wts" -- "$cur") )
+  if [ ${#COMPREPLY[@]} -eq 0 ]; then
+    local branches
+    branches=$( { echo "$wts"
+                  git -C "$_WTGO_ROOT" for-each-ref --format='%(refname:short)' refs/heads refs/remotes/origin |
+                    sed 's#^origin/##'; } 2>/dev/null |
+                grep -Ev '^(HEAD|origin|dev|stage|main)$' | sort -u )
+    COMPREPLY=( $(compgen -W "$branches" -- "$cur") )
+  fi
 }
 complete -F _wtgo wtgo
