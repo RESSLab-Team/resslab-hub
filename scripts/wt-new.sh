@@ -10,6 +10,9 @@ SCRIPTS="$(dirname "$(readlink -f "$0")")"
 . "$SCRIPTS/wt-lib.sh"
 branch="${1:-}"; base="${2:-origin/dev}"
 [ -n "$branch" ] || die "usage: wt-new.sh <branch> [base]"
+# A worktree holding the default branch becomes wt's "main" and breaks path
+# resolution (see the guide's gotchas); stage/main are just as off-limits.
+case " $PROTECTED_BRANCHES " in *" $branch "*) die "$branch never gets a worktree — work on a feature branch";; esac
 # Work against the main checkout wherever this runs from — a worktree cwd, or a
 # shell whose environment carries a stale ROOT from an old tmux session.
 ROOT="$(main_checkout)"
