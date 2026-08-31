@@ -115,6 +115,9 @@ upload-ductile-fracture:
 precompute-sem:
 	uv run --group sem python data/precompute_sem.py $(RESSLAB_DATA_DIR)
 
+precompute-fracture-figures:
+	uv run --group figures python data/precompute_fracture_figures.py $(RESSLAB_DATA_DIR)
+
 upload-data:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all $(RESSLAB_DATA_DIR)
 

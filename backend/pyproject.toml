@@ -50,6 +50,10 @@ sem = [
   "exifread>=3.0,<4",
   "boto3>=1.34,<2",
 ]
+figures = [
+  "matplotlib>=3.8,<4",
+  "numpy>=1.24,<3",
+]
 
 [build-system]
 requires = ["hatchling"]

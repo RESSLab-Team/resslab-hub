@@ -14,6 +14,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import ResetChartButton from '@/components/commons/ResetChartButton.vue'
+import { buildFigureTooltipFormatter, preloadImages } from '@/components/commons/charts/utils'
 
 use([CanvasRenderer, TreemapChart, TooltipComponent])
 
@@ -36,6 +37,9 @@ const props = withDefaults(
     // dashboard repaints this treemap live from the in-memory dataset via the bus,
     // off Vue's reactivity. Omitted ⇒ updates only via reactive `counts`.
     liveCounts?: (query?: string) => Count[]
+    // Figure for a hovered category, keyed by its raw (unmapped) value; shown
+    // inside the tooltip. Omitted ⇒ the plain name + count tooltip.
+    imageFor?: (value: string) => string | undefined
   }>(),
   {
     colorFor: undefined,
@@ -45,26 +49,42 @@ const props = withDefaults(
     animate: true,
     mapping: () => new Map<string, string>(),
     labelPrefix: '',
-    liveCounts: undefined
+    liveCounts: undefined,
+    imageFor: undefined
   }
 )
 const emit = defineEmits<{
   (e: 'change:searches', key: string, value?: Value): void
-  (e: 'mouseover', value: CallbackDataParams): void
-  (e: 'mouseout'): void
 }>()
 
 const reverseMapping = computed(() => invertMapping(props.mapping))
+
+// The raw category behind a tile, whatever `mapping` renamed it to for display.
+function rawCategory(params: CallbackDataParams): string {
+  const data = params.data as { originalName?: string } | undefined
+  return data?.originalName ?? reverseMapping.value.get(params.name) ?? params.name
+}
 
 // Plain builder shared by the reactive path and the imperative bus frames.
 function buildOption(countsData: Count[]): EChartsOption {
   const colorFor = props.colorFor ?? categoryColorScale(categoryDomain(countsData))
   return {
     animation: props.animate,
-    tooltip: {
-      trigger: 'item',
-      confine: true
-    },
+    tooltip: props.imageFor
+      ? {
+          trigger: 'item',
+          // A figure makes the tooltip taller than its chart cell, so hang it
+          // off <body> to escape the card's clipping. `confine` then clamps it
+          // to the viewport rather than to the cell (measured: without it the
+          // figure runs off the top of the window when the chart sits high).
+          appendTo: 'body',
+          confine: true,
+          formatter: buildFigureTooltipFormatter(props.imageFor, rawCategory)
+        }
+      : {
+          trigger: 'item',
+          confine: true
+        },
     series: [
       {
         type: 'treemap',
@@ -135,7 +155,18 @@ const option = computed<EChartsOption>(() => buildOption(props.counts))
 
 // Imperative renderer (off Vue's vnode graph); see useEChart / crossfilterBus.
 const chartEl = ref<HTMLElement>()
-const { render } = useEChart(chartEl, () => option.value, { click, mouseover, mouseout })
+const { render } = useEChart(chartEl, () => option.value, { click })
+
+// Warm the figures as soon as the categories are known, so the first hover shows
+// one straight away instead of after a round trip.
+watch(
+  () => props.counts,
+  (countsData) => {
+    if (!props.imageFor) return
+    preloadImages(countsData.map((count) => props.imageFor?.(count.name)))
+  },
+  { immediate: true }
+)
 
 // A filter change repaints via setOption, skipped while a drag is frozen so a
 // stale reactive frame can't overwrite the live one. A skipped frame is replayed
@@ -185,13 +216,6 @@ function click(params: CallbackDataParams): void {
   }
 }
 
-function mouseover(params: CallbackDataParams): void {
-  emit('mouseover', params)
-}
-function mouseout(): void {
-  emit('mouseout')
-}
-
 function changeSearches(key: string, value?: Value) {
   emit('change:searches', key, value)
 }
@@ -215,7 +239,6 @@ function changeSearches(key: string, value?: Value) {
       <div class="single-chart__frame">
         <div ref="chartEl" class="single-chart__canvas" />
       </div>
-      <slot></slot>
     </v-card-text>
   </v-card>
 </template>

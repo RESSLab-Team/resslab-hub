@@ -7,7 +7,7 @@ import { useDataset } from '@/composables/useDataset'
 import { CONNECTION_KEY, fetchConnections } from '@/components/connections/data'
 import { connectionsApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
-import { publicPath } from '@/utils/common'
+import { getConnectionTypeImage } from '@/utils/component'
 import { toRef } from 'vue'
 
 const columns: Column[] = [
@@ -134,7 +134,7 @@ const {
 )
 
 function getImageSource(item: string): string {
-  return publicPath + 'img/connection-type/' + item.toLowerCase() + '.svg'
+  return getConnectionTypeImage(item)
 }
 </script>
 

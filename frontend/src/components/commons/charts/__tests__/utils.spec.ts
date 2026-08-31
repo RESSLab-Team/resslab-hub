@@ -1,3 +1,4 @@
+import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // measureTextWidth caches into module state, so every test imports a fresh copy.
@@ -57,5 +58,53 @@ describe('measureTextWidth', () => {
     fontListeners.forEach((notify) => notify())
     measureTextWidth('Connection type', '12px sans-serif')
     expect(measureText).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('buildFigureTooltipFormatter', () => {
+  const params = (name: string, value: number) =>
+    ({ name, value, data: { originalName: name } } as unknown as CallbackDataParams)
+
+  it('appends the figure of the hovered category', async () => {
+    const { buildFigureTooltipFormatter } = await loadUtils()
+    const format = buildFigureTooltipFormatter(
+      (value) => (value === 'CNT' ? '/img/cnt.png' : undefined),
+      (p) => (p.data as { originalName: string }).originalName
+    )
+    const html = format(params('CNT', 65))
+    expect(html).toContain('CNT')
+    expect(html).toContain('65')
+    expect(html).toContain('<img src="/img/cnt.png"')
+  })
+
+  it('falls back to name and count when the category has no figure', async () => {
+    const { buildFigureTooltipFormatter } = await loadUtils()
+    const format = buildFigureTooltipFormatter(
+      () => undefined,
+      (p) => p.name
+    )
+    const html = format(params('DEMO-SPEC-01', 15))
+    expect(html).toContain('DEMO-SPEC-01')
+    expect(html).not.toContain('<img')
+  })
+
+  // Category names come from the database and land in raw tooltip HTML.
+  it('escapes the category name', async () => {
+    const { buildFigureTooltipFormatter } = await loadUtils()
+    const format = buildFigureTooltipFormatter(
+      () => undefined,
+      (p) => p.name
+    )
+    expect(format(params('<script>x</script>', 1))).not.toContain('<script>')
+  })
+
+  // trigger: 'item' hands over one item, but the callback type allows the axis form.
+  it('reads the first item when given the axis form', async () => {
+    const { buildFigureTooltipFormatter } = await loadUtils()
+    const format = buildFigureTooltipFormatter(
+      () => '/img/gp.png',
+      (p) => p.name
+    )
+    expect(format([params('GP', 37)])).toContain('<img src="/img/gp.png"')
   })
 })

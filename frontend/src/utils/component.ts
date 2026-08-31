@@ -18,6 +18,12 @@ export function getConnectionSpecimenImage(specimen_type: string) {
   }
 }
 
+// Connection-type sketches are named after the type itself (WUF-W → wuf-w.svg),
+// so this is a slug rather than the switch the other families need.
+export function getConnectionTypeImage(connection_type: string) {
+  return publicPath + 'img/connection-type/' + connection_type.toLowerCase() + '.svg'
+}
+
 export function getSteelMaterialImage() {
   return publicPath + 'img/material/steel_material.jpg'
 }
@@ -28,6 +34,25 @@ export function getTensileCouponImage() {
 
 export function getDuctileFractureImage() {
   return publicPath + 'img/material/detail.png'
+}
+
+// Annotated sketch of a specimen geometry family (issue #238). Undefined for an
+// unknown type, which the tooltip reads as "no figure".
+export function getDuctileFractureSpecimenImage(specimen_type: string): string | undefined {
+  switch (specimen_type) {
+    case 'CNT':
+      return publicPath + 'img/ductile-fracture/cnt.png'
+    case 'GP':
+      return publicPath + 'img/ductile-fracture/gp.png'
+    default:
+      return undefined
+  }
+}
+
+// Per-specimen geometry drawing, generated from the nominal dimensions by
+// `make precompute-fracture-figures` and committed alongside the sketches.
+export function getDuctileFractureFigure(id: string) {
+  return publicPath + 'img/ductile-fracture/figures/' + id + '.svg'
 }
 
 export function getBraceImage(boundary_condition: string) {
