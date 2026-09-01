@@ -109,6 +109,9 @@ make wt-open BRANCH=feat/123-thing   # frontend in the browser; TARGET=backend f
 make db-status                       # which DB this worktree uses
 make db-branch                       # re-clone the (light) template if setup couldn't; `db-branch-full` for the 3.4 GB copy
 make wt-land BRANCH=feat/123-thing   # from the main checkout: rebase → PR → squash-merge → cleanup
+wtdone feat/x                        # done with the branch (PR up, work merged, ...): kill the session and
+                                     # remove the worktree + its database, keep the branch. --force when dirty.
+                                     # Fine from inside the session itself; `make wt-done BRANCH=…` works too
 ```
 
 Inside the session: the `backend` and `frontend` panes run `make dev` with the
@@ -153,6 +156,20 @@ Layout: `claude` fills the left half and has focus on attach; `backend`,
 `frontend` and `shell` stack in the right half. `prefix+arrows` move between
 panes, `prefix+z` zooms the focused pane to full screen and back, and the
 `prefix+s` / `prefix+w` pickers preview the whole layout per session.
+
+Killing a session (`x` in the `prefix+s` picker, `wtdone`, the teardown hook)
+no longer throws you out of tmux: `tmux-dev.sh` sets `detach-on-destroy off` on
+the server, so the client hops to the most recently used remaining session, and
+tmux only exits when none is left.
+
+`wtdone <branch>` is the counterpart of `wtgo`: session killed, worktree
+removed (`wt remove`, which fires the teardown hook: ports freed, branch
+database dropped), branch kept, local and remote. Use it once the PR is up and
+the checkout has no other value; `wtgo <branch>` rebuilds the whole thing from
+the branch later. It refuses a dirty worktree unless `--force` (those changes
+are lost); unpushed commits are safe either way, they stay on the local branch.
+Run from inside the very session being closed, it hands the job to the tmux
+server first, so the removal survives the kill and you land in another session.
 
 `wt list` / `wt status` show every worktree; `wt cleanup` removes those whose
 branch is merged.
