@@ -30,12 +30,12 @@ export const rlIcons: Record<string, string> = {
   // Hollow square section: outer tube wall + inner void, 3 units of metal to
   // match the wide-flange section above.
   hss: '<rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><rect x="6.5" y="6.5" width="11" height="11" rx="0.5"/>',
-  // EBF bay on foundation lines: chevron braces meeting the short link under the beam.
+  // EBF bay on foundation lines: diagonal braces from the column bases up to
+  // the beam; the short link is the beam segment left between the brace tops.
   ebf: [
     '<path d="M4 19.5 V4.5 H20 V19.5"/>',
     '<path d="M2 19.5 H6 M18 19.5 H22"/>',
-    '<path d="M9.5 5.25 V7.5 H14.5 V5.25"/>',
-    '<path d="M4.75 18.75 L9.5 7.5 M19.25 18.75 L14.5 7.5"/>'
+    '<path d="M4.75 18.75 L10.5 4.5 M19.25 18.75 L13.5 4.5"/>'
   ].join(''),
   // Hysteresis loop over centred stress–strain axes.
   cyclic: [
