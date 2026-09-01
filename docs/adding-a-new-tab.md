@@ -298,7 +298,7 @@ File: `/mnt/data/Documents/Code/resslab-hub/backend/Makefile`
 Add:
 ```makefile
 upload-new-thing:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-new-things ../../resslab-hub-data
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all-new-things ../../resslab-hub-data
 ```
 And make sure `upload-data` still picks up the aggregate via `all` (it already dispatches via `get_args_all`).
 
