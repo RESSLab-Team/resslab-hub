@@ -26,7 +26,7 @@ const errorMessage = ref('')
 
 const hasValidUvcParameters = computed(() => {
   return (
-    props.material.uvc_e__mpa_ &&
+    props.material.uvc_e__gpa_ &&
     props.material.uvc_sigma__mpa_ &&
     props.material.uvc_q__mpa_ &&
     props.material.uvc_b &&
@@ -63,7 +63,7 @@ watch(
                 const strain = series.map((serie) => serie[1])
                 const uvcStress = computeUvcStress(
                   strain,
-                  material.uvc_e__mpa_! * 1000,
+                  material.uvc_e__gpa_! * 1000,
                   material.uvc_sigma__mpa_!,
                   material.uvc_q__mpa_!,
                   material.uvc_b!,
@@ -166,8 +166,8 @@ watch(
           <div class="mb-5">
             <h2 class="mb-2">{{ $t('detail.material.material_model_parameters') }}</h2>
             <p>
-              <property-item :name="$t('detail.material.youngs_modulus')" unit="MPa">
-                {{ formatNumber((material.uvc_e__mpa_ ?? 0) * 1000, 1) }}
+              <property-item :name="$t('detail.material.youngs_modulus')" unit="GPa">
+                {{ formatNumber(material.uvc_e__gpa_, 1) }}
               </property-item>
               <property-item :name="$t('detail.material.initial_yield_stress')" unit="MPa">
                 {{ formatNumber(material.uvc_sigma__mpa_, 1) }}
