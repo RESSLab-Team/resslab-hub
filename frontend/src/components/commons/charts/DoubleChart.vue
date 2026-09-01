@@ -223,9 +223,11 @@ const domainIndex = computed<Map<string, number>>(
   () => new Map(secondDomain.value.map((key, index) => [key, index]))
 )
 // The brush overview replicates the main chart's stacked series — same category
-// order, same colours, same counting — but built from the stable unfiltered
-// allCounts so it never collapses as filters apply. When nothing is filtered,
-// allCounts === counts, so the brush is pixel-for-pixel the chart's distribution.
+// order, same colours, but built from the stable unfiltered allCounts so it
+// never collapses as filters apply. For bars the counting matches too, so with
+// no filter the brush is pixel-for-pixel the chart's distribution. For line
+// charts it does not: the chart draws a cumulative curve, the brush stays a
+// plain per-x distribution, which is what you want to pick a range from.
 const brushSecondKeys = secondDomain
 const brushColors = computed<string[]>(() => brushSecondKeys.value.map(colorFor.value))
 // Unique sorted x positions (numeric values / day numbers) across all series, so
