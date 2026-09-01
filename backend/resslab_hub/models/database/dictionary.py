@@ -24,6 +24,9 @@ class DictionaryColumn(Base):  # type: ignore
     type = Column(String, nullable=False)
     example = Column(String, nullable=False)
     nullable = Column(Boolean, nullable=False)
+    # Scientific category label, e.g. "Section properties". Empty when the
+    # dictionary carries none; the frontend then falls back to its own rules.
+    group = Column(String, nullable=False, server_default="")
 
 
 class DatabaseReadme(Base):  # type: ignore

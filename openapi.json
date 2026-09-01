@@ -11381,6 +11381,11 @@
           "nullable": {
             "type": "boolean",
             "title": "Nullable"
+          },
+          "group": {
+            "type": "string",
+            "title": "Group",
+            "default": ""
           }
         },
         "type": "object",

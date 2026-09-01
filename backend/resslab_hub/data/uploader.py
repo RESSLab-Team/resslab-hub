@@ -554,7 +554,7 @@ class DictionaryUploader(Uploader):
     """
     Loads a ``*_data_dictionary.csv`` into the dictionary_column table.
 
-    The 7-column dictionary CSVs don't fit TableUploader (they carry neither the
+    The dictionary CSVs don't fit TableUploader (they carry neither the
     database discriminator nor the row position), so rows are built here and the
     database's previous entries replaced wholesale.
     """
@@ -582,6 +582,7 @@ class DictionaryUploader(Uploader):
                         type=(entry.get("type") or "String").strip(),
                         example=(entry.get("example_value") or "").strip(),
                         nullable=(entry.get("nullable") or "").strip() == "True",
+                        group=(entry.get("group") or "").strip(),
                     )
                 )
 

@@ -268,6 +268,7 @@ class DictionaryColumnModel(BaseModel):
     type: str
     example: str
     nullable: bool
+    group: str = ""
 
 
 class DatabaseReadmeModel(BaseModel):

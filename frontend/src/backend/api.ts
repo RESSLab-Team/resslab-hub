@@ -1112,6 +1112,7 @@ export interface DictionaryColumnModel {
     'type': string;
     'example': string;
     'nullable': boolean;
+    'group'?: string;
 }
 
 export const DuctileFractureField = {
