@@ -1,15 +1,34 @@
 #!/usr/bin/env bash
 # One command from branch name to a running, attached dev session — whether the
 # branch is brand new, exists without a worktree, or already has one:
-#   scripts/wt-new.sh <branch> [base=origin/dev]   (or: make go BRANCH=feat/x)
+#   scripts/wt-new.sh <branch> [base=origin/dev] [--prompt <file-or-text>] [--no-attach]
+# (or: make go BRANCH=feat/x)
 # wt create / wt checkout → .wt.toml hooks (deps, env, ports, detached tmux
 # session) → attach. Detach with prefix+d; you land back where you started.
+# --prompt writes a PROMPT.md at the worktree root: a NEW session's claude pane
+#   starts with it as the first prompt (see tmux-dev.sh; an already-running
+#   session keeps the file for its next recreation). A readable file is copied,
+#   anything else is taken as the literal prompt text.
+# --no-attach leaves the session detached, so several wtgo calls can run back
+#   to back from one shell.
 # Tab completion for branch names: source scripts/wt-go.bash (see the guide).
 set -euo pipefail
 SCRIPTS="$(dirname "$(readlink -f "$0")")"
 . "$SCRIPTS/wt-lib.sh"
-branch="${1:-}"; base="${2:-origin/dev}"
-[ -n "$branch" ] || die "usage: wt-new.sh <branch> [base]"
+branch=""; base=""; prompt=""; no_attach=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --prompt) shift; prompt="${1:-}"; [ -n "$prompt" ] || die "--prompt needs a value";;
+    --no-attach) no_attach=1;;
+    -*) die "unknown option: $1";;
+    *) if [ -z "$branch" ]; then branch="$1"
+       elif [ -z "$base" ]; then base="$1"
+       else die "unexpected argument: $1"; fi;;
+  esac
+  shift
+done
+base="${base:-origin/dev}"
+[ -n "$branch" ] || die "usage: wt-new.sh <branch> [base] [--prompt <file-or-text>] [--no-attach]"
 
 # `wtgo all` — after a reboot: bring every set-up worktree's session back,
 # detached, then hand over the session picker. Only worktrees carrying a
@@ -51,4 +70,11 @@ if [ -z "$(worktree_path_for "$branch")" ]; then
 fi
 path="$(worktree_path_for "$branch")"
 [ -n "$path" ] || die "wt create did not produce a worktree for $branch"
-ROOT="$path" exec "$SCRIPTS/tmux-dev.sh"    # session exists → attach (or switch-client inside tmux)
+# Drop the brief before the session starts, so the claude pane picks it up.
+if [ -n "$prompt" ]; then
+  if [ -f "$prompt" ]; then cat "$prompt" > "$path/PROMPT.md"
+  else printf '%s\n' "$prompt" > "$path/PROMPT.md"; fi
+fi
+# session exists → attach (or switch-client inside tmux)
+if [ "$no_attach" = 1 ]; then ROOT="$path" exec "$SCRIPTS/tmux-dev.sh" --no-attach
+else ROOT="$path" exec "$SCRIPTS/tmux-dev.sh"; fi
