@@ -1,0 +1,7 @@
+# Everything here is derived from the AISC steel sculpture drawings
+# (AISC copyright): never commit it. Only the scripts and docs are tracked.
+*
+!.gitignore
+!README.md
+!tools/
+!tools/*.py
