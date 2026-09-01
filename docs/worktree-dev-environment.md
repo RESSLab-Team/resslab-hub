@@ -101,9 +101,6 @@ wtgo feat/<TAB>                      # go to a branch's session: tab-completes w
                                      # branch (from fetched origin/dev), worktree (~3 min first time) and session
                                      # only when missing. `make go BRANCH=…` / `make new BRANCH=…` do the same
                                      # without completion; prefix+d detaches, prefix+s switches
-wtgo feat/x --no-attach              # spin the session up without entering it (chain several in one shell)
-wtgo feat/x --prompt brief.md        # drop brief.md (or literal text) as PROMPT.md: a NEW session's claude
-                                     # pane starts with it as the first prompt, then renames it PROMPT.sent.md
 make wt-open BRANCH=feat/123-thing   # frontend in the browser; TARGET=backend for /docs
 make db-status                       # which DB this worktree uses
 make db-branch                       # re-clone the (light) template if setup couldn't; `db-branch-full` for the 3.4 GB copy
@@ -111,10 +108,9 @@ make wt-land BRANCH=feat/123-thing   # from the main checkout: rebase → PR →
 ```
 
 Inside the session: the `backend` and `frontend` panes run `make dev` with the
-worktree's ports; `claude` starts with the `PROMPT.md` brief when one is at the
-checkout root (see above), otherwise resumes the checkout's last agent
-conversation (`claude --continue`, falling back to a fresh one on a new
-worktree); `shell` has `.env.worktree` exported.
+worktree's ports; `claude` resumes the checkout's last agent conversation
+(`claude --continue`, falling back to a fresh one on a new worktree); `shell`
+has `.env.worktree` exported.
 Both URLs are printed when the session starts and by `wt-open`. The `backend`
 and `frontend` panes also mirror their output to `.wt-logs/*.log` in the
 checkout (`tmux pipe-pane`), so the sandboxed agent in the `claude` pane,

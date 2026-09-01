@@ -70,19 +70,10 @@ tmux send-keys -t "$P_BACKEND" "$LOAD; make dev" C-m
 pipe_log backend "$P_BACKEND"
 tmux send-keys -t "$P_FRONTEND" "$LOAD; make dev" C-m
 pipe_log frontend "$P_FRONTEND"
-# A PROMPT.md at the checkout root is a one-shot brief for the agent (written
-# by wt-new.sh --prompt, or by hand): rename it and start claude with its
-# content as the first prompt. Renaming it first means a session recreated
-# later (wtgo all after a reboot) resumes the conversation below instead of
-# firing the brief again.
-# Otherwise resume the checkout's last agent conversation when there is one (a
-# recreated session picks up where its agent left off); a fresh worktree has
-# none, the flag exits nonzero, and a new conversation starts instead.
-if [ -f "$ROOT/PROMPT.md" ]; then
-  tmux send-keys -t "$P_CLAUDE" "$LOAD; mv PROMPT.md PROMPT.sent.md && claude \"\$(cat PROMPT.sent.md)\"" C-m
-else
-  tmux send-keys -t "$P_CLAUDE" "$LOAD; claude --continue || claude" C-m
-fi
+# Resume the checkout's last agent conversation when there is one (a recreated
+# session picks up where its agent left off); a fresh worktree has none, the
+# flag exits nonzero, and a new conversation starts instead.
+tmux send-keys -t "$P_CLAUDE" "$LOAD; claude --continue || claude" C-m
 tmux send-keys -t "$P_SHELL" "$LOAD; clear" C-m
 tmux select-pane -t "$P_CLAUDE"
 

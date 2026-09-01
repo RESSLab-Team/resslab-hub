@@ -40,8 +40,3 @@ handoff_dashboard_charts/
 
 # Server window output mirrored by scripts/tmux-dev.sh (pipe-pane)
 .wt-logs/
-
-# One-shot agent briefs (wtgo --prompt / tmux-dev.sh) and local brief drafts
-PROMPT.md
-PROMPT.sent.md
-.wt-prompts/
