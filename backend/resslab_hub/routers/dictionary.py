@@ -38,6 +38,7 @@ async def get_dictionary(
                 type=row.type,
                 example=row.example,
                 nullable=row.nullable,
+                group=row.group,
             )
         )
     return dictionary

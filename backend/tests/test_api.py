@@ -321,9 +321,9 @@ async def test_dictionary_endpoint_groups_by_database(client, tmp_path):
 
     file_path = tmp_path / "steel_braces_data_dictionary.csv"
     file_path.write_text(
-        "column_name,description,symbol,unit,type,example_value,nullable\n"
-        "id,Unique identifier,,-,String,B1,False\n"
-        "area,Cross-section area,A,mm2,DecimalFloat,120.5,True\n",
+        "column_name,description,symbol,unit,type,example_value,nullable,group\n"
+        "id,Unique identifier,,-,String,B1,False,Experimental program details\n"
+        "area,Cross-section area,A,mm2,DecimalFloat,120.5,True,Section properties\n",
         encoding="utf-8",
     )
     upload(Type.DICTIONARY, str(file_path))
@@ -340,6 +340,7 @@ async def test_dictionary_endpoint_groups_by_database(client, tmp_path):
             "type": "String",
             "example": "B1",
             "nullable": False,
+            "group": "Experimental program details",
         },
         {
             "name": "area",
@@ -349,5 +350,6 @@ async def test_dictionary_endpoint_groups_by_database(client, tmp_path):
             "type": "DecimalFloat",
             "example": "120.5",
             "nullable": True,
+            "group": "Section properties",
         },
     ]

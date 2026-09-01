@@ -111,17 +111,17 @@ ratio, and they belong in different groups.
 | Loading details | 3 | `l_p_typ`, `n_d_n_pl_ten`, `n_d_n_pl_comp` |
 | Measured response | 1 | `fail_mode` |
 
-## Cyclic coupons, 78 columns in 7 groups
+## Cyclic coupons, 77 columns in 7 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 13 | `hidden_index`, `experimental_program`, `id`, `date`, `investigator`, `location`, `file`, `reference`, `link`, `latitude`, `longitude`, `citekey`, `hidden_dataset_index` |
+| Experimental program details | 12 | `hidden_index`, `experimental_program`, `id`, `date`, `investigator`, `location`, `reference`, `link`, `latitude`, `longitude`, `citekey`, `hidden_dataset_index` |
 | Specimen details | 8 | `profile_type`, `profile`, `source`, `thickness`, `grade`, `spec`, `lp`, `size` |
 | Geometric properties | 4 | `gage_length__mm_`, `avg_reduced_dia__mm_`, `avg_fractured_dia_top__mm_`, `avg_fractured_dia_bot__mm_` |
 | Material properties | 6 | `fy_n__mpa_`, `fu_n__mpa_`, `t_a__deg_c_`, `yield_stress__mpa_`, `elastic_modulus__mpa_`, `fracture_strain` |
 | Test equipment details | 10 | `machine`, `pid_force_k_p`, `pid_force_t_i`, `pid_force_t_d`, `pid_disp_k_p`, `pid_disp_t_i`, `pid_disp_t_d`, `pid_extenso_k_p`, `pid_extenso_t_i`, `pid_extenso_t_d` |
 | Chemical composition | 20 | `c`, `si`, `mn`, `p`, `s`, `n`, `cu`, `mo`, `ni`, `cr`, `v`, `nb`, `ti`, `al`, `b`, `zr`, `sn`, `ca`, `h`, `fe` |
-| Cyclic material model parameters | 17 | `uvc_phi__prct_`, `uvc_e__mpa_`, `uvc_sigma__mpa_`, `uvc_q__mpa_`, `uvc_b`, `uvc_d__mpa_`, `uvc_a`, `uvc_c1__mpa_`, `uvc_g1`, `uvc_c2__mpa_`, `uvc_g2`, `uvc_sigma_sat__mpa_`, `uvc_sigma_hard__mpa_`, `uvc_rho_yield`, `uvc_rho_iso`, `uvc_rho_kin`, `uvc_rho_d` |
+| Cyclic material model parameters | 17 | `uvc_phi__prct_`, `uvc_e__gpa_`, `uvc_sigma__mpa_`, `uvc_q__mpa_`, `uvc_b`, `uvc_d__mpa_`, `uvc_a`, `uvc_c1__mpa_`, `uvc_g1`, `uvc_c2__mpa_`, `uvc_g2`, `uvc_sigma_sat__mpa_`, `uvc_sigma_hard__mpa_`, `uvc_rho_yield`, `uvc_rho_iso`, `uvc_rho_kin`, `uvc_rho_d` |
 
 ## Tensile coupons, 70 columns in 7 groups
 
