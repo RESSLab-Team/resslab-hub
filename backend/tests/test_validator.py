@@ -178,8 +178,9 @@ class TestTensileCoupons:
         validator = validate_one_file(Type.TENSILE_COUPON_STRESS_STRAIN, "T1.csv")
         assert isinstance(validator, CsvFileValidator)
         assert validator.base_model is TensileCoupon
-        # The columns the uploader reads (cf. ``upload_one``).
-        assert set(validator.required_columns) == {"Sigma_true", "e_true"}
+        # The columns the uploader reads (cf. ``upload_one``). Tensile coupons
+        # report engineering values, cyclic ones true values (issue #276).
+        assert set(validator.required_columns) == {"Stress_eng", "strain_eng"}
         assert validator.foreign_key_field == "id"
 
     def test_stress_strain_is_keyed_to_the_record_table(self):

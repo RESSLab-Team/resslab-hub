@@ -609,7 +609,6 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'date',
         'investigator',
         'location',
-        'file',
         'reference',
         'link',
         'latitude',

@@ -1995,14 +1995,13 @@ export const MaterialField = {
     Ca: 'ca',
     H: 'h',
     Fe: 'fe',
-    File: 'file',
     Reference: 'reference',
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
     Citekey: 'citekey',
     UvcPhiPrct: 'uvc_phi__prct_',
-    UvcEMpa: 'uvc_e__mpa_',
+    UvcEGpa: 'uvc_e__gpa_',
     UvcSigmaMpa: 'uvc_sigma__mpa_',
     UvcQMpa: 'uvc_q__mpa_',
     UvcB: 'uvc_b',
@@ -2082,14 +2081,13 @@ export interface MaterialModel {
     'ca': number | null;
     'h': number | null;
     'fe': number | null;
-    'file': string | null;
     'reference': string | null;
     'link': string | null;
     'latitude': number | null;
     'longitude': number | null;
     'citekey': string | null;
     'uvc_phi__prct_': number | null;
-    'uvc_e__mpa_': number | null;
+    'uvc_e__gpa_': number | null;
     'uvc_sigma__mpa_': number | null;
     'uvc_q__mpa_': number | null;
     'uvc_b': number | null;
@@ -2156,7 +2154,7 @@ export const MaterialNumberField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     UvcPhiPrct: 'uvc_phi__prct_',
-    UvcEMpa: 'uvc_e__mpa_',
+    UvcEGpa: 'uvc_e__gpa_',
     UvcSigmaMpa: 'uvc_sigma__mpa_',
     UvcQMpa: 'uvc_q__mpa_',
     UvcB: 'uvc_b',

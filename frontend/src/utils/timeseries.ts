@@ -64,8 +64,12 @@ const CHORD_ROTATION = col('Chord Rotation [rads]', 'rad', ROTATION)
 const MOMENT = col('Moment [kN-mm]', 'kN·mm', MOMENT_KNMM)
 const STORY_DRIFT = col('Total story drift angle (rad)', 'rad', ROTATION)
 const ACTUATOR_FORCE = col('Force in the actuator (kN)', 'kN', FORCE_KN)
+// Cyclic coupons report true stress and strain, tensile coupons engineering
+// ones (resslab-hub#276).
 const SIGMA_TRUE = col('Sigma_true', 'MPa', STRESS_MPA)
 const E_TRUE = col('e_true', '-', STRAIN)
+const STRESS_ENG = col('Stress_eng', 'MPa', STRESS_MPA)
+const STRAIN_ENG = col('strain_eng', '-', STRAIN)
 const COORDINATE = col('coordinate', 'mm', 1_000)
 const RESIDUAL_STRESS = col('residual_stress', 'MPa', STRESS_MPA)
 const ELONGATION = col('Elongation [mm]', 'mm', 20)
@@ -181,7 +185,7 @@ export const TIME_SERIES_KINDS: Partial<Record<DatabaseId, TimeSeriesKind[]>> = 
     {
       key: 'stress_strain',
       directory: 'material/tensile_coupons/stress_strain',
-      columns: [E_TRUE, SIGMA_TRUE],
+      columns: [STRAIN_ENG, STRESS_ENG],
       required: true
     }
   ],

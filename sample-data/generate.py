@@ -604,7 +604,7 @@ TIME_SERIES: dict[str, list[Series]] = {
     "tensile_coupons": [
         Series(
             "material/tensile_coupons/stress_strain",
-            ["e_true", "Sigma_true"],
+            ["strain_eng", "Stress_eng"],
             "tension",
             x_peak=0.25,
             y_peak=520,

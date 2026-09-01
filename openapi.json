@@ -14859,14 +14859,13 @@
           "ca",
           "h",
           "fe",
-          "file",
           "reference",
           "link",
           "latitude",
           "longitude",
           "citekey",
           "uvc_phi__prct_",
-          "uvc_e__mpa_",
+          "uvc_e__gpa_",
           "uvc_sigma__mpa_",
           "uvc_q__mpa_",
           "uvc_b",
@@ -15388,17 +15387,6 @@
             ],
             "title": "Fe"
           },
-          "file": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "File"
-          },
           "reference": {
             "anyOf": [
               {
@@ -15465,7 +15453,7 @@
             ],
             "title": "Uvc Phi  Prct"
           },
-          "uvc_e__mpa_": {
+          "uvc_e__gpa_": {
             "anyOf": [
               {
                 "type": "number"
@@ -15474,7 +15462,7 @@
                 "type": "null"
               }
             ],
-            "title": "Uvc E  Mpa"
+            "title": "Uvc E  Gpa"
           },
           "uvc_sigma__mpa_": {
             "anyOf": [
@@ -15714,14 +15702,13 @@
           "ca",
           "h",
           "fe",
-          "file",
           "reference",
           "link",
           "latitude",
           "longitude",
           "citekey",
           "uvc_phi__prct_",
-          "uvc_e__mpa_",
+          "uvc_e__gpa_",
           "uvc_sigma__mpa_",
           "uvc_q__mpa_",
           "uvc_b",
@@ -15791,7 +15778,7 @@
           "latitude",
           "longitude",
           "uvc_phi__prct_",
-          "uvc_e__mpa_",
+          "uvc_e__gpa_",
           "uvc_sigma__mpa_",
           "uvc_q__mpa_",
           "uvc_b",
