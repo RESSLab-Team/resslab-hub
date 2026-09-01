@@ -688,8 +688,8 @@ def upload_one(input_type: Type, filename: str) -> str:
                     lambda id, index, value: dict(
                         tensile_coupon_id=id,
                         id=index,
-                        stress=value.get("Sigma_true"),
-                        strain=value.get("e_true"),
+                        stress=value.get("Stress_eng"),
+                        strain=value.get("strain_eng"),
                     ),
                 )
             case Type.ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE:

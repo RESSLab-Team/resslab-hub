@@ -645,7 +645,11 @@ def validate_one_file(input_type: Type, filename: str) -> Validator:
         case Type.TENSILE_COUPON:
             validator = TableValidator(TensileCoupon)
         case Type.TENSILE_COUPON_STRESS_STRAIN:
-            validator = CsvFileValidator(TensileCoupon, ["Sigma_true", "e_true"], "id")
+            # Tensile coupons report engineering values, cyclic ones true
+            # values (resslab-hub#276).
+            validator = CsvFileValidator(
+                TensileCoupon, ["Stress_eng", "strain_eng"], "id"
+            )
         case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
             validator = CsvFileValidator(
                 ResidualStress,
