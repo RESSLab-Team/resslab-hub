@@ -202,3 +202,70 @@ describe('buildAxisTooltipFormatter', () => {
     expect(buildAxisTooltipFormatter()([empty as unknown as CallbackDataParams])).toContain('-')
   })
 })
+
+describe('stackBrushSeries', () => {
+  const series = () => [
+    { color: '#0072B2', data: [[1, 30] as [number, number], [2, 10] as [number, number]] },
+    { color: '#E69F00', data: [[1, 7] as [number, number], [2, 4] as [number, number]] },
+    { color: '#009E73', data: [[1, 3] as [number, number], [2, 1] as [number, number]] }
+  ]
+
+  it('stacks the counts and returns the top band first', async () => {
+    const { stackBrushSeries } = await loadUtils()
+    expect(stackBrushSeries(series())).toEqual([
+      {
+        color: '#009E73',
+        data: [
+          [1, 40],
+          [2, 15]
+        ]
+      },
+      {
+        color: '#E69F00',
+        data: [
+          [1, 37],
+          [2, 14]
+        ]
+      },
+      {
+        color: '#0072B2',
+        data: [
+          [1, 30],
+          [2, 10]
+        ]
+      }
+    ])
+  })
+
+  it('leaves the input untouched', async () => {
+    const { stackBrushSeries } = await loadUtils()
+    const input = series()
+    stackBrushSeries(input)
+    expect(input).toEqual(series())
+  })
+
+  it('stacks per x, so a band missing an x does not shift the others', async () => {
+    const { stackBrushSeries } = await loadUtils()
+    const stacked = stackBrushSeries([
+      { color: '#0072B2', data: [[1, 5] as [number, number]] },
+      { color: '#E69F00', data: [[2, 8] as [number, number]] }
+    ])
+    expect(stacked).toEqual([
+      { color: '#E69F00', data: [[2, 8]] },
+      { color: '#0072B2', data: [[1, 5]] }
+    ])
+  })
+
+  it('keeps the extra fields of a band', async () => {
+    const { stackBrushSeries } = await loadUtils()
+    const stacked = stackBrushSeries([
+      { color: '#0072B2', data: [[1, 5] as [number, number]], label: 'zero' }
+    ])
+    expect(stacked[0].label).toBe('zero')
+  })
+
+  it('returns nothing for no bands', async () => {
+    const { stackBrushSeries } = await loadUtils()
+    expect(stackBrushSeries([])).toEqual([])
+  })
+})

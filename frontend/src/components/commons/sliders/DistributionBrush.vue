@@ -15,8 +15,9 @@
  * don't shrink when a filter is applied), so the handles always have room to be
  * dragged back out. The flanking number inputs keep precise values typeable.
  */
-import { initOptions } from '@/components/commons/charts/utils'
+import { initOptions, stackBrushSeries } from '@/components/commons/charts/utils'
 import { isBrushDragging } from '@/composables/interactionState'
+import { blendHex } from '@/utils/palette'
 import type { EChartsOption } from 'echarts'
 import { BarChart, LineChart } from 'echarts/charts'
 import { GridComponent, MarkAreaComponent, MarkLineComponent } from 'echarts/components'
@@ -27,8 +28,9 @@ import VChart from 'vue-echarts'
 
 use([SVGRenderer, LineChart, BarChart, GridComponent, MarkLineComponent, MarkAreaComponent])
 
-/** One stacked series of the overview: its exact main-chart colour and its
- *  [value, count] points. All series share the same x positions so they stack. */
+/** One stacked band of the overview: its exact main-chart colour and its
+ *  [value, count] points (raw counts, not cumulative). All bands share the same
+ *  x positions; the brush stacks them itself, see stackBrushSeries. */
 export interface BrushSeries {
   color: string
   data: [number, number][]
@@ -204,6 +206,13 @@ const option = computed<EChartsOption>(() => {
   // be split per-segment, so the excluded zones are fogged with a bg-coloured
   // markArea instead (both leave the in-window data at the exact chart colour).
   const fogColor = dark ? 'rgba(11,11,13,0.55)' : 'rgba(255,255,255,0.55)' // --bg-app wash
+  // Bands are stacked by painting them over each other (see stackBrushSeries),
+  // so every fill must be opaque or the lower bands show through. The muted
+  // states are therefore pre-blended toward the page background instead of
+  // being drawn at a lower opacity (same result over an opaque background).
+  const bgHex = dark ? '#0B0B0D' : '#FFFFFF' // --bg-app
+  const muted = (color: string) => blendHex(color, bgHex, 0.72) // was opacity 0.28
+  const areaHex = (color: string) => blendHex(color, bgHex, 0.3) // was opacity 0.7
 
   // Stacked height per x = sum across series; the bracket geometry uses the peak.
   const totals = new Map<number, number>()
@@ -229,10 +238,9 @@ const option = computed<EChartsOption>(() => {
     seg([x, maxCount], [x + dir, maxCount]), // top foot
     seg([x, 0], [x + dir, 0]) // bottom foot
   ]
-  // Chrome (brackets + veil + line fog) is attached to the first visible series.
-  // The veil is a faint wash over the active window; for line series the excluded
-  // zones are additionally fogged (an area series can't drop opacity per-segment
-  // the way bars can). Per-item itemStyle lets the two colours coexist.
+  // Chrome (brackets + the veil over the active window) is attached to the first
+  // rendered series. A markArea paints before its own series' graphics, so this
+  // keeps the veil behind every band, as before.
   const chrome = {
     markLine: {
       silent: true,
@@ -243,22 +251,37 @@ const option = computed<EChartsOption>(() => {
     },
     markArea: {
       silent: true,
-      data: [
-        [{ xAxis: toAxis(lo), itemStyle: { color: veilColor } }, { xAxis: toAxis(hi) }],
-        ...(isLine
-          ? [
+      data: [[{ xAxis: toAxis(lo), itemStyle: { color: veilColor } }, { xAxis: toAxis(hi) }]]
+    }
+  }
+  // Bars mute out-of-window slices one by one, but an area series is a single
+  // shape, so line charts fog the excluded zones instead. The areas are opaque
+  // now, so the fog has to paint *above* them: it rides on its own empty series
+  // appended after every band.
+  const fogSeries = isLine
+    ? [
+        {
+          type: props.type,
+          xAxisIndex: 0,
+          silent: true,
+          data: [] as [number, number][],
+          markArea: {
+            silent: true,
+            data: [
               [{ xAxis: axisLo.value, itemStyle: { color: fogColor } }, { xAxis: toAxis(lo) }],
               [{ xAxis: toAxis(hi), itemStyle: { color: fogColor } }, { xAxis: axisHi.value }]
             ]
-          : [])
+          }
+        }
       ]
-    }
-  }
+    : []
 
-  const visibleSeries = props.series.map((serie, index) => ({
+  // Cumulative tops, top band first: each band is drawn full height from the
+  // baseline and the one below paints over its lower part. ECharts' `stack` is
+  // useless here (it stacks x on a value axis), so this is the stack.
+  const visibleSeries = stackBrushSeries(props.series).map((serie, index) => ({
     type: props.type,
     xAxisIndex: 0,
-    stack: 'total',
     smooth: false,
     symbol: isLine ? 'none' : undefined,
     silent: true,
@@ -266,21 +289,25 @@ const option = computed<EChartsOption>(() => {
     ...(isLine
       ? {
           lineStyle: { width: 0 },
-          // Each series keeps its exact colour; the area is fogged outside the
-          // window (above) rather than recoloured. 0.7 matches the main chart's
-          // default areaStyle opacity.
-          areaStyle: { color: serie.color, opacity: 0.7 },
+          // Opaque, pre-blended: the same look as the main chart's 0.7 areaStyle
+          // opacity, but bands can't show through each other. Out-of-window
+          // zones are fogged by fogSeries rather than recoloured.
+          areaStyle: { color: areaHex(serie.color), opacity: 1 },
           data: serie.data
         }
       : {
           // 80% of the band matches the main chart's default barCategoryGap, so
           // brush bars are the same width as the chart's, not just same position.
           barWidth: '80%',
-          // Exact main-chart colour; out-of-window slices recede via opacity.
+          // Every band sits in the same slot. Without this ECharts groups the
+          // series side by side, one sub-slot each (`stack` used to hold them
+          // together, and we no longer set it).
+          barGap: '-100%',
+          // Exact main-chart colour; out-of-window slices recede to a muted one.
           // x is mapped to axis (bin-index) space so bars sit in equal slots.
           data: serie.data.map(([value, count]) => ({
             value: [toAxis(value), count],
-            itemStyle: { color: serie.color, opacity: inWindow(value) ? 1 : 0.28 }
+            itemStyle: { color: inWindow(value) ? serie.color : muted(serie.color) }
           }))
         })
   }))
@@ -302,7 +329,7 @@ const option = computed<EChartsOption>(() => {
       // anyway since min/max pin the range explicitly.
     },
     yAxis: { type: 'value', show: false, min: 0, max: maxCount },
-    series: visibleSeries as EChartsOption['series']
+    series: [...visibleSeries, ...fogSeries] as EChartsOption['series']
   }
 })
 
