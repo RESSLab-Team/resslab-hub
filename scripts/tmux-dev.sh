@@ -18,16 +18,35 @@ SCRIPTS="$(dirname "$(readlink -f "$0")")"
 # set-environment call scrubs a server that an earlier version already poisoned.
 export -n ROOT || true
 tmux set-environment -gu ROOT 2>/dev/null || true
-# When a session dies (x in the choose-tree, wtdone, the teardown hook), move
-# the clients watching it to the most recently used remaining session instead
-# of detaching them; with no session left tmux still exits. Server-wide, so set
-# on every run: silently a no-op here when the server is not up yet, and set
-# again right after new-session for the run that starts the server.
-tmux set-option -g detach-on-destroy off 2>/dev/null || true
 load_env_worktree
 BRANCH="$(current_branch)"
 SESSION="$(session_name "$BRANCH")"
 MAIN="$(main_checkout)"
+# Server-wide tweaks, refreshed on every run (a no-op call when the server is
+# not up yet; called again right after new-session for the run that starts it).
+# - detach-on-destroy off: when a session dies (x in the choose-tree, wtdone,
+#   the teardown hook), the clients watching it hop to the most recently used
+#   remaining session instead of detaching; with none left tmux still exits.
+# - prefix+X: a small menu on the current session — plain kill, or wt-done.sh
+#   (kill + remove the worktree + drop its database, branch kept), with a
+#   confirmed force variant when the worktree has uncommitted changes. The
+#   branch is resolved from the pane's path (--path), so the one binding works
+#   in every session; run-shell runs from the server, so the removal survives
+#   the session kill and its output pops up in a view when it finishes.
+server_options() {
+  tmux set-option -g detach-on-destroy off
+  local wtdone="$MAIN/scripts/wt-done.sh"    # the copy that survives worktree removal
+  [ -x "$wtdone" ] || wtdone="$SCRIPTS/wt-done.sh"
+  local close="run-shell -b \"'$wtdone' --path '#{pane_current_path}' --from-tmux\""
+  local discard="confirm-before -p 'discard uncommitted changes and remove the worktree? (y/n)' \"run-shell -b \\\"'$wtdone' --path '#{pane_current_path}' --force --from-tmux\\\"\""
+  tmux bind-key X display-menu -T " #S " \
+    "kill session (stay in tmux)"              k kill-session \
+    "" \
+    "done: also remove worktree, keep branch"  d "$close" \
+    "force done: DISCARD uncommitted changes"  D "$discard"
+}
+server_options 2>/dev/null || true
+
 ATTACH=1; BRIEF=0
 for arg in "$@"; do
   case "$arg" in
@@ -115,7 +134,7 @@ pipe_log() { : > "$LOGS/$1.log"; tmux pipe-pane -t "$2" -o "exec cat >> '$LOGS/$
 # zooms one to full screen, and the prefix+s / prefix+w previews show the whole
 # layout at a glance. claude has focus when you attach.
 tmux new-session -d -s "$SESSION" -n dev -c "$ROOT"
-tmux set-option -g detach-on-destroy off   # this run may have just started the server
+server_options   # this run may have just started the server
 P_CLAUDE="$(tmux display-message -p -t "=$SESSION:dev" '#{pane_id}')"
 P_BACKEND="$(tmux split-window -h -l 50% -P -F '#{pane_id}' -t "$P_CLAUDE" -c "$ROOT/backend")"
 P_FRONTEND="$(tmux split-window -v -l 67% -P -F '#{pane_id}' -t "$P_BACKEND" -c "$ROOT/frontend")"

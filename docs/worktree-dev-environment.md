@@ -111,7 +111,8 @@ make db-branch                       # re-clone the (light) template if setup co
 make wt-land BRANCH=feat/123-thing   # from the main checkout: rebase → PR → squash-merge → cleanup
 wtdone feat/x                        # done with the branch (PR up, work merged, ...): kill the session and
                                      # remove the worktree + its database, keep the branch. --force when dirty.
-                                     # Fine from inside the session itself; `make wt-done BRANCH=…` works too
+                                     # Fine from inside the session itself; `make wt-done BRANCH=…` and the
+                                     # prefix+X menu (below) do the same
 ```
 
 Inside the session: the `backend` and `frontend` panes run `make dev` with the
@@ -170,6 +171,12 @@ the branch later. It refuses a dirty worktree unless `--force` (those changes
 are lost); unpushed commits are safe either way, they stay on the local branch.
 Run from inside the very session being closed, it hands the job to the tmux
 server first, so the removal survives the kill and you land in another session.
+
+`prefix+X` (bound by `tmux-dev.sh`, so any `wtgo` refreshes it) opens the same
+thing as a menu on the current session: plain kill, "done" (wt-done.sh on the
+pane's checkout), or a confirmed force variant that discards uncommitted
+changes when the worktree is dirty. The result of the removal pops up in a
+tmux view when it finishes; `q` closes it.
 
 `wt list` / `wt status` show every worktree; `wt cleanup` removes those whose
 branch is merged.

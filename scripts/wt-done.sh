@@ -5,8 +5,11 @@
 # so the work is one `wtgo <branch>` away if it is ever needed again; wt-land
 # is the command that also deletes the branch, after merging it.
 #   scripts/wt-done.sh <branch> [--force]
-#   (or: wtdone <branch> with completion, or make wt-done BRANCH=feat/x)
+#   (or: wtdone <branch> with completion, make wt-done BRANCH=feat/x, or the
+#   prefix+X menu inside a session, bound by tmux-dev.sh)
 # --force removes a worktree with uncommitted changes. Those changes are lost.
+# --path <dir> resolves the branch from a checkout path instead (what the
+#   prefix+X menu passes: a key binding knows the pane's path, not the branch).
 set -euo pipefail
 SCRIPTS="$(dirname "$(readlink -f "$0")")"
 . "$SCRIPTS/wt-lib.sh"
@@ -20,9 +23,10 @@ self="$(readlink -f "$0")"
 main_self="$(readlink -f "$MAIN/scripts/wt-done.sh" 2>/dev/null || true)"
 if [ -n "$main_self" ] && [ -x "$main_self" ] && [ "$self" != "$main_self" ]; then exec "$main_self" "$@"; fi
 
-branch=""; force=0; from_tmux=0
+branch=""; from_path=""; force=0; from_tmux=0
 while [ $# -gt 0 ]; do
   case "$1" in
+    --path) shift; from_path="${1:-}"; [ -n "$from_path" ] || die "--path needs a value";;
     --force) force=1;;
     --from-tmux) from_tmux=1;;   # internal: re-entry from the tmux server, see below
     -*) die "unknown option: $1";;
@@ -30,7 +34,12 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
-[ -n "$branch" ] || die "usage: wt-done.sh <branch> [--force]"
+if [ -n "$from_path" ]; then
+  [ -z "$branch" ] || die "give a branch or --path, not both"
+  branch="$(git -C "$from_path" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  [ -n "$branch" ] || die "not inside a git checkout: $from_path"
+fi
+[ -n "$branch" ] || die "usage: wt-done.sh <branch>|--path <dir> [--force]"
 case " $PROTECTED_BRANCHES " in *" $branch "*) die "$branch never has a worktree";; esac
 
 path="$(worktree_path_for "$branch")"
