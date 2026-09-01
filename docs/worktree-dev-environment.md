@@ -101,25 +101,82 @@ wtgo feat/<TAB>                      # go to a branch's session: tab-completes w
                                      # branch (from fetched origin/dev), worktree (~3 min first time) and session
                                      # only when missing. `make go BRANCH=…` / `make new BRANCH=…` do the same
                                      # without completion; prefix+d detaches, prefix+s switches
+wtgo feat/x --no-attach              # spin the session up without entering it (chain several in one shell)
+wtgo feat/x --prompt brief.md        # brief the branch's agent: brief.md (or literal text) becomes PROMPT.md and
+                                     # the claude pane starts on it, on fable in plan mode, so you get a plan to
+                                     # review. Works on a session that is already up (the pane restarts)
 make wt-open BRANCH=feat/123-thing   # frontend in the browser; TARGET=backend for /docs
 make db-status                       # which DB this worktree uses
 make db-branch                       # re-clone the (light) template if setup couldn't; `db-branch-full` for the 3.4 GB copy
 make wt-land BRANCH=feat/123-thing   # from the main checkout: rebase → PR → squash-merge → cleanup
+wtdone feat/x                        # done with the branch (PR up, work merged, ...): kill the session and
+                                     # remove the worktree + its database, keep the branch. --force when dirty.
+                                     # Fine from inside the session itself; `make wt-done BRANCH=…` and the
+                                     # prefix+X menu (below) do the same
 ```
 
 Inside the session: the `backend` and `frontend` panes run `make dev` with the
-worktree's ports; `claude` resumes the checkout's last agent conversation
-(`claude --continue`, falling back to a fresh one on a new worktree); `shell`
-has `.env.worktree` exported.
+worktree's ports; `claude` starts with the `PROMPT.md` brief when one is at the
+checkout root (see below), otherwise resumes the checkout's last agent
+conversation (`claude --continue`, falling back to a fresh one on a new
+worktree); `shell` has `.env.worktree` exported.
 Both URLs are printed when the session starts and by `wt-open`. The `backend`
 and `frontend` panes also mirror their output to `.wt-logs/*.log` in the
 checkout (`tmux pipe-pane`), so the sandboxed agent in the `claude` pane,
 which cannot reach the tmux socket, can still read the server logs.
 
+### Briefing the agent (`--prompt`)
+
+A `PROMPT.md` at the checkout root is a one-shot brief for that worktree's
+agent. `wtgo <branch> --prompt <file-or-text>` writes it, then the `claude` pane
+runs `claude --model fable --permission-mode plan "$(cat PROMPT.sent.md)"`: the
+agent reads the brief, looks around and comes back with a plan you approve or
+send back, instead of editing straight away. Override the two flags with
+`WT_BRIEF_MODEL` / `WT_BRIEF_PERMISSION_MODE` (empty keeps claude's own
+defaults).
+
+The file is renamed to `PROMPT.sent.md` before the run, so a session recreated
+later (`wtgo all` after a reboot) resumes that conversation instead of firing
+the brief a second time. Both names are gitignored, as is `.wt-prompts/` for
+brief drafts.
+
+`wtgo` writes the brief after `wt create`, which means the session is often
+already up (the `post_create` hook starts it): the `claude` pane is then
+restarted on the brief. Whatever ran there before stays resumable with `claude
+--continue`, but do not brief a worktree whose agent is mid-task. Chain several
+briefs from one shell with `--no-attach`, one per line and not with `&`
+(`git worktree add` races on its locks):
+
+```bash
+wtgo feat/a --no-attach --prompt .wt-prompts/a.md
+wtgo feat/b --no-attach --prompt .wt-prompts/b.md
+wtgo all                             # then pick a session to look at
+```
+
 Layout: `claude` fills the left half and has focus on attach; `backend`,
 `frontend` and `shell` stack in the right half. `prefix+arrows` move between
 panes, `prefix+z` zooms the focused pane to full screen and back, and the
 `prefix+s` / `prefix+w` pickers preview the whole layout per session.
+
+Killing a session (`x` in the `prefix+s` picker, `wtdone`, the teardown hook)
+no longer throws you out of tmux: `tmux-dev.sh` sets `detach-on-destroy off` on
+the server, so the client hops to the most recently used remaining session, and
+tmux only exits when none is left.
+
+`wtdone <branch>` is the counterpart of `wtgo`: session killed, worktree
+removed (`wt remove`, which fires the teardown hook: ports freed, branch
+database dropped), branch kept, local and remote. Use it once the PR is up and
+the checkout has no other value; `wtgo <branch>` rebuilds the whole thing from
+the branch later. It refuses a dirty worktree unless `--force` (those changes
+are lost); unpushed commits are safe either way, they stay on the local branch.
+Run from inside the very session being closed, it hands the job to the tmux
+server first, so the removal survives the kill and you land in another session.
+
+`prefix+X` (bound by `tmux-dev.sh`, so any `wtgo` refreshes it) opens the same
+thing as a menu on the current session: plain kill, "done" (wt-done.sh on the
+pane's checkout), or a confirmed force variant that discards uncommitted
+changes when the worktree is dirty. The result of the removal pops up in a
+tmux view when it finishes; `q` closes it.
 
 `wt list` / `wt status` show every worktree; `wt cleanup` removes those whose
 branch is merged.

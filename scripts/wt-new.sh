@@ -1,21 +1,50 @@
 #!/usr/bin/env bash
 # One command from branch name to a running, attached dev session — whether the
 # branch is brand new, exists without a worktree, or already has one:
-#   scripts/wt-new.sh <branch> [base=origin/dev]   (or: make go BRANCH=feat/x)
+#   scripts/wt-new.sh <branch> [base=origin/dev] [--prompt <file-or-text>] [--no-attach]
+# (or: make go BRANCH=feat/x)
 # wt create / wt checkout → .wt.toml hooks (deps, env, ports, detached tmux
 # session) → attach. Detach with prefix+d; you land back where you started.
+# --prompt writes a PROMPT.md at the worktree root and the session's claude pane
+#   starts on it, on fable in plan mode, so you get a plan back to review (see
+#   tmux-dev.sh). A readable file is copied, anything else is taken as the
+#   literal prompt text. On a session that is already up the claude pane is
+#   restarted on the brief; its previous conversation stays resumable.
+# --no-attach leaves the session detached, so several wtgo calls can run back
+#   to back from one shell.
 # Tab completion for branch names: source scripts/wt-go.bash (see the guide).
 set -euo pipefail
 SCRIPTS="$(dirname "$(readlink -f "$0")")"
 . "$SCRIPTS/wt-lib.sh"
-branch="${1:-}"; base="${2:-origin/dev}"
-[ -n "$branch" ] || die "usage: wt-new.sh <branch> [base]"
+branch=""; base=""; prompt=""; prompt_file=""; no_attach=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    # Resolve a brief file right here: the script cds to the main checkout
+    # below, so a relative path given from a worktree would be read from the
+    # wrong place (and, worse, taken as literal prompt text). Anything that
+    # looks like a path but is not a file is an error rather than a brief.
+    --prompt)
+      shift; prompt="${1:-}"; [ -n "$prompt" ] || die "--prompt needs a value"
+      if [ -f "$prompt" ]; then prompt_file="$(readlink -f "$prompt")"; prompt=""
+      else case "$prompt" in */*|*.md|*.txt) die "--prompt: no such file: $prompt";; esac
+      fi;;
+    --no-attach) no_attach=1;;
+    -*) die "unknown option: $1";;
+    *) if [ -z "$branch" ]; then branch="$1"
+       elif [ -z "$base" ]; then base="$1"
+       else die "unexpected argument: $1"; fi;;
+  esac
+  shift
+done
+base="${base:-origin/dev}"
+[ -n "$branch" ] || die "usage: wt-new.sh <branch> [base] [--prompt <file-or-text>] [--no-attach]"
 
 # `wtgo all` — after a reboot: bring every set-up worktree's session back,
 # detached, then hand over the session picker. Only worktrees carrying a
 # .env.worktree count: one without (an agent scratch checkout) would fall back
 # to the main checkout's ports and collide with it.
 if [ "$branch" = all ]; then
+  [ -z "$prompt$prompt_file" ] || die "--prompt takes a single branch, not 'all'"
   ROOT="$(main_checkout)"
   started=0
   while IFS= read -r p; do
@@ -51,4 +80,14 @@ if [ -z "$(worktree_path_for "$branch")" ]; then
 fi
 path="$(worktree_path_for "$branch")"
 [ -n "$path" ] || die "wt create did not produce a worktree for $branch"
-ROOT="$path" exec "$SCRIPTS/tmux-dev.sh"    # session exists → attach (or switch-client inside tmux)
+# Drop the brief for the claude pane. On a brand new worktree the session is
+# already up by now (the wt post_create hook starts it), so --brief tells
+# tmux-dev.sh to restart the claude pane on it instead of leaving the file
+# unread (what used to happen).
+flags=""
+if [ -n "$prompt_file" ]; then cp "$prompt_file" "$path/PROMPT.md"; flags="$flags --brief"
+elif [ -n "$prompt" ]; then printf '%s\n' "$prompt" > "$path/PROMPT.md"; flags="$flags --brief"
+fi
+if [ "$no_attach" = 1 ]; then flags="$flags --no-attach"; fi
+# session exists → attach (or switch-client inside tmux)
+ROOT="$path" exec "$SCRIPTS/tmux-dev.sh" $flags

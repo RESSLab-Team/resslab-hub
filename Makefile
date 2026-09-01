@@ -1,4 +1,4 @@
-.PHONY: install hooks dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data upload-data-test backup-dump new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-open
+.PHONY: install hooks dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data upload-data-test backup-dump new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
 
 install:
 	npm install
@@ -62,8 +62,8 @@ backup-dump:
 	@docker compose exec database sh -c 'pg_dumpall -U postgres' > ${DEST_FOLDER}/all-databases.sql
 
 # --- git worktrees (docs/worktree-dev-environment.md)
-new:                    ## make new BRANCH=feat/x [BASE=origin/dev]  — worktree + deps + session, attached
-	scripts/wt-new.sh $(BRANCH) $(BASE)
+new:                    ## make new BRANCH=feat/x [BASE=origin/dev] [PROMPT=brief.md]  — worktree + deps + session, attached
+	scripts/wt-new.sh $(BRANCH) $(BASE) $(if $(PROMPT),--prompt '$(PROMPT)')
 
 go: new                 ## make go BRANCH=feat/x  — same thing, truthful verb: jump to the branch's session, creating branch/worktree/session as needed (tab completion: wtgo, scripts/wt-go.bash)
 
@@ -87,6 +87,9 @@ db-status:
 
 wt-land:                ## make wt-land BRANCH=feat/x [MODE=--local]  — rebase, PR + squash-merge into dev, clean up
 	scripts/wt-land.sh $(BRANCH) $(MODE)
+
+wt-done:                ## make wt-done BRANCH=feat/x  — kill the session + remove the worktree, keep the branch
+	scripts/wt-done.sh $(BRANCH)
 
 wt-open:                ## make wt-open [TARGET=frontend|backend] [BRANCH=feat/x]
 	scripts/wt-open.sh $(or $(TARGET),frontend) $(BRANCH)
