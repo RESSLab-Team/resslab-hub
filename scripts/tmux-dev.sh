@@ -5,6 +5,8 @@
 # (written by wt-setup.sh); the main checkout keeps 8000/5173.
 #   scripts/tmux-dev.sh              create the session for this checkout, or attach if it exists
 #   scripts/tmux-dev.sh --no-attach  create it detached (what the wt hook does)
+#   scripts/tmux-dev.sh --brief      also fire the checkout's PROMPT.md brief in the claude pane,
+#                                    even when the session is already running (what wtgo --prompt does)
 set -euo pipefail
 SCRIPTS="$(dirname "$(readlink -f "$0")")"
 . "$SCRIPTS/wt-lib.sh"
@@ -20,7 +22,14 @@ load_env_worktree
 BRANCH="$(current_branch)"
 SESSION="$(session_name "$BRANCH")"
 MAIN="$(main_checkout)"
-ATTACH=1; [ "${1:-}" = "--no-attach" ] && ATTACH=0
+ATTACH=1; BRIEF=0
+for arg in "$@"; do
+  case "$arg" in
+    --no-attach) ATTACH=0;;
+    --brief) BRIEF=1;;
+    *) die "unknown option: $arg";;
+  esac
+done
 
 attach() {
   [ "$ATTACH" = 1 ] || return 0
@@ -35,16 +44,60 @@ database: $DB_CONTAINER / ${DB_NAME:-$SHARED_DB}
 URLS
 }
 
-if tmux has-session -t "=$SESSION" 2>/dev/null; then print_urls; attach; exit 0; fi
+# Every pane exports .env.worktree so pytest (POSTGRES_TEST_DB), the Makefiles
+# (BACKEND_PORT, RESSLAB_DATA_DIR) and vite (FRONTEND_PORT) all see the same values.
+LOAD='set -a; [ -f "$(git rev-parse --show-toplevel)/.env.worktree" ] && . "$(git rev-parse --show-toplevel)/.env.worktree"; set +a'
+
+# What the claude pane runs. A PROMPT.md at the checkout root is a one-shot
+# brief (wtgo --prompt, or written by hand): rename it, then start claude on it
+# with the model and permission mode below. Plan mode on purpose, so the agent
+# comes back with a plan to review instead of editing straight away. Renaming
+# before the run means a session recreated later (wtgo all after a reboot)
+# resumes that conversation instead of firing the brief a second time.
+# With no brief, resume the checkout's last conversation; a fresh worktree has
+# none, --continue exits nonzero, and a new conversation starts instead.
+BRIEF_MODEL="${WT_BRIEF_MODEL-fable}"          # empty = whatever claude defaults to
+BRIEF_MODE="${WT_BRIEF_PERMISSION_MODE-plan}"  # empty = whatever claude defaults to
+claude_cmd() {
+  local flags=""
+  if [ -f "$ROOT/PROMPT.md" ]; then
+    [ -z "$BRIEF_MODEL" ] || flags="$flags --model $BRIEF_MODEL"
+    [ -z "$BRIEF_MODE" ] || flags="$flags --permission-mode $BRIEF_MODE"
+    echo "mv PROMPT.md PROMPT.sent.md && claude$flags \"\$(cat PROMPT.sent.md)\""
+  else
+    echo "claude --continue || claude"
+  fi
+}
+# A brief cannot reach a claude that is already running, so restart the pane on
+# it. Nothing is lost: the conversation it replaces stays resumable with
+# `claude --continue`. The pane is found by the @wt_role option set at creation,
+# not by its title, because claude rewrites the pane title as it works.
+send_brief() {
+  local pane
+  pane="$(tmux list-panes -t "=$SESSION" -F '#{pane_id} #{@wt_role}' | awk '$2 == "claude" { print $1; exit }')"
+  if [ -z "$pane" ]; then
+    echo "wt: no claude pane in $SESSION (session from an older tmux-dev.sh?). PROMPT.md kept, kill the session and run wtgo again"
+    return 0
+  fi
+  local cmd; cmd="$(claude_cmd)"
+  tmux respawn-pane -k -t "$pane" -c "$ROOT"
+  tmux send-keys -t "$pane" "$LOAD; $cmd" C-m
+  tmux select-pane -t "$pane"
+  echo "brief sent to the claude pane of $SESSION"
+}
+
+if tmux has-session -t "=$SESSION" 2>/dev/null; then
+  # The wt post_create hook already started this session, before wtgo could
+  # write PROMPT.md, so this is where a new worktree's brief fires.
+  if [ "$BRIEF" = 1 ] && [ -f "$ROOT/PROMPT.md" ]; then send_brief; fi
+  print_urls; attach; exit 0
+fi
 
 # One shared Postgres container for every checkout. Always start it from the main
 # checkout: compose names its project after the directory, so running it from a
 # worktree would create a second project fighting for the same host port.
 docker ps --format '{{.Names}}' | grep -qx "$DB_CONTAINER" || (cd "$MAIN" && docker compose up -d database)
 
-# Every pane exports .env.worktree so pytest (POSTGRES_TEST_DB), the Makefiles
-# (BACKEND_PORT, RESSLAB_DATA_DIR) and vite (FRONTEND_PORT) all see the same values.
-LOAD='set -a; [ -f "$(git rev-parse --show-toplevel)/.env.worktree" ] && . "$(git rev-parse --show-toplevel)/.env.worktree"; set +a'
 # Mirror the server panes' output to plain files: the claude pane's agent runs
 # sandboxed with no access to the tmux socket, so log files inside the checkout
 # are the only way it can see why a server misbehaves. Fresh per session.
@@ -61,6 +114,7 @@ P_BACKEND="$(tmux split-window -h -l 50% -P -F '#{pane_id}' -t "$P_CLAUDE" -c "$
 P_FRONTEND="$(tmux split-window -v -l 67% -P -F '#{pane_id}' -t "$P_BACKEND" -c "$ROOT/frontend")"
 P_SHELL="$(tmux split-window -v -l 50% -P -F '#{pane_id}' -t "$P_FRONTEND" -c "$ROOT")"
 tmux select-pane -t "$P_CLAUDE" -T claude
+tmux set-option -p -t "$P_CLAUDE" @wt_role claude   # stable handle: the title follows claude's own
 tmux select-pane -t "$P_BACKEND" -T backend
 tmux select-pane -t "$P_FRONTEND" -T frontend
 tmux select-pane -t "$P_SHELL" -T shell
@@ -70,19 +124,7 @@ tmux send-keys -t "$P_BACKEND" "$LOAD; make dev" C-m
 pipe_log backend "$P_BACKEND"
 tmux send-keys -t "$P_FRONTEND" "$LOAD; make dev" C-m
 pipe_log frontend "$P_FRONTEND"
-# A PROMPT.md at the checkout root is a one-shot brief for the agent (written
-# by wt-new.sh --prompt, or by hand): rename it and start claude with its
-# content as the first prompt. Renaming it first means a session recreated
-# later (wtgo all after a reboot) resumes the conversation below instead of
-# firing the brief again.
-# Otherwise resume the checkout's last agent conversation when there is one (a
-# recreated session picks up where its agent left off); a fresh worktree has
-# none, the flag exits nonzero, and a new conversation starts instead.
-if [ -f "$ROOT/PROMPT.md" ]; then
-  tmux send-keys -t "$P_CLAUDE" "$LOAD; mv PROMPT.md PROMPT.sent.md && claude \"\$(cat PROMPT.sent.md)\"" C-m
-else
-  tmux send-keys -t "$P_CLAUDE" "$LOAD; claude --continue || claude" C-m
-fi
+tmux send-keys -t "$P_CLAUDE" "$LOAD; $(claude_cmd)" C-m
 tmux send-keys -t "$P_SHELL" "$LOAD; clear" C-m
 tmux select-pane -t "$P_CLAUDE"
 

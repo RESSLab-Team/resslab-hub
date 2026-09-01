@@ -102,8 +102,9 @@ wtgo feat/<TAB>                      # go to a branch's session: tab-completes w
                                      # only when missing. `make go BRANCH=…` / `make new BRANCH=…` do the same
                                      # without completion; prefix+d detaches, prefix+s switches
 wtgo feat/x --no-attach              # spin the session up without entering it (chain several in one shell)
-wtgo feat/x --prompt brief.md        # drop brief.md (or literal text) as PROMPT.md: a NEW session's claude
-                                     # pane starts with it as the first prompt, then renames it PROMPT.sent.md
+wtgo feat/x --prompt brief.md        # brief the branch's agent: brief.md (or literal text) becomes PROMPT.md and
+                                     # the claude pane starts on it, on fable in plan mode, so you get a plan to
+                                     # review. Works on a session that is already up (the pane restarts)
 make wt-open BRANCH=feat/123-thing   # frontend in the browser; TARGET=backend for /docs
 make db-status                       # which DB this worktree uses
 make db-branch                       # re-clone the (light) template if setup couldn't; `db-branch-full` for the 3.4 GB copy
@@ -112,13 +113,41 @@ make wt-land BRANCH=feat/123-thing   # from the main checkout: rebase → PR →
 
 Inside the session: the `backend` and `frontend` panes run `make dev` with the
 worktree's ports; `claude` starts with the `PROMPT.md` brief when one is at the
-checkout root (see above), otherwise resumes the checkout's last agent
+checkout root (see below), otherwise resumes the checkout's last agent
 conversation (`claude --continue`, falling back to a fresh one on a new
 worktree); `shell` has `.env.worktree` exported.
 Both URLs are printed when the session starts and by `wt-open`. The `backend`
 and `frontend` panes also mirror their output to `.wt-logs/*.log` in the
 checkout (`tmux pipe-pane`), so the sandboxed agent in the `claude` pane,
 which cannot reach the tmux socket, can still read the server logs.
+
+### Briefing the agent (`--prompt`)
+
+A `PROMPT.md` at the checkout root is a one-shot brief for that worktree's
+agent. `wtgo <branch> --prompt <file-or-text>` writes it, then the `claude` pane
+runs `claude --model fable --permission-mode plan "$(cat PROMPT.sent.md)"`: the
+agent reads the brief, looks around and comes back with a plan you approve or
+send back, instead of editing straight away. Override the two flags with
+`WT_BRIEF_MODEL` / `WT_BRIEF_PERMISSION_MODE` (empty keeps claude's own
+defaults).
+
+The file is renamed to `PROMPT.sent.md` before the run, so a session recreated
+later (`wtgo all` after a reboot) resumes that conversation instead of firing
+the brief a second time. Both names are gitignored, as is `.wt-prompts/` for
+brief drafts.
+
+`wtgo` writes the brief after `wt create`, which means the session is often
+already up (the `post_create` hook starts it): the `claude` pane is then
+restarted on the brief. Whatever ran there before stays resumable with `claude
+--continue`, but do not brief a worktree whose agent is mid-task. Chain several
+briefs from one shell with `--no-attach`, one per line and not with `&`
+(`git worktree add` races on its locks):
+
+```bash
+wtgo feat/a --no-attach --prompt .wt-prompts/a.md
+wtgo feat/b --no-attach --prompt .wt-prompts/b.md
+wtgo all                             # then pick a session to look at
+```
 
 Layout: `claude` fills the left half and has focus on attach; `backend`,
 `frontend` and `shell` stack in the right half. `prefix+arrows` move between

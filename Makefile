@@ -62,8 +62,8 @@ backup-dump:
 	@docker compose exec database sh -c 'pg_dumpall -U postgres' > ${DEST_FOLDER}/all-databases.sql
 
 # --- git worktrees (docs/worktree-dev-environment.md)
-new:                    ## make new BRANCH=feat/x [BASE=origin/dev]  — worktree + deps + session, attached
-	scripts/wt-new.sh $(BRANCH) $(BASE)
+new:                    ## make new BRANCH=feat/x [BASE=origin/dev] [PROMPT=brief.md]  — worktree + deps + session, attached
+	scripts/wt-new.sh $(BRANCH) $(BASE) $(if $(PROMPT),--prompt '$(PROMPT)')
 
 go: new                 ## make go BRANCH=feat/x  — same thing, truthful verb: jump to the branch's session, creating branch/worktree/session as needed (tab completion: wtgo, scripts/wt-go.bash)
 
