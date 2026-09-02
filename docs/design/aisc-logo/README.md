@@ -38,6 +38,19 @@ once the cleaned pair existed.
 Even cleaned, the drawing is invisible at 16 and 32 px and only starts to
 work around 90 px. That is why the small mark is a separate hand drawn glyph.
 
+- `tools/reweight.py` gives the cleaned drawing a two weight line
+  hierarchy: the long lines of the width 5 layer are promoted to a heavier
+  stroke, everything shorter keeps its weight, so bolts, weld marks, small
+  clips and short plate edges stay fine. `--heavy` sets the fat width,
+  `--min-len` how long a line must be to earn it (in plot units, the
+  drawing is 2446 wide). A short line whose two ends both land on the end
+  of a promoted line is promoted too, otherwise every beam necks in at its
+  tip. Running it twice is safe, it only ever touches width 5 lines.
+
+  Why bother: flat line work fades to an even grey when you shrink it. With
+  the hierarchy the members still carry the shape at 96 px and the detail
+  appears as the drawing grows.
+
 - `tools/favicon_sheet.sh` renders every favicon candidate at 16, 32, 48
   and 64 px on white and on dark, blows the pixels up with a point filter
   and writes `favicon/sheet.png`. This is how the marks are judged: a
