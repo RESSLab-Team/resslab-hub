@@ -107,13 +107,24 @@ glyph, which is what `favicon_build.sh` takes a second argument for.
   its section, length and global end points, the plates, the bolt groups
   and the welds. That model, not the plots, is the machine readable
   source for what the sculpture is made of.
-- `tools/sculpture_draw.py` draws an elevation (west, east, north or
-  south) from `reference/sculpture.yaml`, the structure written out as
-  data: 39 members with end points in inches, connections, bolt counts.
-  `--drop 12C1,12D1` leaves members out, which is how "the sculpture
-  without the pipe post and the rod" gets drawn. `reference/SCULPTURE.md`
-  explains the frame, the two AISC versions and the editing rules. Both
-  reference files are AISC derived and stay ignored.
+- `tools/sculpture_render.py` draws the sculpture from
+  `reference/sculpture.yaml`, the structure written out as data: 39
+  members with section marks and end points in inches, connections, bolt
+  counts. Every member becomes its real cross section (I, C, T, HSS, pipe,
+  rod, double angle, open web joist) extruded along its line, then the
+  scene is projected by an orthographic camera and drawn with the
+  painter's trick: faces filled white, back to front, back faces culled,
+  members cut into short segments so the depth sort stays honest. No real
+  hidden line removal, and it is good enough for our use.
+  `--view iso|west|east|north|south|plan` or any `AZ,EL` in degrees
+  (azimuth = compass bearing of the camera). The edits happen on the data
+  before anything is drawn: `--drop 12C1,12D1` removes members,
+  `--no-bolts` the bolt dots, `--web-only 5B2,5B1` strips the flanges,
+  `--scale-z 3` and `--scale-plan 2` stretch an axis. Z coordinates in
+  the YAML can be level names, so a height change is one edit in
+  `levels:`. `reference/SCULPTURE.md` explains the frame, the two AISC
+  versions and the editing rules. Both reference files are AISC derived
+  and stay ignored. Section dims in the tool are AISC manual values.
 
 The glyphs in `favicon/` are drawn on the same 24 unit grid and in the same
 red as the current `frontend/public/favicon.svg`, with the members taken off
