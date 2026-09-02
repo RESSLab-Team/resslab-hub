@@ -65,11 +65,11 @@ ratio, and they belong in different groups.
 | Slenderness and section classification | 14 | `h_over_t_cw`, `b_f_over_t_cf`, `l_b_over_r_yc`, `k_xc`, `k_yc`, `lambda_xc`, `lambda_yc`, `lambda_ltb`, `f_class_us`, `w_class_us`, `cs_class_us`, `f_class_eu`, `w_class_eu`, `cs_class_eu` |
 | Specimen dimensions | 5 | `l_c`, `l_sc`, `l_bc`, `t_top_plate`, `t_bottom_plate` |
 | Material properties | 13 | `steel_c`, `r_y`, `r_t`, `f_ymf`, `f_ymw`, `f_umf`, `f_umw`, `f_yn`, `f_un`, `e_nc`, `e_mc`, `g_nc`, `g_mc` |
-| Loading details | 11 | `boundary_condition`, `lateral_lp`, `direction_lp`, `axis_of_bending`, `axial_lp`, `p_g`, `p_g_over_p_ym`, `p_g_over_p_yn`, `p`, `test_procedure`, `cfe` |
-| Axial resistance | 8 | `p_ym`, `p_yn`, `p_ye`, `p_t`, `p_c`, `p_t_over_p_ym`, `p_c_over_p_ym`, `p_c_over_p_yn` |
+| Loading details | 14 | `boundary_condition`, `lateral_lp`, `direction_lp`, `axis_of_bending`, `axial_lp`, `p_g`, `p_g_over_p_ym`, `p_g_over_p_yn`, `p_t_over_p_ym`, `p_c_over_p_ym`, `p_c_over_p_yn`, `p`, `test_procedure`, `cfe` |
+| Axial resistance | 5 | `p_ym`, `p_yn`, `p_ye`, `p_t`, `p_c` |
 | Measured response | 17 | `k_test`, `k_flexure_th`, `k_shear_th`, `k_theory`, `th_y`, `th_lb`, `th_80`, `th_50`, `th_20`, `th_1l`, `th_2l`, `th_3l`, `th_4l`, `th_6l`, `d_80`, `d_50`, `d_20` |
 
-## Steel braces, 71 columns in 9 groups
+## Steel braces, 71 columns in 10 groups
 
 | Group | n | Columns |
 |---|---:|---|
@@ -77,23 +77,24 @@ ratio, and they belong in different groups.
 | Section properties | 14 | `cross_section_shape`, `cross_section_size`, `area`, `d_br`, `b_br`, `t_br`, `w_br`, `i_x`, `i_y`, `r_x`, `r_y`, `z_x`, `z_y`, `j` |
 | Specimen details | 5 | `configuration`, `brace_angle`, `l_b`, `l_b_clear`, `boundary_condition` |
 | Material properties | 5 | `steel`, `e`, `f_yn`, `fy_m`, `f_um` |
+| Brace member geometric properties | 5 | `l_c`, `l_c_theory`, `k_assumed`, `kl_r`, `kl_r_theory` |
 | Gusset plate dimensions | 18 | `l_1t`, `l_2t`, `l_3t`, `l_4t`, `l_5t`, `l_6t`, `l_7t`, `_8t`, `t_t`, `l_1b`, `l_2b`, `l_3b`, `l_4b`, `l_5b`, `l_6b`, `l_7b`, `l_8b`, `t_b` |
 | Gusset plate material properties | 4 | `steel_gp`, `f_yn_gp`, `f_ym_gp`, `f_um_gp` |
 | Connection detailing | 8 | `weld_type`, `l_weld`, `t_weld`, `stick_space`, `nub_bolts`, `bolt_size`, `bolt_mat`, `reinforcement_pl` |
 | Loading details | 1 | `loading_protocol` |
-| Measured and theoretical resistance | 8 | `p_t`, `p_t_theory`, `p_c`, `kl_r`, `l_c`, `l_c_theory`, `k_assumed`, `kl_r_theory` |
+| Measured and theoretical resistance | 3 | `p_t`, `p_t_theory`, `p_c` |
 
 ## HSS columns, 60 columns in 9 groups
 
 | Group | n | Columns |
 |---|---:|---|
 | Experimental program details | 7 | `id`, `date`, `investigator`, `reference`, `url`, `latitude`, `longitude` |
-| Specimen details | 6 | `test_configuration`, `stiffness_coefficient`, `test_type`, `forming_process`, `seams`, `flexural_buckling` |
-| Loading details | 4 | `loading_protocol`, `axial_load_ratio`, `axial_load_sequence`, `loading_angle` |
+| Specimen details | 4 | `test_configuration`, `test_type`, `forming_process`, `seams` |
+| Loading details | 5 | `loading_protocol`, `stiffness_coefficient`, `axial_load_ratio`, `axial_load_sequence`, `loading_angle` |
 | Steel profile | 1 | `tube_section` |
 | Section properties | 12 | `width__mm`, `depth__mm`, `flange_thickness__mm`, `web_thickness__mm`, `area__mm2`, `moment_of_inertia__mm4`, `radius__mm`, `depth_over_t`, `plastic_section_modulus__mm3`, `length__mm`, `lambda_s`, `lambda_c` |
 | Material properties | 4 | `steel_type`, `fy_nominal__n_mm2`, `fy_measured__n_mm2`, `f_ultimate__n_mm2` |
-| Measured response | 2 | `mp_measured__knmm`, `ke_measured__knmm_rad` |
+| Measured response | 3 | `mp_measured__knmm`, `ke_measured__knmm_rad`, `flexural_buckling` |
 | Backbone parameters (100% fit) | 12 | `my_pos_100fit__knmm`, `my_neg_100fit__knmm`, `theta_p_pos_100fit__rad`, `theta_pc_pos_100fit__rad`, `theta_u_pos_100fit__rad`, `theta_p_neg_100fit__rad`, `theta_pc_neg_100fit__rad`, `theta_u_neg_100fit__rad`, `mc_my_pos_100fit`, `mu_mc_pos_100fit`, `mc_my_neg_100fit`, `mu_mc_neg_100fit` |
 | Backbone parameters (80% fit) | 12 | `my_pos_80fit__knmm`, `my_neg_80fit__knmm`, `theta_p_pos_80fit__rad`, `theta_pc_pos_80fit__rad`, `theta_u_pos_80fit__rad`, `theta_p_neg_80fit__rad`, `theta_pc_neg_80fit__rad`, `theta_u_neg_80fit__rad`, `mc_my_pos_80fit`, `mu_mc_pos_80fit`, `mc_my_neg_80fit`, `mu_mc_neg_80fit` |
 
@@ -129,10 +130,10 @@ ratio, and they belong in different groups.
 |---|---:|---|
 | Experimental program details | 13 | `experimental_program`, `id`, `date`, `year`, `investigator`, `location`, `file_path`, `reference`, `link`, `latitude`, `longitude`, `publication_key`, `datacol_version` |
 | Specimen details | 5 | `standard`, `specimen_type`, `profile_type`, `profile`, `specimen_source` |
-| Material properties | 4 | `steel_grade`, `fy_n__mpa_`, `fu_n__mpa_`, `t_a__deg_c_` |
+| Material properties | 12 | `steel_grade`, `fy_n__mpa_`, `fu_n__mpa_`, `t_a__deg_c_`, `yield_stress_02__mpa_`, `yield_strain_02`, `bin_discont_yield`, `yield_stress_uyp__mpa_`, `yield_stress_lyp__mpa_`, `yield_point_elongation`, `tensile_strength__mpa_`, `elastic_modulus__mpa_` |
 | Geometric properties | 6 | `avg_init_reduced_width__mm_`, `avg_init_reduced_thickness__mm_`, `avg_init_marked_gauge_length__mm_`, `eff_fractured_width__mm_`, `eff_fractured_thickness__mm_`, `avg_fractured_marked_gauge_length__mm_` |
 | Test equipment details | 10 | `machine`, `pid_force_p`, `pid_force_i`, `pid_force_d`, `pid_disp_p`, `pid_disp_i`, `pid_disp_d`, `pid_ext_p`, `pid_ext_i`, `pid_ext_d` |
-| Measured response | 12 | `yield_stress_02__mpa_`, `yield_strain_02`, `bin_discont_yield`, `yield_stress_uyp__mpa_`, `yield_stress_lyp__mpa_`, `yield_point_elongation`, `tensile_strength__mpa_`, `uniform_elongation`, `elongation_at_fracture`, `elongation_after_fracture`, `reduction_of_area`, `elastic_modulus__mpa_` |
+| Elongation and reduction of area | 4 | `uniform_elongation`, `elongation_at_fracture`, `elongation_after_fracture`, `reduction_of_area` |
 | Chemical composition | 20 | `c`, `si`, `mn`, `p`, `s`, `n`, `cu`, `mo`, `ni`, `cr`, `v`, `nb`, `ti`, `al`, `b`, `zr`, `sn`, `ca`, `h`, `fe` |
 
 ## Ductile fracture, 78 columns in 8 groups

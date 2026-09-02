@@ -113,6 +113,33 @@ describe('fieldGroups: group sizes', () => {
     })
   })
 
+  it('splits the 71 columns of braces into ten groups', () => {
+    expect(tally('braces')).toEqual({
+      experimental_program_details: 8,
+      section_properties: 14,
+      specimen_details: 5,
+      material_properties: 5,
+      brace_member_geometric_properties: 5,
+      gusset_plate_dimensions: 18,
+      gusset_plate_material_properties: 4,
+      connection_detailing: 8,
+      loading_details: 1,
+      measured_and_theoretical_resistance: 3
+    })
+  })
+
+  it('splits the 70 columns of tensile coupons into seven groups', () => {
+    expect(tally('tensile')).toEqual({
+      experimental_program_details: 13,
+      specimen_details: 5,
+      material_properties: 12,
+      geometric_properties: 6,
+      test_equipment_details: 10,
+      elongation_and_reduction_of_area: 4,
+      chemical_composition: 20
+    })
+  })
+
   it('keeps every database under a scannable number of groups', () => {
     DATABASES.forEach((database) => {
       expect(FIELD_GROUPS[database].length).toBeLessThanOrEqual(14)
@@ -173,6 +200,17 @@ describe('fieldGroups: dictionary override', () => {
     )
   })
 
+  it('knows the two groups the #245 review added', () => {
+    // Both are new labels, so a typo here would send the column through the regex
+    // fallback instead and the dictionary would silently lose the group.
+    expect(groupFor('braces', column('kl_r', 'Brace member geometric properties'))).toBe(
+      'brace_member_geometric_properties'
+    )
+    expect(
+      groupFor('tensile', column('reduction_of_area', 'Elongation and reduction of area'))
+    ).toBe('elongation_and_reduction_of_area')
+  })
+
   it('falls back to the rules for a group it does not know', () => {
     expect(groupFor('residuals', column('b', 'Not a group'))).toBe('section_properties')
   })
@@ -216,11 +254,14 @@ describe('fieldGroups: groupOrder', () => {
 describe('fieldGroups: ratios land where a reader looks for them', () => {
   // `_over_` alone is not enough of a signal: a columns test reports both
   // geometric slenderness ratios and axial load ratios in the same notation.
-  it('separates slenderness ratios from axial load ratios', () => {
+  it('separates slenderness ratios from load ratios', () => {
     expect(groupFor('columns', column('h_over_t_cw'))).toBe(
       'slenderness_and_section_classification'
     )
     expect(groupFor('columns', column('p_g_over_p_ym'))).toBe('loading_details')
-    expect(groupFor('columns', column('p_c_over_p_yn'))).toBe('axial_resistance')
+    // Dimitrios read every `p_*_over_*` as a load ratio in the #245 review, so the
+    // axial resistance group keeps the resistances themselves and nothing else.
+    expect(groupFor('columns', column('p_c_over_p_yn'))).toBe('loading_details')
+    expect(groupFor('columns', column('p_c'))).toBe('axial_resistance')
   })
 })
