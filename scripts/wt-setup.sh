@@ -69,14 +69,18 @@ echo "ports: backend $BACKEND_PORT, frontend $FRONTEND_PORT; database: $DB_NAME"
 #    never migrates the shared one (wt-db.sh create flips DATABASE_UPGRADE on).
 set_env_var frontend/.env.development.local VITE_APP_BACKEND_URL "http://127.0.0.1:$BACKEND_PORT"
 set_env_var secrets/.env POSTGRES_DB "$DB_NAME"
+set_env_var secrets/.env POSTGRES_MAINTENANCE_DB "$DB_NAME"
 set_env_var secrets/.env POSTGRES_TEST_DB "resslab_hub_test_$SLUG"
 if [ "$DB_NAME" = "$SHARED_DB" ]; then set_env_var secrets/.env DATABASE_UPGRADE false
 else set_env_var secrets/.env DATABASE_UPGRADE true; fi
 
 # 3b. Own throwaway database: clone the ~20 MB light template (sub-second) so
 #     this worktree can migrate, upload, or break its DB without touching the
-#     shared dataset. Best-effort: without the container or a template we stay
-#     on the shared DB and say so; `make db-branch` retries later.
+#     shared dataset. The clone comes with its own Postgres role, whose login
+#     replaces the admin one seeded from the main checkout above, so nothing in
+#     this worktree can reach another database. Best-effort: without the
+#     container or a template we stay on the shared DB as the admin user and say
+#     so; `make db-branch` retries later.
 if [ "$DB_NAME" = "$SHARED_DB" ]; then
   if ROOT="$ROOT" "$(tooling wt-db.sh)" create; then :
   else echo "note: staying on the shared $SHARED_DB — build the light template once with 'make db-template-light', then run 'make db-branch' here"
