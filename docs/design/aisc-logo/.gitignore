@@ -5,3 +5,11 @@
 !README.md
 !tools/
 !tools/*.py
+!tools/*.sh
+
+# the hand drawn favicon glyphs are original work, they are tracked
+!favicon/
+!favicon/*
+
+# the production files are built on demand, from the glyph Pierre picks
+favicon/build/

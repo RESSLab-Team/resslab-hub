@@ -59,6 +59,13 @@ BOLT_MIN_INK = 60.0   # total stroke length inside the blob
 BOLT_MIN_DENS = 0.05  # ink per bbox area, a bolt is dense, a corner is not
 ENGULF_LEN = 40.0     # a segment this short fully inside a bolt box is bolt
 
+# crop of the favicon output: the beam-column joint at mid height, the part
+# of the elevation that still reads under 128 px. Box in plot coords, then
+# the strokes are scaled up so the crop keeps the weight of the full view.
+CROP = {"e2": (2230.0, 2140.0, 760.0, 760.0)}
+CROP_STROKE = 14.0
+CROP_HEAVY = 24.0
+
 MAX_GAP = 14.0        # merge parallel lines up to this far apart (centre to centre)
 MIN_PAR_LEN = 50.0    # only merge parallel lines at least this long
 PAR_TOL = math.radians(2.5)
@@ -719,12 +726,12 @@ def path_line(pts):
     return d
 
 
-def write_svg(path, vb, body):
+def write_svg(path, vb, body, stroke=STROKE):
     x0, y0, w, h = vb
     out = ['<svg xmlns="http://www.w3.org/2000/svg" '
            'viewBox="%s %s %s %s">' % (fx(x0), fx(y0), fx(w), fx(h))]
     out.append('<g fill="none" stroke="currentColor" stroke-width="%s" '
-               'stroke-linecap="round" stroke-linejoin="round">' % fx(STROKE))
+               'stroke-linecap="round" stroke-linejoin="round">' % fx(stroke))
     out.extend(body)
     out.append("</g></svg>")
     open(path, "w").write("\n".join(out) + "\n")
@@ -870,6 +877,20 @@ def main(view):
         print("  %s -> %s: %d lines, %d heavy, %d bolt marks"
               % (tag, os.path.basename(out), len(thin), len(heavy),
                  len(marks)))
+
+    # ---- crop: same filled favicon body, boxed on the beam-column joint and
+    # drawn with fatter strokes, for the sizes where the whole elevation is
+    # already a smudge but a glyph would be too plain (128 px and up)
+    if view in CROP:
+        heavy_body = [el.replace('stroke-width="%s"' % fx(HEAVY_STROKE),
+                                 'stroke-width="%s"' % fx(CROP_HEAVY))
+                      for el in body]
+        out = os.path.join(BASE, "hand-logo-%s-crop.svg" % view)
+        write_svg(out, CROP[view],
+                  heavy_body + ['<g id="bolts" fill="currentColor" '
+                                'stroke="none">'] + marks + ["</g>"],
+                  stroke=CROP_STROKE)
+        print("  crop -> %s" % os.path.basename(out))
 
 
 def in_any_bolt(pt, families):
