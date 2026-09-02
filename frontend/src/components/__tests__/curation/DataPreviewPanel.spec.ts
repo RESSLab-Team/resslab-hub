@@ -25,7 +25,7 @@ vi.mock('@/composables/useDataset', () => ({
 const fetchCurve = vi.fn(() => Promise.resolve([[0, 0] as number[], [0.002, 350] as number[]]))
 vi.mock('@/components/curation/curves', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/components/curation/curves')>()),
-  fetchCurve: (...args: unknown[]) => fetchCurve(...(args as [])),
+  fetchCurve: (...args: unknown[]) => fetchCurve(...(args as []))
 }))
 
 // A local instance rather than `@/plugins/i18n`: the plugin reads localStorage at

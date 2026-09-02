@@ -3,7 +3,12 @@ import type { CurationFile } from '@/backend'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
 import ToolSelect from '@/components/commons/tools/ToolSelect.vue'
 import ToolSwitch from '@/components/commons/tools/ToolSwitch.vue'
-import { countFieldsFor, curveSourceFor, fetchCurve, ghostColor } from '@/components/curation/curves'
+import {
+  countFieldsFor,
+  curveSourceFor,
+  fetchCurve,
+  ghostColor
+} from '@/components/curation/curves'
 import { GHOST_CONFIGS } from '@/components/curation/ghost'
 import { useDataset } from '@/composables/useDataset'
 import { useCurationStore } from '@/stores/curation'

@@ -195,5 +195,7 @@ export function uvcModelCurve(strain: number[], parameters: UvcParameters): numb
       { c: parameters.c2, gamma: parameters.gamma2 }
     ]
   )
-  return zip(strain, stress).flatMap(([e, s]) => (e !== undefined && s !== undefined ? [[e, s]] : []))
+  return zip(strain, stress).flatMap(([e, s]) =>
+    e !== undefined && s !== undefined ? [[e, s]] : []
+  )
 }
