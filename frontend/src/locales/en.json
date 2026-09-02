@@ -1376,7 +1376,12 @@
       "compare_add": "Add a specimen from the cohort…",
       "compare_limit": "Limit of {count} overlays reached",
       "compare_candidates": "{count} cohort specimens have comparable test data",
-      "ghosts": "{count} compared"
+      "ghosts": "{count} compared",
+      "uvc_title": "Material model",
+      "uvc_model": "UVC model",
+      "uvc_phi": "Calibration error φ = {value} %",
+      "uvc_unavailable": "The model did not converge on this strain history.",
+      "uvc_missing": "The material model is not drawn: this submission does not report {columns}."
     },
     "cohort": {
       "title": "Comparison with similar experiments",

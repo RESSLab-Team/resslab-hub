@@ -1376,7 +1376,12 @@
       "compare_add": "Ajouter un spécimen de la cohorte…",
       "compare_limit": "Limite de {count} superpositions atteinte",
       "compare_candidates": "{count} spécimens de la cohorte ont des données comparables",
-      "ghosts": "{count} comparés"
+      "ghosts": "{count} comparés",
+      "uvc_title": "Modèle de matériau",
+      "uvc_model": "Modèle UVC",
+      "uvc_phi": "Erreur de calibration φ = {value} %",
+      "uvc_unavailable": "Le modèle n'a pas convergé sur cet historique de déformation.",
+      "uvc_missing": "Le modèle de matériau n'est pas tracé : cette soumission ne renseigne pas {columns}."
     },
     "cohort": {
       "title": "Comparaison avec des expériences similaires",

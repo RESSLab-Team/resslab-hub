@@ -219,6 +219,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
           />
           <data-preview-panel
             v-if="selected"
+            :cells="selected.cells"
             :cohort-query="cohortQuery"
             :database="database"
             :files="selectedFiles"
