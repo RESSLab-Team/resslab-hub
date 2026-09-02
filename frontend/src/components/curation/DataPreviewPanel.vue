@@ -330,10 +330,12 @@ const charts = computed(() =>
           }
         ]
       : []
+    // Drawing order comes from `z`; this order is the legend's and the
+    // tooltip's: the submission first, then its model, then the cohort.
     return {
       ...preview,
       ghosts: overlays.length,
-      series: [...overlays, ...uvc, ...preview.series]
+      series: [...preview.series, ...uvc, ...overlays]
     }
   })
 )

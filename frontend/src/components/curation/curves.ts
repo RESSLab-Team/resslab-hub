@@ -145,14 +145,16 @@ export function fetchCurve(database: DatabaseId, kindKey: string, id: string): P
 // ── overlay colours ────────────────────────────────────────────────────────
 // Every cohort curve used to be the same grey, so with several of them on a
 // frame a curator could not tell which chip was which line (andskia, #268).
-// Each overlay now takes its own slot of the dashboard palette, muted toward
-// grey: the hues stay Okabe-Ito (colour-blind safe, only lightness moves) and
-// the submitted curve keeps the visual lead in brand red.
+// Each overlay now takes its own slot of the dashboard palette, softened a
+// touch toward grey: the hues stay Okabe-Ito (colour-blind safe) and still
+// read as their dashboard colour, while the submitted curve keeps the visual
+// lead in brand red. A stronger blend (it started at 0.45) turned every hue
+// into the same grey-ish line and the chips could not be told apart.
 
 /** Grey the overlay hues are mixed toward. */
 const OVERLAY_GREY = '#9E9E9E'
-/** How far toward that grey — enough to sit behind the submission. */
-const OVERLAY_BLEND = 0.45
+/** How far toward that grey: a touch, not a wash. */
+const OVERLAY_BLEND = 0.2
 
 /** Colour of the nth cohort overlay on a frame. */
 export function ghostColor(index: number): string {

@@ -43,6 +43,24 @@ const props = withDefaults(
 
 const axisLabelMaxDigits = 2
 
+// The legend swatch is a flat 18x2 rectangle, so a dashed series (a model
+// drawn over measured data) looks solid in it. This path is that same
+// rectangle cut into three dashes; ECharts scales it to itemWidth x itemHeight
+// and fills it with the series colour, like the plain `rect`.
+const DASHED_SWATCH = 'path://M0,0h5v2h-5z M6.5,0h5v2h-5z M13,0h5v2h-5z'
+
+/** Legend entries in series order, with a dashed swatch for dashed series. */
+function legendData(series: SeriesOption[] | undefined) {
+  return (series ?? [])
+    .filter((serie) => serie.name !== undefined)
+    .map((serie) => {
+      const lineStyle = (serie as { lineStyle?: { type?: unknown } }).lineStyle
+      return lineStyle?.type === 'dashed'
+        ? { name: String(serie.name), icon: DASHED_SWATCH }
+        : { name: String(serie.name) }
+    })
+}
+
 const { ratio: xRatio, unitLabel: xUnitLabel } = useUnits(props.xUnit)
 const { ratio: yRatio, unitLabel: yUnitLabel } = useUnits(props.yUnit)
 
@@ -141,6 +159,11 @@ const actualOption = computed<EChartsOption>(() => {
       name: props.yUnit ? `${yAXisOption.name} [${yUnitLabel.value}]` : yAXisOption.name
     }
   }) as EChartsOption
+
+  // Named entries so the legend keeps the callers' series order across
+  // updates (a merged setOption appends new series after the old ones) and so
+  // a dashed series gets a dashed swatch.
+  merged.legend = { ...(merged.legend as object), data: legendData(series as SeriesOption[]) }
 
   // Scale every point exactly once into fresh arrays; never mutate props.option.
   // Every series also gets a stable id so ECharts can map the incoming series

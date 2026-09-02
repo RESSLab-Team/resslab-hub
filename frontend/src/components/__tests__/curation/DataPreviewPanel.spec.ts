@@ -89,8 +89,8 @@ describe('DataPreviewPanel UVC overlay', () => {
   it('draws the model beside the submitted curve when every parameter is there', async () => {
     const wrapper = await mountPanel()
     const names = series(wrapper).map((serie) => serie.name)
-    expect(names).toEqual(['UVC model', 'MAT-NEW'])
-    const model = series(wrapper)[0]
+    expect(names).toEqual(['MAT-NEW', 'UVC model'])
+    const model = series(wrapper)[1]
     expect(model.data).toHaveLength(4)
     expect(wrapper.findComponent({ name: 'ToolSwitch' }).exists()).toBe(true)
   })
