@@ -157,6 +157,20 @@ export function uvcParametersFrom(row: Record<string, unknown>): UvcParameters |
   return parameters
 }
 
+/**
+ * Columns the reviewer would otherwise see nothing about: the ones the model
+ * needs but this row does not carry, in dictionary order. Empty when the model
+ * can run.
+ *
+ * A submission opened before a dictionary rename is the common case (#308
+ * turned `uvc_e__mpa_` into `uvc_e__gpa_`), and the old column is deliberately
+ * NOT read as a fallback: the two names declare different units, so guessing
+ * would draw a curve that is wrong by a factor of 1000.
+ */
+export function missingUvcColumns(row: Record<string, unknown>): string[] {
+  return Object.values(UVC_COLUMNS).filter((column) => numericCell(row[column]) === null)
+}
+
 /** The row's calibration error in %, or null when it is not reported. */
 export function uvcCalibrationError(row: Record<string, unknown>): number | null {
   return numericCell(row[UVC_PHI_COLUMN])

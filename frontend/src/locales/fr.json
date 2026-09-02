@@ -1380,7 +1380,8 @@
       "uvc_title": "Modèle de matériau",
       "uvc_model": "Modèle UVC",
       "uvc_phi": "Erreur de calibration φ = {value} %",
-      "uvc_unavailable": "Le modèle n'a pas convergé sur cet historique de déformation."
+      "uvc_unavailable": "Le modèle n'a pas convergé sur cet historique de déformation.",
+      "uvc_missing": "Le modèle de matériau n'est pas tracé : cette soumission ne renseigne pas {columns}."
     },
     "cohort": {
       "title": "Comparaison avec des expériences similaires",

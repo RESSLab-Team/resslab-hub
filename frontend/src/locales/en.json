@@ -1380,7 +1380,8 @@
       "uvc_title": "Material model",
       "uvc_model": "UVC model",
       "uvc_phi": "Calibration error φ = {value} %",
-      "uvc_unavailable": "The model did not converge on this strain history."
+      "uvc_unavailable": "The model did not converge on this strain history.",
+      "uvc_missing": "The material model is not drawn: this submission does not report {columns}."
     },
     "cohort": {
       "title": "Comparison with similar experiments",

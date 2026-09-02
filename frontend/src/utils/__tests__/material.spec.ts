@@ -1,5 +1,6 @@
 import {
   computeUvcStress,
+  missingUvcColumns,
   uvcCalibrationError,
   uvcModelCurve,
   uvcParametersFrom
@@ -99,5 +100,40 @@ describe('material.uvcModelCurve', () => {
     expect(curve[1][1]).toBeCloseTo(362.1, 1)
     // Past yield the stress must stay under the elastic extrapolation.
     expect(curve[2][1]).toBeLessThan(0.004 * 181050)
+  })
+})
+
+describe('material.missingUvcColumns', () => {
+  it('is empty when the model can run', () => {
+    expect(missingUvcColumns(CELLS)).toEqual([])
+  })
+
+  it('names the column a pre-#308 submission is missing', () => {
+    // Real shape of an open submission branched before the rename: it carries
+    // the old uvc_e__mpa_ and nothing else is absent.
+    const legacy: Record<string, string> = { ...CELLS, uvc_e__mpa_: '206780' }
+    delete legacy.uvc_e__gpa_
+    expect(missingUvcColumns(legacy)).toEqual(['uvc_e__gpa_'])
+  })
+
+  it('does not read the old MPa column as a fallback', () => {
+    const legacy: Record<string, string> = { ...CELLS, uvc_e__mpa_: '206780' }
+    delete legacy.uvc_e__gpa_
+    expect(uvcParametersFrom(legacy)).toBeNull()
+  })
+
+  it('lists every missing column, in dictionary order', () => {
+    expect(missingUvcColumns({})).toEqual([
+      'uvc_e__gpa_',
+      'uvc_sigma__mpa_',
+      'uvc_q__mpa_',
+      'uvc_b',
+      'uvc_d__mpa_',
+      'uvc_a',
+      'uvc_c1__mpa_',
+      'uvc_g1',
+      'uvc_c2__mpa_',
+      'uvc_g2'
+    ])
   })
 })

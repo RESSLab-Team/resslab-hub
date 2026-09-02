@@ -9,7 +9,12 @@ import { useDataset } from '@/composables/useDataset'
 import { useCurationStore } from '@/stores/curation'
 import { INK, RED } from '@/plugins/echarts-theme'
 import { kindForFile } from '@/utils/curation'
-import { uvcCalibrationError, uvcModelCurve, uvcParametersFrom } from '@/utils/material'
+import {
+  missingUvcColumns,
+  uvcCalibrationError,
+  uvcModelCurve,
+  uvcParametersFrom
+} from '@/utils/material'
 import { requiredColumns } from '@/utils/timeseries'
 import { parseCsv } from '@/utils/csv'
 import type { DatabaseId } from '@/utils/navigation'
@@ -270,9 +275,19 @@ const uvcCurves = computed<Record<string, number[][]>>(() => {
 })
 
 const showUvc = ref(true)
+/** A stress-strain frame is on screen, so the model is relevant to this row. */
+const uvcRelevant = computed(
+  () => props.database === 'cyclic' && previews.value.some((p) => p.kindKey === UVC_KIND)
+)
 /** True once a frame can actually take the model — drives the toggle's row. */
-const uvcAvailable = computed(() =>
-  previews.value.some((preview) => preview.kindKey === UVC_KIND && !!uvcParameters.value)
+const uvcAvailable = computed(() => uvcRelevant.value && !!uvcParameters.value)
+/**
+ * Parameters the row is missing, listed for the reviewer rather than left
+ * silent: a submission opened before a dictionary rename looks identical to one
+ * that simply has no model, and only the column names tell them apart.
+ */
+const uvcMissing = computed(() =>
+  uvcRelevant.value && !uvcParameters.value ? missingUvcColumns(props.cells ?? {}) : []
 )
 /** Parameters are there but no frame got a curve: the solver gave up. */
 const uvcFailed = computed(
@@ -365,15 +380,20 @@ const showPicker = computed(() => !!candidates.value.length || !!overlayIds.valu
       </div>
     </div>
 
-    <div v-if="uvcAvailable" class="model">
+    <div v-if="uvcAvailable || uvcMissing.length" class="model">
       <p class="compare-label">{{ $t('curation.preview.uvc_title') }}</p>
-      <div class="compare-row">
-        <tool-switch v-model="showUvc" :label="$t('curation.preview.uvc_model')" />
-        <span v-if="uvcPhi !== null" class="compare-count">
-          {{ $t('curation.preview.uvc_phi', { value: uvcPhi }) }}
-        </span>
-      </div>
-      <p v-if="uvcFailed" class="state">{{ $t('curation.preview.uvc_unavailable') }}</p>
+      <template v-if="uvcAvailable">
+        <div class="compare-row">
+          <tool-switch v-model="showUvc" :label="$t('curation.preview.uvc_model')" />
+          <span v-if="uvcPhi !== null" class="compare-count">
+            {{ $t('curation.preview.uvc_phi', { value: uvcPhi }) }}
+          </span>
+        </div>
+        <p v-if="uvcFailed" class="state">{{ $t('curation.preview.uvc_unavailable') }}</p>
+      </template>
+      <p v-else class="state">
+        {{ $t('curation.preview.uvc_missing', { columns: uvcMissing.join(', ') }) }}
+      </p>
     </div>
 
     <div class="grid">

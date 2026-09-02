@@ -115,6 +115,21 @@ describe('DataPreviewPanel UVC overlay', () => {
     expect(series(wrapper).map((serie) => serie.name)).toEqual(['MAT-NEW'])
   })
 
+  it('says which column a pre-#308 submission is missing', async () => {
+    const cells: Record<string, string> = { ...CELLS, uvc_e__mpa_: '206780' }
+    delete cells.uvc_e__gpa_
+    const wrapper = await mountPanel({ cells })
+    expect(wrapper.findComponent({ name: 'ToolSwitch' }).exists()).toBe(false)
+    expect(wrapper.text()).toContain('uvc_e__gpa_')
+    // and it must not silently read the old MPa column instead
+    expect(series(wrapper).map((serie) => serie.name)).toEqual(['MAT-NEW'])
+  })
+
+  it('says nothing about the model on the other databases', async () => {
+    const wrapper = await mountPanel({ database: 'braces' })
+    expect(wrapper.text()).not.toContain('uvc_e__gpa_')
+  })
+
   it('stays out of the other databases', async () => {
     const wrapper = await mountPanel({ database: 'braces' })
     expect(wrapper.findComponent({ name: 'ToolSwitch' }).exists()).toBe(false)
