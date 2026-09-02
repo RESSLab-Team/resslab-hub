@@ -527,7 +527,7 @@
     "lab_homepage": "Site du laboratoire",
     "people": "Équipe",
     "contact": "Contact",
-    "copyright": "© {year} EPFL — RESSLab Hub. Données sous {ccby} / {gpl}.",
+    "copyright": "© {year} EPFL — RESSLab Hub. Données sous {pddl}, code sous {agpl}.",
     "contribute": "Contribuer"
   },
   "nav": {
@@ -1030,9 +1030,9 @@
   "about": {
     "eyebrow": "À propos",
     "title": "Un service pour la communauté du génie parasismique.",
-    "lede": "Les bases de données de RESSLab Hub ont été constituées comme un service rendu aux communautés de la recherche et de la pratique en génie parasismique. Les données sont entièrement numérisées à partir des rapports d'essais et partagées sous les licences {ccLicence} et {gplLicence}. L'EPFL, ainsi que les chercheurs ayant réalisé les expériences, n'offrent aucune garantie quant à l'exactitude des informations collectées et fournies sur ce site web.",
-    "ccLicence": "Creative Commons Attribution 2.0 Generic",
-    "gplLicence": "GNU General Public",
+    "lede": "Les bases de données de RESSLab Hub ont été constituées comme un service rendu aux communautés de la recherche et de la pratique en génie parasismique. Les données sont entièrement numérisées à partir des rapports d'essais et partagées sous la {dataLicence}. Le code source du Hub est sous {codeLicence}. L'EPFL, ainsi que les chercheurs ayant réalisé les expériences, n'offrent aucune garantie quant à l'exactitude des informations collectées et fournies sur ce site web.",
+    "dataLicence": "Open Data Commons Public Domain Dedication and License (PDDL 1.0)",
+    "codeLicence": "licence GNU Affero General Public v3.0",
     "contributors": {
       "eyebrow": "Contributeurs",
       "title": "Les personnes qui ont construit le Hub.",

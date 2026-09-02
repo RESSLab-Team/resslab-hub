@@ -2,6 +2,7 @@
   "name": "resslab-hub",
   "version": "1.0.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "packageManager": "pnpm@11.25.0",
   "scripts": {
     "prepare": "lefthook install"

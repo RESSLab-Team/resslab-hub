@@ -460,7 +460,7 @@
     "lab_homepage": "Lab homepage",
     "people": "People",
     "contact": "Contact",
-    "copyright": "© {year} EPFL — RESSLab Hub. Data under {ccby} / {gpl}.",
+    "copyright": "© {year} EPFL — RESSLab Hub. Data under {pddl}, code under {agpl}.",
     "contribute": "Contribute"
   },
   "commons": {
@@ -1030,9 +1030,9 @@
   "about": {
     "eyebrow": "About",
     "title": "A service to the earthquake-engineering community.",
-    "lede": "The databases in RESSLab Hub were assembled as a service to the research and practice communities in earthquake engineering. Data are fully digitized from experimental reports and shared under the {ccLicence} and the {gplLicence} licences. EPFL, and the researchers who performed the experiments, make no warranties to the accuracy of the information collected and provided on this website.",
-    "ccLicence": "Creative Commons Attribution 2.0 Generic",
-    "gplLicence": "GNU General Public",
+    "lede": "The databases in RESSLab Hub were assembled as a service to the research and practice communities in earthquake engineering. Data are fully digitized from experimental reports and shared under the {dataLicence}. The source code of the Hub is under the {codeLicence}. EPFL, and the researchers who performed the experiments, make no warranties to the accuracy of the information collected and provided on this website.",
+    "dataLicence": "Open Data Commons Public Domain Dedication and License (PDDL 1.0)",
+    "codeLicence": "GNU Affero General Public License v3.0",
     "contributors": {
       "eyebrow": "Contributors",
       "title": "People who built the Hub.",

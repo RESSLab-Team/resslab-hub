@@ -101,17 +101,15 @@ function initials(name: string): string {
       <h1 class="about-title">{{ t('about.title') }}</h1>
       <p class="about-lede">
         <i18n-t keypath="about.lede" tag="span" scope="global">
-          <template #ccLicence>
-            <a href="https://creativecommons.org/licenses/by/2.0/legalcode" target="_blank">{{
-              t('about.ccLicence')
+          <template #dataLicence>
+            <a href="https://opendatacommons.org/licenses/pddl/1-0/" target="_blank">{{
+              t('about.dataLicence')
             }}</a>
           </template>
-          <template #gplLicence>
-            <a
-              href="https://github.com/amaelkady/Steel-Columns-Test-Data/blob/main/LICENSE"
-              target="_blank"
-              >{{ t('about.gplLicence') }}</a
-            >
+          <template #codeLicence>
+            <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank">{{
+              t('about.codeLicence')
+            }}</a>
           </template>
         </i18n-t>
       </p>
