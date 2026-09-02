@@ -17,6 +17,9 @@ settings = Dynaconf(
         Validator("postgres_user", default="postgres"),
         Validator("postgres_password", must_exist=True),
         Validator("postgres_db", default="postgres"),
+        # Where CREATE/DROP DATABASE are issued from (tests). A worktree's own
+        # role can only connect to its clone, so wt-db.sh points this at it.
+        Validator("postgres_maintenance_db", default="postgres"),
         Validator("database_upgrade", default=True),
         Validator("cache_max_age", default=3600),
         Validator("sql_echo", default=False),

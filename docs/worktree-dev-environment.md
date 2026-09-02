@@ -226,6 +226,7 @@ the clone is ~20 MB, it costs under a second:
 |                    | light branch DB (default)                                                                        | full branch DB (`make db-branch-full`)                | shared (`wt-db.sh drop`)              |
 | ------------------ | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------- |
 | `POSTGRES_DB`      | `resslab_hub_<slug>` from `resslab_hub_light`                                                    | `resslab_hub_<slug>` from `resslab_hub_template`      | `postgres`                            |
+| `POSTGRES_USER`    | `wt_<slug>`, owner of the clone, can connect nowhere else                                        | same                                                  | `postgres` (the admin, from the main checkout) |
 | contents           | every main table, dictionary and README; one measurement file per series type                    | everything                                            | everything                            |
 | `DATABASE_UPGRADE` | `true`                                                                                           | `true`                                                | `false`                               |
 | cost               | < 1 s, ~20 MB, dropped by `wt remove`                                                            | ~1 min, 3.4 GB on disk, dropped by `wt remove`        | none                                  |
@@ -240,6 +241,22 @@ actually uploaded, so specimens without curves correctly show "no test data".
 If the light template doesn't exist yet, `wt-setup.sh` says so and leaves the
 worktree on the shared DB with migrations off; build it and run `make db-branch`.
 
+Each clone belongs to its own Postgres role, `wt_<slug>`, created by
+`wt-db.sh create` with a fresh random password that is written only to that
+worktree's `secrets/.env` (`POSTGRES_USER` / `POSTGRES_PASSWORD`). The role owns
+the clone and everything in it, so alembic, the uploader and the backend work
+as usual, and it has `CREATEDB` for the pytest database. It cannot connect to
+anything else: `CONNECT` is revoked from `PUBLIC` on the shared `postgres`
+database, both templates, `template1` and every clone, so a worktree that
+edits its `POSTGRES_DB` gets "permission denied" rather than someone else's
+data. The admin work (templates, clones, drops) keeps running as the container
+superuser through `docker exec`, which needs no password. `wt-db.sh drop`
+removes the clone, its test database and the role, and puts the worktree back
+on the shared DB with the admin login copied from the main checkout.
+
+Re-running `make db-branch` on a clone that predates the roles moves it onto
+one: the role is created, ownership transferred, credentials rewritten.
+
 `make db-template` (from the main checkout; re-run after a big data upload)
 copies the shared DB into `resslab_hub_template` with `pg_dump | psql`. Both
 have to be idle copies: Postgres refuses `CREATE DATABASE … TEMPLATE x` while
@@ -251,6 +268,9 @@ instant.
 `resslab_hub_test_<slug>` per worktree so two test runs can't drop each other's
 database. It is read from the process environment before dotenv loads, which
 is why the tmux panes export `.env.worktree` rather than rely on `secrets/.env`.
+The `CREATE DATABASE` is issued from `POSTGRES_MAINTENANCE_DB` (`postgres` by
+default; the branch clone in a worktree, since its role can connect nowhere
+else).
 
 ## What Claude may do in a worktree
 

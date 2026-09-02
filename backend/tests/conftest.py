@@ -49,11 +49,17 @@ logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 
 def _maintenance_url() -> str:
-    """URL to the ``postgres`` maintenance DB for CREATE/DROP DATABASE."""
+    """URL of the DB that CREATE/DROP DATABASE are issued from.
+
+    ``postgres`` by default. In a worktree the login is a role that can only
+    connect to its own branch clone, so ``wt-db.sh`` sets
+    ``POSTGRES_MAINTENANCE_DB`` to that clone.
+    """
     credential = f"{settings.postgres_user}:{quote_plus(settings.postgres_password)}"
     return (
         f"postgresql://{credential}"
-        f"@{settings.postgres_host}:{settings.postgres_port}/postgres"
+        f"@{settings.postgres_host}:{settings.postgres_port}"
+        f"/{settings.postgres_maintenance_db}"
     )
 
 

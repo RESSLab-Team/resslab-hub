@@ -20,6 +20,10 @@ in_worktree() { [ "$(git -C "$ROOT" rev-parse --git-dir)" != "$(git -C "$ROOT" r
 current_branch() { git -C "$ROOT" rev-parse --abbrev-ref HEAD; }
 # Branch name -> identifier safe for a Postgres database name.
 slug() { printf '%s' "$1" | tr -c 'A-Za-z0-9' '_' | tr 'A-Z' 'a-z'; }
+# Branch name -> the Postgres role that owns its clone (identifiers stop at 63 chars).
+db_role() { printf 'wt_%s' "$(slug "$1")" | cut -c1-63; }
+# 32 hex chars from the kernel; only ever written to a worktree's secrets/.env.
+random_password() { head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n'; }
 # "<repo>/<branch>" with the characters tmux forbids in session names replaced.
 session_name() { printf '%s/%s' "$(repo_name)" "$(printf '%s' "$1" | tr '.:' '--')"; }
 # Deterministic ports from the branch name: the same branch always gets the same pair,
@@ -34,11 +38,16 @@ load_env_worktree() {
   : "${BACKEND_PORT:=$MAIN_BACKEND_PORT}" "${FRONTEND_PORT:=$MAIN_FRONTEND_PORT}"
 }
 psql_db() { docker exec -i "$DB_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -q "$@"; }
-# set_env_var FILE KEY VALUE — replace KEY=... in place, or append it.
+# set_env_var FILE KEY VALUE — replace KEY=... in place, or append it. A file
+# whose last line has no newline (an editor's paste, a hand-written key) gets
+# one first, otherwise the new key would land on that line.
 set_env_var() {
   local file=$1 key=$2 value=$3
   if grep -qE "^${key}=" "$file" 2>/dev/null; then sed -i "s|^${key}=.*|${key}=${value}|" "$file"
-  else printf '%s=%s\n' "$key" "$value" >> "$file"; fi
+  else
+    if [ -s "$file" ] && [ "$(tail -c 1 "$file")" != "" ]; then printf '\n' >> "$file"; fi
+    printf '%s=%s\n' "$key" "$value" >> "$file"
+  fi
 }
 # Path of the worktree that has BRANCH checked out, empty if none.
 worktree_path_for() {
