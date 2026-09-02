@@ -9,6 +9,12 @@ leaves everything else alone, so bolts, weld marks, small clips and short
 plate edges keep their weight.
 
   python3 tools/reweight.py <in.svg> <out.svg> [--heavy 11] [--min-len 150]
+                            [--only-heavy]
+
+--only-heavy throws away everything that was NOT promoted, so what is left
+is the skeleton of the main members. That is the small sizes version: at
+32 px and under the fine layer is not detail any more, it is grey haze on
+top of the shape.
 
 A path is long when its own length reaches --min-len. A short path is
 promoted too when both of its ends land on the end of a promoted path:
@@ -101,11 +107,27 @@ def collect(node, width, stroke, out):
             collect(el, w, s, out)
 
 
-def main(src, dst, heavy, min_len):
+def prune(node, keep):
+    """Drop every path that is not in keep, then every group left empty."""
+    for el in list(node):
+        if el.tag == "{%s}path" % SVG:
+            if id(el) not in keep:
+                node.remove(el)
+        else:
+            prune(el, keep)
+            if len(el) == 0:
+                node.remove(el)
+
+
+def main(src, dst, heavy, min_len, only_heavy=False):
     ET.register_namespace("", SVG)
     tree = ET.parse(src)
     cand = []
     collect(tree.getroot(), TARGET, "currentColor", cand)
+    if not cand:
+        sys.exit("%s has no width %s lines to work on. If it is already a\n"
+                 "reweighted file, run this on the source drawing instead,\n"
+                 "with the same --heavy and --min-len." % (src, TARGET))
 
     rings = [parse_d(el.get("d")) for el in cand]
     lens = [path_length(r) for r in rings]
@@ -142,6 +164,15 @@ def main(src, dst, heavy, min_len):
         if h:
             el.set("stroke-width", heavy)
 
+    if only_heavy:
+        if not any(is_heavy):
+            sys.exit("--only-heavy would keep nothing: no line in %s reaches\n"
+                     "--min-len %s. Lower it, or check you are running this\n"
+                     "on the source drawing and not on an already\n"
+                     "reweighted file." % (src, min_len))
+        keep = set(id(el) for el, h in zip(cand, is_heavy) if h)
+        prune(tree.getroot(), keep)
+
     tree.write(dst, encoding="UTF-8", xml_declaration=True)
     print("  %-30s heavy=%-4s min-len=%-6s %d of %d lines promoted"
           % (dst.rsplit("/", 1)[-1], heavy, min_len, sum(is_heavy), len(cand)))
@@ -150,8 +181,11 @@ def main(src, dst, heavy, min_len):
 if __name__ == "__main__":
     a = sys.argv[1:]
     heavy, min_len = "11", 150.0
+    only_heavy = "--only-heavy" in a
+    if only_heavy:
+        a.remove("--only-heavy")
     if "--heavy" in a:
         heavy = a.pop(a.index("--heavy") + 1); a.remove("--heavy")
     if "--min-len" in a:
         min_len = float(a.pop(a.index("--min-len") + 1)); a.remove("--min-len")
-    main(a[0], a[1], heavy, min_len)
+    main(a[0], a[1], heavy, min_len, only_heavy)

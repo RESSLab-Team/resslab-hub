@@ -35,8 +35,23 @@ Rerunning `hand2logo.py` does not reproduce those and does not overwrite them
 either, the names differ. The intermediate outputs it does write were deleted
 once the cleaned pair existed.
 
-Even cleaned, the drawing is invisible at 16 and 32 px and only starts to
-work around 90 px. That is why the small mark is a separate hand drawn glyph.
+How far down the drawing goes, measured on real renders:
+
+| what | file | works from |
+|---|---|---|
+| the drawing, flat weights | 218 kB | about 96 px |
+| the drawing, two weights (`reweight.py`) | 227 kB | about 48 px |
+| the skeleton (`--only-heavy`) | 22 kB | about 32 px |
+| members as centre lines (`centerlines.py`) | 1 kB | about 20 px |
+| a purpose drawn glyph | 1 kB | 16 px |
+
+So a heavier line hierarchy buys two steps down and the centre line
+reduction buys another, but nothing mechanical reaches 16 px: at that size
+the members are thinner than a pixel and the drawing greys out. Four
+reductions were tried and all four fail there (raising the length threshold
+erodes members instead of simplifying them, and fattening the strokes turns
+the shape into letters). The 16 px slot of the .ico therefore takes a plain
+glyph, which is what `favicon_build.sh` takes a second argument for.
 
 - `tools/reweight.py` gives the cleaned drawing a two weight line
   hierarchy: the long lines of the width 5 layer are promoted to a heavier
@@ -50,6 +65,14 @@ work around 90 px. That is why the small mark is a separate hand drawn glyph.
   Why bother: flat line work fades to an even grey when you shrink it. With
   the hierarchy the members still carry the shape at 96 px and the detail
   appears as the drawing grows.
+
+- `tools/centerlines.py` collapses each member's two flange lines into a
+  single line down the middle, so a beam becomes a stroke instead of an
+  outline. Feed it the skeleton, not the full drawing. Out of 445 skeleton
+  lines it gives about 23 members, under 1 kB, and that is the most reduced
+  form of the drawing that is still the drawing. `--grid24` maps it onto the
+  same 24 unit box the hand drawn glyphs use, which is how
+  `favicon/g9-drawing.svg` is made.
 
 - `tools/favicon_sheet.sh` renders every favicon candidate at 16, 32, 48
   and 64 px on white and on dark, blows the pixels up with a point filter
