@@ -153,7 +153,7 @@ async def test_materials_date_range(client, tmp_path):
     response = await client.get("/materials/date-range", params={"field": "date"})
     assert response.status_code == 200
     body = response.json()
-    # Both fixture rows default to 01.01.20 -> 2020-01-01.
+    # Both fixture rows default to 01.01.2020.
     assert body["min"] == "2020-01-01"
     assert body["max"] == "2020-01-01"
 

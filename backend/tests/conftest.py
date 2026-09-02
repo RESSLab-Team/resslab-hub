@@ -156,7 +156,7 @@ def _default_for(column) -> str:
     if isinstance(column_type, Boolean):
         return "yes"
     if isinstance(column_type, Date):
-        return "01.01.20"
+        return "01.01.2020"
     if isinstance(column_type, Integer):
         return "1"
     if isinstance(column_type, Numeric):  # Float(asdecimal) subclasses Numeric
@@ -175,7 +175,7 @@ def write_main_csv(file_path, model, rows):
     derived = COUNT_FLAGS.get(model, {})
     columns = [c.key for c in model.__table__.columns if c.key not in derived]
     with open(file_path, "w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(columns)
         for row in rows:
             writer.writerow(
@@ -187,7 +187,7 @@ def write_main_csv(file_path, model, rows):
 def write_measurement_csv(file_path, headers, rows):
     """Write a measurement CSV (``CsvFileUploader``) with arbitrary headers."""
     with open(file_path, "w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(headers)
         writer.writerows(rows)
     return file_path

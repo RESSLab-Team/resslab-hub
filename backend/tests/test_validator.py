@@ -15,13 +15,20 @@ from resslab_hub.data.validator import (
     PRIMARY_TYPE_MAP,
     PRIMARY_TYPES,
     CsvFileValidator,
+    DuctileFractureTableValidator,
+    EccentricBracedFrameTableValidator,
+    ResidualStressTableValidator,
     TableValidator,
     ValidationResult,
     validate_one_file,
 )
 from resslab_hub.models.database.brace import Brace
+from resslab_hub.models.database.ductile_fracture import DuctileFracture
+from resslab_hub.models.database.eccentric_braced_frame import EccentricBracedFrame
+from resslab_hub.models.database.material import Material
+from resslab_hub.models.database.residual_stress import ResidualStress
 from resslab_hub.models.database.tensile_coupon import TensileCoupon
-from tests.conftest import write_main_csv
+from tests.conftest import write_main_csv, write_measurement_csv
 
 BRACE_COLUMNS = [c.key for c in Brace.__table__.columns]
 
@@ -291,3 +298,472 @@ class TestPrimaryCsvIds:
             CsvFileValidator(None, [], "brace_id", None)._check_primary_csv("B1")
             is False
         )
+
+
+# --- the rules the database READMEs state (issue #243) -----------------------
+#
+# Each class below covers one rule of the contributor READMEs
+# (resslab-hub-data#48). The severity split is deliberate: an error is
+# something that breaks the upload, a warning something a curator can still
+# fix afterwards. Warnings never fail the data repository CI, which gates on
+# ``valid`` only.
+
+
+def brace_result(tmp_path: Path, row: dict, name: str = "steel_braces.csv"):
+    """Validate a one-row braces CSV built from the fixture defaults."""
+    file_path = write_main_csv(tmp_path / name, Brace, [{"id": "B1", **row}])
+    return TableValidator(Brace).validate_one(str(file_path))
+
+
+def messages(issues, column: str):
+    return [issue.message for issue in issues if issue.column == column]
+
+
+def all_messages(issues):
+    return [issue.message for issue in issues]
+
+
+class TestMissingValues:
+    """ "Leave no cell empty"; NA and NR are for nullable columns only."""
+
+    def test_empty_cell_in_nullable_column_warns(self, tmp_path: Path):
+        # 'l_1t' is a nullable String column.
+        result = brace_result(tmp_path, {"l_1t": ""})
+
+        assert result.is_valid()
+        assert any("Empty cell" in m for m in messages(result.warnings, "l_1t"))
+
+    def test_na_and_nr_in_nullable_column_are_silent(self, tmp_path: Path):
+        for marker in ("NA", "NR", "na", "nr"):
+            result = brace_result(tmp_path, {"l_1t": marker})
+            assert messages(result.warnings, "l_1t") == [], marker
+            assert messages(result.errors, "l_1t") == [], marker
+
+    def test_empty_cell_in_mandatory_column_is_an_error(self, tmp_path: Path):
+        result = brace_result(tmp_path, {"investigator": ""})
+
+        assert not result.is_valid()
+        assert any("mandatory" in m for m in messages(result.errors, "investigator"))
+
+    def test_nr_in_mandatory_number_is_an_error(self, tmp_path: Path):
+        # The uploader turns NR into NULL and the whole file is skipped, so
+        # this one has to stop the contributor. 'date' is a SmallInteger.
+        result = brace_result(tmp_path, {"date": "NR"})
+
+        assert not result.is_valid()
+        assert any("mandatory" in m for m in messages(result.errors, "date"))
+
+    def test_nr_in_mandatory_text_only_warns(self, tmp_path: Path):
+        # A String column stores "Not reported" and uploads fine; the data
+        # repository has hundreds of these already.
+        result = brace_result(tmp_path, {"investigator": "NR"})
+
+        assert result.is_valid()
+        assert any(
+            "Not reported" in m for m in messages(result.warnings, "investigator")
+        )
+
+    def test_na_in_mandatory_text_is_an_error(self, tmp_path: Path):
+        result = brace_result(tmp_path, {"investigator": "NA"})
+
+        assert not result.is_valid()
+        assert messages(result.errors, "investigator")
+
+    def test_nan_counts_as_no_value(self, tmp_path: Path):
+        assert any(
+            "NaN" in m
+            for m in messages(brace_result(tmp_path, {"l_1t": "NaN"}).warnings, "l_1t")
+        )
+        mandatory = brace_result(tmp_path, {"date": "NaN"})
+        assert not mandatory.is_valid()
+        assert any("NaN" in m for m in messages(mandatory.errors, "date"))
+
+
+class TestNumbers:
+    """ "Numeric values only, decimal point"; "a year alone is an integer"."""
+
+    def test_decimal_comma_is_an_error(self, tmp_path: Path):
+        result = brace_result(tmp_path, {"area": "1,5"})
+
+        assert not result.is_valid()
+        assert any("decimal point" in m for m in messages(result.errors, "area"))
+
+    def test_decimal_point_is_accepted(self, tmp_path: Path):
+        assert messages(brace_result(tmp_path, {"area": "1.5"}).errors, "area") == []
+
+    def test_infinity_is_an_error(self, tmp_path: Path):
+        result = brace_result(tmp_path, {"area": "inf"})
+
+        assert not result.is_valid()
+        assert any("real number" in m for m in messages(result.errors, "area"))
+
+    def test_text_in_a_number_column_says_so(self, tmp_path: Path):
+        result = brace_result(tmp_path, {"area": "abc"})
+
+        assert any("Must be a number" in m for m in messages(result.errors, "area"))
+
+    def test_year_with_decimals_warns_about_the_truncation(self, tmp_path: Path):
+        # The upload stores int(Decimal(value)), so this loses the decimals
+        # instead of failing: a warning, like the editor's own rule.
+        result = brace_result(tmp_path, {"date": "2024.7"})
+
+        assert result.is_valid()
+        warnings = messages(result.warnings, "date")
+        assert any("truncated" in m and "2024" in m for m in warnings)
+
+    def test_year_written_with_a_trailing_zero_is_accepted(self, tmp_path: Path):
+        assert brace_result(tmp_path, {"date": "2024.0"}).is_valid()
+
+
+class TestDates:
+    """ "Dates are dd.mm.yyyy". Only cyclic coupons have a Date column."""
+
+    @staticmethod
+    def _material(tmp_path: Path, value: str):
+        file_path = write_main_csv(
+            tmp_path / "steel_material.csv", Material, [{"id": "M1", "date": value}]
+        )
+        return TableValidator(Material).validate_one(str(file_path))
+
+    def test_four_digit_year_is_accepted(self, tmp_path: Path):
+        assert messages(self._material(tmp_path, "07.10.2020").errors, "date") == []
+
+    def test_two_digit_year_is_an_error(self, tmp_path: Path):
+        result = self._material(tmp_path, "07.10.20")
+
+        assert not result.is_valid()
+        assert any("dd.mm.yyyy" in m for m in messages(result.errors, "date"))
+
+    def test_iso_date_is_an_error(self, tmp_path: Path):
+        result = self._material(tmp_path, "2020-10-07")
+
+        assert any("dd.mm.yyyy" in m for m in messages(result.errors, "date"))
+
+    def test_impossible_day_is_an_error(self, tmp_path: Path):
+        result = self._material(tmp_path, "32.10.2020")
+
+        assert any("not a real date" in m for m in messages(result.errors, "date"))
+
+
+class TestRowShapeAndHeaders:
+    def test_row_with_extra_values_blames_the_decimal_comma(self, tmp_path: Path):
+        file_path = tmp_path / "steel_braces.csv"
+        write_main_csv(file_path, Brace, [{"id": "B1"}])
+        lines = file_path.read_text(encoding="utf-8").splitlines()
+        lines[1] += ",5"  # what an unquoted "1,5" does to a row
+        file_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert not result.is_valid()
+        assert any("decimal comma" in m for m in messages(result.errors, "row"))
+
+    def test_trailing_comma_on_a_row_is_ignored(self, tmp_path: Path):
+        file_path = tmp_path / "steel_braces.csv"
+        write_main_csv(file_path, Brace, [{"id": "B1"}])
+        lines = file_path.read_text(encoding="utf-8").splitlines()
+        lines[1] += ","
+        file_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+        assert TableValidator(Brace).validate_one(str(file_path)).is_valid()
+
+    def test_semicolon_separator_says_so(self, tmp_path: Path):
+        file_path = tmp_path / "steel_braces.csv"
+        file_path.write_text("id;investigator\nB1;someone\n", encoding="utf-8")
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert not result.is_valid()
+        assert any("semicolons" in m for m in messages(result.errors, "headers"))
+        # The real cause is reported instead of every column being missing.
+        assert not any("Missing required" in m for m in messages(result.errors, "head"))
+
+    def test_column_without_a_name_is_warned(self, tmp_path: Path):
+        file_path = tmp_path / "steel_braces.csv"
+        write_main_csv(file_path, Brace, [{"id": "B1"}])
+        lines = file_path.read_text(encoding="utf-8").splitlines()
+        lines[0] += ","
+        lines[1] += ","
+        file_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert result.is_valid()
+        assert any("has no name" in m for m in messages(result.warnings, "headers"))
+
+
+class TestFileFormat:
+    """ "Encoding UTF-8, comma separator, LF line endings, final newline"."""
+
+    def test_clean_file_says_nothing(self, tmp_path: Path):
+        result = brace_result(tmp_path, {})
+
+        assert messages(result.warnings, "file") == []
+
+    def test_windows_line_endings_warn(self, tmp_path: Path):
+        file_path = tmp_path / "steel_braces.csv"
+        write_main_csv(file_path, Brace, [{"id": "B1"}])
+        text = file_path.read_text(encoding="utf-8")
+        file_path.write_bytes(text.replace("\n", "\r\n").encode("utf-8"))
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert result.is_valid()
+        assert any("CRLF" in m for m in messages(result.warnings, "file"))
+
+    def test_missing_final_newline_warns(self, tmp_path: Path):
+        file_path = tmp_path / "steel_braces.csv"
+        write_main_csv(file_path, Brace, [{"id": "B1"}])
+        file_path.write_bytes(file_path.read_bytes().rstrip(b"\n"))
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert result.is_valid()
+        assert any("newline" in m for m in messages(result.warnings, "file"))
+
+    def test_non_utf8_file_warns(self, tmp_path: Path):
+        file_path = tmp_path / "steel_braces.csv"
+        write_main_csv(file_path, Brace, [{"id": "B1", "investigator": "Muller"}])
+        raw = file_path.read_bytes().replace(b"Muller", "Müller".encode("latin-1"))
+        file_path.write_bytes(raw)
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert any("not UTF-8" in m for m in messages(result.warnings, "file"))
+
+
+class TestIdentifiers:
+    def test_space_in_an_id_warns(self, tmp_path: Path):
+        result = brace_result(tmp_path, {"id": "Wakabayashi_DIC 1-D1"})
+
+        # Still a valid file name, so the naming convention is only a warning.
+        assert result.is_valid()
+        warnings = messages(result.warnings, "id")
+        assert any("underscores, not spaces" in m for m in warnings)
+
+    def test_id_that_cannot_be_a_file_name_is_an_error(self, tmp_path: Path):
+        result = brace_result(tmp_path, {"id": "Fell/HSS1"})
+
+        assert not result.is_valid()
+        assert any("file name" in m for m in messages(result.errors, "id"))
+
+
+class TestResponseFileRows:
+    """The response files carry numbers only, one file per id."""
+
+    @staticmethod
+    def _validate(tmp_path: Path, rows, stem: str = "B1"):
+        primary = write_main_csv(tmp_path / "steel_braces.csv", Brace, [{"id": "B1"}])
+        folder = tmp_path / "force_displacement"
+        folder.mkdir(exist_ok=True)
+        curve = write_measurement_csv(
+            folder / f"{stem}.csv", ["Displacement [mm]", "Force [kN]"], rows
+        )
+        validator = CsvFileValidator(
+            Brace,
+            ["Displacement [mm]", "Force [kN]"],
+            "id",
+            primary_csv_path=str(primary),
+        )
+        return validator.validate_one(str(curve))
+
+    def test_numbers_are_accepted(self, tmp_path: Path):
+        assert self._validate(tmp_path, [["0.0", "-1.5"], ["1.0", "2.5"]]).is_valid()
+
+    def test_decimal_comma_is_an_error_naming_the_row(self, tmp_path: Path):
+        result = self._validate(tmp_path, [["0.0", "1.0"], ["1,5", "2.0"]])
+
+        assert not result.is_valid()
+        assert any(m.startswith("Row 2:") for m in all_messages(result.errors))
+        assert any("decimal point" in m for m in all_messages(result.errors))
+
+    def test_nan_only_warns(self, tmp_path: Path):
+        # Legacy files carry NaN where the instrument lost the reading.
+        result = self._validate(tmp_path, [["0.0", "NaN"]])
+
+        assert result.is_valid()
+        assert any("NaN" in m for m in all_messages(result.warnings))
+
+    def test_empty_cell_is_an_error(self, tmp_path: Path):
+        result = self._validate(tmp_path, [["0.0", ""]])
+
+        assert not result.is_valid()
+        assert any("empty" in m for m in all_messages(result.errors))
+
+    def test_a_repeated_problem_is_reported_once(self, tmp_path: Path):
+        # One legacy file holds 187 000 NaN readings; one issue per row would
+        # make the response unusable and the report unreadable.
+        rows = [["0.0", "NaN"] for _ in range(50)]
+        result = self._validate(tmp_path, rows)
+
+        nan_warnings = [w for w in result.warnings if "NaN" in w.message]
+        assert len(nan_warnings) == 1
+        assert "47 more" in nan_warnings[0].message
+
+    def test_empty_row_is_reported_as_such(self, tmp_path: Path):
+        result = self._validate(tmp_path, [["0.0", "1.0"], ["", ""]])
+
+        assert not result.is_valid()
+        assert any("row is empty" in m for m in all_messages(result.errors))
+
+    def test_file_named_after_an_unknown_id_is_rejected(self, tmp_path: Path):
+        result = self._validate(tmp_path, [["0.0", "1.0"]], stem="B9")
+
+        assert not result.is_valid()
+        assert any("not found" in m for m in all_messages(result.errors))
+
+
+class TestResidualStressFlanges:
+    """``flange_nr_data`` must match the presence of a second flange file."""
+
+    @staticmethod
+    def _validate(tmp_path: Path, declared: str, with_f2: bool):
+        root = tmp_path / "residual_stresses"
+        root.mkdir(exist_ok=True)
+        if with_f2:
+            folder = root / "Distributions" / "Distributions_F2"
+            folder.mkdir(parents=True, exist_ok=True)
+            write_measurement_csv(
+                folder / "R1.csv", ["coordinate", "residual_stress"], [["0", "1"]]
+            )
+        file_path = write_main_csv(
+            root / "residual_stresses.csv",
+            ResidualStress,
+            [{"id": "R1", "flange_nr_data": declared}],
+        )
+        return ResidualStressTableValidator(ResidualStress).validate_one(str(file_path))
+
+    def test_two_flanges_with_the_file_is_quiet(self, tmp_path: Path):
+        result = self._validate(tmp_path, "2", with_f2=True)
+        assert messages(result.warnings, "flange_nr_data") == []
+
+    def test_one_flange_without_the_file_is_quiet(self, tmp_path: Path):
+        result = self._validate(tmp_path, "1", with_f2=False)
+        assert messages(result.warnings, "flange_nr_data") == []
+
+    def test_two_flanges_without_the_file_warns(self, tmp_path: Path):
+        result = self._validate(tmp_path, "2", with_f2=False)
+
+        assert result.is_valid()
+        assert any(
+            "no Distributions_F2" in m
+            for m in messages(result.warnings, "flange_nr_data")
+        )
+
+    def test_one_flange_with_the_file_warns(self, tmp_path: Path):
+        result = self._validate(tmp_path, "1", with_f2=True)
+
+        assert any("Write 2" in m for m in messages(result.warnings, "flange_nr_data"))
+
+    def test_other_counts_warn(self, tmp_path: Path):
+        result = self._validate(tmp_path, "3", with_f2=False)
+
+        assert any("1 or 2" in m for m in messages(result.warnings, "flange_nr_data"))
+
+
+class TestDuctileFracture:
+    @staticmethod
+    def _validate(tmp_path: Path, row: dict):
+        file_path = write_main_csv(
+            tmp_path / "ductile_fracture.csv",
+            DuctileFracture,
+            [{"id": "D1", "has_sem": "NR", **row}],
+        )
+        return DuctileFractureTableValidator(DuctileFracture).validate_one(
+            str(file_path)
+        )
+
+    def test_measured_dimensions_as_a_json_list_are_accepted(self, tmp_path: Path):
+        result = self._validate(tmp_path, {"meas_notch_width": "[1.97, 1.94, 1.96]"})
+
+        assert messages(result.warnings, "meas_notch_width") == []
+
+    def test_a_single_number_warns(self, tmp_path: Path):
+        result = self._validate(tmp_path, {"meas_notch_width": "2.4"})
+
+        assert result.is_valid()
+        assert any(
+            "list of numbers" in m
+            for m in messages(result.warnings, "meas_notch_width")
+        )
+
+    def test_a_list_missing_its_bracket_warns(self, tmp_path: Path):
+        result = self._validate(tmp_path, {"meas_notch_width": "24.85, 24.87]"})
+
+        assert any(
+            "list of numbers" in m
+            for m in messages(result.warnings, "meas_notch_width")
+        )
+
+    def test_loading_protocol_is_a_list_too(self, tmp_path: Path):
+        assert (
+            messages(
+                self._validate(tmp_path, {"loading_protocol": "[0,2]"}).warnings,
+                "loading_protocol",
+            )
+            == []
+        )
+
+    def test_nr_is_left_alone(self, tmp_path: Path):
+        result = self._validate(tmp_path, {"meas_width_gp": "NR"})
+
+        assert messages(result.warnings, "meas_width_gp") == []
+
+    def test_has_sem_belongs_to_the_hub(self, tmp_path: Path):
+        result = self._validate(tmp_path, {"has_sem": "yes"})
+
+        assert result.is_valid()
+        assert any("SEM images" in m for m in messages(result.warnings, "has_sem"))
+
+
+class TestEccentricBracedFrames:
+    """EBF ids are running integers and its files are named ``id<id>.csv``."""
+
+    @staticmethod
+    def _record(tmp_path: Path, specimen_id: str):
+        return write_main_csv(
+            tmp_path / "eccentric_braced_frames.csv",
+            EccentricBracedFrame,
+            [{"id": specimen_id, "url": "https://example.org"}],
+        )
+
+    def test_integer_id_is_accepted(self, tmp_path: Path):
+        result = EccentricBracedFrameTableValidator(EccentricBracedFrame).validate_one(
+            str(self._record(tmp_path, "74"))
+        )
+
+        assert messages(result.errors, "id") == []
+
+    def test_name_shaped_id_is_an_error(self, tmp_path: Path):
+        result = EccentricBracedFrameTableValidator(EccentricBracedFrame).validate_one(
+            str(self._record(tmp_path, "Kasai_1986_S1"))
+        )
+
+        assert not result.is_valid()
+        assert any("whole number" in m for m in messages(result.errors, "id"))
+
+    def test_processed_file_is_matched_through_its_id_prefix(self, tmp_path: Path):
+        primary = self._record(tmp_path, "74")
+        folder = tmp_path / "processed_data"
+        folder.mkdir()
+        curve = write_measurement_csv(
+            folder / "id74.csv", ["data_ind", "gamma_t", "V"], [["0", "0.01", "120"]]
+        )
+        validator = CsvFileValidator(
+            EccentricBracedFrame,
+            ["gamma_t", "V"],
+            "id",
+            primary_csv_path=str(primary),
+            filename_prefix="id",
+        )
+
+        assert validator.validate_one(str(curve)).is_valid()
+
+    def test_every_uploaded_type_has_a_validator(self):
+        # EBF and ductile fracture used to raise NotImplementedError here,
+        # which surfaced as a 500 and kept the quality step disabled for them.
+        for top in (Type.ALL_ECCENTRIC_BRACED_FRAME, Type.ALL_DUCTILE_FRACTURE):
+            for arg_type, _ in get_args_all(top, ""):
+                if arg_type in (Type.DICTIONARY, Type.README):
+                    continue
+                validate_one_file(arg_type, "x.csv")
