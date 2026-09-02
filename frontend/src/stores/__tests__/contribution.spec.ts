@@ -6,8 +6,9 @@ import {
   useContributionStore
 } from '@/stores/contribution'
 import { useDictionaryStore, type DictColumn } from '@/stores/dictionary'
-import { buildCsv } from '@/utils/contribution'
+import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { IntakePlan } from '@/utils/intake'
+import type { DatabaseId } from '@/utils/navigation'
 import { postContribution } from '@/utils/submission'
 import { buildTarGz } from '@/utils/tar'
 import { timeSeriesKindsFor } from '@/utils/timeseries'
@@ -263,20 +264,26 @@ describe('contribution store — experiment rows', () => {
     expect(store.unverified).toBe(true)
   })
 
-  it('says up front that a database without a validator cannot be checked', async () => {
+  it('checks every database, EBF and ductile fracture included', async () => {
+    // They used to answer 'unsupported': the backend had no validator for
+    // them and the request came back as a 500 (resslab-hub#243).
     const dictionary = useDictionaryStore()
-    dictionary.columns = { braces: BRACE_COLUMNS, ebf: BRACE_COLUMNS }
+    dictionary.columns = {
+      braces: BRACE_COLUMNS,
+      ebf: BRACE_COLUMNS,
+      'ductile-fracture': BRACE_COLUMNS
+    }
     dictionary.state = 'ready'
     const store = useContributionStore()
-    store.selectDatabase('ebf')
-    expect(store.status).toBe('unsupported')
-    store.addRow()
-    store.rows[0].cells.id = 'E1'
+    for (const database of ['ebf', 'ductile-fracture', 'braces'] as DatabaseId[]) {
+      store.selectDatabase(database)
+      expect(store.status).toBe('idle')
+      expect(store.checking).toBe(false)
+    }
+    expect(
+      Object.values(CONTRIBUTION_DATABASES).every((entry) => entry.qualityCheckSupported)
+    ).toBe(true)
     await nextTick()
-    expect(store.status).toBe('unsupported')
-    expect(store.checking).toBe(false)
-    store.selectDatabase('braces')
-    expect(store.status).toBe('idle')
   })
 
   it('hints at a missing required file until the batch has test data, then flags it', () => {
