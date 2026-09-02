@@ -111,6 +111,24 @@ def prof_O(dia, n=16):
     return [ccw([(r * math.cos(2 * math.pi * i / n), r * math.sin(2 * math.pi * i / n)) for i in range(n)])]
 
 
+def bolt_face(sec, side):
+    """Where a bolt dot sits across the member (local a), on the side
+    that looks at the camera: the web for I, C and T shapes, the wall
+    for hollow sections, the chord for a joist."""
+    kind, *dims = SECTIONS[sec]
+    if kind in ("I", "T"):
+        return side * dims[2] / 2
+    if kind == "C":
+        return -dims[1] / 2 + (dims[2] if side > 0 else 0)
+    if kind == "2L":
+        return side * (dims[2] + 0.19)
+    if kind == "RHS":
+        return side * dims[1] / 2
+    if kind == "O":
+        return side * dims[0] / 2
+    return side * 2.0
+
+
 def profile(sec, web_only=False):
     kind, *dims = SECTIONS[sec]
     if kind == "I":
@@ -174,12 +192,19 @@ def prism(p0, p1, polys, u, v, w, seg, shift=0.0):
         base = [add(p0, add(mul(v, a), mul(w, b + shift))) for a, b in poly]
         m = len(base)
         for k in range(n):
-            A =[add(pt, mul(u, L * k / n)) for pt in base]
+            A = [add(pt, mul(u, L * k / n)) for pt in base]
             B = [add(pt, mul(u, L * (k + 1) / n)) for pt in base]
             for i in range(m):
                 j = (i + 1) % m
-                # side quad, only the two longitudinal edges are drawn
-                faces.append(([A[i], A[j], B[j], B[i]], [(1, 2), (3, 0)]))
+                # side quad: the two longitudinal edges, plus the end edge
+                # at a member end, so the end is drawn even when the cap
+                # faces away from the camera
+                edges = [(1, 2), (3, 0)]
+                if k == 0:
+                    edges.append((0, 1))
+                if k == n - 1:
+                    edges.append((2, 3))
+                faces.append(([A[i], A[j], B[j], B[i]], edges))
             if k == 0:
                 faces.append((A[::-1], [(i, (i + 1) % m) for i in range(m)]))  # start cap, normal -u
             if k == n - 1:
@@ -303,7 +328,7 @@ def camera(view):
 
 # ----------------------------------------------------------------- render
 def build(doc, web_only=(), seg=6.0, bolts=True):
-    """Everything to draw: (member id, faces) and bolt dots (id, point, w)."""
+    """Everything to draw: (member id, faces) and bolt dots (id, point, v, section)."""
     levels = doc["levels"]
     solids, dots = [], []
     for mid, sec, a, b, axis, rec in members(doc):
@@ -324,15 +349,14 @@ def build(doc, web_only=(), seg=6.0, bolts=True):
         n = bolt_count(rec) if bolts else 0
         if n:
             # a group of dots at the `from` end, rows of 4 down the depth,
-            # on whichever face of the member looks at the camera
-            half = max(abs(pa) for poly in polys for pa, pb in poly)
+            # on the web face that looks at the camera
             for i in range(n):
                 if axis == "tos":
-                    bw = 2.0 + 1.5 * (i % 4)
+                    bw = 2.5 + 1.5 * (i % 4)
                 else:
                     bw = 1.5 * (i % 4) - 0.75 * (min(n, 4) - 1)
                 p = add(p0, add(mul(w, bw), mul(u, 1.5 + 1.5 * (i // 4))))
-                dots.append((mid, p, v, half))
+                dots.append((mid, p, v, sec))
     # the base plate, the one plate worth drawing
     col = doc.get("column")
     if col:
@@ -361,10 +385,10 @@ def render(solids, dots, view, scale, dst, drop_note=""):
             d = "M" + " L".join("%.1f %.1f" % xy for xy in q) + " Z"
             e = " ".join("M%.1f %.1f L%.1f %.1f" % (q[i] + q[j]) for i, j in edges)
             items.append((depth, mid, '<path d="%s"/><path class="e" d="%s"/>' % (d, e)))
-    for mid, p, v, half in dots:
+    for mid, p, v, sec in dots:
         side = 1 if dot(v, c) >= 0 else -1
-        p = add(p, mul(v, side * half))
-        depth = dot(p, c) + 0.5
+        p = add(p, mul(v, bolt_face(sec, side)))
+        depth = dot(p, c) + 1.0
         x, y = proj(p)
         items.append((depth, mid, '<circle cx="%.1f" cy="%.1f" r="%.1f"/>' % (x, y, 0.45 * scale)))
     items.sort(key=lambda t: t[0])
