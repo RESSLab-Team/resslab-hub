@@ -342,9 +342,14 @@ checked out in a worktree (cli/cli#13380).
   `-i`, `-I`) are also in `permissions.allow`, so the agent's usual "did my
   change work" checks skip the classifier entirely; ask rules still win for
   write forms, so a localhost POST prompts like any other.
-- **Disk.** Each worktree carries its own `node_modules` + `.venv` (~770 MB).
-  `wt`'s `docs/examples.md` has shared-cache hooks if that hurts. A branch DB is
-  another 3.4 GB — keep one alive at a time.
+- **Disk.** Dependencies are shared: uv hard-links `.venv` from `~/.cache/uv`,
+  pnpm hard-links `node_modules` from its store (`~/.local/share/pnpm/store`),
+  so a worktree costs a few tens of MB on top of the checkout, not the ~500 MB
+  an npm install used to. A worktree created before the pnpm switch still has
+  its npm copy: after it rebases onto `dev`, `rm -rf node_modules
+  frontend/node_modules && make install` reclaims the space. Hard links need
+  the store on the same filesystem as the checkout, else pnpm silently copies.
+  A branch DB is another 3.4 GB — keep one alive at a time.
 - **tmux session names** can't contain `.` or `:`; `session_name()` maps them
   to `-`. `/` is fine.
 - **`~/.claude/settings.json` can't be edited by Claude** — the classifier

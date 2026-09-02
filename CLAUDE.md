@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 RESSLab-Hub is a fullstack research database for structural steel components (braces, columns, connections, materials, residual stresses, HSS columns, EBF links). The backend exposes a REST API; the frontend is a Vue 3 SPA with data visualization tools.
 
-**Prerequisites**: [uv](https://docs.astral.sh/uv/) (manages Python automatically), Node.js ≥ 18 (CI uses the current LTS), Docker with the Compose v2 plugin, Make.
+**Prerequisites**: [uv](https://docs.astral.sh/uv/) (manages Python automatically), Node.js ≥ 18 (CI uses the current LTS) with [pnpm](https://pnpm.io) 11 (`npm install -g pnpm`), Docker with the Compose v2 plugin, Make.
 
 ## Commands
 
 ### Root-level (from the repo root)
 
 ```bash
-make install          # Install all dependencies (npm + uv sync + frontend)
+make install          # Install all dependencies (pnpm + uv sync + frontend)
 make dev-all          # tmux session: database + backend + frontend + claude + shell
 make dev-database     # Start PostgreSQL via Docker Compose
 make dev-backend      # Start FastAPI backend (http://127.0.0.1:8000)
@@ -54,14 +54,14 @@ The uploader lives in the package (`resslab_hub/data/uploader.py`) and runs as `
 ### Frontend (from `frontend/`)
 
 ```bash
-npm run dev           # Vite dev server
-npm run build         # Production build (runs type-check + build-only in parallel)
-npm run type-check    # vue-tsc type check (no emit)
-npm run lint          # ESLint with auto-fix
-npm run format        # Prettier write on src/
-npm run test:unit     # Vitest unit tests
-npm run test:unit -- path/to/file.spec.ts  # Run a single test file
-npm run api           # Regenerate TypeScript client from openapi.json
+pnpm run dev           # Vite dev server
+pnpm run build         # Production build (runs type-check + build-only in parallel)
+pnpm run type-check    # vue-tsc type check (no emit)
+pnpm run lint          # ESLint with auto-fix
+pnpm run format        # Prettier write on src/
+pnpm run test:unit     # Vitest unit tests
+pnpm run test:unit path/to/file.spec.ts  # Run a single test file
+pnpm run api           # Regenerate TypeScript client from openapi.json
 ```
 
 ### Dev servers and worktrees
@@ -79,7 +79,7 @@ Every checkout — the main one and each git worktree under `.claude/worktrees/<
 - **You own exactly one branch**: the worktree's. Commit and push to it freely. Never push `dev`, `stage` or `main`, never push another branch, never force-push — `scripts/git-push-guard.sh` refuses it in git itself, and the session's deny rules refuse it before that. Landing into `dev` is a human's job, from the main checkout, with `scripts/wt-land.sh`.
 - **The database**: each worktree gets its own throwaway `resslab_hub_<slug>` on `localhost:5433`, cloned at setup from the ~20 MB `resslab_hub_light` template (every main table, dictionary and README; one measurement file per series type), with migrations ON — migrate, upload, or break it freely, and `make db-branch` re-clones it. Check `DB_NAME` in `.env.worktree`: if it still says `postgres`, the light template didn't exist at setup and you are on the **shared 3.4 GB dev dataset** — then never run `alembic upgrade`/`downgrade`, `make database-upgrade` or `make upload-data` (the shared DB runs with `DATABASE_UPGRADE=false`; ask the user to run `make db-template-light` once, then `make db-branch`). `make db-branch-full` clones the full 3.4 GB `resslab_hub_template` when a branch needs real data volumes; `make db-branch-drop` returns to the shared DB.
 - **Tests**: `pytest` reads `POSTGRES_TEST_DB` from `.env.worktree` (a per-worktree throwaway database) so parallel worktrees don't drop each other's test DB — keep it exported.
-- **Network**: read the web freely. Anything that writes outward (`curl -X POST`, `gh pr create`, …) or runs downloaded code (`curl … | sh`, `npx -y …`) prompts the user by design; don't work around a prompt.
+- **Network**: read the web freely. Anything that writes outward (`curl -X POST`, `gh pr create`, …) or runs downloaded code (`curl … | sh`, `pnpm dlx …`) prompts the user by design; don't work around a prompt.
 
 ## Architecture
 
@@ -171,7 +171,7 @@ The data repo has its own GitHub Actions (`.github/workflows/data-validation.yml
 SEM images live on the EPFL enacit4r-cdn in prod. For local dev:
 
 1. Run `cd backend && DRY_RUN=1 make precompute-sem` — converts every TIF under `resslab-hub-data/material/ductile_fracture/sem/<id>/` to WebP and writes dimple JSONs alongside, output goes to `resslab-hub-data/material/ductile_fracture/sem/_webp/` (gitignored).
-2. Create the symlink **once**: `ln -s ../../../resslab-hub-data/material/ductile_fracture/sem/_webp frontend/public/sem`. It's gitignored (it would be a dangling link inside the Docker build context and break the prod build). Vite serves the files at `/sem/<id>/...`. `.env.development` already sets `VITE_SEM_CDN_BASE_URL=/sem`, so `npm run dev` hits the local files. Production builds use `.env.production` → the real CDN.
+2. Create the symlink **once**: `ln -s ../../../resslab-hub-data/material/ductile_fracture/sem/_webp frontend/public/sem`. It's gitignored (it would be a dangling link inside the Docker build context and break the prod build). Vite serves the files at `/sem/<id>/...`. `.env.development` already sets `VITE_SEM_CDN_BASE_URL=/sem`, so `pnpm run dev` hits the local files. Production builds use `.env.production` → the real CDN.
 
 For real CDN uploads, drop `DRY_RUN` and provide `ACCESS_KEY_ID` / `ACCESS_KEY_SECRET` from EPFL ops. The script then sets `has_sem=yes` in `ductile_fracture.csv` for the processed specimens (set-only, never clears) — commit that change to the data repo.
 

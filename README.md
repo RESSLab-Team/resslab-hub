@@ -14,6 +14,7 @@ Prerequisites:
 - [uv](https://docs.astral.sh/uv/) (manages Python automatically)
 - [Make](https://www.gnu.org/software/make/)
 - [Node.js](https://nodejs.org/) ≥ 18 (CI uses the current LTS)
+- [pnpm](https://pnpm.io) 11 (`npm install -g pnpm`), one shared store for every checkout and worktree
 - [Docker](https://www.docker.com/) with the [Compose v2 plugin](https://docs.docker.com/compose/)
 
 ### Secrets

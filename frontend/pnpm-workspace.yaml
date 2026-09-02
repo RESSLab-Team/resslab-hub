@@ -1,0 +1,14 @@
+# Not a workspace: pnpm 10+ reads its settings from this file.
+# Dependency install scripts only run when listed here.
+allowBuilds:
+  esbuild: true # checks the platform binary shipped as an optional dep
+  vue-demi: true # picks the Vue 3 build (used by vue-echarts)
+  vue-echarts: true # same, re-runs vue-demi's switch
+  '@parcel/watcher': false # prebuilt binaries come as optional deps, no build from source
+  '@openapitools/openapi-generator-cli': false # opencollective banner only
+
+# The git hooks and Makefiles go through `pnpm run` / `pnpm exec`. With the
+# default ("install"), pnpm would silently reinstall inside a hook when
+# node_modules looks stale, and prompt for a TTY it does not have. Warn only,
+# like `npx --no-install` did.
+verifyDepsBeforeRun: warn

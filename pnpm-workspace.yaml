@@ -1,0 +1,10 @@
+# Not a workspace: pnpm 10+ reads its settings from this file.
+# Dependency install scripts only run when listed here.
+allowBuilds:
+  lefthook: true # downloads nothing, but its postinstall checks the platform binary
+
+# The git hooks and Makefiles go through `pnpm run` / `pnpm exec`. With the
+# default ("install"), pnpm would silently reinstall inside a hook when
+# node_modules looks stale, and prompt for a TTY it does not have. Warn only,
+# like `npx --no-install` did.
+verifyDepsBeforeRun: warn
