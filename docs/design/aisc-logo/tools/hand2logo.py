@@ -22,6 +22,13 @@ bolts that touch a plate line, which connected components cannot separate.
 The detection is only used to simplify the favicon (a bolt becomes a dot),
 the faithful output draws every stroke as it is in the drawing.
 
+NOTE: the shipping artwork is NOT what this writes any more. Pierre cleaned
+the tool output by hand (the detail callout balloons and the zigzag break
+lines are gone) and ran it through an SVG optimizer, giving
+hand-logo-e2-cleaned-optimized.svg and hand-logo-e2-favicon-cleaned.svg.
+Rerunning this script does not reproduce those, and does not overwrite them
+either (different names). Use it only to redo the pipeline from scratch.
+
 Run from anywhere:
   python3 tools/hand2logo.py [e2] [iso]
 """
@@ -58,13 +65,6 @@ BOLT_MIN_THIN = 6.0   # a bolt is a blob, not a sliver
 BOLT_MIN_INK = 60.0   # total stroke length inside the blob
 BOLT_MIN_DENS = 0.05  # ink per bbox area, a bolt is dense, a corner is not
 ENGULF_LEN = 40.0     # a segment this short fully inside a bolt box is bolt
-
-# crop of the favicon output: the beam-column joint at mid height, the part
-# of the elevation that still reads under 128 px. Box in plot coords, then
-# the strokes are scaled up so the crop keeps the weight of the full view.
-CROP = {"e2": (2230.0, 2140.0, 760.0, 760.0)}
-CROP_STROKE = 14.0
-CROP_HEAVY = 24.0
 
 MAX_GAP = 14.0        # merge parallel lines up to this far apart (centre to centre)
 MIN_PAR_LEN = 50.0    # only merge parallel lines at least this long
@@ -877,20 +877,6 @@ def main(view):
         print("  %s -> %s: %d lines, %d heavy, %d bolt marks"
               % (tag, os.path.basename(out), len(thin), len(heavy),
                  len(marks)))
-
-    # ---- crop: same filled favicon body, boxed on the beam-column joint and
-    # drawn with fatter strokes, for the sizes where the whole elevation is
-    # already a smudge but a glyph would be too plain (128 px and up)
-    if view in CROP:
-        heavy_body = [el.replace('stroke-width="%s"' % fx(HEAVY_STROKE),
-                                 'stroke-width="%s"' % fx(CROP_HEAVY))
-                      for el in body]
-        out = os.path.join(BASE, "hand-logo-%s-crop.svg" % view)
-        write_svg(out, CROP[view],
-                  heavy_body + ['<g id="bolts" fill="currentColor" '
-                                'stroke="none">'] + marks + ["</g>"],
-                  stroke=CROP_STROKE)
-        print("  crop -> %s" % os.path.basename(out))
 
 
 def in_any_bolt(pt, families):

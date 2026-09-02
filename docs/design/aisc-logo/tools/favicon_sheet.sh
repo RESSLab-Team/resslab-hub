@@ -56,8 +56,8 @@ for g in "$OUT"/g*.svg; do
   n=$(basename "$g" .svg)
   add "$g" "$n" "$n"
 done
-[ -e "$BASE/hand-logo-e2-crop.svg" ] && add "$BASE/hand-logo-e2-crop.svg" "crop" "e2 crop"
-[ -e "$BASE/hand-logo-e2-favicon-filled.svg" ] && add "$BASE/hand-logo-e2-favicon-filled.svg" "full" "e2 full view"
+[ -e "$BASE/hand-logo-e2-favicon-cleaned.svg" ] \
+  && add "$BASE/hand-logo-e2-favicon-cleaned.svg" "drawing" "the drawing"
 [ -e "$FRONTEND/public/favicon.svg" ] && add "$FRONTEND/public/favicon.svg" "current" "current (iso)"
 
 # header: the sizes, twice (light then dark)

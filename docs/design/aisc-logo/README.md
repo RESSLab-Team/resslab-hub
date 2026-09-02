@@ -21,9 +21,23 @@ Pipeline, in order:
   joined, close parallel pairs merged, small hardware dropped, every bolt
   replaced by one simple mark: a circle when the symbol is about round, a
   rectangle when it is long). The favicon comes in two styles, outline
-  and filled, to compare. It also writes a crop of the beam-column joint
-  with fatter strokes, for 128 px and up. View e2 only, the 2D one dlignos
-  picked in #263.
+  and filled, to compare. View e2 only, the 2D one dlignos picked in #263.
+**The shipping artwork is downstream of all this.** Pierre cleaned the tool
+output by hand (the detail callout balloons and the zigzag break lines are
+gone, they are drawing notation and not structure) and ran it through an SVG
+optimizer:
+
+- `hand-logo-e2-cleaned-optimized.svg` (218 kB, 6911 lines) is the logo.
+- `hand-logo-e2-favicon-cleaned.svg` (39 kB, 1117 lines) is the same drawing
+  simplified, bolts as single marks. Light enough to inline.
+
+Rerunning `hand2logo.py` does not reproduce those and does not overwrite them
+either, the names differ. The intermediate outputs it does write were deleted
+once the cleaned pair existed.
+
+Even cleaned, the drawing is invisible at 16 and 32 px and only starts to
+work around 90 px. That is why the small mark is a separate hand drawn glyph.
+
 - `tools/favicon_sheet.sh` renders every favicon candidate at 16, 32, 48
   and 64 px on white and on dark, blows the pixels up with a point filter
   and writes `favicon/sheet.png`. This is how the marks are judged: a
