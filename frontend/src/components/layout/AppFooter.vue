@@ -48,20 +48,17 @@ const materials = DATABASES.filter((db) => db.group === 'materials')
       <div>
         <i18n-t keypath="shell.copyright" tag="span" scope="global">
           <template #year>{{ new Date().getFullYear() }}</template>
-          <template #ccby>
+          <template #pddl>
             <a
-              href="https://creativecommons.org/licenses/by/2.0/legalcode"
+              href="https://opendatacommons.org/licenses/pddl/1-0/"
               target="_blank"
               rel="noreferrer"
-              >CC-BY 2.0</a
+              >PDDL 1.0</a
             >
           </template>
-          <template #gpl>
-            <a
-              href="https://github.com/amaelkady/Steel-Columns-Test-Data/blob/main/LICENSE"
-              target="_blank"
-              rel="noreferrer"
-              >GPL</a
+          <template #agpl>
+            <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noreferrer"
+              >AGPL-3.0</a
             >
           </template>
         </i18n-t>
