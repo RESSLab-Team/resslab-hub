@@ -16,7 +16,9 @@ import {
   materialsApi,
   residualsApi
 } from '@/plugins/axios'
+import { slotColor } from '@/utils/categoryColors'
 import type { DatabaseId } from '@/utils/navigation'
+import { blendHex } from '@/utils/palette'
 
 export interface CurveSource {
   /** Specimen column holding the number of points; 0 means "no such curve". */
@@ -138,4 +140,21 @@ export function fetchCurve(database: DatabaseId, kindKey: string, id: string): P
     })
   cache.set(cacheKey, promise)
   return promise
+}
+
+// ── overlay colours ────────────────────────────────────────────────────────
+// Every cohort curve used to be the same grey, so with several of them on a
+// frame a curator could not tell which chip was which line (andskia, #268).
+// Each overlay now takes its own slot of the dashboard palette, muted toward
+// grey: the hues stay Okabe-Ito (colour-blind safe, only lightness moves) and
+// the submitted curve keeps the visual lead in brand red.
+
+/** Grey the overlay hues are mixed toward. */
+const OVERLAY_GREY = '#9E9E9E'
+/** How far toward that grey — enough to sit behind the submission. */
+const OVERLAY_BLEND = 0.45
+
+/** Colour of the nth cohort overlay on a frame. */
+export function ghostColor(index: number): string {
+  return blendHex(slotColor(index), OVERLAY_GREY, OVERLAY_BLEND)
 }

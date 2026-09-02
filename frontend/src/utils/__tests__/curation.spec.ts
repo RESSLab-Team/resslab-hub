@@ -1,5 +1,5 @@
 import type { CurationDetail } from '@/backend'
-import { CURVE_SOURCES } from '@/components/curation/curves'
+import { CURVE_SOURCES, ghostColor } from '@/components/curation/curves'
 import {
   cohortQueryFor,
   GHOST_CONFIGS,
@@ -9,6 +9,7 @@ import {
 } from '@/components/curation/ghost'
 import { cellValue, databaseIdForType, isMissing, toExperimentRows } from '@/utils/curation'
 import type { DatabaseId } from '@/utils/navigation'
+import { colorPalette } from '@/utils/palette'
 import { timeSeriesKindsFor } from '@/utils/timeseries'
 import { describe, expect, it } from 'vitest'
 
@@ -153,5 +154,16 @@ describe('CURVE_SOURCES', () => {
   it('swaps the cyclic-coupon columns so strain is plotted on x', () => {
     const transform = CURVE_SOURCES.cyclic?.stress_strain.transform
     expect(transform?.([[400, 0.002]])).toEqual([[0.002, 400]])
+  })
+})
+
+describe('ghostColor', () => {
+  it('gives every overlay slot its own colour', () => {
+    const colors = [0, 1, 2, 3, 4, 5].map(ghostColor)
+    expect(new Set(colors).size).toBe(colors.length)
+  })
+
+  it('mutes the palette rather than using it raw', () => {
+    expect(ghostColor(0)).not.toBe(colorPalette[0])
   })
 })
