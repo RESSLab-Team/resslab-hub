@@ -25,7 +25,7 @@ make upload-data      # Upload all CSV data to local database (erases existing)
 make sample-data      # Generate synthetic contribution batches into sample-data/
 ```
 
-Also available (see the root `Makefile`): `test-cov`, `benchmark`, `update`, `run` (Docker build + start all services with 7 backend replicas), `upload-data-test` (targets the test deployment via `ENV_FOR_DYNACONF=test`), `backup-dump DEST_FOLDER=path`.
+Also available (see the root `Makefile`): `test-cov`, `benchmark`, `update`, `run` (Docker build + start all services with 7 backend replicas), `backup-dump DEST_FOLDER=path`.
 
 ### Backend (from `backend/`)
 
@@ -49,7 +49,7 @@ Per-component upload targets (`make upload-brace`, `upload-column`, `upload-conn
 
 Backend dev server requires `secrets/.env` with at minimum `POSTGRES_PASSWORD=changeit`. The Makefile sets `DOTENV_PATH_FOR_DYNACONF` automatically. Alembic `upgrade head` runs automatically at backend startup (set `DATABASE_UPGRADE=false` to skip, e.g. when running `make api`).
 
-To upload data to production, first open an SSH tunnel: `ssh -NL 5432:localhost:5432 root@resslab-hub.epfl.ch`, then point `secrets/.env` at the prod credentials and run `make upload-data`.
+The uploader lives in the package (`resslab_hub/data/uploader.py`) and runs as `python -m resslab_hub.data.uploader <type> <files>`, so the backend image can upload too. That is how deployed environments are re-uploaded: each one has a suspended CronJob `resslab-hub-upload-data-<env>` (manifests in `enack8s-app-config`), triggered by hand from the ArgoCD UI with the `create-job` action. It runs the environment's own backend image against a CSV data image built by the data repo, in-cluster, with no tunnel. The backend caches responses for an hour per process, so restart the backend pods if the new data must show immediately. Uploading from a laptop over a port-forward still works as a fallback (see `backend/README.md`).
 
 ### Frontend (from `frontend/`)
 

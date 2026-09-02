@@ -1,4 +1,4 @@
-.PHONY: install hooks dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data upload-data-test backup-dump new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
+.PHONY: install hooks dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data backup-dump new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
 
 install:
 	npm install
@@ -54,9 +54,6 @@ sample-data:
 
 upload-data:
 	$(MAKE) -C backend upload-data
-
-upload-data-test:
-	$(MAKE) -C backend upload-data-test
 
 backup-dump:
 	@docker compose exec database sh -c 'pg_dumpall -U postgres' > ${DEST_FOLDER}/all-databases.sql
