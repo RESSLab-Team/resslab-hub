@@ -102,6 +102,19 @@ glyph, which is what `favicon_build.sh` takes a second argument for.
 - `tools/favicon_build.sh <glyph>` writes `favicon/build/` from the chosen
   glyph: favicon.svg, favicon.ico (16 + 32 + 48) and apple-touch-icon.png.
 
+- `tools/cis2dump.py` parses the CIS/2 STEP model that ships in the plans
+  package (`Model - CIS2/AISC Sculpture.stp`) and prints every member with
+  its section, length and global end points, the plates, the bolt groups
+  and the welds. That model, not the plots, is the machine readable
+  source for what the sculpture is made of.
+- `tools/sculpture_draw.py` draws an elevation (west, east, north or
+  south) from `reference/sculpture.yaml`, the structure written out as
+  data: 39 members with end points in inches, connections, bolt counts.
+  `--drop 12C1,12D1` leaves members out, which is how "the sculpture
+  without the pipe post and the rod" gets drawn. `reference/SCULPTURE.md`
+  explains the frame, the two AISC versions and the editing rules. Both
+  reference files are AISC derived and stay ignored.
+
 The glyphs in `favicon/` are drawn on the same 24 unit grid and in the same
 red as the current `frontend/public/favicon.svg`, with the members taken off
 the E2 elevation. Eight candidates, from plain to dense: `g1-silhouette`,
