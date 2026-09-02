@@ -66,10 +66,10 @@ ratio, and they belong in different groups.
 | Specimen dimensions | 5 | `l_c`, `l_sc`, `l_bc`, `t_top_plate`, `t_bottom_plate` |
 | Material properties | 13 | `steel_c`, `r_y`, `r_t`, `f_ymf`, `f_ymw`, `f_umf`, `f_umw`, `f_yn`, `f_un`, `e_nc`, `e_mc`, `g_nc`, `g_mc` |
 | Loading details | 14 | `boundary_condition`, `lateral_lp`, `direction_lp`, `axis_of_bending`, `axial_lp`, `p_g`, `p_g_over_p_ym`, `p_g_over_p_yn`, `p_t_over_p_ym`, `p_c_over_p_ym`, `p_c_over_p_yn`, `p`, `test_procedure`, `cfe` |
-| Axial resistance | 5 | `p_ym`, `p_yn`, `p_ye`, `p_t`, `p_c`|
+| Axial resistance | 5 | `p_ym`, `p_yn`, `p_ye`, `p_t`, `p_c` |
 | Measured response | 17 | `k_test`, `k_flexure_th`, `k_shear_th`, `k_theory`, `th_y`, `th_lb`, `th_80`, `th_50`, `th_20`, `th_1l`, `th_2l`, `th_3l`, `th_4l`, `th_6l`, `d_80`, `d_50`, `d_20` |
 
-## Steel braces, 71 columns in 9 groups
+## Steel braces, 71 columns in 10 groups
 
 | Group | n | Columns |
 |---|---:|---|
@@ -133,7 +133,7 @@ ratio, and they belong in different groups.
 | Material properties | 12 | `steel_grade`, `fy_n__mpa_`, `fu_n__mpa_`, `t_a__deg_c_`, `yield_stress_02__mpa_`, `yield_strain_02`, `bin_discont_yield`, `yield_stress_uyp__mpa_`, `yield_stress_lyp__mpa_`, `yield_point_elongation`, `tensile_strength__mpa_`, `elastic_modulus__mpa_` |
 | Geometric properties | 6 | `avg_init_reduced_width__mm_`, `avg_init_reduced_thickness__mm_`, `avg_init_marked_gauge_length__mm_`, `eff_fractured_width__mm_`, `eff_fractured_thickness__mm_`, `avg_fractured_marked_gauge_length__mm_` |
 | Test equipment details | 10 | `machine`, `pid_force_p`, `pid_force_i`, `pid_force_d`, `pid_disp_p`, `pid_disp_i`, `pid_disp_d`, `pid_ext_p`, `pid_ext_i`, `pid_ext_d` |
-| Elongation and reduction of area | 4 |  `uniform_elongation`, `elongation_at_fracture`, `elongation_after_fracture`, `reduction_of_area` |
+| Elongation and reduction of area | 4 | `uniform_elongation`, `elongation_at_fracture`, `elongation_after_fracture`, `reduction_of_area` |
 | Chemical composition | 20 | `c`, `si`, `mn`, `p`, `s`, `n`, `cu`, `mo`, `ni`, `cr`, `v`, `nb`, `ti`, `al`, `b`, `zr`, `sn`, `ca`, `h`, `fe` |
 
 ## Ductile fracture, 78 columns in 8 groups
