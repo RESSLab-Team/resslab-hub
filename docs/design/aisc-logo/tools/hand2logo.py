@@ -4,20 +4,23 @@ Input: docs/design/aisc-logo/hand-editted-e2.svg / hand-editted-iso.svg
 (Inkscape files, one fill group of thin filled quads, original plot coords).
 They are read only, never written.
 
-Three outputs per view:
-- hand-logo-<v>.svg         faithful: every quad collapsed to a centerline
-                            stroke, hardware drawn with a fine stroke.
-- hand-logo-<v>-simple.svg  same, plus collinear fragments joined, close
-                            parallel pairs merged, and every bolt replaced by
-                            one shared simplified glyph.
-- hand-logo-<v>-red.svg     the simple one with the bolts in EPFL red.
+Outputs per view:
+- hand-logo-<v>.svg          faithful: every quad collapsed to a centerline
+                             stroke, hardware drawn with a fine stroke. This
+                             is the full logo, it keeps all the detail.
+- hand-logo-<v>-favicon.svg  for small sizes: collinear fragments joined,
+  and -favicon-filled.svg    close parallel pairs merged, small hardware
+                             dropped, and every bolt replaced by one simple
+                             mark (a circle when the symbol is about round,
+                             a rectangle when it is long), outline or
+                             filled.
 
 Bolts are found by ink density: a bolt is a lot of short strokes packed in
 a small area, so the short segments are clustered by midpoint proximity and
 the clusters that are small, thick and dense are bolts. This also catches
 bolts that touch a plate line, which connected components cannot separate.
-Identical bolts are then grouped into families, each family is drawn once
-in <defs> and stamped with <use>, so all bolts can be restyled at once.
+The detection is only used to simplify the favicon (a bolt becomes a dot),
+the faithful output draws every stroke as it is in the drawing.
 
 Run from anywhere:
   python3 tools/hand2logo.py [e2] [iso]
@@ -39,7 +42,8 @@ VIEWS = {
 STROKE = 5.0          # base line width, the plotter pen quads are 5 units wide
 BOLT_STROKE = 2.0     # fine stroke for bolts, nuts and the other small hardware
 HEAVY_STROKE = 8.0    # width of a merged pair of close parallel lines
-RED = "#e30713"       # EPFL red, for the two colour version
+DOT_MIN_R = 5.0       # a favicon bolt mark is never smaller than this
+DOT_RECT_ASPECT = 1.5  # longer than this and the bolt mark is a rectangle
 
 FINE_MAX = 42.0       # an ink blob smaller than this is hardware, not structure
 FINE_MIN_SEGS = 3     # a lone short segment is a dash, not hardware
@@ -165,30 +169,6 @@ def split_rings(rings):
         else:
             fills.append(r)
     return segs, fills
-
-
-def fit_circle(points):
-    """Kasa least-squares circle fit -> (cx, cy, r, max_residual)."""
-    n = len(points)
-    mx = sum(p[0] for p in points) / n
-    my = sum(p[1] for p in points) / n
-    suu = svv = suv = suuu = svvv = suvv = svuu = 0.0
-    for x, y in points:
-        u, v = x - mx, y - my
-        suu += u * u; svv += v * v; suv += u * v
-        suuu += u ** 3; svvv += v ** 3
-        suvv += u * v * v; svuu += v * u * u
-    det = suu * svv - suv * suv
-    if abs(det) < 1e-9:
-        return None
-    b1 = 0.5 * (suuu + suvv)
-    b2 = 0.5 * (svvv + svuu)
-    uc = (svv * b1 - suv * b2) / det
-    vc = (suu * b2 - suv * b1) / det
-    cx, cy = uc + mx, vc + my
-    r = math.sqrt(uc * uc + vc * vc + (suu + svv) / n)
-    worst = max(abs(dist((cx, cy), p) - r) for p in points)
-    return cx, cy, r, worst
 
 
 # ------------------------------------------------------- graph reconstruction
@@ -546,122 +526,6 @@ def find_bolts(segs, marked=None):
     return [g[1] for g in groups]
 
 
-def pull_dashed_circle(lines):
-    """A ring of separate dashes all at the same radius is a dashed circle.
-
-    Returns (element, remaining lines) or (None, lines)."""
-    if len(lines) < 6:
-        return None, lines
-    pts = [p for ln in lines for p in ln]
-    cx = sum(p[0] for p in pts) / len(pts)
-    cy = sum(p[1] for p in pts) / len(pts)
-    mids = [(((p[0] + q[0]) / 2), ((p[1] + q[1]) / 2)) for p, q in lines]
-    radii = sorted(dist((cx, cy), m) for m in mids)
-    best = None
-    for r0 in radii:
-        keep = [k for k, m in enumerate(mids)
-                if abs(dist((cx, cy), m) - r0) <= 1.5]
-        if best is None or len(keep) > len(best[1]):
-            best = (r0, keep)
-    r0, keep = best
-    if len(keep) < 6:
-        return None, lines
-    fit = fit_circle([p for k in keep for p in lines[k]])
-    if fit is None or fit[3] > 1.6 or fit[2] < 2:
-        return None, lines
-    cx, cy, r, _ = fit
-    angs = sorted(math.atan2(m[1] - cy, m[0] - cx) for m in
-                  (mids[k] for k in keep))
-    gaps = [(angs[(i + 1) % len(angs)] - angs[i]) % (2 * math.pi)
-            for i in range(len(angs))]
-    if max(gaps) > math.radians(70):
-        return None, lines  # only part of a ring, leave it alone
-    ink = sum(dist(*lines[k]) for k in keep)
-    dash = ink / len(keep)
-    gap = max(0.4, (2 * math.pi * r - ink) / len(keep))
-    el = ('<circle cx="%s" cy="%s" r="%s" stroke-dasharray="%s %s"/>'
-          % (fx(cx), fx(cy), fx(r), fx(dash), fx(gap)))
-    rest = [ln for k, ln in enumerate(lines) if k not in set(keep)]
-    return el, rest
-
-
-def pull_hatched_ring(lines):
-    """The plotter shades a washer by hatching the ring between two radii
-    with radial spokes. That whole mess is one thick circle.
-
-    Returns (element, remaining lines) or (None, lines)."""
-    if len(lines) < 10:
-        return None, lines
-    pts = [p for ln in lines for p in ln]
-    cx = sum(p[0] for p in pts) / len(pts)
-    cy = sum(p[1] for p in pts) / len(pts)
-    c = (cx, cy)
-    spokes = []
-    for p, q in lines:
-        rp, rq = dist(c, p), dist(c, q)
-        if abs(rp - rq) < 3:
-            continue
-        ap = math.atan2(p[1] - cy, p[0] - cx)
-        aq = math.atan2(q[1] - cy, q[0] - cx)
-        da = abs((ap - aq + math.pi) % (2 * math.pi) - math.pi)
-        if da < math.radians(10):
-            spokes.append((min(rp, rq), max(rp, rq), (ap + aq) / 2))
-    if len(spokes) < 8:
-        return None, lines
-    inner = sorted(s[0] for s in spokes)[len(spokes) // 2]
-    outer = sorted(s[1] for s in spokes)[len(spokes) // 2]
-    if outer - inner < 2 or outer < 4:
-        return None, lines
-    angs = sorted(s[2] for s in spokes)
-    gaps = [(angs[(i + 1) % len(angs)] - angs[i]) % (2 * math.pi)
-            for i in range(len(angs))]
-    if max(gaps) > math.radians(60):
-        return None, lines
-    el = ('<circle cx="%s" cy="%s" r="%s" stroke-width="%s"/>'
-          % (fx(cx), fx(cy), fx((inner + outer) / 2), fx(outer - inner)))
-    rest = [ln for ln in lines
-            if not all(inner - 2 <= dist(c, p) <= outer + 2 for p in ln)]
-    return el, rest
-
-
-def simplify_glyph(segs, members):
-    """One bolt symbol, moved to the origin and tidied up.
-
-    Closed rings that are round become a circle, rings of dashes become one
-    dashed circle, everything else keeps its line work with collinear runs
-    merged."""
-    x0, y0, _, _ = bbox([p for i in members for p in segs[i]])
-    local = [((p[0] - x0, p[1] - y0), (q[0] - x0, q[1] - y0))
-             for i, (p, q) in ((i, segs[i]) for i in members)]
-    els = []
-    ring, local = pull_hatched_ring(local)
-    if ring:
-        els.append(ring)
-    dashes, joined = [], []
-    for ch in build_chains(local):
-        closed = len(ch) > 3 and dist(ch[0], ch[-1]) < 0.01
-        if closed and len(ch) >= 7:
-            fit = fit_circle(ch[:-1])
-            if fit and fit[3] <= 1.2:
-                els.append('<circle cx="%s" cy="%s" r="%s"/>'
-                           % (fx(fit[0]), fx(fit[1]), fx(fit[2])))
-                continue
-        pts = dp(ch, 0.6) if len(ch) > 2 else ch
-        # a lone segment is a dash of a dashed circle, a polyline is an
-        # outline (a hexagonal nut, say) and has to keep its corners
-        target = dashes if len(pts) == 2 else joined
-        for k in range(len(pts) - 1):
-            target.append((pts[k], pts[k + 1]))
-    for _ in range(2):  # a bolt hole can carry two concentric dashed rings
-        el, dashes = pull_dashed_circle(dashes)
-        if el is None:
-            break
-        els.append(el)
-    for p, q in coalesce_collinear(joined + dashes):
-        els.append('<path d="%s"/>' % path_line([p, q]))
-    return els
-
-
 # ------------------------------------------------------------ simplification
 
 def dp(points, eps):
@@ -855,15 +719,10 @@ def path_line(pts):
     return d
 
 
-def write_svg(path, vb, body, defs=None):
+def write_svg(path, vb, body):
     x0, y0, w, h = vb
     out = ['<svg xmlns="http://www.w3.org/2000/svg" '
-           'xmlns:xlink="http://www.w3.org/1999/xlink" '
            'viewBox="%s %s %s %s">' % (fx(x0), fx(y0), fx(w), fx(h))]
-    if defs:
-        out.append("<defs>")
-        out.extend(defs)
-        out.append("</defs>")
     out.append('<g fill="none" stroke="currentColor" stroke-width="%s" '
                'stroke-linecap="round" stroke-linejoin="round">' % fx(STROKE))
     out.extend(body)
@@ -961,26 +820,18 @@ def main(view):
     print("  faithful -> %s (%d lines, %d fine)"
           % (os.path.basename(out), len(healed), len(fine_els)))
 
-    # ---- simplified: bolts stamped from one glyph per family
-    defs, stamps = [], []
-    for n, fam in enumerate(families):
-        ref = sorted(fam, key=lambda m: m[1][3])[len(fam) // 2]
-        glyph = simplify_glyph(healed, ref[0])
-        defs.append('<g id="bolt-%s-%d">%s</g>' % (view, n, "".join(glyph)))
-        for members, f in fam:
-            x0, y0 = f[4][0], f[4][1]
-            stamps.append('<use xlink:href="#bolt-%s-%d" x="%s" y="%s"/>'
-                          % (view, n, fx(x0), fx(y0)))
-
-    lines, fine_lines = [], []
+    # ---- favicon: simplified lines, small hardware dropped, bolts as dots
+    lines = []
     for ch in build_chains([s for i, s in enumerate(healed)
                             if i not in bolt_segs]):
         pts = dp(ch, DP_EPS) if len(ch) > 2 else ch
         for k in range(len(pts) - 1):
             seg = (pts[k], pts[k + 1])
-            (fine_lines if fine.covers(seg) else lines).append(seg)
+            # the fine hardware (weld marks, small clips) is invisible at
+            # favicon size, it only muddies the drawing: drop it
+            if not fine.covers(seg):
+                lines.append(seg)
     thin, heavy = merge_parallel(coalesce_collinear(lines))
-    fine_lines = coalesce_collinear(fine_lines)
 
     body = []
     for p, q in thin:
@@ -988,40 +839,37 @@ def main(view):
     for p, q in heavy:
         body.append('<path stroke-width="%s" d="%s"/>'
                     % (fx(HEAVY_STROKE), path_line([p, q])))
-    if fine_lines:
-        body.append('<g stroke-width="%s">' % fx(BOLT_STROKE))
-        for p, q in fine_lines:
-            body.append('<path d="%s"/>' % path_line([p, q]))
-        body.append("</g>")
-    bolt_fills, other_fills = [], []
     for f in fills:
         x0, y0, x1, y1 = bbox(f)
         c = ((x0 + x1) / 2, (y0 + y1) / 2)
-        (bolt_fills if in_any_bolt(c, families) else other_fills).append(f)
-    for f in other_fills:
-        body.append('<path fill="currentColor" stroke="none" d="%sZ"/>'
-                    % path_line(f))
+        if not in_any_bolt(c, families):
+            body.append('<path fill="currentColor" stroke="none" d="%sZ"/>'
+                        % path_line(f))
 
-    def bolt_group(colour):
-        g = ['<g id="bolts" stroke-width="%s"%s>'
-             % (fx(BOLT_STROKE),
-                ' stroke="%s" color="%s"' % (colour, colour) if colour else "")]
-        g.extend(stamps)
-        for f in bolt_fills:
-            g.append('<path fill="%s" stroke="none" d="%sZ"/>'
-                     % (colour or "currentColor", path_line(f)))
-        g.append("</g>")
-        return g
+    # every bolt becomes one simple mark, sized from the symbol itself: a
+    # circle when the symbol is about round (a face on head), a rectangle
+    # when it is long (a side view bolt through a plate)
+    marks = []
+    for fam in families:
+        for _, f in fam:
+            x0, y0, x1, y1 = f[4]
+            w, h = x1 - x0, y1 - y0
+            if max(w, h) > DOT_RECT_ASPECT * min(w, h):
+                marks.append('<rect x="%s" y="%s" width="%s" height="%s"/>'
+                             % (fx(x0), fx(y0), fx(w), fx(h)))
+            else:
+                r = max(DOT_MIN_R, min(w, h) / 2)
+                marks.append('<circle cx="%s" cy="%s" r="%s"/>'
+                             % (fx((x0 + x1) / 2), fx((y0 + y1) / 2), fx(r)))
 
-    out = os.path.join(BASE, "hand-logo-%s-simple.svg" % view)
-    write_svg(out, vb_out, body + bolt_group(None), defs)
-    print("  simple   -> %s: %d lines, %d fine, %d heavy, %d bolts, %d fills"
-          % (os.path.basename(out), len(thin), len(fine_lines), len(heavy),
-             len(stamps), len(other_fills)))
-
-    out = os.path.join(BASE, "hand-logo-%s-red.svg" % view)
-    write_svg(out, vb_out, body + bolt_group(RED), defs)
-    print("  two tone -> %s (bolts in %s)" % (os.path.basename(out), RED))
+    for tag, style in (("favicon", 'fill="none"'),
+                       ("favicon-filled", 'fill="currentColor" stroke="none"')):
+        out = os.path.join(BASE, "hand-logo-%s-%s.svg" % (view, tag))
+        write_svg(out, vb_out,
+                  body + ['<g id="bolts" %s>' % style] + marks + ["</g>"])
+        print("  %s -> %s: %d lines, %d heavy, %d bolt marks"
+              % (tag, os.path.basename(out), len(thin), len(heavy),
+                 len(marks)))
 
 
 def in_any_bolt(pt, families):
@@ -1069,5 +917,7 @@ class FineIndex(object):
 
 
 if __name__ == "__main__":
-    for v in (sys.argv[1:] or ["e2", "iso"]):
+    # dlignos picked the 2D view in #263, so e2 is the default; the iso
+    # input is still there, pass "iso" to rebuild it
+    for v in (sys.argv[1:] or ["e2"]):
         main(v)

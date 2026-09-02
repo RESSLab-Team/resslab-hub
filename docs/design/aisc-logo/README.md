@@ -14,16 +14,19 @@ Pipeline, in order:
   callouts dropped, bolts as solid dots.
 - `tools/cad2full.py` builds full plates (everything except text) as
   layered Inkscape files, for manual cleaning.
-- `tools/hand2logo.py` reads the hand-trimmed drawings and builds three
-  logo candidates per view: faithful (centerline strokes, width 5,
-  hardware at width 2), simplified (collinear fragments joined, close
-  parallel pairs merged, bolts replaced by shared `<defs>` glyphs stamped
-  with `<use>`), and two tone (same, bolts in EPFL red #e30713).
+- `tools/hand2logo.py` reads the hand-trimmed drawings and builds the
+  outputs: faithful (centerline strokes, width 5, hardware at width 2,
+  all the detail kept, this is the logo) and favicon (collinear fragments
+  joined, close parallel pairs merged, small hardware dropped, every bolt
+  replaced by one simple mark: a circle when the symbol is about round, a
+  rectangle when it is long). The favicon comes in two styles, outline
+  and filled, to compare. Default view is e2, the 2D one dlignos picked
+  in #263 (pass `iso` to rebuild the isometric).
 
 Bolt detection in `hand2logo.py` works by ink density: a bolt is a lot of
 short strokes packed in a small area, so short segments are clustered by
-midpoint proximity and the small, thick, dense blobs are bolts. Identical
-bolts share one glyph and the whole `<g id="bolts">` recolours in one
-edit. A bolt the detector misses can be marked by hand: colour its strokes
-(any non black stroke) in a copy of the faithful output named
-`hand-marks-<view>.svg` and rerun the tool.
+midpoint proximity and the small, thick, dense blobs are bolts. The
+detection is only used for the favicon (a bolt becomes a dot), the
+faithful output keeps every stroke. A bolt the detector misses can be
+marked by hand: colour its strokes (any non black stroke) in a copy of
+the faithful output named `hand-marks-<view>.svg` and rerun the tool.
