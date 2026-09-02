@@ -1,12 +1,12 @@
 .PHONY: install hooks dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data upload-data-test backup-dump new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
 
 install:
-	npm install
+	pnpm install
 	$(MAKE) -C backend install
 	$(MAKE) -C frontend install
 
 hooks:
-	npx lefthook install
+	pnpm exec lefthook install
 
 # tmux session "resslab-hub/<branch>" with backend, frontend, claude and shell
 # windows; starts the database if needed. Works in the main checkout and in

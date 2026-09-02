@@ -20,7 +20,7 @@ skip_output:
 commit-msg:
   commands:
     commitlint:
-      run: npx --no-install commitlint --edit {1}
+      run: pnpm exec commitlint --edit {1}
 
 pre-commit:
   parallel: true
@@ -29,13 +29,13 @@ pre-commit:
       glob: "frontend/**/*.{js,jsx,cjs,mjs,ts,tsx,cts,mts,vue}"
       root: "frontend/"
       # NB: --no-warn-ignored is ESLint v9+; the repo is on ESLint 8
-      run: npx --no-install eslint --fix {staged_files}
+      run: pnpm exec eslint --fix {staged_files}
       stage_fixed: true
 
     - name: frontend-prettier
       glob: "frontend/**/*.{js,jsx,cjs,mjs,ts,tsx,cts,mts,vue,css,scss,html,json,md,yml,yaml}"
       root: "frontend/"
-      run: npx --no-install prettier --write --ignore-unknown {staged_files}
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
 
     - name: backend-pre-commit
@@ -56,7 +56,7 @@ pre-push:
 
     - name: frontend-type-check
       root: "frontend/"
-      run: npm run type-check
+      run: pnpm run type-check
 
     - name: backend-pre-commit-all
       root: "backend/"

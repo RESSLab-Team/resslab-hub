@@ -1,20 +1,20 @@
 .PHONY: install dev test test-coverage lint api
 
 install:
-	npm install
+	pnpm install
 
 dev:
-	npm run dev
+	pnpm run dev
 
 test:
-	npm run test:unit -- run
+	pnpm run test:unit run
 
 # Coverage: terminal summary + browsable HTML report in frontend/coverage/index.html
 test-coverage:
-	npm run test:coverage
+	pnpm run test:coverage
 
 lint:
-	npm run lint
+	pnpm run lint
 
 api:
-	npm run api
+	pnpm run api
