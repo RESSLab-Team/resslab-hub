@@ -7,7 +7,9 @@
  * `cohortCandidates` are the categorical columns a curator can switch on to
  * define "similar experiments" (the mockup's comparison-cohort chips), ordered
  * from the strongest comparability signal down; `cohortDefaults` is the subset
- * pre-selected on load.
+ * pre-selected on load. A candidate may be a column the database derives
+ * (`material.type`): the review view adds those to the submitted cells with
+ * `withDerivedExperiments` (utils/curation) before anything reads them.
  */
 
 import {

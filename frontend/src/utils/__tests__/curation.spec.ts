@@ -7,7 +7,14 @@ import {
   mergeBrush,
   requestFieldsFor
 } from '@/components/curation/ghost'
-import { cellValue, databaseIdForType, isMissing, toExperimentRows } from '@/utils/curation'
+import {
+  cellValue,
+  databaseIdForType,
+  isMissing,
+  toExperimentRows,
+  withDerivedCells,
+  withDerivedExperiments
+} from '@/utils/curation'
 import type { DatabaseId } from '@/utils/navigation'
 import { timeSeriesKindsFor } from '@/utils/timeseries'
 import { describe, expect, it } from 'vitest'
@@ -50,6 +57,52 @@ describe('cell helpers', () => {
     expect(isMissing('NR')).toBe(true)
     expect(isMissing('')).toBe(true)
     expect(isMissing('400')).toBe(false)
+  })
+})
+
+describe('withDerivedCells', () => {
+  it('derives the material type from grade and spec, like the database column', () => {
+    const cells = withDerivedCells('cyclic', { grade: 'S355', spec: 'J2+AR' })
+    expect(cells.type).toBe('S355-J2+AR')
+    expect(withDerivedCells('cyclic', { grade: ' S355 ', spec: 'J2+AR ' }).type).toBe('S355-J2+AR')
+  })
+
+  it('keeps the type missing when grade or spec is, never "S355-" or "-J2+AR"', () => {
+    expect(isMissing(withDerivedCells('cyclic', { grade: 'S355', spec: '' }).type)).toBe(true)
+    expect(isMissing(withDerivedCells('cyclic', { grade: 'NR', spec: 'J2+AR' }).type)).toBe(true)
+    expect(isMissing(withDerivedCells('cyclic', { grade: 'S355' }).type)).toBe(true)
+  })
+
+  it('keeps a type the CSV already carries', () => {
+    const cells = withDerivedCells('cyclic', { grade: 'S355', spec: 'J2+AR', type: 'custom' })
+    expect(cells.type).toBe('custom')
+  })
+
+  it('derives h/b for residual stresses only when both are numbers and b is not 0', () => {
+    expect(withDerivedCells('residuals', { h: '300', b: '150' }).h_over_b).toBe('2')
+    expect(withDerivedCells('residuals', { h: '300', b: '0' }).h_over_b).toBeUndefined()
+    expect(withDerivedCells('residuals', { h: 'NR', b: '150' }).h_over_b).toBeUndefined()
+  })
+
+  it('leaves the cells of a database without derived columns untouched', () => {
+    const cells = { steel: 'S355' }
+    expect(withDerivedCells('braces', cells)).toBe(cells)
+    expect(withDerivedCells(null, cells)).toBe(cells)
+  })
+
+  it('copies the detail with derived cells on every experiment', () => {
+    const detail = {
+      type: 'all-material',
+      experiments: [
+        { id: 'C1', cells: { id: 'C1', grade: 'S355', spec: 'J2+AR' } },
+        { id: 'C2', cells: { id: 'C2', grade: 'S355', spec: 'NR' } }
+      ]
+    } as unknown as CurationDetail
+    const derived = withDerivedExperiments(detail)
+    expect(derived).not.toBe(detail)
+    expect(derived.experiments[0].cells.type).toBe('S355-J2+AR')
+    expect(derived.experiments[1].cells.type).toBeUndefined()
+    expect(detail.experiments[0].cells.type).toBeUndefined()
   })
 })
 

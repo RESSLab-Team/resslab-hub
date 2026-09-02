@@ -4,7 +4,12 @@
  * report and time-series machinery are reused unchanged.
  */
 
-import type { CurationDetail, CurationFile } from '@/backend'
+import {
+  MaterialField,
+  ResidualStressField,
+  type CurationDetail,
+  type CurationFile
+} from '@/backend'
 import type { ExperimentRow } from '@/stores/contribution'
 import { CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { DatabaseId } from '@/utils/navigation'
@@ -67,4 +72,64 @@ export function cellValue(raw: string | undefined): string | number | null {
 export function isMissing(raw: string | undefined): boolean {
   const value = (raw ?? '').trim()
   return value === '' || value === 'NR'
+}
+
+type Derivation = (cells: Record<string, string>) => string | undefined
+
+/**
+ * Columns the database derives from others (`column_property` in the ORM
+ * models). A submitted CSV never carries them, so compute them here the same
+ * way: the cohort chips and the ghost chart read them like any other cell, and
+ * the value has the same format as the stored rows, so the cohort query finds
+ * them. A derivation with a missing input stays missing, like the SQL
+ * expression with a NULL.
+ */
+const DERIVED_CELLS: Partial<Record<DatabaseId, Record<string, Derivation>>> = {
+  cyclic: {
+    // material.type = grade || '-' || spec
+    [MaterialField.Type]: (cells) => {
+      const grade = cells[MaterialField.Grade]
+      const spec = cells[MaterialField.Spec]
+      if (isMissing(grade) || isMissing(spec)) return undefined
+      return `${grade.trim()}-${spec.trim()}`
+    }
+  },
+  residuals: {
+    // residual_stress.h_over_b = h / b
+    [ResidualStressField.HOverB]: (cells) => {
+      const h = cellValue(cells[ResidualStressField.H])
+      const b = cellValue(cells[ResidualStressField.B])
+      if (typeof h !== 'number' || typeof b !== 'number' || b === 0) return undefined
+      return String(h / b)
+    }
+  }
+}
+
+/** The cells plus the derived columns of that database (a value the CSV already carries is kept). */
+export function withDerivedCells(
+  database: DatabaseId | null,
+  cells: Record<string, string>
+): Record<string, string> {
+  const derivations = database ? DERIVED_CELLS[database] : undefined
+  if (!derivations) return cells
+  const derived = { ...cells }
+  for (const [column, derive] of Object.entries(derivations)) {
+    if (!isMissing(derived[column])) continue
+    const value = derive(cells)
+    if (value !== undefined) derived[column] = value
+  }
+  return derived
+}
+
+/** A copy of the detail whose experiment cells carry the derived columns. */
+export function withDerivedExperiments(detail: CurationDetail): CurationDetail {
+  const database = databaseIdForType(detail.type)
+  if (!database || !DERIVED_CELLS[database]) return detail
+  return {
+    ...detail,
+    experiments: detail.experiments.map((experiment) => ({
+      ...experiment,
+      cells: withDerivedCells(database, experiment.cells)
+    }))
+  }
 }
