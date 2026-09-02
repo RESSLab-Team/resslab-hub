@@ -35,11 +35,21 @@ The whole elevation is grey mush at 16 and 32 px, and so is a crop of it,
 so the small mark cannot be a reduction of the drawing. It is drawn by hand
 in `favicon/g*.svg`, on the same 24 unit grid and in the same red as the
 current `frontend/public/favicon.svg`, with the members taken off the E2
-elevation. Four candidates: `g1-silhouette` (the full composition),
-`g2-joint` (column, two beam flanges, bolted splice), `g3-cross` (column,
-girder, truss diagonal and brace) and `g4-frame` (column, two beams, one
-brace). Those SVGs are original work, so unlike everything else here they
-are committed.
+elevation. Six candidates, from plain to dense: `g1-silhouette`,
+`g2-joint`, `g3-cross`, `g4-frame` (5 to 6 strokes each), then
+`g5-detail` (11 strokes) and `g6-detail-max` (17), which keep the real
+member set: the triangulated truss top left with its post and two web
+diagonals, the floor beam through the column, the deep girder with its
+web splice plates and bolts, the knee brace under the top beam, the brace
+into the column base, the base plate. The dense pair uses finer strokes
+(1.6 down to 0.65) the way the current iso favicon does, since detail at
+32 px and up needs many light lines, not few heavy ones. Those SVGs are
+original work, so unlike everything else here they are committed.
+
+Two traps the sheet caught: lines closer than about 6 grid units smear
+into one band at 16 px, and shapes that close up read as letters (an
+early dense draft read as "BF" until the truss got its real bottom chord
+and diagonals, and two bolt squares side by side read as a face).
 
 Bolt detection in `hand2logo.py` works by ink density: a bolt is a lot of
 short strokes packed in a small area, so short segments are clustered by
