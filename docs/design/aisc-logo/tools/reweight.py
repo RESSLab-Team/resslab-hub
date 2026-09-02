@@ -9,7 +9,11 @@ leaves everything else alone, so bolts, weld marks, small clips and short
 plate edges keep their weight.
 
   python3 tools/reweight.py <in.svg> <out.svg> [--heavy 11] [--min-len 150]
-                            [--only-heavy]
+                            [--only-heavy] [--from-width 5]
+
+--from-width is the layer to promote. The cleaned E2 drawing is 5, but the
+plates that cad2logo writes are 7, and the isometric lives in a coordinate
+space about 2.9x bigger than E2, so its lengths and widths scale with it.
 
 --only-heavy throws away everything that was NOT promoted, so what is left
 is the skeleton of the main members. That is the small sizes version: at
@@ -33,7 +37,7 @@ import xml.etree.ElementTree as ET
 SVG = "http://www.w3.org/2000/svg"
 TOK = re.compile(r"([MmHhVvLlZz])|(-?\d*\.?\d+(?:[eE]-?\d+)?)")
 JOIN_TOL = 1.5
-TARGET = 5.0          # the layer we reweight, everything else is left alone
+TARGET = 5.0          # default layer to reweight, see --from-width
 
 
 def parse_d(d):
@@ -92,7 +96,7 @@ def ends(rings):
     return [p for r in rings if len(r) >= 2 for p in (r[0], r[-1])]
 
 
-def collect(node, width, stroke, out):
+def collect(node, width, stroke, out, target=TARGET):
     """Walk the tree carrying the inherited stroke width and colour."""
     for el in node:
         w = el.get("stroke-width")
@@ -101,10 +105,38 @@ def collect(node, width, stroke, out):
         if el.tag == "{%s}path" % SVG:
             # only the plain stroked lines of the target layer are candidates
             if s != "none" and el.get("fill", "none") == "none" \
-                    and abs(w - TARGET) < 1e-6:
+                    and abs(w - target) < 1e-6:
                 out.append(el)
         else:
-            collect(el, w, s, out)
+            collect(el, w, s, out, target)
+
+
+def split_subpaths(node):
+    """One path per M subpath.
+
+    cad2logo writes a whole plate as a single path with thousands of M
+    segments in it. Nothing can be weighed per line until they are split,
+    so do it in place before collecting. Files that are already one path
+    per line (the cleaned drawing) come through untouched."""
+    n = 0
+    for parent in node.iter():
+        for i, el in reversed(list(enumerate(parent))):
+            if el.tag != "{%s}path" % SVG:
+                continue
+            d = el.get("d") or ""
+            parts = [s for s in re.split(r"(?=[Mm])", d) if s.strip()]
+            if len(parts) < 2:
+                continue
+            parent.remove(el)
+            for part in reversed(parts):
+                new = ET.Element("{%s}path" % SVG)
+                for k, v in el.attrib.items():
+                    if k != "d":
+                        new.set(k, v)
+                new.set("d", part.strip())
+                parent.insert(i, new)
+            n += len(parts) - 1
+    return n
 
 
 def prune(node, keep):
@@ -119,15 +151,19 @@ def prune(node, keep):
                 node.remove(el)
 
 
-def main(src, dst, heavy, min_len, only_heavy=False):
+def main(src, dst, heavy, min_len, only_heavy=False, target=TARGET):
     ET.register_namespace("", SVG)
     tree = ET.parse(src)
+    added = split_subpaths(tree.getroot())
+    if added:
+        print("  split %d subpaths into their own <path>" % added)
     cand = []
-    collect(tree.getroot(), TARGET, "currentColor", cand)
+    collect(tree.getroot(), target, "currentColor", cand, target)
     if not cand:
-        sys.exit("%s has no width %s lines to work on. If it is already a\n"
-                 "reweighted file, run this on the source drawing instead,\n"
-                 "with the same --heavy and --min-len." % (src, TARGET))
+        sys.exit("%s has no width %s lines to work on. Check --from-width,\n"
+                 "or, if it is already a reweighted file, run this on the\n"
+                 "source drawing instead with the same options."
+                 % (src, target))
 
     rings = [parse_d(el.get("d")) for el in cand]
     lens = [path_length(r) for r in rings]
@@ -180,7 +216,11 @@ def main(src, dst, heavy, min_len, only_heavy=False):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    heavy, min_len = "11", 150.0
+    heavy, min_len, target = "11", 150.0, TARGET
+    if "--from-width" in a:
+        i = a.index("--from-width")
+        target = float(a[i + 1])
+        del a[i:i + 2]
     only_heavy = "--only-heavy" in a
     if only_heavy:
         a.remove("--only-heavy")
@@ -188,4 +228,4 @@ if __name__ == "__main__":
         heavy = a.pop(a.index("--heavy") + 1); a.remove("--heavy")
     if "--min-len" in a:
         min_len = float(a.pop(a.index("--min-len") + 1)); a.remove("--min-len")
-    main(a[0], a[1], heavy, min_len, only_heavy)
+    main(a[0], a[1], heavy, min_len, only_heavy, target)

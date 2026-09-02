@@ -45,3 +45,7 @@ handoff_dashboard_charts/
 PROMPT.md
 PROMPT.sent.md
 .wt-prompts/
+
+# AISC steel sculpture fabrication package, extracted on demand to rebuild a
+# plate (docs/design/aisc-logo/README.md). AISC copyright, never commit it.
+aisc-steel-sculpture-plans/
