@@ -138,7 +138,9 @@ class HTTPCacheMiddleware(BaseHTTPMiddleware):
 def _excluded(path: str) -> bool:
     # Analytics computes live user counts, root/healthz/readyz are deployment
     # probes, docs are dev-facing. CSV downloads are skipped by the
-    # content-type check.
+    # content-type check. Contributions live on GitHub and move on their own,
+    # so an hour-old copy would show a submission that no longer exists and
+    # make every update collide (#321).
     return path in ("/", "/healthz", "/readyz") or path.startswith(
-        ("/analytics", "/docs", "/redoc", "/openapi")
+        ("/analytics", "/contributions", "/docs", "/redoc", "/openapi")
     )

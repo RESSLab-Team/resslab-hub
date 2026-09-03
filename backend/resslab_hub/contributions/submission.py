@@ -19,7 +19,7 @@ import io
 import json
 import re
 import secrets
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from fnmatch import fnmatch
@@ -30,8 +30,18 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from resslab_hub.config import settings
 from resslab_hub.contributions.github import DataRepoClient, NewFile
+from resslab_hub.contributions.projection import (
+    SubmissionError,
+    SubmissionValidationFailed,
+    _Layout,
+    _layout_for,
+    _type_slug,
+    classify_files,
+    split_batch,
+    type_for_branch,
+)
 from resslab_hub.data.common import SAFE_ID_PATTERN, SAFE_ID_RULE
-from resslab_hub.data.uploader import Type, get_args_all
+from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import ValidationResult, validate_all
 
 #: Cells starting with these can execute as formulas when the CSV is opened in
@@ -52,49 +62,9 @@ class SubmissionResult:
     pr_url: str
     pr_number: int
     branch: str
-
-
-class SubmissionError(Exception):
-    """A submission problem with a transport status and a human-readable detail."""
-
-    def __init__(self, status_code: int, detail: str):
-        super().__init__(detail)
-        self.status_code = status_code
-        self.detail = detail
-
-
-class SubmissionValidationFailed(Exception):
-    """Server-side re-validation found errors; carries the full results."""
-
-    def __init__(self, results: List[ValidationResult]):
-        super().__init__("Validation failed")
-        self.results = results
-
-
-@dataclass
-class _Layout:
-    """Where this type's files are allowed to live, from the uploader map."""
-
-    primary_csv: str
-    curve_dirs: List[str] = field(default_factory=list)
-    dictionary_csvs: List[str] = field(default_factory=list)
-
-
-def _layout_for(input_type: Type) -> _Layout:
-    primary_csv = None
-    curve_dirs = []
-    dictionary_csvs = []
-    for arg_type, pattern in get_args_all(input_type, ""):
-        normalized = pattern.lstrip("/")
-        if arg_type is Type.DICTIONARY:
-            dictionary_csvs.append(normalized)
-        elif normalized.endswith("*.csv"):
-            curve_dirs.append(path.dirname(normalized))
-        elif primary_csv is None:
-            primary_csv = normalized
-    if primary_csv is None:
-        raise SubmissionError(400, f"Type {input_type.value} has no primary CSV.")
-    return _Layout(primary_csv, curve_dirs, dictionary_csvs)
+    #: Commit the submission now points at. The editor sends it back on the
+    #: next update so a branch that moved meanwhile is caught (409).
+    head_sha: str = ""
 
 
 def _archive_files(tmpdir: str) -> List[str]:
@@ -193,42 +163,45 @@ def _slugify(value: str) -> str:
     return slug or "batch"
 
 
-def _type_slug(input_type: Type) -> str:
-    return input_type.value.removeprefix("all-")
-
-
 def build_provenance(
     contributor: Contributor,
     input_type: Type,
     files: List[NewFile],
     dismissed_warnings: List[str],
     submitted_at: str,
+    updated_at: str = "",
 ) -> str:
-    return json.dumps(
-        {
-            "schema": 1,
-            "type": input_type.value,
-            "submitted_at": submitted_at,
-            "contributor": {
-                "name": contributor.name,
-                "email": contributor.email,
-                "institution": contributor.institution,
-                "orcid": contributor.orcid,
-                # Until academic auth (#247) lands, identity is whatever the
-                # contributor typed in; curators judge trust on review.
-                "identity": "self-declared",
-            },
-            "files": [
-                {
-                    "path": file.path,
-                    "sha256": sha256(file.content.encode("utf-8")).hexdigest(),
-                }
-                for file in files
-            ],
-            "dismissed_warnings": dismissed_warnings,
+    """The record committed next to a submission.
+
+    An edit rewrites this same file rather than adding a second one: the
+    submission is one record, ``submitted_at`` keeps saying when it was first
+    sent and ``updated_at`` when it last changed.
+    """
+    record = {
+        "schema": 1,
+        "type": input_type.value,
+        "submitted_at": submitted_at,
+        "contributor": {
+            "name": contributor.name,
+            "email": contributor.email,
+            "institution": contributor.institution,
+            "orcid": contributor.orcid,
+            # Until academic auth (#247) lands, identity is whatever the
+            # contributor typed in; curators judge trust on review.
+            "identity": "self-declared",
         },
-        indent=2,
-    )
+        "files": [
+            {
+                "path": file.path,
+                "sha256": sha256(file.content.encode("utf-8")).hexdigest(),
+            }
+            for file in files
+        ],
+        "dismissed_warnings": dismissed_warnings,
+    }
+    if updated_at:
+        record["updated_at"] = updated_at
+    return json.dumps(record, indent=2)
 
 
 def build_update_help(branch: str, primary_csv: str) -> List[str]:
@@ -363,17 +336,13 @@ async def flag_repo_duplicates(
             )
 
 
-async def submit_contribution(
-    tmpdir: str,
-    input_type: Type,
-    contributor: Contributor,
-    dismissed_warnings: List[str],
-    client: Optional[DataRepoClient] = None,
-) -> SubmissionResult:
-    """Validate the extracted archive and open a PR on the data repo."""
-    # Server-side re-validation is the gate: errors block, warnings don't.
-    # The DB duplicate check runs here too; the repo-HEAD check below is the
-    # backstop for merged-but-not-yet-ingested submissions.
+def validate_archive(tmpdir: str, input_type: Type) -> _Layout:
+    """Re-validate an extracted archive and enforce the path allowlist.
+
+    Shared by the submit and the edit paths: both re-run the very same check
+    the contributor saw in the editor before anything is committed. Errors
+    block, warnings do not.
+    """
     try:
         results = validate_all(input_type, [tmpdir], cpu=1, check_duplicate_ids=True)
     except NotImplementedError:
@@ -384,24 +353,46 @@ async def submit_contribution(
         )
     if any(not result.is_valid() for result in results):
         raise SubmissionValidationFailed(results)
+    return check_paths(tmpdir, input_type)
 
-    layout = check_paths(tmpdir, input_type)
 
+def read_batch(
+    tmpdir: str, layout: _Layout
+) -> Tuple[List[str], List[List[str]], List[str]]:
+    """The archive's primary CSV as (header, rows, ids)."""
     primary_path = path.join(tmpdir, layout.primary_csv)
     if not path.isfile(primary_path):
         raise SubmissionError(400, "The archive has no primary CSV.")
     with open(primary_path, encoding="utf-8") as file:
         header, rows = _read_csv(file.read())
-    ids = batch_ids(header, rows)
+    return header, rows, batch_ids(header, rows)
 
-    client = client or DataRepoClient()
-    repo_text = await client.get_file_text(layout.primary_csv)
-    repo_header, repo_rows = _read_csv(repo_text)
 
-    # Align by column NAME, not position: the repo CSV's order can differ from
-    # the dictionary's, and it may carry legacy extras the dictionary dropped
-    # (e.g. hss_columns' test_id) — those get NR, and the uploader ignores
-    # them anyway. Only a batch column the repo lacks is real schema drift.
+def reject_clashes(ids: List[str], existing: Set[str]) -> None:
+    """Refuse a batch whose ids are already in the data repository."""
+    clashes = [value for value in ids if value in existing]
+    if clashes:
+        raise SubmissionError(
+            409,
+            "These specimen ids already exist in the data repository: "
+            + ", ".join(clashes),
+        )
+
+
+def build_primary_csv(
+    repo_text: str,
+    kept_rows: List[List[str]],
+    header: List[str],
+    rows: List[List[str]],
+) -> str:
+    """The repository CSV with ``kept_rows`` followed by the batch's rows.
+
+    Align by column NAME, not position: the repo CSV's order can differ from
+    the dictionary's, and it may carry legacy extras the dictionary dropped
+    (e.g. hss_columns' test_id) — those get NR, and the uploader ignores them
+    anyway. Only a batch column the repo lacks is real schema drift.
+    """
+    repo_header, _ = _read_csv(repo_text)
     missing = [name for name in header if name not in repo_header]
     if missing:
         raise SubmissionError(
@@ -409,16 +400,6 @@ async def submit_contribution(
             "The data repository's CSV is missing columns this contribution "
             f"provides ({', '.join(missing)}) — the data dictionary may have "
             "changed. Please contact the maintainers.",
-        )
-
-    id_index = repo_header.index("id")
-    existing = {row[id_index].strip() for row in repo_rows if id_index < len(row)}
-    clashes = [value for value in ids if value in existing]
-    if clashes:
-        raise SubmissionError(
-            409,
-            "These specimen ids already exist in the data repository: "
-            + ", ".join(clashes),
         )
 
     batch_index = {name: position for position, name in enumerate(header)}
@@ -435,18 +416,58 @@ async def submit_contribution(
     # Keep the repo file's own line endings (some are CRLF): rewriting them
     # would turn a one-row contribution into a whole-file diff.
     terminator = "\r\n" if "\r\n" in repo_text else "\n"
-    merged_csv = _write_csv(
-        repo_header, repo_rows + [repo_ordered(r) for r in rows], terminator
+    return _write_csv(
+        repo_header, kept_rows + [repo_ordered(row) for row in rows], terminator
     )
 
-    files = [NewFile(layout.primary_csv, merged_csv)]
-    curve_count = 0
+
+def collect_curve_files(tmpdir: str, layout: _Layout) -> List[NewFile]:
+    """The archive's time-series files, ready to commit."""
+    files = []
     for rel in _archive_files(tmpdir):
         if rel == layout.primary_csv or rel in layout.dictionary_csvs:
             continue
         with open(path.join(tmpdir, rel), encoding="utf-8", newline="") as file:
             files.append(NewFile(rel, normalize_csv_text(file.read())))
-        curve_count += 1
+    return files
+
+
+def commit_title(input_type: Type, ids: List[str], verb: str = "add") -> str:
+    plural = "s" if len(ids) != 1 else ""
+    sample = ids[0] + ("…" if len(ids) > 1 else "")
+    return (
+        f"data({_type_slug(input_type)}): {verb} {len(ids)} "
+        f"experiment{plural} ({sample})"
+    )
+
+
+async def submit_contribution(
+    tmpdir: str,
+    input_type: Type,
+    contributor: Contributor,
+    dismissed_warnings: List[str],
+    client: Optional[DataRepoClient] = None,
+) -> SubmissionResult:
+    """Validate the extracted archive and open a PR on the data repo."""
+    # Server-side re-validation is the gate: errors block, warnings don't.
+    # The DB duplicate check runs there too; the repo-HEAD check below is the
+    # backstop for merged-but-not-yet-ingested submissions.
+    layout = validate_archive(tmpdir, input_type)
+    header, rows, ids = read_batch(tmpdir, layout)
+
+    client = client or DataRepoClient()
+    repo_text = await client.get_file_text(layout.primary_csv)
+    repo_header, repo_rows = _read_csv(repo_text)
+
+    id_index = repo_header.index("id")
+    reject_clashes(
+        ids, {row[id_index].strip() for row in repo_rows if id_index < len(row)}
+    )
+    merged_csv = build_primary_csv(repo_text, repo_rows, header, rows)
+
+    files = [NewFile(layout.primary_csv, merged_csv)]
+    files.extend(collect_curve_files(tmpdir, layout))
+    curve_count = len(files) - 1
 
     submitted_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     suffix = secrets.token_hex(4)
@@ -462,9 +483,7 @@ async def submit_contribution(
         )
     )
 
-    plural = "s" if len(ids) != 1 else ""
-    sample = ids[0] + ("…" if len(ids) > 1 else "")
-    title = f"data({type_slug}): add {len(ids)} experiment{plural} ({sample})"
+    title = commit_title(input_type, ids)
     message = f"{title}\n\nSubmitted-by: {contributor.name} <{contributor.email}>"
 
     base_sha = await client.get_base_sha()
@@ -491,3 +510,158 @@ async def submit_contribution(
             502, "The pull request could not be opened on the data repository."
         )
     return SubmissionResult(pull["url"], pull["number"], branch)
+
+
+def _branch_suffix(branch: str) -> str:
+    """The random tail of ``contrib/<slug>/<id>-<suffix>``."""
+    return branch.rsplit("-", 1)[-1] or secrets.token_hex(4)
+
+
+async def update_contribution(
+    tmpdir: str,
+    pr_number: int,
+    branch: str,
+    head_sha: str,
+    contributor: Contributor,
+    dismissed_warnings: List[str],
+    client: Optional[DataRepoClient] = None,
+) -> SubmissionResult:
+    """Replace an open submission's batch with a new commit on its branch.
+
+    The contributor edits the batch in the same editor and sends the whole
+    thing again, so the branch is made to hold exactly what the archive holds:
+    rows are rewritten, files are added or replaced, and a file the batch no
+    longer has is deleted. The pull request updates and its checks rerun.
+
+    ``head_sha`` is the commit the editor loaded. A branch that moved since
+    then is refused (409) rather than overwritten: a maintainer may have
+    pushed a fix, and the editor never saw it.
+
+    NOTE(auth): the caller only proves it knows the pull request number and
+    its branch name, both public on the data repository. Until per-user auth
+    (#247) lands there is nothing better to check; the defences are the same
+    as for a first submission (rate limit, mandatory server-side validation,
+    writes confined to the type's own directories) plus the fact that every
+    change stays a pull request a curator reviews.
+    """
+    client = client or DataRepoClient()
+    try:
+        pull = await client.get_pull(pr_number)
+    except Exception:
+        raise SubmissionError(
+            404, "This submission does not exist on the data repository."
+        )
+    if pull["state"] != "open":
+        raise SubmissionError(404, "This submission is closed; it cannot be changed.")
+    if pull["head_ref"] != branch:
+        raise SubmissionError(409, "This is not the branch of that submission.")
+    if pull["head_sha"] != head_sha:
+        raise SubmissionError(
+            409,
+            "This submission changed on GitHub after you opened it. Reload the "
+            "page to get the latest version, then make your changes again.",
+        )
+    input_type = type_for_branch(branch)
+    if input_type is None:
+        raise SubmissionError(404, "This branch is not a contribution branch.")
+
+    layout = validate_archive(tmpdir, input_type)
+    header, rows, ids = read_batch(tmpdir, layout)
+
+    head_text = await client.get_file_text(layout.primary_csv, ref=head_sha)
+    base_text = await client.get_file_text(layout.primary_csv)
+    head_header, head_rows = _read_csv(head_text)
+    base_header, base_rows = _read_csv(base_text)
+    try:
+        base_id = base_header.index("id")
+        head_header.index("id")
+    except ValueError:
+        raise SubmissionError(502, "The data repository's CSV has no 'id' column.")
+    base_ids = {row[base_id].strip() for row in base_rows if base_id < len(row)}
+
+    # The rows this submission never owned stay untouched; its own rows are
+    # replaced by what the editor sends now.
+    kept, _ = split_batch(head_header, head_rows, base_ids)
+    reject_clashes(ids, base_ids)
+    merged_csv = build_primary_csv(head_text, kept, header, rows)
+
+    files = [NewFile(layout.primary_csv, merged_csv)]
+    files.extend(collect_curve_files(tmpdir, layout))
+    curve_count = len(files) - 1
+
+    # Only the submission's own time-series files can be dropped: never the
+    # primary CSV, the provenance record, or anything else on the branch.
+    branch_files = classify_files(await client.list_pull_files(pr_number), input_type)
+    submitted = {file.path for file in files}
+    deletions = [
+        file.path
+        for file in branch_files
+        if file.kind == "timeseries" and file.path not in submitted
+    ]
+
+    type_slug = _type_slug(input_type)
+    provenance_path = next(
+        (file.path for file in branch_files if file.kind == "provenance"),
+        f"contributions/{type_slug}/{_branch_suffix(branch)}.json",
+    )
+    submitted_at = ""
+    try:
+        previous = json.loads(await client.get_file_text(provenance_path, ref=head_sha))
+        submitted_at = str(previous.get("submitted_at", ""))
+    except Exception:
+        # An unreadable record is not worth refusing the update for; the new
+        # one simply starts its history at this commit.
+        pass
+    updated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    files.append(
+        NewFile(
+            provenance_path,
+            build_provenance(
+                contributor,
+                input_type,
+                files,
+                dismissed_warnings,
+                submitted_at or updated_at,
+                updated_at,
+            )
+            + "\n",
+        )
+    )
+
+    title = commit_title(input_type, ids, verb="update")
+    message = f"{title}\n\nSubmitted-by: {contributor.name} <{contributor.email}>"
+    try:
+        commit_sha = await client.commit_on_branch(
+            branch,
+            head_sha,
+            files,
+            deletions,
+            message,
+            contributor.name,
+            contributor.email,
+        )
+    except Exception:
+        raise SubmissionError(
+            409,
+            "The submission could not be updated: its branch moved on GitHub. "
+            "Reload the page and make your changes again.",
+        )
+    # The body is the submission summary the review screen reads (counts,
+    # dismissed warnings), so it has to follow the new batch. Best effort: the
+    # data is already committed, a stale summary is not worth failing on.
+    try:
+        await client.update_pull_body(
+            pr_number,
+            build_pr_body(
+                contributor,
+                input_type,
+                len(ids),
+                curve_count,
+                dismissed_warnings,
+                branch,
+                layout.primary_csv,
+            ),
+        )
+    except Exception:
+        pass
+    return SubmissionResult(pull["html_url"], pr_number, branch, commit_sha)

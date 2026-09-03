@@ -28,12 +28,15 @@ from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 
 from resslab_hub.contributions.github import DataRepoClient, configured
+from resslab_hub.contributions.projection import (
+    classify_files,
+    split_batch,
+    type_for_branch,
+)
 from resslab_hub.contributions.submission import (
-    SAFE_ID_PATTERN,
     SubmissionError,
     _layout_for,
     _read_csv,
-    _type_slug,
     _write_csv,
 )
 from resslab_hub.data.uploader import Type
@@ -44,7 +47,6 @@ from resslab_hub.models.curation import (
     CurationContributor,
     CurationDetail,
     CurationExperiment,
-    CurationFile,
     CurationListResponse,
     CurationSummary,
 )
@@ -88,6 +90,9 @@ class _TTLCache:
             return None
         return value
 
+    def drop(self, key) -> None:
+        self._entries.pop(key, None)
+
     def put(self, key, value, ttl: float):
         if len(self._entries) >= self._max:
             now = monotonic()
@@ -100,15 +105,16 @@ class _TTLCache:
 _cache = _TTLCache()
 
 
-def _type_for_branch(branch: str) -> Optional[Type]:
-    """``contrib/<type_slug>/<name>`` -> the uploader Type, else None."""
-    parts = branch.split("/")
-    if len(parts) < 3 or parts[0] != "contrib":
-        return None
-    try:
-        return Type("all-" + parts[1])
-    except ValueError:
-        return None
+def invalidate_pull(pr_number: int) -> None:
+    """Forget what we know about one pull request.
+
+    The detail, validation and file caches are keyed by head sha, so a new
+    commit expires them on its own. The pull request itself and the queue
+    listing are not, so an update made through the Hub would stay invisible
+    for a minute and the next update would collide on a stale head sha.
+    """
+    _cache.drop(("pull", pr_number))
+    _cache.drop("list")
 
 
 def _parse_pr_body(body: str) -> Tuple[Optional[int], Optional[CurationContributor]]:
@@ -145,36 +151,6 @@ def _summary(pull: dict, input_type: Type) -> CurationSummary:
     )
 
 
-def _classify_files(files: List[dict], input_type: Type) -> List[CurationFile]:
-    """Classify the PR's changed files against the type's known layout."""
-    layout = _layout_for(input_type)
-    slug = _type_slug(input_type)
-    classified = []
-    for file in files:
-        rel = file["path"]
-        directory, filename = path.split(rel)
-        stem = path.splitext(filename)[0]
-        if rel == layout.primary_csv:
-            kind = CurationFile(path=rel, kind="primary")
-        elif (
-            directory in layout.curve_dirs
-            and filename.endswith(".csv")
-            and SAFE_ID_PATTERN.fullmatch(stem)
-        ):
-            kind = CurationFile(
-                path=rel,
-                kind="timeseries",
-                timeseries_dir=directory,
-                experiment_id=stem,
-            )
-        elif directory == f"contributions/{slug}" and filename.endswith(".json"):
-            kind = CurationFile(path=rel, kind="provenance")
-        else:
-            kind = CurationFile(path=rel, kind="other")
-        classified.append(kind)
-    return classified
-
-
 async def _fetch_pull(client: DataRepoClient, pr_number: int) -> Tuple[dict, Type]:
     """The PR, guaranteed open and contribution-shaped, else 404."""
     cached = _cache.get(("pull", pr_number))
@@ -187,7 +163,7 @@ async def _fetch_pull(client: DataRepoClient, pr_number: int) -> Tuple[dict, Typ
                 detail="This pull request does not exist on the data repository.",
             )
         _cache.put(("pull", pr_number), cached, LIST_TTL_SECONDS)
-    input_type = _type_for_branch(cached["head_ref"])
+    input_type = type_for_branch(cached["head_ref"])
     if cached["state"] != "open" or input_type is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -205,7 +181,7 @@ async def _build_detail(
         return cached
 
     layout = _layout_for(input_type)
-    files = _classify_files(await client.list_pull_files(pull["number"]), input_type)
+    files = classify_files(await client.list_pull_files(pull["number"]), input_type)
     detail = CurationDetail(
         **_summary(pull, input_type).model_dump(),
         state=pull["state"],
@@ -259,15 +235,15 @@ async def _build_detail(
         )
     existing = {row[base_id].strip() for row in base_rows if base_id < len(row)}
     detail.columns = head_header
-    for row in head_rows:
-        row_id = row[head_id].strip() if head_id < len(row) else ""
-        if not row_id or row_id in existing:
-            continue
+    _, batch_rows = split_batch(head_header, head_rows, existing)
+    for row in batch_rows:
         cells = {
             name: (row[position] if position < len(row) else "")
             for position, name in enumerate(head_header)
         }
-        detail.experiments.append(CurationExperiment(id=row_id, cells=cells))
+        detail.experiments.append(
+            CurationExperiment(id=row[head_id].strip(), cells=cells)
+        )
 
     if (
         detail.experiment_count is not None
@@ -370,7 +346,7 @@ async def list_contributions(request: Request) -> CurationListResponse:
         _cache.put("list", cached, LIST_TTL_SECONDS)
     items = []
     for pull in cached:
-        input_type = _type_for_branch(pull["head_ref"])
+        input_type = type_for_branch(pull["head_ref"])
         if input_type is not None:
             items.append(_summary(pull, input_type))
     return CurationListResponse(configured=True, items=items)
@@ -490,7 +466,9 @@ async def get_contribution_comments(
 
 
 @router.get("/contributions/{pr_number}/files", response_class=PlainTextResponse)
-@limiter.limit("60/minute")
+# The edit step (#321) loads one file per request to fill the editor, so a
+# batch with many curves needs more headroom than a curator reading one.
+@limiter.limit("120/minute")
 async def get_contribution_file(
     request: Request, pr_number: int, path_param: str = Query(..., alias="path")
 ) -> str:

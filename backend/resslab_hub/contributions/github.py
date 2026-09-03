@@ -149,22 +149,23 @@ class DataRepoClient:
         )
         return response.parsed_data.object_.sha
 
-    async def commit_files(
+    async def _create_commit(
         self,
-        branch: str,
-        base_sha: str,
+        parent_sha: str,
         files: List[NewFile],
+        deletions: List[str],
         message: str,
         author_name: str,
         author_email: str,
     ) -> str:
-        """Create `branch` off `base_sha` with one commit adding `files`.
+        """One commit on top of `parent_sha`, without moving any ref.
 
         The contributor is the commit author; the committer defaults to the
-        App's bot identity. Returns the commit sha.
+        App's bot identity. A path in `deletions` is removed by a tree entry
+        with a null sha, which is how the Git Data API spells "delete this".
         """
         git = self._gh.rest.git
-        tree_entries = []
+        tree_entries: List[dict] = []
         for file in files:
             blob = await git.async_create_blob(
                 self.owner, self.repo, content=file.content, encoding="utf-8"
@@ -177,20 +178,69 @@ class DataRepoClient:
                     "sha": blob.parsed_data.sha,
                 }
             )
+        for rel in deletions:
+            tree_entries.append(
+                {"path": rel, "mode": "100644", "type": "blob", "sha": None}
+            )
         tree = await git.async_create_tree(
-            self.owner, self.repo, base_tree=base_sha, tree=tree_entries
+            self.owner, self.repo, base_tree=parent_sha, tree=tree_entries
         )
         commit = await git.async_create_commit(
             self.owner,
             self.repo,
             message=message,
             tree=tree.parsed_data.sha,
-            parents=[base_sha],
+            parents=[parent_sha],
             author={"name": author_name, "email": author_email},
         )
-        commit_sha = commit.parsed_data.sha
-        await git.async_create_ref(
+        return commit.parsed_data.sha
+
+    async def commit_files(
+        self,
+        branch: str,
+        base_sha: str,
+        files: List[NewFile],
+        message: str,
+        author_name: str,
+        author_email: str,
+    ) -> str:
+        """Create `branch` off `base_sha` with one commit adding `files`.
+
+        Returns the commit sha.
+        """
+        commit_sha = await self._create_commit(
+            base_sha, files, [], message, author_name, author_email
+        )
+        await self._gh.rest.git.async_create_ref(
             self.owner, self.repo, ref=f"refs/heads/{branch}", sha=commit_sha
+        )
+        return commit_sha
+
+    async def commit_on_branch(
+        self,
+        branch: str,
+        head_sha: str,
+        files: List[NewFile],
+        deletions: List[str],
+        message: str,
+        author_name: str,
+        author_email: str,
+    ) -> str:
+        """Add one commit on top of `head_sha` on an existing `branch`.
+
+        The ref update is not forced, so GitHub refuses it when the branch
+        moved since `head_sha` was read. That is the wanted answer: someone
+        else pushed, and the edit was written against the older version.
+        Returns the new commit sha.
+        """
+        commit_sha = await self._create_commit(
+            head_sha, files, deletions, message, author_name, author_email
+        )
+        await self._gh.rest.git.async_update_ref(
+            self.owner,
+            self.repo,
+            ref=f"heads/{branch}",
+            data={"sha": commit_sha, "force": False},
         )
         return commit_sha
 
@@ -206,6 +256,10 @@ class DataRepoClient:
         )
         pull = response.parsed_data
         return {"url": pull.html_url, "number": pull.number}
+
+    async def update_pull_body(self, number: int, body: str) -> None:
+        """Rewrite a pull request's description."""
+        await self._gh.rest.pulls.async_update(self.owner, self.repo, number, body=body)
 
     async def delete_branch(self, branch: str) -> None:
         """Best-effort cleanup of a branch whose PR could not be opened."""
