@@ -16,8 +16,12 @@ SCRIPTS="$(dirname "$(readlink -f "$0")")"
 # shell in every pane inherits it, and any wt script run from those shells then
 # targets this checkout no matter what directory it is run from. The
 # set-environment call scrubs a server that an earlier version already poisoned.
+# The .env.worktree keys get the same treatment: a server started from a shell
+# that had a worktree's file sourced would give its ports to every later session,
+# including the main checkout's, whose frontend still looks for the backend on 8000.
 export -n ROOT || true
 tmux set-environment -gu ROOT 2>/dev/null || true
+for key in $ENV_WORKTREE_KEYS; do tmux set-environment -gu "$key" 2>/dev/null || true; done
 load_env_worktree
 BRANCH="$(current_branch)"
 SESSION="$(session_name "$BRANCH")"
@@ -71,7 +75,9 @@ URLS
 
 # Every pane exports .env.worktree so pytest (POSTGRES_TEST_DB), the Makefiles
 # (BACKEND_PORT, RESSLAB_DATA_DIR) and vite (FRONTEND_PORT) all see the same values.
-LOAD='set -a; [ -f "$(git rev-parse --show-toplevel)/.env.worktree" ] && . "$(git rev-parse --show-toplevel)/.env.worktree"; set +a'
+# No file (the main checkout): unset the keys instead, so nothing inherited from a
+# worktree shell or the tmux server sticks to this pane.
+LOAD='set -a; if [ -f "$(git rev-parse --show-toplevel)/.env.worktree" ]; then . "$(git rev-parse --show-toplevel)/.env.worktree"; else unset '"$ENV_WORKTREE_KEYS"'; fi; set +a'
 
 # What the claude pane runs. A PROMPT.md at the checkout root is a one-shot
 # brief (wtgo --prompt, or written by hand): rename it, then start claude on it
