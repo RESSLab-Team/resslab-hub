@@ -71,7 +71,7 @@ Every checkout — the main one and each git worktree under `.claude/worktrees/<
 - **Know where you are**: you are in a worktree exactly when `.env.worktree` exists at the repo root (equivalently, your path contains `.claude/worktrees/`). The tmux panes, the claude one included, start with that file exported, so `echo $WT_BRANCH $BACKEND_PORT $FRONTEND_PORT` orients you instantly; in a shell without them, `set -a; . .env.worktree; set +a` first.
 - **Ports**: a worktree's `.env.worktree` holds its `BACKEND_PORT` / `FRONTEND_PORT` (hashed from the branch name, 18xxx/19xxx); the main checkout uses 8000/5173. Read them from that file — never guess, never start a second server on a port that is already served. `scripts/wt-open.sh [frontend|backend]` prints and opens the URL.
 - **Reuse before starting**: the tmux session already runs both servers in its `backend` and `frontend` panes. If you must start one yourself, `set -a; . .env.worktree; set +a` first so vite, uvicorn and pytest pick the worktree's values.
-- **Finish** a frontend or backend change by printing its URL: `http://localhost:$FRONTEND_PORT/` or `http://127.0.0.1:$BACKEND_PORT/docs`.
+- **Finish** a frontend or backend change by printing its URL: `http://localhost:$FRONTEND_PORT/` or `http://127.0.0.1:$BACKEND_PORT/docs`. Use the app through the Vite port only: it proxies `/api` to the backend (`vite.config.ts`), which is what makes the session cookie first-party. Hitting the backend port directly in a browser signs nobody in.
 - **Checking your work**: read-only `curl` against your own `localhost`/`127.0.0.1` ports is pre-allowed in the common forms (bare, `-s`, `-sS`, `-fsS`, `-i`, `-I`), so hit your servers freely; write forms still prompt. The backend and frontend panes mirror their output to `.wt-logs/backend.log` and `.wt-logs/frontend.log` in the checkout root: when a server is down or misbehaving, read those (the tmux socket is outside your sandbox, so `tmux` commands will fail — the log files are the supported path). `sample-data/` arrives seeded from the main checkout (the contribution flow's drop-in test batches, also read by `fieldGroups.spec.ts`); regenerate with `make sample-data` if you need fresh ones.
 
 #### Working in a worktree — rules
@@ -87,11 +87,12 @@ Every checkout — the main one and each git worktree under `.claude/worktrees/<
 
 FastAPI + SQLAlchemy 2.0 async + PostgreSQL. Key files:
 
-- `main.py` — app setup, router registration, CORS, middleware
+- `main.py` — app setup, router registration, middleware (response cache, gzip, CSRF)
 - `config.py` — Dynaconf settings with required keys (`POSTGRES_PASSWORD`, `API_PASSWORD`)
 - `models/api.py` — Pydantic schemas (auto-generated, do not edit manually)
 - `models/database/` — SQLAlchemy ORM models (auto-generated from CSV data dictionaries)
-- `routers/` — one file per component type (braces, columns, connections, materials [cyclic coupons], tensile_coupon, ductile_fracture, residual_stress, hss_columns, eccentric_braced_frame) plus `analytics.py` and `root.py`
+- `routers/` — one file per component type (braces, columns, connections, materials [cyclic coupons], tensile_coupon, ductile_fracture, residual_stress, hss_columns, eccentric_braced_frame) plus `analytics.py`, `auth.py` and `root.py`
+- `auth/` — sign-in, sessions and roles (#247). `deps.py` holds the FastAPI dependencies (`require_user`, `require_role`, and the machine-credential ones); see `docs/auth.md`
 - `data/generate_model.py` — reads CSV data dictionaries from `resslab-hub-data` repo and generates both ORM models and Pydantic schemas
 
 **Model generation workflow**: When the data schema changes, run `make generate-model` (requires the `resslab-hub-data` repo; `backend/Makefile` finds it through `RESSLAB_DATA_DIR`, default `../../resslab-hub-data`, which worktrees export as an absolute path from `.env.worktree`), then create an Alembic migration with `make database-revision`.
@@ -114,7 +115,7 @@ Vue 3 + TypeScript + Vite + Vuetify 3 + Pinia.
 
 - **Reverse proxy**: Traefik v3.6 routes `/` → frontend, `/api` → backend (stripping the `/api` prefix). In dev the backend listens directly on `:8000` with no prefix; in prod code paths must tolerate `ROOT_PATH=/api`.
 - **Database**: PostgreSQL 14 (Alpine)
-- **Secrets**: `secrets/.env` (gitignored) — not committed; create with `mkdir -p secrets && echo POSTGRES_PASSWORD=changeit > secrets/.env`. Backend also requires `API_PASSWORD` for the `/validate` and admin endpoints.
+- **Secrets**: `secrets/.env` (gitignored) — not committed; create with `mkdir -p secrets && echo POSTGRES_PASSWORD=changeit > secrets/.env`. `API_PASSWORD` is the machine credential: it guards `/upload` and `/user`, and is one of the two ways into `/validate` (the other is a signed-in account). People sign in with a session cookie instead — see `docs/auth.md` for the sign-in setup (`PUBLIC_BASE_URL`, `GITHUB_OAUTH_*`, `SMTP_*`, `ADMIN_EMAILS`).
 - **Branch model**: `dev` is the default/integration branch (deploys to the k8s `dev` overlay); `stage` is the single pre-prod branch (k8s `stage` overlay); `main` is the release branch — `release-please.yml` cuts version tags (`v*.*.*`) from it, and tag pushes deploy to the k8s `prod` overlay. Promote `dev` → `stage` → release via PRs/tags.
 - **CI/CD**: GitHub Actions — `ci.yml` runs tests/lint on push/PR to `dev` + `main`; `release-please.yml` auto-manages versioning on `main`; `deploy.yml` builds + deploys (`dev`/`stage` branches → k8s, `v*.*.*` tags → prod) via the EPFL enac build-push-deploy action. The legacy `deploy-test.yml` / `deploy-prod.yml` (old enac-deploy-action) were removed once the k8s migration (#227) fully replaced them.
 

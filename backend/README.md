@@ -83,7 +83,7 @@ POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_USER=<DB_USER>
 POSTGRES_PASSWORD=<DB_PASSWORD>
-API_PASSWORD=<any non-empty value>
+API_PASSWORD=<any non-empty value>   # machine credential, see docs/auth.md
 ```
 
 If your local machine already runs a Postgres on 5432, port-forward to a different port (e.g. `5433:5432`) and set `POSTGRES_PORT=5433` in the `.env`.
