@@ -14,7 +14,8 @@ RESSLab-Hub is a fullstack research database for structural steel components (br
 
 ```bash
 make install          # Install all dependencies (pnpm + uv sync + frontend)
-make dev-all          # tmux session: database + backend + frontend + claude + shell
+make dev-all          # database + backend + frontend in the current terminal
+make tmux-dev-all     # same, as a tmux session with a claude pane and a shell pane
 make dev-database     # Start PostgreSQL via Docker Compose
 make dev-backend      # Start FastAPI backend (http://127.0.0.1:8000)
 make dev-frontend     # Start Vite dev server (http://127.0.0.1:5173)
@@ -66,7 +67,7 @@ pnpm run api           # Regenerate TypeScript client from openapi.json
 
 ### Dev servers and worktrees
 
-Every checkout — the main one and each git worktree under `.claude/worktrees/<branch>` — gets its own tmux session `resslab-hub/<branch>` with one `dev` window of four titled panes: `claude` (the left half, focused on attach), `backend`, `frontend` and `shell` stacked on the right (`scripts/tmux-dev.sh`; `make new BRANCH=feat/x` creates the worktree and attaches, `wt create` alone starts it detached through `.wt.toml`). Full guide: `docs/worktree-dev-environment.md`.
+Every checkout — the main one and each git worktree under `.claude/worktrees/<branch>` — gets its own tmux session `resslab-hub/<branch>` with one `dev` window of four titled panes: `claude` (the left half, focused on attach), `backend`, `frontend` and `shell` stacked on the right (`scripts/tmux-dev.sh`, also `make tmux-dev-all`; `make new BRANCH=feat/x` creates the worktree and attaches, `wt create` alone starts it detached through `.wt.toml`). Full guide: `docs/worktree-dev-environment.md`.
 
 - **Know where you are**: you are in a worktree exactly when `.env.worktree` exists at the repo root (equivalently, your path contains `.claude/worktrees/`). The tmux panes, the claude one included, start with that file exported, so `echo $WT_BRANCH $BACKEND_PORT $FRONTEND_PORT` orients you instantly; in a shell without them, `set -a; . .env.worktree; set +a` first.
 - **Ports**: a worktree's `.env.worktree` holds its `BACKEND_PORT` / `FRONTEND_PORT` (hashed from the branch name, 18xxx/19xxx); the main checkout uses 8000/5173. Read them from that file — never guess, never start a second server on a port that is already served. `scripts/wt-open.sh [frontend|backend]` prints and opens the URL.
