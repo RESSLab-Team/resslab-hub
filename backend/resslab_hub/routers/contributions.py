@@ -18,6 +18,7 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 
+from resslab_hub.auth.deps import require_user
 from resslab_hub.contributions.github import configured
 from resslab_hub.contributions.submission import (
     Contributor,
@@ -27,6 +28,7 @@ from resslab_hub.contributions.submission import (
 )
 from resslab_hub.data.uploader import Type
 from resslab_hub.models.contribution import ContributionResponse
+from resslab_hub.models.database.auth import User
 from resslab_hub.models.validation import ValidationResponse
 from resslab_hub.routers.root import _build_response, enforce_request_size
 from resslab_hub.utils.rate_limit import limiter
@@ -57,12 +59,10 @@ def _parse_dismissed(raw: str) -> list:
     return parsed
 
 
-# NOTE(auth): open, like /validate. The shared HTTP Basic credential also
-# guards /upload, and a browser-side gate would have to ship it in the JS
-# bundle — publishing the ingestion password to every visitor. Until per-user
-# academic auth (#247) lands, the defences are the rate limit below, mandatory
-# server-side validation, and the fact that a submission only ever becomes a
-# pull request a curator has to review.
+# Signed in only (#247). Who submitted is not a form field any more: it is the
+# account, which is what makes the pull request attributable and lets a curator
+# reach the person who opened it. Phase 2 (#248) raises this to the contributor
+# role, so that being signed in is not by itself permission to submit.
 @router.post(
     "/contributions",
     response_model=ContributionResponse,
@@ -74,11 +74,8 @@ async def create_contribution(
     request: Request,
     file: UploadFile = File(...),
     type: Type = Query(...),
-    contributor_name: str = Form(..., min_length=1, max_length=200),
-    contributor_email: str = Form(..., min_length=3, max_length=200),
-    institution: str = Form("", max_length=200),
-    orcid: str = Form("", max_length=50),
     dismissed_warnings: str = Form("[]"),
+    user: User = Depends(require_user),
     _: None = Depends(enforce_request_size),
 ):
     """
@@ -90,12 +87,28 @@ async def create_contribution(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Submissions are not enabled on this deployment.",
         )
+    # The commit author and the provenance record both need a real name and a
+    # proven address. A GitHub-only account can have neither yet, so it is sent
+    # to the account page rather than silently committing as nobody.
+    if not user.display_name.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Add your name on the account page before submitting.",
+        )
+    if not user.email or user.email_verified_at is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Confirm your email address on the account page before submitting.",
+        )
     dismissed = _parse_dismissed(dismissed_warnings)
     contributor = Contributor(
-        name=contributor_name.strip(),
-        email=contributor_email.strip(),
-        institution=institution.strip(),
-        orcid=orcid.strip(),
+        name=user.display_name.strip(),
+        email=user.email,
+        institution=user.institution.strip(),
+        orcid=user.orcid.strip(),
+        github_login=user.github_login,
+        identity=getattr(request.state, "auth_provider", "email"),
+        user_id=str(user.id),
     )
     try:
         with TemporaryDirectory() as tmpdir:

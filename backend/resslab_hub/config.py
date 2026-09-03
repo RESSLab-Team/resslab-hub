@@ -10,7 +10,6 @@ settings = Dynaconf(
     load_dotenv=True,
     settings_files=["resslab_hub/settings.toml"],
     validators=[
-        Validator("cors_enabled", default=False),
         Validator("root_path", default=""),
         Validator("postgres_host", default="localhost"),
         Validator("postgres_port", default=5432),
@@ -37,6 +36,35 @@ settings = Dynaconf(
         Validator("github_app_installation_id", default=None),
         Validator("data_repo", default="RESSLab-Team/resslab-hub-data"),
         Validator("data_repo_base_branch", default="main"),
+        # --- Sign-in (#247) --------------------------------------------------
+        # Absolute URL the app is reached at, without the /api prefix:
+        # "https://resslab-hub.epfl.ch" in prod, the Vite dev server locally.
+        # Every absolute URL the backend emits (OAuth callback, mail links,
+        # redirects) is built from it, because behind Traefik the request URL
+        # has already lost the /api prefix and may carry an internal host.
+        Validator("public_base_url", default="http://localhost:5173"),
+        # None = derive from public_base_url's scheme, which is the right
+        # answer everywhere: https in the deployments, http locally (a Secure
+        # cookie is dropped by the dev server and by the httpx test client).
+        # Set it explicitly only to override that.
+        Validator("session_cookie_secure", default=None),
+        Validator("session_ttl_days", default=30),
+        Validator("login_code_ttl_minutes", default=10),
+        # Mail: without a host the mailer logs the code instead of sending it,
+        # which is how local dev and the tests work.
+        Validator("smtp_host", default=None),
+        Validator("smtp_port", default=587),
+        Validator("smtp_user", default=None),
+        Validator("smtp_password", default=None),
+        Validator("smtp_from", default="noreply@resslab-hub.epfl.ch"),
+        Validator("smtp_starttls", default=True),
+        # OAuth pair of the same GitHub App used for contribution PRs. Both
+        # present = "Sign in with GitHub" is offered.
+        Validator("github_oauth_client_id", default=None),
+        Validator("github_oauth_client_secret", default=None),
+        # Comma-separated addresses that get the admin role at first sign-in,
+        # so a fresh deployment has an administrator without a CLI.
+        Validator("admin_emails", default=""),
     ],
 )
 

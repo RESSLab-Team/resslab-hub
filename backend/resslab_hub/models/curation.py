@@ -5,9 +5,8 @@ These project the state of open contribution pull requests on the data repo
 into shapes the review interface can render. Nothing here is stored: GitHub is
 the source of truth, and every field is reconstructed from the PR on demand.
 
-The contributor's email is deliberately omitted — the endpoints are
-unauthenticated until #247, and the address is visible on GitHub for curators
-who need it.
+The contributor's email is deliberately omitted: it is not needed to review a
+submission, and it is on the pull request for curators who do need it.
 """
 
 from typing import Dict, List, Optional
@@ -19,6 +18,9 @@ class CurationContributor(BaseModel):
     name: str = ""
     institution: str = ""
     orcid: str = ""
+    #: Present when the contributor linked a GitHub account (#247), so the
+    #: review interface can point a curator at the person to talk to.
+    github_login: str = ""
 
 
 class CurationSummary(BaseModel):

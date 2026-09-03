@@ -147,6 +147,72 @@ async def client(_clean_tables):
 
 
 # ---------------------------------------------------------------------------
+# Sign-in helpers (#247)
+#
+# Auth is enforced by FastAPI dependencies, which only run over HTTP. So the
+# gated endpoints have to be exercised through the ``client`` fixture, and a
+# test that needs a signed-in caller seeds a user plus a session row and sets
+# the cookie by hand — the same thing a real sign-in ends up doing.
+# ---------------------------------------------------------------------------
+SERVICE_AUTH = ("user", "changeit")
+
+
+@pytest.fixture
+def sign_in(client, db_session):
+    """Sign ``client`` in as a new user; returns the ``User`` row.
+
+    ``sign_in()`` for a plain account, ``sign_in(role="curator")`` to skip
+    straight to a role, plus anything else to set on the user.
+    """
+    from resslab_hub.auth.tokens import hash_token, new_token
+    from resslab_hub.models.database.auth import Identity, Session, User
+
+    created = []
+
+    def _sign_in(
+        email: str = "ada@example.edu",
+        role: str = "viewer",
+        provider: str = "email",
+        verified: bool = True,
+        **fields,
+    ):
+        from datetime import datetime, timedelta, timezone
+
+        now = datetime.now(timezone.utc)
+        user = User(
+            email=email,
+            email_verified_at=now if verified else None,
+            display_name=fields.pop("display_name", "Ada Lovelace"),
+            institution=fields.pop("institution", "EPFL"),
+            role=role,
+            **fields,
+        )
+        db_session.add(user)
+        db_session.flush()
+        db_session.add(
+            Identity(user_id=user.id, provider=provider, subject=email, handle=email)
+        )
+        token = new_token()
+        db_session.add(
+            Session(
+                token_hash=hash_token(token),
+                user_id=user.id,
+                provider=provider,
+                created_at=now,
+                expires_at=now + timedelta(days=30),
+                last_seen_at=now,
+            )
+        )
+        db_session.commit()
+        client.cookies.set("resslab_session", token)
+        created.append(user)
+        return user
+
+    yield _sign_in
+    client.cookies.clear()
+
+
+# ---------------------------------------------------------------------------
 # CSV fixture helpers: build well-formed upload CSVs whose headers match the
 # ORM column keys, filling every non-overridden column with a type-appropriate
 # default so non-nullable columns are always populated.

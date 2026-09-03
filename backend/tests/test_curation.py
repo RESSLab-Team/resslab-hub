@@ -32,7 +32,12 @@ HEAD_CSV = BASE_CSV + "B9,400,New one\n"
 CURVE_CSV = "Displacement [mm],Force [kN]\n0,0\n1,10\n"
 
 CONTRIBUTOR = Contributor(
-    name="Ada Lovelace", email="ada@example.edu", institution="EPFL", orcid="0000-1"
+    name="Ada Lovelace",
+    email="ada@example.edu",
+    institution="EPFL",
+    orcid="0000-1",
+    github_login="ada",
+    identity="email",
 )
 
 PROVENANCE = json.dumps(
@@ -193,6 +198,8 @@ def test_parse_pr_body_roundtrip():
     assert contributor.name == "Ada Lovelace"
     assert contributor.institution == "EPFL"
     assert contributor.orcid == "0000-1"
+    # The @mention that notifies the contributor of every review comment.
+    assert contributor.github_login == "ada"
 
 
 def test_parse_pr_body_tolerates_free_text():

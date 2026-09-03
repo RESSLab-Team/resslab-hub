@@ -27,7 +27,12 @@ from resslab_hub.data.validator import TableValidator, ValidationResult
 from resslab_hub.models.database.brace import Brace
 
 CONTRIBUTOR = Contributor(
-    name="Ada Lovelace", email="ada@example.edu", institution="EPFL"
+    name="Ada Lovelace",
+    email="ada@example.edu",
+    institution="EPFL",
+    github_login="ada",
+    identity="email",
+    user_id="11111111-1111-1111-1111-111111111111",
 )
 
 REPO_CSV = "id,f_y,name\nB1,355,First\nB2,275,Second\n"
@@ -218,7 +223,10 @@ async def test_submit_happy_path(tmp_path, monkeypatch):
     assert "B9,400,New one" in merged
     assert "braces/force_displacement/B9.csv" in by_path
     provenance_path = next(p for p in by_path if p.startswith("contributions/braces/"))
-    assert '"identity": "self-declared"' in by_path[provenance_path]
+    # The provenance says how the identity was established, not that it was
+    # typed in a form (#247).
+    assert '"identity": "email"' in by_path[provenance_path]
+    assert '"github_login": "ada"' in by_path[provenance_path]
     assert "Value is far outside the range" in by_path[provenance_path]
 
     assert client.commit_kwargs["author_name"] == "Ada Lovelace"

@@ -8,12 +8,12 @@ whose id is absent from the base CSV, the contributor comes from the PR body,
 and quality flags come from re-running the same server-side validation the
 submission went through.
 
-NOTE(auth): open, like POST /contributions — the review interface ships before
-per-user auth (#247) and roles (#248), and approving/merging stays on GitHub,
-so these endpoints only ever reveal what the public data-repo PR already shows
-(minus the contributor's email). The defences are per-IP rate limits and TTL
-caches keyed by the PR head sha, which also protect the GitHub App's API
-budget.
+Signed in only (#247). These endpoints reveal no more than the public data-repo
+pull request already does, but the review queue is not a public page: it is the
+lab's work list. Phase 2 (#248) raises the bar to the curator role, derived
+from the GitHub permission on the data repository. Approving and merging stay
+on GitHub either way. The per-IP rate limits and the TTL caches keyed by the PR
+head sha also protect the GitHub App's API budget.
 """
 
 import json
@@ -24,9 +24,10 @@ from tempfile import TemporaryDirectory
 from time import monotonic
 from typing import List, Optional, Tuple
 
-from fastapi import APIRouter, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 
+from resslab_hub.auth.deps import require_user
 from resslab_hub.contributions.github import DataRepoClient, configured
 from resslab_hub.contributions.submission import (
     SAFE_ID_PATTERN,
@@ -126,6 +127,9 @@ def _parse_pr_body(body: str) -> Tuple[Optional[int], Optional[CurationContribut
         orcid = re.search(r"\*\*ORCID\*\*: (.*)$", body, re.M)
         if orcid:
             contributor.orcid = orcid.group(1).strip()
+        github = re.search(r"\*\*GitHub\*\*: @(\S+)$", body, re.M)
+        if github:
+            contributor.github_login = github.group(1).strip()
     return count, contributor
 
 
@@ -353,7 +357,13 @@ async def _build_validation(
     return response
 
 
-@router.get("/contributions", response_model=CurationListResponse)
+# The gate goes on the decorator, not in the signature: the curation tests call
+# these functions directly, where FastAPI dependencies never run.
+@router.get(
+    "/contributions",
+    response_model=CurationListResponse,
+    dependencies=[Depends(require_user)],
+)
 @limiter.limit("30/minute")
 async def list_contributions(request: Request) -> CurationListResponse:
     """
@@ -376,7 +386,11 @@ async def list_contributions(request: Request) -> CurationListResponse:
     return CurationListResponse(configured=True, items=items)
 
 
-@router.get("/contributions/{pr_number}", response_model=CurationDetail)
+@router.get(
+    "/contributions/{pr_number}",
+    response_model=CurationDetail,
+    dependencies=[Depends(require_user)],
+)
 @limiter.limit("30/minute")
 async def get_contribution(request: Request, pr_number: int) -> CurationDetail:
     """
@@ -401,7 +415,11 @@ async def get_contribution(request: Request, pr_number: int) -> CurationDetail:
         )
 
 
-@router.get("/contributions/{pr_number}/validation", response_model=ValidationResponse)
+@router.get(
+    "/contributions/{pr_number}/validation",
+    response_model=ValidationResponse,
+    dependencies=[Depends(require_user)],
+)
 @limiter.limit("10/minute")
 async def get_contribution_validation(
     request: Request, pr_number: int
@@ -429,7 +447,9 @@ async def get_contribution_validation(
 
 
 @router.get(
-    "/contributions/{pr_number}/comments", response_model=CurationCommentsResponse
+    "/contributions/{pr_number}/comments",
+    response_model=CurationCommentsResponse,
+    dependencies=[Depends(require_user)],
 )
 @limiter.limit("30/minute")
 async def get_contribution_comments(
@@ -489,7 +509,11 @@ async def get_contribution_comments(
     return response
 
 
-@router.get("/contributions/{pr_number}/files", response_class=PlainTextResponse)
+@router.get(
+    "/contributions/{pr_number}/files",
+    response_class=PlainTextResponse,
+    dependencies=[Depends(require_user)],
+)
 @limiter.limit("60/minute")
 async def get_contribution_file(
     request: Request, pr_number: int, path_param: str = Query(..., alias="path")

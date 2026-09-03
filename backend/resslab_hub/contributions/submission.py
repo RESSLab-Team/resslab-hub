@@ -44,6 +44,15 @@ class Contributor:
     email: str
     institution: str = ""
     orcid: str = ""
+    #: GitHub login, when the contributor linked one (#247). Written into the
+    #: pull request as an @mention, so they are notified of every review
+    #: comment and can answer where the review happens.
+    github_login: str = ""
+    #: How the identity was established: the sign-in provider (``email``,
+    #: ``github``), or ``self-declared`` for a submission made before #247.
+    identity: str = "self-declared"
+    #: Their account id, so a submission can be traced back after the fact.
+    user_id: str = ""
 
 
 @dataclass
@@ -213,9 +222,13 @@ def build_provenance(
                 "email": contributor.email,
                 "institution": contributor.institution,
                 "orcid": contributor.orcid,
-                # Until academic auth (#247) lands, identity is whatever the
-                # contributor typed in; curators judge trust on review.
-                "identity": "self-declared",
+                "github_login": contributor.github_login,
+                # How the identity was established: the provider the
+                # contributor signed in with (#247). Phase 2 replaces this with
+                # why they are allowed to contribute (verified academic mail,
+                # invitation, and so on).
+                "identity": contributor.identity,
+                "user_id": contributor.user_id,
             },
             "files": [
                 {
@@ -248,6 +261,10 @@ def build_pr_body(
     ]
     if contributor.orcid:
         lines.append(f"- **ORCID**: {contributor.orcid}")
+    if contributor.github_login:
+        # An @mention, on purpose: GitHub then notifies the contributor of
+        # every comment on their own submission, and they can answer inline.
+        lines.append(f"- **GitHub**: @{contributor.github_login}")
     lines += [
         "",
         "Server-side validation passed before this PR was opened.",

@@ -139,6 +139,10 @@ def _excluded(path: str) -> bool:
     # Analytics computes live user counts, root/healthz/readyz are deployment
     # probes, docs are dev-facing. CSV downloads are skipped by the
     # content-type check.
+    #
+    # /auth, /account and /admin answer per signed-in user. This cache is
+    # keyed on the URL alone and marks what it stores `Cache-Control: public`,
+    # so caching them would hand one person's answer to the next visitor.
     return path in ("/", "/healthz", "/readyz") or path.startswith(
-        ("/analytics", "/docs", "/redoc", "/openapi")
+        ("/analytics", "/docs", "/redoc", "/openapi", "/auth", "/account", "/admin")
     )
