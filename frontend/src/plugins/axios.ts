@@ -1,5 +1,6 @@
 import {
   AnalyticsApi,
+  AuthApi,
   BracesApi,
   ColumnsApi,
   ConnectionsApi,
@@ -29,8 +30,26 @@ export const ebfApi = new EccentricBracedFrameApi(undefined, baseUrl, axiosInsta
 export const tensileCouponApi = new TensileCouponApi(undefined, baseUrl, axiosInstance)
 export const ductileFractureApi = new DuctileFractureApi(undefined, baseUrl, axiosInstance)
 
-// The contribution pipeline's two endpoints — `/validate` and `/contributions`
-// — are both open, so no credentials are carried here. They must stay that way
-// until #247 gives contributors a real identity: the shared HTTP Basic password
-// also guards `/upload`, and anything the browser sends ships in the bundle.
 export const defaultApi = new DefaultApi(undefined, baseUrl, axiosInstance)
+export const authApi = new AuthApi(undefined, baseUrl, axiosInstance)
+
+// Sign-in rides on an httpOnly session cookie (#247), so nothing is carried in
+// the bundle and nothing is read by JavaScript. The app is same-origin in every
+// environment (Traefik in the deployments, the Vite proxy in development), so
+// the browser attaches the cookie on its own and `withCredentials` is not
+// needed.
+//
+// A 401 means the session went away: the cookie expired, or someone signed out
+// in another tab. Drop the cached user so the interface stops showing them as
+// signed in; the router guard sends them to the sign-in page on the next
+// navigation to a page that needs one.
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error?.response?.status === 401) {
+      const { useAuthStore } = await import('@/stores/auth')
+      useAuthStore().clear()
+    }
+    return Promise.reject(error)
+  }
+)

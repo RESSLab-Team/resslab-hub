@@ -1270,10 +1270,10 @@
       "recap": "You are submitting {experiments} experiment(s) and {files} test-data file(s).",
       "recap_no_data": "{count} experiment(s) have no test data attached.",
       "recap_dismissed": "{count} dismissed warning(s) will be listed for the curator.",
-      "name": "Your name",
-      "email": "Email",
-      "institution": "Institution",
-      "orcid": "ORCID iD",
+      "submitting_as": "Submitting as",
+      "edit_identity": "Edit",
+      "identity_incomplete": "Add your name and confirm your email address on your account page before submitting.",
+      "link_github_hint": "Link GitHub on your account page to be mentioned on the pull request and follow its review.",
       "note": "These details are recorded with the submission so curators can credit and contact you. They appear publicly in the data repository.",
       "cancel": "Cancel",
       "confirm": "Submit"
@@ -1437,6 +1437,73 @@
       "summary": "submission",
       "refresh": "Refresh the discussion",
       "unknown_author": "Unknown author"
+    }
+  },
+  "auth": {
+    "login": {
+      "sign_in": "Sign in",
+      "eyebrow": "Account",
+      "title": "Sign in to contribute",
+      "lede": "Browsing needs no account. You need one to submit data or to review a submission.",
+      "github": "Continue with GitHub",
+      "github_note": "Linking GitHub lets you follow and answer the review of your own submission.",
+      "or_email": "or with your email",
+      "email_label": "Email",
+      "send_code": "Send me a code",
+      "sending": "Sending...",
+      "sent": "We sent a six-digit code to {email}. The mail also has a link, if you read it on this device.",
+      "code_label": "Six-digit code",
+      "confirm": "Sign in",
+      "checking": "Checking...",
+      "other_email": "Use another address",
+      "browsing_is_free": "Every database stays open to read, without an account."
+    },
+    "verify": {
+      "signing_in": "Signing you in...",
+      "try_again": "Back to sign in"
+    },
+    "account": {
+      "section": "Account",
+      "eyebrow": "Account",
+      "title": "Your account",
+      "no_name": "No name yet",
+      "no_email": "No confirmed address",
+      "verified": "confirmed",
+      "identities": "Ways to sign in",
+      "identities_lede": "Each one signs you into the same account. You can add a second one, and remove any but the last.",
+      "unlink": "Remove",
+      "link_github": "Link GitHub",
+      "link_github_why": "With GitHub linked, your submission mentions you on its pull request, so you get the review comments and can answer them.",
+      "sign_out": "Sign out"
+    },
+    "forbidden": {
+      "eyebrow": "Account",
+      "title": "Not open to your account",
+      "lede": "Your account cannot open this page.",
+      "needs_role": "This page needs the {role} role. Ask an administrator of the lab for it.",
+      "back_home": "Back to the databases"
+    },
+    "roles": {
+      "viewer": "Viewer",
+      "contributor": "Contributor",
+      "curator": "Curator",
+      "admin": "Administrator"
+    },
+    "providers": {
+      "email": "Email",
+      "github": "GitHub",
+      "orcid": "ORCID",
+      "entra": "EPFL",
+      "switch": "Institutional SSO"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "invalid_code": "That code is not right. Check the mail and try again.",
+      "invalid_or_expired": "That code or link is no longer valid. Ask for a new one.",
+      "too_many_attempts": "Too many tries. Ask for a new code.",
+      "github_failed": "GitHub sign-in did not finish. Please try again.",
+      "email_in_use": "That address already has an account here. Sign in with it, then link GitHub from your account page.",
+      "identity_taken": "That GitHub account is already linked to another account here."
     }
   }
 }

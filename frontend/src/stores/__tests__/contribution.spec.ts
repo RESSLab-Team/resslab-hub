@@ -720,8 +720,6 @@ describe('contribution store — submission', () => {
     vi.mocked(postContribution).mockReset()
   })
 
-  const CONTRIBUTOR = { name: 'Ada', email: 'ada@example.edu', institution: '', orcid: '' }
-
   /** Edits flush the reset watcher; settle it before handing out a verdict. */
   async function submittableStore() {
     const store = seededStore()
@@ -766,14 +764,15 @@ describe('contribution store — submission', () => {
       branch: 'contrib/braces/b1-abc'
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
     expect(store.submitStatus).toBe('submitted')
     expect(store.pullRequestUrl).toBe('https://github.com/x/pull/7')
     expect(store.pullRequestNumber).toBe(7)
-    const [, archive, contributor] = (postContribution as Mock).mock.calls[0]
+    const [, archive] = (postContribution as Mock).mock.calls[0]
     expect(archive).toBeInstanceOf(File)
-    expect(contributor).toEqual(CONTRIBUTOR)
+    // Who submits is not sent any more: the backend takes it from the session.
+    expect((postContribution as Mock).mock.calls[0]).toHaveLength(3)
   })
 
   it('passes dismissed warnings, labelled by specimen id', async () => {
@@ -791,9 +790,9 @@ describe('contribution store — submission', () => {
       branch: 'b'
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
-    const [, , , dismissed] = (postContribution as Mock).mock.calls[0]
+    const [, , dismissed] = (postContribution as Mock).mock.calls[0]
     expect(dismissed).toHaveLength(1)
     expect(dismissed[0]).toMatch(/^B1: /)
   })
@@ -808,7 +807,7 @@ describe('contribution store — submission', () => {
       }
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
     expect(store.submitStatus).toBe('error')
     expect(store.submitError).toBe("Specimen id 'a/b' cannot be used as a file name: rule.")
@@ -828,7 +827,7 @@ describe('contribution store — submission', () => {
       response: { status: 400, data: '<html>bad request</html>' }
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
     expect(store.submitError).toContain('could not be read')
   })
@@ -858,7 +857,7 @@ describe('contribution store — submission', () => {
       }
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
     expect(store.submitStatus).toBe('error')
     expect(store.status).toBe('fail')
@@ -884,7 +883,7 @@ describe('contribution store — submission', () => {
     // No validator for EBF, so force the verdict the submit path needs.
     store.status = 'pass'
     vi.mocked(postContribution).mockResolvedValue({ pr_url: 'u', pr_number: 1, branch: 'b' })
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
     const entries = vi.mocked(buildTarGz).mock.calls.at(-1)![0]
     expect(entries.map((entry) => entry.path)).toContain(
       'eccentric_braced_frames/processed_data/id74.csv'
@@ -893,7 +892,7 @@ describe('contribution store — submission', () => {
 
   it('does nothing when the batch is not submittable', async () => {
     const store = seededStore()
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
     expect(postContribution).not.toHaveBeenCalled()
     expect(store.submitStatus).toBe('idle')
   })

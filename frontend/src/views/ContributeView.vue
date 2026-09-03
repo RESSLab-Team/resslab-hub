@@ -2,11 +2,11 @@
 import ContributionGuide from '@/components/contribute/ContributionGuide.vue'
 import ExperimentCards from '@/components/contribute/ExperimentCards.vue'
 import FailureDetails from '@/components/contribute/FailureDetails.vue'
+import { useAuthStore } from '@/stores/auth'
 import { useContributionStore, type CardIssue } from '@/stores/contribution'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { CONTRIBUTION_DATABASES, fieldLabel } from '@/utils/contribution'
 import { DATABASES, type DatabaseId } from '@/utils/navigation'
-import { loadContributor, saveContributor } from '@/utils/submission'
 import {
   mdiAlertOutline,
   mdiArrowRight,
@@ -27,8 +27,12 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n({ useScope: 'global' })
 const store = useContributionStore()
 const dictionary = useDictionaryStore()
+const auth = useAuthStore()
 
-onMounted(() => dictionary.fetch())
+onMounted(() => {
+  dictionary.fetch()
+  auth.ensureLoaded()
+})
 
 const supported = (id: DatabaseId) => CONTRIBUTION_DATABASES[id].qualityCheckSupported
 
@@ -129,18 +133,18 @@ function issueSubject(issue: CardIssue): string {
 // --- Submission dialog ----------------------------------------------------
 
 const dialogOpen = ref(false)
-const contributor = ref(loadContributor())
 
-const contributorValid = computed(
-  () =>
-    contributor.value.name.trim().length > 0 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contributor.value.email.trim())
+// Who submits comes from the session now (#247), not from a form. The commit
+// author and the provenance record both need a name and a proven address, so
+// an account missing either is sent to /account rather than refused on submit.
+const contributor = computed(() => auth.user)
+const contributorReady = computed(
+  () => !!contributor.value?.display_name?.trim() && !!contributor.value?.email_verified
 )
 
 const curveCount = computed(() => Object.keys(store.timeSeries).length)
 
 function openDialog(): void {
-  contributor.value = loadContributor()
   dialogOpen.value = true
 }
 
@@ -164,16 +168,9 @@ function openGuide(which: 'guide' | 'dictionary' = 'guide'): void {
 }
 
 async function confirmSubmit(): Promise<void> {
-  if (!contributorValid.value) return
-  const details = {
-    name: contributor.value.name.trim(),
-    email: contributor.value.email.trim(),
-    institution: contributor.value.institution.trim(),
-    orcid: contributor.value.orcid.trim()
-  }
-  saveContributor(details)
+  if (!contributorReady.value) return
   dialogOpen.value = false
-  await store.submit(details)
+  await store.submit()
 }
 </script>
 
@@ -447,24 +444,24 @@ async function confirmSubmit(): Promise<void> {
             }}
           </template>
         </p>
-        <div class="dialog-grid">
-          <label class="dialog-field">
-            <span>{{ $t('contribute.dialog.name') }} *</span>
-            <input v-model="contributor.name" type="text" autocomplete="name" />
-          </label>
-          <label class="dialog-field">
-            <span>{{ $t('contribute.dialog.email') }} *</span>
-            <input v-model="contributor.email" type="email" autocomplete="email" />
-          </label>
-          <label class="dialog-field">
-            <span>{{ $t('contribute.dialog.institution') }}</span>
-            <input v-model="contributor.institution" type="text" autocomplete="organization" />
-          </label>
-          <label class="dialog-field">
-            <span>{{ $t('contribute.dialog.orcid') }}</span>
-            <input v-model="contributor.orcid" type="text" placeholder="0000-0000-0000-0000" />
-          </label>
+        <div class="dialog-identity">
+          <p class="dialog-identity-line">
+            {{ $t('contribute.dialog.submitting_as') }}
+            <strong>{{ contributor?.display_name || $t('auth.account.no_name') }}</strong>
+            <span v-if="contributor?.email"> · {{ contributor.email }}</span>
+            <span v-if="contributor?.institution"> · {{ contributor.institution }}</span>
+            <span v-if="contributor?.github_login"> · @{{ contributor.github_login }}</span>
+          </p>
+          <router-link class="dialog-identity-edit" to="/account">
+            {{ $t('contribute.dialog.edit_identity') }}
+          </router-link>
         </div>
+        <p v-if="!contributorReady" class="dialog-blocked">
+          {{ $t('contribute.dialog.identity_incomplete') }}
+        </p>
+        <p v-else-if="!contributor?.github_login" class="dialog-note">
+          {{ $t('contribute.dialog.link_github_hint') }}
+        </p>
         <p class="dialog-note">{{ $t('contribute.dialog.note') }}</p>
         <div class="dialog-actions">
           <button class="btn btn-secondary btn-sm" type="button" @click="dialogOpen = false">
@@ -472,7 +469,7 @@ async function confirmSubmit(): Promise<void> {
           </button>
           <button
             class="btn btn-primary btn-sm"
-            :disabled="!contributorValid"
+            :disabled="!contributorReady"
             type="button"
             @click="confirmSubmit()"
           >
@@ -1009,34 +1006,37 @@ async function confirmSubmit(): Promise<void> {
   line-height: 1.5;
   color: var(--fg-muted);
 }
-.dialog-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px 16px;
+/* Who is submitting is a recap now, not a form: it comes from the account
+   (#247). */
+.dialog-identity {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-subtle);
+  border-left: 3px solid var(--epfl-red);
 }
-.dialog-field {
-  display: block;
+.dialog-identity-line {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg-muted);
   min-width: 0;
 }
-.dialog-field span {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 12.5px;
-  font-weight: 600;
-}
-.dialog-field input {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border-strong);
-  background: var(--bg);
+.dialog-identity-line strong {
   color: var(--fg);
-  font: inherit;
-  font-size: 13.5px;
-  border-radius: var(--radius);
 }
-.dialog-field input:focus {
-  outline: 2px solid var(--epfl-red);
-  outline-offset: -1px;
+.dialog-identity-edit {
+  flex: none;
+  font-size: 12px;
+  color: var(--epfl-red);
+}
+.dialog-blocked {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--epfl-red);
 }
 .dialog-note {
   margin: 14px 0;

@@ -2,6 +2,7 @@
 // router-resolve → fetch round trip on every first visit. Its heavy pieces
 // (map, API client) already load lazily from within the view. Every other
 // route stays a dynamic import.
+import { installAuthGuard } from '@/router/guards'
 import HomeView from '@/views/HomeView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
@@ -165,22 +166,53 @@ const router = createRouter({
       redirect: '/contribute/new'
     },
     {
+      // `meta.auth` names the weakest role that may open the route; the guard
+      // in router/guards.ts does the rest. Everything without it is public,
+      // which is every database page: browsing needs no account.
       path: '/contribute/new',
       name: 'ContributeNew',
-      component: () => import('@/views/ContributeView.vue')
+      component: () => import('@/views/ContributeView.vue'),
+      meta: { auth: 'viewer' }
     },
     {
       path: '/curation',
       name: 'CurationQueue',
-      component: () => import('@/views/CurationQueueView.vue')
+      component: () => import('@/views/CurationQueueView.vue'),
+      meta: { auth: 'viewer' }
     },
     {
       path: '/curation/:prNumber(\\d+)',
       name: 'CurationReview',
       component: () => import('@/views/CurationReviewView.vue'),
-      props: true
+      props: true,
+      meta: { auth: 'viewer' }
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      component: () => import('@/views/LoginView.vue')
+    },
+    {
+      // Where the mailed link lands: it carries the challenge and the token in
+      // the query, and this view posts them.
+      path: '/login/verify',
+      name: 'LoginVerify',
+      component: () => import('@/views/LoginVerifyView.vue')
+    },
+    {
+      path: '/account',
+      name: 'Account',
+      component: () => import('@/views/AccountView.vue'),
+      meta: { auth: 'viewer' }
+    },
+    {
+      path: '/forbidden',
+      name: 'Forbidden',
+      component: () => import('@/views/ForbiddenView.vue')
     }
   ]
 })
+
+installAuthGuard(router)
 
 export default router

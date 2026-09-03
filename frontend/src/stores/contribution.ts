@@ -6,7 +6,7 @@ import { describeFailure, type FailureReport } from '@/utils/failureReport'
 import type { IntakePending, IntakePlan } from '@/utils/intake'
 import type { DatabaseId } from '@/utils/navigation'
 import { mapResponse, type ExperimentReport, type ReportedIssue } from '@/utils/qualityReport'
-import { postContribution, type ContributorInfo } from '@/utils/submission'
+import { postContribution } from '@/utils/submission'
 import { buildTarGz } from '@/utils/tar'
 import {
   checkTimeSeriesFile,
@@ -832,7 +832,7 @@ export const useContributionStore = defineStore('contribution', () => {
     return messages
   })
 
-  async function submit(contributor: ContributorInfo): Promise<void> {
+  async function submit(): Promise<void> {
     const target = config.value
     if (!target || !database.value || !canSubmit.value) return
 
@@ -841,12 +841,7 @@ export const useContributionStore = defineStore('contribution', () => {
     submitError.value = ''
     try {
       const archive = await buildArchive()
-      const result = await postContribution(
-        target.type,
-        archive,
-        contributor,
-        dismissedWarningMessages.value
-      )
+      const result = await postContribution(target.type, archive, dismissedWarningMessages.value)
       pullRequestUrl.value = result.pr_url
       pullRequestNumber.value = result.pr_number
       submitStatus.value = 'submitted'
