@@ -100,6 +100,18 @@ make api
 
 ## Deployment
 
+### Environments
+
+| Branch or tag | Deploys to |
+|---|---|
+| `dev` | https://resslab-hub-dev.epfl.ch |
+| `stage` | https://resslab-hub-test.epfl.ch |
+| tag `v*.*.*` | https://resslab-hub.epfl.ch |
+
+Promotion goes `dev` -> `stage` -> `main`, and Release Please tags `main`. The
+steps, and the rules that make them work, are in
+[docs/releasing.md](docs/releasing.md).
+
 ### Locally with Docker Compose
 
 ```bash
