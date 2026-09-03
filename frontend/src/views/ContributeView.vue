@@ -271,6 +271,12 @@ async function confirmSubmit(): Promise<void> {
               {{ $t('contribute.submitted.new') }}
             </button>
           </div>
+          <p class="submitted-howto">
+            {{ $t('contribute.submitted.how_to_update') }}
+            <a v-if="store.csvOnGitHubUrl" :href="store.csvOnGitHubUrl" target="_blank">
+              {{ $t('contribute.submitted.edit_on_github') }}
+            </a>
+          </p>
         </footer>
 
         <footer v-else-if="store.database && dictionary.ready" class="status-bar">
@@ -973,6 +979,14 @@ async function confirmSubmit(): Promise<void> {
 }
 .submitted-bar .btn {
   text-decoration: none;
+}
+/* Spans the bar's two columns: a full sentence, not a status line. */
+.submitted-howto {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--fg-muted);
 }
 /* Below ~700px the two columns cannot hold both the verdict and the buttons. */
 @media (max-width: 700px) {

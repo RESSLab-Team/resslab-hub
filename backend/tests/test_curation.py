@@ -195,6 +195,23 @@ def test_parse_pr_body_roundtrip():
     assert contributor.orcid == "0000-1"
 
 
+def test_parse_pr_body_roundtrip_with_update_help():
+    """The update section must not disturb the fields the review screen reads."""
+    body = build_pr_body(
+        CONTRIBUTOR,
+        Type.ALL_BRACE,
+        3,
+        2,
+        ["w1"],
+        "contrib/braces/b9-abcd1234",
+        "braces/steel_braces.csv",
+    )
+    count, contributor = _parse_pr_body(body)
+    assert count == 3
+    assert contributor.name == "Ada Lovelace"
+    assert contributor.institution == "EPFL"
+
+
 def test_parse_pr_body_tolerates_free_text():
     count, contributor = _parse_pr_body("A hand-written PR body.")
     assert count is None

@@ -28,6 +28,7 @@ from os import path, walk
 from time import monotonic
 from typing import Dict, List, Optional, Set, Tuple
 
+from resslab_hub.config import settings
 from resslab_hub.contributions.github import DataRepoClient, NewFile
 from resslab_hub.data.common import SAFE_ID_PATTERN, SAFE_ID_RULE
 from resslab_hub.data.uploader import Type, get_args_all
@@ -230,12 +231,40 @@ def build_provenance(
     )
 
 
+def build_update_help(branch: str, primary_csv: str) -> List[str]:
+    """The "how to update this submission" section of the pull request body.
+
+    A contributor asked to change a submission after review has no edit step
+    in the Hub yet (#321), and opening a second submission would open a second
+    pull request and lose the review. So the body says it here, where the
+    review discussion can see it.
+    """
+    blob = f"https://github.com/{settings.data_repo}/blob/{branch}/{primary_csv}"
+    return [
+        "",
+        "### To update this submission",
+        "",
+        "Please do not open a second submission on the Hub. It would open a "
+        "second pull request and this review would start again. Instead:",
+        "",
+        f"- Edit [`{primary_csv}`]({blob}) on this branch with the pencil icon, "
+        'and keep "Commit directly to the '
+        f'{branch} branch". Your rows are the last ones of the file.',
+        "- Or post the corrected file in a comment below and a maintainer "
+        "pushes it for you.",
+        "",
+        "The checks rerun on their own and this pull request updates.",
+    ]
+
+
 def build_pr_body(
     contributor: Contributor,
     input_type: Type,
     experiment_count: int,
     curve_count: int,
     dismissed_warnings: List[str],
+    branch: str = "",
+    primary_csv: str = "",
 ) -> str:
     lines = [
         "Automated submission from the RESSLab-Hub contribution editor.",
@@ -259,6 +288,8 @@ def build_pr_body(
             "",
             *[f"- {warning}" for warning in dismissed_warnings],
         ]
+    if branch and primary_csv:
+        lines += build_update_help(branch, primary_csv)
     return "\n".join(lines)
 
 
@@ -445,7 +476,13 @@ async def submit_contribution(
             branch,
             title,
             build_pr_body(
-                contributor, input_type, len(ids), curve_count, dismissed_warnings
+                contributor,
+                input_type,
+                len(ids),
+                curve_count,
+                dismissed_warnings,
+                branch,
+                layout.primary_csv,
             ),
         )
     except Exception:

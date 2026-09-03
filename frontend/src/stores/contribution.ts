@@ -1,6 +1,6 @@
 import { defaultApi } from '@/plugins/axios'
 import { useDictionaryStore } from '@/stores/dictionary'
-import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
+import { buildCsv, CONTRIBUTION_DATABASES, DATA_REPOSITORY_URL } from '@/utils/contribution'
 import { normalizeCsvText } from '@/utils/csv'
 import { describeFailure, type FailureReport } from '@/utils/failureReport'
 import type { IntakePending, IntakePlan } from '@/utils/intake'
@@ -183,9 +183,21 @@ export const useContributionStore = defineStore('contribution', () => {
   const submitFailure = ref<FailureReport | null>(null)
   const pullRequestUrl = ref('')
   const pullRequestNumber = ref(0)
+  /** Branch the submission was pushed to, for the "how to update" links. */
+  const branch = ref('')
 
   const config = computed(() => (database.value ? CONTRIBUTION_DATABASES[database.value] : null))
   const columns = computed(() => dictionary.columnsFor(database.value))
+
+  /**
+   * The submitted CSV on its own branch in the data repository. Editing it
+   * there is one of the ways to change a submission the Hub already sent.
+   */
+  const csvOnGitHubUrl = computed(() =>
+    branch.value && config.value
+      ? `${DATA_REPOSITORY_URL}/blob/${branch.value}/${config.value.csvPath}`
+      : ''
+  )
 
   const experimentCount = computed(() => rows.value.length)
   const specimenIds = computed(() =>
@@ -849,6 +861,7 @@ export const useContributionStore = defineStore('contribution', () => {
       )
       pullRequestUrl.value = result.pr_url
       pullRequestNumber.value = result.pr_number
+      branch.value = result.branch
       submitStatus.value = 'submitted'
     } catch (caught) {
       // A 422 carries a full validation report: surface it through the same
@@ -876,6 +889,7 @@ export const useContributionStore = defineStore('contribution', () => {
     submitFailure.value = null
     pullRequestUrl.value = ''
     pullRequestNumber.value = 0
+    branch.value = ''
   }
 
   // Auto-validate: any edit invalidates the last report and re-checks after a
@@ -926,6 +940,8 @@ export const useContributionStore = defineStore('contribution', () => {
     submitFailure,
     pullRequestUrl,
     pullRequestNumber,
+    branch,
+    csvOnGitHubUrl,
     canSubmit,
     dismissedWarningMessages,
     submit,

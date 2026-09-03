@@ -1260,10 +1260,12 @@
     "submitting": "Submitting…",
     "submit_failed": "The submission failed:",
     "submitted": {
-      "title": "Submitted — review request #{number} is open.",
+      "title": "Submitted. Review request #{number} is open.",
       "next": "A curator will review it; the data goes live once the request is approved and merged.",
       "view_pr": "View review request",
-      "new": "Start a new contribution"
+      "new": "Start a new contribution",
+      "how_to_update": "Need to change something after a review? Do not open a second submission, it would open a second review request and the review would start again. Edit the CSV on your own branch on GitHub, or post the corrected file in a comment on the review request and a maintainer pushes it for you.",
+      "edit_on_github": "Edit the CSV on GitHub"
     },
     "dialog": {
       "title": "Submit for review",

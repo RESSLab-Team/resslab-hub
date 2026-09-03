@@ -776,6 +776,29 @@ describe('contribution store — submission', () => {
     expect(contributor).toEqual(CONTRIBUTOR)
   })
 
+  it('points at the submitted CSV on its own branch', async () => {
+    const store = await submittableStore()
+    expect(store.csvOnGitHubUrl).toBe('') // nothing submitted yet
+    vi.mocked(postContribution).mockResolvedValue({
+      pr_url: 'https://github.com/x/pull/7',
+      pr_number: 7,
+      branch: 'contrib/braces/b1-abc'
+    })
+
+    await store.submit(CONTRIBUTOR)
+
+    expect(store.branch).toBe('contrib/braces/b1-abc')
+    expect(store.csvOnGitHubUrl).toBe(
+      'https://github.com/RESSLab-Team/resslab-hub-data/blob/contrib/braces/b1-abc/braces/steel_braces.csv'
+    )
+
+    // Editing again starts a new batch: the old branch must not linger.
+    store.rows[0].cells.investigator = 'Y'
+    await nextTick()
+    expect(store.branch).toBe('')
+    expect(store.csvOnGitHubUrl).toBe('')
+  })
+
   it('passes dismissed warnings, labelled by specimen id', async () => {
     const store = seededStore()
     const row = store.rows[0]

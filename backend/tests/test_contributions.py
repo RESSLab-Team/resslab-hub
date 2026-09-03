@@ -227,6 +227,21 @@ async def test_submit_happy_path(tmp_path, monkeypatch):
     assert "Ada Lovelace" in client.pr["body"]
 
 
+async def test_submit_pr_body_tells_how_to_update(tmp_path, monkeypatch):
+    """The review discussion must show how to change a submission (#321)."""
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    result = await submit_contribution(
+        str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+
+    body = client.pr["body"]
+    assert "### To update this submission" in body
+    assert "do not open a second submission" in body
+    # The edit link points at the primary CSV on the submission's own branch.
+    assert f"/blob/{result.branch}/braces/steel_braces.csv" in body
+
+
 async def test_submit_escapes_formula_cells(tmp_path, monkeypatch):
     patch_validation(monkeypatch)
     client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
