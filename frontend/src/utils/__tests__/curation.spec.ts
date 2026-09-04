@@ -12,7 +12,6 @@ import {
   databaseIdForType,
   editableFiles,
   isMissing,
-  mapLimit,
   toEditorCells,
   toExperimentRows
 } from '@/utils/curation'
@@ -243,27 +242,6 @@ describe('loading a submission back into the editor', () => {
       )
       expect(placed).toEqual([])
       expect(skipped).toEqual(['braces/force_displacement/B99.csv'])
-    })
-  })
-
-  describe('mapLimit', () => {
-    it('keeps the order and never exceeds the limit in flight', async () => {
-      let inFlight = 0
-      let peak = 0
-      const results = await mapLimit([1, 2, 3, 4, 5, 6, 7], 3, async (value) => {
-        inFlight += 1
-        peak = Math.max(peak, inFlight)
-        await new Promise((resolve) => setTimeout(resolve, 1))
-        inFlight -= 1
-        return value * 2
-      })
-      expect(results).toEqual([2, 4, 6, 8, 10, 12, 14])
-      expect(peak).toBeLessThanOrEqual(3)
-      expect(peak).toBeGreaterThan(1)
-    })
-
-    it('handles an empty list', async () => {
-      expect(await mapLimit([], 3, async () => 1)).toEqual([])
     })
   })
 })

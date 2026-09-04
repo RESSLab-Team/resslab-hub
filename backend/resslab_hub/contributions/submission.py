@@ -17,6 +17,7 @@ spreadsheet formulas are prefix-escaped.
 import csv
 import io
 import json
+import logging
 import re
 import secrets
 from dataclasses import dataclass
@@ -43,6 +44,8 @@ from resslab_hub.contributions.projection import (
 from resslab_hub.data.common import SAFE_ID_PATTERN, SAFE_ID_RULE
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import ValidationResult, validate_all
+
+logger = logging.getLogger(__name__)
 
 #: Cells starting with these can execute as formulas when the CSV is opened in
 #: a spreadsheet. Numbers are exempt: "-1.5" is data, not a formula.
@@ -168,28 +171,30 @@ def build_provenance(
     input_type: Type,
     files: List[NewFile],
     dismissed_warnings: List[str],
-    submitted_at: str,
-    updated_at: str = "",
+    at: str,
+    previous: Optional[dict] = None,
 ) -> str:
     """The record committed next to a submission.
 
-    An edit rewrites this same file rather than adding a second one: the
-    submission is one record, ``submitted_at`` keeps saying when it was first
-    sent and ``updated_at`` when it last changed.
+    An update rewrites the same file (``previous`` is what it held): the first
+    contributor and ``submitted_at`` stay on record, the editor is added as
+    ``updated_by``. Without auth (#247) that is the one trace of who changed
+    what.
     """
+    who = {
+        "name": contributor.name,
+        "email": contributor.email,
+        "institution": contributor.institution,
+        "orcid": contributor.orcid,
+        # Until academic auth (#247) lands, identity is whatever the
+        # contributor typed in; curators judge trust on review.
+        "identity": "self-declared",
+    }
     record = {
         "schema": 1,
         "type": input_type.value,
-        "submitted_at": submitted_at,
-        "contributor": {
-            "name": contributor.name,
-            "email": contributor.email,
-            "institution": contributor.institution,
-            "orcid": contributor.orcid,
-            # Until academic auth (#247) lands, identity is whatever the
-            # contributor typed in; curators judge trust on review.
-            "identity": "self-declared",
-        },
+        "submitted_at": at,
+        "contributor": who,
         "files": [
             {
                 "path": file.path,
@@ -199,34 +204,25 @@ def build_provenance(
         ],
         "dismissed_warnings": dismissed_warnings,
     }
-    if updated_at:
-        record["updated_at"] = updated_at
+    if previous:
+        record["submitted_at"] = previous.get("submitted_at", at)
+        record["contributor"] = previous.get("contributor", who)
+        record["updated_at"] = at
+        record["updated_by"] = who
     return json.dumps(record, indent=2)
 
 
 def build_update_help(branch: str, primary_csv: str) -> List[str]:
-    """The "how to update this submission" section of the pull request body.
-
-    A contributor asked to change a submission after review has no edit step
-    in the Hub yet (#321), and opening a second submission would open a second
-    pull request and lose the review. So the body says it here, where the
-    review discussion can see it.
-    """
+    """How to change a submission, said where the review discussion is (#321)."""
     blob = f"https://github.com/{settings.data_repo}/blob/{branch}/{primary_csv}"
     return [
         "",
         "### To update this submission",
         "",
-        "Please do not open a second submission on the Hub. It would open a "
-        "second pull request and this review would start again. Instead:",
-        "",
-        f"- Edit [`{primary_csv}`]({blob}) on this branch with the pencil icon, "
-        'and keep "Commit directly to the '
-        f'{branch} branch". Your rows are the last ones of the file.',
-        "- Or post the corrected file in a comment below and a maintainer "
-        "pushes it for you.",
-        "",
-        "The checks rerun on their own and this pull request updates.",
+        "Please do not open a second submission, it would open a second pull "
+        f"request. Edit [`{primary_csv}`]({blob}) on this branch, or post the "
+        "corrected file in a comment and a maintainer pushes it. The checks "
+        "rerun on their own.",
     ]
 
 
@@ -379,8 +375,15 @@ def reject_clashes(ids: List[str], existing: Set[str]) -> None:
         )
 
 
+def _line_terminator(text: str) -> str:
+    """The file's own line endings (some repo CSVs are CRLF): rewriting them
+    would turn a one-row contribution into a whole-file diff."""
+    return "\r\n" if "\r\n" in text else "\n"
+
+
 def build_primary_csv(
-    repo_text: str,
+    repo_header: List[str],
+    terminator: str,
     kept_rows: List[List[str]],
     header: List[str],
     rows: List[List[str]],
@@ -392,7 +395,6 @@ def build_primary_csv(
     (e.g. hss_columns' test_id) — those get NR, and the uploader ignores them
     anyway. Only a batch column the repo lacks is real schema drift.
     """
-    repo_header, _ = _read_csv(repo_text)
     missing = [name for name in header if name not in repo_header]
     if missing:
         raise SubmissionError(
@@ -413,9 +415,6 @@ def build_primary_csv(
             cells.append(escape_formula(value.strip() or "NR"))
         return cells
 
-    # Keep the repo file's own line endings (some are CRLF): rewriting them
-    # would turn a one-row contribution into a whole-file diff.
-    terminator = "\r\n" if "\r\n" in repo_text else "\n"
     return _write_csv(
         repo_header, kept_rows + [repo_ordered(row) for row in rows], terminator
     )
@@ -463,7 +462,9 @@ async def submit_contribution(
     reject_clashes(
         ids, {row[id_index].strip() for row in repo_rows if id_index < len(row)}
     )
-    merged_csv = build_primary_csv(repo_text, repo_rows, header, rows)
+    merged_csv = build_primary_csv(
+        repo_header, _line_terminator(repo_text), repo_rows, header, rows
+    )
 
     files = [NewFile(layout.primary_csv, merged_csv)]
     files.extend(collect_curve_files(tmpdir, layout))
@@ -487,7 +488,7 @@ async def submit_contribution(
     message = f"{title}\n\nSubmitted-by: {contributor.name} <{contributor.email}>"
 
     base_sha = await client.get_base_sha()
-    await client.commit_files(
+    commit_sha = await client.commit_files(
         branch, base_sha, files, message, contributor.name, contributor.email
     )
     try:
@@ -509,18 +510,17 @@ async def submit_contribution(
         raise SubmissionError(
             502, "The pull request could not be opened on the data repository."
         )
-    return SubmissionResult(pull["url"], pull["number"], branch)
+    return SubmissionResult(pull["url"], pull["number"], branch, commit_sha)
 
 
 def _branch_suffix(branch: str) -> str:
     """The random tail of ``contrib/<slug>/<id>-<suffix>``."""
-    return branch.rsplit("-", 1)[-1] or secrets.token_hex(4)
+    return branch.rsplit("-", 1)[-1]
 
 
 async def update_contribution(
     tmpdir: str,
     pr_number: int,
-    branch: str,
     head_sha: str,
     contributor: Contributor,
     dismissed_warnings: List[str],
@@ -528,39 +528,37 @@ async def update_contribution(
 ) -> SubmissionResult:
     """Replace an open submission's batch with a new commit on its branch.
 
-    The contributor edits the batch in the same editor and sends the whole
-    thing again, so the branch is made to hold exactly what the archive holds:
-    rows are rewritten, files are added or replaced, and a file the batch no
-    longer has is deleted. The pull request updates and its checks rerun.
+    The branch is made to hold exactly what the archive holds: rows rewritten,
+    files added or replaced, a file the batch no longer has deleted. The pull
+    request updates and its checks rerun.
 
-    ``head_sha`` is the commit the editor loaded. A branch that moved since
-    then is refused (409) rather than overwritten: a maintainer may have
-    pushed a fix, and the editor never saw it.
+    ``head_sha`` is the commit the editor loaded. A branch that moved since is
+    refused (409) rather than overwritten: a maintainer may have pushed a fix.
 
-    NOTE(auth): the caller only proves it knows the pull request number and
-    its branch name, both public on the data repository. Until per-user auth
-    (#247) lands there is nothing better to check; the defences are the same
-    as for a first submission (rate limit, mandatory server-side validation,
-    writes confined to the type's own directories) plus the fact that every
-    change stays a pull request a curator reviews.
+    NOTE(auth): the pull request number and its head sha are public on the
+    data repository, so this is not ownership. Until per-user auth (#247)
+    lands the defences are those of a first submission (rate limit, server-side
+    validation, writes confined to the type's directories), the first
+    contributor kept on record next to the editor, and a curator reviewing
+    every change.
     """
     client = client or DataRepoClient()
     try:
         pull = await client.get_pull(pr_number)
     except Exception:
+        logger.warning("Pull request #%s could not be read", pr_number, exc_info=True)
         raise SubmissionError(
             404, "This submission does not exist on the data repository."
         )
     if pull["state"] != "open":
         raise SubmissionError(404, "This submission is closed; it cannot be changed.")
-    if pull["head_ref"] != branch:
-        raise SubmissionError(409, "This is not the branch of that submission.")
     if pull["head_sha"] != head_sha:
         raise SubmissionError(
             409,
             "This submission changed on GitHub after you opened it. Reload the "
             "page to get the latest version, then make your changes again.",
         )
+    branch = pull["head_ref"]
     input_type = type_for_branch(branch)
     if input_type is None:
         raise SubmissionError(404, "This branch is not a contribution branch.")
@@ -569,21 +567,19 @@ async def update_contribution(
     header, rows, ids = read_batch(tmpdir, layout)
 
     head_text = await client.get_file_text(layout.primary_csv, ref=head_sha)
-    base_text = await client.get_file_text(layout.primary_csv)
     head_header, head_rows = _read_csv(head_text)
-    base_header, base_rows = _read_csv(base_text)
-    try:
-        base_id = base_header.index("id")
-        head_header.index("id")
-    except ValueError:
+    base_header, base_rows = _read_csv(await client.get_file_text(layout.primary_csv))
+    if "id" not in head_header or "id" not in base_header:
         raise SubmissionError(502, "The data repository's CSV has no 'id' column.")
+    base_id = base_header.index("id")
     base_ids = {row[base_id].strip() for row in base_rows if base_id < len(row)}
 
-    # The rows this submission never owned stay untouched; its own rows are
-    # replaced by what the editor sends now.
+    # Rows this submission never owned stay; its own are what the editor sends.
     kept, _ = split_batch(head_header, head_rows, base_ids)
     reject_clashes(ids, base_ids)
-    merged_csv = build_primary_csv(head_text, kept, header, rows)
+    merged_csv = build_primary_csv(
+        head_header, _line_terminator(head_text), kept, header, rows
+    )
 
     files = [NewFile(layout.primary_csv, merged_csv)]
     files.extend(collect_curve_files(tmpdir, layout))
@@ -599,30 +595,21 @@ async def update_contribution(
         if file.kind == "timeseries" and file.path not in submitted
     ]
 
-    type_slug = _type_slug(input_type)
     provenance_path = next(
         (file.path for file in branch_files if file.kind == "provenance"),
-        f"contributions/{type_slug}/{_branch_suffix(branch)}.json",
+        f"contributions/{_type_slug(input_type)}/{_branch_suffix(branch)}.json",
     )
-    submitted_at = ""
+    previous = None
     try:
         previous = json.loads(await client.get_file_text(provenance_path, ref=head_sha))
-        submitted_at = str(previous.get("submitted_at", ""))
     except Exception:
-        # An unreadable record is not worth refusing the update for; the new
-        # one simply starts its history at this commit.
-        pass
-    updated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        logger.warning("No readable provenance at %s on %s", provenance_path, branch)
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     files.append(
         NewFile(
             provenance_path,
             build_provenance(
-                contributor,
-                input_type,
-                files,
-                dismissed_warnings,
-                submitted_at or updated_at,
-                updated_at,
+                contributor, input_type, files, dismissed_warnings, now, previous
             )
             + "\n",
         )
@@ -641,14 +628,14 @@ async def update_contribution(
             contributor.email,
         )
     except Exception:
+        logger.warning("Commit on %s (#%s) failed", branch, pr_number, exc_info=True)
         raise SubmissionError(
             409,
             "The submission could not be updated: its branch moved on GitHub. "
             "Reload the page and make your changes again.",
         )
-    # The body is the submission summary the review screen reads (counts,
-    # dismissed warnings), so it has to follow the new batch. Best effort: the
-    # data is already committed, a stale summary is not worth failing on.
+    # The review screen reads the counts off the body, so it has to follow the
+    # new batch. Best effort: the data is already committed.
     try:
         await client.update_pull_body(
             pr_number,
@@ -663,5 +650,5 @@ async def update_contribution(
             ),
         )
     except Exception:
-        pass
+        logger.warning("Body of #%s not refreshed", pr_number, exc_info=True)
     return SubmissionResult(pull["html_url"], pr_number, branch, commit_sha)

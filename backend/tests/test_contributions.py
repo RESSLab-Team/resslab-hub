@@ -272,6 +272,7 @@ async def test_submit_pr_body_tells_how_to_update(tmp_path, monkeypatch):
         str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
     )
 
+    assert result.head_sha == "commit-sha"
     body = client.pr["body"]
     assert "### To update this submission" in body
     assert "do not open a second submission" in body
@@ -584,7 +585,7 @@ PROVENANCE = json.dumps(
         "schema": 1,
         "type": "all-braces",
         "submitted_at": "2026-08-01T12:00:00+00:00",
-        "contributor": {"name": "Ada Lovelace", "email": "ada@example.edu"},
+        "contributor": {"name": "Grace Hopper", "email": "grace@example.edu"},
         "files": [],
         "dismissed_warnings": [],
     }
@@ -620,15 +621,9 @@ def edit_client(**overrides) -> FakeClient:
     )
 
 
-async def update(tmpdir, client, head_sha="head-sha", branch=BRANCH, dismissed=None):
+async def update(tmpdir, client, head_sha="head-sha", dismissed=None):
     return await update_contribution(
-        str(tmpdir),
-        7,
-        branch,
-        head_sha,
-        CONTRIBUTOR,
-        dismissed or [],
-        client=client,
+        str(tmpdir), 7, head_sha, CONTRIBUTOR, dismissed or [], client=client
     )
 
 
@@ -675,6 +670,10 @@ async def test_update_rewrites_the_same_provenance_record(tmp_path, monkeypatch)
     record = json.loads(by_path[PROVENANCE_PATH])
     assert record["submitted_at"] == "2026-08-01T12:00:00+00:00"
     assert record["updated_at"] > record["submitted_at"]
+    # Without auth the record is the only trace of who did what: the first
+    # contributor stays, the editor is added next to it.
+    assert record["contributor"]["name"] == "Grace Hopper"
+    assert record["updated_by"]["name"] == "Ada Lovelace"
     assert record["dismissed_warnings"] == ["Value is far outside the range"]
     # Checksums cover what this commit writes, not what the first one did.
     checksummed = {entry["path"] for entry in record["files"]}
@@ -743,12 +742,12 @@ async def test_update_refuses_a_stale_head(tmp_path, monkeypatch):
     assert client.committed == []
 
 
-async def test_update_refuses_another_branch(tmp_path, monkeypatch):
+async def test_update_refuses_a_branch_the_hub_did_not_make(tmp_path, monkeypatch):
     patch_validation(monkeypatch)
-    client = edit_client()
+    client = edit_client(head_ref="feature/hand-made")
     with pytest.raises(SubmissionError) as caught:
-        await update(make_batch(tmp_path), client, branch="contrib/braces/other-1234")
-    assert caught.value.status_code == 409
+        await update(make_batch(tmp_path), client)
+    assert caught.value.status_code == 404
     assert client.committed == []
 
 
@@ -825,7 +824,8 @@ async def test_update_survives_a_missing_provenance_record(tmp_path, monkeypatch
     record_path = next(p for p in by_path if p.startswith("contributions/braces/"))
     assert record_path == PROVENANCE_PATH  # rebuilt from the branch suffix
     record = json.loads(by_path[record_path])
-    assert record["submitted_at"] == record["updated_at"]
+    assert "updated_at" not in record  # its history starts at this commit
+    assert record["contributor"]["name"] == "Ada Lovelace"
 
 
 async def test_update_refreshes_the_pull_request_summary(tmp_path, monkeypatch):

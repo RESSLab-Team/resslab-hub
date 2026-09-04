@@ -1014,7 +1014,6 @@ describe('contribution store — editing an open submission', () => {
     expect(store.editTarget).toEqual({
       prNumber: 7,
       prUrl: 'https://github.com/x/pull/7',
-      branch: 'contrib/braces/b1-abcd1234',
       headSha: 'head-sha'
     })
     expect(store.editing).toBe(true)
@@ -1058,6 +1057,13 @@ describe('contribution store — editing an open submission', () => {
     expect(store.loadError).toBe('not_open')
     expect(store.editing).toBe(false)
 
+    vi.mocked(defaultApi.getContribution).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 500 }
+    })
+    await store.loadSubmission(7)
+    expect(store.loadError).toBe('load_failed')
+
     vi.mocked(defaultApi.getContribution).mockResolvedValue({
       data: { ...DETAIL, type: 'all-unknown-things' }
     } as never)
@@ -1087,12 +1093,10 @@ describe('contribution store — editing an open submission', () => {
     expect(target).toEqual({
       prNumber: 7,
       prUrl: 'https://github.com/x/pull/7',
-      branch: 'contrib/braces/b1-abcd1234',
       headSha: 'head-sha'
     })
     expect(contributor).toEqual(CONTRIBUTOR)
     expect(store.submitStatus).toBe('submitted')
-    expect(store.submitMode).toBe('update')
     // The next update goes on top of the commit this one made.
     expect(store.editTarget?.headSha).toBe('new-sha')
 

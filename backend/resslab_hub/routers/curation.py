@@ -29,16 +29,13 @@ from fastapi.responses import PlainTextResponse
 
 from resslab_hub.contributions.github import DataRepoClient, configured
 from resslab_hub.contributions.projection import (
+    SubmissionError,
+    _layout_for,
     classify_files,
     split_batch,
     type_for_branch,
 )
-from resslab_hub.contributions.submission import (
-    SubmissionError,
-    _layout_for,
-    _read_csv,
-    _write_csv,
-)
+from resslab_hub.contributions.submission import _read_csv, _write_csv
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import validate_all
 from resslab_hub.models.curation import (

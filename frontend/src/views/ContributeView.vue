@@ -71,8 +71,6 @@ function startNew(): void {
 }
 
 function pick(id: DatabaseId): void {
-  // An open submission targets one database; changing it here is meaningless.
-  if (store.editing || store.loadStatus === 'loading') return
   if (store.database === id) return
   if (atRisk.value > 0 && pending.value !== id) {
     pending.value = id
@@ -350,14 +348,14 @@ async function confirmSubmit(): Promise<void> {
           <span class="status pass">
             <v-icon :icon="mdiCheckCircleOutline" size="16" />
             {{
-              store.submitMode === 'update'
+              store.editing
                 ? $t('contribute.submitted.updated_title', { number: store.pullRequestNumber })
                 : $t('contribute.submitted.title', { number: store.pullRequestNumber })
             }}
           </span>
           <span class="submitted-note">
             {{
-              store.submitMode === 'update'
+              store.editing
                 ? $t('contribute.submitted.updated_next')
                 : $t('contribute.submitted.next')
             }}
@@ -367,7 +365,7 @@ async function confirmSubmit(): Promise<void> {
               <v-icon :icon="mdiOpenInNew" size="14" />{{ $t('contribute.submitted.view_pr') }}
             </a>
             <router-link
-              v-if="store.submitMode === 'create'"
+              v-if="!store.editing"
               class="btn btn-secondary btn-sm"
               :to="{ name: 'ContributeEdit', params: { prNumber: store.pullRequestNumber } }"
             >
@@ -377,7 +375,7 @@ async function confirmSubmit(): Promise<void> {
               {{ $t('contribute.submitted.new') }}
             </button>
           </div>
-          <p v-if="store.submitMode === 'create'" class="submitted-howto">
+          <p v-if="!store.editing" class="submitted-howto">
             {{ $t('contribute.submitted.how_to_update') }}
             <a v-if="store.csvOnGitHubUrl" :href="store.csvOnGitHubUrl" target="_blank">
               {{ $t('contribute.submitted.edit_on_github') }}

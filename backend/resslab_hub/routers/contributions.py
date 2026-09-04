@@ -4,6 +4,7 @@ Handle /contributions requests: submit a validated batch as a data-repo PR.
 
 import json
 from tempfile import TemporaryDirectory
+from typing import Union
 
 from fastapi import (
     APIRouter,
@@ -61,11 +62,7 @@ def _parse_dismissed(raw: str) -> list:
 
 
 def _contributor(name: str, email: str, institution: str, orcid: str) -> Contributor:
-    """Who the commit is authored by.
-
-    NOTE(auth): self-declared, like the rest of this router, until per-user
-    academic auth (#247) turns it into the signed-in user.
-    """
+    """Who the commit is authored by: self-declared until #247 lands."""
     return Contributor(
         name=name.strip(),
         email=email.strip(),
@@ -74,7 +71,9 @@ def _contributor(name: str, email: str, institution: str, orcid: str) -> Contrib
     )
 
 
-async def _run_on_archive(file: UploadFile, run) -> ContributionResponse:
+async def _run_on_archive(
+    file: UploadFile, run
+) -> Union[ContributionResponse, JSONResponse]:
     """Extract the upload, hand the directory to `run`, map failures to HTTP.
 
     Shared by the submit and the update endpoints: both take the same archive
@@ -156,10 +155,8 @@ async def create_contribution(
     )
 
 
-# NOTE(auth): the caller proves it knows the pull request number and its
-# branch name, both public on the data repository, so this is not ownership.
-# It is what there is until #247; see `update_contribution` for the rest of
-# the reasoning. The pull request stays a pull request a curator reviews.
+# NOTE(auth): open like the POST above; what the caller proves and what still
+# protects the branch is in `update_contribution`.
 @router.put(
     "/contributions/{pr_number}",
     response_model=ContributionResponse,
@@ -170,8 +167,7 @@ async def update_open_contribution(
     request: Request,
     pr_number: int,
     file: UploadFile = File(...),
-    branch: str = Form(..., min_length=1, max_length=250),
-    head_sha: str = Form(..., min_length=7, max_length=40),
+    head_sha: str = Form(..., min_length=40, max_length=40),
     contributor_name: str = Form(..., min_length=1, max_length=200),
     contributor_email: str = Form(..., min_length=3, max_length=200),
     institution: str = Form("", max_length=200),
@@ -191,12 +187,7 @@ async def update_open_contribution(
     response = await _run_on_archive(
         file,
         lambda tmpdir: update_contribution(
-            tmpdir,
-            pr_number,
-            branch.strip(),
-            head_sha.strip(),
-            contributor,
-            dismissed,
+            tmpdir, pr_number, head_sha, contributor, dismissed
         ),
     )
     if isinstance(response, ContributionResponse):

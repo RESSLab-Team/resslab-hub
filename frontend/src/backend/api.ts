@@ -6112,7 +6112,6 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * @summary Update Open Contribution
          * @param {number} prNumber 
          * @param {File} file 
-         * @param {string} branch 
          * @param {string} headSha 
          * @param {string} contributorName 
          * @param {string} contributorEmail 
@@ -6122,13 +6121,11 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateOpenContribution: async (prNumber: number, file: File, branch: string, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        updateOpenContribution: async (prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'prNumber' is not null or undefined
             assertParamExists('updateOpenContribution', 'prNumber', prNumber)
             // verify required parameter 'file' is not null or undefined
             assertParamExists('updateOpenContribution', 'file', file)
-            // verify required parameter 'branch' is not null or undefined
-            assertParamExists('updateOpenContribution', 'branch', branch)
             // verify required parameter 'headSha' is not null or undefined
             assertParamExists('updateOpenContribution', 'headSha', headSha)
             // verify required parameter 'contributorName' is not null or undefined
@@ -6152,10 +6149,6 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
 
             if (file !== undefined) { 
                 localVarFormParams.append('file', file as any);
-            }
-
-            if (branch !== undefined) { 
-                localVarFormParams.append('branch', branch as any);
             }
 
             if (headSha !== undefined) { 
@@ -6406,7 +6399,6 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * @summary Update Open Contribution
          * @param {number} prNumber 
          * @param {File} file 
-         * @param {string} branch 
          * @param {string} headSha 
          * @param {string} contributorName 
          * @param {string} contributorEmail 
@@ -6416,8 +6408,8 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateOpenContribution(prNumber: number, file: File, branch: string, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ContributionResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateOpenContribution(prNumber, file, branch, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options);
+        async updateOpenContribution(prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ContributionResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateOpenContribution(prNumber, file, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['DefaultApi.updateOpenContribution']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6564,7 +6556,6 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * @summary Update Open Contribution
          * @param {number} prNumber 
          * @param {File} file 
-         * @param {string} branch 
          * @param {string} headSha 
          * @param {string} contributorName 
          * @param {string} contributorEmail 
@@ -6574,8 +6565,8 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateOpenContribution(prNumber: number, file: File, branch: string, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): AxiosPromise<ContributionResponse> {
-            return localVarFp.updateOpenContribution(prNumber, file, branch, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(axios, basePath));
+        updateOpenContribution(prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): AxiosPromise<ContributionResponse> {
+            return localVarFp.updateOpenContribution(prNumber, file, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -6725,7 +6716,6 @@ export class DefaultApi extends BaseAPI {
      * @summary Update Open Contribution
      * @param {number} prNumber 
      * @param {File} file 
-     * @param {string} branch 
      * @param {string} headSha 
      * @param {string} contributorName 
      * @param {string} contributorEmail 
@@ -6735,8 +6725,8 @@ export class DefaultApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public updateOpenContribution(prNumber: number, file: File, branch: string, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).updateOpenContribution(prNumber, file, branch, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(this.axios, this.basePath));
+    public updateOpenContribution(prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).updateOpenContribution(prNumber, file, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

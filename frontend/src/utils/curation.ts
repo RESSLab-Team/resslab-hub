@@ -98,29 +98,6 @@ export function editableFiles(
   return { placed, skipped }
 }
 
-/**
- * `items.map(run)` with at most `limit` calls in flight, results in order.
- *
- * Loading a submission asks the backend for one file per request; a batch with
- * many curves would otherwise fire them all at once and trip the rate limit.
- */
-export async function mapLimit<T, R>(
-  items: T[],
-  limit: number,
-  run: (item: T) => Promise<R>
-): Promise<R[]> {
-  const results: R[] = new Array(items.length)
-  let next = 0
-  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (next < items.length) {
-      const index = next++
-      results[index] = await run(items[index])
-    }
-  })
-  await Promise.all(workers)
-  return results
-}
-
 /** "3 d ago"-style age for the queue, from an ISO timestamp. */
 export function formatAge(iso: string, locale: string): string {
   const then = new Date(iso).getTime()

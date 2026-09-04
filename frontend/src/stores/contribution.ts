@@ -2,7 +2,7 @@ import { defaultApi } from '@/plugins/axios'
 import { useCurationStore } from '@/stores/curation'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES, DATA_REPOSITORY_URL } from '@/utils/contribution'
-import { databaseIdForType, editableFiles, mapLimit, toEditorCells } from '@/utils/curation'
+import { databaseIdForType, editableFiles, toEditorCells } from '@/utils/curation'
 import { normalizeCsvText } from '@/utils/csv'
 import { describeFailure, type FailureReport } from '@/utils/failureReport'
 import type { IntakePending, IntakePlan } from '@/utils/intake'
@@ -201,13 +201,11 @@ export const useContributionStore = defineStore('contribution', () => {
    */
   const editTarget = ref<EditTarget | null>(null)
   const editing = computed(() => editTarget.value !== null)
-  /** Whether the last successful submit opened a submission or updated one. */
-  const submitMode = ref<'create' | 'update'>('create')
   /** The branch moved on GitHub since it was loaded: the page must reload. */
   const submitConflict = ref(false)
 
   const loadStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const loadError = ref<'not_open' | 'unknown_database' | 'failed' | null>(null)
+  const loadError = ref<'not_open' | 'unknown_database' | 'load_failed' | null>(null)
   /** Files of the submission the editor cannot hold; left alone on the branch. */
   const skippedFiles = ref<string[]>([])
 
@@ -883,7 +881,6 @@ export const useContributionStore = defineStore('contribution', () => {
 
     settle()
     const edited = editTarget.value
-    submitMode.value = edited ? 'update' : 'create'
     submitStatus.value = 'submitting'
     submitError.value = ''
     submitConflict.value = false
@@ -896,8 +893,6 @@ export const useContributionStore = defineStore('contribution', () => {
       pullRequestNumber.value = result.pr_number
       branch.value = result.branch
       if (edited) {
-        // The submission moved: the next update goes on top of this commit,
-        // and what the curation store holds about it is now the old version.
         editTarget.value = { ...edited, headSha: result.head_sha }
         useCurationStore().invalidate(edited.prNumber)
       }
@@ -912,10 +907,11 @@ export const useContributionStore = defineStore('contribution', () => {
           status.value = deriveStatus(data)
         }
       }
-      // The branch moved on GitHub: nothing was written, and the page has to
-      // be reloaded before the changes can be made again.
+      // The branch moved on GitHub: nothing was written. Forget the cached
+      // detail too, so a reload inside the app gets the new head.
       if (isAxiosError(caught) && caught.response?.status === 409) {
         submitConflict.value = true
+        if (edited) useCurationStore().invalidate(edited.prNumber)
       }
       submitStatus.value = 'error'
       submitError.value = transportError(caught)
@@ -931,13 +927,8 @@ export const useContributionStore = defineStore('contribution', () => {
   let loadToken = 0
 
   /**
-   * Open an existing submission in the editor.
-   *
-   * Everything is fetched first, then written to the store in one go: the
-   * watcher below fires once, schedules one check, and the editor never shows
-   * a half-loaded batch. Time-series files come back as text, which is exactly
-   * how the store holds a dropped file, so they land through `attachSeries`
-   * like any other attachment.
+   * Open an existing submission in the editor. Everything is fetched first and
+   * written to the store in one go, so the watcher below fires once.
    */
   async function loadSubmission(prNumber: number): Promise<void> {
     const token = ++loadToken
@@ -952,7 +943,7 @@ export const useContributionStore = defineStore('contribution', () => {
     } catch (caught) {
       if (token !== loadToken) return
       loadError.value =
-        isAxiosError(caught) && caught.response?.status === 404 ? 'not_open' : 'failed'
+        isAxiosError(caught) && caught.response?.status === 404 ? 'not_open' : 'load_failed'
       loadStatus.value = 'error'
       return
     }
@@ -965,17 +956,15 @@ export const useContributionStore = defineStore('contribution', () => {
       return
     }
 
-    dictionary.fetch()
-    await dictionary.whenSettled()
+    await dictionary.fetch()
 
     const { placed, skipped } = editableFiles(id, detail)
     let texts: string[]
     try {
-      // A few at a time: one request per file, and the endpoint is rate limited.
-      texts = await mapLimit(placed, 3, (file) => curation.fetchFileText(prNumber, file.path))
+      texts = await Promise.all(placed.map((file) => curation.fetchFileText(prNumber, file.path)))
     } catch {
       if (token !== loadToken) return
-      loadError.value = 'failed'
+      loadError.value = 'load_failed'
       loadStatus.value = 'error'
       return
     }
@@ -988,12 +977,7 @@ export const useContributionStore = defineStore('contribution', () => {
       const row = rows.value[file.index]
       if (row) attachSeries(row.uid, file.kind, file.name, texts[index])
     })
-    editTarget.value = {
-      prNumber,
-      prUrl: detail.pr_url,
-      branch: detail.branch,
-      headSha: detail.head_sha
-    }
+    editTarget.value = { prNumber, prUrl: detail.pr_url, headSha: detail.head_sha }
     skippedFiles.value = skipped
     loadStatus.value = 'ready'
   }
@@ -1064,7 +1048,6 @@ export const useContributionStore = defineStore('contribution', () => {
     csvOnGitHubUrl,
     editTarget,
     editing,
-    submitMode,
     submitConflict,
     loadStatus,
     loadError,

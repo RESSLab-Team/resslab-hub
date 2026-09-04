@@ -160,9 +160,8 @@ class DataRepoClient:
     ) -> str:
         """One commit on top of `parent_sha`, without moving any ref.
 
-        The contributor is the commit author; the committer defaults to the
-        App's bot identity. A path in `deletions` is removed by a tree entry
-        with a null sha, which is how the Git Data API spells "delete this".
+        The contributor is the author, the App's bot the committer. A tree
+        entry with a null sha is how the Git Data API spells "delete".
         """
         git = self._gh.rest.git
         tree_entries: List[dict] = []
@@ -226,12 +225,10 @@ class DataRepoClient:
         author_name: str,
         author_email: str,
     ) -> str:
-        """Add one commit on top of `head_sha` on an existing `branch`.
+        """Add one commit on top of `head_sha` on `branch`; returns its sha.
 
-        The ref update is not forced, so GitHub refuses it when the branch
-        moved since `head_sha` was read. That is the wanted answer: someone
-        else pushed, and the edit was written against the older version.
-        Returns the new commit sha.
+        Not forced: GitHub refuses the ref update when the branch moved since
+        `head_sha` was read, which is the wanted answer.
         """
         commit_sha = await self._create_commit(
             head_sha, files, deletions, message, author_name, author_email

@@ -25,11 +25,10 @@ export interface ContributionResult {
   head_sha: string
 }
 
-/** The branch and commit an edit is written against. */
+/** The submission and the commit an edit is written against. */
 export interface EditTarget {
   prNumber: number
   prUrl: string
-  branch: string
   headSha: string
 }
 
@@ -40,7 +39,8 @@ export function isContributionResult(data: unknown): data is ContributionResult 
     candidate !== null &&
     typeof candidate.pr_url === 'string' &&
     typeof candidate.pr_number === 'number' &&
-    typeof candidate.branch === 'string'
+    typeof candidate.branch === 'string' &&
+    typeof candidate.head_sha === 'string'
   )
 }
 
@@ -89,7 +89,6 @@ export async function putContribution(
   dismissedWarnings: string[]
 ): Promise<ContributionResult> {
   const form = contributionForm(contributor, dismissedWarnings, archive)
-  form.append('branch', target.branch)
   form.append('head_sha', target.headSha)
   const { data } = await axiosInstance.put(`${baseUrl}/contributions/${target.prNumber}`, form)
   if (!isContributionResult(data)) {

@@ -6742,16 +6742,10 @@
             "format": "binary",
             "title": "File"
           },
-          "branch": {
-            "type": "string",
-            "maxLength": 250,
-            "minLength": 1,
-            "title": "Branch"
-          },
           "head_sha": {
             "type": "string",
             "maxLength": 40,
-            "minLength": 7,
+            "minLength": 40,
             "title": "Head Sha"
           },
           "contributor_name": {
@@ -6787,7 +6781,6 @@
         "type": "object",
         "required": [
           "file",
-          "branch",
           "head_sha",
           "contributor_name",
           "contributor_email"
