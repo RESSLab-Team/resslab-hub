@@ -1105,6 +1105,7 @@
       "todo_count": "{count} à remplir",
       "expand_groups": "Tout déplier",
       "collapse_groups": "Tout replier",
+      "go_to_issue": "Aller au premier",
       "duplicate": "Dupliquer",
       "remove": "Retirer",
       "problems": "Problèmes",

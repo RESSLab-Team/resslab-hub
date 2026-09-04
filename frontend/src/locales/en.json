@@ -1105,6 +1105,7 @@
       "todo_count": "{count} still to fill in",
       "expand_groups": "Expand all groups",
       "collapse_groups": "Collapse all groups",
+      "go_to_issue": "Go to the first one",
       "duplicate": "Duplicate",
       "remove": "Remove",
       "problems": "Problems",

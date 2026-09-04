@@ -159,6 +159,17 @@ function issuesIn(uid: number, columns: { name: string }[], level: 'error' | 'wa
   return columns.filter((column) => store.cellIssueFor(uid, column.name)?.level === level).length
 }
 
+/** The count in a group head is a shortcut to its first problem of that level:
+ *  one warning behind a folded heading is then one click away, without opening
+ *  the group and reading it, or scrolling back to the list on top. */
+function goToGroupIssue(uid: number, columns: { name: string }[], level: 'error' | 'warn'): void {
+  const names = new Set(columns.map((column) => column.name))
+  const issue = store
+    .activeIssuesFor(uid)
+    .find((entry) => entry.level === level && entry.column && names.has(entry.column))
+  if (issue) void goToIssue(uid, issue)
+}
+
 /** Which group a column landed in, for the jump-to-field path below. */
 const groupOfColumn = computed(() => {
   const lookup = new Map<string, FieldGroupId>()
@@ -702,31 +713,45 @@ function noteFor(kind: TimeSeriesKind): string {
             class="field-group"
             :class="{ open: openFieldGroups.has(group.id) }"
           >
-            <button
-              class="field-group-head"
-              type="button"
-              :aria-expanded="openFieldGroups.has(group.id)"
-              @click="toggleFieldGroup(group.id, $event)"
-            >
-              <v-icon
-                class="chevron"
-                :class="{ open: openFieldGroups.has(group.id) }"
-                :icon="mdiChevronRight"
-                size="14"
-              />
-              <span class="field-group-label">{{ $t(`field_group.${group.id}`) }}</span>
+            <div class="field-group-head">
+              <button
+                class="field-group-toggle"
+                type="button"
+                :aria-expanded="openFieldGroups.has(group.id)"
+                @click="toggleFieldGroup(group.id, $event)"
+              >
+                <v-icon
+                  class="chevron"
+                  :class="{ open: openFieldGroups.has(group.id) }"
+                  :icon="mdiChevronRight"
+                  size="14"
+                />
+                <span class="field-group-label">{{ $t(`field_group.${group.id}`) }}</span>
+              </button>
               <span class="issue-counts">
-                <span v-if="issuesIn(row.uid, group.items, 'error')" class="n error">
+                <button
+                  v-if="issuesIn(row.uid, group.items, 'error')"
+                  class="n error"
+                  type="button"
+                  :title="$t('contribute.editor.go_to_issue')"
+                  @click="goToGroupIssue(row.uid, group.items, 'error')"
+                >
                   {{ issuesIn(row.uid, group.items, 'error')
                   }}<v-icon :icon="mdiAlertCircleOutline" size="12" />
-                </span>
-                <span v-if="issuesIn(row.uid, group.items, 'warn')" class="n warn">
+                </button>
+                <button
+                  v-if="issuesIn(row.uid, group.items, 'warn')"
+                  class="n warn"
+                  type="button"
+                  :title="$t('contribute.editor.go_to_issue')"
+                  @click="goToGroupIssue(row.uid, group.items, 'warn')"
+                >
                   {{ issuesIn(row.uid, group.items, 'warn')
                   }}<v-icon :icon="mdiAlertOutline" size="12" />
-                </span>
+                </button>
               </span>
               <span class="field-group-count">{{ group.items.length }}</span>
-            </button>
+            </div>
             <div v-if="openFieldGroups.has(group.id)" class="fields">
               <div
                 v-for="column in group.items"
@@ -1515,18 +1540,29 @@ function noteFor(kind: TimeSeriesKind): string {
   display: flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
   padding: 7px 8px;
   background: var(--bg);
-  border: 0;
   border-radius: 4px;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
   color: var(--fg);
 }
 .field-group-head:hover {
   background: var(--bg-subtle);
+}
+/* The heading folds, the counts beside it jump to a problem, so they are two
+   buttons and not one. The toggle takes the whole free width all the same. */
+.field-group-toggle {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 .field-group-head .chevron {
   flex: 0 0 auto;
@@ -1555,6 +1591,18 @@ function noteFor(kind: TimeSeriesKind): string {
   gap: 6px;
   font-size: 11px;
   font-weight: 600;
+}
+.field-group-head .issue-counts .n {
+  padding: 0 2px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+.field-group-head .issue-counts .n:hover {
+  background: var(--bg);
+  text-decoration: underline;
 }
 .field-group.open .fields {
   padding: 4px 8px 10px;
