@@ -1,4 +1,4 @@
-.PHONY: install hooks dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data backup-dump new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
+.PHONY: install hooks dev-all tmux-dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data backup-dump new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
 
 install:
 	pnpm install
@@ -8,10 +8,15 @@ install:
 hooks:
 	pnpm exec lefthook install
 
-# tmux session "resslab-hub/<branch>" with backend, frontend, claude and shell
-# windows; starts the database if needed. Works in the main checkout and in
-# every git worktree (see docs/worktree-dev-environment.md).
-dev-all:
+# Database, backend and frontend in this terminal (Ctrl-C stops both servers).
+# In a worktree, export its ports first: set -a; . .env.worktree; set +a
+dev-all: dev-database
+	$(MAKE) -j2 --no-print-directory dev-backend dev-frontend
+
+# Same thing as a tmux session "resslab-hub/<branch>" with four panes: claude,
+# backend, frontend and shell. Works in the main checkout and in every git
+# worktree (see docs/worktree-dev-environment.md).
+tmux-dev-all:
 	scripts/tmux-dev.sh
 
 dev-backend:

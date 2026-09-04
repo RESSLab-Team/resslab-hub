@@ -10,7 +10,7 @@ import type { ParallelSelection } from '@/composables/chart'
 import { useDataset } from '@/composables/useDataset'
 import { useCurationStore } from '@/stores/curation'
 import { useDictionaryStore } from '@/stores/dictionary'
-import { databaseIdForType, formatAge } from '@/utils/curation'
+import { databaseIdForType, formatAge, withDerivedExperiments } from '@/utils/curation'
 import { DATABASES } from '@/utils/navigation'
 import {
   mdiAlertOutline,
@@ -105,7 +105,9 @@ async function loadRanges(): Promise<void> {
 onMounted(async () => {
   dictionary.fetch()
   try {
-    detail.value = await store.fetchDetail(number.value)
+    // Derived columns (the material `type`) are added here once, so the cohort
+    // chips, the cohort query and the ghost chart all read them as cells.
+    detail.value = withDerivedExperiments(await store.fetchDetail(number.value))
     state.value = 'ready'
     const config = database.value ? GHOST_CONFIGS[database.value] : undefined
     cohortFields.value = config ? [...config.cohortDefaults] : []
@@ -229,6 +231,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
           />
           <data-preview-panel
             v-if="selected"
+            :cells="selected.cells"
             :cohort-query="cohortQuery"
             :database="database"
             :files="selectedFiles"

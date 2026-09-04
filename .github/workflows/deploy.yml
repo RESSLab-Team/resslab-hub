@@ -5,6 +5,10 @@ on:
   push:
     branches: [dev, stage]
     tags: ['v*.*.*']
+  # Manual fallback: a tag created by release-please with a token that cannot
+  # trigger workflows deploys nothing. Then run this by hand on the tag:
+  #   gh workflow run deploy.yml --ref v<version>
+  workflow_dispatch:
 
 jobs:
   deploy:

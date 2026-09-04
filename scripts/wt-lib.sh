@@ -32,9 +32,16 @@ branch_ports() {
   local h; h=$(printf '%s' "$1" | cksum | cut -d' ' -f1)
   BACKEND_PORT=$((18000 + h % 500)); FRONTEND_PORT=$((19000 + h % 500))
 }
-# Export .env.worktree if this checkout has one; the main checkout uses the classic ports.
+# The keys wt-setup.sh writes to .env.worktree (RESSLAB_DATA_DIR excluded: it
+# points at the same data repo everywhere, so an inherited value does no harm).
+ENV_WORKTREE_KEYS="WT_BRANCH WT_SLUG BACKEND_PORT FRONTEND_PORT DB_NAME POSTGRES_TEST_DB"
+# Export .env.worktree if this checkout has one. Without one (the main checkout)
+# drop those keys first: a shell that sourced another worktree's file, or a tmux
+# server started from one, would otherwise hand its ports to this checkout, and
+# the backend then listens where the frontend does not look.
 load_env_worktree() {
-  if [ -f "$ROOT/.env.worktree" ]; then set -a; . "$ROOT/.env.worktree"; set +a; fi
+  if [ -f "$ROOT/.env.worktree" ]; then set -a; . "$ROOT/.env.worktree"; set +a
+  else unset $ENV_WORKTREE_KEYS; fi
   : "${BACKEND_PORT:=$MAIN_BACKEND_PORT}" "${FRONTEND_PORT:=$MAIN_FRONTEND_PORT}"
 }
 psql_db() { docker exec -i "$DB_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -q "$@"; }

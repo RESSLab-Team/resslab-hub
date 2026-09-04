@@ -14,7 +14,8 @@ RESSLab-Hub is a fullstack research database for structural steel components (br
 
 ```bash
 make install          # Install all dependencies (pnpm + uv sync + frontend)
-make dev-all          # tmux session: database + backend + frontend + claude + shell
+make dev-all          # database + backend + frontend in the current terminal
+make tmux-dev-all     # same, as a tmux session with a claude pane and a shell pane
 make dev-database     # Start PostgreSQL via Docker Compose
 make dev-backend      # Start FastAPI backend (http://127.0.0.1:8000)
 make dev-frontend     # Start Vite dev server (http://127.0.0.1:5173)
@@ -66,7 +67,7 @@ pnpm run api           # Regenerate TypeScript client from openapi.json
 
 ### Dev servers and worktrees
 
-Every checkout — the main one and each git worktree under `.claude/worktrees/<branch>` — gets its own tmux session `resslab-hub/<branch>` with one `dev` window of four titled panes: `claude` (the left half, focused on attach), `backend`, `frontend` and `shell` stacked on the right (`scripts/tmux-dev.sh`; `make new BRANCH=feat/x` creates the worktree and attaches, `wt create` alone starts it detached through `.wt.toml`). Full guide: `docs/worktree-dev-environment.md`.
+Every checkout — the main one and each git worktree under `.claude/worktrees/<branch>` — gets its own tmux session `resslab-hub/<branch>` with one `dev` window of four titled panes: `claude` (the left half, focused on attach), `backend`, `frontend` and `shell` stacked on the right (`scripts/tmux-dev.sh`, also `make tmux-dev-all`; `make new BRANCH=feat/x` creates the worktree and attaches, `wt create` alone starts it detached through `.wt.toml`). Full guide: `docs/worktree-dev-environment.md`.
 
 - **Know where you are**: you are in a worktree exactly when `.env.worktree` exists at the repo root (equivalently, your path contains `.claude/worktrees/`). The tmux panes, the claude one included, start with that file exported, so `echo $WT_BRANCH $BACKEND_PORT $FRONTEND_PORT` orients you instantly; in a shell without them, `set -a; . .env.worktree; set +a` first.
 - **Ports**: a worktree's `.env.worktree` holds its `BACKEND_PORT` / `FRONTEND_PORT` (hashed from the branch name, 18xxx/19xxx); the main checkout uses 8000/5173. Read them from that file — never guess, never start a second server on a port that is already served. `scripts/wt-open.sh [frontend|backend]` prints and opens the URL.
@@ -115,8 +116,8 @@ Vue 3 + TypeScript + Vite + Vuetify 3 + Pinia.
 - **Reverse proxy**: Traefik v3.6 routes `/` → frontend, `/api` → backend (stripping the `/api` prefix). In dev the backend listens directly on `:8000` with no prefix; in prod code paths must tolerate `ROOT_PATH=/api`.
 - **Database**: PostgreSQL 14 (Alpine)
 - **Secrets**: `secrets/.env` (gitignored) — not committed; create with `mkdir -p secrets && echo POSTGRES_PASSWORD=changeit > secrets/.env`. Backend also requires `API_PASSWORD` for the `/validate` and admin endpoints.
-- **Branch model**: `dev` is the default/integration branch (deploys to the k8s `dev` overlay); `stage` is the single pre-prod branch (k8s `stage` overlay); `main` is the release branch — `release-please.yml` cuts version tags (`v*.*.*`) from it, and tag pushes deploy to the k8s `prod` overlay. Promote `dev` → `stage` → release via PRs/tags.
-- **CI/CD**: GitHub Actions — `ci.yml` runs tests/lint on push/PR to `dev` + `main`; `release-please.yml` auto-manages versioning on `main`; `deploy.yml` builds + deploys (`dev`/`stage` branches → k8s, `v*.*.*` tags → prod) via the EPFL enac build-push-deploy action. The legacy `deploy-test.yml` / `deploy-prod.yml` (old enac-deploy-action) were removed once the k8s migration (#227) fully replaced them.
+- **Branch model**: `dev` is the default/integration branch (deploys to the k8s `dev` overlay); `stage` is the single pre-prod branch (k8s `stage` overlay); `main` is the release branch — `release-please.yml` cuts version tags (`v*.*.*`) from it, and tag pushes deploy to the k8s `prod` overlay. Promote `dev` → `stage` → release via PRs/tags. Promotion PRs must be merged with a **merge commit**, never squashed, or Release Please sees nothing to release. Full steps: `docs/releasing.md`.
+- **CI/CD**: GitHub Actions — `ci.yml` runs tests/lint on push/PR to `dev`, `stage` and `main`; `release-please.yml` auto-manages versioning on `main`; `deploy.yml` builds + deploys (`dev`/`stage` branches → k8s, `v*.*.*` tags → prod) via the EPFL enac build-push-deploy action. The legacy `deploy-test.yml` / `deploy-prod.yml` (old enac-deploy-action) were removed once the k8s migration (#227) fully replaced them.
 
 ### Related Repositories
 
