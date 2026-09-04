@@ -469,7 +469,7 @@ async def test_user_probe_stays_on_the_machine_credential(client):
     assert (await client.get("/user")).status_code == 401
     ok = await client.get("/user", auth=SERVICE_AUTH)
     assert ok.status_code == 200
-    assert ok.json() == {"username": "user"}
+    assert ok.json() == {"username": SERVICE_AUTH[0]}
 
 
 async def test_a_session_is_not_a_machine_credential(client, sign_in):

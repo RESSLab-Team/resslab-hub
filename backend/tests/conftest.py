@@ -154,7 +154,9 @@ async def client(_clean_tables):
 # test that needs a signed-in caller seeds a user plus a session row and sets
 # the cookie by hand, the same thing a real sign-in ends up doing.
 # ---------------------------------------------------------------------------
-SERVICE_AUTH = ("user", "changeit")
+# Whatever the environment configured: settings.toml says "changeit", CI says
+# something else.
+SERVICE_AUTH = (str(settings.api_username), str(settings.api_password))
 
 
 @pytest.fixture
