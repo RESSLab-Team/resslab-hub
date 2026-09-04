@@ -1112,8 +1112,6 @@
       "dismiss_hint": "Ignorer — l’avertissement réapparaît si la valeur change",
       "dismissed_count": "{count} avertissement(s) ignoré(s)",
       "restore": "Rétablir cet avertissement",
-      "expand_issues": "Messages complets",
-      "collapse_issues": "Messages courts",
       "restore_all": "Rétablir",
       "drop_one_file": "Seul le premier fichier a été importé.",
       "intro": "Partez du kit de départ : c’est le dossier de soumission organisé comme il faut — le CSV modèle avec les en-têtes exacts de cette base, et un fichier d’exemple par type de réponse. Remplissez une ligne par essai (le dictionnaire des données précise ce que chaque colonne attend), puis déposez le dossier entier ici.",

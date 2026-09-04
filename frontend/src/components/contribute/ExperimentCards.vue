@@ -244,13 +244,6 @@ function toggleDismissed(uid: number): void {
   showDismissed.value = next
 }
 
-/** Cards whose problem messages are shown in full rather than on one line. */
-const fullIssues = ref<Set<number>>(new Set())
-function toggleFullIssues(uid: number): void {
-  const next = new Set(fullIssues.value)
-  if (!next.delete(uid)) next.add(uid)
-  fullIssues.value = next
-}
 function issueCount(uid: number, level: 'error' | 'warn'): number {
   return store.activeIssuesFor(uid).filter((issue) => issue.level === level).length
 }
@@ -593,24 +586,13 @@ function noteFor(kind: TimeSeriesKind): string {
           v-if="store.activeIssuesFor(row.uid).length || store.dismissedIssuesFor(row.uid).length"
           class="card-section"
         >
-          <h3>
-            {{ $t('contribute.editor.problems') }}
-            <button class="link issues-toggle" type="button" @click="toggleFullIssues(row.uid)">
-              {{
-                $t(
-                  fullIssues.has(row.uid)
-                    ? 'contribute.editor.collapse_issues'
-                    : 'contribute.editor.expand_issues'
-                )
-              }}
-            </button>
-          </h3>
+          <h3>{{ $t('contribute.editor.problems') }}</h3>
 
           <div
             v-for="issue in store.activeIssuesFor(row.uid)"
             :key="issue.key"
             class="issue"
-            :class="[issue.level, { dense: !fullIssues.has(row.uid) }]"
+            :class="issue.level"
           >
             <button class="issue-go" type="button" @click="goToIssue(row.uid, issue)">
               <v-icon :icon="mdiAlertOutline" size="14" />
@@ -660,7 +642,6 @@ function noteFor(kind: TimeSeriesKind): string {
                 v-for="issue in store.dismissedIssuesFor(row.uid)"
                 :key="issue.key"
                 class="issue muted"
-                :class="{ dense: !fullIssues.has(row.uid) }"
               >
                 <button class="issue-go" type="button" @click="goToIssue(row.uid, issue)">
                   <v-icon :icon="mdiBellOffOutline" size="14" />
@@ -1350,10 +1331,6 @@ function noteFor(kind: TimeSeriesKind): string {
   margin-top: 16px;
 }
 .card-section h3 {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
   padding-bottom: 6px;
   margin: 0 0 8px;
   border-bottom: 1px solid var(--border-subtle);
@@ -1370,22 +1347,6 @@ function noteFor(kind: TimeSeriesKind): string {
   gap: 4px;
   margin-bottom: 2px;
   font-size: 12.5px;
-}
-/* One line per problem, the field name and the start of the message; the
-   toggle in the heading shows them in full. */
-.issue.dense .issue-go span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.issue-go span {
-  min-width: 0;
-}
-.issues-toggle {
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
 }
 .issue.error {
   color: var(--epfl-red);
@@ -1833,9 +1794,9 @@ function noteFor(kind: TimeSeriesKind): string {
 }
 
 /* Roomy layout, for screens wider than a laptop: the status dot is back, the
-   verdict is spelled out, problems are shown in full, and labels reserve two
-   lines so the inputs of a row share a baseline. Everything above is the
-   dense default, which a 13" laptop needs. */
+   verdict is spelled out, and labels reserve two lines so the inputs of a row
+   share a baseline. Everything above is the dense default, which a 13" laptop
+   needs. */
 @media (min-width: 1600px) {
   .card {
     margin-bottom: 10px;
@@ -1863,8 +1824,7 @@ function noteFor(kind: TimeSeriesKind): string {
   .badge {
     min-width: 8em;
   }
-  .issue-counts,
-  .issues-toggle {
+  .issue-counts {
     display: none;
   }
   .issue-text {
@@ -1885,10 +1845,6 @@ function noteFor(kind: TimeSeriesKind): string {
   }
   .issue-go {
     padding: 3px 6px;
-  }
-  .issue.dense .issue-go span {
-    overflow: visible;
-    white-space: normal;
   }
   .field label {
     min-height: 32px;
