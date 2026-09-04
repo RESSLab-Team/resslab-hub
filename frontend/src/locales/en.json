@@ -1272,7 +1272,7 @@
       "recap_dismissed": "{count} dismissed warning(s) will be listed for the curator.",
       "submitting_as": "Submitting as",
       "edit_identity": "Edit",
-      "identity_incomplete": "Add your name and confirm your email address on your account page before submitting.",
+      "identity_incomplete": "This account has no confirmed email address. Sign in with your email address to submit.",
       "link_github_hint": "Link GitHub on your account page to be mentioned on the pull request and follow its review.",
       "note": "These details are recorded with the submission so curators can credit and contact you. They appear publicly in the data repository.",
       "cancel": "Cancel",
@@ -1470,7 +1470,7 @@
       "no_email": "No confirmed address",
       "verified": "confirmed",
       "identities": "Ways to sign in",
-      "identities_lede": "Each one signs you into the same account. You can add a second one, and remove any but the last.",
+      "identities_lede": "Each one signs you into the same account. GitHub can be added and removed. The email address stays: it is how the account is found.",
       "unlink": "Remove",
       "link_github": "Link GitHub",
       "link_github_why": "With GitHub linked, your submission mentions you on its pull request, so you get the review comments and can answer them.",
@@ -1503,7 +1503,9 @@
       "too_many_attempts": "Too many tries. Ask for a new code.",
       "github_failed": "GitHub sign-in did not finish. Please try again.",
       "email_in_use": "That address already has an account here. Sign in with it, then link GitHub from your account page.",
-      "identity_taken": "That GitHub account is already linked to another account here."
+      "identity_taken": "That GitHub account is already linked to another account here.",
+      "github_denied": "You cancelled the GitHub sign-in.",
+      "cannot_unlink": "This one cannot be removed: it is how your account is found."
     }
   }
 }

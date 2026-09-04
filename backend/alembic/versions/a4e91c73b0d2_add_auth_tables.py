@@ -41,7 +41,10 @@ def upgrade():
             "role", sa.String(length=20), nullable=False, server_default="viewer"
         ),
         sa.Column(
-            "role_source", sa.String(length=40), nullable=False, server_default="default"
+            "role_source",
+            sa.String(length=40),
+            nullable=False,
+            server_default="default",
         ),
         sa.Column("role_override", sa.String(length=20), nullable=True),
         sa.Column(
@@ -125,7 +128,9 @@ def upgrade():
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("last_seen_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("ip", sa.String(length=45), nullable=False, server_default=""),
-        sa.Column("user_agent", sa.String(length=400), nullable=False, server_default=""),
+        sa.Column(
+            "user_agent", sa.String(length=400), nullable=False, server_default=""
+        ),
         sa.Column("revoked_at", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(["user_id"], ["auth_user.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),

@@ -9,8 +9,7 @@ from resslab_hub.auth.csrf import is_same_origin
 
 def _request(method: str = "POST", headers: dict | None = None) -> Request:
     raw = [
-        (key.lower().encode(), value.encode())
-        for key, value in (headers or {}).items()
+        (key.lower().encode(), value.encode()) for key, value in (headers or {}).items()
     ]
     scope = {
         "type": "http",
@@ -36,14 +35,21 @@ def test_other_sites_are_refused(value):
 
 def test_origin_is_the_fallback_when_sec_fetch_site_is_missing():
     assert is_same_origin(
-        _request(headers={"origin": "https://resslab-hub.epfl.ch", "host": "resslab-hub.epfl.ch"})
+        _request(
+            headers={
+                "origin": "https://resslab-hub.epfl.ch",
+                "host": "resslab-hub.epfl.ch",
+            }
+        )
     )
     assert not is_same_origin(
-        _request(headers={"origin": "https://evil.example", "host": "resslab-hub.epfl.ch"})
+        _request(
+            headers={"origin": "https://evil.example", "host": "resslab-hub.epfl.ch"}
+        )
     )
 
 
 def test_no_browser_headers_at_all_passes():
-    # curl with the machine credential sends neither header, and carries no
-    # session cookie for a cross-site page to ride on.
+    # curl with the machine credential sends neither header. A browser always
+    # sends at least one on a cross-site write.
     assert is_same_origin(_request(headers={"host": "resslab-hub.epfl.ch"}))

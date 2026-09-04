@@ -1,23 +1,21 @@
 """
 Secrets used by the sign-in flows, and how they are compared.
 
-Nothing that is mailed or put in a cookie is ever stored: the database keeps
-the sha256 of it. The values are long random tokens (or, for the mailed code,
-short-lived and attempt-limited), so a plain hash is enough — a password
-hashing function would only slow down our own lookups.
+Nothing that is mailed or put in a cookie is ever stored, only its sha256. The
+values are long random tokens, or a short code that is attempt-limited and
+short-lived, so a plain hash is enough.
 """
 
 import hmac
 import secrets
 from hashlib import sha256
 
-#: Digits in the code sent by mail. Six is what people expect to retype, and
-#: the five-attempt cap plus the ten-minute lifetime make guessing hopeless.
+#: Digits in the mailed code. Six is what people expect to retype.
 CODE_DIGITS = 6
 
 
 def new_code() -> str:
-    """A numeric code to type back, zero-padded so it always has 6 digits."""
+    """A numeric code to type back, zero-padded to 6 digits."""
     return f"{secrets.randbelow(10**CODE_DIGITS):0{CODE_DIGITS}d}"
 
 

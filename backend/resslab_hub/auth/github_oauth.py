@@ -2,23 +2,17 @@
 Sign in with GitHub, and link a GitHub account to an existing user.
 
 This is the user-to-server side of the same GitHub App that opens contribution
-pull requests: one App, an installation token for writing to the data repo, and
-an OAuth pair here for identifying people. The two credentials are different
-and are kept in different settings.
+pull requests: an installation token for writing to the data repo, and an
+OAuth pair here for identifying people. Different credentials, different
+settings.
 
-Why it is worth having early: a contributor with a linked GitHub account is
-@mentioned on their own pull request, so GitHub notifies them of every review
-comment and they can answer where the review happens. Without it a submission
-is an anonymous pull request from a bot.
-
-The OAuth ``state`` is a ``LoginChallenge`` row rather than a signed cookie, so
-the same table holds every sign-in in progress and the callback works even when
-the browser drops cookies on the way back.
+The OAuth ``state`` is a ``LoginChallenge`` row whose id also goes in the
+``resslab_login`` cookie, so the callback only works in the browser that
+started the round trip.
 """
 
-import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from typing import Optional
 from urllib.parse import urlencode
 
@@ -26,11 +20,10 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from resslab_hub.auth.challenges import aware, now, purge_expired
 from resslab_hub.auth.urls import api_url, safe_redirect
 from resslab_hub.config import settings
 from resslab_hub.models.database.auth import LoginChallenge
-
-logger = logging.getLogger(__name__)
 
 AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
 TOKEN_URL = "https://github.com/login/oauth/access_token"
@@ -68,9 +61,8 @@ def authorize_url(state: str) -> str:
         {
             "client_id": str(settings.github_oauth_client_id),
             "redirect_uri": callback_url(),
-            # Only the address, and only to fill in a new account. Everything
-            # the app does to the data repo goes through the installation
-            # token, never through the person's own grant.
+            # Only who they are and their address. Writing to the data repo
+            # goes through the installation token, never a person's grant.
             "scope": "read:user user:email",
             "state": state,
         }
@@ -85,24 +77,28 @@ async def start(
     ip: str = "",
 ) -> str:
     """Record a pending round trip; its row id is the OAuth ``state``."""
+    await purge_expired(db)
     challenge = LoginChallenge(
         kind="oauth_github",
         redirect_to=safe_redirect(redirect_to),
         link_user_id=link_user_id,
         ip=ip,
-        expires_at=datetime.now(timezone.utc) + STATE_TTL,
+        expires_at=now() + STATE_TTL,
     )
     db.add(challenge)
-    await db.flush()
     await db.commit()
     return challenge.id
 
 
 async def consume_state(
-    db: AsyncSession, state: str
+    db: AsyncSession, state: str, expected: str
 ) -> Optional[LoginChallenge]:
-    """Look up and burn a ``state``. None when unknown, used or expired."""
-    if not state:
+    """Look up and burn a ``state``.
+
+    None when unknown, used, expired, or not the one this browser started
+    (``expected`` is the cookie value).
+    """
+    if not state or state != expected:
         return None
     result = await db.execute(
         select(LoginChallenge).where(
@@ -110,14 +106,13 @@ async def consume_state(
         )
     )
     challenge = result.scalar_one_or_none()
-    if challenge is None or challenge.consumed_at is not None:
+    if (
+        challenge is None
+        or challenge.consumed_at is not None
+        or aware(challenge.expires_at) <= now()
+    ):
         return None
-    expires_at = challenge.expires_at
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    if expires_at <= datetime.now(timezone.utc):
-        return None
-    challenge.consumed_at = datetime.now(timezone.utc)
+    challenge.consumed_at = now()
     await db.commit()
     return challenge
 
@@ -158,8 +153,8 @@ async def fetch_user(token: str) -> GitHubProfile:
         email, verified = account.get("email"), False
         mails = await client.get(f"{API_URL}/user/emails")
         if mails.status_code == 200:
-            # Only the primary verified address, and only to fill in a new
-            # account. An unverified one proves nothing.
+            # Only the primary verified address. An unverified one proves
+            # nothing.
             for entry in mails.json():
                 if entry.get("primary") and entry.get("verified"):
                     email, verified = entry.get("email"), True

@@ -152,7 +152,7 @@ async def client(_clean_tables):
 # Auth is enforced by FastAPI dependencies, which only run over HTTP. So the
 # gated endpoints have to be exercised through the ``client`` fixture, and a
 # test that needs a signed-in caller seeds a user plus a session row and sets
-# the cookie by hand — the same thing a real sign-in ends up doing.
+# the cookie by hand, the same thing a real sign-in ends up doing.
 # ---------------------------------------------------------------------------
 SERVICE_AUTH = ("user", "changeit")
 

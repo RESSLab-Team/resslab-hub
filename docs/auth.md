@@ -29,23 +29,29 @@ phase 1 only enforces "signed in". The rules that hand out `contributor` and
 
 - **Session.** A random token in an httpOnly `resslab_session` cookie, whose
   sha256 is a row in `auth_session`. Server side so signing out, and later an
-  admin revoking access, take effect at once. Thirty days, slid forward at most
-  once an hour.
+  admin revoking access, take effect at once. Thirty days.
 - **Same-origin everywhere.** Traefik serves the app and the API from one host
   in the deployments; in development a Vite proxy does the same (`/api` to the
   backend, prefix stripped). So the cookie is first-party and there is no CORS
   layer at all. Open the dev app on the host the proxy serves, not on the
   backend port.
-- **Cross-site writes** are refused by a middleware: any unsafe method carrying
-  the session cookie must have `Sec-Fetch-Site: same-origin` or `none`, or an
-  `Origin` matching the `Host`. Requests without the cookie (the data
-  repository's CI with its Basic credential) pass through untouched.
+- **Cross-site writes** are refused by a middleware: every unsafe method must
+  have `Sec-Fetch-Site: same-origin` or `none`, or an `Origin` matching the
+  `Host`. Non-browser clients (the data repository's CI with its Basic
+  credential) send neither header and pass.
 - **Nothing mailed or cookied is stored**, only its sha256. Codes die after ten
   minutes, five wrong tries, or one use. An address can trigger five mails an
-  hour, counted in SQL because that has to hold across replicas.
+  hour and one IP twenty, counted in SQL because that has to hold across
+  replicas. Finished challenges are purged a day later, when a new one starts.
+- **The second step happens in the browser that did the first.** A ten-minute
+  `resslab_login` cookie names the sign-in in progress: the mailed challenge,
+  or the GitHub `state`. A code, or a GitHub callback URL, is useless in any
+  other browser. The mailed link is the exception, on purpose: it carries its
+  own 256-bit token.
 - **Accounts are never merged** because two providers report the same address.
   Whoever holds an address keeps it; the second one is told to sign in with it
-  and link the provider from the account page.
+  and link the provider from the account page. The address is also how an
+  account is found, so the email identity cannot be unlinked: GitHub can.
 - **Absolute URLs** (the OAuth callback, the mailed link) are built from the
   `PUBLIC_BASE_URL` setting. They cannot come from the request: Traefik has
   already stripped `/api` and the `Host` is an internal service name.

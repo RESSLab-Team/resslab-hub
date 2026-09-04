@@ -3,12 +3,13 @@ Handle /auth requests: signing in, signing out, and who am I.
 
 Browsing the databases needs no account. These endpoints exist so that
 contributing and curating can (#247): a person proves an address or a provider
-account, gets a session cookie, and the contribution pipeline finally knows who
+account, gets a session cookie, and the contribution pipeline knows who
 submitted what.
 """
 
 import logging
 from typing import Optional
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
@@ -21,6 +22,7 @@ from resslab_hub.auth.sessions import (
     SESSION_COOKIE,
     clear_login_cookie,
     clear_session_cookie,
+    client_ip,
     create_session,
     revoke_session,
     set_login_cookie,
@@ -72,11 +74,11 @@ async def get_me(
 ) -> MeResponse:
     """Who is signed in, if anyone.
 
-    Answers 200 with a null user when nobody is, rather than 401: the SPA calls
-    this on every page load, including for visitors who never sign in.
+    200 with a null user when nobody is, rather than 401: the SPA asks on
+    every page load, and an anonymous visitor is not an error.
     """
-    # Never let the shared response cache (utils/caching.py) or a proxy keep
-    # one visitor's answer for the next one.
+    # Never let the shared response cache or a proxy keep one visitor's
+    # answer for the next one.
     response.headers["Cache-Control"] = "no-store"
     if user is None:
         return MeResponse(user=None)
@@ -92,14 +94,12 @@ async def start_email_login(
     db: AsyncSession = Depends(get_session),
 ) -> EmailStartResponse:
     """Mail a sign-in code (and a link that does the same) to an address."""
-    ip = request.client.host if request.client else ""
     challenge_id = await email_login.start(
-        db, str(payload.email), payload.redirect_to, ip
+        db, str(payload.email), payload.redirect_to, client_ip(request)
     )
     if challenge_id is not None:
         set_login_cookie(response, challenge_id)
-    # Same answer whether the mail went out, the address was capped, or no
-    # account exists: none of that is a stranger's business.
+    # Same answer whether the mail went out or the address was capped.
     return EmailStartResponse(sent=True)
 
 
@@ -142,14 +142,13 @@ async def verify_email_login(
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(
     request: Request,
-    response: Response,
     db: AsyncSession = Depends(get_session),
 ) -> Response:
     """Sign out. Idempotent, so a stale cookie is not an error."""
     await revoke_session(db, request.cookies.get(SESSION_COOKIE, ""))
-    result = Response(status_code=status.HTTP_204_NO_CONTENT)
-    clear_session_cookie(result)
-    return result
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    clear_session_cookie(response)
+    return response
 
 
 @router.get("/identities", response_model=list[IdentityOut])
@@ -170,17 +169,20 @@ async def delete_identity(
     db: AsyncSession = Depends(get_session),
     user: User = Depends(require_user),
 ) -> Response:
-    """Unlink a provider. The last one cannot go, it would lock the account."""
+    """Unlink a provider.
+
+    Not the last one, it would lock the account. And not ``email``: the
+    account is found by its address, so whoever proves the address gets in
+    whatever this table says, and removing the row would only pretend
+    otherwise.
+    """
     identities = await users.list_identities(db, user.id)
     target = next((item for item in identities if item.id == identity_id), None)
     if target is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="not_found")
+    if target.provider == "email" or len(identities) <= 1:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="No such identity."
-        )
-    if len(identities) <= 1:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="This is your only way to sign in.",
+            status_code=status.HTTP_409_CONFLICT, detail="cannot_unlink"
         )
     if target.provider == "github":
         user.github_login = ""
@@ -191,15 +193,7 @@ async def delete_identity(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-# ---------------------------------------------------------------------------
-# GitHub
-#
-# The same App that opens the contribution pull requests also acts as the
-# OAuth client here. Linking it early matters: with a GitHub account attached,
-# a contributor is @mentioned on their own pull request, gets GitHub's
-# notifications, and can answer a curator's comment in the place the review
-# actually happens.
-# ---------------------------------------------------------------------------
+# --- GitHub ---------------------------------------------------------------
 
 
 @router.get("/github/start")
@@ -224,9 +218,12 @@ async def start_github_login(
         db,
         redirect_to=redirect_to,
         link_user_id=user.id if (link and user) else None,
-        ip=request.client.host if request.client else "",
+        ip=client_ip(request),
     )
-    return RedirectResponse(github_oauth.authorize_url(state), status_code=302)
+    response = RedirectResponse(github_oauth.authorize_url(state), status_code=302)
+    # The callback must come back to this browser: see consume_state.
+    set_login_cookie(response, state)
+    return response
 
 
 @router.get("/github/callback")
@@ -239,16 +236,25 @@ async def finish_github_login(
 ) -> RedirectResponse:
     """Come back from GitHub: sign the person in, or link the account.
 
-    Always answers with a redirect into the SPA, with ``?error=<slug>`` when
-    something went wrong, because the browser lands here by navigation and has
-    no way to render a JSON error.
+    Always a redirect into the SPA, with ``?error=<slug>`` when something went
+    wrong: the browser lands here by navigation and cannot render JSON.
     """
-    challenge = await github_oauth.consume_state(db, state)
+    challenge = await github_oauth.consume_state(
+        db, state, request.cookies.get(LOGIN_COOKIE, "")
+    )
     redirect_to = safe_redirect(challenge.redirect_to) if challenge else "/"
     fallback = "/account" if (challenge and challenge.link_user_id) else "/login"
 
-    if error or not code or challenge is None:
-        return _redirect_error(fallback, error or "github_failed")
+    if challenge is None:
+        return _redirect_error(fallback, "github_failed")
+    if error:
+        # GitHub's own slugs are not ours to echo: the person either said no
+        # or something broke.
+        return _redirect_error(
+            fallback, "github_denied" if error == "access_denied" else "github_failed"
+        )
+    if not code:
+        return _redirect_error(fallback, "github_failed")
 
     try:
         profile = await github_oauth.fetch_profile(code)
@@ -268,7 +274,7 @@ async def finish_github_login(
             return _redirect_error("/account", "identity_taken")
         user.github_login = profile.login
         await db.commit()
-        return RedirectResponse(frontend_url(redirect_to), status_code=302)
+        return _redirect(redirect_to)
 
     try:
         user = await users.sign_in_with_provider(
@@ -282,20 +288,24 @@ async def finish_github_login(
         )
     except users.EmailTaken:
         # Someone already holds that address. Merging on a matching mail is
-        # exactly the takeover we refuse; they sign in with it and link GitHub
-        # from the account page instead.
+        # the takeover we refuse; they sign in with it and link GitHub from
+        # the account page instead.
         return _redirect_error("/login", "email_in_use")
 
     user.github_login = profile.login
     token = await create_session(db, user, "github", request)
     await db.commit()
-    response = RedirectResponse(frontend_url(redirect_to), status_code=302)
+    response = _redirect(redirect_to)
     set_session_cookie(response, token)
+    return response
+
+
+def _redirect(path: str) -> RedirectResponse:
+    response = RedirectResponse(frontend_url(path), status_code=302)
+    clear_login_cookie(response)
     return response
 
 
 def _redirect_error(path: str, reason: str) -> RedirectResponse:
     separator = "&" if "?" in path else "?"
-    return RedirectResponse(
-        frontend_url(f"{path}{separator}error={reason}"), status_code=302
-    )
+    return _redirect(f"{path}{separator}{urlencode({'error': reason})}")

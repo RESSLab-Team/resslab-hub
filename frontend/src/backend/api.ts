@@ -2729,7 +2729,7 @@ export class AnalyticsApi extends BaseAPI {
 export const AuthApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Unlink a provider. The last one cannot go, it would lock the account.
+         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
          * @summary Delete Identity
          * @param {string} identityId 
          * @param {*} [options] Override http request option.
@@ -2763,7 +2763,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Come back from GitHub: sign the person in, or link the account.  Always answers with a redirect into the SPA, with ``?error=<slug>`` when something went wrong, because the browser lands here by navigation and has no way to render a JSON error.
+         * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
          * @summary Finish Github Login
          * @param {string} [code] 
          * @param {string} [state] 
@@ -2808,7 +2808,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Who is signed in, if anyone.  Answers 200 with a null user when nobody is, rather than 401: the SPA calls this on every page load, including for visitors who never sign in.
+         * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
          * @summary Get Me
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3016,7 +3016,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = AuthApiAxiosParamCreator(configuration)
     return {
         /**
-         * Unlink a provider. The last one cannot go, it would lock the account.
+         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
          * @summary Delete Identity
          * @param {string} identityId 
          * @param {*} [options] Override http request option.
@@ -3029,7 +3029,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Come back from GitHub: sign the person in, or link the account.  Always answers with a redirect into the SPA, with ``?error=<slug>`` when something went wrong, because the browser lands here by navigation and has no way to render a JSON error.
+         * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
          * @summary Finish Github Login
          * @param {string} [code] 
          * @param {string} [state] 
@@ -3044,7 +3044,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Who is signed in, if anyone.  Answers 200 with a null user when nobody is, rather than 401: the SPA calls this on every page load, including for visitors who never sign in.
+         * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
          * @summary Get Me
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3129,7 +3129,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
     const localVarFp = AuthApiFp(configuration)
     return {
         /**
-         * Unlink a provider. The last one cannot go, it would lock the account.
+         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
          * @summary Delete Identity
          * @param {string} identityId 
          * @param {*} [options] Override http request option.
@@ -3139,7 +3139,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.deleteIdentity(identityId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Come back from GitHub: sign the person in, or link the account.  Always answers with a redirect into the SPA, with ``?error=<slug>`` when something went wrong, because the browser lands here by navigation and has no way to render a JSON error.
+         * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
          * @summary Finish Github Login
          * @param {string} [code] 
          * @param {string} [state] 
@@ -3151,7 +3151,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.finishGithubLogin(code, state, error, options).then((request) => request(axios, basePath));
         },
         /**
-         * Who is signed in, if anyone.  Answers 200 with a null user when nobody is, rather than 401: the SPA calls this on every page load, including for visitors who never sign in.
+         * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
          * @summary Get Me
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3216,7 +3216,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
  */
 export class AuthApi extends BaseAPI {
     /**
-     * Unlink a provider. The last one cannot go, it would lock the account.
+     * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
      * @summary Delete Identity
      * @param {string} identityId 
      * @param {*} [options] Override http request option.
@@ -3227,7 +3227,7 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Come back from GitHub: sign the person in, or link the account.  Always answers with a redirect into the SPA, with ``?error=<slug>`` when something went wrong, because the browser lands here by navigation and has no way to render a JSON error.
+     * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
      * @summary Finish Github Login
      * @param {string} [code] 
      * @param {string} [state] 
@@ -3240,7 +3240,7 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Who is signed in, if anyone.  Answers 200 with a null user when nobody is, rather than 401: the SPA calls this on every page load, including for visitors who never sign in.
+     * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
      * @summary Get Me
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

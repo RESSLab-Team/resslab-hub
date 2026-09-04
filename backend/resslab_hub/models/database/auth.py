@@ -1,7 +1,7 @@
 """
 Accounts, identities and sessions for the contribution pipeline (#247).
 
-Hand-written tables, like ``dictionary.py`` — nothing here comes from a data
+Hand-written tables, like ``dictionary.py``. Nothing here comes from a data
 dictionary, so ``generate_model.py`` never touches this module.
 
 Shape (epic #255): one ``User`` row per person, one ``Identity`` row per way

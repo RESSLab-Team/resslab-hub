@@ -1,10 +1,6 @@
 <script setup lang="ts">
 /**
  * The account page (#247): who you are here, and what you can sign in with.
- *
- * Linking GitHub is the useful part: with it, a submission @mentions the
- * contributor on its own pull request, so GitHub notifies them of every review
- * comment and they can answer where the review happens.
  */
 import { useAuthStore } from '@/stores/auth'
 import { mdiCheckCircleOutline, mdiEmailOutline, mdiGithub, mdiLogout } from '@mdi/js'
@@ -46,7 +42,7 @@ async function unlink(id: string): Promise<void> {
     await auth.unlinkIdentity(id)
   } catch (caught: unknown) {
     const detail = (caught as { response?: { data?: { detail?: string } } })?.response?.data?.detail
-    error.value = detail || t('auth.errors.generic')
+    error.value = t(`auth.errors.${detail}`, t('auth.errors.generic'))
   } finally {
     busy.value = false
   }
@@ -90,7 +86,7 @@ async function signOut(): Promise<void> {
           <span class="identity-provider">{{ $t(`auth.providers.${identity.provider}`) }}</span>
           <span class="identity-handle">{{ identity.handle }}</span>
           <button
-            v-if="auth.identities.length > 1"
+            v-if="identity.provider !== 'email' && auth.identities.length > 1"
             class="btn btn-ghost btn-sm"
             type="button"
             :disabled="busy"

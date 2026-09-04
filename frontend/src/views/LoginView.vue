@@ -187,8 +187,8 @@ function restart(): void {
   font-size: 13px;
   line-height: 1.45;
 }
-/* The provider row is a full-width target, like the mockup's stacked
-   buttons — the academic providers land beside it in #249/#250/#252. */
+/* Full-width, like the mockup: the academic providers (#249, #250, #252)
+   will stack under it. */
 .provider {
   display: flex;
   align-items: center;

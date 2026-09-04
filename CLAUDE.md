@@ -92,7 +92,7 @@ FastAPI + SQLAlchemy 2.0 async + PostgreSQL. Key files:
 - `models/api.py` — Pydantic schemas (auto-generated, do not edit manually)
 - `models/database/` — SQLAlchemy ORM models (auto-generated from CSV data dictionaries)
 - `routers/` — one file per component type (braces, columns, connections, materials [cyclic coupons], tensile_coupon, ductile_fracture, residual_stress, hss_columns, eccentric_braced_frame) plus `analytics.py`, `auth.py` and `root.py`
-- `auth/` — sign-in, sessions and roles (#247). `deps.py` holds the FastAPI dependencies (`require_user`, `require_role`, and the machine-credential ones); see `docs/auth.md`
+- `auth/`: sign-in, sessions and roles (#247). `deps.py` holds the FastAPI dependencies (`require_user`, `require_role`, and the machine-credential ones); see `docs/auth.md`
 - `data/generate_model.py` — reads CSV data dictionaries from `resslab-hub-data` repo and generates both ORM models and Pydantic schemas
 
 **Model generation workflow**: When the data schema changes, run `make generate-model` (requires the `resslab-hub-data` repo; `backend/Makefile` finds it through `RESSLAB_DATA_DIR`, default `../../resslab-hub-data`, which worktrees export as an absolute path from `.env.worktree`), then create an Alembic migration with `make database-revision`.

@@ -64,7 +64,9 @@ async def test_code_sign_in_creates_the_account(client, mailbox, db_session):
     await _start(client)
     assert mailbox[0]["email"] == "ada@example.edu"
 
-    response = await client.post("/auth/email/verify", json={"code": mailbox[0]["code"]})
+    response = await client.post(
+        "/auth/email/verify", json={"code": mailbox[0]["code"]}
+    )
     assert response.status_code == 200
     payload = response.json()
     assert payload["user"]["email"] == "ada@example.edu"
@@ -133,9 +135,13 @@ async def test_five_wrong_codes_kill_the_challenge(client, mailbox):
 
 async def test_an_expired_code_is_refused(client, mailbox, db_session):
     await _start(client)
-    db_session.execute(text("UPDATE auth_login_challenge SET expires_at = NOW() - INTERVAL '1 hour'"))
+    db_session.execute(
+        text("UPDATE auth_login_challenge SET expires_at = NOW() - INTERVAL '1 hour'")
+    )
     db_session.commit()
-    response = await client.post("/auth/email/verify", json={"code": mailbox[0]["code"]})
+    response = await client.post(
+        "/auth/email/verify", json={"code": mailbox[0]["code"]}
+    )
     assert response.status_code == 400
     assert response.json()["detail"] == "invalid_or_expired"
 
@@ -148,9 +154,31 @@ async def test_an_address_cannot_be_mail_bombed(client, mailbox, db_session):
     assert len(db_session.execute(select(LoginChallenge)).scalars().all()) == 5
 
 
+async def test_one_ip_cannot_mail_bomb_a_list_of_people(client, mailbox):
+    cap = email_login.MAX_MAILS_PER_HOUR_PER_IP
+    for index in range(cap + 3):
+        await _start(client, email=f"person{index}@example.edu")
+    assert len(mailbox) == cap
+
+
+async def test_old_challenges_are_purged_when_a_new_one_starts(
+    client, mailbox, db_session
+):
+    await _start(client)
+    db_session.execute(
+        text("UPDATE auth_login_challenge SET expires_at = NOW() - INTERVAL '2 days'")
+    )
+    db_session.commit()
+    await _start(client, email="bob@example.edu")
+    rows = db_session.execute(select(LoginChallenge)).scalars().all()
+    assert [row.email for row in rows] == ["bob@example.edu"]
+
+
 async def test_an_off_site_redirect_is_dropped(client, mailbox):
     await _start(client, redirect_to="https://evil.example/steal")
-    response = await client.post("/auth/email/verify", json={"code": mailbox[0]["code"]})
+    response = await client.post(
+        "/auth/email/verify", json={"code": mailbox[0]["code"]}
+    )
     assert response.json()["redirect_to"] == "/"
 
 
@@ -159,7 +187,9 @@ async def test_admin_emails_bootstrap_an_administrator(client, mailbox, monkeypa
 
     monkeypatch.setattr(roles.settings, "admin_emails", "ada@example.edu")
     await _start(client)
-    response = await client.post("/auth/email/verify", json={"code": mailbox[0]["code"]})
+    response = await client.post(
+        "/auth/email/verify", json={"code": mailbox[0]["code"]}
+    )
     assert response.json()["user"]["role"] == "admin"
     assert response.json()["user"]["role_source"] == "admin-email"
 
@@ -185,7 +215,9 @@ async def test_a_revoked_session_stops_working(client, sign_in, db_session):
 
 async def test_an_expired_session_is_cleaned_up(client, sign_in, db_session):
     sign_in()
-    db_session.execute(text("UPDATE auth_session SET expires_at = NOW() - INTERVAL '1 day'"))
+    db_session.execute(
+        text("UPDATE auth_session SET expires_at = NOW() - INTERVAL '1 day'")
+    )
     db_session.commit()
     assert (await client.get("/auth/me")).json() == {"user": None}
     assert db_session.execute(select(Session)).scalars().all() == []
@@ -223,6 +255,22 @@ async def test_a_second_identity_can_be_unlinked(client, sign_in, db_session):
     # The mirrored login goes with it, so nothing claims a link that is gone.
     db_session.expire_all()
     assert db_session.execute(select(User)).scalar_one().github_login == ""
+
+
+async def test_the_email_identity_cannot_be_unlinked(client, sign_in, db_session):
+    """The account is found by its address, so removing the row would only
+    pretend the address no longer signs in."""
+    user = sign_in()
+    db_session.add(
+        Identity(user_id=user.id, provider="github", subject="4242", handle="ada")
+    )
+    db_session.commit()
+    email = db_session.execute(
+        select(Identity).where(Identity.provider == "email")
+    ).scalar_one()
+    response = await client.delete(f"/auth/identities/{email.id}")
+    assert response.status_code == 409
+    assert response.json()["detail"] == "cannot_unlink"
 
 
 async def test_identities_need_a_session(client):
@@ -304,6 +352,38 @@ async def test_a_state_cannot_be_replayed(client, github):
     assert "error=github_failed" in replay.headers["location"]
 
 
+async def test_the_callback_only_works_in_the_browser_that_started_it(
+    client, github, db_session
+):
+    """Login CSRF: an attacker finishes GitHub's side, then sends the callback
+    URL to someone else. Their browser has no resslab_login cookie."""
+    state = await _github_state(client)
+    client.cookies.clear()
+    response = await client.get(
+        "/auth/github/callback", params={"code": "the-code", "state": state}
+    )
+    assert "error=github_failed" in response.headers["location"]
+    assert not client.cookies.get("resslab_session")
+    assert db_session.execute(select(User)).scalars().all() == []
+
+
+async def test_github_errors_are_mapped_not_echoed(client, github):
+    state = await _github_state(client)
+    response = await client.get(
+        "/auth/github/callback",
+        params={"state": state, "code": "x", "error": "foo&next=/admin#x"},
+    )
+    location = response.headers["location"]
+    assert location.endswith("/login?error=github_failed")
+
+    state = await _github_state(client)
+    response = await client.get(
+        "/auth/github/callback",
+        params={"state": state, "error": "access_denied"},
+    )
+    assert response.headers["location"].endswith("/login?error=github_denied")
+
+
 async def test_an_unknown_state_is_refused(client, github):
     response = await client.get(
         "/auth/github/callback",
@@ -330,7 +410,9 @@ async def test_github_never_takes_over_an_existing_address(
 
 async def test_linking_github_while_signed_in(client, github, sign_in, db_session):
     user = sign_in(email="ada@example.edu")
-    response = await client.get("/auth/github/start", params={"link": True, "redirect_to": "/account"})
+    response = await client.get(
+        "/auth/github/start", params={"link": True, "redirect_to": "/account"}
+    )
     state = response.headers["location"].split("state=")[1].split("&")[0]
 
     callback = await client.get(
@@ -489,6 +571,16 @@ async def test_a_cross_site_post_with_our_cookie_is_refused(client, sign_in):
     sign_in()
     response = await client.post(
         "/auth/logout", headers={"sec-fetch-site": "cross-site"}
+    )
+    assert response.status_code == 403
+
+
+async def test_a_cross_site_post_without_a_cookie_is_refused_too(client):
+    """The sign-in endpoints have no cookie yet and are the login-CSRF target."""
+    response = await client.post(
+        "/auth/email/start",
+        json={"email": "ada@example.edu"},
+        headers={"sec-fetch-site": "cross-site"},
     )
     assert response.status_code == 403
 

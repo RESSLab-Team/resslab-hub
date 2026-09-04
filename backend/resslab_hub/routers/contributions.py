@@ -88,17 +88,21 @@ async def create_contribution(
             detail="Submissions are not enabled on this deployment.",
         )
     # The commit author and the provenance record both need a real name and a
-    # proven address. A GitHub-only account can have neither yet, so it is sent
-    # to the account page rather than silently committing as nobody.
+    # proven address. A GitHub-only account may have neither (rare: GitHub
+    # shares the verified primary address), and cannot add one until the
+    # profile page lands, so the message says what to do instead.
     if not user.display_name.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Add your name on the account page before submitting.",
+            detail="This account has no name yet, so it cannot submit.",
         )
     if not user.email or user.email_verified_at is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Confirm your email address on the account page before submitting.",
+            detail=(
+                "This account has no confirmed email address, so it cannot "
+                "submit. Sign in with your email address instead."
+            ),
         )
     dismissed = _parse_dismissed(dismissed_warnings)
     contributor = Contributor(

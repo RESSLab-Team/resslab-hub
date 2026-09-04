@@ -68,7 +68,9 @@ def test_role_ordering():
 
 def test_override_wins_over_everything(monkeypatch):
     monkeypatch.setattr(roles.settings, "admin_emails", "boss@epfl.ch")
-    user = User(email="boss@epfl.ch", email_verified_at=object(), role_override="viewer")
+    user = User(
+        email="boss@epfl.ch", email_verified_at=object(), role_override="viewer"
+    )
     assert roles.derive_role(user) == ("viewer", "override")
 
 
@@ -90,7 +92,9 @@ def test_signed_in_without_a_grant_is_a_viewer(monkeypatch):
     from datetime import datetime, timezone
 
     monkeypatch.setattr(roles.settings, "admin_emails", "")
-    user = User(email="someone@example.edu", email_verified_at=datetime.now(timezone.utc))
+    user = User(
+        email="someone@example.edu", email_verified_at=datetime.now(timezone.utc)
+    )
     assert roles.derive_role(user) == ("viewer", "default")
 
 

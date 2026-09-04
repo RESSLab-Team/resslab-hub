@@ -20,6 +20,15 @@ export function rankOf(role: string): number {
   return index < 0 ? 0 : index
 }
 
+// Loaded lazily, and once: the axios plugin imports this store back for its
+// 401 interceptor, and one shared promise keeps concurrent calls on the same
+// module instance (which the unit tests mock).
+let apiModule: Promise<typeof import('@/plugins/axios')> | null = null
+function api() {
+  apiModule ??= import('@/plugins/axios')
+  return apiModule
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<UserOut | null>(null)
   const status = ref<'unknown' | 'anonymous' | 'authenticated'>('unknown')
@@ -40,23 +49,21 @@ export const useAuthStore = defineStore('auth', () => {
   function clear(): void {
     user.value = null
     status.value = 'anonymous'
-    inFlight = null
   }
 
   async function ensureLoaded(force = false): Promise<void> {
+    if (inFlight) return inFlight
     if (!force && status.value !== 'unknown') return
-    if (inFlight && !force) return inFlight
     inFlight = (async () => {
       try {
-        const { authApi } = await import('@/plugins/axios')
+        const { authApi } = await api()
         const { data } = await authApi.getMe()
         user.value = data.user ?? null
         status.value = data.user ? 'authenticated' : 'anonymous'
       } catch {
         // A network or server failure must not lock the app: treat it as not
         // signed in, and the next navigation asks again.
-        user.value = null
-        status.value = 'anonymous'
+        clear()
       } finally {
         inFlight = null
       }
@@ -66,7 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   /** Mail a sign-in code. Always resolves, whatever the address. */
   async function startEmailLogin(email: string, redirectTo = '/'): Promise<void> {
-    const { authApi } = await import('@/plugins/axios')
+    const { authApi } = await api()
     await authApi.startEmailLogin({ email, redirect_to: redirectTo })
   }
 
@@ -76,7 +83,7 @@ export const useAuthStore = defineStore('auth', () => {
     challenge?: string
     token?: string
   }): Promise<string> {
-    const { authApi } = await import('@/plugins/axios')
+    const { authApi } = await api()
     const { data } = await authApi.verifyEmailLogin(payload)
     user.value = data.user
     status.value = 'authenticated'
@@ -87,15 +94,15 @@ export const useAuthStore = defineStore('auth', () => {
    * Leave the app for GitHub. A full navigation, not a fetch: the OAuth round
    * trip has to happen in the address bar for the cookies to travel with it.
    */
-  function goToGitHub(options: { redirectTo?: string; link?: boolean } = {}): void {
-    const { baseUrl } = { baseUrl: import.meta.env.VITE_APP_BACKEND_URL }
+  async function goToGitHub(options: { redirectTo?: string; link?: boolean } = {}): Promise<void> {
+    const { baseUrl } = await api()
     const query = new URLSearchParams({ redirect_to: options.redirectTo ?? '/' })
     if (options.link) query.set('link', 'true')
     window.location.assign(`${baseUrl}/auth/github/start?${query.toString()}`)
   }
 
   async function logout(): Promise<void> {
-    const { authApi } = await import('@/plugins/axios')
+    const { authApi } = await api()
     try {
       await authApi.logout()
     } finally {
@@ -104,7 +111,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function unlinkIdentity(id: string): Promise<void> {
-    const { authApi } = await import('@/plugins/axios')
+    const { authApi } = await api()
     await authApi.deleteIdentity(id)
     await ensureLoaded(true)
   }
