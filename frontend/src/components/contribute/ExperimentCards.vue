@@ -22,6 +22,7 @@ import {
 } from '@/utils/templates'
 import { fileStemFor, timeSeriesKindsFor, type TimeSeriesKind } from '@/utils/timeseries'
 import {
+  mdiAlertCircleOutline,
   mdiAlertOutline,
   mdiBellOffOutline,
   mdiBookOpenPageVariantOutline,
@@ -241,6 +242,17 @@ function toggleDismissed(uid: number): void {
   const next = new Set(showDismissed.value)
   if (!next.delete(uid)) next.add(uid)
   showDismissed.value = next
+}
+
+/** Cards whose problem messages are shown in full rather than on one line. */
+const fullIssues = ref<Set<number>>(new Set())
+function toggleFullIssues(uid: number): void {
+  const next = new Set(fullIssues.value)
+  if (!next.delete(uid)) next.add(uid)
+  fullIssues.value = next
+}
+function issueCount(uid: number, level: 'error' | 'warn'): number {
+  return store.activeIssuesFor(uid).filter((issue) => issue.level === level).length
 }
 
 const expanded = ref<Set<number>>(new Set())
@@ -506,8 +518,10 @@ function noteFor(kind: TimeSeriesKind): string {
           :icon="mdiChevronRight"
           size="18"
         />
-        <span v-if="cardState(row.uid) === 'checking'" class="spinner" />
-        <span v-else class="dot" :class="cardState(row.uid)" />
+        <span class="state">
+          <span v-if="cardState(row.uid) === 'checking'" class="spinner" />
+          <span v-else class="dot" :class="cardState(row.uid)" />
+        </span>
         <span class="card-id">
           {{ row.cells.id?.trim() || $t('contribute.editor.untitled', { n: index + 1 }) }}
         </span>
@@ -532,9 +546,21 @@ function noteFor(kind: TimeSeriesKind): string {
         </span>
         <span class="badge" :class="cardState(row.uid)">
           <template v-if="store.activeIssuesFor(row.uid).length">
-            {{
-              $t('contribute.editor.issue_count', { count: store.activeIssuesFor(row.uid).length })
-            }}
+            <span class="issue-counts">
+              <span v-if="issueCount(row.uid, 'error')" class="n error">
+                {{ issueCount(row.uid, 'error') }}<v-icon :icon="mdiAlertCircleOutline" size="13" />
+              </span>
+              <span v-if="issueCount(row.uid, 'warn')" class="n warn">
+                {{ issueCount(row.uid, 'warn') }}<v-icon :icon="mdiAlertOutline" size="13" />
+              </span>
+            </span>
+            <span class="issue-text">
+              {{
+                $t('contribute.editor.issue_count', {
+                  count: store.activeIssuesFor(row.uid).length
+                })
+              }}
+            </span>
           </template>
           <template v-else-if="cardState(row.uid) === 'draft' && store.todoFor(row.uid).length">
             {{ todoLabel(row.uid) }}
@@ -567,13 +593,24 @@ function noteFor(kind: TimeSeriesKind): string {
           v-if="store.activeIssuesFor(row.uid).length || store.dismissedIssuesFor(row.uid).length"
           class="card-section"
         >
-          <h3>{{ $t('contribute.editor.problems') }}</h3>
+          <h3>
+            {{ $t('contribute.editor.problems') }}
+            <button class="link issues-toggle" type="button" @click="toggleFullIssues(row.uid)">
+              {{
+                $t(
+                  fullIssues.has(row.uid)
+                    ? 'contribute.editor.collapse_issues'
+                    : 'contribute.editor.expand_issues'
+                )
+              }}
+            </button>
+          </h3>
 
           <div
             v-for="issue in store.activeIssuesFor(row.uid)"
             :key="issue.key"
             class="issue"
-            :class="issue.level"
+            :class="[issue.level, { dense: !fullIssues.has(row.uid) }]"
           >
             <button class="issue-go" type="button" @click="goToIssue(row.uid, issue)">
               <v-icon :icon="mdiAlertOutline" size="14" />
@@ -623,6 +660,7 @@ function noteFor(kind: TimeSeriesKind): string {
                 v-for="issue in store.dismissedIssuesFor(row.uid)"
                 :key="issue.key"
                 class="issue muted"
+                :class="{ dense: !fullIssues.has(row.uid) }"
               >
                 <button class="issue-go" type="button" @click="goToIssue(row.uid, issue)">
                   <v-icon :icon="mdiBellOffOutline" size="14" />
@@ -1030,7 +1068,7 @@ function noteFor(kind: TimeSeriesKind): string {
 .card {
   border: 1px solid var(--border);
   border-left: 3px solid var(--border-strong);
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   background: var(--bg);
   scroll-margin-top: calc(var(--stick-top) + 12px);
 }
@@ -1052,11 +1090,11 @@ function noteFor(kind: TimeSeriesKind): string {
   top: var(--stick-top);
   z-index: 2;
   display: grid;
-  grid-template-columns: 18px 9px minmax(0, 220px) minmax(0, 1fr) auto auto auto;
+  grid-template-columns: 18px minmax(0, 220px) minmax(0, 1fr) auto auto auto;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
-  padding: 13px 16px;
+  padding: 9px 14px;
   border: none;
   /* Opaque, and carrying the body's top rule while pinned: the fields have to
      pass under a line rather than under a floating title. */
@@ -1076,6 +1114,11 @@ function noteFor(kind: TimeSeriesKind): string {
 }
 .chevron.open {
   transform: rotate(90deg);
+}
+/* The status dot only shows on the roomy layout: the left border and the
+   counts already say the same thing, and "Checking…" is in the badge. */
+.state {
+  display: none;
 }
 .dot {
   width: 9px;
@@ -1122,7 +1165,8 @@ function noteFor(kind: TimeSeriesKind): string {
   }
 }
 .card-id {
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1140,7 +1184,7 @@ function noteFor(kind: TimeSeriesKind): string {
   min-width: 0;
 }
 .headline-item .k {
-  font-size: 10.5px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--fg-muted);
@@ -1149,7 +1193,7 @@ function noteFor(kind: TimeSeriesKind): string {
   white-space: nowrap;
 }
 .headline-item .v {
-  font-size: 13px;
+  font-size: 12.5px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1157,9 +1201,6 @@ function noteFor(kind: TimeSeriesKind): string {
 .badge {
   font-size: 12px;
   font-weight: 600;
-  /* Reserved width: the label swaps between "No issues", "Checking…" and an
-     issue count, and the headline next to it would reflow on every change. */
-  min-width: 8em;
   text-align: right;
   color: var(--epfl-green-text);
 }
@@ -1183,12 +1224,32 @@ function noteFor(kind: TimeSeriesKind): string {
   color: var(--fg-muted);
   font-weight: 400;
 }
+/* "1 (!) 4 (⚠)": a count per level, the icon says which. The wordy
+   "N issue(s)" is for the roomy layout only. */
+.issue-counts {
+  display: inline-flex;
+  gap: 8px;
+}
+.issue-counts .n {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.issue-counts .n.error {
+  color: var(--epfl-red);
+}
+.issue-counts .n.warn {
+  color: var(--epfl-orange);
+}
+.issue-text {
+  display: none;
+}
 /* Laptop and below: the headline columns no longer fit beside the identifier
    and the verdict, so they drop rather than squeeze to two characters. */
 @media (max-width: 1023px) {
   .card-head {
-    grid-template-columns: 18px 9px minmax(0, 1fr) auto auto auto;
-    gap: 12px;
+    grid-template-columns: 18px minmax(0, 1fr) auto auto auto;
   }
   .headline {
     display: none;
@@ -1277,7 +1338,7 @@ function noteFor(kind: TimeSeriesKind): string {
 }
 
 .card-body {
-  padding: 16px;
+  padding: 12px 14px;
 }
 .card-actions {
   display: flex;
@@ -1286,11 +1347,15 @@ function noteFor(kind: TimeSeriesKind): string {
   margin-bottom: 4px;
 }
 .card-section + .card-section {
-  margin-top: 22px;
+  margin-top: 16px;
 }
 .card-section h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
   padding-bottom: 6px;
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   border-bottom: 1px solid var(--border-subtle);
   font-size: 11px;
   font-weight: 700;
@@ -1303,8 +1368,24 @@ function noteFor(kind: TimeSeriesKind): string {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: 4px;
-  font-size: 13px;
+  margin-bottom: 2px;
+  font-size: 12.5px;
+}
+/* One line per problem, the field name and the start of the message; the
+   toggle in the heading shows them in full. */
+.issue.dense .issue-go span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.issue-go span {
+  min-width: 0;
+}
+.issues-toggle {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .issue.error {
   color: var(--epfl-red);
@@ -1322,7 +1403,7 @@ function noteFor(kind: TimeSeriesKind): string {
   gap: 6px;
   flex: 1;
   min-width: 0;
-  padding: 3px 6px;
+  padding: 2px 4px;
   border: none;
   background: transparent;
   color: inherit;
@@ -1460,23 +1541,20 @@ function noteFor(kind: TimeSeriesKind): string {
   text-align: center;
 }
 .field-group.open .fields {
-  padding: 6px 8px 14px;
+  padding: 4px 8px 10px;
 }
 
 .fields {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 14px 20px;
+  gap: 8px 16px;
 }
-/* Labels wrap to two lines for the longer variables. Reserving both lines keeps
-   every input in a row on the same baseline instead of stepping up and down. */
 .field label {
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 2px 5px;
-  min-height: 32px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   font-size: 12.5px;
   font-weight: 600;
   line-height: 1.3;
@@ -1493,7 +1571,7 @@ function noteFor(kind: TimeSeriesKind): string {
 }
 .field input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid var(--border-strong);
   background: var(--bg);
   color: var(--fg);
@@ -1752,5 +1830,78 @@ function noteFor(kind: TimeSeriesKind): string {
   stroke-width: 1.4;
   stroke-linejoin: round;
   stroke-linecap: round;
+}
+
+/* Roomy layout, for screens wider than a laptop: the status dot is back, the
+   verdict is spelled out, problems are shown in full, and labels reserve two
+   lines so the inputs of a row share a baseline. Everything above is the
+   dense default, which a 13" laptop needs. */
+@media (min-width: 1600px) {
+  .card {
+    margin-bottom: 10px;
+  }
+  .card-head {
+    grid-template-columns: 18px 9px minmax(0, 220px) minmax(0, 1fr) auto auto auto;
+    gap: 14px;
+    padding: 13px 16px;
+  }
+  .state {
+    display: flex;
+  }
+  .card-id {
+    font-size: inherit;
+    font-weight: 700;
+  }
+  .headline-item .k {
+    font-size: 10.5px;
+  }
+  .headline-item .v {
+    font-size: 13px;
+  }
+  /* Reserved width: the label swaps between "No issues", "Checking…" and an
+     issue count, and the headline next to it would reflow on every change. */
+  .badge {
+    min-width: 8em;
+  }
+  .issue-counts,
+  .issues-toggle {
+    display: none;
+  }
+  .issue-text {
+    display: inline;
+  }
+  .card-body {
+    padding: 16px;
+  }
+  .card-section + .card-section {
+    margin-top: 22px;
+  }
+  .card-section h3 {
+    margin-bottom: 12px;
+  }
+  .issue {
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+  .issue-go {
+    padding: 3px 6px;
+  }
+  .issue.dense .issue-go span {
+    overflow: visible;
+    white-space: normal;
+  }
+  .field label {
+    min-height: 32px;
+    margin-bottom: 4px;
+  }
+  .field input {
+    padding: 8px 10px;
+  }
+  .field-group.open .fields {
+    padding: 6px 8px 14px;
+  }
+  .fields {
+    gap: 14px 20px;
+  }
 }
 </style>

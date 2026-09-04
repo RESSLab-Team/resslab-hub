@@ -264,10 +264,6 @@ async function confirmSubmit(): Promise<void> {
               </span>
             </button>
           </div>
-          <p v-if="store.editing" class="note">
-            <v-icon :icon="mdiPencilOutline" size="14" />
-            {{ $t('contribute.edit.locked') }}
-          </p>
           <p v-if="store.config && !store.config.qualityCheckSupported" class="note">
             <v-icon :icon="mdiAlertOutline" size="14" />
             {{ $t('contribute.setup.no_quality_check') }}
