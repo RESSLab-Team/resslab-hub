@@ -211,14 +211,14 @@ def check_file_format(result: ValidationResult, raw: bytes) -> str:
             0,
             "file",
             result.filename,
-            "File uses Windows line endings (CRLF). Save it with LF line endings.",
+            "Windows line endings (CRLF). Save the file with LF.",
         )
     if raw and not raw.endswith(b"\n"):
         result.add_warning(
             0,
             "file",
             result.filename,
-            "File does not end with a newline. Add one at the end.",
+            "No newline at the end of the file.",
         )
     return encoding
 
@@ -235,9 +235,7 @@ def check_separator(result: ValidationResult, headers: List[str]) -> bool:
             0,
             "headers",
             headers,
-            "Columns look separated by semicolons. Save the file with a comma "
-            "as separator (some spreadsheets use ';' in French or German "
-            "locales).",
+            "Columns separated by semicolons. Save the file with a comma as separator.",
         )
         return True
     return False
@@ -251,8 +249,8 @@ def check_empty_headers(result: ValidationResult, headers: List[str]):
             0,
             "headers",
             headers,
-            f"Column {', '.join(positions)} has no name. It is ignored; remove "
-            f"the extra comma from the header line.",
+            f"Column {', '.join(positions)} has no name (extra comma in the "
+            f"header). It is ignored.",
         )
 
 
@@ -349,9 +347,8 @@ class TableValidator(Validator):
                 row,
                 column_name,
                 value,
-                f"Value is far outside the range of existing data for this "
-                f"column ({plain(minimum)} to {plain(maximum)}) — "
-                f"please verify it.",
+                f"Far outside the existing range "
+                f"({plain(minimum)} to {plain(maximum)}).",
             )
 
     def validate_one(self, file_path: str) -> ValidationResult:
@@ -424,8 +421,7 @@ class TableValidator(Validator):
                             row_num,
                             "row",
                             row,
-                            f"Row has fewer values ({len(row)}) "
-                            f"than headers ({len(headers)})",
+                            f"Fewer values ({len(row)}) than headers ({len(headers)}).",
                         )
                         continue
                     # More values than headers is almost always a decimal comma
@@ -436,9 +432,8 @@ class TableValidator(Validator):
                             row_num,
                             "row",
                             row,
-                            f"Row has more values ({len(row)}) than headers "
-                            f"({len(headers)}). A number written with a decimal "
-                            f"comma splits a row in two: use a decimal point.",
+                            f"More values ({len(row)}) than headers ({len(headers)}). "
+                            f"A decimal comma splits a row: use a decimal point.",
                         )
                         continue
 
@@ -470,8 +465,8 @@ class TableValidator(Validator):
                                     row_num,
                                     column_name,
                                     value,
-                                    f"Specimen id '{specimen_id}' already exists "
-                                    f"in the database — ids must be unique.",
+                                    f"Specimen id '{specimen_id}' already "
+                                    f"exists in the database.",
                                 )
                             elif specimen_id in seen_ids:
                                 result.add_error(
@@ -545,15 +540,14 @@ class TableValidator(Validator):
                     row,
                     column.key,
                     value,
-                    "Empty cell. Write NA when the value does not apply, NR "
-                    "when it was not reported.",
+                    "Empty cell. Write NA (not applicable) or NR (not reported).",
                 )
             else:
                 result.add_error(
                     row,
                     column.key,
                     value,
-                    "This column is mandatory and the cell is empty. Give the value.",
+                    "Mandatory, and the cell is empty.",
                 )
             return True
 
@@ -563,16 +557,15 @@ class TableValidator(Validator):
                     row,
                     column.key,
                     value,
-                    "NaN is not an accepted marker. Write NA when the value "
-                    "does not apply, NR when it was not reported.",
+                    "NaN is not accepted. Write NA (not applicable) or NR "
+                    "(not reported).",
                 )
             else:
                 result.add_error(
                     row,
                     column.key,
                     value,
-                    "This column is mandatory and NaN cannot be stored. "
-                    "Give the value.",
+                    "Mandatory, and NaN cannot be stored.",
                 )
             return True
 
@@ -585,16 +578,15 @@ class TableValidator(Validator):
                     row,
                     column.key,
                     value,
-                    "This column is mandatory. NR is stored as 'Not reported'; "
-                    "give the real value when you have it.",
+                    "Mandatory. NR means not reported: give the real value if "
+                    "you have it.",
                 )
             else:
                 result.add_error(
                     row,
                     column.key,
                     value,
-                    "This column is mandatory, so 'not applicable' cannot be "
-                    "right. Give the value.",
+                    "Mandatory, so NA cannot be right.",
                 )
             return True
 
@@ -602,8 +594,7 @@ class TableValidator(Validator):
             row,
             column.key,
             value,
-            f"This column is mandatory. {marker} is stored as no value, which "
-            f"the upload refuses. Give the value.",
+            f"Mandatory. {marker} counts as no value.",
         )
         return True
 
