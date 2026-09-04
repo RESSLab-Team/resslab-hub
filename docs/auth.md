@@ -146,6 +146,26 @@ grep "Sign-in code" .wt-logs/backend.log
 
 The link on the line below it works too, and skips the typing.
 
+## Testing the pipeline
+
+No second App is needed. The one installed on `resslab-hub-data` works from
+anywhere; what separates environments is `DATA_REPO_BASE_BRANCH`. The curation
+queue only lists pull requests into that branch, and a submission branches off
+it and opens its pull request into it, so each environment has its own queue.
+
+| Where | `DATA_REPO_BASE_BRANCH` |
+|---|---|
+| prod | `main` |
+| stage (the test deployment) | `test` |
+| dev deployment, and a laptop | `sandbox`, created once from `test` |
+
+Sample-data submissions from dev or local then never reach `test` or `main`.
+Close them from time to time (`gh pr list --base sandbox`), never merge them,
+and reset the branch from `test` when it drifts.
+
+Locally, the email code needs no setup at all (see above). GitHub sign-in
+needs the dev App, only worth it to test the link flow and the @mention.
+
 ## Later
 
 - **#248** roles: academic email or an invitation grants `contributor`;
