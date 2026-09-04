@@ -42,7 +42,10 @@ settings = Dynaconf(
         # Every absolute URL the backend emits (OAuth callback, mail links,
         # redirects) is built from it, because behind Traefik the request URL
         # has already lost the /api prefix and may carry an internal host.
-        Validator("public_base_url", default="http://localhost:5173"),
+        # 127.0.0.1 rather than localhost: GitHub ignores the port on the
+        # loopback address, so one registered callback serves every dev port,
+        # and the browser must be on the same host for the cookies to travel.
+        Validator("public_base_url", default="http://127.0.0.1:5173"),
         # None = derive from public_base_url's scheme, which is the right
         # answer everywhere: https in the deployments, http locally (a Secure
         # cookie is dropped by the dev server and by the httpx test client).
@@ -58,8 +61,9 @@ settings = Dynaconf(
         Validator("smtp_password", default=None),
         Validator("smtp_from", default="noreply@resslab-hub.epfl.ch"),
         Validator("smtp_starttls", default=True),
-        # OAuth pair of the same GitHub App used for contribution PRs. Both
-        # present = "Sign in with GitHub" is offered.
+        # OAuth pair of a GitHub App: the one above in the deployments, a
+        # separate dev App locally (docs/auth.md). Both present = "Sign in
+        # with GitHub" is offered.
         Validator("github_oauth_client_id", default=None),
         Validator("github_oauth_client_secret", default=None),
         # Comma-separated addresses that get the admin role at first sign-in,

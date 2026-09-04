@@ -13,9 +13,9 @@ Two ways to sign in:
 - **Email code.** You type an address, the backend mails a six-digit code and a
   link. Either one signs you in. The code is for when the mailbox is on another
   device, the link for when it is the same one.
-- **GitHub.** The OAuth side of the same GitHub App that opens the contribution
-  pull requests. You can also link GitHub to an account you already have, from
-  the account page.
+- **GitHub.** OAuth through a GitHub App: in the deployments the same App that
+  opens the contribution pull requests, locally a dev App. You can also link
+  GitHub to an account you already have, from the account page.
 
 Linking GitHub is worth doing: a submission from an account with a GitHub login
 mentions that login on its pull request, so GitHub notifies the contributor of
@@ -65,20 +65,49 @@ signed-in account). The data repository's three workflows and
 
 ## Setting it up
 
-### GitHub App (once per environment)
+### GitHub App
 
-On the App's settings page:
+The OAuth pair does not have to come from the App that opens pull requests:
+`GITHUB_APP_*` and `GITHUB_OAUTH_*` are separate settings. So the production
+App keeps only the deployment URLs, and local development uses its own App.
 
-1. Callback URL: `https://<host>/api/auth/github/callback`. Development needs
-   its own entry, e.g. `http://localhost:5173/api/auth/github/callback`.
+**Deployments.** On the settings page of the existing App:
+
+1. Callback URL: `https://<host>/api/auth/github/callback`, one entry per
+   environment (dev, test, prod).
 2. Generate a client secret. That pair is `GITHUB_OAUTH_CLIENT_ID` and
    `GITHUB_OAUTH_CLIENT_SECRET`, and it is **not** the App id or private key
    already used to open pull requests.
 3. Account permission "Email addresses: read", so a new account can be filled
    in with the person's verified address.
 
-Without those two settings the GitHub button answers 503 and is simply not
-offered.
+**Local development.** Create a second App (say "RESSLab Hub dev") on your own
+account. It needs no installation and no repository permission: only the
+"Email addresses: read" account permission, a client secret, and one callback
+URL with no port:
+
+```
+http://127.0.0.1/api/auth/github/callback
+```
+
+GitHub ignores the port on the loopback address, so that one entry serves the
+main checkout on 5173 and every worktree port. It documents this for OAuth
+authorization and recommends `127.0.0.1` over `localhost`. If a GitHub App ever
+refuses it, register the port too. Then in `secrets/.env`:
+
+```
+GITHUB_OAUTH_CLIENT_ID=...
+GITHUB_OAUTH_CLIENT_SECRET=...
+PUBLIC_BASE_URL=http://127.0.0.1:5173      # or the worktree's FRONTEND_PORT
+```
+
+and open the app at `http://127.0.0.1:<port>`, not `localhost`. Cookies ignore
+the port but not the host: the `resslab_login` cookie set when you click the
+button must still be there when GitHub sends the browser back. Restart the
+backend after editing the file, Dynaconf only reads it at startup.
+
+Without the two `GITHUB_OAUTH_*` settings the GitHub button answers 503 and is
+simply not offered.
 
 ### Mail
 
@@ -111,7 +140,7 @@ With no SMTP configured, the code is in the backend log:
 
 ```
 make dev-all              # or the worktree's own tmux session
-# open http://localhost:5173/login  (the Vite port, not the backend one)
+# open http://127.0.0.1:5173/login  (the Vite port, not the backend one)
 grep "Sign-in code" .wt-logs/backend.log
 ```
 
