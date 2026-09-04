@@ -113,3 +113,6 @@ class CurationDetail(CurationSummary):
     #: Set when the batch could not be reconstructed faithfully (provenance
     #: unreadable, or row count differs from the PR body) — review on GitHub.
     reconstruction_warning: Optional[str]
+    #: True when the signed-in account made this submission (#247), so the
+    #: review screen can offer to edit it. Never cached: set per request.
+    mine: bool = False

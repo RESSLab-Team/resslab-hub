@@ -10,7 +10,7 @@ import type { ParallelSelection } from '@/composables/chart'
 import { useDataset } from '@/composables/useDataset'
 import { useCurationStore } from '@/stores/curation'
 import { useDictionaryStore } from '@/stores/dictionary'
-import { databaseIdForType, formatAge } from '@/utils/curation'
+import { databaseIdForType, formatAge, withDerivedExperiments } from '@/utils/curation'
 import { DATABASES } from '@/utils/navigation'
 import {
   mdiAlertOutline,
@@ -18,6 +18,7 @@ import {
   mdiCheck,
   mdiClose,
   mdiOpenInNew,
+  mdiPencilOutline,
   mdiSendOutline
 } from '@mdi/js'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
@@ -104,7 +105,9 @@ async function loadRanges(): Promise<void> {
 onMounted(async () => {
   dictionary.fetch()
   try {
-    detail.value = await store.fetchDetail(number.value)
+    // Derived columns (the material `type`) are added here once, so the cohort
+    // chips, the cohort query and the ghost chart all read them as cells.
+    detail.value = withDerivedExperiments(await store.fetchDetail(number.value))
     state.value = 'ready'
     const config = database.value ? GHOST_CONFIGS[database.value] : undefined
     cohortFields.value = config ? [...config.cohortDefaults] : []
@@ -155,10 +158,20 @@ async function selectIssue(uid: number, column: string): Promise<void> {
                 }}
               </span>
             </h2>
-            <a class="cp-btn" :href="detail.pr_url" target="_blank" rel="noreferrer">
-              <v-icon :icon="mdiOpenInNew" size="14" />
-              {{ $t('curation.review.open_pr') }}
-            </a>
+            <div class="hrow-actions">
+              <router-link
+                v-if="detail.mine"
+                class="cp-btn"
+                :to="{ name: 'ContributeEdit', params: { prNumber: detail.pr_number } }"
+              >
+                <v-icon :icon="mdiPencilOutline" size="14" />
+                {{ $t('curation.review.edit_on_hub') }}
+              </router-link>
+              <a class="cp-btn" :href="detail.pr_url" target="_blank" rel="noreferrer">
+                <v-icon :icon="mdiOpenInNew" size="14" />
+                {{ $t('curation.review.open_pr') }}
+              </a>
+            </div>
           </div>
           <p class="sub">
             <template v-if="detail.contributor?.name">
@@ -322,6 +335,12 @@ async function selectIssue(uid: number, column: string): Promise<void> {
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
+}
+.hrow-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 .val-head h2 {
   font-size: 28px;

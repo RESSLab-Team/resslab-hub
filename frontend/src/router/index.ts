@@ -8,6 +8,16 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  // Back/forward restore where the reader was. A new page starts at the top:
+  // without this, leaving a page from its bottom opened the next one at the
+  // bottom too (issue #282, Kinane's review). Query-only changes (the
+  // dashboards mirror their filters into the URL) keep the scroll as is.
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
+    if (to.hash) return { el: to.hash }
+    if (to.path === from.path) return false
+    return { top: 0 }
+  },
   routes: [
     {
       path: '/',
@@ -172,6 +182,14 @@ const router = createRouter({
       path: '/contribute/new',
       name: 'ContributeNew',
       component: () => import('@/views/ContributeView.vue'),
+      meta: { auth: 'viewer' }
+    },
+    {
+      // The same editor, opened on an open submission (#321).
+      path: '/contribute/edit/:prNumber(\\d+)',
+      name: 'ContributeEdit',
+      component: () => import('@/views/ContributeView.vue'),
+      props: true,
       meta: { auth: 'viewer' }
     },
     {

@@ -513,6 +513,15 @@ async def test_submitting_needs_a_session(client):
     assert response.status_code == 401
 
 
+async def test_updating_a_submission_needs_a_session(client):
+    response = await client.put(
+        "/contributions/7",
+        data={"head_sha": "a" * 40},
+        files={"file": ("batch.tar.gz", b"x", "application/gzip")},
+    )
+    assert response.status_code == 401
+
+
 # --- /validate has two kinds of caller ------------------------------------
 def _tiny_targz() -> bytes:
     """An archive that fails validation, which is fine: we test the gate."""

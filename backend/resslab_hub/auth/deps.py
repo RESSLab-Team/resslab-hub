@@ -75,7 +75,9 @@ async def get_current_user(
     if resolved is None:
         return None
     session, user = resolved
-    # The provider this browser signed in with, handy for provenance.
+    # For handlers that take the user off the request rather than through a
+    # dependency (the curation ones, called directly by their tests).
+    request.state.user = user
     request.state.auth_provider = session.provider
     return user
 

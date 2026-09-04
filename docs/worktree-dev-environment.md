@@ -34,7 +34,7 @@ no template exists yet ([Database](#database)).
 | `~/.config/git/ignore`                  |                                                   | machine | `**/.claude/worktrees/` so nested worktrees never show as untracked     |
 | `.wt.toml`                              | repo root, committed                              | repo    | three hooks → the two scripts below                                     |
 | `scripts/wt-setup.sh`                   | committed                                         | repo    | everything a worktree needs to run, in one idempotent script            |
-| `scripts/tmux-dev.sh`                   | committed                                         | repo    | the 4-pane session; also `make dev-all` in the main checkout          |
+| `scripts/tmux-dev.sh`                   | committed                                         | repo    | the 4-pane session; also `make tmux-dev-all` in any checkout          |
 | `scripts/wt-teardown.sh`                | committed                                         | repo    | mirror of setup, run by `wt remove`                                     |
 | `scripts/wt-db.sh`                      | committed                                         | repo    | `make db-template-light` / `db-template` / `db-branch[-full]` / `db-branch-drop` / `db-status` |
 | `scripts/wt-open.sh`                    | committed                                         | repo    | `make wt-open [TARGET=backend] [BRANCH=…]` — prints and opens the URL   |

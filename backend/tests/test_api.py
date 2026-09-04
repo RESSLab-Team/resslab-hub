@@ -270,7 +270,7 @@ async def test_validate_ignores_dictionary_files(client, tmp_path):
 
 async def test_validate_surfaces_range_warnings(client, tmp_path):
     # Seed enough braces that "the norm" is established, then validate an
-    # outlier: it must warn (please-verify) while remaining valid.
+    # outlier: it must warn (far outside the range) while remaining valid.
     seed_path = tmp_path / "seed.csv"
     write_main_csv(
         seed_path,
@@ -290,9 +290,11 @@ async def test_validate_surfaces_range_warnings(client, tmp_path):
     body = response.json()
     assert body["valid"] is True
     warnings = body["results"][0]["warnings"]
-    assert any(w["column"] == "area" and "verify" in w["message"] for w in warnings)
+    assert any(
+        w["column"] == "area" and "Far outside" in w["message"] for w in warnings
+    )
     # Legacy arrays still carry the same information for the data-repo CI.
-    assert any("verify" in w for w in body["valid_results"][0]["warnings"])
+    assert any("Far outside" in w for w in body["valid_results"][0]["warnings"])
 
 
 async def test_readme_endpoint_serves_uploaded_markdown(client, tmp_path):

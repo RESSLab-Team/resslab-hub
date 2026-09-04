@@ -2,6 +2,7 @@
 import EyebrowText from '@/components/commons/EyebrowText.vue'
 import GroupedProperties from '@/components/commons/GroupedProperties.vue'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
+import { isHttpUrl } from '@/utils/common'
 import type { DatabaseId } from '@/utils/navigation'
 import { mdiClose, mdiOpenInNew } from '@mdi/js'
 import type { AxiosResponse } from 'axios'
@@ -125,7 +126,13 @@ function nextPage(): void {
     <div class="drawer-body">
       <div class="cd-publication">
         <div class="cd-publication-label">{{ $t('commons.publication') }}</div>
-        <a v-if="link" class="cd-publication-ref" :href="link" target="_blank" rel="noreferrer">
+        <a
+          v-if="isHttpUrl(link)"
+          class="cd-publication-ref"
+          :href="link"
+          target="_blank"
+          rel="noreferrer"
+        >
           {{ reference }}
           <v-icon :icon="mdiOpenInNew" size="11" />
         </a>
