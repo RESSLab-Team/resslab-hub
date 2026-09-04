@@ -26,6 +26,7 @@ import {
   mdiAlertOutline,
   mdiBellOffOutline,
   mdiBookOpenPageVariantOutline,
+  mdiCheckCircleOutline,
   mdiChevronRight,
   mdiClose,
   mdiContentCopy,
@@ -150,19 +151,12 @@ function toggleAllFieldGroups(event?: MouseEvent): void {
   if (event) void keepHeadInView(event.currentTarget as HTMLElement)
 }
 
-/** Cell problems this row has inside one group, so the head can carry a count.
- *  A draft's "still to fill in" hints are not problems and do not count. */
-function issuesIn(uid: number, columns: { name: string }[]): number {
-  return columns.filter((column) => {
-    const issue = store.cellIssueFor(uid, column.name)
-    return issue && issue.level !== 'todo'
-  }).length
-}
-
-/** A group holding a problem is always open: a contributor cannot fix what a
- *  collapsed heading is hiding. */
-function isFieldGroupOpen(uid: number, id: FieldGroupId, columns: { name: string }[]): boolean {
-  return openFieldGroups.value.has(id) || issuesIn(uid, columns) > 0
+/** Cell problems this row has inside one group, by level, so the head carries
+ *  the same counts as the card. A draft's "still to fill in" hints do not
+ *  count. Clicking a problem opens the group it points at, so a folded heading
+ *  never hides a cell the contributor has to fix. */
+function issuesIn(uid: number, columns: { name: string }[], level: 'error' | 'warn'): number {
+  return columns.filter((column) => store.cellIssueFor(uid, column.name)?.level === level).length
 }
 
 /** Which group a column landed in, for the jump-to-field path below. */
@@ -579,7 +573,12 @@ function noteFor(kind: TimeSeriesKind): string {
           <template v-else-if="cardState(row.uid) === 'unchecked'">
             {{ $t('contribute.editor.unchecked') }}
           </template>
-          <template v-else>{{ $t('contribute.editor.clean') }}</template>
+          <template v-else>
+            <span class="issue-counts" :title="$t('contribute.editor.clean')">
+              <span class="n"><v-icon :icon="mdiCheckCircleOutline" size="13" /></span>
+            </span>
+            <span class="issue-text">{{ $t('contribute.editor.clean') }}</span>
+          </template>
         </span>
         <span v-if="store.dismissedIssuesFor(row.uid).length" class="badge muted">
           <v-icon :icon="mdiBellOffOutline" size="13" />
@@ -701,27 +700,34 @@ function noteFor(kind: TimeSeriesKind): string {
             v-for="group in columnGroups"
             :key="group.id"
             class="field-group"
-            :class="{ open: isFieldGroupOpen(row.uid, group.id, group.items) }"
+            :class="{ open: openFieldGroups.has(group.id) }"
           >
             <button
               class="field-group-head"
               type="button"
-              :aria-expanded="isFieldGroupOpen(row.uid, group.id, group.items)"
+              :aria-expanded="openFieldGroups.has(group.id)"
               @click="toggleFieldGroup(group.id, $event)"
             >
               <v-icon
                 class="chevron"
-                :class="{ open: isFieldGroupOpen(row.uid, group.id, group.items) }"
+                :class="{ open: openFieldGroups.has(group.id) }"
                 :icon="mdiChevronRight"
                 size="14"
               />
               <span class="field-group-label">{{ $t(`field_group.${group.id}`) }}</span>
-              <span v-if="issuesIn(row.uid, group.items) > 0" class="field-group-issues">
-                {{ issuesIn(row.uid, group.items) }}
+              <span class="issue-counts">
+                <span v-if="issuesIn(row.uid, group.items, 'error')" class="n error">
+                  {{ issuesIn(row.uid, group.items, 'error')
+                  }}<v-icon :icon="mdiAlertCircleOutline" size="12" />
+                </span>
+                <span v-if="issuesIn(row.uid, group.items, 'warn')" class="n warn">
+                  {{ issuesIn(row.uid, group.items, 'warn')
+                  }}<v-icon :icon="mdiAlertOutline" size="12" />
+                </span>
               </span>
               <span class="field-group-count">{{ group.items.length }}</span>
             </button>
-            <div v-if="isFieldGroupOpen(row.uid, group.id, group.items)" class="fields">
+            <div v-if="openFieldGroups.has(group.id)" class="fields">
               <div
                 v-for="column in group.items"
                 :key="column.name"
@@ -1231,8 +1237,8 @@ function noteFor(kind: TimeSeriesKind): string {
   color: var(--fg-muted);
   font-weight: 400;
 }
-/* "1 (!) 4 (⚠)": a count per level, the icon says which. The wordy
-   "N issue(s)" is for the roomy layout only. */
+/* "1 (!) 4 (⚠)": a count per level, the icon says which, and a lone green tick
+   when there is none. The words are for the roomy layout only. */
 .issue-counts {
   display: inline-flex;
   gap: 8px;
@@ -1544,17 +1550,11 @@ function noteFor(kind: TimeSeriesKind): string {
   font-variant-numeric: tabular-nums;
   color: var(--fg-muted);
 }
-.field-group-issues {
+.field-group-head .issue-counts {
   flex: 0 0 auto;
-  min-width: 16px;
-  padding: 0 5px;
-  border-radius: 8px;
-  background: var(--epfl-red);
-  color: #fff;
-  font-size: 10px;
+  gap: 6px;
+  font-size: 11px;
   font-weight: 600;
-  line-height: 16px;
-  text-align: center;
 }
 .field-group.open .fields {
   padding: 4px 8px 10px;
@@ -1879,7 +1879,7 @@ function noteFor(kind: TimeSeriesKind): string {
   .badge {
     min-width: 8em;
   }
-  .issue-counts {
+  .card-head .issue-counts {
     display: none;
   }
   .issue-text {
