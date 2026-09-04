@@ -251,7 +251,7 @@ class TestRangeWarnings:
         assert len(warnings) == 1
         assert warnings[0].row == 1
         assert "10 to 29" in warnings[0].message
-        assert "verify" in warnings[0].message
+        assert "Far outside" in warnings[0].message
         assert result.is_valid()  # a warning, never an error
 
     def test_value_within_one_span_of_range_does_not_warn(
