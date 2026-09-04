@@ -1278,10 +1278,10 @@
       "recap": "Vous soumettez {experiments} expérience(s) et {files} fichier(s) de mesures.",
       "recap_no_data": "{count} expérience(s) sans données d’essai jointes.",
       "recap_dismissed": "{count} avertissement(s) écarté(s) seront listés pour le curateur.",
-      "name": "Votre nom",
-      "email": "E-mail",
-      "institution": "Institution",
-      "orcid": "Identifiant ORCID",
+      "submitting_as": "Soumis par",
+      "edit_identity": "Modifier",
+      "identity_incomplete": "Ce compte n'a pas d'adresse email confirmée. Connectez-vous avec votre adresse email pour soumettre.",
+      "link_github_hint": "Liez GitHub sur votre page compte pour être mentionné sur la pull request et suivre sa relecture.",
       "note": "Ces informations sont enregistrées avec la soumission afin que les curateurs puissent vous créditer et vous contacter. Elles apparaissent publiquement dans le dépôt de données.",
       "cancel": "Annuler",
       "confirm": "Soumettre"
@@ -1337,7 +1337,8 @@
       "dialog_title": "Mettre à jour la soumission",
       "dialog_confirm": "Mettre à jour",
       "draft_notice": "Soumettre à nouveau ajoute un commit à la demande de relecture ouverte sur le dépôt de données RESSLab. Les vérifications sont relancées et la relecture continue.",
-      "conflict": "Cette soumission a changé sur GitHub après son ouverture. Rechargez la page pour obtenir la dernière version, puis refaites vos modifications."
+      "conflict": "Cette soumission a changé sur GitHub après son ouverture. Rechargez la page pour obtenir la dernière version, puis refaites vos modifications.",
+      "not_mine": "Cette soumission a été faite depuis un autre compte. Seule la personne qui l'a soumise peut la modifier ici."
     }
   },
   "curation": {
@@ -1461,6 +1462,75 @@
       "summary": "soumission",
       "refresh": "Actualiser la discussion",
       "unknown_author": "Auteur inconnu"
+    }
+  },
+  "auth": {
+    "login": {
+      "sign_in": "Se connecter",
+      "eyebrow": "Compte",
+      "title": "Connectez-vous pour contribuer",
+      "lede": "La consultation ne demande pas de compte. Il en faut un pour soumettre des données ou pour relire une soumission.",
+      "github": "Continuer avec GitHub",
+      "github_note": "Lier GitHub vous permet de suivre et de répondre à la relecture de votre soumission.",
+      "or_email": "ou avec votre email",
+      "email_label": "Email",
+      "send_code": "Envoyez-moi un code",
+      "sending": "Envoi...",
+      "sent": "Nous avons envoyé un code à six chiffres à {email}. Le mail contient aussi un lien, si vous le lisez sur cet appareil.",
+      "code_label": "Code à six chiffres",
+      "confirm": "Se connecter",
+      "checking": "Vérification...",
+      "other_email": "Utiliser une autre adresse",
+      "browsing_is_free": "Toutes les bases restent consultables sans compte."
+    },
+    "verify": {
+      "signing_in": "Connexion en cours...",
+      "try_again": "Retour à la connexion"
+    },
+    "account": {
+      "section": "Compte",
+      "eyebrow": "Compte",
+      "title": "Votre compte",
+      "no_name": "Pas encore de nom",
+      "no_email": "Pas d'adresse confirmée",
+      "verified": "confirmée",
+      "identities": "Moyens de connexion",
+      "identities_lede": "Chacun ouvre le même compte. GitHub peut être ajouté et retiré. L'adresse email reste : c'est par elle que le compte est retrouvé.",
+      "unlink": "Retirer",
+      "link_github": "Lier GitHub",
+      "link_github_why": "Avec GitHub lié, votre soumission vous mentionne sur sa pull request, donc vous recevez les commentaires de relecture et pouvez y répondre.",
+      "sign_out": "Se déconnecter"
+    },
+    "forbidden": {
+      "eyebrow": "Compte",
+      "title": "Page fermée à votre compte",
+      "lede": "Votre compte ne peut pas ouvrir cette page.",
+      "needs_role": "Cette page demande le rôle {role}. Demandez-le à un administrateur du labo.",
+      "back_home": "Retour aux bases de données"
+    },
+    "roles": {
+      "viewer": "Lecteur",
+      "contributor": "Contributeur",
+      "curator": "Curateur",
+      "admin": "Administrateur"
+    },
+    "providers": {
+      "email": "Email",
+      "github": "GitHub",
+      "orcid": "ORCID",
+      "entra": "EPFL",
+      "switch": "SSO institutionnel"
+    },
+    "errors": {
+      "generic": "Quelque chose n'a pas marché. Réessayez.",
+      "invalid_code": "Ce code n'est pas le bon. Vérifiez le mail et réessayez.",
+      "invalid_or_expired": "Ce code ou ce lien n'est plus valable. Demandez-en un nouveau.",
+      "too_many_attempts": "Trop d'essais. Demandez un nouveau code.",
+      "github_failed": "La connexion GitHub n'a pas abouti. Réessayez.",
+      "email_in_use": "Cette adresse a déjà un compte ici. Connectez-vous avec, puis liez GitHub depuis votre page compte.",
+      "identity_taken": "Ce compte GitHub est déjà lié à un autre compte ici.",
+      "github_denied": "Vous avez annulé la connexion GitHub.",
+      "cannot_unlink": "Celui-ci ne peut pas être retiré : c'est par lui que votre compte est retrouvé."
     }
   }
 }

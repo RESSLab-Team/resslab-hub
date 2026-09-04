@@ -31,7 +31,12 @@ HEAD_CSV = BASE_CSV + "B9,400,New one\n"
 CURVE_CSV = "Displacement [mm],Force [kN]\n0,0\n1,10\n"
 
 CONTRIBUTOR = Contributor(
-    name="Ada Lovelace", email="ada@example.edu", institution="EPFL", orcid="0000-1"
+    name="Ada Lovelace",
+    email="ada@example.edu",
+    institution="EPFL",
+    orcid="0000-1",
+    github_login="ada",
+    identity="email",
 )
 
 PROVENANCE = json.dumps(
@@ -192,6 +197,8 @@ def test_parse_pr_body_roundtrip():
     assert contributor.name == "Ada Lovelace"
     assert contributor.institution == "EPFL"
     assert contributor.orcid == "0000-1"
+    # The @mention that notifies the contributor of every review comment.
+    assert contributor.github_login == "ada"
 
 
 def test_parse_pr_body_roundtrip_with_update_help():
@@ -321,6 +328,23 @@ async def test_detail_404_on_closed_or_foreign(monkeypatch):
     with pytest.raises(HTTPException) as caught:
         await get_contribution(make_request(), 7)
     assert caught.value.status_code == 404
+
+
+async def test_detail_says_whether_it_is_mine(monkeypatch):
+    """Per request, never from the cache: two people read the same detail."""
+    from types import SimpleNamespace
+
+    use_client(monkeypatch, FakeClient())
+    anonymous = await get_contribution(make_request(), 7)
+    assert anonymous.mine is False
+
+    owner = make_request()
+    owner.state.user = SimpleNamespace(id="some-id", email="ada@example.edu")
+    assert (await get_contribution(owner, 7)).mine is True
+
+    stranger = make_request()
+    stranger.state.user = SimpleNamespace(id="other-id", email="grace@example.edu")
+    assert (await get_contribution(stranger, 7)).mine is False
 
 
 # --- validation -------------------------------------------------------------

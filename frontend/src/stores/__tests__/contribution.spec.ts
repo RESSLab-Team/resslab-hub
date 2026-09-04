@@ -728,8 +728,6 @@ describe('contribution store — submission', () => {
     vi.mocked(postContribution).mockReset()
   })
 
-  const CONTRIBUTOR = { name: 'Ada', email: 'ada@example.edu', institution: '', orcid: '' }
-
   /** Edits flush the reset watcher; settle it before handing out a verdict. */
   async function submittableStore() {
     const store = seededStore()
@@ -775,14 +773,15 @@ describe('contribution store — submission', () => {
       head_sha: 'sha-1'
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
     expect(store.submitStatus).toBe('submitted')
     expect(store.pullRequestUrl).toBe('https://github.com/x/pull/7')
     expect(store.pullRequestNumber).toBe(7)
-    const [, archive, contributor] = (postContribution as Mock).mock.calls[0]
+    const [, archive] = (postContribution as Mock).mock.calls[0]
     expect(archive).toBeInstanceOf(File)
-    expect(contributor).toEqual(CONTRIBUTOR)
+    // Who submits is not sent any more: the backend takes it from the session.
+    expect((postContribution as Mock).mock.calls[0]).toHaveLength(3)
   })
 
   it('points at the submitted CSV on its own branch', async () => {
@@ -795,7 +794,7 @@ describe('contribution store — submission', () => {
       head_sha: 'sha-1'
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
     expect(store.branch).toBe('contrib/braces/b1-abc')
     expect(store.csvOnGitHubUrl).toBe(
@@ -825,9 +824,9 @@ describe('contribution store — submission', () => {
       head_sha: 'sha-1'
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
-    const [, , , dismissed] = (postContribution as Mock).mock.calls[0]
+    const [, , dismissed] = (postContribution as Mock).mock.calls[0]
     expect(dismissed).toHaveLength(1)
     expect(dismissed[0]).toMatch(/^B1: /)
   })
@@ -842,7 +841,7 @@ describe('contribution store — submission', () => {
       }
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
     expect(store.submitStatus).toBe('error')
     expect(store.submitError).toBe("Specimen id 'a/b' cannot be used as a file name: rule.")
@@ -862,7 +861,7 @@ describe('contribution store — submission', () => {
       response: { status: 400, data: '<html>bad request</html>' }
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
     expect(store.submitError).toContain('could not be read')
   })
@@ -892,7 +891,7 @@ describe('contribution store — submission', () => {
       }
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
     expect(store.submitStatus).toBe('error')
     expect(store.status).toBe('fail')
@@ -923,7 +922,7 @@ describe('contribution store — submission', () => {
       branch: 'b',
       head_sha: 'sha-1'
     })
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
     const entries = vi.mocked(buildTarGz).mock.calls.at(-1)![0]
     expect(entries.map((entry) => entry.path)).toContain(
       'eccentric_braced_frames/processed_data/id74.csv'
@@ -932,14 +931,13 @@ describe('contribution store — submission', () => {
 
   it('does nothing when the batch is not submittable', async () => {
     const store = seededStore()
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
     expect(postContribution).not.toHaveBeenCalled()
     expect(store.submitStatus).toBe('idle')
   })
 })
 
 describe('contribution store — editing an open submission', () => {
-  const CONTRIBUTOR = { name: 'Ada', email: 'ada@example.edu', institution: '', orcid: '' }
   const CURVE = 'Displacement [mm],Force [kN]\n0,0\n1,10\n'
 
   const DETAIL = {
@@ -948,6 +946,7 @@ describe('contribution store — editing an open submission', () => {
     branch: 'contrib/braces/b1-abcd1234',
     head_sha: 'head-sha',
     type: 'all-braces',
+    mine: true,
     experiments: [
       { id: 'B1', cells: { id: 'B1', area: 'NR', investigator: 'X' } },
       { id: 'B2', cells: { id: 'B2', area: '12', investigator: 'Y' } }
@@ -973,6 +972,18 @@ describe('contribution store — editing an open submission', () => {
     vi.mocked(defaultApi.getContributionFile).mockReset()
     vi.mocked(defaultApi.getContribution).mockResolvedValue({ data: DETAIL } as never)
     vi.mocked(defaultApi.getContributionFile).mockResolvedValue({ data: CURVE } as never)
+  })
+
+  it("refuses to load a submission that is not the visitor's", async () => {
+    vi.mocked(defaultApi.getContribution).mockResolvedValue({
+      data: { ...DETAIL, mine: false }
+    } as never)
+    const store = useContributionStore()
+    await store.loadSubmission(7)
+    expect(store.loadStatus).toBe('error')
+    expect(store.loadError).toBe('not_mine')
+    expect(store.editing).toBe(false)
+    expect(defaultApi.getContributionFile).not.toHaveBeenCalled()
   })
 
   /** The same submission with a curve for both experiments: ready to submit. */
@@ -1085,17 +1096,16 @@ describe('contribution store — editing an open submission', () => {
       head_sha: 'new-sha'
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
     expect(vi.mocked(postContribution)).not.toHaveBeenCalled()
-    const [archive, target, contributor] = vi.mocked(putContribution).mock.calls[0]
+    const [archive, target] = vi.mocked(putContribution).mock.calls[0]
     expect(archive).toBeInstanceOf(File)
     expect(target).toEqual({
       prNumber: 7,
       prUrl: 'https://github.com/x/pull/7',
       headSha: 'head-sha'
     })
-    expect(contributor).toEqual(CONTRIBUTOR)
     expect(store.submitStatus).toBe('submitted')
     // The next update goes on top of the commit this one made.
     expect(store.editTarget?.headSha).toBe('new-sha')
@@ -1116,7 +1126,7 @@ describe('contribution store — editing an open submission', () => {
       response: { status: 409, data: { detail: 'This submission changed on GitHub.' } }
     })
 
-    await store.submit(CONTRIBUTOR)
+    await store.submit()
 
     expect(store.submitStatus).toBe('error')
     expect(store.submitConflict).toBe(true)

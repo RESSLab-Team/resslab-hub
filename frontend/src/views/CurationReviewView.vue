@@ -160,6 +160,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
             </h2>
             <div class="hrow-actions">
               <router-link
+                v-if="detail.mine"
                 class="cp-btn"
                 :to="{ name: 'ContributeEdit', params: { prNumber: detail.pr_number } }"
               >

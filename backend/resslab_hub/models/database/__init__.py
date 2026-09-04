@@ -1,3 +1,4 @@
+import resslab_hub.models.database.auth  # noqa: F401
 import resslab_hub.models.database.brace
 import resslab_hub.models.database.column
 import resslab_hub.models.database.connection

@@ -29,7 +29,12 @@ from resslab_hub.data.validator import TableValidator, ValidationResult
 from resslab_hub.models.database.brace import Brace
 
 CONTRIBUTOR = Contributor(
-    name="Ada Lovelace", email="ada@example.edu", institution="EPFL"
+    name="Ada Lovelace",
+    email="ada@example.edu",
+    institution="EPFL",
+    github_login="ada",
+    identity="email",
+    user_id="11111111-1111-1111-1111-111111111111",
 )
 
 REPO_CSV = "id,f_y,name\nB1,355,First\nB2,275,Second\n"
@@ -255,7 +260,10 @@ async def test_submit_happy_path(tmp_path, monkeypatch):
     assert "B9,400,New one" in merged
     assert "braces/force_displacement/B9.csv" in by_path
     provenance_path = next(p for p in by_path if p.startswith("contributions/braces/"))
-    assert '"identity": "self-declared"' in by_path[provenance_path]
+    # The provenance says how the identity was established, not that it was
+    # typed in a form (#247).
+    assert '"identity": "email"' in by_path[provenance_path]
+    assert '"github_login": "ada"' in by_path[provenance_path]
     assert "Value is far outside the range" in by_path[provenance_path]
 
     assert client.commit_kwargs["author_name"] == "Ada Lovelace"
@@ -585,7 +593,7 @@ PROVENANCE = json.dumps(
         "schema": 1,
         "type": "all-braces",
         "submitted_at": "2026-08-01T12:00:00+00:00",
-        "contributor": {"name": "Grace Hopper", "email": "grace@example.edu"},
+        "contributor": {"name": "Ada Lovelace", "email": "ada@example.edu"},
         "files": [],
         "dismissed_warnings": [],
     }
@@ -670,10 +678,11 @@ async def test_update_rewrites_the_same_provenance_record(tmp_path, monkeypatch)
     record = json.loads(by_path[PROVENANCE_PATH])
     assert record["submitted_at"] == "2026-08-01T12:00:00+00:00"
     assert record["updated_at"] > record["submitted_at"]
-    # Without auth the record is the only trace of who did what: the first
-    # contributor stays, the editor is added next to it.
-    assert record["contributor"]["name"] == "Grace Hopper"
+    # The first record stays as it was (here one from before #247, with no
+    # account id), the editor is added next to it with theirs.
+    assert record["contributor"] == {"name": "Ada Lovelace", "email": "ada@example.edu"}
     assert record["updated_by"]["name"] == "Ada Lovelace"
+    assert record["updated_by"]["user_id"] == CONTRIBUTOR.user_id
     assert record["dismissed_warnings"] == ["Value is far outside the range"]
     # Checksums cover what this commit writes, not what the first one did.
     checksummed = {entry["path"] for entry in record["files"]}
@@ -729,6 +738,50 @@ async def test_update_escapes_formula_cells(tmp_path, monkeypatch):
     merged = {f.path: f.content for f in client.committed}["braces/steel_braces.csv"]
     assert "'=cmd()" in merged
     assert "-1.5" in merged
+
+
+def provenance_by(**contributor) -> str:
+    return json.dumps({**json.loads(PROVENANCE), "contributor": contributor})
+
+
+async def test_update_refuses_someone_elses_submission(tmp_path, monkeypatch):
+    """Ownership is the account id on the record; the address only counts for
+    records from before #247, which have no id."""
+    patch_validation(monkeypatch)
+    batch = make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n")
+    other_account = provenance_by(
+        name="Ada Lovelace", email="ada@example.edu", user_id="2222-other"
+    )
+    other_address = provenance_by(name="Grace Hopper", email="grace@example.edu")
+    for record in (other_account, other_address):
+        client = edit_client()
+        client.head_files[PROVENANCE_PATH] = record
+        with pytest.raises(SubmissionError) as excinfo:
+            await update(batch, client)
+        assert excinfo.value.status_code == 403
+        assert client.committed == []
+
+
+async def test_update_needs_a_readable_record(tmp_path, monkeypatch):
+    """No record, no owner: a branch made by hand is a curator's to fix."""
+    patch_validation(monkeypatch)
+    client = edit_client()
+    del client.head_files[PROVENANCE_PATH]
+    with pytest.raises(SubmissionError) as excinfo:
+        await update(make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n"), client)
+    assert excinfo.value.status_code == 403
+
+
+async def test_update_matches_the_account_id_first(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = edit_client()
+    client.head_files[PROVENANCE_PATH] = provenance_by(
+        name="Renamed", email="old@example.edu", user_id=CONTRIBUTOR.user_id
+    )
+    result = await update(
+        make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n"), client
+    )
+    assert result.head_sha == "new-commit-sha"
 
 
 async def test_update_refuses_a_stale_head(tmp_path, monkeypatch):
@@ -810,22 +863,6 @@ async def test_update_reports_a_branch_that_moved_mid_flight(tmp_path, monkeypat
         await update(make_batch(tmp_path), client)
     assert caught.value.status_code == 409
     assert "Reload" in caught.value.detail
-
-
-async def test_update_survives_a_missing_provenance_record(tmp_path, monkeypatch):
-    patch_validation(monkeypatch)
-    client = edit_client()
-    client.pr_files = [f for f in PR_FILES if f["path"] != PROVENANCE_PATH]
-    del client.head_files[PROVENANCE_PATH]
-
-    await update(make_batch(tmp_path), client)
-
-    by_path = {file.path: file.content for file in client.committed}
-    record_path = next(p for p in by_path if p.startswith("contributions/braces/"))
-    assert record_path == PROVENANCE_PATH  # rebuilt from the branch suffix
-    record = json.loads(by_path[record_path])
-    assert "updated_at" not in record  # its history starts at this commit
-    assert record["contributor"]["name"] == "Ada Lovelace"
 
 
 async def test_update_refreshes_the_pull_request_summary(tmp_path, monkeypatch):

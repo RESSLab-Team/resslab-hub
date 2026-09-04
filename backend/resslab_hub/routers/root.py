@@ -4,7 +4,6 @@ Handle / requests
 
 from logging import warning
 from os import path
-from secrets import compare_digest
 from tempfile import TemporaryDirectory
 
 from fastapi import (
@@ -18,11 +17,10 @@ from fastapi import (
     status,
 )
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from resslab_hub import __name__ as name
 from resslab_hub import __version__
-from resslab_hub.config import settings
+from resslab_hub.auth.deps import require_service, require_user_or_service
 from resslab_hub.contributions.github import configured
 from resslab_hub.contributions.submission import flag_repo_duplicates
 from resslab_hub.data.uploader import Type, upload_all
@@ -44,8 +42,6 @@ from resslab_hub.utils.safe_archive import (
 
 router = APIRouter()
 
-security = HTTPBasic()
-
 # Reject obviously oversized uploads before we read the body. The archive
 # extraction caps (safe_archive.py) remain the authoritative guard against a
 # lying Content-Length; this just fails fast on the honest ones.
@@ -65,23 +61,6 @@ def enforce_request_size(request: Request) -> None:
                 )
         except ValueError:
             pass
-
-
-def get_current_username(credentials: HTTPBasicCredentials = Depends(security)) -> str:
-    """
-    https://fastapi.tiangolo.com/advanced/security/http-basic-auth/
-    """
-    current_username = credentials.username
-    correct_username: str = settings.api_username  # type: ignore
-    is_correct_username = compare_digest(current_username, correct_username)
-    current_password = credentials.password
-    correct_password: str = settings.api_password  # type: ignore
-    is_correct_password = compare_digest(current_password, correct_password)
-    if not (is_correct_username and is_correct_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-        )
-    return credentials.username
 
 
 @router.get("/", response_model=Info)
@@ -108,7 +87,7 @@ async def readyz(request: Request):
     return JSONResponse(status_code=503, content={"status": "warming"})
 
 
-@router.post("/upload", dependencies=[Depends(get_current_username)])
+@router.post("/upload", dependencies=[Depends(require_service)])
 async def create_upload_file(
     file: UploadFile = File(...),
     type: Type = Query(...),
@@ -199,14 +178,16 @@ def _build_response(results, tmpdir: str) -> ValidationResponse:
     )
 
 
-# NOTE(auth): /validate is intentionally unauthenticated. It is a read-only
-# check that persists nothing (the archive is parsed as text and discarded), so
-# it can stay open for external contributors iterating on their data until
-# per-user academic-email auth lands. It is hardened instead: the archive is
-# extracted through safe_extract_targz (path-traversal + decompression-bomb
-# caps), the request body is size-capped, and the endpoint is rate limited.
-# /upload, which writes to the database, stays password-protected above.
-@router.post("/validate", response_model=ValidationResponse)
+# Two kinds of caller, so two ways in (#247): a contributor signed in to the
+# editor, or the data repository's CI with the shared machine credential (see
+# data-validation.yml, and `make validate-%`). Any signed-in account passes,
+# whatever its role: checking a batch writes nothing, and someone who cannot
+# submit yet still needs to know their data is clean.
+@router.post(
+    "/validate",
+    response_model=ValidationResponse,
+    dependencies=[Depends(require_user_or_service)],
+)
 @limiter.limit("30/minute")
 async def validate_data(
     request: Request,
@@ -256,6 +237,9 @@ async def validate_data(
         await file.close()
 
 
+# The machine credential's own probe: the data repository's workflows call this
+# with `curl -f -u user:$API_PASSWORD` before uploading or validating, to fail
+# early on a bad password. People use GET /auth/me instead.
 @router.get("/user")
-async def get_user(username: str = Depends(get_current_username)):
+async def get_user(username: str = Depends(require_service)):
     return {"username": username}

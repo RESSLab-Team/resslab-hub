@@ -1,5 +1,6 @@
 """
-Handle /contributions requests: submit a validated batch as a data-repo PR.
+Handle /contributions requests: submit a validated batch as a data-repo PR,
+or push a new commit on an open one.
 """
 
 import json
@@ -19,6 +20,7 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 
+from resslab_hub.auth.deps import require_user
 from resslab_hub.contributions.github import configured
 from resslab_hub.contributions.submission import (
     Contributor,
@@ -30,6 +32,7 @@ from resslab_hub.contributions.submission import (
 )
 from resslab_hub.data.uploader import Type
 from resslab_hub.models.contribution import ContributionResponse
+from resslab_hub.models.database.auth import User
 from resslab_hub.models.validation import ValidationResponse
 from resslab_hub.routers.curation import invalidate_pull
 from resslab_hub.routers.root import _build_response, enforce_request_size
@@ -61,13 +64,35 @@ def _parse_dismissed(raw: str) -> list:
     return parsed
 
 
-def _contributor(name: str, email: str, institution: str, orcid: str) -> Contributor:
-    """Who the commit is authored by: self-declared until #247 lands."""
+def _contributor(request: Request, user: User) -> Contributor:
+    """Who the commit is authored by: the signed-in account (#247).
+
+    The commit author and the provenance record both need a real name and a
+    proven address. A GitHub-only account may have neither (rare: GitHub
+    shares the verified primary address), and cannot add one until the
+    profile page lands, so the message says what to do instead.
+    """
+    if not user.display_name.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This account has no name yet, so it cannot submit.",
+        )
+    if not user.email or user.email_verified_at is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "This account has no confirmed email address, so it cannot "
+                "submit. Sign in with your email address instead."
+            ),
+        )
     return Contributor(
-        name=name.strip(),
-        email=email.strip(),
-        institution=institution.strip(),
-        orcid=orcid.strip(),
+        name=user.display_name.strip(),
+        email=user.email,
+        institution=user.institution.strip(),
+        orcid=user.orcid.strip(),
+        github_login=user.github_login,
+        identity=getattr(request.state, "auth_provider", "email"),
+        user_id=str(user.id),
     )
 
 
@@ -119,12 +144,10 @@ async def _run_on_archive(
         await file.close()
 
 
-# NOTE(auth): open, like /validate. The shared HTTP Basic credential also
-# guards /upload, and a browser-side gate would have to ship it in the JS
-# bundle — publishing the ingestion password to every visitor. Until per-user
-# academic auth (#247) lands, the defences are the rate limit below, mandatory
-# server-side validation, and the fact that a submission only ever becomes a
-# pull request a curator has to review.
+# Signed in only (#247). Who submitted is not a form field any more: it is the
+# account, which is what makes the pull request attributable and lets a curator
+# reach the person who opened it. Phase 2 (#248) raises this to the contributor
+# role, so that being signed in is not by itself permission to submit.
 @router.post(
     "/contributions",
     response_model=ContributionResponse,
@@ -136,11 +159,8 @@ async def create_contribution(
     request: Request,
     file: UploadFile = File(...),
     type: Type = Query(...),
-    contributor_name: str = Form(..., min_length=1, max_length=200),
-    contributor_email: str = Form(..., min_length=3, max_length=200),
-    institution: str = Form("", max_length=200),
-    orcid: str = Form("", max_length=50),
     dismissed_warnings: str = Form("[]"),
+    user: User = Depends(require_user),
     _: None = Depends(enforce_request_size),
 ):
     """
@@ -148,15 +168,15 @@ async def create_contribution(
     repository. Errors block; warnings pass and are listed in the PR body.
     """
     dismissed = _parse_dismissed(dismissed_warnings)
-    contributor = _contributor(contributor_name, contributor_email, institution, orcid)
+    contributor = _contributor(request, user)
     return await _run_on_archive(
         file,
         lambda tmpdir: submit_contribution(tmpdir, type, contributor, dismissed),
     )
 
 
-# NOTE(auth): open like the POST above; what the caller proves and what still
-# protects the branch is in `update_contribution`.
+# Same account as the submission, checked in `update_contribution` against the
+# provenance record on the branch.
 @router.put(
     "/contributions/{pr_number}",
     response_model=ContributionResponse,
@@ -168,22 +188,20 @@ async def update_open_contribution(
     pr_number: int,
     file: UploadFile = File(...),
     head_sha: str = Form(..., min_length=40, max_length=40),
-    contributor_name: str = Form(..., min_length=1, max_length=200),
-    contributor_email: str = Form(..., min_length=3, max_length=200),
-    institution: str = Form("", max_length=200),
-    orcid: str = Form("", max_length=50),
     dismissed_warnings: str = Form("[]"),
+    user: User = Depends(require_user),
     _: None = Depends(enforce_request_size),
 ):
     """
     Replace an open submission's batch with a new commit on its own branch.
     The pull request updates and its checks rerun; no second review is opened.
 
-    Answers 409 when the branch moved since the editor loaded it: reload and
-    make the changes again.
+    Answers 403 when the submission was made from another account, and 409
+    when the branch moved since the editor loaded it: reload and make the
+    changes again.
     """
     dismissed = _parse_dismissed(dismissed_warnings)
-    contributor = _contributor(contributor_name, contributor_email, institution, orcid)
+    contributor = _contributor(request, user)
     response = await _run_on_archive(
         file,
         lambda tmpdir: update_contribution(

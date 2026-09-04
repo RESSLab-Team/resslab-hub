@@ -30,6 +30,14 @@ dependencies = [
   "httpx>=0.27,<1",
   # GitHub App client for contribution PRs on the data repo
   "githubkit[auth-app]>=0.12,<0.13",
+  # OAuth 2 / OIDC client for the sign-in flows (GitHub now, ORCID and the
+  # academic IdPs later). Used as a plain AsyncOAuth2Client, not through the
+  # Starlette integration, so no server-side session middleware is needed.
+  "authlib>=1.3,<2",
+  # Async SMTP for the login code mails.
+  "aiosmtplib>=3,<4",
+  # Backs pydantic's EmailStr, used on the sign-in form.
+  "email-validator>=2,<3",
 ]
 
 [dependency-groups]

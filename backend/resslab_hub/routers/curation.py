@@ -8,12 +8,12 @@ whose id is absent from the base CSV, the contributor comes from the PR body,
 and quality flags come from re-running the same server-side validation the
 submission went through.
 
-NOTE(auth): open, like POST /contributions — the review interface ships before
-per-user auth (#247) and roles (#248), and approving/merging stays on GitHub,
-so these endpoints only ever reveal what the public data-repo PR already shows
-(minus the contributor's email). The defences are per-IP rate limits and TTL
-caches keyed by the PR head sha, which also protect the GitHub App's API
-budget.
+Signed in only (#247). These endpoints reveal no more than the public data-repo
+pull request already does, but the review queue is not a public page: it is the
+lab's work list. Phase 2 (#248) raises the bar to the curator role, derived
+from the GitHub permission on the data repository. Approving and merging stay
+on GitHub either way. The per-IP rate limits and the TTL caches keyed by the PR
+head sha also protect the GitHub App's API budget.
 """
 
 import json
@@ -24,9 +24,10 @@ from tempfile import TemporaryDirectory
 from time import monotonic
 from typing import List, Optional, Tuple
 
-from fastapi import APIRouter, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 
+from resslab_hub.auth.deps import require_user
 from resslab_hub.contributions.github import DataRepoClient, configured
 from resslab_hub.contributions.projection import (
     SubmissionError,
@@ -35,7 +36,11 @@ from resslab_hub.contributions.projection import (
     split_batch,
     type_for_branch,
 )
-from resslab_hub.contributions.submission import _read_csv, _write_csv
+from resslab_hub.contributions.submission import (
+    _read_csv,
+    _write_csv,
+    owns_submission,
+)
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import validate_all
 from resslab_hub.models.curation import (
@@ -129,6 +134,9 @@ def _parse_pr_body(body: str) -> Tuple[Optional[int], Optional[CurationContribut
         orcid = re.search(r"\*\*ORCID\*\*: (.*)$", body, re.M)
         if orcid:
             contributor.orcid = orcid.group(1).strip()
+        github = re.search(r"\*\*GitHub\*\*: @(\S+)$", body, re.M)
+        if github:
+            contributor.github_login = github.group(1).strip()
     return count, contributor
 
 
@@ -201,6 +209,11 @@ async def _build_detail(
                 await client.get_file_text(provenance_paths[0], ref=head_sha)
             )
             contributor = provenance.get("contributor", {})
+            # Who may edit it, kept beside the detail rather than in it: the
+            # detail is cached across users, the answer is per user.
+            _cache.put(
+                ("owner", pull["number"], head_sha), provenance, DETAIL_TTL_SECONDS
+            )
             detail.contributor = CurationContributor(
                 name=str(contributor.get("name", "")),
                 institution=str(contributor.get("institution", "")),
@@ -326,7 +339,13 @@ async def _build_validation(
     return response
 
 
-@router.get("/contributions", response_model=CurationListResponse)
+# The gate goes on the decorator, not in the signature: the curation tests call
+# these functions directly, where FastAPI dependencies never run.
+@router.get(
+    "/contributions",
+    response_model=CurationListResponse,
+    dependencies=[Depends(require_user)],
+)
 @limiter.limit("30/minute")
 async def list_contributions(request: Request) -> CurationListResponse:
     """
@@ -349,7 +368,11 @@ async def list_contributions(request: Request) -> CurationListResponse:
     return CurationListResponse(configured=True, items=items)
 
 
-@router.get("/contributions/{pr_number}", response_model=CurationDetail)
+@router.get(
+    "/contributions/{pr_number}",
+    response_model=CurationDetail,
+    dependencies=[Depends(require_user)],
+)
 @limiter.limit("30/minute")
 async def get_contribution(request: Request, pr_number: int) -> CurationDetail:
     """
@@ -364,7 +387,7 @@ async def get_contribution(request: Request, pr_number: int) -> CurationDetail:
     client = DataRepoClient()
     pull, input_type = await _fetch_pull(client, pr_number)
     try:
-        return await _build_detail(client, pull, input_type)
+        detail = await _build_detail(client, pull, input_type)
     except (HTTPException, SubmissionError):
         raise
     except Exception as exc:
@@ -372,9 +395,23 @@ async def get_contribution(request: Request, pr_number: int) -> CurationDetail:
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"The submission could not be read from the data repository: {exc}",
         )
+    return detail.model_copy(update={"mine": _is_mine(request, pr_number, detail)})
 
 
-@router.get("/contributions/{pr_number}/validation", response_model=ValidationResponse)
+def _is_mine(request: Request, pr_number: int, detail: CurationDetail) -> bool:
+    """Whether the signed-in account made this submission (#247)."""
+    user = getattr(request.state, "user", None)
+    if user is None:
+        return False
+    provenance = _cache.get(("owner", pr_number, detail.head_sha))
+    return owns_submission(provenance, str(user.id), user.email or "")
+
+
+@router.get(
+    "/contributions/{pr_number}/validation",
+    response_model=ValidationResponse,
+    dependencies=[Depends(require_user)],
+)
 @limiter.limit("10/minute")
 async def get_contribution_validation(
     request: Request, pr_number: int
@@ -402,7 +439,9 @@ async def get_contribution_validation(
 
 
 @router.get(
-    "/contributions/{pr_number}/comments", response_model=CurationCommentsResponse
+    "/contributions/{pr_number}/comments",
+    response_model=CurationCommentsResponse,
+    dependencies=[Depends(require_user)],
 )
 @limiter.limit("30/minute")
 async def get_contribution_comments(
@@ -462,7 +501,11 @@ async def get_contribution_comments(
     return response
 
 
-@router.get("/contributions/{pr_number}/files", response_class=PlainTextResponse)
+@router.get(
+    "/contributions/{pr_number}/files",
+    response_class=PlainTextResponse,
+    dependencies=[Depends(require_user)],
+)
 # The edit step (#321) loads one file per request to fill the editor, so a
 # batch with many curves needs more headroom than a curator reading one.
 @limiter.limit("120/minute")

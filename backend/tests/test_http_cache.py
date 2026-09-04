@@ -46,6 +46,19 @@ def make_app() -> tuple[TestClient, dict]:
         calls["contributions"] += 1
         return {"pr_number": number, "head_sha": "abc"}
 
+    # Per-user answers (#247): they must never reach the shared body cache.
+    @app.get("/auth/me")
+    def me():
+        return {"user": None}
+
+    @app.get("/account")
+    def account():
+        return {"display_name": ""}
+
+    @app.get("/admin/users")
+    def admin_users():
+        return []
+
     return TestClient(app), calls
 
 
@@ -81,7 +94,17 @@ def test_bumped_data_version_serves_fresh_content():
 
 def test_non_json_and_excluded_paths_are_not_cached():
     client, _ = make_app()
-    for path in ("/connections/csv", "/analytics/users", "/healthz"):
+    for path in (
+        "/connections/csv",
+        "/analytics/users",
+        "/healthz",
+        # Signed-in answers: the cache is keyed on the URL alone and marks what
+        # it stores `public`, so caching these would hand one person's account
+        # to the next visitor.
+        "/auth/me",
+        "/account",
+        "/admin/users",
+    ):
         response = client.get(path)
         assert response.status_code == 200
         assert "cache-control" not in response.headers, path

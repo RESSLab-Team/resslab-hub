@@ -1026,6 +1026,7 @@ export interface CurationContributor {
     'name'?: string;
     'institution'?: string;
     'orcid'?: string;
+    'github_login'?: string;
 }
 /**
  * Everything the review screen needs about one submission.  The list-ish fields carry no defaults on purpose: they are always present in the response, and a default would mark them optional in the OpenAPI schema (and therefore in the generated frontend client).
@@ -1050,6 +1051,7 @@ export interface CurationDetail {
     'experiments': Array<CurationExperiment>;
     'files': Array<CurationFile>;
     'reconstruction_warning': string | null;
+    'mine'?: boolean;
 }
 /**
  * One submitted row of the primary CSV, keyed by repo column name.
@@ -1652,6 +1654,24 @@ export const EccentricBracedFrameNumberField = {
 export type EccentricBracedFrameNumberField = typeof EccentricBracedFrameNumberField[keyof typeof EccentricBracedFrameNumberField];
 
 
+export interface EmailStartRequest {
+    'email': string;
+    'redirect_to'?: string;
+}
+/**
+ * Always the same answer, so nobody can probe for existing accounts.
+ */
+export interface EmailStartResponse {
+    'sent'?: boolean;
+}
+/**
+ * Either the typed code (with the login cookie), or the mailed pair.
+ */
+export interface EmailVerifyRequest {
+    'code'?: string | null;
+    'challenge'?: string | null;
+    'token'?: string | null;
+}
 export interface ExtendedPageBraceModel {
     'items': Array<BraceModel>;
     'total': number;
@@ -1913,6 +1933,11 @@ export type HSSColumnNumberField = typeof HSSColumnNumberField[keyof typeof HSSC
 
 export interface HTTPValidationError {
     'detail'?: Array<ValidationError>;
+}
+export interface IdentityOut {
+    'id': string;
+    'provider': string;
+    'handle': string;
 }
 /**
  * App Info
@@ -2183,6 +2208,12 @@ export type MaterialNumberField = typeof MaterialNumberField[keyof typeof Materi
 export interface MatrixModel {
     'ids': Array<string>;
     'data': Array<Array<DataInnerInner>>;
+}
+/**
+ * ``GET /auth/me``. ``user`` is null when nobody is signed in.  Not a 401: every page load asks, and the app logs each HTTPException as an error. An anonymous visitor is a normal answer, not a failure.
+ */
+export interface MeResponse {
+    'user'?: UserOut | null;
 }
 /**
  * Range  min/max are None when the aggregate is NaN (Postgres sorts NaN above all numbers, so max() over a column with NaN sentinels returns NaN).
@@ -2553,6 +2584,18 @@ export const Type = {
 export type Type = typeof Type[keyof typeof Type];
 
 
+export interface UserOut {
+    'id': string;
+    'email'?: string | null;
+    'email_verified'?: boolean;
+    'display_name'?: string;
+    'institution'?: string;
+    'orcid'?: string;
+    'role'?: string;
+    'role_source'?: string;
+    'github_login'?: string;
+    'identities'?: Array<IdentityOut>;
+}
 export interface ValidationError {
     'loc': Array<LocationInner>;
     'msg': string;
@@ -2574,6 +2617,10 @@ export interface ValidationResponse {
     'results'?: Array<FileValidationResult>;
     'error_results'?: Array<LegacyFileResult>;
     'valid_results'?: Array<LegacyFileResult>;
+}
+export interface VerifyResponse {
+    'user': UserOut;
+    'redirect_to'?: string;
 }
 
 /**
@@ -2673,6 +2720,589 @@ export class AnalyticsApi extends BaseAPI {
      */
     public getUsers(days?: number | null, options?: RawAxiosRequestConfig) {
         return AnalyticsApiFp(this.configuration).getUsers(days, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * AuthApi - axios parameter creator
+ */
+export const AuthApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+         * @summary Delete Identity
+         * @param {string} identityId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteIdentity: async (identityId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'identityId' is not null or undefined
+            assertParamExists('deleteIdentity', 'identityId', identityId)
+            const localVarPath = `/auth/identities/{identity_id}`
+                .replace('{identity_id}', encodeURIComponent(String(identityId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
+         * @summary Finish Github Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        finishGithubLogin: async (code?: string, state?: string, error?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/github/callback`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (code !== undefined) {
+                localVarQueryParameter['code'] = code;
+            }
+
+            if (state !== undefined) {
+                localVarQueryParameter['state'] = state;
+            }
+
+            if (error !== undefined) {
+                localVarQueryParameter['error'] = error;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
+         * @summary Get Me
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMe: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/me`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List Identities
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listIdentities: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/identities`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Sign out. Idempotent, so a stale cookie is not an error.
+         * @summary Logout
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logout: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/logout`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Mail a sign-in code (and a link that does the same) to an address.
+         * @summary Start Email Login
+         * @param {EmailStartRequest} emailStartRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startEmailLogin: async (emailStartRequest: EmailStartRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'emailStartRequest' is not null or undefined
+            assertParamExists('startEmailLogin', 'emailStartRequest', emailStartRequest)
+            const localVarPath = `/auth/email/start`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(emailStartRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Send the browser to GitHub, to sign in or to link an account.
+         * @summary Start Github Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startGithubLogin: async (redirectTo?: string, link?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/github/start`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (redirectTo !== undefined) {
+                localVarQueryParameter['redirect_to'] = redirectTo;
+            }
+
+            if (link !== undefined) {
+                localVarQueryParameter['link'] = link;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Finish a mail sign-in, with the typed code or the mailed link.
+         * @summary Verify Email Login
+         * @param {EmailVerifyRequest} emailVerifyRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verifyEmailLogin: async (emailVerifyRequest: EmailVerifyRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'emailVerifyRequest' is not null or undefined
+            assertParamExists('verifyEmailLogin', 'emailVerifyRequest', emailVerifyRequest)
+            const localVarPath = `/auth/email/verify`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(emailVerifyRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AuthApi - functional programming interface
+ */
+export const AuthApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AuthApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+         * @summary Delete Identity
+         * @param {string} identityId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteIdentity(identityId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteIdentity(identityId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.deleteIdentity']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
+         * @summary Finish Github Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async finishGithubLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.finishGithubLogin(code, state, error, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.finishGithubLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
+         * @summary Get Me
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMe(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MeResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMe(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.getMe']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary List Identities
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listIdentities(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<IdentityOut>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listIdentities(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.listIdentities']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Sign out. Idempotent, so a stale cookie is not an error.
+         * @summary Logout
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async logout(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.logout(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.logout']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Mail a sign-in code (and a link that does the same) to an address.
+         * @summary Start Email Login
+         * @param {EmailStartRequest} emailStartRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async startEmailLogin(emailStartRequest: EmailStartRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EmailStartResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.startEmailLogin(emailStartRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.startEmailLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Send the browser to GitHub, to sign in or to link an account.
+         * @summary Start Github Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async startGithubLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.startGithubLogin(redirectTo, link, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.startGithubLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Finish a mail sign-in, with the typed code or the mailed link.
+         * @summary Verify Email Login
+         * @param {EmailVerifyRequest} emailVerifyRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async verifyEmailLogin(emailVerifyRequest: EmailVerifyRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VerifyResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.verifyEmailLogin(emailVerifyRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.verifyEmailLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * AuthApi - factory interface
+ */
+export const AuthApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AuthApiFp(configuration)
+    return {
+        /**
+         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+         * @summary Delete Identity
+         * @param {string} identityId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteIdentity(identityId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteIdentity(identityId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
+         * @summary Finish Github Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        finishGithubLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.finishGithubLogin(code, state, error, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
+         * @summary Get Me
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMe(options?: RawAxiosRequestConfig): AxiosPromise<MeResponse> {
+            return localVarFp.getMe(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List Identities
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listIdentities(options?: RawAxiosRequestConfig): AxiosPromise<Array<IdentityOut>> {
+            return localVarFp.listIdentities(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Sign out. Idempotent, so a stale cookie is not an error.
+         * @summary Logout
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logout(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.logout(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Mail a sign-in code (and a link that does the same) to an address.
+         * @summary Start Email Login
+         * @param {EmailStartRequest} emailStartRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startEmailLogin(emailStartRequest: EmailStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<EmailStartResponse> {
+            return localVarFp.startEmailLogin(emailStartRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Send the browser to GitHub, to sign in or to link an account.
+         * @summary Start Github Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startGithubLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.startGithubLogin(redirectTo, link, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Finish a mail sign-in, with the typed code or the mailed link.
+         * @summary Verify Email Login
+         * @param {EmailVerifyRequest} emailVerifyRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verifyEmailLogin(emailVerifyRequest: EmailVerifyRequest, options?: RawAxiosRequestConfig): AxiosPromise<VerifyResponse> {
+            return localVarFp.verifyEmailLogin(emailVerifyRequest, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AuthApi - object-oriented interface
+ */
+export class AuthApi extends BaseAPI {
+    /**
+     * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+     * @summary Delete Identity
+     * @param {string} identityId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deleteIdentity(identityId: string, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).deleteIdentity(identityId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
+     * @summary Finish Github Login
+     * @param {string} [code] 
+     * @param {string} [state] 
+     * @param {string} [error] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public finishGithubLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).finishGithubLogin(code, state, error, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
+     * @summary Get Me
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getMe(options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).getMe(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List Identities
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listIdentities(options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).listIdentities(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Sign out. Idempotent, so a stale cookie is not an error.
+     * @summary Logout
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public logout(options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).logout(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Mail a sign-in code (and a link that does the same) to an address.
+     * @summary Start Email Login
+     * @param {EmailStartRequest} emailStartRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public startEmailLogin(emailStartRequest: EmailStartRequest, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).startEmailLogin(emailStartRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Send the browser to GitHub, to sign in or to link an account.
+     * @summary Start Github Login
+     * @param {string} [redirectTo] 
+     * @param {boolean} [link] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public startGithubLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).startGithubLogin(redirectTo, link, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Finish a mail sign-in, with the typed code or the mailed link.
+     * @summary Verify Email Login
+     * @param {EmailVerifyRequest} emailVerifyRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public verifyEmailLogin(emailVerifyRequest: EmailVerifyRequest, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).verifyEmailLogin(emailVerifyRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -5688,23 +6318,15 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * @summary Create Contribution
          * @param {Type} type 
          * @param {File} file 
-         * @param {string} contributorName 
-         * @param {string} contributorEmail 
-         * @param {string} [institution] 
-         * @param {string} [orcid] 
          * @param {string} [dismissedWarnings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createContribution: async (type: Type, file: File, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        createContribution: async (type: Type, file: File, dismissedWarnings?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'type' is not null or undefined
             assertParamExists('createContribution', 'type', type)
             // verify required parameter 'file' is not null or undefined
             assertParamExists('createContribution', 'file', file)
-            // verify required parameter 'contributorName' is not null or undefined
-            assertParamExists('createContribution', 'contributorName', contributorName)
-            // verify required parameter 'contributorEmail' is not null or undefined
-            assertParamExists('createContribution', 'contributorEmail', contributorEmail)
             const localVarPath = `/contributions`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -5725,22 +6347,6 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
 
             if (file !== undefined) { 
                 localVarFormParams.append('file', file as any);
-            }
-
-            if (contributorName !== undefined) { 
-                localVarFormParams.append('contributor_name', contributorName as any);
-            }
-
-            if (contributorEmail !== undefined) { 
-                localVarFormParams.append('contributor_email', contributorEmail as any);
-            }
-
-            if (institution !== undefined) { 
-                localVarFormParams.append('institution', institution as any);
-            }
-
-            if (orcid !== undefined) { 
-                localVarFormParams.append('orcid', orcid as any);
             }
 
             if (dismissedWarnings !== undefined) { 
@@ -6108,30 +6714,22 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
          * @summary Update Open Contribution
          * @param {number} prNumber 
          * @param {File} file 
          * @param {string} headSha 
-         * @param {string} contributorName 
-         * @param {string} contributorEmail 
-         * @param {string} [institution] 
-         * @param {string} [orcid] 
          * @param {string} [dismissedWarnings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateOpenContribution: async (prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        updateOpenContribution: async (prNumber: number, file: File, headSha: string, dismissedWarnings?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'prNumber' is not null or undefined
             assertParamExists('updateOpenContribution', 'prNumber', prNumber)
             // verify required parameter 'file' is not null or undefined
             assertParamExists('updateOpenContribution', 'file', file)
             // verify required parameter 'headSha' is not null or undefined
             assertParamExists('updateOpenContribution', 'headSha', headSha)
-            // verify required parameter 'contributorName' is not null or undefined
-            assertParamExists('updateOpenContribution', 'contributorName', contributorName)
-            // verify required parameter 'contributorEmail' is not null or undefined
-            assertParamExists('updateOpenContribution', 'contributorEmail', contributorEmail)
             const localVarPath = `/contributions/{pr_number}`
                 .replace('{pr_number}', encodeURIComponent(String(prNumber)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -6153,22 +6751,6 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
 
             if (headSha !== undefined) { 
                 localVarFormParams.append('head_sha', headSha as any);
-            }
-
-            if (contributorName !== undefined) { 
-                localVarFormParams.append('contributor_name', contributorName as any);
-            }
-
-            if (contributorEmail !== undefined) { 
-                localVarFormParams.append('contributor_email', contributorEmail as any);
-            }
-
-            if (institution !== undefined) { 
-                localVarFormParams.append('institution', institution as any);
-            }
-
-            if (orcid !== undefined) { 
-                localVarFormParams.append('orcid', orcid as any);
             }
 
             if (dismissedWarnings !== undefined) { 
@@ -6214,6 +6796,10 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarQueryParameter = {} as any;
             const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
 
+            // authentication HTTPBasic required
+            // http basic authentication required
+            setBasicAuthToObject(localVarRequestOptions, configuration)
+
             if (type !== undefined) {
                 localVarQueryParameter['type'] = type;
             }
@@ -6253,16 +6839,12 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * @summary Create Contribution
          * @param {Type} type 
          * @param {File} file 
-         * @param {string} contributorName 
-         * @param {string} contributorEmail 
-         * @param {string} [institution] 
-         * @param {string} [orcid] 
          * @param {string} [dismissedWarnings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createContribution(type: Type, file: File, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ContributionResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createContribution(type, file, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options);
+        async createContribution(type: Type, file: File, dismissedWarnings?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ContributionResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createContribution(type, file, dismissedWarnings, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['DefaultApi.createContribution']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6395,21 +6977,17 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
          * @summary Update Open Contribution
          * @param {number} prNumber 
          * @param {File} file 
          * @param {string} headSha 
-         * @param {string} contributorName 
-         * @param {string} contributorEmail 
-         * @param {string} [institution] 
-         * @param {string} [orcid] 
          * @param {string} [dismissedWarnings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateOpenContribution(prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ContributionResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateOpenContribution(prNumber, file, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options);
+        async updateOpenContribution(prNumber: number, file: File, headSha: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ContributionResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateOpenContribution(prNumber, file, headSha, dismissedWarnings, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['DefaultApi.updateOpenContribution']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6443,16 +7021,12 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * @summary Create Contribution
          * @param {Type} type 
          * @param {File} file 
-         * @param {string} contributorName 
-         * @param {string} contributorEmail 
-         * @param {string} [institution] 
-         * @param {string} [orcid] 
          * @param {string} [dismissedWarnings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createContribution(type: Type, file: File, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): AxiosPromise<ContributionResponse> {
-            return localVarFp.createContribution(type, file, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(axios, basePath));
+        createContribution(type: Type, file: File, dismissedWarnings?: string, options?: RawAxiosRequestConfig): AxiosPromise<ContributionResponse> {
+            return localVarFp.createContribution(type, file, dismissedWarnings, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -6552,21 +7126,17 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.root(options).then((request) => request(axios, basePath));
         },
         /**
-         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
          * @summary Update Open Contribution
          * @param {number} prNumber 
          * @param {File} file 
          * @param {string} headSha 
-         * @param {string} contributorName 
-         * @param {string} contributorEmail 
-         * @param {string} [institution] 
-         * @param {string} [orcid] 
          * @param {string} [dismissedWarnings] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateOpenContribution(prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): AxiosPromise<ContributionResponse> {
-            return localVarFp.updateOpenContribution(prNumber, file, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(axios, basePath));
+        updateOpenContribution(prNumber: number, file: File, headSha: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): AxiosPromise<ContributionResponse> {
+            return localVarFp.updateOpenContribution(prNumber, file, headSha, dismissedWarnings, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -6592,16 +7162,12 @@ export class DefaultApi extends BaseAPI {
      * @summary Create Contribution
      * @param {Type} type 
      * @param {File} file 
-     * @param {string} contributorName 
-     * @param {string} contributorEmail 
-     * @param {string} [institution] 
-     * @param {string} [orcid] 
      * @param {string} [dismissedWarnings] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public createContribution(type: Type, file: File, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).createContribution(type, file, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(this.axios, this.basePath));
+    public createContribution(type: Type, file: File, dismissedWarnings?: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).createContribution(type, file, dismissedWarnings, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6712,21 +7278,17 @@ export class DefaultApi extends BaseAPI {
     }
 
     /**
-     * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 409 when the branch moved since the editor loaded it: reload and make the changes again.
+     * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
      * @summary Update Open Contribution
      * @param {number} prNumber 
      * @param {File} file 
      * @param {string} headSha 
-     * @param {string} contributorName 
-     * @param {string} contributorEmail 
-     * @param {string} [institution] 
-     * @param {string} [orcid] 
      * @param {string} [dismissedWarnings] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public updateOpenContribution(prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).updateOpenContribution(prNumber, file, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(this.axios, this.basePath));
+    public updateOpenContribution(prNumber: number, file: File, headSha: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).updateOpenContribution(prNumber, file, headSha, dismissedWarnings, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

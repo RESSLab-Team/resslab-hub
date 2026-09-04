@@ -58,6 +58,15 @@ class Contributor:
     email: str
     institution: str = ""
     orcid: str = ""
+    #: GitHub login, when the contributor linked one (#247). Written into the
+    #: pull request as an @mention, so they are notified of every review
+    #: comment and can answer where the review happens.
+    github_login: str = ""
+    #: How the identity was established: the sign-in provider (``email``,
+    #: ``github``), or ``self-declared`` for a submission made before #247.
+    identity: str = "self-declared"
+    #: Their account id, so a submission can be traced back after the fact.
+    user_id: str = ""
 
 
 @dataclass
@@ -178,17 +187,18 @@ def build_provenance(
 
     An update rewrites the same file (``previous`` is what it held): the first
     contributor and ``submitted_at`` stay on record, the editor is added as
-    ``updated_by``. Without auth (#247) that is the one trace of who changed
-    what.
+    ``updated_by``.
     """
     who = {
         "name": contributor.name,
         "email": contributor.email,
         "institution": contributor.institution,
         "orcid": contributor.orcid,
-        # Until academic auth (#247) lands, identity is whatever the
-        # contributor typed in; curators judge trust on review.
-        "identity": "self-declared",
+        "github_login": contributor.github_login,
+        # The provider the contributor signed in with (#247). Phase 2 replaces
+        # this with why they may contribute (academic mail, invitation...).
+        "identity": contributor.identity,
+        "user_id": contributor.user_id,
     }
     record = {
         "schema": 1,
@@ -210,6 +220,22 @@ def build_provenance(
         record["updated_at"] = at
         record["updated_by"] = who
     return json.dumps(record, indent=2)
+
+
+def owns_submission(previous: Optional[dict], user_id: str, email: str) -> bool:
+    """Whether the account may change the submission ``previous`` describes.
+
+    Accounts match by id. A record from before #247 carries no id, so its
+    address decides, which is what the account's verified address proves. No
+    readable record means nobody can, until a curator (#248) steps in.
+    """
+    if not previous:
+        return False
+    who = previous.get("contributor") or {}
+    if who.get("user_id"):
+        return bool(user_id) and str(who["user_id"]) == user_id
+    recorded = str(who.get("email") or "").strip().lower()
+    return bool(recorded) and recorded == email.strip().lower()
 
 
 def build_update_help(branch: str, primary_csv: str) -> List[str]:
@@ -246,6 +272,10 @@ def build_pr_body(
     ]
     if contributor.orcid:
         lines.append(f"- **ORCID**: {contributor.orcid}")
+    if contributor.github_login:
+        # An @mention, on purpose: GitHub then notifies the contributor of
+        # every comment on their own submission, and they can answer inline.
+        lines.append(f"- **GitHub**: @{contributor.github_login}")
     lines += [
         "",
         "Server-side validation passed before this PR was opened.",
@@ -535,12 +565,9 @@ async def update_contribution(
     ``head_sha`` is the commit the editor loaded. A branch that moved since is
     refused (409) rather than overwritten: a maintainer may have pushed a fix.
 
-    NOTE(auth): the pull request number and its head sha are public on the
-    data repository, so this is not ownership. Until per-user auth (#247)
-    lands the defences are those of a first submission (rate limit, server-side
-    validation, writes confined to the type's directories), the first
-    contributor kept on record next to the editor, and a curator reviewing
-    every change.
+    Only the account that made the submission can change it (403 otherwise),
+    read off the provenance record on the branch. Curators get their own way
+    in with #248.
     """
     client = client or DataRepoClient()
     try:
@@ -562,6 +589,24 @@ async def update_contribution(
     input_type = type_for_branch(branch)
     if input_type is None:
         raise SubmissionError(404, "This branch is not a contribution branch.")
+
+    # Who made it, before any work is done on the archive.
+    branch_files = classify_files(await client.list_pull_files(pr_number), input_type)
+    provenance_path = next(
+        (file.path for file in branch_files if file.kind == "provenance"),
+        f"contributions/{_type_slug(input_type)}/{_branch_suffix(branch)}.json",
+    )
+    previous = None
+    try:
+        previous = json.loads(await client.get_file_text(provenance_path, ref=head_sha))
+    except Exception:
+        logger.warning("No readable provenance at %s on %s", provenance_path, branch)
+    if not owns_submission(previous, contributor.user_id, contributor.email):
+        raise SubmissionError(
+            403,
+            "This submission was made from another account. Only the person "
+            "who submitted it can change it from the Hub.",
+        )
 
     layout = validate_archive(tmpdir, input_type)
     header, rows, ids = read_batch(tmpdir, layout)
@@ -587,7 +632,6 @@ async def update_contribution(
 
     # Only the submission's own time-series files can be dropped: never the
     # primary CSV, the provenance record, or anything else on the branch.
-    branch_files = classify_files(await client.list_pull_files(pr_number), input_type)
     submitted = {file.path for file in files}
     deletions = [
         file.path
@@ -595,15 +639,6 @@ async def update_contribution(
         if file.kind == "timeseries" and file.path not in submitted
     ]
 
-    provenance_path = next(
-        (file.path for file in branch_files if file.kind == "provenance"),
-        f"contributions/{_type_slug(input_type)}/{_branch_suffix(branch)}.json",
-    )
-    previous = None
-    try:
-        previous = json.loads(await client.get_file_text(provenance_path, ref=head_sha))
-    except Exception:
-        logger.warning("No readable provenance at %s on %s", provenance_path, branch)
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     files.append(
         NewFile(

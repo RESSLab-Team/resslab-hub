@@ -15,7 +15,7 @@ import tarfile
 from resslab_hub.data.uploader import Type, upload_one
 from resslab_hub.models.database.brace import Brace
 from resslab_hub.models.database.material import Material
-from tests.conftest import write_main_csv, write_measurement_csv
+from tests.conftest import SERVICE_AUTH, write_main_csv, write_measurement_csv
 
 
 def _seed_braces(tmp_path):
@@ -160,6 +160,10 @@ async def test_materials_date_range(client, tmp_path):
 
 # ---------------------------------------------------------------------------
 # /validate — structured response + archive hardening
+#
+# These calls carry the machine credential, which is how the data repository's
+# validation workflow reaches this endpoint. The contributor's way in (a
+# session cookie) is covered in test_auth_flow.py.
 # ---------------------------------------------------------------------------
 def _braces_targz(tmp_path, rows) -> bytes:
     """A gzipped tar holding only the primary braces CSV (no DB needed)."""
@@ -178,7 +182,10 @@ def _upload(field_bytes, filename="c.tar.gz"):
 async def test_validate_valid_archive_returns_200_structured(client, tmp_path):
     archive = _braces_targz(tmp_path, [{"id": "B1"}, {"id": "B2"}])
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(archive)
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(archive),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 200
     body = response.json()
@@ -197,7 +204,10 @@ async def test_validate_invalid_data_is_200_with_structured_issue(client, tmp_pa
     # transport error, so it comes back as 200 valid=false.
     archive = _braces_targz(tmp_path, [{"id": "B1", "area": "not-a-number"}])
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(archive)
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(archive),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 200
     body = response.json()
@@ -214,14 +224,20 @@ async def test_validate_rejects_path_traversal(client, tmp_path):
         info.size = 1
         tar.addfile(info, io.BytesIO(b"x"))
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(buffer.getvalue())
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(buffer.getvalue()),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 400
 
 
 async def test_validate_rejects_non_archive(client, tmp_path):
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(b"not a tar")
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(b"not a tar"),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 400
 
@@ -241,7 +257,10 @@ async def test_validate_ignores_dictionary_files(client, tmp_path):
         info.size = len(dictionary)
         tar.addfile(info, io.BytesIO(dictionary))
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(buffer.getvalue())
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(buffer.getvalue()),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 200
     body = response.json()
@@ -262,7 +281,10 @@ async def test_validate_surfaces_range_warnings(client, tmp_path):
 
     archive = _braces_targz(tmp_path, [{"id": "NEW", "area": "10000"}])
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(archive)
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(archive),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 200
     body = response.json()
@@ -309,7 +331,10 @@ async def test_validate_ignores_readme_files(client, tmp_path):
         info.size = len(readme)
         tar.addfile(info, io.BytesIO(readme))
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(buffer.getvalue())
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(buffer.getvalue()),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 200
     assert response.json()["valid"] is True

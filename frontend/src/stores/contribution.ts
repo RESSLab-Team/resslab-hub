@@ -8,12 +8,7 @@ import { describeFailure, type FailureReport } from '@/utils/failureReport'
 import type { IntakePending, IntakePlan } from '@/utils/intake'
 import type { DatabaseId } from '@/utils/navigation'
 import { mapResponse, type ExperimentReport, type ReportedIssue } from '@/utils/qualityReport'
-import {
-  postContribution,
-  putContribution,
-  type ContributorInfo,
-  type EditTarget
-} from '@/utils/submission'
+import { postContribution, putContribution, type EditTarget } from '@/utils/submission'
 import { buildTarGz } from '@/utils/tar'
 import {
   checkTimeSeriesFile,
@@ -205,7 +200,7 @@ export const useContributionStore = defineStore('contribution', () => {
   const submitConflict = ref(false)
 
   const loadStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const loadError = ref<'not_open' | 'unknown_database' | 'load_failed' | null>(null)
+  const loadError = ref<'not_open' | 'not_mine' | 'unknown_database' | 'load_failed' | null>(null)
   /** Files of the submission the editor cannot hold; left alone on the branch. */
   const skippedFiles = ref<string[]>([])
 
@@ -875,7 +870,7 @@ export const useContributionStore = defineStore('contribution', () => {
    * An edit keeps its target afterwards, with the commit it now points at, so
    * the contributor can go on fixing things and submit again.
    */
-  async function submit(contributor: ContributorInfo): Promise<void> {
+  async function submit(): Promise<void> {
     const target = config.value
     if (!target || !database.value || !canSubmit.value) return
 
@@ -887,8 +882,8 @@ export const useContributionStore = defineStore('contribution', () => {
     try {
       const archive = await buildArchive()
       const result = edited
-        ? await putContribution(archive, edited, contributor, dismissedWarningMessages.value)
-        : await postContribution(target.type, archive, contributor, dismissedWarningMessages.value)
+        ? await putContribution(archive, edited, dismissedWarningMessages.value)
+        : await postContribution(target.type, archive, dismissedWarningMessages.value)
       pullRequestUrl.value = result.pr_url
       pullRequestNumber.value = result.pr_number
       branch.value = result.branch
@@ -944,6 +939,15 @@ export const useContributionStore = defineStore('contribution', () => {
       if (token !== loadToken) return
       loadError.value =
         isAxiosError(caught) && caught.response?.status === 404 ? 'not_open' : 'load_failed'
+      loadStatus.value = 'error'
+      return
+    }
+
+    if (!detail.mine) {
+      // The server would refuse the update anyway (403); say so before the
+      // person spends time editing.
+      if (token !== loadToken) return
+      loadError.value = 'not_mine'
       loadStatus.value = 'error'
       return
     }

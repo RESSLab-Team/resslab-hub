@@ -139,6 +139,17 @@ export default defineConfig({
     // Git worktrees run one Vite per branch; wt-setup.sh puts the branch's port in
     // .env.worktree and tmux-dev.sh exports it. The main checkout keeps 5173.
     port: Number(process.env.FRONTEND_PORT) || 5173,
+    // Same-origin in dev, the way Traefik makes it same-origin in the
+    // deployments: /api goes to the backend with the prefix stripped, so the
+    // session cookie is a first-party cookie here too and no CORS layer is
+    // needed (#247). changeOrigin is deliberately off: the backend's CSRF check
+    // compares Origin against Host, and rewriting Host would break that.
+    proxy: {
+      '/api': {
+        target: `http://127.0.0.1:${Number(process.env.BACKEND_PORT) || 8000}`,
+        rewrite: (path: string) => path.replace(/^\/api/, '')
+      }
+    },
     warmup: {
       // Warm every route view; Vite transforms their whole import graphs in the
       // background right after boot, so first navigation to any route is instant

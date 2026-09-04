@@ -53,9 +53,12 @@ services:
     environment:
       MODULE_NAME: resslab_hub.main
       FORWARDED_ALLOW_IPS: "*"
-      CORS_ENABLED: "true"
       POSTGRES_HOST: database
       ROOT_PATH: /api
+      # Where a browser reaches the app, without the /api prefix. Every
+      # absolute URL the sign-in flow emits is built from it (#247), because
+      # Traefik has already stripped the prefix and rewritten the Host.
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://resslab-hub.epfl.ch}
     labels:
       - "traefik.http.routers.backend.tls=true"
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
