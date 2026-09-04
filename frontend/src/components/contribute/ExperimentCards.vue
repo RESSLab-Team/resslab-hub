@@ -34,7 +34,9 @@ import {
   mdiPackageVariantClosed,
   mdiPlus,
   mdiRestore,
-  mdiTrayArrowUp
+  mdiTrayArrowUp,
+  mdiUnfoldLessHorizontal,
+  mdiUnfoldMoreHorizontal
 } from '@mdi/js'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -124,14 +126,27 @@ const columnGroups = computed(() =>
   store.database ? groupBy(store.database, store.columns, (column) => column) : []
 )
 
-const openFieldGroups = ref<Set<FieldGroupId>>(
-  new Set<FieldGroupId>(['experimental_program_details'])
-)
+// Every group starts folded: an open card then shows its problems and its group
+// headings on one screen, and the contributor opens what they need.
+const openFieldGroups = ref<Set<FieldGroupId>>(new Set<FieldGroupId>())
 
 function toggleFieldGroup(id: FieldGroupId, event?: MouseEvent): void {
   const next = new Set(openFieldGroups.value)
   if (!next.delete(id)) next.add(id)
   openFieldGroups.value = next
+  if (event) void keepHeadInView(event.currentTarget as HTMLElement)
+}
+
+const allFieldGroupsOpen = computed(
+  () =>
+    columnGroups.value.length > 0 &&
+    columnGroups.value.every((group) => openFieldGroups.value.has(group.id))
+)
+
+function toggleAllFieldGroups(event?: MouseEvent): void {
+  openFieldGroups.value = allFieldGroupsOpen.value
+    ? new Set<FieldGroupId>()
+    : new Set(columnGroups.value.map((group) => group.id))
   if (event) void keepHeadInView(event.currentTarget as HTMLElement)
 }
 
@@ -574,11 +589,22 @@ function noteFor(kind: TimeSeriesKind): string {
 
       <div v-if="expanded.has(row.uid)" class="card-body">
         <div class="card-actions">
-          <button class="btn btn-ghost btn-sm" type="button" @click="store.duplicateRow(row.uid)">
-            <v-icon :icon="mdiContentCopy" size="13" />{{ $t('contribute.editor.duplicate') }}
+          <button class="card-action" type="button" @click="toggleAllFieldGroups($event)">
+            <v-icon
+              :icon="allFieldGroupsOpen ? mdiUnfoldLessHorizontal : mdiUnfoldMoreHorizontal"
+              size="14"
+            />
+            {{
+              allFieldGroupsOpen
+                ? $t('contribute.editor.collapse_groups')
+                : $t('contribute.editor.expand_groups')
+            }}
           </button>
-          <button class="btn btn-ghost btn-sm" type="button" @click="store.removeRow(row.uid)">
-            <v-icon :icon="mdiClose" size="13" />{{ $t('contribute.editor.remove') }}
+          <button class="card-action" type="button" @click="store.duplicateRow(row.uid)">
+            <v-icon :icon="mdiContentCopy" size="14" />{{ $t('contribute.editor.duplicate') }}
+          </button>
+          <button class="card-action danger" type="button" @click="store.removeRow(row.uid)">
+            <v-icon :icon="mdiClose" size="14" />{{ $t('contribute.editor.remove') }}
           </button>
         </div>
 
@@ -1321,11 +1347,40 @@ function noteFor(kind: TimeSeriesKind): string {
 .card-body {
   padding: 12px 14px;
 }
+/* One strip of card chrome, right under the head: the view control on the left,
+   the row actions on the right. Full bleed, so it reads as part of the card and
+   not as two buttons floating over an empty line. */
 .card-actions {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-bottom: 4px;
+  align-items: center;
+  gap: 2px;
+  margin: -12px -14px 10px;
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+}
+.card-actions .card-action:first-child {
+  margin-right: auto;
+}
+.card-action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color var(--t-fast);
+}
+.card-action:hover {
+  color: var(--fg);
+}
+.card-action.danger:hover {
+  color: var(--epfl-red);
 }
 .card-section + .card-section {
   margin-top: 16px;
@@ -1832,6 +1887,13 @@ function noteFor(kind: TimeSeriesKind): string {
   }
   .card-body {
     padding: 16px;
+  }
+  .card-actions {
+    margin: -16px -16px 14px;
+    padding: 5px 10px;
+  }
+  .card-action {
+    font-size: 12.5px;
   }
   .card-section + .card-section {
     margin-top: 22px;

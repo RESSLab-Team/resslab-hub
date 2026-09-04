@@ -1103,6 +1103,8 @@
       "clean": "No issues",
       "todo": "Still to fill in",
       "todo_count": "{count} still to fill in",
+      "expand_groups": "Expand all groups",
+      "collapse_groups": "Collapse all groups",
       "duplicate": "Duplicate",
       "remove": "Remove",
       "problems": "Problems",

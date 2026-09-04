@@ -1103,6 +1103,8 @@
       "clean": "Aucun problème",
       "todo": "Reste à remplir",
       "todo_count": "{count} à remplir",
+      "expand_groups": "Tout déplier",
+      "collapse_groups": "Tout replier",
       "duplicate": "Dupliquer",
       "remove": "Retirer",
       "problems": "Problèmes",
