@@ -996,6 +996,7 @@ export interface ContributionResponse {
     'pr_url': string;
     'pr_number': number;
     'branch': string;
+    'head_sha': string;
 }
 /**
  * Count
@@ -6107,6 +6108,86 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * @summary Update Open Contribution
+         * @param {number} prNumber 
+         * @param {File} file 
+         * @param {string} headSha 
+         * @param {string} contributorName 
+         * @param {string} contributorEmail 
+         * @param {string} [institution] 
+         * @param {string} [orcid] 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateOpenContribution: async (prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'prNumber' is not null or undefined
+            assertParamExists('updateOpenContribution', 'prNumber', prNumber)
+            // verify required parameter 'file' is not null or undefined
+            assertParamExists('updateOpenContribution', 'file', file)
+            // verify required parameter 'headSha' is not null or undefined
+            assertParamExists('updateOpenContribution', 'headSha', headSha)
+            // verify required parameter 'contributorName' is not null or undefined
+            assertParamExists('updateOpenContribution', 'contributorName', contributorName)
+            // verify required parameter 'contributorEmail' is not null or undefined
+            assertParamExists('updateOpenContribution', 'contributorEmail', contributorEmail)
+            const localVarPath = `/contributions/{pr_number}`
+                .replace('{pr_number}', encodeURIComponent(String(prNumber)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
+
+
+            if (file !== undefined) { 
+                localVarFormParams.append('file', file as any);
+            }
+
+            if (headSha !== undefined) { 
+                localVarFormParams.append('head_sha', headSha as any);
+            }
+
+            if (contributorName !== undefined) { 
+                localVarFormParams.append('contributor_name', contributorName as any);
+            }
+
+            if (contributorEmail !== undefined) { 
+                localVarFormParams.append('contributor_email', contributorEmail as any);
+            }
+
+            if (institution !== undefined) { 
+                localVarFormParams.append('institution', institution as any);
+            }
+
+            if (orcid !== undefined) { 
+                localVarFormParams.append('orcid', orcid as any);
+            }
+
+            if (dismissedWarnings !== undefined) { 
+                localVarFormParams.append('dismissed_warnings', dismissedWarnings as any);
+            }
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = localVarFormParams;
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Validate Data
          * @param {Type} type 
@@ -6314,6 +6395,26 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * @summary Update Open Contribution
+         * @param {number} prNumber 
+         * @param {File} file 
+         * @param {string} headSha 
+         * @param {string} contributorName 
+         * @param {string} contributorEmail 
+         * @param {string} [institution] 
+         * @param {string} [orcid] 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateOpenContribution(prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ContributionResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateOpenContribution(prNumber, file, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.updateOpenContribution']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Validate Data
          * @param {Type} type 
@@ -6449,6 +6550,23 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          */
         root(options?: RawAxiosRequestConfig): AxiosPromise<Info> {
             return localVarFp.root(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * @summary Update Open Contribution
+         * @param {number} prNumber 
+         * @param {File} file 
+         * @param {string} headSha 
+         * @param {string} contributorName 
+         * @param {string} contributorEmail 
+         * @param {string} [institution] 
+         * @param {string} [orcid] 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateOpenContribution(prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): AxiosPromise<ContributionResponse> {
+            return localVarFp.updateOpenContribution(prNumber, file, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -6591,6 +6709,24 @@ export class DefaultApi extends BaseAPI {
      */
     public root(options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).root(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 409 when the branch moved since the editor loaded it: reload and make the changes again.
+     * @summary Update Open Contribution
+     * @param {number} prNumber 
+     * @param {File} file 
+     * @param {string} headSha 
+     * @param {string} contributorName 
+     * @param {string} contributorEmail 
+     * @param {string} [institution] 
+     * @param {string} [orcid] 
+     * @param {string} [dismissedWarnings] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updateOpenContribution(prNumber: number, file: File, headSha: string, contributorName: string, contributorEmail: string, institution?: string, orcid?: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).updateOpenContribution(prNumber, file, headSha, contributorName, contributorEmail, institution, orcid, dismissedWarnings, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

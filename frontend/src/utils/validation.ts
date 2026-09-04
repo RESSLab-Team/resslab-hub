@@ -53,7 +53,7 @@ export function validateCell(column: DictColumn, raw: string): CellIssue | null 
   if (value === '') {
     return column.nullable
       ? null
-      : { level: 'warn', message: 'Recommended field is blank — it will be submitted as NR.' }
+      : { level: 'warn', message: 'Required and empty. It will be sent as NR (not reported).' }
   }
 
   const upper = value.toUpperCase()
@@ -166,7 +166,7 @@ export function validateSheet(
       for (const rowIndex of indices) {
         setIssue(rowIndex, 'id', {
           level: 'error',
-          message: `Duplicate specimen id "${id}" — ids must be unique.`
+          message: `Duplicate specimen id "${id}".`
         })
       }
     }

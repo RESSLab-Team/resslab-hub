@@ -12,6 +12,19 @@ import type { ValidationResponse } from '@/utils/validationResponse'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+/**
+ * The API client, imported once and shared.
+ *
+ * Lazy, to keep axios out of the entry bundle (see stores/counts.ts), but not
+ * once per call: loading a submission asks for several files at a time, and
+ * firing a dynamic import per call resolves the module over and over.
+ */
+let apiModule: Promise<typeof import('@/plugins/axios')> | null = null
+function api(): Promise<typeof import('@/plugins/axios')> {
+  apiModule ??= import('@/plugins/axios')
+  return apiModule
+}
+
 export const useCurationStore = defineStore('curation', () => {
   const items = ref<CurationSummary[]>([])
   const configured = ref(true)
@@ -26,7 +39,7 @@ export const useCurationStore = defineStore('curation', () => {
     if (listState.value === 'loading' || (listState.value === 'ready' && !force)) return
     listState.value = 'loading'
     try {
-      const { defaultApi } = await import('@/plugins/axios')
+      const { defaultApi } = await api()
       const { data } = await defaultApi.listContributions()
       configured.value = data.configured
       items.value = data.items ?? []
@@ -39,7 +52,7 @@ export const useCurationStore = defineStore('curation', () => {
   async function fetchDetail(prNumber: number): Promise<CurationDetail> {
     const cached = details.value.get(prNumber)
     if (cached) return cached
-    const { defaultApi } = await import('@/plugins/axios')
+    const { defaultApi } = await api()
     const { data } = await defaultApi.getContribution(prNumber)
     details.value.set(prNumber, data)
     return data
@@ -48,7 +61,7 @@ export const useCurationStore = defineStore('curation', () => {
   async function fetchValidation(prNumber: number): Promise<ValidationResponse> {
     const cached = validations.value.get(prNumber)
     if (cached) return cached
-    const { defaultApi } = await import('@/plugins/axios')
+    const { defaultApi } = await api()
     const { data } = await defaultApi.getContributionValidation(prNumber)
     const response = data as unknown as ValidationResponse
     validations.value.set(prNumber, response)
@@ -63,7 +76,7 @@ export const useCurationStore = defineStore('curation', () => {
   async function fetchComments(prNumber: number, force = false): Promise<CurationComment[]> {
     const cached = comments.value.get(prNumber)
     if (cached && !force) return cached
-    const { defaultApi } = await import('@/plugins/axios')
+    const { defaultApi } = await api()
     const { data } = await defaultApi.getContributionComments(prNumber)
     comments.value.set(prNumber, data.items)
     return data.items
@@ -73,13 +86,30 @@ export const useCurationStore = defineStore('curation', () => {
     const key = `${prNumber}:${path}`
     const cached = fileTexts.value.get(key)
     if (cached !== undefined) return cached
-    const { defaultApi } = await import('@/plugins/axios')
+    const { defaultApi } = await api()
     const { data } = await defaultApi.getContributionFile(prNumber, path)
     fileTexts.value.set(key, data)
     return data
   }
 
+  /**
+   * Forget everything cached about one submission.
+   *
+   * Called after the editor pushes an update: what is held here still
+   * describes the commit that was just replaced, so reloading the edit page
+   * on it would send a stale head sha and collide.
+   */
+  function invalidate(prNumber: number): void {
+    details.value.delete(prNumber)
+    validations.value.delete(prNumber)
+    comments.value.delete(prNumber)
+    for (const key of [...fileTexts.value.keys()]) {
+      if (key.startsWith(`${prNumber}:`)) fileTexts.value.delete(key)
+    }
+  }
+
   return {
+    invalidate,
     items,
     configured,
     listState,

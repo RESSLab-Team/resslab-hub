@@ -251,7 +251,7 @@ class TestRangeWarnings:
         assert len(warnings) == 1
         assert warnings[0].row == 1
         assert "10 to 29" in warnings[0].message
-        assert "verify" in warnings[0].message
+        assert "Far outside" in warnings[0].message
         assert result.is_valid()  # a warning, never an error
 
     def test_value_within_one_span_of_range_does_not_warn(
@@ -343,7 +343,9 @@ class TestMissingValues:
         result = brace_result(tmp_path, {"investigator": ""})
 
         assert not result.is_valid()
-        assert any("mandatory" in m for m in messages(result.errors, "investigator"))
+        assert any(
+            "mandatory" in m.lower() for m in messages(result.errors, "investigator")
+        )
 
     def test_nr_in_mandatory_number_is_an_error(self, tmp_path: Path):
         # The uploader turns NR into NULL and the whole file is skipped, so
@@ -351,7 +353,7 @@ class TestMissingValues:
         result = brace_result(tmp_path, {"date": "NR"})
 
         assert not result.is_valid()
-        assert any("mandatory" in m for m in messages(result.errors, "date"))
+        assert any("mandatory" in m.lower() for m in messages(result.errors, "date"))
 
     def test_nr_in_mandatory_text_only_warns(self, tmp_path: Path):
         # A String column stores "Not reported" and uploads fine; the data
@@ -360,7 +362,8 @@ class TestMissingValues:
 
         assert result.is_valid()
         assert any(
-            "Not reported" in m for m in messages(result.warnings, "investigator")
+            "not reported" in m.lower()
+            for m in messages(result.warnings, "investigator")
         )
 
     def test_na_in_mandatory_text_is_an_error(self, tmp_path: Path):

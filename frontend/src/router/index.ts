@@ -180,6 +180,13 @@ const router = createRouter({
       component: () => import('@/views/ContributeView.vue')
     },
     {
+      // The same editor, opened on an open submission (#321).
+      path: '/contribute/edit/:prNumber(\\d+)',
+      name: 'ContributeEdit',
+      component: () => import('@/views/ContributeView.vue'),
+      props: true
+    },
+    {
       path: '/curation',
       name: 'CurationQueue',
       component: () => import('@/views/CurationQueueView.vue')

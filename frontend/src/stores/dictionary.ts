@@ -64,18 +64,26 @@ export const useDictionaryStore = defineStore('dictionary', () => {
    */
   const readmes = ref<Partial<Record<DatabaseId, string | null>>>({})
 
-  async function fetch(): Promise<void> {
-    if (state.value === 'loading' || state.value === 'ready') return
-    state.value = 'loading'
-    try {
-      // Lazy import keeps axios out of the entry bundle (see stores/counts.ts).
-      const { axiosInstance, baseUrl } = await import('@/plugins/axios')
-      const { data } = await axiosInstance.get(`${baseUrl}/dictionary`)
-      columns.value = data
-      state.value = 'ready'
-    } catch {
-      state.value = 'error'
-    }
+  /** The request in flight, so a second `fetch()` can await the first. */
+  let inFlight: Promise<void> | null = null
+
+  function fetch(): Promise<void> {
+    if (state.value === 'ready') return Promise.resolve()
+    inFlight ??= (async () => {
+      state.value = 'loading'
+      try {
+        // Lazy import keeps axios out of the entry bundle (see stores/counts.ts).
+        const { axiosInstance, baseUrl } = await import('@/plugins/axios')
+        const { data } = await axiosInstance.get(`${baseUrl}/dictionary`)
+        columns.value = data
+        state.value = 'ready'
+      } catch {
+        state.value = 'error'
+      } finally {
+        inFlight = null
+      }
+    })()
+    return inFlight
   }
 
   const ready = computed(() => state.value === 'ready')
@@ -99,5 +107,14 @@ export const useDictionaryStore = defineStore('dictionary', () => {
     }
   }
 
-  return { columns, state, ready, fetch, columnsFor, columnFor, readmes, fetchReadme }
+  return {
+    columns,
+    state,
+    ready,
+    fetch,
+    columnsFor,
+    columnFor,
+    readmes,
+    fetchReadme
+  }
 })

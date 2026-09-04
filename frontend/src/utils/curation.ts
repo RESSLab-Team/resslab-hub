@@ -13,7 +13,7 @@ import {
 import type { ExperimentRow } from '@/stores/contribution'
 import { CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { DatabaseId } from '@/utils/navigation'
-import { timeSeriesKindsFor, type TimeSeriesKind } from '@/utils/timeseries'
+import { fileStemFor, timeSeriesKindsFor, type TimeSeriesKind } from '@/utils/timeseries'
 
 /** Invert `CONTRIBUTION_DATABASES`: backend uploader Type value → DatabaseId. */
 export function databaseIdForType(type: string): DatabaseId | null {
@@ -38,6 +38,69 @@ export function toExperimentRows(detail: CurationDetail): ExperimentRow[] {
 /** The time-series kind a submitted file belongs to, from its directory. */
 export function kindForFile(database: DatabaseId, file: CurationFile): TimeSeriesKind | undefined {
   return timeSeriesKindsFor(database).find((kind) => kind.directory === file.timeseries_dir)
+}
+
+/**
+ * A submitted row as the editor holds it. `NR` collapses to an empty cell,
+ * the same way `readCsvTable` treats an imported file: it round-trips back to
+ * `NR` on submit, and an empty field reads better than a literal "NR".
+ */
+export function toEditorCells(cells: Record<string, string>): Record<string, string> {
+  const values: Record<string, string> = {}
+  for (const [name, raw] of Object.entries(cells)) {
+    const value = (raw ?? '').trim()
+    values[name] = value.toUpperCase() === 'NR' ? '' : value
+  }
+  return values
+}
+
+/** One submitted time-series file, matched to the experiment it belongs to. */
+export interface EditableFile {
+  path: string
+  /** File name, what the editor shows next to the slot. */
+  name: string
+  kind: TimeSeriesKind
+  /** Index into `detail.experiments`. */
+  index: number
+}
+
+/**
+ * Split a submission's files into the ones the editor can hold and the rest.
+ *
+ * A file is placeable when its directory is a known time-series kind and its
+ * name points at one of the submitted experiments. The others (the provenance
+ * record, anything unexpected) stay on the branch untouched, and the editor
+ * says so rather than pretending they are gone.
+ */
+export function editableFiles(
+  database: DatabaseId,
+  detail: CurationDetail
+): { placed: EditableFile[]; skipped: string[] } {
+  const placed: EditableFile[] = []
+  const skipped: string[] = []
+  for (const file of detail.files) {
+    if (file.kind !== 'timeseries') continue
+    const kind = kindForFile(database, file)
+    const stem =
+      file.path
+        .split('/')
+        .pop()
+        ?.replace(/\.csv$/i, '') ?? ''
+    // Match on the id first; fall back to the stem the kind would have
+    // written, since EBF names its files `id74.csv` for the record `74`.
+    const index = kind
+      ? detail.experiments.findIndex(
+          (experiment) =>
+            experiment.id === file.experiment_id || fileStemFor(kind, experiment.id) === stem
+        )
+      : -1
+    if (!kind || index < 0) {
+      skipped.push(file.path)
+      continue
+    }
+    placed.push({ path: file.path, name: file.path.split('/').pop() ?? file.path, kind, index })
+  }
+  return { placed, skipped }
 }
 
 /** "3 d ago"-style age for the queue, from an ISO timestamp. */

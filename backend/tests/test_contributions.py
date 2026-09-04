@@ -5,6 +5,7 @@ Pure-unit: GitHub is a fake client, validation is monkeypatched, and the
 validator's database lookups are stubbed — nothing here needs Postgres.
 """
 
+import json
 from pathlib import Path
 
 import pytest
@@ -21,6 +22,7 @@ from resslab_hub.contributions.submission import (
     normalize_csv_text,
     repo_ids,
     submit_contribution,
+    update_contribution,
 )
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import TableValidator, ValidationResult
@@ -44,16 +46,51 @@ def write_archive(tmp_path: Path, files: dict) -> Path:
 class FakeClient:
     """In-memory DataRepoClient double recording every call."""
 
-    def __init__(self, repo_files: dict):
+    def __init__(self, repo_files: dict, head_files=None, pull=None, pr_files=None):
         self.repo_files = repo_files
+        #: Files as they are on the submission's branch (read with a ref).
+        self.head_files = head_files or {}
+        self.pull = pull
+        self.pr_files = pr_files or []
         self.committed: list = []
+        self.deletions: list = []
         self.commit_kwargs: dict = {}
         self.pr: dict = {}
         self.deleted_branches: list = []
         self.fail_pr = False
+        self.fail_ref_update = False
 
     async def get_file_text(self, path, ref=None):
+        if ref is not None and path in self.head_files:
+            return self.head_files[path]
         return self.repo_files[path]
+
+    async def get_pull(self, number):
+        if self.pull is None:
+            raise RuntimeError("not found")
+        return self.pull
+
+    async def list_pull_files(self, number):
+        return self.pr_files
+
+    async def update_pull_body(self, number, body):
+        self.pr = {"number": number, "body": body}
+
+    async def commit_on_branch(
+        self, branch, head_sha, files, deletions, message, name, email
+    ):
+        if self.fail_ref_update:
+            raise RuntimeError("not a fast forward")
+        self.committed = files
+        self.deletions = deletions
+        self.commit_kwargs = {
+            "branch": branch,
+            "head_sha": head_sha,
+            "message": message,
+            "author_name": name,
+            "author_email": email,
+        }
+        return "new-commit-sha"
 
     async def get_base_sha(self):
         return "base-sha"
@@ -225,6 +262,22 @@ async def test_submit_happy_path(tmp_path, monkeypatch):
     assert client.commit_kwargs["author_email"] == "ada@example.edu"
     assert "dismissed" in client.pr["body"]
     assert "Ada Lovelace" in client.pr["body"]
+
+
+async def test_submit_pr_body_tells_how_to_update(tmp_path, monkeypatch):
+    """The review discussion must show how to change a submission (#321)."""
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    result = await submit_contribution(
+        str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+
+    assert result.head_sha == "commit-sha"
+    body = client.pr["body"]
+    assert "### To update this submission" in body
+    assert "do not open a second submission" in body
+    # The edit link points at the primary CSV on the submission's own branch.
+    assert f"/blob/{result.branch}/braces/steel_braces.csv" in body
 
 
 async def test_submit_escapes_formula_cells(tmp_path, monkeypatch):
@@ -520,3 +573,292 @@ async def test_submit_preserves_repo_crlf_line_endings(tmp_path, monkeypatch):
     # The untouched part of the file is byte-identical; the new row follows suit.
     assert merged.startswith(crlf_repo)
     assert merged.endswith("B9,400,New one\r\n")
+
+
+# --- updating an open submission (#321) -------------------------------------
+
+BRANCH = "contrib/braces/b9-abcd1234"
+HEAD_CSV = REPO_CSV + "B9,400,New one\n"
+PROVENANCE_PATH = "contributions/braces/abcd1234.json"
+PROVENANCE = json.dumps(
+    {
+        "schema": 1,
+        "type": "all-braces",
+        "submitted_at": "2026-08-01T12:00:00+00:00",
+        "contributor": {"name": "Grace Hopper", "email": "grace@example.edu"},
+        "files": [],
+        "dismissed_warnings": [],
+    }
+)
+PR_FILES = [
+    {"path": "braces/steel_braces.csv", "status": "modified"},
+    {"path": "braces/force_displacement/B9.csv", "status": "added"},
+    {"path": PROVENANCE_PATH, "status": "added"},
+]
+
+
+def open_pull(**overrides) -> dict:
+    pull = {
+        "number": 7,
+        "html_url": "https://github.com/x/pull/7",
+        "state": "open",
+        "head_ref": BRANCH,
+        "head_sha": "head-sha",
+    }
+    pull.update(overrides)
+    return pull
+
+
+def edit_client(**overrides) -> FakeClient:
+    return FakeClient(
+        {"braces/steel_braces.csv": REPO_CSV},
+        head_files={
+            "braces/steel_braces.csv": HEAD_CSV,
+            PROVENANCE_PATH: PROVENANCE,
+        },
+        pull=open_pull(**overrides),
+        pr_files=list(PR_FILES),
+    )
+
+
+async def update(tmpdir, client, head_sha="head-sha", dismissed=None):
+    return await update_contribution(
+        str(tmpdir), 7, head_sha, CONTRIBUTOR, dismissed or [], client=client
+    )
+
+
+async def test_update_replaces_the_batch_on_the_same_branch(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = edit_client()
+    batch = make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n")
+
+    result = await update(batch, client)
+
+    assert result.pr_number == 7
+    assert result.branch == BRANCH
+    assert result.head_sha == "new-commit-sha"
+    # The commit sits on the branch head, not on the base branch.
+    assert client.commit_kwargs["head_sha"] == "head-sha"
+    assert client.commit_kwargs["branch"] == BRANCH
+    assert client.commit_kwargs["author_name"] == "Ada Lovelace"
+    assert client.commit_kwargs["author_email"] == "ada@example.edu"
+    assert client.commit_kwargs["message"].startswith(
+        "data(braces): update 1 experiment"
+    )
+
+    by_path = {file.path: file.content for file in client.committed}
+    merged = by_path["braces/steel_braces.csv"]
+    # Rows the submission never owned are untouched; its own row is rewritten.
+    assert merged.startswith(REPO_CSV.rstrip("\n"))
+    assert "B9,450,Fixed one" in merged
+    assert "B9,400,New one" not in merged
+    assert merged.count("B9,") == 1
+    assert client.deletions == []
+
+
+async def test_update_rewrites_the_same_provenance_record(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = edit_client()
+    batch = make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n")
+
+    await update(batch, client, dismissed=["Value is far outside the range"])
+
+    by_path = {file.path: file.content for file in client.committed}
+    # One record, at its original path: a submission stays one submission.
+    provenance_paths = [p for p in by_path if p.startswith("contributions/")]
+    assert provenance_paths == [PROVENANCE_PATH]
+    record = json.loads(by_path[PROVENANCE_PATH])
+    assert record["submitted_at"] == "2026-08-01T12:00:00+00:00"
+    assert record["updated_at"] > record["submitted_at"]
+    # Without auth the record is the only trace of who did what: the first
+    # contributor stays, the editor is added next to it.
+    assert record["contributor"]["name"] == "Grace Hopper"
+    assert record["updated_by"]["name"] == "Ada Lovelace"
+    assert record["dismissed_warnings"] == ["Value is far outside the range"]
+    # Checksums cover what this commit writes, not what the first one did.
+    checksummed = {entry["path"] for entry in record["files"]}
+    assert checksummed == {
+        "braces/steel_braces.csv",
+        "braces/force_displacement/B9.csv",
+    }
+
+
+async def test_update_deletes_a_file_the_batch_no_longer_has(tmp_path, monkeypatch):
+    """Renaming a specimen must not leave the old curve file behind."""
+    patch_validation(monkeypatch)
+    client = edit_client()
+    batch = write_archive(
+        tmp_path,
+        {
+            "braces/steel_braces.csv": "id,f_y,name\nB10,450,Renamed\n",
+            "braces/force_displacement/B10.csv": "Displacement [mm],Force [kN]\n0,0\n",
+        },
+    )
+
+    await update(batch, client)
+
+    assert client.deletions == ["braces/force_displacement/B9.csv"]
+    by_path = {file.path: file.content for file in client.committed}
+    assert "braces/force_displacement/B10.csv" in by_path
+    assert "B10,450,Renamed" in by_path["braces/steel_braces.csv"]
+    assert "B9" not in by_path["braces/steel_braces.csv"]
+
+
+async def test_update_never_deletes_anything_but_its_own_curves(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = edit_client()
+    client.pr_files.append({"path": ".github/workflows/ci.yml", "status": "modified"})
+    batch = write_archive(
+        tmp_path, {"braces/steel_braces.csv": "id,f_y,name\nB9,450,Fixed\n"}
+    )
+
+    await update(batch, client)
+
+    # The stray file is classified "other" and left alone; only the submission's
+    # own time-series file, absent from the new batch, goes.
+    assert client.deletions == ["braces/force_displacement/B9.csv"]
+
+
+async def test_update_escapes_formula_cells(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = edit_client()
+    batch = make_batch(tmp_path, "id,f_y,name\nB9,-1.5,=cmd()\n")
+
+    await update(batch, client)
+
+    merged = {f.path: f.content for f in client.committed}["braces/steel_braces.csv"]
+    assert "'=cmd()" in merged
+    assert "-1.5" in merged
+
+
+async def test_update_refuses_a_stale_head(tmp_path, monkeypatch):
+    """A maintainer pushed meanwhile: the edit was written against the old file."""
+    patch_validation(monkeypatch)
+    client = edit_client()
+    with pytest.raises(SubmissionError) as caught:
+        await update(make_batch(tmp_path), client, head_sha="older-sha")
+    assert caught.value.status_code == 409
+    assert "Reload" in caught.value.detail
+    assert client.committed == []
+
+
+async def test_update_refuses_a_branch_the_hub_did_not_make(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = edit_client(head_ref="feature/hand-made")
+    with pytest.raises(SubmissionError) as caught:
+        await update(make_batch(tmp_path), client)
+    assert caught.value.status_code == 404
+    assert client.committed == []
+
+
+async def test_update_refuses_a_closed_or_unknown_pull_request(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    closed = edit_client(state="closed")
+    with pytest.raises(SubmissionError) as caught:
+        await update(make_batch(tmp_path), closed)
+    assert caught.value.status_code == 404
+
+    missing = edit_client()
+    missing.pull = None
+    with pytest.raises(SubmissionError) as caught:
+        await update(make_batch(tmp_path), missing)
+    assert caught.value.status_code == 404
+
+
+async def test_update_refuses_ids_already_in_the_repository(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = edit_client()
+    batch = make_batch(tmp_path, "id,f_y,name\nB1,450,Taken\n")
+    with pytest.raises(SubmissionError) as caught:
+        await update(batch, client)
+    assert caught.value.status_code == 409
+    assert "already exist" in caught.value.detail
+
+
+async def test_update_blocks_on_validation_errors(tmp_path, monkeypatch):
+    failing = ValidationResult("steel_braces.csv")
+    failing.add_error(1, "f_y", "x", "not a number")
+    patch_validation(monkeypatch, [failing])
+    client = edit_client()
+    with pytest.raises(SubmissionValidationFailed):
+        await update(make_batch(tmp_path), client)
+    assert client.committed == []
+
+
+async def test_update_rejects_paths_outside_the_layout(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = edit_client()
+    batch = write_archive(
+        tmp_path,
+        {
+            "braces/steel_braces.csv": "id,f_y,name\nB9,450,Fixed\n",
+            ".github/workflows/evil.yml": "run: rm -rf /",
+        },
+    )
+    with pytest.raises(SubmissionError) as caught:
+        await update(batch, client)
+    assert caught.value.status_code == 400
+    assert client.committed == []
+
+
+async def test_update_reports_a_branch_that_moved_mid_flight(tmp_path, monkeypatch):
+    """The ref update is not forced, so GitHub refusing it means a race."""
+    patch_validation(monkeypatch)
+    client = edit_client()
+    client.fail_ref_update = True
+    with pytest.raises(SubmissionError) as caught:
+        await update(make_batch(tmp_path), client)
+    assert caught.value.status_code == 409
+    assert "Reload" in caught.value.detail
+
+
+async def test_update_survives_a_missing_provenance_record(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = edit_client()
+    client.pr_files = [f for f in PR_FILES if f["path"] != PROVENANCE_PATH]
+    del client.head_files[PROVENANCE_PATH]
+
+    await update(make_batch(tmp_path), client)
+
+    by_path = {file.path: file.content for file in client.committed}
+    record_path = next(p for p in by_path if p.startswith("contributions/braces/"))
+    assert record_path == PROVENANCE_PATH  # rebuilt from the branch suffix
+    record = json.loads(by_path[record_path])
+    assert "updated_at" not in record  # its history starts at this commit
+    assert record["contributor"]["name"] == "Ada Lovelace"
+
+
+async def test_update_refreshes_the_pull_request_summary(tmp_path, monkeypatch):
+    """The review screen reads the counts off the body, so they must follow."""
+    patch_validation(monkeypatch)
+    client = edit_client()
+    batch = write_archive(
+        tmp_path,
+        {
+            "braces/steel_braces.csv": "id,f_y,name\nB9,450,Fixed\nB10,460,Second\n",
+            "braces/force_displacement/B9.csv": "Displacement [mm],Force [kN]\n0,0\n",
+            "braces/force_displacement/B10.csv": "Displacement [mm],Force [kN]\n0,0\n",
+        },
+    )
+
+    await update(batch, client, dismissed=["Value is far outside the range"])
+
+    body = client.pr["body"]
+    assert "**Experiments**: 2" in body
+    assert "**Time-series files**: 2" in body
+    assert "Value is far outside the range" in body
+    assert "### To update this submission" in body
+
+
+async def test_update_survives_a_failed_summary_refresh(tmp_path, monkeypatch):
+    """The data is committed by then; a stale summary must not fail the update."""
+    patch_validation(monkeypatch)
+    client = edit_client()
+
+    async def boom(number, body):
+        raise RuntimeError("GitHub said no")
+
+    client.update_pull_body = boom
+
+    result = await update(make_batch(tmp_path), client)
+    assert result.head_sha == "new-commit-sha"

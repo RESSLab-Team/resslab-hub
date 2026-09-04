@@ -1103,6 +1103,9 @@
       "clean": "Aucun problème",
       "todo": "Reste à remplir",
       "todo_count": "{count} à remplir",
+      "expand_groups": "Tout déplier",
+      "collapse_groups": "Tout replier",
+      "go_to_issue": "Aller au premier",
       "duplicate": "Dupliquer",
       "remove": "Retirer",
       "problems": "Problèmes",
@@ -1260,10 +1263,15 @@
     "submitting": "Envoi…",
     "submit_failed": "La soumission a échoué :",
     "submitted": {
-      "title": "Soumis — la demande de relecture #{number} est ouverte.",
+      "title": "Soumis. La demande de relecture #{number} est ouverte.",
       "next": "Un curateur va la relire ; les données seront en ligne une fois la demande approuvée et fusionnée.",
       "view_pr": "Voir la demande",
-      "new": "Nouvelle contribution"
+      "new": "Nouvelle contribution",
+      "how_to_update": "Besoin de changer quelque chose après une relecture ? N'ouvrez pas une deuxième soumission, cela ouvrirait une deuxième demande de relecture et la relecture recommencerait. Modifiez le CSV sur votre branche sur GitHub, ou postez le fichier corrigé en commentaire de la demande de relecture et un mainteneur le pousse pour vous.",
+      "edit_on_github": "Modifier le CSV sur GitHub",
+      "updated_title": "Mis à jour. La demande de relecture n°{number} contient vos modifications.",
+      "updated_next": "Un curateur relira la nouvelle version. Vous pouvez continuer à modifier ici et soumettre à nouveau.",
+      "update": "Mettre à jour cette soumission"
     },
     "dialog": {
       "title": "Soumettre pour relecture",
@@ -1315,6 +1323,21 @@
       "attach": "Attacher",
       "ignore": "Ignorer",
       "ignore_all": "Ignorer tout le reste"
+    },
+    "edit": {
+      "title": "Modifier la soumission n°{number}",
+      "description": "Changez les expériences ou les fichiers d'une soumission ouverte. Soumettre à nouveau met à jour la même demande de relecture.",
+      "banner": "Vous modifiez la soumission n°{number}.",
+      "loading": "Chargement de la soumission n°{number}…",
+      "not_open": "Cette soumission n'existe pas, ou elle n'est plus ouverte.",
+      "unknown_database": "Cette soumission concerne une base que l'éditeur ne connaît pas.",
+      "load_failed": "La soumission n'a pas pu être chargée. Vérifiez votre connexion et réessayez.",
+      "skipped_files": "{count} fichier(s) de cette soumission ne peuvent pas être modifiés ici et restent tels quels.",
+      "submit": "Soumettre la mise à jour",
+      "dialog_title": "Mettre à jour la soumission",
+      "dialog_confirm": "Mettre à jour",
+      "draft_notice": "Soumettre à nouveau ajoute un commit à la demande de relecture ouverte sur le dépôt de données RESSLab. Les vérifications sont relancées et la relecture continue.",
+      "conflict": "Cette soumission a changé sur GitHub après son ouverture. Rechargez la page pour obtenir la dernière version, puis refaites vos modifications."
     }
   },
   "curation": {
@@ -1353,7 +1376,8 @@
       "experiments_label": "{count} expériences dans cette soumission",
       "open_pr": "Ouvrir la PR sur GitHub",
       "submitted_by": "Soumis par {name}",
-      "unknown_contributor": "Contributeur inconnu"
+      "unknown_contributor": "Contributeur inconnu",
+      "edit_on_hub": "Modifier sur le Hub"
     },
     "actions": {
       "approve": "Approuver",

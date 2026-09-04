@@ -1,3 +1,4 @@
+import type { CurationDetail } from '@/backend'
 import { defaultApi } from '@/plugins/axios'
 import {
   DRAFT_SETTLE_MS,
@@ -9,7 +10,7 @@ import { useDictionaryStore, type DictColumn } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { IntakePlan } from '@/utils/intake'
 import type { DatabaseId } from '@/utils/navigation'
-import { postContribution } from '@/utils/submission'
+import { postContribution, putContribution } from '@/utils/submission'
 import { buildTarGz } from '@/utils/tar'
 import { timeSeriesKindsFor } from '@/utils/timeseries'
 import { createPinia, setActivePinia } from 'pinia'
@@ -18,7 +19,8 @@ import { nextTick } from 'vue'
 
 vi.mock('@/utils/submission', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/utils/submission')>()),
-  postContribution: vi.fn()
+  postContribution: vi.fn(),
+  putContribution: vi.fn()
 }))
 
 // jsdom has no CompressionStream; the archive itself is covered by tar tests.
@@ -27,8 +29,14 @@ vi.mock('@/utils/tar', () => ({
 }))
 
 // The automatic check's request: answered clean, counted by the draft tests.
+// `getContribution` / `getContributionFile` back the curation store, which the
+// editor asks for a submission to load.
 vi.mock('@/plugins/axios', () => ({
-  defaultApi: { validateData: vi.fn(async () => ({ data: { valid: true, results: [] } })) }
+  defaultApi: {
+    validateData: vi.fn(async () => ({ data: { valid: true, results: [] } })),
+    getContribution: vi.fn(),
+    getContributionFile: vi.fn()
+  }
 }))
 
 const BRACE_COLUMNS: DictColumn[] = [
@@ -763,7 +771,8 @@ describe('contribution store — submission', () => {
     vi.mocked(postContribution).mockResolvedValue({
       pr_url: 'https://github.com/x/pull/7',
       pr_number: 7,
-      branch: 'contrib/braces/b1-abc'
+      branch: 'contrib/braces/b1-abc',
+      head_sha: 'sha-1'
     })
 
     await store.submit(CONTRIBUTOR)
@@ -774,6 +783,30 @@ describe('contribution store — submission', () => {
     const [, archive, contributor] = (postContribution as Mock).mock.calls[0]
     expect(archive).toBeInstanceOf(File)
     expect(contributor).toEqual(CONTRIBUTOR)
+  })
+
+  it('points at the submitted CSV on its own branch', async () => {
+    const store = await submittableStore()
+    expect(store.csvOnGitHubUrl).toBe('') // nothing submitted yet
+    vi.mocked(postContribution).mockResolvedValue({
+      pr_url: 'https://github.com/x/pull/7',
+      pr_number: 7,
+      branch: 'contrib/braces/b1-abc',
+      head_sha: 'sha-1'
+    })
+
+    await store.submit(CONTRIBUTOR)
+
+    expect(store.branch).toBe('contrib/braces/b1-abc')
+    expect(store.csvOnGitHubUrl).toBe(
+      'https://github.com/RESSLab-Team/resslab-hub-data/blob/contrib/braces/b1-abc/braces/steel_braces.csv'
+    )
+
+    // Editing again starts a new batch: the old branch must not linger.
+    store.rows[0].cells.investigator = 'Y'
+    await nextTick()
+    expect(store.branch).toBe('')
+    expect(store.csvOnGitHubUrl).toBe('')
   })
 
   it('passes dismissed warnings, labelled by specimen id', async () => {
@@ -788,7 +821,8 @@ describe('contribution store — submission', () => {
     vi.mocked(postContribution).mockResolvedValue({
       pr_url: 'u',
       pr_number: 1,
-      branch: 'b'
+      branch: 'b',
+      head_sha: 'sha-1'
     })
 
     await store.submit(CONTRIBUTOR)
@@ -883,7 +917,12 @@ describe('contribution store — submission', () => {
     await nextTick()
     // No validator for EBF, so force the verdict the submit path needs.
     store.status = 'pass'
-    vi.mocked(postContribution).mockResolvedValue({ pr_url: 'u', pr_number: 1, branch: 'b' })
+    vi.mocked(postContribution).mockResolvedValue({
+      pr_url: 'u',
+      pr_number: 1,
+      branch: 'b',
+      head_sha: 'sha-1'
+    })
     await store.submit(CONTRIBUTOR)
     const entries = vi.mocked(buildTarGz).mock.calls.at(-1)![0]
     expect(entries.map((entry) => entry.path)).toContain(
@@ -896,5 +935,206 @@ describe('contribution store — submission', () => {
     await store.submit(CONTRIBUTOR)
     expect(postContribution).not.toHaveBeenCalled()
     expect(store.submitStatus).toBe('idle')
+  })
+})
+
+describe('contribution store — editing an open submission', () => {
+  const CONTRIBUTOR = { name: 'Ada', email: 'ada@example.edu', institution: '', orcid: '' }
+  const CURVE = 'Displacement [mm],Force [kN]\n0,0\n1,10\n'
+
+  const DETAIL = {
+    pr_number: 7,
+    pr_url: 'https://github.com/x/pull/7',
+    branch: 'contrib/braces/b1-abcd1234',
+    head_sha: 'head-sha',
+    type: 'all-braces',
+    experiments: [
+      { id: 'B1', cells: { id: 'B1', area: 'NR', investigator: 'X' } },
+      { id: 'B2', cells: { id: 'B2', area: '12', investigator: 'Y' } }
+    ],
+    files: [
+      { path: 'braces/steel_braces.csv', kind: 'primary' },
+      {
+        path: 'braces/force_displacement/B1.csv',
+        kind: 'timeseries',
+        timeseries_dir: 'braces/force_displacement',
+        experiment_id: 'B1'
+      },
+      { path: 'contributions/braces/abcd1234.json', kind: 'provenance' }
+    ]
+  } as unknown as CurationDetail
+
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.mocked(postContribution).mockReset()
+    vi.mocked(putContribution).mockReset()
+    vi.mocked(defaultApi.validateData).mockClear()
+    vi.mocked(defaultApi.getContribution).mockReset()
+    vi.mocked(defaultApi.getContributionFile).mockReset()
+    vi.mocked(defaultApi.getContribution).mockResolvedValue({ data: DETAIL } as never)
+    vi.mocked(defaultApi.getContributionFile).mockResolvedValue({ data: CURVE } as never)
+  })
+
+  /** The same submission with a curve for both experiments: ready to submit. */
+  function withEveryCurve() {
+    vi.mocked(defaultApi.getContribution).mockResolvedValue({
+      data: {
+        ...DETAIL,
+        files: [
+          ...DETAIL.files,
+          {
+            path: 'braces/force_displacement/B2.csv',
+            kind: 'timeseries',
+            timeseries_dir: 'braces/force_displacement',
+            experiment_id: 'B2'
+          }
+        ]
+      }
+    } as never)
+  }
+
+  /** The dictionary is loaded, as it is by the time the view asks for a load. */
+  function readyStore() {
+    const dictionary = useDictionaryStore()
+    dictionary.columns = { braces: BRACE_COLUMNS }
+    dictionary.state = 'ready'
+    return useContributionStore()
+  }
+
+  it('loads the submission into the editor', async () => {
+    const store = readyStore()
+    await store.loadSubmission(7)
+
+    expect(store.loadStatus).toBe('ready')
+    expect(store.database).toBe('braces')
+    expect(store.rows.map((row) => row.cells.id)).toEqual(['B1', 'B2'])
+    // "NR" is a placeholder in the file, an empty field in the editor.
+    expect(store.rows[0].cells.area).toBe('')
+    expect(store.rows[1].cells.area).toBe('12')
+    expect(store.editTarget).toEqual({
+      prNumber: 7,
+      prUrl: 'https://github.com/x/pull/7',
+      headSha: 'head-sha'
+    })
+    expect(store.editing).toBe(true)
+    expect(store.skippedFiles).toEqual([])
+
+    // Only the time-series file is fetched, and it lands on its own experiment.
+    expect(vi.mocked(defaultApi.getContributionFile)).toHaveBeenCalledTimes(1)
+    const attached = store.timeSeries[`${store.rows[0].uid}:force_displacement`]
+    expect(attached?.name).toBe('B1.csv')
+    expect(attached?.content).toBe(CURVE)
+    // The second experiment has none, and the editor says so rather than
+    // pretending the submission is complete.
+    expect(store.timeSeries[`${store.rows[1].uid}:force_displacement`]).toBeUndefined()
+    expect(store.kindStatus(store.rows[1].uid, FORCE_DISPLACEMENT)).toBe('missing_required')
+    expect(store.canSubmit).toBe(false)
+    // Nothing was hand-added, so nothing is a draft.
+    expect(store.isDraft(store.rows[0].uid)).toBe(false)
+  })
+
+  it('keeps the edit target while the batch is edited', async () => {
+    const store = readyStore()
+    await store.loadSubmission(7)
+
+    store.rows[0].cells.area = '15'
+    await nextTick()
+
+    // The verdict is stale after an edit, but the submission being edited is not.
+    expect(store.status).toBe('idle')
+    expect(store.editTarget?.prNumber).toBe(7)
+    expect(store.editing).toBe(true)
+  })
+
+  it('reports a submission that is gone, or a database it cannot edit', async () => {
+    const store = readyStore()
+    vi.mocked(defaultApi.getContribution).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 404 }
+    })
+    await store.loadSubmission(7)
+    expect(store.loadStatus).toBe('error')
+    expect(store.loadError).toBe('not_open')
+    expect(store.editing).toBe(false)
+
+    vi.mocked(defaultApi.getContribution).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 500 }
+    })
+    await store.loadSubmission(7)
+    expect(store.loadError).toBe('load_failed')
+
+    vi.mocked(defaultApi.getContribution).mockResolvedValue({
+      data: { ...DETAIL, type: 'all-unknown-things' }
+    } as never)
+    await store.loadSubmission(8)
+    expect(store.loadError).toBe('unknown_database')
+    expect(store.editing).toBe(false)
+  })
+
+  it('updates the submission instead of opening a second one', async () => {
+    const store = readyStore()
+    withEveryCurve()
+    await store.loadSubmission(7)
+    store.status = 'pass'
+    expect(store.canSubmit).toBe(true)
+    vi.mocked(putContribution).mockResolvedValue({
+      pr_url: 'https://github.com/x/pull/7',
+      pr_number: 7,
+      branch: 'contrib/braces/b1-abcd1234',
+      head_sha: 'new-sha'
+    })
+
+    await store.submit(CONTRIBUTOR)
+
+    expect(vi.mocked(postContribution)).not.toHaveBeenCalled()
+    const [archive, target, contributor] = vi.mocked(putContribution).mock.calls[0]
+    expect(archive).toBeInstanceOf(File)
+    expect(target).toEqual({
+      prNumber: 7,
+      prUrl: 'https://github.com/x/pull/7',
+      headSha: 'head-sha'
+    })
+    expect(contributor).toEqual(CONTRIBUTOR)
+    expect(store.submitStatus).toBe('submitted')
+    // The next update goes on top of the commit this one made.
+    expect(store.editTarget?.headSha).toBe('new-sha')
+
+    store.rows[0].cells.area = '20'
+    await nextTick()
+    expect(store.submitStatus).toBe('idle')
+    expect(store.editTarget?.headSha).toBe('new-sha')
+  })
+
+  it('asks for a reload when the branch moved on GitHub', async () => {
+    const store = readyStore()
+    withEveryCurve()
+    await store.loadSubmission(7)
+    store.status = 'pass'
+    vi.mocked(putContribution).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 409, data: { detail: 'This submission changed on GitHub.' } }
+    })
+
+    await store.submit(CONTRIBUTOR)
+
+    expect(store.submitStatus).toBe('error')
+    expect(store.submitConflict).toBe(true)
+    expect(store.submitError).toBe('This submission changed on GitHub.')
+    // Nothing was written, so the target still points at what was loaded.
+    expect(store.editTarget?.headSha).toBe('head-sha')
+
+    store.resetSubmission()
+    expect(store.submitConflict).toBe(false)
+  })
+
+  it('leaves the edit behind when the batch is reset', async () => {
+    const store = readyStore()
+    await store.loadSubmission(7)
+    store.reset()
+
+    expect(store.editing).toBe(false)
+    expect(store.loadStatus).toBe('idle')
+    expect(store.rows).toEqual([])
   })
 })

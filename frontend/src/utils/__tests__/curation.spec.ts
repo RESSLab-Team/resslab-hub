@@ -10,7 +10,9 @@ import {
 import {
   cellValue,
   databaseIdForType,
+  editableFiles,
   isMissing,
+  toEditorCells,
   toExperimentRows,
   withDerivedCells,
   withDerivedExperiments
@@ -207,6 +209,89 @@ describe('CURVE_SOURCES', () => {
   it('swaps the cyclic-coupon columns so strain is plotted on x', () => {
     const transform = CURVE_SOURCES.cyclic?.stress_strain.transform
     expect(transform?.([[400, 0.002]])).toEqual([[0.002, 400]])
+  })
+})
+
+describe('loading a submission back into the editor', () => {
+  const detail = (files: CurationDetail['files']) =>
+    ({
+      type: 'all-braces',
+      experiments: [
+        { id: 'B9', cells: { id: 'B9', f_y: '400' } },
+        { id: 'B10', cells: { id: 'B10', f_y: 'NR' } }
+      ],
+      files
+    } as unknown as CurationDetail)
+
+  describe('toEditorCells', () => {
+    it('empties the NR placeholder and keeps everything else', () => {
+      expect(toEditorCells({ id: 'B9', f_y: 'NR', name: ' Some one ', na: 'NA' })).toEqual({
+        id: 'B9',
+        f_y: '',
+        name: 'Some one',
+        na: 'NA'
+      })
+      // Case does not matter: it is a placeholder either way.
+      expect(toEditorCells({ f_y: 'nr' }).f_y).toBe('')
+    })
+  })
+
+  describe('editableFiles', () => {
+    it('matches a time-series file to the experiment it belongs to', () => {
+      const { placed, skipped } = editableFiles(
+        'braces',
+        detail([
+          { path: 'braces/steel_braces.csv', kind: 'primary' },
+          {
+            path: 'braces/force_displacement/B10.csv',
+            kind: 'timeseries',
+            timeseries_dir: 'braces/force_displacement',
+            experiment_id: 'B10'
+          },
+          { path: 'contributions/braces/abcd.json', kind: 'provenance' }
+        ])
+      )
+      expect(skipped).toEqual([])
+      expect(placed).toHaveLength(1)
+      expect(placed[0].name).toBe('B10.csv')
+      expect(placed[0].index).toBe(1) // the second experiment
+      expect(placed[0].kind.key).toBe('force_displacement')
+    })
+
+    it('matches the file name a kind would write, not only the id', () => {
+      // EBF names its files `id74.csv` for the record `74`.
+      const ebf = {
+        type: 'all-eccentric-braced-frames',
+        experiments: [{ id: '74', cells: { id: '74' } }],
+        files: [
+          {
+            path: 'eccentric_braced_frames/processed_data/id74.csv',
+            kind: 'timeseries',
+            timeseries_dir: 'eccentric_braced_frames/processed_data',
+            experiment_id: null
+          }
+        ]
+      } as unknown as CurationDetail
+      const { placed } = editableFiles('ebf', ebf)
+      expect(placed).toHaveLength(1)
+      expect(placed[0].index).toBe(0)
+    })
+
+    it('reports a file it cannot place instead of dropping it silently', () => {
+      const { placed, skipped } = editableFiles(
+        'braces',
+        detail([
+          {
+            path: 'braces/force_displacement/B99.csv',
+            kind: 'timeseries',
+            timeseries_dir: 'braces/force_displacement',
+            experiment_id: 'B99' // no such experiment in the batch
+          }
+        ])
+      )
+      expect(placed).toEqual([])
+      expect(skipped).toEqual(['braces/force_displacement/B99.csv'])
+    })
   })
 })
 

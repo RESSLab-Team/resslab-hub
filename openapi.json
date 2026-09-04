@@ -254,6 +254,54 @@
       }
     },
     "/contributions/{pr_number}": {
+      "put": {
+        "summary": "Update Open Contribution",
+        "description": "Replace an open submission's batch with a new commit on its own branch.\nThe pull request updates and its checks rerun; no second review is opened.\n\nAnswers 409 when the branch moved since the editor loaded it: reload and\nmake the changes again.",
+        "operationId": "update_open_contribution",
+        "parameters": [
+          {
+            "name": "pr_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pr Number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_update_open_contribution_contributions__pr_number__put"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContributionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      },
       "get": {
         "summary": "Get Contribution",
         "description": "Everything the review screen needs about one submission, reconstructed\nfrom the pull request at its current head commit.",
@@ -6687,6 +6735,58 @@
         ],
         "title": "Body_create_upload_file_upload_post"
       },
+      "Body_update_open_contribution_contributions__pr_number__put": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "head_sha": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 40,
+            "title": "Head Sha"
+          },
+          "contributor_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Contributor Name"
+          },
+          "contributor_email": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Contributor Email"
+          },
+          "institution": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Institution",
+            "default": ""
+          },
+          "orcid": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Orcid",
+            "default": ""
+          },
+          "dismissed_warnings": {
+            "type": "string",
+            "title": "Dismissed Warnings",
+            "default": "[]"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "head_sha",
+          "contributor_name",
+          "contributor_email"
+        ],
+        "title": "Body_update_open_contribution_contributions__pr_number__put"
+      },
       "Body_validate_data_validate_post": {
         "properties": {
           "file": {
@@ -10900,13 +11000,18 @@
           "branch": {
             "type": "string",
             "title": "Branch"
+          },
+          "head_sha": {
+            "type": "string",
+            "title": "Head Sha"
           }
         },
         "type": "object",
         "required": [
           "pr_url",
           "pr_number",
-          "branch"
+          "branch",
+          "head_sha"
         ],
         "title": "ContributionResponse",
         "description": "The pull request opened on the data repository for a submission."
