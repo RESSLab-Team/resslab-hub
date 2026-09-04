@@ -3,6 +3,7 @@ import type { ConnectionModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { connectionsApi } from '@/plugins/axios'
+import { isHttpUrl } from '@/utils/common'
 import { getConnectionSpecimenImage, getConnectionTypeImage } from '@/utils/component'
 import { formatNumber, formatString } from '@/utils/formatter'
 import { mdiOpenInNew } from '@mdi/js'
@@ -241,7 +242,7 @@ watch(
         </div>
       </div>
 
-      <div v-if="connection.link" class="cd-foot">
+      <div v-if="isHttpUrl(connection.link)" class="cd-foot">
         <a
           class="btn btn-secondary btn-sm"
           :href="connection.link"

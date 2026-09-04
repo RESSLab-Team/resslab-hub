@@ -9,6 +9,7 @@ import {
   getTensileCouponImage,
   getEbfImage
 } from '@/utils/component'
+import { isHttpUrl } from '@/utils/common'
 import { testConfigurationNameMapping } from '@/utils/hss'
 import { useI18n } from 'vue-i18n'
 
@@ -26,7 +27,10 @@ const { data, type } = defineProps<{
   <div class="tooltip">
     <template v-if="type === 'Connections'">
       <h3>
-        <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.date }}) </a>
+        <a v-if="isHttpUrl(data.link)" target="_blank" :href="data.link"
+          >{{ data.experimental_program }} ({{ data.date }})</a
+        >
+        <template v-else>{{ data.experimental_program }} ({{ data.date }})</template>
       </h3>
       <ul>
         <li>{{ data.specimen_type }}</li>
@@ -46,7 +50,10 @@ const { data, type } = defineProps<{
     </template>
     <template v-else-if="type === 'Braces'">
       <h3>
-        <a target="_blank" :href="data.link"> {{ data.investigator }} ({{ data.date }}) </a>
+        <a v-if="isHttpUrl(data.link)" target="_blank" :href="data.link"
+          >{{ data.investigator }} ({{ data.date }})</a
+        >
+        <template v-else>{{ data.investigator }} ({{ data.date }})</template>
       </h3>
       <ul>
         <li>{{ t('map.cross_section') }} {{ data.cross_section_size }}</li>
@@ -63,7 +70,10 @@ const { data, type } = defineProps<{
     </template>
     <template v-else-if="type === 'Columns'">
       <h3>
-        <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.date }}) </a>
+        <a v-if="isHttpUrl(data.link)" target="_blank" :href="data.link"
+          >{{ data.experimental_program }} ({{ data.date }})</a
+        >
+        <template v-else>{{ data.experimental_program }} ({{ data.date }})</template>
       </h3>
       <ul>
         <li>{{ data.boundary_condition }}</li>
@@ -86,7 +96,10 @@ const { data, type } = defineProps<{
     </template>
     <template v-else-if="type === 'Cyclic Coupons'">
       <h3>
-        <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.date }}) </a>
+        <a v-if="isHttpUrl(data.link)" target="_blank" :href="data.link"
+          >{{ data.experimental_program }} ({{ data.date }})</a
+        >
+        <template v-else>{{ data.experimental_program }} ({{ data.date }})</template>
       </h3>
       <ul>
         <li>{{ t('map.profile_type') }} {{ data.profile_type }}</li>
@@ -103,7 +116,10 @@ const { data, type } = defineProps<{
     </template>
     <template v-else-if="type === 'Residual Stresses'">
       <h3>
-        <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.date }}) </a>
+        <a v-if="isHttpUrl(data.link)" target="_blank" :href="data.link"
+          >{{ data.experimental_program }} ({{ data.date }})</a
+        >
+        <template v-else>{{ data.experimental_program }} ({{ data.date }})</template>
       </h3>
       <ul>
         <li>{{ t('map.profile_type') }} {{ data.profile_type }}</li>
@@ -140,7 +156,10 @@ const { data, type } = defineProps<{
     </template>
     <template v-else-if="type === 'Tensile Coupons'">
       <h3>
-        <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.year }}) </a>
+        <a v-if="isHttpUrl(data.link)" target="_blank" :href="data.link"
+          >{{ data.experimental_program }} ({{ data.year }})</a
+        >
+        <template v-else>{{ data.experimental_program }} ({{ data.year }})</template>
       </h3>
       <ul>
         <li>{{ t('map.investigator') }} {{ data.investigator }}</li>
@@ -156,7 +175,10 @@ const { data, type } = defineProps<{
     </template>
     <template v-else-if="type === 'Ductile Fracture'">
       <h3>
-        <a target="_blank" :href="data.link"> {{ data.experimental_program }} ({{ data.date }}) </a>
+        <a v-if="isHttpUrl(data.link)" target="_blank" :href="data.link"
+          >{{ data.experimental_program }} ({{ data.date }})</a
+        >
+        <template v-else>{{ data.experimental_program }} ({{ data.date }})</template>
       </h3>
       <ul>
         <li>

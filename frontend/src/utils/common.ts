@@ -5,6 +5,17 @@ export function sum(a: number, b: number): number {
   return a + b
 }
 
+/**
+ * True when a publication link is a real web address. The CSVs carry markers
+ * in that column too (NA, NR, TBA, "Not available", and the uploader turns NA
+ * into "Not applicable"). Rendered as an href, those open a relative route
+ * like /materials/Not%20applicable (issue #282, Kinane's review), so the
+ * drawer, the map tooltip and the detail footers go through this check.
+ */
+export function isHttpUrl(link: unknown): link is string {
+  return typeof link === 'string' && /^https?:\/\//i.test(link.trim())
+}
+
 export function filterColumnValue(value: Value): boolean {
   if (value === null) {
     return false

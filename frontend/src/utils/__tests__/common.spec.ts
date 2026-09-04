@@ -1,5 +1,33 @@
-import { filterColumnValue, isStructuredFilterValue, shareCurrentUrl, sum } from '@/utils/common'
+import {
+  filterColumnValue,
+  isHttpUrl,
+  isStructuredFilterValue,
+  shareCurrentUrl,
+  sum
+} from '@/utils/common'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+
+describe('common.isHttpUrl', () => {
+  it('accepts web addresses only', () => {
+    expect(isHttpUrl('https://doi.org/10.1000/xyz')).toBe(true)
+    expect(isHttpUrl(' http://example.org ')).toBe(true)
+  })
+
+  it('rejects the markers the CSVs put in the link column', () => {
+    for (const marker of [
+      'NA',
+      'NR',
+      'TBA',
+      'Not available',
+      'Not applicable',
+      '',
+      null,
+      undefined
+    ]) {
+      expect(isHttpUrl(marker)).toBe(false)
+    }
+  })
+})
 
 describe('common.isStructuredFilterValue', () => {
   it('recognises the grammar the rail inputs emit', () => {
