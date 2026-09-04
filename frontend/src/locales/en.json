@@ -1265,7 +1265,10 @@
       "view_pr": "View review request",
       "new": "Start a new contribution",
       "how_to_update": "Need to change something after a review? Do not open a second submission, it would open a second review request and the review would start again. Edit the CSV on your own branch on GitHub, or post the corrected file in a comment on the review request and a maintainer pushes it for you.",
-      "edit_on_github": "Edit the CSV on GitHub"
+      "edit_on_github": "Edit the CSV on GitHub",
+      "updated_title": "Updated. Review request #{number} now has your changes.",
+      "updated_next": "A curator will review the new version. You can keep editing here and submit again.",
+      "update": "Update this submission"
     },
     "dialog": {
       "title": "Submit for review",
@@ -1317,6 +1320,22 @@
       "attach": "Attach",
       "ignore": "Ignore",
       "ignore_all": "Ignore all remaining"
+    },
+    "edit": {
+      "title": "Edit submission #{number}",
+      "description": "Change the experiments or the files of an open submission. Submitting again updates the same review request.",
+      "banner": "You are editing submission #{number}.",
+      "loading": "Loading submission #{number}…",
+      "not_open": "This submission does not exist, or it is no longer open.",
+      "unknown_database": "This submission is for a database the editor does not know.",
+      "load_failed": "The submission could not be loaded. Check your connection and try again.",
+      "locked": "The database cannot be changed while you edit a submission.",
+      "skipped_files": "{count} file(s) of this submission cannot be edited here and are left as they are.",
+      "submit": "Submit the update",
+      "dialog_title": "Update the submission",
+      "dialog_confirm": "Update",
+      "draft_notice": "Submitting again adds a commit to the open review request on the RESSLab data repository. The checks rerun and the review goes on.",
+      "conflict": "This submission changed on GitHub after you opened it. Reload the page to get the latest version, then make your changes again."
     }
   },
   "curation": {
@@ -1355,7 +1374,8 @@
       "experiments_label": "{count} experiments in this submission",
       "open_pr": "Open PR on GitHub",
       "submitted_by": "Submitted by {name}",
-      "unknown_contributor": "Unknown contributor"
+      "unknown_contributor": "Unknown contributor",
+      "edit_on_hub": "Edit on the Hub"
     },
     "actions": {
       "approve": "Approve",

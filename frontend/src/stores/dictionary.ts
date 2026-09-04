@@ -1,6 +1,6 @@
 import type { DatabaseId } from '@/utils/navigation'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 /** Column types carried by the data dictionary (mirrors the backend validator). */
 export type DictType =
@@ -64,6 +64,25 @@ export const useDictionaryStore = defineStore('dictionary', () => {
    */
   const readmes = ref<Partial<Record<DatabaseId, string | null>>>({})
 
+  /**
+   * Resolve once the dictionary is loaded, or has failed to load.
+   *
+   * `fetch` returns straight away when a request is already in flight, so a
+   * caller that needs the columns (loading a submission back into the editor)
+   * cannot just await it.
+   */
+  function whenSettled(): Promise<void> {
+    if (state.value === 'ready' || state.value === 'error') return Promise.resolve()
+    return new Promise((resolve) => {
+      const stop = watch(state, (value) => {
+        if (value === 'ready' || value === 'error') {
+          stop()
+          resolve()
+        }
+      })
+    })
+  }
+
   async function fetch(): Promise<void> {
     if (state.value === 'loading' || state.value === 'ready') return
     state.value = 'loading'
@@ -99,5 +118,15 @@ export const useDictionaryStore = defineStore('dictionary', () => {
     }
   }
 
-  return { columns, state, ready, fetch, columnsFor, columnFor, readmes, fetchReadme }
+  return {
+    columns,
+    state,
+    ready,
+    fetch,
+    whenSettled,
+    columnsFor,
+    columnFor,
+    readmes,
+    fetchReadme
+  }
 })

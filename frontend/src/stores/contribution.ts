@@ -1,12 +1,19 @@
 import { defaultApi } from '@/plugins/axios'
+import { useCurationStore } from '@/stores/curation'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES, DATA_REPOSITORY_URL } from '@/utils/contribution'
+import { databaseIdForType, editableFiles, mapLimit, toEditorCells } from '@/utils/curation'
 import { normalizeCsvText } from '@/utils/csv'
 import { describeFailure, type FailureReport } from '@/utils/failureReport'
 import type { IntakePending, IntakePlan } from '@/utils/intake'
 import type { DatabaseId } from '@/utils/navigation'
 import { mapResponse, type ExperimentReport, type ReportedIssue } from '@/utils/qualityReport'
-import { postContribution, type ContributorInfo } from '@/utils/submission'
+import {
+  postContribution,
+  putContribution,
+  type ContributorInfo,
+  type EditTarget
+} from '@/utils/submission'
 import { buildTarGz } from '@/utils/tar'
 import {
   checkTimeSeriesFile,
@@ -185,6 +192,24 @@ export const useContributionStore = defineStore('contribution', () => {
   const pullRequestNumber = ref(0)
   /** Branch the submission was pushed to, for the "how to update" links. */
   const branch = ref('')
+  /**
+   * The open submission being edited, when the editor was opened on one.
+   *
+   * Kept apart from the submission status on purpose: any edit clears the
+   * status (the batch is unverified again) but must not forget which pull
+   * request the next submit updates.
+   */
+  const editTarget = ref<EditTarget | null>(null)
+  const editing = computed(() => editTarget.value !== null)
+  /** Whether the last successful submit opened a submission or updated one. */
+  const submitMode = ref<'create' | 'update'>('create')
+  /** The branch moved on GitHub since it was loaded: the page must reload. */
+  const submitConflict = ref(false)
+
+  const loadStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const loadError = ref<'not_open' | 'unknown_database' | 'failed' | null>(null)
+  /** Files of the submission the editor cannot hold; left alone on the branch. */
+  const skippedFiles = ref<string[]>([])
 
   const config = computed(() => (database.value ? CONTRIBUTION_DATABASES[database.value] : null))
   const columns = computed(() => dictionary.columnsFor(database.value))
@@ -591,6 +616,8 @@ export const useContributionStore = defineStore('contribution', () => {
   function selectDatabase(id: DatabaseId): void {
     if (database.value === id) return
     // Columns differ per database; carried-over values would never reach the CSV.
+    // Another database is another batch, so it is no longer an edit either.
+    editTarget.value = null
     database.value = id
     rows.value = []
     timeSeries.value = {}
@@ -844,24 +871,36 @@ export const useContributionStore = defineStore('contribution', () => {
     return messages
   })
 
+  /**
+   * Send the batch: a new submission, or a new commit on the one being edited.
+   *
+   * An edit keeps its target afterwards, with the commit it now points at, so
+   * the contributor can go on fixing things and submit again.
+   */
   async function submit(contributor: ContributorInfo): Promise<void> {
     const target = config.value
     if (!target || !database.value || !canSubmit.value) return
 
     settle()
+    const edited = editTarget.value
+    submitMode.value = edited ? 'update' : 'create'
     submitStatus.value = 'submitting'
     submitError.value = ''
+    submitConflict.value = false
     try {
       const archive = await buildArchive()
-      const result = await postContribution(
-        target.type,
-        archive,
-        contributor,
-        dismissedWarningMessages.value
-      )
+      const result = edited
+        ? await putContribution(archive, edited, contributor, dismissedWarningMessages.value)
+        : await postContribution(target.type, archive, contributor, dismissedWarningMessages.value)
       pullRequestUrl.value = result.pr_url
       pullRequestNumber.value = result.pr_number
       branch.value = result.branch
+      if (edited) {
+        // The submission moved: the next update goes on top of this commit,
+        // and what the curation store holds about it is now the old version.
+        editTarget.value = { ...edited, headSha: result.head_sha }
+        useCurationStore().invalidate(edited.prNumber)
+      }
       submitStatus.value = 'submitted'
     } catch (caught) {
       // A 422 carries a full validation report: surface it through the same
@@ -873,6 +912,11 @@ export const useContributionStore = defineStore('contribution', () => {
           status.value = deriveStatus(data)
         }
       }
+      // The branch moved on GitHub: nothing was written, and the page has to
+      // be reloaded before the changes can be made again.
+      if (isAxiosError(caught) && caught.response?.status === 409) {
+        submitConflict.value = true
+      }
       submitStatus.value = 'error'
       submitError.value = transportError(caught)
       submitFailure.value = describeFailure(caught, {
@@ -883,6 +927,77 @@ export const useContributionStore = defineStore('contribution', () => {
     }
   }
 
+  /** Guards against a slow load landing after the editor moved on. */
+  let loadToken = 0
+
+  /**
+   * Open an existing submission in the editor.
+   *
+   * Everything is fetched first, then written to the store in one go: the
+   * watcher below fires once, schedules one check, and the editor never shows
+   * a half-loaded batch. Time-series files come back as text, which is exactly
+   * how the store holds a dropped file, so they land through `attachSeries`
+   * like any other attachment.
+   */
+  async function loadSubmission(prNumber: number): Promise<void> {
+    const token = ++loadToken
+    loadStatus.value = 'loading'
+    loadError.value = null
+    skippedFiles.value = []
+
+    const curation = useCurationStore()
+    let detail
+    try {
+      detail = await curation.fetchDetail(prNumber)
+    } catch (caught) {
+      if (token !== loadToken) return
+      loadError.value =
+        isAxiosError(caught) && caught.response?.status === 404 ? 'not_open' : 'failed'
+      loadStatus.value = 'error'
+      return
+    }
+
+    const id = databaseIdForType(detail.type)
+    if (!id) {
+      if (token !== loadToken) return
+      loadError.value = 'unknown_database'
+      loadStatus.value = 'error'
+      return
+    }
+
+    dictionary.fetch()
+    await dictionary.whenSettled()
+
+    const { placed, skipped } = editableFiles(id, detail)
+    let texts: string[]
+    try {
+      // A few at a time: one request per file, and the endpoint is rate limited.
+      texts = await mapLimit(placed, 3, (file) => curation.fetchFileText(prNumber, file.path))
+    } catch {
+      if (token !== loadToken) return
+      loadError.value = 'failed'
+      loadStatus.value = 'error'
+      return
+    }
+    if (token !== loadToken) return
+
+    reset()
+    selectDatabase(id)
+    importRows(detail.experiments.map((experiment) => toEditorCells(experiment.cells)))
+    placed.forEach((file, index) => {
+      const row = rows.value[file.index]
+      if (row) attachSeries(row.uid, file.kind, file.name, texts[index])
+    })
+    editTarget.value = {
+      prNumber,
+      prUrl: detail.pr_url,
+      branch: detail.branch,
+      headSha: detail.head_sha
+    }
+    skippedFiles.value = skipped
+    loadStatus.value = 'ready'
+  }
+
   function resetSubmission(): void {
     submitStatus.value = 'idle'
     submitError.value = ''
@@ -890,6 +1005,7 @@ export const useContributionStore = defineStore('contribution', () => {
     pullRequestUrl.value = ''
     pullRequestNumber.value = 0
     branch.value = ''
+    submitConflict.value = false
   }
 
   // Auto-validate: any edit invalidates the last report and re-checks after a
@@ -917,6 +1033,10 @@ export const useContributionStore = defineStore('contribution', () => {
 
   function reset(): void {
     database.value = null
+    editTarget.value = null
+    loadStatus.value = 'idle'
+    loadError.value = null
+    skippedFiles.value = []
     rows.value = []
     timeSeries.value = {}
     clearIntake()
@@ -942,6 +1062,14 @@ export const useContributionStore = defineStore('contribution', () => {
     pullRequestNumber,
     branch,
     csvOnGitHubUrl,
+    editTarget,
+    editing,
+    submitMode,
+    submitConflict,
+    loadStatus,
+    loadError,
+    skippedFiles,
+    loadSubmission,
     canSubmit,
     dismissedWarningMessages,
     submit,
