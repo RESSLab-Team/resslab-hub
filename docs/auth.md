@@ -53,10 +53,11 @@ phase 1 only enforces "signed in". The rules that hand out `contributor` and
   and link the provider from the account page. The address is also how an
   account is found, so the email identity cannot be unlinked: GitHub can.
 - **A submission belongs to the account that made it.** Updating an open one
-  from the Hub (#321) checks the provenance record on its branch: the account
-  id, or the address for records from before #247. Anyone else gets a 403,
-  and the review page only offers "Edit on the Hub" to the owner. Curators
-  get their own way in with #248.
+  from the Hub (#321) checks the `Submitted-by` trailer on its branch's first
+  Hub commit against the account's verified address (a pull request opened
+  before trailers falls back to its `contributions/*.json` record). Anyone
+  else gets a 403, and the review page only offers "Edit on the Hub" to the
+  owner. Curators get their own way in with #248.
 - **Absolute URLs** (the OAuth callback, the mailed link) are built from the
   `PUBLIC_BASE_URL` setting. They cannot come from the request: Traefik has
   already stripped `/api` and the `Host` is an internal service name.

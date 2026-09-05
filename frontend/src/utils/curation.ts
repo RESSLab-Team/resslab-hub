@@ -68,9 +68,9 @@ export interface EditableFile {
  * Split a submission's files into the ones the editor can hold and the rest.
  *
  * A file is placeable when its directory is a known time-series kind and its
- * name points at one of the submitted experiments. The others (the provenance
- * record, anything unexpected) stay on the branch untouched, and the editor
- * says so rather than pretending they are gone.
+ * name points at one of the submitted experiments. The others (a provenance
+ * record left by an older submission, anything unexpected) stay on the branch
+ * untouched, and the editor says so rather than pretending they are gone.
  */
 export function editableFiles(
   database: DatabaseId,
