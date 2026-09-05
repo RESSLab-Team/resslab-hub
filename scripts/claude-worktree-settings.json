@@ -1,5 +1,5 @@
 {
-  "_comment": "Template for <worktree>/.claude/settings.local.json, written by scripts/wt-setup.sh (it fills __RESSLAB_DATA_DIR__). Claude runs in auto mode here: the classifier judges everything not listed. deny = never; ask = always prompt, even in auto mode; allow = skip the classifier for these routine commands. curl is excluded from the sandbox because the Linux sandbox cannot reach loopback (the worktree's own dev servers) — excluded commands go through the classifier and the ask rules instead. Rationale in docs/worktree-dev-environment.md.",
+  "_comment": "Template for <worktree>/.claude/settings.local.json, written by scripts/wt-setup.sh (it fills __RESSLAB_DATA_DIR__). Claude runs in auto mode here: the classifier judges everything not listed. deny = never; ask = always prompt, even in auto mode (an ask rule beats the sandbox and the classifier, so keep it to real write-to-the-internet forms: auto mode edits files through `python3 - <<EOF` heredocs, which match a `Bash(python3 -)` rule, and such a rule prompted on every edit); allow = skip the classifier for these routine commands. curl is excluded from the sandbox because the Linux sandbox cannot reach loopback (the worktree's own dev servers) — excluded commands go through the classifier and the ask rules instead. Rationale in docs/worktree-dev-environment.md.",
   "permissions": {
     "additionalDirectories": [
       "__RESSLAB_DATA_DIR__"
@@ -59,10 +59,6 @@
       "Bash(zsh)",
       "Bash(sh -s*)",
       "Bash(bash -s*)",
-      "Bash(python -)",
-      "Bash(python3 -)",
-      "Bash(node -)",
-      "Bash(perl -)",
       "Bash(bash <(*))",
       "Bash(sh <(*))",
       "Bash(source <(*))",
