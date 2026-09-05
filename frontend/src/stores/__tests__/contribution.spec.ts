@@ -784,6 +784,22 @@ describe('contribution store — submission', () => {
     expect((postContribution as Mock).mock.calls[0]).toHaveLength(3)
   })
 
+  it('says how many files are on their way while sending', async () => {
+    const store = await submittableStore()
+    let countWhileSending = -1
+    vi.mocked(postContribution).mockImplementation(async () => {
+      countWhileSending = store.submitFileCount
+      return { pr_url: 'https://github.com/x/pull/7', pr_number: 7, branch: 'b', head_sha: 's' }
+    })
+
+    await store.submit()
+
+    // The primary CSV plus the one attached curve.
+    expect(countWhileSending).toBe(2)
+    store.resetSubmission()
+    expect(store.submitFileCount).toBe(0)
+  })
+
   it('points at the submitted CSV on its own branch', async () => {
     const store = await submittableStore()
     expect(store.csvOnGitHubUrl).toBe('') // nothing submitted yet
@@ -1042,6 +1058,27 @@ describe('contribution store — editing an open submission', () => {
     expect(store.canSubmit).toBe(false)
     // Nothing was hand-added, so nothing is a draft.
     expect(store.isDraft(store.rows[0].uid)).toBe(false)
+  })
+
+  it('counts the files as they land while loading', async () => {
+    withEveryCurve()
+    const store = readyStore()
+    const resolvers: ((value: never) => void)[] = []
+    vi.mocked(defaultApi.getContributionFile).mockImplementation(
+      () => new Promise((resolve) => resolvers.push(resolve as never)) as never
+    )
+
+    const loading = store.loadSubmission(7)
+    await vi.waitFor(() => expect(resolvers).toHaveLength(2))
+    expect(store.loadProgress).toEqual({ done: 0, total: 2 })
+
+    resolvers[0]({ data: CURVE } as never)
+    await vi.waitFor(() => expect(store.loadProgress?.done).toBe(1))
+
+    resolvers[1]({ data: CURVE } as never)
+    await loading
+    expect(store.loadStatus).toBe('ready')
+    expect(store.loadProgress).toBeNull()
   })
 
   it('keeps the edit target while the batch is edited', async () => {

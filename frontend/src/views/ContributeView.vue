@@ -2,6 +2,7 @@
 import ContributionGuide from '@/components/contribute/ContributionGuide.vue'
 import ExperimentCards from '@/components/contribute/ExperimentCards.vue'
 import FailureDetails from '@/components/contribute/FailureDetails.vue'
+import ProgressLine from '@/components/commons/ProgressLine.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useContributionStore, type CardIssue } from '@/stores/contribution'
 import { useDictionaryStore } from '@/stores/dictionary'
@@ -268,9 +269,17 @@ async function confirmSubmit(): Promise<void> {
         </section>
 
         <!-- Loading an open submission back into the editor (#321). -->
-        <p v-if="store.loadStatus === 'loading'" class="dict-state">
-          {{ $t('contribute.edit.loading', { number: prNumber }) }}
-        </p>
+        <progress-line
+          v-if="store.loadStatus === 'loading'"
+          :active="true"
+          :label="
+            store.loadProgress
+              ? $t('contribute.edit.loading_files', store.loadProgress)
+              : $t('contribute.edit.loading', { number: prNumber })
+          "
+          :done="store.loadProgress?.done"
+          :total="store.loadProgress?.total"
+        />
         <div v-else-if="store.loadStatus === 'error'" class="load-error">
           <p class="load-error-text">
             <v-icon :icon="mdiAlertOutline" size="15" />
@@ -377,7 +386,13 @@ async function confirmSubmit(): Promise<void> {
         </footer>
 
         <footer v-else-if="store.database && dictionary.ready" class="status-bar">
-          <span class="status" :class="statusClass">
+          <!-- While the batch is on its way to GitHub, say what is being sent. -->
+          <progress-line
+            v-if="store.submitStatus === 'submitting'"
+            :active="true"
+            :label="$t('contribute.submitting_files', { count: store.submitFileCount })"
+          />
+          <span v-else class="status" :class="statusClass">
             <v-icon
               :icon="
                 statusClass === 'pass'
