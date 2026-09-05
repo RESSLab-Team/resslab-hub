@@ -102,10 +102,8 @@ jobs:
           mkdir secrets
           touch secrets/.env
           mkdir backend/secrets
+      # Build only, as a check that the Dockerfiles still work. The images the
+      # cluster runs are built and pushed by deploy.yml under
+      # ghcr.io/resslab-team/epfl-resslab/resslab-hub/, nothing reads the
+      # compose ones, and the push to GHCR failed on flaky "unknown blob" errors.
       - run: docker compose build --parallel --pull
-      - uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - run: docker compose push
