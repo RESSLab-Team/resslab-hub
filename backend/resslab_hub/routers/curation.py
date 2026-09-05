@@ -16,6 +16,7 @@ on GitHub either way. The per-IP rate limits and the TTL caches keyed by the PR
 head sha also protect the GitHub App's API budget.
 """
 
+import asyncio
 import json
 import os
 import re
@@ -28,7 +29,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 
 from resslab_hub.auth.deps import require_user
-from resslab_hub.contributions.github import DataRepoClient, configured
+from resslab_hub.contributions.github import (
+    MAX_PARALLEL_CALLS,
+    DataRepoClient,
+    configured,
+)
 from resslab_hub.contributions.projection import (
     SubmissionError,
     _layout_for,
@@ -290,10 +295,22 @@ async def _build_validation(
 
         total = 0
         curve_files = [f for f in detail.files if f.kind == "timeseries"]
-        for curve in curve_files[:MAX_CURVE_FILES]:
-            try:
-                text = await client.get_file_text(curve.path, ref=detail.head_sha)
-            except Exception:
+        wanted = curve_files[:MAX_CURVE_FILES]
+
+        limit = asyncio.Semaphore(MAX_PARALLEL_CALLS)
+
+        async def read(curve) -> Optional[str]:
+            async with limit:
+                try:
+                    return await client.get_file_text(curve.path, ref=detail.head_sha)
+                except Exception:
+                    return None
+
+        # Downloaded together, then applied in the original order so the size
+        # budget and `skipped` stay deterministic.
+        texts = await asyncio.gather(*(read(curve) for curve in wanted))
+        for curve, text in zip(wanted, texts):
+            if text is None:
                 skipped.append(curve.path)
                 continue
             size = len(text.encode("utf-8"))
