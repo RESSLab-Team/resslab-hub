@@ -1530,6 +1530,7 @@
       "email_in_use": "That address already has an account here. Sign in with it, then link GitHub from your account page.",
       "identity_taken": "That GitHub account is already linked to another account here.",
       "github_denied": "You cancelled the GitHub sign-in.",
+      "github_disabled": "GitHub sign-in is not available here. Use your email address.",
       "cannot_unlink": "This one cannot be removed: it is how your account is found."
     }
   }

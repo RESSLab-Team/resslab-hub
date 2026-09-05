@@ -111,8 +111,10 @@ the port but not the host: the `resslab_login` cookie set when you click the
 button must still be there when GitHub sends the browser back. Restart the
 backend after editing the file, Dynaconf only reads it at startup.
 
-Without the two `GITHUB_OAUTH_*` settings the GitHub button answers 503 and is
-simply not offered.
+Without the two `GITHUB_OAUTH_*` settings the GitHub button is still shown,
+but clicking it comes back to the login page with `?error=github_disabled`
+("GitHub sign-in is not available here"), so a deployment without the pair
+does not show a raw JSON error.
 
 ### Mail
 

@@ -206,9 +206,12 @@ async def start_github_login(
 ) -> RedirectResponse:
     """Send the browser to GitHub, to sign in or to link an account."""
     if not github_oauth.configured():
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="GitHub sign-in is not enabled on this deployment.",
+        # The button is always offered, so people do land here on a
+        # deployment without the OAuth pair. This is a navigation, not a
+        # fetch: a JSON error would be shown raw in the tab. Go back to the
+        # login page with a reason instead, like the callback does.
+        return RedirectResponse(
+            frontend_url("/login?error=github_disabled"), status_code=302
         )
     if link and user is None:
         raise HTTPException(

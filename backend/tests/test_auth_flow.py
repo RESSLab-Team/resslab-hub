@@ -303,6 +303,16 @@ def github(monkeypatch):
     return profile
 
 
+async def test_github_start_goes_back_to_login_when_disabled(client, monkeypatch):
+    # A navigation, not a fetch: a JSON 503 would be shown raw in the tab.
+    monkeypatch.setattr(github_oauth.settings, "github_oauth_client_id", None)
+    monkeypatch.setattr(github_oauth.settings, "github_oauth_client_secret", None)
+    response = await client.get("/auth/github/start")
+    assert response.status_code == 302
+    assert response.headers["location"].endswith("/login?error=github_disabled")
+    assert "resslab_login" not in response.headers.get("set-cookie", "")
+
+
 async def _github_state(client):
     response = await client.get(
         "/auth/github/start", params={"redirect_to": "/contribute/new"}
@@ -456,11 +466,6 @@ async def test_linking_needs_a_session(client, github):
     assert (
         await client.get("/auth/github/start", params={"link": True})
     ).status_code == 401
-
-
-async def test_github_is_hidden_when_not_configured(client, monkeypatch):
-    monkeypatch.setattr(github_oauth.settings, "github_oauth_client_id", None)
-    assert (await client.get("/auth/github/start")).status_code == 503
 
 
 # --- what the machine credential still reaches ----------------------------

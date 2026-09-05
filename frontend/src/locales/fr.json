@@ -1530,6 +1530,7 @@
       "email_in_use": "Cette adresse a déjà un compte ici. Connectez-vous avec, puis liez GitHub depuis votre page compte.",
       "identity_taken": "Ce compte GitHub est déjà lié à un autre compte ici.",
       "github_denied": "Vous avez annulé la connexion GitHub.",
+      "github_disabled": "La connexion GitHub n'est pas disponible ici. Utilisez votre adresse e-mail.",
       "cannot_unlink": "Celui-ci ne peut pas être retiré : c'est par lui que votre compte est retrouvé."
     }
   }
