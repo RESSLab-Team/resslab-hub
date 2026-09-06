@@ -19,6 +19,7 @@ from resslab_hub.contributions.github import (
     blob_sha,
 )
 
+
 def test_blob_sha_matches_git_hash_object():
     # `git hash-object` on this exact content answers the same digest.
     text = "Displacement [mm],Force [kN]\n0,0\n"
