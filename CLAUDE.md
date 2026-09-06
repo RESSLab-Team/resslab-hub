@@ -164,7 +164,7 @@ column_name, description, symbol, unit, type, example_value, nullable
 
 ### Data CI/CD
 
-The data repo has its own GitHub Actions (`.github/workflows/data-validation.yml`) that validate PRs before merging. The `main` branch feeds production (`resslab-hub.epfl.ch`), `test` branch feeds the test deployment. Data contributors fork, branch, submit a PR, and data is validated automatically before upload. **Squash-merge is mandatory** — the CI only re-validates `HEAD~1..HEAD` on `main`, so non-squashed merges make post-merge validation useless.
+The data repo has its own GitHub Actions (`.github/workflows/data-validation.yml`) that validate PRs before merging. The `main` branch feeds every deployment: it builds the `resslab-hub-data:main` image that each environment's upload CronJob reads, and submissions from dev, stage and laptops all open their pull request into it (close those, never merge them). There is no other branch, `test` was deleted. Data contributors fork, branch, submit a PR, and data is validated automatically before upload. **Squash-merge is mandatory** — the CI only re-validates `HEAD~1..HEAD` on `main`, so non-squashed merges make post-merge validation useless.
 
 **Gotcha:** the validation workflow has a hardcoded `filters:` list (around lines 27–33 of `data-validation.yml`) mapping directory globs to validation job names. EBF was never added to that list, so EBF PRs bypass validation silently. When adding a new component type, add both the directory and an entry like `new-things: 'new_things/**'`. The filter key must match the backend uploader `Type` enum (`all-new-things` → filter key `new-things`) — mismatches silently skip validation rather than erroring.
 

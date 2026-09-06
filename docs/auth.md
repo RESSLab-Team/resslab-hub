@@ -157,19 +157,24 @@ The link on the line below it works too, and skips the typing.
 ## Testing the pipeline
 
 No second App is needed. The one installed on `resslab-hub-data` works from
-anywhere; what separates environments is `DATA_REPO_BASE_BRANCH`. The curation
-queue only lists pull requests into that branch, and a submission branches off
-it and opens its pull request into it, so each environment has its own queue.
+anywhere. Which branch a submission targets is `DATA_REPO_BASE_BRANCH`, and the
+curation queue only lists pull requests into that branch.
 
-| Where | `DATA_REPO_BASE_BRANCH` |
-|---|---|
-| prod | `main` |
-| stage (the test deployment) | `test` |
-| dev deployment, and a laptop | `sandbox`, created once from `test` |
+Every environment uses `main`, which is the setting's default, so nothing has to
+be set anywhere. The data repository has no other branch: `test` and `sandbox`
+both existed on paper only, and `test` was deleted after sitting untouched since
+January 2022.
 
-Sample-data submissions from dev or local then never reach `test` or `main`.
-Close them from time to time (`gh pr list --base sandbox`), never merge them,
-and reset the branch from `test` when it drifts.
+So a submission made from dev, from stage or from a laptop opens a real pull
+request into `main`, next to the real ones. That is on purpose, it is the only
+way to exercise the pipeline for real. **Close those, never merge them.**
+
+```bash
+gh pr list --repo RESSLab-Team/resslab-hub-data --base main
+```
+
+Sample-data submissions are easy to spot, their branches are named
+`contrib/<type>/demo-*`.
 
 Locally, the email code needs no setup at all (see above). GitHub sign-in
 needs the dev App, only worth it to test the link flow and the @mention.
