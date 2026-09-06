@@ -66,10 +66,22 @@ if ! find sample-data -name '*.csv' -print -quit 2>/dev/null | grep -q .; then
   fi
 fi
 
-# 2. Ports and names. A previous run may have cloned a branch DB: keep it.
-branch_ports "$BRANCH"
+# 2. Ports and names. A previous run may have picked ports (the servers in the
+#    session listen on them, and the hash input has changed once already) and
+#    cloned a branch DB: keep both. A fresh worktree gets the hashed pair, or
+#    the next free one (branch_ports in wt-lib.sh).
+prev_backend=""; prev_frontend=""; prev_db=""
+if [ -f .env.worktree ]; then
+  prev_backend="$(sed -n 's/^BACKEND_PORT=//p' .env.worktree)"
+  prev_frontend="$(sed -n 's/^FRONTEND_PORT=//p' .env.worktree)"
+  prev_db="$(sed -n 's/^DB_NAME=//p' .env.worktree)"
+fi
+if [ -n "$prev_backend" ] && [ -n "$prev_frontend" ]; then
+  BACKEND_PORT="$prev_backend"; FRONTEND_PORT="$prev_frontend"
+else
+  branch_ports "$BRANCH"
+fi
 SLUG="$(slug "$BRANCH")"
-prev_db=""; [ -f .env.worktree ] && prev_db="$(sed -n 's/^DB_NAME=//p' .env.worktree)"
 DB_NAME="${prev_db:-$SHARED_DB}"
 DATA_DIR="$(readlink -f "$MAIN/../resslab-hub-data" 2>/dev/null || echo "$MAIN/../resslab-hub-data")"
 cat > .env.worktree <<ENV
@@ -120,9 +132,18 @@ fi
 #    forked before a template fix would otherwise write the old rules back (that
 #    is how two worktrees got the `python3 -` ask rule after it was removed),
 #    and a feature branch should not be able to change Claude's permissions.
+#    Not fatal: a re-run from inside a sandboxed agent cannot write this file
+#    (Claude blocks an agent editing its own permissions), and in that case the
+#    file is already there. Rendered to a temp file first so a refused write
+#    cannot leave a truncated one behind.
 mkdir -p .claude
-sed "s|__RESSLAB_DATA_DIR__|$DATA_DIR|g" "$MAIN/scripts/claude-worktree-settings.json" > .claude/settings.local.json
-echo "wrote .claude/settings.local.json"
+if sed "s|__RESSLAB_DATA_DIR__|$DATA_DIR|g" "$MAIN/scripts/claude-worktree-settings.json" > .claude/settings.local.json.tmp 2>/dev/null &&
+   mv .claude/settings.local.json.tmp .claude/settings.local.json 2>/dev/null; then
+  echo "wrote .claude/settings.local.json"
+else
+  rm -f .claude/settings.local.json.tmp
+  echo "note: could not write .claude/settings.local.json (kept the existing one; re-run wt-setup.sh from a terminal to refresh it)"
+fi
 
 # 5. Dependencies (skipped when already present) and lefthook, which refuses
 #    commits from a checkout where it isn't installed.

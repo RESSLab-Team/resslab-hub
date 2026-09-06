@@ -4,8 +4,12 @@
 WT_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${ROOT:-$(cd "$WT_LIB_DIR/.." && pwd)}"
 
-BASE_BRANCH="${WT_BASE_BRANCH:-dev}"   # what scripts/wt-land.sh merges into
-PROTECTED_BRANCHES="dev stage main"    # never pushed from a worktree
+BASE_BRANCH="${WT_BASE_BRANCH:-dev}"   # what wt-new.sh cuts branches from and wt-land.sh merges into
+PROTECTED_BRANCHES="dev stage main"    # never pushed from a worktree, never checked out in one
+# The same list lives in two more places on purpose: git-push-guard.sh (the
+# guard must not depend on a file an old branch may lack) and the completion
+# filter in wt-go.bash (the union across every repo that has the tooling).
+# Change all three.
 DB_CONTAINER="${DB_CONTAINER:-resslab-hub-database-1}"
 SHARED_DB="postgres"                   # the full 3.4 GB dev dataset (read-only habits apply)
 TEMPLATE_DB="resslab_hub_template"     # idle copy of SHARED_DB for branches that need real data volumes
@@ -26,12 +30,39 @@ db_role() { printf 'wt_%s' "$(slug "$1")" | cut -c1-63; }
 random_password() { head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n'; }
 # "<repo>/<branch>" with the characters tmux forbids in session names replaced.
 session_name() { printf '%s/%s' "$(repo_name)" "$(printf '%s' "$1" | tr '.:' '--')"; }
-# Deterministic ports from the branch name: the same branch always gets the same pair,
-# and the suffix matches on both so 18042 <-> 19042 read as one worktree.
+# Deterministic ports from the repo and branch names: the same branch always
+# gets the same pair, and the suffix matches on both so 18042 <-> 19042 read as
+# one worktree. The repo name is in the hash because one machine runs the same
+# tooling in several repos, and the same branch name in two of them (this
+# branch, in resslab-hub and bluecity-viz, 2026-09-06) must not fight for a pair.
+# 500 slots only, so two branches can still hash to the same offset: when
+# another worktree's .env.worktree already holds the pair, or something on the
+# machine is listening on it (a worktree of another repo, whose files this
+# cannot see), step forward until a free one is found. The branch that got there
+# first keeps its ports; a re-run on the same worktree keeps its own (it is not
+# "another" worktree, and wt-setup.sh reuses the pair it wrote last time anyway).
 branch_ports() {
-  local h; h=$(printf '%s' "$1" | cksum | cut -d' ' -f1)
-  BACKEND_PORT=$((18000 + h % 500)); FRONTEND_PORT=$((19000 + h % 500))
+  local branch=$1 h off taken tries=0
+  h=$(printf '%s/%s' "$(repo_name)" "$branch" | cksum | cut -d' ' -f1)
+  off=$((h % 500))
+  taken="$(ports_in_use_by_others "$branch"; listening_ports)"
+  while [ "$tries" -lt 500 ] && printf '%s\n' "$taken" | grep -qx "$((18000 + off))"; do
+    off=$(((off + 1) % 500)); tries=$((tries + 1))
+  done
+  BACKEND_PORT=$((18000 + off)); FRONTEND_PORT=$((19000 + off))
 }
+# Backend ports written in the .env.worktree of every other worktree of this repo.
+ports_in_use_by_others() {
+  local self=$1 p
+  while IFS= read -r p; do
+    [ -f "$p/.env.worktree" ] || continue
+    [ "$(sed -n 's/^WT_BRANCH=//p' "$p/.env.worktree")" != "$self" ] || continue
+    sed -n 's/^BACKEND_PORT=//p' "$p/.env.worktree"
+  done < <(git -C "$ROOT" worktree list --porcelain | sed -n 's#^worktree ##p')
+}
+# TCP ports something is listening on right now (empty where ss is missing or
+# the caller runs in a sandbox with its own network namespace).
+listening_ports() { ss -Hltn 2>/dev/null | awk '{print $4}' | sed 's/.*://' | sort -u; }
 # The keys wt-setup.sh writes to .env.worktree (RESSLAB_DATA_DIR excluded: it
 # points at the same data repo everywhere, so an inherited value does no harm).
 ENV_WORKTREE_KEYS="WT_BRANCH WT_SLUG BACKEND_PORT FRONTEND_PORT DB_NAME POSTGRES_TEST_DB"
