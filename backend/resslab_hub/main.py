@@ -18,6 +18,7 @@ from resslab_hub import __name__ as title
 from resslab_hub import __version__
 from resslab_hub.auth.csrf import CSRFMiddleware
 from resslab_hub.config import settings
+from resslab_hub.contributions.github import aclose_github
 from resslab_hub.routers import (
     analytics,
     auth,
@@ -162,6 +163,13 @@ use_route_names_as_operation_ids(app)
 # and refresh entries before they expire, so no visitor ever pays the cold
 # database path. Refresh at 80% of the cache TTL; disabled with caching (dev).
 install_warmup(app, interval=settings.cache_max_age * 0.8)
+
+
+@app.on_event("shutdown")
+async def _close_github_client() -> None:
+    """Release the GitHub App's shared connection pool (contributions)."""
+    await aclose_github()
+
 
 if settings.database_upgrade:
     upgrade_database()

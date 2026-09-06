@@ -85,9 +85,16 @@ RESSLAB_DATA_DIR=$DATA_DIR
 ENV
 echo "ports: backend $BACKEND_PORT, frontend $FRONTEND_PORT; database: $DB_NAME"
 
-# 3. This frontend talks to this backend; this backend talks to the right DB and
-#    never migrates the shared one (wt-db.sh create flips DATABASE_UPGRADE on).
-set_env_var frontend/.env.development.local VITE_APP_BACKEND_URL "http://127.0.0.1:$BACKEND_PORT"
+# 3. This frontend talks to this backend through the Vite proxy, which reads
+#    BACKEND_PORT from .env.worktree (same-origin, no CORS layer: the session
+#    cookie must be first-party, see docs/auth.md). An absolute
+#    VITE_APP_BACKEND_URL seeded from an older main checkout would send the
+#    browser to the backend port directly and break sign-in, so drop it.
+if [ -f frontend/.env.development.local ]; then
+  sed -i '/^VITE_APP_BACKEND_URL=/d' frontend/.env.development.local
+fi
+#    This backend talks to the right DB and never migrates the shared one
+#    (wt-db.sh create flips DATABASE_UPGRADE on).
 set_env_var secrets/.env POSTGRES_DB "$DB_NAME"
 set_env_var secrets/.env POSTGRES_MAINTENANCE_DB "$DB_NAME"
 set_env_var secrets/.env POSTGRES_TEST_DB "resslab_hub_test_$SLUG"

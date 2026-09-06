@@ -198,11 +198,15 @@ export const useContributionStore = defineStore('contribution', () => {
   const editing = computed(() => editTarget.value !== null)
   /** The branch moved on GitHub since it was loaded: the page must reload. */
   const submitConflict = ref(false)
+  /** Files in the archive being sent, for the "Sending N files…" line. */
+  const submitFileCount = ref(0)
 
   const loadStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const loadError = ref<'not_open' | 'not_mine' | 'unknown_database' | 'load_failed' | null>(null)
   /** Files of the submission the editor cannot hold; left alone on the branch. */
   const skippedFiles = ref<string[]>([])
+  /** Files of the submission fetched so far, while `loadStatus` is 'loading'. */
+  const loadProgress = ref<{ done: number; total: number } | null>(null)
 
   const config = computed(() => (database.value ? CONTRIBUTION_DATABASES[database.value] : null))
   const columns = computed(() => dictionary.columnsFor(database.value))
@@ -767,7 +771,7 @@ export const useContributionStore = defineStore('contribution', () => {
    * time-series, named `<id>.csv` in its kind's directory — the layout of the
    * data repository, which both /validate and /contributions expect.
    */
-  async function buildArchive(): Promise<File> {
+  function archiveEntries(): { path: string; content: string }[] {
     const columnNames = columns.value.map((column) => column.name)
     const entries = [
       {
@@ -791,7 +795,11 @@ export const useContributionStore = defineStore('contribution', () => {
         }
       }
     }
-    return buildTarGz(entries, 'contribution.tar.gz')
+    return entries
+  }
+
+  async function buildArchive(): Promise<File> {
+    return buildTarGz(archiveEntries(), 'contribution.tar.gz')
   }
 
   async function runQualityCheck(): Promise<void> {
@@ -880,7 +888,9 @@ export const useContributionStore = defineStore('contribution', () => {
     submitError.value = ''
     submitConflict.value = false
     try {
-      const archive = await buildArchive()
+      const entries = archiveEntries()
+      submitFileCount.value = entries.length
+      const archive = await buildTarGz(entries, 'contribution.tar.gz')
       const result = edited
         ? await putContribution(archive, edited, dismissedWarningMessages.value)
         : await postContribution(target.type, archive, dismissedWarningMessages.value)
@@ -929,6 +939,7 @@ export const useContributionStore = defineStore('contribution', () => {
     const token = ++loadToken
     loadStatus.value = 'loading'
     loadError.value = null
+    loadProgress.value = null
     skippedFiles.value = []
 
     const curation = useCurationStore()
@@ -963,16 +974,28 @@ export const useContributionStore = defineStore('contribution', () => {
     await dictionary.fetch()
 
     const { placed, skipped } = editableFiles(id, detail)
+    // One request per file: count them as they land, for the loading line.
+    const progress = { done: 0, total: placed.length }
+    loadProgress.value = progress
     let texts: string[]
     try {
-      texts = await Promise.all(placed.map((file) => curation.fetchFileText(prNumber, file.path)))
+      texts = await Promise.all(
+        placed.map((file) =>
+          curation.fetchFileText(prNumber, file.path).then((text) => {
+            progress.done += 1
+            return text
+          })
+        )
+      )
     } catch {
       if (token !== loadToken) return
+      loadProgress.value = null
       loadError.value = 'load_failed'
       loadStatus.value = 'error'
       return
     }
     if (token !== loadToken) return
+    loadProgress.value = null
 
     reset()
     selectDatabase(id)
@@ -994,6 +1017,7 @@ export const useContributionStore = defineStore('contribution', () => {
     pullRequestNumber.value = 0
     branch.value = ''
     submitConflict.value = false
+    submitFileCount.value = 0
   }
 
   // Auto-validate: any edit invalidates the last report and re-checks after a
@@ -1053,8 +1077,10 @@ export const useContributionStore = defineStore('contribution', () => {
     editTarget,
     editing,
     submitConflict,
+    submitFileCount,
     loadStatus,
     loadError,
+    loadProgress,
     skippedFiles,
     loadSubmission,
     canSubmit,
