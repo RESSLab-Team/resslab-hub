@@ -60,6 +60,8 @@ class FakeClient:
         self.pr_commits: list = []
         self.committed: list = []
         self.deletions: list = []
+        #: Path -> blob sha map the update sends so unchanged files are skipped.
+        self.existing: dict = {}
         self.commit_kwargs: dict = {}
         self.pr: dict = {}
         self.deleted_branches: list = []
@@ -86,12 +88,13 @@ class FakeClient:
         self.pr = {"number": number, "body": body}
 
     async def commit_on_branch(
-        self, branch, head_sha, files, deletions, message, name, email
+        self, branch, head_sha, files, deletions, message, name, email, existing=None
     ):
         if self.fail_ref_update:
             raise RuntimeError("not a fast forward")
         self.committed = files
         self.deletions = deletions
+        self.existing = existing
         self.commit_kwargs = {
             "branch": branch,
             "head_sha": head_sha,
@@ -592,9 +595,12 @@ async def test_submit_preserves_repo_crlf_line_endings(tmp_path, monkeypatch):
 
 BRANCH = "contrib/braces/b9-abcd1234"
 HEAD_CSV = REPO_CSV + "B9,400,New one\n"
+#: What the PR looks like on GitHub. The sha is the file's blob id at the
+#: branch head: the update sends it back so unchanged files skip their upload.
+CURVE_PATH = "braces/force_displacement/B9.csv"
 PR_FILES = [
-    {"path": "braces/steel_braces.csv", "status": "modified"},
-    {"path": "braces/force_displacement/B9.csv", "status": "added"},
+    {"path": "braces/steel_braces.csv", "status": "modified", "sha": "sha-csv"},
+    {"path": CURVE_PATH, "status": "added", "sha": "sha-curve"},
 ]
 
 
@@ -931,3 +937,31 @@ async def test_update_survives_a_failed_summary_refresh(tmp_path, monkeypatch):
 
     result = await update(make_batch(tmp_path), client)
     assert result.head_sha == "new-commit-sha"
+
+
+async def test_update_sends_the_branch_blob_shas(tmp_path, monkeypatch):
+    """The commit needs them to skip re-uploading unchanged curves."""
+    patch_validation(monkeypatch)
+    client = edit_client()
+
+    await update(make_batch(tmp_path), client)
+
+    assert client.existing == {
+        "braces/steel_braces.csv": "sha-csv",
+        CURVE_PATH: "sha-curve",
+    }
+
+
+async def test_update_ignores_shas_of_files_deleted_on_the_branch(
+    tmp_path, monkeypatch
+):
+    """A removed file's sha is its old content: never treat it as current."""
+    patch_validation(monkeypatch)
+    client = edit_client()
+    client.pr_files = list(PR_FILES) + [
+        {"path": "braces/force_displacement/B8.csv", "status": "removed", "sha": "old"}
+    ]
+
+    await update(make_batch(tmp_path), client)
+
+    assert "braces/force_displacement/B8.csv" not in client.existing

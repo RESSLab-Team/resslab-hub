@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ProgressLine from '@/components/commons/ProgressLine.vue'
 import type { CurationDetail } from '@/backend'
 import CohortPanel from '@/components/curation/CohortPanel.vue'
 import DataPreviewPanel from '@/components/curation/DataPreviewPanel.vue'
@@ -129,7 +130,12 @@ async function selectIssue(uid: number, column: string): Promise<void> {
 
 <template>
   <div class="curation-review">
-    <p v-if="state === 'loading'" class="state pad">{{ $t('curation.review.loading') }}</p>
+    <progress-line
+      v-if="state === 'loading'"
+      class="pad"
+      :active="true"
+      :label="$t('curation.review.loading')"
+    />
 
     <template v-else-if="state === 'error'">
       <p class="state pad">

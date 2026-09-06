@@ -209,10 +209,13 @@ read as one worktree, and the same branch always gets the same pair. The main
 checkout keeps 8000/5173 through the Makefile / vite defaults.
 
 `.env.worktree` is the single source: `backend/Makefile` reads `BACKEND_PORT`
-and `RESSLAB_DATA_DIR`, `vite.config.ts` reads `FRONTEND_PORT`,
-`frontend/.env.development.local` carries `VITE_APP_BACKEND_URL` for the
-matching backend, and `tmux-dev.sh` exports the file in every pane. CORS is
-`*` in dev, so no other cross-service URL needs to move.
+and `RESSLAB_DATA_DIR`, `vite.config.ts` reads `FRONTEND_PORT` and proxies
+`/api` to `BACKEND_PORT`, and `tmux-dev.sh` exports the file in every pane.
+The app is same-origin, there is no CORS layer: the frontend must keep the
+default `VITE_APP_BACKEND_URL=/api`. An absolute backend URL in
+`frontend/.env.development.local` (older setups wrote one) makes the browser
+call the backend port directly, so a sign-in POST dies on its CORS preflight
+(`OPTIONS /auth/email/start -> 405`); `wt-setup.sh` removes that line.
 
 ## Database
 

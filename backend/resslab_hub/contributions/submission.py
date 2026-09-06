@@ -15,6 +15,7 @@ quality check reports a bad id before submission); CSV cells that could be read 
 spreadsheet formulas are prefix-escaped.
 """
 
+import asyncio
 import csv
 import io
 import json
@@ -566,7 +567,15 @@ async def update_contribution(
         raise SubmissionError(404, "This branch is not a contribution branch.")
 
     # Who made it, before any work is done on the archive.
-    branch_files = classify_files(await client.list_pull_files(pr_number), input_type)
+    head_files = await client.list_pull_files(pr_number)
+    # Blob sha of every file already on the branch: what the commit uses to
+    # skip re-uploading the curves an edit did not touch.
+    at_head = {
+        file["path"]: file["sha"]
+        for file in head_files
+        if file.get("sha") and file.get("status") != "removed"
+    }
+    branch_files = classify_files(head_files, input_type)
     provenance = await read_provenance(client, pr_number, head_sha, branch_files)
     if not owns_submission(provenance, contributor.email):
         raise SubmissionError(
@@ -578,9 +587,13 @@ async def update_contribution(
     layout = validate_archive(tmpdir, input_type)
     header, rows, ids = read_batch(tmpdir, layout)
 
-    head_text = await client.get_file_text(layout.primary_csv, ref=head_sha)
+    # Independent reads: one round trip instead of two.
+    head_text, base_text = await asyncio.gather(
+        client.get_file_text(layout.primary_csv, ref=head_sha),
+        client.get_file_text(layout.primary_csv),
+    )
     head_header, head_rows = _read_csv(head_text)
-    base_header, base_rows = _read_csv(await client.get_file_text(layout.primary_csv))
+    base_header, base_rows = _read_csv(base_text)
     if "id" not in head_header or "id" not in base_header:
         raise SubmissionError(502, "The data repository's CSV has no 'id' column.")
     base_id = base_header.index("id")
@@ -621,6 +634,7 @@ async def update_contribution(
             message,
             contributor.name,
             contributor.email,
+            existing=at_head,
         )
     except Exception:
         logger.warning("Commit on %s (#%s) failed", branch, pr_number, exc_info=True)
