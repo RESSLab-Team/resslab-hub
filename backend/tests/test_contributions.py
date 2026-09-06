@@ -24,6 +24,7 @@ from resslab_hub.contributions.submission import (
     submit_contribution,
     update_contribution,
 )
+from resslab_hub.contributions.trailers import build_commit_message, parse_trailers
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import TableValidator, ValidationResult
 from resslab_hub.models.database.brace import Brace
@@ -33,8 +34,6 @@ CONTRIBUTOR = Contributor(
     email="ada@example.edu",
     institution="EPFL",
     github_login="ada",
-    identity="email",
-    user_id="11111111-1111-1111-1111-111111111111",
 )
 
 REPO_CSV = "id,f_y,name\nB1,355,First\nB2,275,Second\n"
@@ -57,6 +56,8 @@ class FakeClient:
         self.head_files = head_files or {}
         self.pull = pull
         self.pr_files = pr_files or []
+        #: Commits on the submission's branch, oldest first.
+        self.pr_commits: list = []
         self.committed: list = []
         self.deletions: list = []
         #: Path -> blob sha map the update sends so unchanged files are skipped.
@@ -79,6 +80,9 @@ class FakeClient:
 
     async def list_pull_files(self, number):
         return self.pr_files
+
+    async def list_pull_commits(self, number):
+        return self.pr_commits
 
     async def update_pull_body(self, number, body):
         self.pr = {"number": number, "body": body}
@@ -262,12 +266,13 @@ async def test_submit_happy_path(tmp_path, monkeypatch):
     assert merged.startswith(REPO_CSV.rstrip("\n"))
     assert "B9,400,New one" in merged
     assert "braces/force_displacement/B9.csv" in by_path
-    provenance_path = next(p for p in by_path if p.startswith("contributions/braces/"))
-    # The provenance says how the identity was established, not that it was
-    # typed in a form (#247).
-    assert '"identity": "email"' in by_path[provenance_path]
-    assert '"github_login": "ada"' in by_path[provenance_path]
-    assert "Value is far outside the range" in by_path[provenance_path]
+    # Provenance travels in the commit message, not in a file of its own.
+    assert not [p for p in by_path if p.startswith("contributions/")]
+    trailers = parse_trailers(client.commit_kwargs["message"])
+    assert trailers["Submitted-by"] == ["Ada Lovelace <ada@example.edu>"]
+    assert trailers["Institution"] == ["EPFL"]
+    assert trailers["GitHub"] == ["@ada"]
+    assert trailers["Dismissed-Warning"] == ["Value is far outside the range"]
 
     assert client.commit_kwargs["author_name"] == "Ada Lovelace"
     assert client.commit_kwargs["author_email"] == "ada@example.edu"
@@ -590,6 +595,29 @@ async def test_submit_preserves_repo_crlf_line_endings(tmp_path, monkeypatch):
 
 BRANCH = "contrib/braces/b9-abcd1234"
 HEAD_CSV = REPO_CSV + "B9,400,New one\n"
+#: What the PR looks like on GitHub. The sha is the file's blob id at the
+#: branch head: the update sends it back so unchanged files skip their upload.
+CURVE_PATH = "braces/force_displacement/B9.csv"
+PR_FILES = [
+    {"path": "braces/steel_braces.csv", "status": "modified", "sha": "sha-csv"},
+    {"path": CURVE_PATH, "status": "added", "sha": "sha-curve"},
+]
+
+
+def hub_commits(name="Ada Lovelace", email="ada@example.edu") -> list:
+    """The branch as the Hub left it: one commit carrying the trailers."""
+    return [
+        {
+            "sha": "first-sha",
+            "message": build_commit_message(
+                "data(braces): add 1 experiment (B9)", name, email, institution="EPFL"
+            ),
+            "author_date": "2026-08-01T12:00:00Z",
+        }
+    ]
+
+
+# A submission opened before trailers: no Hub commit, a JSON record instead.
 PROVENANCE_PATH = "contributions/braces/abcd1234.json"
 PROVENANCE = json.dumps(
     {
@@ -601,14 +629,6 @@ PROVENANCE = json.dumps(
         "dismissed_warnings": [],
     }
 )
-#: What the PR looks like on GitHub. The sha is the file's blob id at the
-#: branch head: the update sends it back so unchanged files skip their upload.
-CURVE_PATH = "braces/force_displacement/B9.csv"
-PR_FILES = [
-    {"path": "braces/steel_braces.csv", "status": "modified", "sha": "sha-csv"},
-    {"path": CURVE_PATH, "status": "added", "sha": "sha-curve"},
-    {"path": PROVENANCE_PATH, "status": "added", "sha": "sha-provenance"},
-]
 
 
 def open_pull(**overrides) -> dict:
@@ -624,15 +644,23 @@ def open_pull(**overrides) -> dict:
 
 
 def edit_client(**overrides) -> FakeClient:
-    return FakeClient(
+    client = FakeClient(
         {"braces/steel_braces.csv": REPO_CSV},
-        head_files={
-            "braces/steel_braces.csv": HEAD_CSV,
-            PROVENANCE_PATH: PROVENANCE,
-        },
+        head_files={"braces/steel_braces.csv": HEAD_CSV},
         pull=open_pull(**overrides),
         pr_files=list(PR_FILES),
     )
+    client.pr_commits = hub_commits()
+    return client
+
+
+def legacy_edit_client(record: str = PROVENANCE, **overrides) -> FakeClient:
+    """A branch from before trailers: the JSON record is all it has."""
+    client = edit_client(**overrides)
+    client.pr_commits = []
+    client.pr_files.append({"path": PROVENANCE_PATH, "status": "added"})
+    client.head_files[PROVENANCE_PATH] = record
+    return client
 
 
 async def update(tmpdir, client, head_sha="head-sha", dismissed=None):
@@ -670,32 +698,30 @@ async def test_update_replaces_the_batch_on_the_same_branch(tmp_path, monkeypatc
     assert client.deletions == []
 
 
-async def test_update_rewrites_the_same_provenance_record(tmp_path, monkeypatch):
+async def test_update_carries_the_editors_trailers(tmp_path, monkeypatch):
     patch_validation(monkeypatch)
     client = edit_client()
     batch = make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n")
 
     await update(batch, client, dismissed=["Value is far outside the range"])
 
-    by_path = {file.path: file.content for file in client.committed}
-    # One record, at its original path: a submission stays one submission.
-    provenance_paths = [p for p in by_path if p.startswith("contributions/")]
-    assert provenance_paths == [PROVENANCE_PATH]
-    record = json.loads(by_path[PROVENANCE_PATH])
-    assert record["submitted_at"] == "2026-08-01T12:00:00+00:00"
-    assert record["updated_at"] > record["submitted_at"]
-    # The first record stays as it was (here one from before #247, with no
-    # account id), the editor is added next to it with theirs.
-    assert record["contributor"] == {"name": "Ada Lovelace", "email": "ada@example.edu"}
-    assert record["updated_by"]["name"] == "Ada Lovelace"
-    assert record["updated_by"]["user_id"] == CONTRIBUTOR.user_id
-    assert record["dismissed_warnings"] == ["Value is far outside the range"]
-    # Checksums cover what this commit writes, not what the first one did.
-    checksummed = {entry["path"] for entry in record["files"]}
-    assert checksummed == {
-        "braces/steel_braces.csv",
-        "braces/force_displacement/B9.csv",
-    }
+    trailers = parse_trailers(client.commit_kwargs["message"])
+    assert trailers["Submitted-by"] == ["Ada Lovelace <ada@example.edu>"]
+    assert trailers["Dismissed-Warning"] == ["Value is far outside the range"]
+    # Nothing is written under contributions/ any more.
+    assert not [f for f in client.committed if f.path.startswith("contributions/")]
+
+
+async def test_update_drops_a_legacy_record(tmp_path, monkeypatch):
+    """The JSON left by the old code goes: the trailers now say the same."""
+    patch_validation(monkeypatch)
+    client = legacy_edit_client()
+    batch = make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n")
+
+    await update(batch, client)
+
+    assert PROVENANCE_PATH in client.deletions
+    assert not [f for f in client.committed if f.path.startswith("contributions/")]
 
 
 async def test_update_deletes_a_file_the_batch_no_longer_has(tmp_path, monkeypatch):
@@ -751,17 +777,15 @@ def provenance_by(**contributor) -> str:
 
 
 async def test_update_refuses_someone_elses_submission(tmp_path, monkeypatch):
-    """Ownership is the account id on the record; the address only counts for
-    records from before #247, which have no id."""
+    """The address on the record decides, whichever way it was recorded."""
     patch_validation(monkeypatch)
     batch = make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n")
-    other_account = provenance_by(
-        name="Ada Lovelace", email="ada@example.edu", user_id="2222-other"
+    by_trailers = edit_client()
+    by_trailers.pr_commits = hub_commits(name="Grace Hopper", email="grace@example.edu")
+    by_record = legacy_edit_client(
+        provenance_by(name="Grace Hopper", email="grace@example.edu")
     )
-    other_address = provenance_by(name="Grace Hopper", email="grace@example.edu")
-    for record in (other_account, other_address):
-        client = edit_client()
-        client.head_files[PROVENANCE_PATH] = record
+    for client in (by_trailers, by_record):
         with pytest.raises(SubmissionError) as excinfo:
             await update(batch, client)
         assert excinfo.value.status_code == 403
@@ -769,21 +793,29 @@ async def test_update_refuses_someone_elses_submission(tmp_path, monkeypatch):
 
 
 async def test_update_needs_a_readable_record(tmp_path, monkeypatch):
-    """No record, no owner: a branch made by hand is a curator's to fix."""
+    """No trailers, no record, no owner: a hand-made branch is a curator's."""
     patch_validation(monkeypatch)
     client = edit_client()
-    del client.head_files[PROVENANCE_PATH]
+    client.pr_commits = [{"sha": "x", "message": "fix: pushed by hand"}]
     with pytest.raises(SubmissionError) as excinfo:
         await update(make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n"), client)
     assert excinfo.value.status_code == 403
 
 
-async def test_update_matches_the_account_id_first(tmp_path, monkeypatch):
+async def test_update_falls_back_to_a_legacy_record(tmp_path, monkeypatch):
+    """A submission opened before trailers stays editable by its author."""
+    patch_validation(monkeypatch)
+    client = legacy_edit_client()
+    result = await update(
+        make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n"), client
+    )
+    assert result.head_sha == "new-commit-sha"
+
+
+async def test_update_ignores_the_case_of_the_address(tmp_path, monkeypatch):
     patch_validation(monkeypatch)
     client = edit_client()
-    client.head_files[PROVENANCE_PATH] = provenance_by(
-        name="Renamed", email="old@example.edu", user_id=CONTRIBUTOR.user_id
-    )
+    client.pr_commits = hub_commits(email="ADA@Example.edu")
     result = await update(
         make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n"), client
     )
@@ -917,7 +949,6 @@ async def test_update_sends_the_branch_blob_shas(tmp_path, monkeypatch):
     assert client.existing == {
         "braces/steel_braces.csv": "sha-csv",
         CURVE_PATH: "sha-curve",
-        PROVENANCE_PATH: "sha-provenance",
     }
 
 

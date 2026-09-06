@@ -4,8 +4,9 @@ Turn a validated contribution archive into a pull request on the data repo.
 The archive is the same tar.gz the frontend sends to /validate: the batch's
 primary CSV plus time-series files, laid out exactly like the data repository.
 The flow re-validates server-side, enforces the path allowlist, appends the
-batch rows to the repo's primary CSV at HEAD, and commits everything plus a
-provenance record through the Git Data API.
+batch rows to the repo's primary CSV at HEAD, and commits everything through
+the Git Data API. Who submitted travels in the commit message as trailers, see
+``trailers.py``.
 
 Security invariants (epic #255): client-supplied paths are never trusted — the
 only writable locations are derived here from the uploader's own type map; ids
@@ -22,10 +23,8 @@ import logging
 import re
 import secrets
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from fnmatch import fnmatch
-from hashlib import sha256
 from os import path, walk
 from time import monotonic
 from typing import Dict, List, Optional, Set, Tuple
@@ -41,6 +40,13 @@ from resslab_hub.contributions.projection import (
     classify_files,
     split_batch,
     type_for_branch,
+)
+from resslab_hub.contributions.trailers import (
+    Provenance,
+    build_commit_message,
+    owns_submission,
+    provenance_from_commits,
+    provenance_from_record,
 )
 from resslab_hub.data.common import SAFE_ID_PATTERN, SAFE_ID_RULE
 from resslab_hub.data.uploader import Type
@@ -63,11 +69,6 @@ class Contributor:
     #: pull request as an @mention, so they are notified of every review
     #: comment and can answer where the review happens.
     github_login: str = ""
-    #: How the identity was established: the sign-in provider (``email``,
-    #: ``github``), or ``self-declared`` for a submission made before #247.
-    identity: str = "self-declared"
-    #: Their account id, so a submission can be traced back after the fact.
-    user_id: str = ""
 
 
 @dataclass
@@ -176,67 +177,56 @@ def _slugify(value: str) -> str:
     return slug or "batch"
 
 
-def build_provenance(
-    contributor: Contributor,
-    input_type: Type,
-    files: List[NewFile],
-    dismissed_warnings: List[str],
-    at: str,
-    previous: Optional[dict] = None,
+def submission_message(
+    title: str, contributor: Contributor, dismissed_warnings: List[str]
 ) -> str:
-    """The record committed next to a submission.
+    """The commit message for a submission: the title plus its trailers."""
+    return build_commit_message(
+        title,
+        contributor.name,
+        contributor.email,
+        contributor.institution,
+        contributor.orcid,
+        contributor.github_login,
+        dismissed_warnings,
+    )
 
-    An update rewrites the same file (``previous`` is what it held): the first
-    contributor and ``submitted_at`` stay on record, the editor is added as
-    ``updated_by``.
+
+async def read_provenance(
+    client: DataRepoClient,
+    pr_number: int,
+    head_sha: str,
+    branch_files: List,
+) -> Optional[Provenance]:
+    """Who made this submission, from the commit trailers.
+
+    A pull request opened before trailers has none, so its committed
+    ``contributions/*.json`` record answers instead. Unreadable either way
+    means nobody owns it, which is a 403 rather than a free pass.
     """
-    who = {
-        "name": contributor.name,
-        "email": contributor.email,
-        "institution": contributor.institution,
-        "orcid": contributor.orcid,
-        "github_login": contributor.github_login,
-        # The provider the contributor signed in with (#247). Phase 2 replaces
-        # this with why they may contribute (academic mail, invitation...).
-        "identity": contributor.identity,
-        "user_id": contributor.user_id,
-    }
-    record = {
-        "schema": 1,
-        "type": input_type.value,
-        "submitted_at": at,
-        "contributor": who,
-        "files": [
-            {
-                "path": file.path,
-                "sha256": sha256(file.content.encode("utf-8")).hexdigest(),
-            }
-            for file in files
-        ],
-        "dismissed_warnings": dismissed_warnings,
-    }
-    if previous:
-        record["submitted_at"] = previous.get("submitted_at", at)
-        record["contributor"] = previous.get("contributor", who)
-        record["updated_at"] = at
-        record["updated_by"] = who
-    return json.dumps(record, indent=2)
+    try:
+        provenance = provenance_from_commits(await client.list_pull_commits(pr_number))
+    except Exception:
+        logger.warning("Commits of #%s could not be read", pr_number, exc_info=True)
+        provenance = None
+    if provenance is not None:
+        return provenance
+
+    legacy = legacy_record_path(branch_files)
+    if legacy is None:
+        return None
+    try:
+        return provenance_from_record(
+            json.loads(await client.get_file_text(legacy, ref=head_sha))
+        )
+    except Exception:
+        logger.warning("No readable provenance record at %s", legacy)
+        return None
 
 
-def owns_submission(previous: Optional[dict], user_id: str, email: str) -> bool:
-    """Whether the account may change the submission ``previous`` describes.
-
-    Accounts match by id. A record from before #247 carries no id, so its
-    address decides, which is what the account's verified address proves. No
-    readable record means nobody can, until a curator (#248) steps in.
-    """
-    if not previous:
-        return False
-    who = previous.get("contributor") or {}
-    if who.get("user_id"):
-        return bool(user_id) and str(who["user_id"]) == user_id
-    recorded = str(who.get("email") or "").strip().lower()
-    return bool(recorded) and recorded == email.strip().lower()
+def legacy_record_path(branch_files: List) -> Optional[str]:
+    """The pre-trailers ``contributions/*.json`` on the branch, if any."""
+    return next((file.path for file in branch_files if file.kind == "provenance"), None)
 
 
 def build_update_help(branch: str, primary_csv: str) -> List[str]:
@@ -501,22 +491,12 @@ async def submit_contribution(
     files.extend(collect_curve_files(tmpdir, layout))
     curve_count = len(files) - 1
 
-    submitted_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     suffix = secrets.token_hex(4)
     type_slug = _type_slug(input_type)
     branch = f"contrib/{type_slug}/{_slugify(ids[0])}-{suffix}"
-    files.append(
-        NewFile(
-            f"contributions/{type_slug}/{suffix}.json",
-            build_provenance(
-                contributor, input_type, files, dismissed_warnings, submitted_at
-            )
-            + "\n",
-        )
-    )
 
     title = commit_title(input_type, ids)
-    message = f"{title}\n\nSubmitted-by: {contributor.name} <{contributor.email}>"
+    message = submission_message(title, contributor, dismissed_warnings)
 
     base_sha = await client.get_base_sha()
     commit_sha = await client.commit_files(
@@ -544,11 +524,6 @@ async def submit_contribution(
     return SubmissionResult(pull["url"], pull["number"], branch, commit_sha)
 
 
-def _branch_suffix(branch: str) -> str:
-    """The random tail of ``contrib/<slug>/<id>-<suffix>``."""
-    return branch.rsplit("-", 1)[-1]
-
-
 async def update_contribution(
     tmpdir: str,
     pr_number: int,
@@ -567,8 +542,8 @@ async def update_contribution(
     refused (409) rather than overwritten: a maintainer may have pushed a fix.
 
     Only the account that made the submission can change it (403 otherwise),
-    read off the provenance record on the branch. Curators get their own way
-    in with #248.
+    read off the commit trailers on the branch (the JSON record, for a pull
+    request opened before those). Curators get their own way in with #248.
     """
     client = client or DataRepoClient()
     try:
@@ -601,16 +576,8 @@ async def update_contribution(
         if file.get("sha") and file.get("status") != "removed"
     }
     branch_files = classify_files(head_files, input_type)
-    provenance_path = next(
-        (file.path for file in branch_files if file.kind == "provenance"),
-        f"contributions/{_type_slug(input_type)}/{_branch_suffix(branch)}.json",
-    )
-    previous = None
-    try:
-        previous = json.loads(await client.get_file_text(provenance_path, ref=head_sha))
-    except Exception:
-        logger.warning("No readable provenance at %s on %s", provenance_path, branch)
-    if not owns_submission(previous, contributor.user_id, contributor.email):
+    provenance = await read_provenance(client, pr_number, head_sha, branch_files)
+    if not owns_submission(provenance, contributor.email):
         raise SubmissionError(
             403,
             "This submission was made from another account. Only the person "
@@ -644,27 +611,20 @@ async def update_contribution(
     curve_count = len(files) - 1
 
     # Only the submission's own time-series files can be dropped: never the
-    # primary CSV, the provenance record, or anything else on the branch.
+    # primary CSV or anything else on the branch. A JSON record left by the old
+    # code goes too, since this commit's trailers now say the same thing.
     submitted = {file.path for file in files}
     deletions = [
         file.path
         for file in branch_files
         if file.kind == "timeseries" and file.path not in submitted
     ]
-
-    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    files.append(
-        NewFile(
-            provenance_path,
-            build_provenance(
-                contributor, input_type, files, dismissed_warnings, now, previous
-            )
-            + "\n",
-        )
-    )
+    legacy = legacy_record_path(branch_files)
+    if legacy is not None:
+        deletions.append(legacy)
 
     title = commit_title(input_type, ids, verb="update")
-    message = f"{title}\n\nSubmitted-by: {contributor.name} <{contributor.email}>"
+    message = submission_message(title, contributor, dismissed_warnings)
     try:
         commit_sha = await client.commit_on_branch(
             branch,

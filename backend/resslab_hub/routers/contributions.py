@@ -64,11 +64,11 @@ def _parse_dismissed(raw: str) -> list:
     return parsed
 
 
-def _contributor(request: Request, user: User) -> Contributor:
+def _contributor(user: User) -> Contributor:
     """Who the commit is authored by: the signed-in account (#247).
 
-    The commit author and the provenance record both need a real name and a
-    proven address. A GitHub-only account may have neither (rare: GitHub
+    The commit author and its ``Submitted-by`` trailer both need a real name
+    and a proven address. A GitHub-only account may have neither (rare: GitHub
     shares the verified primary address), and cannot add one until the
     profile page lands, so the message says what to do instead.
     """
@@ -91,8 +91,6 @@ def _contributor(request: Request, user: User) -> Contributor:
         institution=user.institution.strip(),
         orcid=user.orcid.strip(),
         github_login=user.github_login,
-        identity=getattr(request.state, "auth_provider", "email"),
-        user_id=str(user.id),
     )
 
 
@@ -168,7 +166,7 @@ async def create_contribution(
     repository. Errors block; warnings pass and are listed in the PR body.
     """
     dismissed = _parse_dismissed(dismissed_warnings)
-    contributor = _contributor(request, user)
+    contributor = _contributor(user)
     return await _run_on_archive(
         file,
         lambda tmpdir: submit_contribution(tmpdir, type, contributor, dismissed),
@@ -176,7 +174,7 @@ async def create_contribution(
 
 
 # Same account as the submission, checked in `update_contribution` against the
-# provenance record on the branch.
+# commit trailers on the branch.
 @router.put(
     "/contributions/{pr_number}",
     response_model=ContributionResponse,
@@ -201,7 +199,7 @@ async def update_open_contribution(
     changes again.
     """
     dismissed = _parse_dismissed(dismissed_warnings)
-    contributor = _contributor(request, user)
+    contributor = _contributor(user)
     response = await _run_on_archive(
         file,
         lambda tmpdir: update_contribution(

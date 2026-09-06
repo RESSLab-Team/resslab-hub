@@ -184,6 +184,29 @@ class DataRepoClient:
                 break
         return files
 
+    async def list_pull_commits(self, number: int) -> List[dict]:
+        """Commits of a PR, oldest first (one page, 100 max).
+
+        The message carries the submission's provenance trailers, so this is
+        what the curation screen and the ownership check read.
+        """
+        response = await self._gh.rest.pulls.async_list_commits(
+            self.owner, self.repo, number, per_page=100
+        )
+        commits = []
+        for item in response.parsed_data:
+            author = item.commit.author
+            commits.append(
+                {
+                    "sha": item.sha,
+                    "message": item.commit.message or "",
+                    "author_name": getattr(author, "name", "") or "",
+                    "author_email": getattr(author, "email", "") or "",
+                    "author_date": str(getattr(author, "date", "") or ""),
+                }
+            )
+        return commits
+
     @staticmethod
     def _comment_dict(comment) -> dict:
         # `IssueComment.body` is `Missing[str] | None` — githubkit answers its

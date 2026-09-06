@@ -96,8 +96,12 @@ fi
 
 # 4. Claude Code runs sandboxed here with the ask/deny rules from the template.
 #    .claude/ is gitignored, so the worktree's copy never reaches a commit.
+#    Always read the template from the main checkout, not the branch: a branch
+#    forked before a template fix would otherwise write the old rules back (that
+#    is how two worktrees got the `python3 -` ask rule after it was removed),
+#    and a feature branch should not be able to change Claude's permissions.
 mkdir -p .claude
-sed "s|__RESSLAB_DATA_DIR__|$DATA_DIR|g" "$(tooling claude-worktree-settings.json)" > .claude/settings.local.json
+sed "s|__RESSLAB_DATA_DIR__|$DATA_DIR|g" "$MAIN/scripts/claude-worktree-settings.json" > .claude/settings.local.json
 echo "wrote .claude/settings.local.json"
 
 # 5. Dependencies (skipped when already present) and lefthook, which refuses
