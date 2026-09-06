@@ -97,12 +97,24 @@ begin
 end \$\$;
 SQL
 }
+# Restart the backend pane of this worktree's session so it reconnects with the
+# new credentials. The session has one window, `dev`; "backend" is a pane, found
+# by the @wt_role option tmux-dev.sh sets (a title is not a target tmux resolves,
+# and a program can rewrite it). No session, no pane, or no tmux at all (an
+# agent's sandbox cannot reach the socket): say so and carry on, the next
+# `make dev` in that pane picks the new secrets/.env up anyway.
 restart_backend() {
-  local s; s="$(session_name "$BRANCH")"
+  local s pane; s="$(session_name "$BRANCH")"
   tmux has-session -t "=$s" 2>/dev/null || return 0
-  tmux send-keys -t "=$s:backend" C-c; sleep 1
-  tmux send-keys -t "=$s:backend" 'set -a; . "$(git rev-parse --show-toplevel)/.env.worktree"; set +a; make dev' C-m
-  echo "restarted backend window of $s"
+  pane="$(tmux list-panes -s -t "=$s" -F '#{pane_id} #{@wt_role}' 2>/dev/null | awk '$2 == "backend" { print $1; exit }')"
+  if [ -z "$pane" ]; then
+    echo "note: no backend pane found in $s (session from an older tmux-dev.sh?); restart it by hand: Ctrl-C, make dev"
+    return 0
+  fi
+  { tmux send-keys -t "$pane" C-c && sleep 1 &&
+    tmux send-keys -t "$pane" 'set -a; . "$(git rev-parse --show-toplevel)/.env.worktree"; set +a; make dev' C-m &&
+    echo "restarted the backend pane of $s"; } ||
+    echo "note: could not restart the backend pane of $s; restart it by hand: Ctrl-C, make dev"
 }
 
 case "${1:-status}" in
