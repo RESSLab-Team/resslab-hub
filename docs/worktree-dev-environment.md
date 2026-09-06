@@ -60,6 +60,7 @@ claude plugin marketplace add timvw/wt && claude plugin install wt@wt   # option
 
 git config --global push.default current      # a bare `git push` can only target the branch's own name
 git config --global push.autoSetupRemote true
+git config --global branch.autoSetupMerge simple   # a new branch tracks a remote branch of its own name, never its base
 
 printf '**/.claude/worktrees/\n' >> ~/.config/git/ignore
 echo 'source ~/code/resslab-hub/scripts/wt-go.bash' >> ~/.bashrc   # wtgo <branch> + tab completion
@@ -325,6 +326,18 @@ checked out in a worktree (cli/cli#13380).
 
 ## Gotchas
 
+- **A branch must not track its base.** Cutting a branch from `origin/dev` makes
+  git's default `autoSetupMerge` set its upstream to `origin/dev`. Then
+  `git pull` rebases the branch onto dev rather than fetching its own commits,
+  the push after it is refused as non-fast-forward, and `git pull` keeps
+  answering "up to date" because dev really is. A rebase that finds nothing to
+  replay can also leave HEAD detached, so a following `git reset --hard` moves
+  HEAD and not the branch (that happened on `perf/improve-github-contribution`).
+  `wt-setup.sh` now sets `branch.autoSetupMerge simple` and repairs the
+  worktree's own branch on every run. To repair one by hand:
+  `git branch --set-upstream-to=origin/<branch>`, or if it never got pushed,
+  `git branch --unset-upstream`. To see which branches are still wrong:
+  `git for-each-ref --format='%(refname:short) %(upstream:short)' refs/heads`.
 - **A local ref makes a stale base.** `wt create x somebranch` hands the base
   straight to `git worktree add`, which resolves your local `somebranch`, at
   whatever commit your checkout last saw it (a stale local `stage` once handed
