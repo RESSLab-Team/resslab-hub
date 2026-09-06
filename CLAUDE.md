@@ -6,15 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 RESSLab-Hub is a fullstack research database for structural steel components (braces, columns, connections, materials, residual stresses, HSS columns, EBF links). The backend exposes a REST API; the frontend is a Vue 3 SPA with data visualization tools.
 
-**Prerequisites**: [uv](https://docs.astral.sh/uv/) (manages Python automatically), Node.js ≥ 18 (CI uses the current LTS), Docker with the Compose v2 plugin, Make.
+**Prerequisites**: [uv](https://docs.astral.sh/uv/) (manages Python automatically), Node.js ≥ 18 (CI uses the current LTS) with [pnpm](https://pnpm.io) 11 (`npm install -g pnpm`), Docker with the Compose v2 plugin, Make.
 
 ## Commands
 
 ### Root-level (from the repo root)
 
 ```bash
-make install          # Install all dependencies (npm + uv sync + frontend)
-make dev-all          # tmux session: database + backend + frontend + claude + shell
+make install          # Install all dependencies (pnpm + uv sync + frontend)
+make dev-all          # database + backend + frontend in the current terminal
+make tmux-dev-all     # same, as a tmux session with a claude pane and a shell pane
 make dev-database     # Start PostgreSQL via Docker Compose
 make dev-backend      # Start FastAPI backend (http://127.0.0.1:8000)
 make dev-frontend     # Start Vite dev server (http://127.0.0.1:5173)
@@ -25,7 +26,7 @@ make upload-data      # Upload all CSV data to local database (erases existing)
 make sample-data      # Generate synthetic contribution batches into sample-data/
 ```
 
-Also available (see the root `Makefile`): `test-cov`, `benchmark`, `update`, `run` (Docker build + start all services with 7 backend replicas), `upload-data-test` (targets the test deployment via `ENV_FOR_DYNACONF=test`), `backup-dump DEST_FOLDER=path`.
+Also available (see the root `Makefile`): `test-cov`, `benchmark`, `update`, `run` (Docker build + start all services with 7 backend replicas), `backup-dump DEST_FOLDER=path`.
 
 ### Backend (from `backend/`)
 
@@ -42,41 +43,44 @@ make transform-data                              # Regenerate frontend assets/ s
 make sample-data EXPERIMENTS=15 OUTLIERS=3       # Synthetic contribution batches (reads the DB for in-range values)
 DRY_RUN=1 make precompute-sem                    # Convert SEM TIFs to WebP + dimple JSONs locally (no CDN upload)
 make precompute-sem                              # Same, but uploads to EPFL enacit4r-cdn (needs ACCESS_KEY_ID + ACCESS_KEY_SECRET)
+make precompute-fracture-figures                 # Redraw the committed per-specimen ductile-fracture geometry SVGs
 ```
 
 Per-component upload targets (`make upload-brace`, `upload-column`, `upload-connection`, `upload-material`, `upload-tensile-coupon`, `upload-ductile-fracture`, `upload-residual-stress`, `upload-hss-column`, `upload-eccentric-braced-frame`) and validation targets (`make validate-braces`, `validate-columns`, … — POST a tar of component data to the `/validate` endpoint) are listed in `backend/Makefile`.
 
 Backend dev server requires `secrets/.env` with at minimum `POSTGRES_PASSWORD=changeit`. The Makefile sets `DOTENV_PATH_FOR_DYNACONF` automatically. Alembic `upgrade head` runs automatically at backend startup (set `DATABASE_UPGRADE=false` to skip, e.g. when running `make api`).
 
-To upload data to production, first open an SSH tunnel: `ssh -NL 5432:localhost:5432 root@resslab-hub.epfl.ch`, then point `secrets/.env` at the prod credentials and run `make upload-data`.
+The uploader lives in the package (`resslab_hub/data/uploader.py`) and runs as `python -m resslab_hub.data.uploader <type> <files>`, so the backend image can upload too. That is how deployed environments are re-uploaded: each one has a suspended CronJob `resslab-hub-upload-data-<env>` (manifests in `enack8s-app-config`), triggered by hand from the ArgoCD UI with the `create-job` action. It runs the environment's own backend image against a CSV data image built by the data repo, in-cluster, with no tunnel. The backend caches responses for an hour per process, so restart the backend pods if the new data must show immediately. Uploading from a laptop over a port-forward still works as a fallback (see `backend/README.md`).
 
 ### Frontend (from `frontend/`)
 
 ```bash
-npm run dev           # Vite dev server
-npm run build         # Production build (runs type-check + build-only in parallel)
-npm run type-check    # vue-tsc type check (no emit)
-npm run lint          # ESLint with auto-fix
-npm run format        # Prettier write on src/
-npm run test:unit     # Vitest unit tests
-npm run test:unit -- path/to/file.spec.ts  # Run a single test file
-npm run api           # Regenerate TypeScript client from openapi.json
+pnpm run dev           # Vite dev server
+pnpm run build         # Production build (runs type-check + build-only in parallel)
+pnpm run type-check    # vue-tsc type check (no emit)
+pnpm run lint          # ESLint with auto-fix
+pnpm run format        # Prettier write on src/
+pnpm run test:unit     # Vitest unit tests
+pnpm run test:unit path/to/file.spec.ts  # Run a single test file
+pnpm run api           # Regenerate TypeScript client from openapi.json
 ```
 
 ### Dev servers and worktrees
 
-Every checkout — the main one and each git worktree under `.claude/worktrees/<branch>` — gets its own tmux session `resslab-hub/<branch>` with `backend`, `frontend`, `claude` and `shell` windows (`scripts/tmux-dev.sh`; `make new BRANCH=feat/x` creates the worktree and attaches, `wt create` alone starts it detached through `.wt.toml`). Full guide: `docs/worktree-dev-environment.md`.
+Every checkout — the main one and each git worktree under `.claude/worktrees/<branch>` — gets its own tmux session `resslab-hub/<branch>` with one `dev` window of four titled panes: `claude` (the left half, focused on attach), `backend`, `frontend` and `shell` stacked on the right (`scripts/tmux-dev.sh`, also `make tmux-dev-all`; `make new BRANCH=feat/x` creates the worktree and attaches, `wt create` alone starts it detached through `.wt.toml`). Full guide: `docs/worktree-dev-environment.md`.
 
+- **Know where you are**: you are in a worktree exactly when `.env.worktree` exists at the repo root (equivalently, your path contains `.claude/worktrees/`). The tmux panes, the claude one included, start with that file exported, so `echo $WT_BRANCH $BACKEND_PORT $FRONTEND_PORT` orients you instantly; in a shell without them, `set -a; . .env.worktree; set +a` first.
 - **Ports**: a worktree's `.env.worktree` holds its `BACKEND_PORT` / `FRONTEND_PORT` (hashed from the branch name, 18xxx/19xxx); the main checkout uses 8000/5173. Read them from that file — never guess, never start a second server on a port that is already served. `scripts/wt-open.sh [frontend|backend]` prints and opens the URL.
-- **Reuse before starting**: the tmux session already runs both servers (`tmux list-windows -t "resslab-hub/<branch>"`). If you must start one yourself, `set -a; . .env.worktree; set +a` first so vite, uvicorn and pytest pick the worktree's values.
-- **Finish** a frontend or backend change by printing its URL: `http://localhost:$FRONTEND_PORT/` or `http://127.0.0.1:$BACKEND_PORT/docs`.
+- **Reuse before starting**: the tmux session already runs both servers in its `backend` and `frontend` panes. If you must start one yourself, `set -a; . .env.worktree; set +a` first so vite, uvicorn and pytest pick the worktree's values.
+- **Finish** a frontend or backend change by printing its URL: `http://localhost:$FRONTEND_PORT/` or `http://127.0.0.1:$BACKEND_PORT/docs`. Use the app through the Vite port only: it proxies `/api` to the backend (`vite.config.ts`), which is what makes the session cookie first-party. Hitting the backend port directly in a browser signs nobody in.
+- **Checking your work**: read-only `curl` against your own `localhost`/`127.0.0.1` ports is pre-allowed in the common forms (bare, `-s`, `-sS`, `-fsS`, `-i`, `-I`), so hit your servers freely; write forms still prompt. The backend and frontend panes mirror their output to `.wt-logs/backend.log` and `.wt-logs/frontend.log` in the checkout root: when a server is down or misbehaving, read those (the tmux socket is outside your sandbox, so `tmux` commands will fail — the log files are the supported path). `sample-data/` arrives seeded from the main checkout (the contribution flow's drop-in test batches, also read by `fieldGroups.spec.ts`); regenerate with `make sample-data` if you need fresh ones.
 
 #### Working in a worktree — rules
 
 - **You own exactly one branch**: the worktree's. Commit and push to it freely. Never push `dev`, `stage` or `main`, never push another branch, never force-push — `scripts/git-push-guard.sh` refuses it in git itself, and the session's deny rules refuse it before that. Landing into `dev` is a human's job, from the main checkout, with `scripts/wt-land.sh`.
-- **The database is shared**: `postgres` on `localhost:5433` holds the 3.4 GB dev dataset every worktree reads. Worktrees run with `DATABASE_UPGRADE=false`; never run `alembic upgrade`/`downgrade`, `make database-upgrade` or `make upload-data` against it. A branch that adds a migration first runs `make db-branch` (clones `resslab_hub_template` into `resslab_hub_<slug>` and turns migrations on for this worktree only); `make db-branch-drop` returns to the shared DB.
+- **The database**: each worktree gets its own throwaway `resslab_hub_<slug>` on `localhost:5433`, cloned at setup from the ~20 MB `resslab_hub_light` template (every main table, dictionary and README; one measurement file per series type), with migrations ON — migrate, upload, or break it freely, and `make db-branch` re-clones it. The login in `secrets/.env` is the clone's own role `wt_<slug>`, which owns that database and cannot connect to any other one, so do not edit `POSTGRES_DB` or `POSTGRES_USER` there. Check `DB_NAME` in `.env.worktree`: if it still says `postgres`, the light template didn't exist at setup and you are on the **shared 3.4 GB dev dataset** — then never run `alembic upgrade`/`downgrade`, `make database-upgrade` or `make upload-data` (the shared DB runs with `DATABASE_UPGRADE=false`; ask the user to run `make db-template-light` once, then `make db-branch`). `make db-branch-full` clones the full 3.4 GB `resslab_hub_template` when a branch needs real data volumes; `make db-branch-drop` returns to the shared DB.
 - **Tests**: `pytest` reads `POSTGRES_TEST_DB` from `.env.worktree` (a per-worktree throwaway database) so parallel worktrees don't drop each other's test DB — keep it exported.
-- **Network**: read the web freely. Anything that writes outward (`curl -X POST`, `gh pr create`, …) or runs downloaded code (`curl … | sh`, `npx -y …`) prompts the user by design; don't work around a prompt.
+- **Network**: read the web freely. Anything that writes outward (`curl -X POST`, `gh pr create`, …) or runs downloaded code (`curl … | sh`, `pnpm dlx …`) prompts the user by design; don't work around a prompt.
 
 ## Architecture
 
@@ -84,11 +88,12 @@ Every checkout — the main one and each git worktree under `.claude/worktrees/<
 
 FastAPI + SQLAlchemy 2.0 async + PostgreSQL. Key files:
 
-- `main.py` — app setup, router registration, CORS, middleware
+- `main.py` — app setup, router registration, middleware (response cache, gzip, CSRF)
 - `config.py` — Dynaconf settings with required keys (`POSTGRES_PASSWORD`, `API_PASSWORD`)
 - `models/api.py` — Pydantic schemas (auto-generated, do not edit manually)
 - `models/database/` — SQLAlchemy ORM models (auto-generated from CSV data dictionaries)
-- `routers/` — one file per component type (braces, columns, connections, materials [cyclic coupons], tensile_coupon, ductile_fracture, residual_stress, hss_columns, eccentric_braced_frame) plus `analytics.py` and `root.py`
+- `routers/` — one file per component type (braces, columns, connections, materials [cyclic coupons], tensile_coupon, ductile_fracture, residual_stress, hss_columns, eccentric_braced_frame) plus `analytics.py`, `auth.py` and `root.py`
+- `auth/`: sign-in, sessions and roles (#247). `deps.py` holds the FastAPI dependencies (`require_user`, `require_role`, and the machine-credential ones); see `docs/auth.md`
 - `data/generate_model.py` — reads CSV data dictionaries from `resslab-hub-data` repo and generates both ORM models and Pydantic schemas
 
 **Model generation workflow**: When the data schema changes, run `make generate-model` (requires the `resslab-hub-data` repo; `backend/Makefile` finds it through `RESSLAB_DATA_DIR`, default `../../resslab-hub-data`, which worktrees export as an absolute path from `.env.worktree`), then create an Alembic migration with `make database-revision`.
@@ -111,9 +116,9 @@ Vue 3 + TypeScript + Vite + Vuetify 3 + Pinia.
 
 - **Reverse proxy**: Traefik v3.6 routes `/` → frontend, `/api` → backend (stripping the `/api` prefix). In dev the backend listens directly on `:8000` with no prefix; in prod code paths must tolerate `ROOT_PATH=/api`.
 - **Database**: PostgreSQL 14 (Alpine)
-- **Secrets**: `secrets/.env` (gitignored) — not committed; create with `mkdir -p secrets && echo POSTGRES_PASSWORD=changeit > secrets/.env`. Backend also requires `API_PASSWORD` for the `/validate` and admin endpoints.
-- **Branch model**: `dev` is the default/integration branch (deploys to the k8s `dev` overlay); `stage` is the single pre-prod branch (k8s `stage` overlay); `main` is the release branch — `release-please.yml` cuts version tags (`v*.*.*`) from it, and tag pushes deploy to the k8s `prod` overlay. Promote `dev` → `stage` → release via PRs/tags.
-- **CI/CD**: GitHub Actions — `ci.yml` runs tests/lint on push/PR to `dev` + `main`; `release-please.yml` auto-manages versioning on `main`; `deploy.yml` builds + deploys (`dev`/`stage` branches → k8s, `v*.*.*` tags → prod) via the EPFL enac build-push-deploy action. The legacy `deploy-test.yml` / `deploy-prod.yml` (old enac-deploy-action) were removed once the k8s migration (#227) fully replaced them.
+- **Secrets**: `secrets/.env` (gitignored) — not committed; create with `mkdir -p secrets && echo POSTGRES_PASSWORD=changeit > secrets/.env`. `API_PASSWORD` is the machine credential: it guards `/upload` and `/user`, and is one of the two ways into `/validate` (the other is a signed-in account). People sign in with a session cookie instead — see `docs/auth.md` for the sign-in setup (`PUBLIC_BASE_URL`, `GITHUB_OAUTH_*`, `SMTP_*`, `ADMIN_EMAILS`).
+- **Branch model**: `dev` is the default/integration branch (deploys to the k8s `dev` overlay); `stage` is the single pre-prod branch (k8s `stage` overlay); `main` is the release branch — `release-please.yml` cuts version tags (`v*.*.*`) from it, and tag pushes deploy to the k8s `prod` overlay. Promote `dev` → `stage` → release via PRs/tags. Promotion PRs must be merged with a **merge commit**, never squashed, or Release Please sees nothing to release. Full steps: `docs/releasing.md`.
+- **CI/CD**: GitHub Actions — `ci.yml` runs tests/lint on push/PR to `dev`, `stage` and `main`; `release-please.yml` auto-manages versioning on `main`; `deploy.yml` builds + deploys (`dev`/`stage` branches → k8s, `v*.*.*` tags → prod) via the EPFL enac build-push-deploy action. The legacy `deploy-test.yml` / `deploy-prod.yml` (old enac-deploy-action) were removed once the k8s migration (#227) fully replaced them.
 
 ### Related Repositories
 
@@ -168,9 +173,16 @@ The data repo has its own GitHub Actions (`.github/workflows/data-validation.yml
 SEM images live on the EPFL enacit4r-cdn in prod. For local dev:
 
 1. Run `cd backend && DRY_RUN=1 make precompute-sem` — converts every TIF under `resslab-hub-data/material/ductile_fracture/sem/<id>/` to WebP and writes dimple JSONs alongside, output goes to `resslab-hub-data/material/ductile_fracture/sem/_webp/` (gitignored).
-2. Create the symlink **once**: `ln -s ../../../resslab-hub-data/material/ductile_fracture/sem/_webp frontend/public/sem`. It's gitignored (it would be a dangling link inside the Docker build context and break the prod build). Vite serves the files at `/sem/<id>/...`. `.env.development` already sets `VITE_SEM_CDN_BASE_URL=/sem`, so `npm run dev` hits the local files. Production builds use `.env.production` → the real CDN.
+2. Create the symlink **once**: `ln -s ../../../resslab-hub-data/material/ductile_fracture/sem/_webp frontend/public/sem`. It's gitignored (it would be a dangling link inside the Docker build context and break the prod build). Vite serves the files at `/sem/<id>/...`. `.env.development` already sets `VITE_SEM_CDN_BASE_URL=/sem`, so `pnpm run dev` hits the local files. Production builds use `.env.production` → the real CDN.
 
 For real CDN uploads, drop `DRY_RUN` and provide `ACCESS_KEY_ID` / `ACCESS_KEY_SECRET` from EPFL ops. The script then sets `has_sem=yes` in `ductile_fracture.csv` for the processed specimens (set-only, never clears) — commit that change to the data repo.
+
+### Ductile-fracture specimen figures
+
+Two different things, both committed under `frontend/public/img/ductile-fracture/`:
+
+- `cnt.png` / `gp.png` — annotated sketches of the two specimen geometries (issue #238), shown inside the tooltip when hovering a specimen type on the dashboard treemap. The connection-type sketches work the same way; both go through `SingleChart`'s `imageFor` prop, which switches its ECharts tooltip to an HTML formatter that appends the figure (`buildFigureTooltipFormatter` in `components/commons/charts/utils.ts`). Putting the figure in the tooltip rather than under the chart is deliberate: the old version pushed the card taller on every hover and had to force one aspect ratio onto figures that don't share one. The tooltip is placed by hand (`buildFigureTooltipPosition`) on the offset/flip/shift rules Floating UI uses — beside the pointer, flipped to its other side when the window has no room, slid back into view vertically. Don't swap that for ECharts' `confine`: it clamps to the *chart*, so a figure taller than the cell gets pinned to the cell's corner and buries the chart. The tooltip's chrome (square, hairline, Suisse, no shadow) lives in `plugins/echarts-theme.ts` rather than the component, since a tooltip is raw DOM hung outside the chart where `app.css`'s square-corner and no-shadow rules never reach it.
+- `figures/<id>.svg` — a drawing of each specimen's own geometry, scaled from its nominal dimensions, shown in the detail drawer. Generated by `cd backend && make precompute-fracture-figures` (needs `RESSLAB_DATA_DIR`), ported from andskia's notebook into `backend/data/fracture_figures_lib.py`. **Commit the output**: unlike the SEM rasters these are a few kB of vector line work each, so there is no CDN in the loop. Rerun after the data repo adds specimens or changes dimensions; the output is deterministic, so an unchanged row rewrites byte-identically and shows no diff. A specimen with no committed figure falls back to its geometry sketch, then to the generic placeholder.
 
 ### Adding a new component tab
 

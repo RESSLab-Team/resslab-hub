@@ -10,9 +10,8 @@ import {
 import { dashboardQueryKey } from '@/composables/dashboard'
 import { useDataset } from '@/composables/useDataset'
 import { CONNECTION_KEY, fetchConnections } from '@/components/connections/data'
-import { publicPath } from '@/utils/common'
-import type { CallbackDataParams } from 'echarts/types/dist/shared'
-import { inject, ref, toRef } from 'vue'
+import { getConnectionTypeImage } from '@/utils/component'
+import { inject, toRef } from 'vue'
 
 const props = defineProps(singleChartProps<ConnectionField>())
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -36,18 +35,7 @@ const { counts, changeSearches } = useSingleChart<ConnectionField>(
 // composable's reactive `counts`, so live frames are pixel-identical.
 const getLiveCounts = (liveQuery?: string) => toSingleCounts(countsSync([props.field], liveQuery))
 
-const imageUrl = ref<string>()
-
-function mouseover(params: CallbackDataParams): void {
-  if (props.field === ConnectionField.ConnectionType) {
-    const name: string = params.name.toLowerCase()
-    imageUrl.value = publicPath + 'img/connection-type/' + name + '.svg'
-  }
-}
-
-function mouseout(): void {
-  imageUrl.value = undefined
-}
+const imageFor = props.field === ConnectionField.ConnectionType ? getConnectionTypeImage : undefined
 </script>
 
 <template>
@@ -59,14 +47,10 @@ function mouseout(): void {
     :flat="flat"
     :show-reset="showReset"
     :field="field"
+    :image-for="imageFor"
     label-prefix="connection."
     @change:searches="changeSearches"
-    @mouseover="mouseover"
-    @mouseout="mouseout"
   >
-    <template #default>
-      <v-img v-if="imageUrl" aspect-ratio="3" :src="imageUrl" min-height="120" />
-    </template>
     <template #title> <slot name="title"></slot> </template>
   </single-chart>
 </template>

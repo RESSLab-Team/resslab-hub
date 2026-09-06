@@ -16,7 +16,9 @@ import {
   materialsApi,
   residualsApi
 } from '@/plugins/axios'
+import { slotColor } from '@/utils/categoryColors'
 import type { DatabaseId } from '@/utils/navigation'
+import { blendHex } from '@/utils/palette'
 
 export interface CurveSource {
   /** Specimen column holding the number of points; 0 means "no such curve". */
@@ -91,15 +93,18 @@ export const CURVE_SOURCES: Partial<Record<DatabaseId, Record<string, CurveSourc
   residuals: {
     distribution_f1: {
       countField: 'distribution_F1_count',
-      fetch: (id) => residualsApi.getResidualStressesDistributionF1(id, CURVE_SIZE).then((r) => r.data)
+      fetch: (id) =>
+        residualsApi.getResidualStressesDistributionF1(id, CURVE_SIZE).then((r) => r.data)
     },
     distribution_f2: {
       countField: 'distribution_F2_count',
-      fetch: (id) => residualsApi.getResidualStressesDistributionF2(id, CURVE_SIZE).then((r) => r.data)
+      fetch: (id) =>
+        residualsApi.getResidualStressesDistributionF2(id, CURVE_SIZE).then((r) => r.data)
     },
     distribution_w1: {
       countField: 'distribution_W1_count',
-      fetch: (id) => residualsApi.getResidualStressesDistributionW1(id, CURVE_SIZE).then((r) => r.data)
+      fetch: (id) =>
+        residualsApi.getResidualStressesDistributionW1(id, CURVE_SIZE).then((r) => r.data)
     }
   }
 }
@@ -120,11 +125,7 @@ export function countFieldsFor(database: DatabaseId): string[] {
 // overlay curves, and these are the heaviest payloads on the screen.
 const cache = new Map<string, Promise<number[][]>>()
 
-export function fetchCurve(
-  database: DatabaseId,
-  kindKey: string,
-  id: string
-): Promise<number[][]> {
+export function fetchCurve(database: DatabaseId, kindKey: string, id: string): Promise<number[][]> {
   const cacheKey = `${database}:${kindKey}:${id}`
   const hit = cache.get(cacheKey)
   if (hit) return hit
@@ -139,4 +140,23 @@ export function fetchCurve(
     })
   cache.set(cacheKey, promise)
   return promise
+}
+
+// ── overlay colours ────────────────────────────────────────────────────────
+// Every cohort curve used to be the same grey, so with several of them on a
+// frame a curator could not tell which chip was which line (andskia, #268).
+// Each overlay now takes its own slot of the dashboard palette, softened a
+// touch toward grey: the hues stay Okabe-Ito (colour-blind safe) and still
+// read as their dashboard colour, while the submitted curve keeps the visual
+// lead in brand red. A stronger blend (it started at 0.45) turned every hue
+// into the same grey-ish line and the chips could not be told apart.
+
+/** Grey the overlay hues are mixed toward. */
+const OVERLAY_GREY = '#9E9E9E'
+/** How far toward that grey: a touch, not a wash. */
+const OVERLAY_BLEND = 0.2
+
+/** Colour of the nth cohort overlay on a frame. */
+export function ghostColor(index: number): string {
+  return blendHex(slotColor(index), OVERLAY_GREY, OVERLAY_BLEND)
 }

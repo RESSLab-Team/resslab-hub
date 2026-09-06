@@ -5,9 +5,8 @@ import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { materialsApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
 import { formatNumber } from '@/utils/formatter'
-import { computeUvcStress } from '@/utils/material'
+import { uvcModelCurve, uvcParametersFrom } from '@/utils/material'
 import type { LineSeriesOption } from 'echarts'
-import { zip } from 'lodash'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -24,29 +23,21 @@ const carouselItems = ref<DetailCarouselItem[][]>([])
 
 const errorMessage = ref('')
 
-const hasValidUvcParameters = computed(() => {
-  return (
-    props.material.uvc_e__mpa_ &&
-    props.material.uvc_sigma__mpa_ &&
-    props.material.uvc_q__mpa_ &&
-    props.material.uvc_b &&
-    props.material.uvc_d__mpa_ &&
-    props.material.uvc_a &&
-    props.material.uvc_c1__mpa_ &&
-    props.material.uvc_g1 &&
-    props.material.uvc_c2__mpa_ &&
-    props.material.uvc_g2
-  )
-})
+// The same reader the curation review screen uses, so a stored coupon and a
+// submitted one are drawn from the same parameters (GPa -> MPa included).
+const uvcParameters = computed(() =>
+  uvcParametersFrom(props.material as unknown as Record<string, unknown>)
+)
 
 const showGraph = computed(() => {
-  return hasValidUvcParameters.value && carouselItems.value.length > 0
+  return !!uvcParameters.value && carouselItems.value.length > 0
 })
 
 watch(
   () => props.material,
   (material) => {
-    if (!hasValidUvcParameters.value) {
+    const parameters = uvcParameters.value
+    if (!parameters) {
       errorMessage.value = t('detail.material.error_message')
       return
     } else {
@@ -61,28 +52,7 @@ watch(
               .then((series) => {
                 const stressStrain = series.map((serie) => [serie[1], serie[0]])
                 const strain = series.map((serie) => serie[1])
-                const uvcStress = computeUvcStress(
-                  strain,
-                  material.uvc_e__mpa_! * 1000,
-                  material.uvc_sigma__mpa_!,
-                  material.uvc_q__mpa_!,
-                  material.uvc_b!,
-                  material.uvc_d__mpa_!,
-                  material.uvc_a!,
-                  [
-                    {
-                      c: material.uvc_c1__mpa_!,
-                      gamma: material.uvc_g1!
-                    },
-                    {
-                      c: material.uvc_c2__mpa_!,
-                      gamma: material.uvc_g2!
-                    }
-                  ]
-                )
-                const uvc = zip(strain, uvcStress).filter(
-                  (v): v is [number, number] => v[0] !== undefined && v[1] !== undefined
-                )
+                const uvc = uvcModelCurve(strain, parameters)
                 return [
                   {
                     name: t('detail.material.test_data'),
@@ -166,8 +136,8 @@ watch(
           <div class="mb-5">
             <h2 class="mb-2">{{ $t('detail.material.material_model_parameters') }}</h2>
             <p>
-              <property-item :name="$t('detail.material.youngs_modulus')" unit="MPa">
-                {{ formatNumber((material.uvc_e__mpa_ ?? 0) * 1000, 1) }}
+              <property-item :name="$t('detail.material.youngs_modulus')" unit="GPa">
+                {{ formatNumber(material.uvc_e__gpa_, 1) }}
               </property-item>
               <property-item :name="$t('detail.material.initial_yield_stress')" unit="MPa">
                 {{ formatNumber(material.uvc_sigma__mpa_, 1) }}

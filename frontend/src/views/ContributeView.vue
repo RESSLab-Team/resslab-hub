@@ -2,11 +2,12 @@
 import ContributionGuide from '@/components/contribute/ContributionGuide.vue'
 import ExperimentCards from '@/components/contribute/ExperimentCards.vue'
 import FailureDetails from '@/components/contribute/FailureDetails.vue'
+import ProgressLine from '@/components/commons/ProgressLine.vue'
+import { useAuthStore } from '@/stores/auth'
 import { useContributionStore, type CardIssue } from '@/stores/contribution'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { CONTRIBUTION_DATABASES, fieldLabel } from '@/utils/contribution'
 import { DATABASES, type DatabaseId } from '@/utils/navigation'
-import { loadContributor, saveContributor } from '@/utils/submission'
 import {
   mdiAlertOutline,
   mdiArrowRight,
@@ -21,14 +22,23 @@ import {
   mdiSend,
   mdiShieldCheckOutline
 } from '@mdi/js'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+
+/** Set on `/contribute/edit/:prNumber`: the open submission to work on. */
+const props = defineProps<{ prNumber?: string }>()
 
 const { t } = useI18n({ useScope: 'global' })
+const router = useRouter()
 const store = useContributionStore()
 const dictionary = useDictionaryStore()
+const auth = useAuthStore()
 
-onMounted(() => dictionary.fetch())
+onMounted(() => {
+  dictionary.fetch()
+  auth.ensureLoaded()
+})
 
 const supported = (id: DatabaseId) => CONTRIBUTION_DATABASES[id].qualityCheckSupported
 
@@ -41,6 +51,29 @@ const atRisk = computed(() => (store.hasAnyId ? store.experimentCount : 0))
 const selectedName = computed(
   () => DATABASES.find((entry) => entry.id === store.database)?.name ?? ''
 )
+
+// The two routes share this component and `<router-view>` has no key, so the
+// instance is reused when moving between them: follow the prop, not the mount.
+watch(
+  () => props.prNumber,
+  (raw) => {
+    pending.value = null
+    if (raw === undefined) {
+      // Leaving the edit page starts a fresh batch: keeping the rows would
+      // duplicate ids, and keeping the target would update the wrong PR.
+      if (store.editing || store.loadStatus !== 'idle') store.reset()
+      return
+    }
+    void store.loadSubmission(Number(raw))
+  },
+  { immediate: true }
+)
+
+/** Back to an empty editor, and out of the edit URL. */
+function startNew(): void {
+  store.reset()
+  void router.push({ name: 'ContributeNew' })
+}
 
 function pick(id: DatabaseId): void {
   if (store.database === id) return
@@ -129,18 +162,27 @@ function issueSubject(issue: CardIssue): string {
 // --- Submission dialog ----------------------------------------------------
 
 const dialogOpen = ref(false)
-const contributor = ref(loadContributor())
 
-const contributorValid = computed(
-  () =>
-    contributor.value.name.trim().length > 0 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contributor.value.email.trim())
+// Who submits comes from the session now (#247), not from a form. The commit
+// author and its Submitted-by trailer both need a name and a proven address,
+// so an account missing either is sent to /account rather than refused on
+// submit.
+const contributor = computed(() => auth.user)
+const contributorReady = computed(
+  () => !!contributor.value?.display_name?.trim() && !!contributor.value?.email_verified
 )
 
 const curveCount = computed(() => Object.keys(store.timeSeries).length)
 
+/** The dialog confirms an update when the editor was opened on a submission. */
+const dialogTitle = computed(() =>
+  store.editing ? t('contribute.edit.dialog_title') : t('contribute.dialog.title')
+)
+const dialogConfirm = computed(() =>
+  store.editing ? t('contribute.edit.dialog_confirm') : t('contribute.dialog.confirm')
+)
+
 function openDialog(): void {
-  contributor.value = loadContributor()
   dialogOpen.value = true
 }
 
@@ -164,16 +206,9 @@ function openGuide(which: 'guide' | 'dictionary' = 'guide'): void {
 }
 
 async function confirmSubmit(): Promise<void> {
-  if (!contributorValid.value) return
-  const details = {
-    name: contributor.value.name.trim(),
-    email: contributor.value.email.trim(),
-    institution: contributor.value.institution.trim(),
-    orcid: contributor.value.orcid.trim()
-  }
-  saveContributor(details)
+  if (!contributorReady.value) return
   dialogOpen.value = false
-  await store.submit(details)
+  await store.submit()
 }
 </script>
 
@@ -187,9 +222,17 @@ async function confirmSubmit(): Promise<void> {
         <span v-if="selectedName" class="mut"> · {{ selectedName }}</span>
       </p>
       <div class="prow">
-        <h1 class="ptitle">{{ $t('contribute.title') }}</h1>
+        <h1 class="ptitle">
+          {{
+            store.editing
+              ? $t('contribute.edit.title', { number: store.editTarget!.prNumber })
+              : $t('contribute.title')
+          }}
+        </h1>
       </div>
-      <p class="pdesc">{{ $t('contribute.description') }}</p>
+      <p class="pdesc">
+        {{ store.editing ? $t('contribute.edit.description') : $t('contribute.description') }}
+      </p>
     </div>
 
     <div class="pbody layout" :class="{ 'with-rail': store.database && dictionary.ready }">
@@ -205,6 +248,7 @@ async function confirmSubmit(): Promise<void> {
               class="db"
               :class="{ active: store.database === entry.id, pending: pending === entry.id }"
               type="button"
+              :disabled="store.editing || store.loadStatus === 'loading'"
               @click="pick(entry.id)"
             >
               <span class="db-top">
@@ -225,7 +269,53 @@ async function confirmSubmit(): Promise<void> {
           </p>
         </section>
 
-        <template v-if="store.database">
+        <!-- Loading an open submission back into the editor (#321). -->
+        <progress-line
+          v-if="store.loadStatus === 'loading'"
+          :active="true"
+          :label="
+            store.loadProgress
+              ? $t('contribute.edit.loading_files', store.loadProgress)
+              : $t('contribute.edit.loading', { number: prNumber })
+          "
+          :done="store.loadProgress?.done"
+          :total="store.loadProgress?.total"
+        />
+        <div v-else-if="store.loadStatus === 'error'" class="load-error">
+          <p class="load-error-text">
+            <v-icon :icon="mdiAlertOutline" size="15" />
+            {{ $t(`contribute.edit.${store.loadError ?? 'load_failed'}`) }}
+          </p>
+          <div class="bar-actions">
+            <button
+              class="btn btn-secondary btn-sm"
+              type="button"
+              @click="store.loadSubmission(Number(prNumber))"
+            >
+              {{ $t('contribute.retry') }}
+            </button>
+            <button class="btn btn-secondary btn-sm" type="button" @click="startNew()">
+              {{ $t('contribute.submitted.new') }}
+            </button>
+          </div>
+        </div>
+
+        <div v-else-if="store.editing" class="edit-banner">
+          <p class="edit-banner-text">
+            <v-icon :icon="mdiPencilOutline" size="15" />
+            {{ $t('contribute.edit.banner', { number: store.editTarget!.prNumber }) }}
+            <span v-if="store.skippedFiles.length" class="mut">
+              {{ $t('contribute.edit.skipped_files', { count: store.skippedFiles.length }) }}
+            </span>
+          </p>
+          <a class="btn btn-secondary btn-sm" :href="store.editTarget!.prUrl" target="_blank">
+            <v-icon :icon="mdiOpenInNew" size="14" />{{ $t('contribute.submitted.view_pr') }}
+          </a>
+        </div>
+
+        <template
+          v-if="store.database && store.loadStatus !== 'loading' && store.loadStatus !== 'error'"
+        >
           <p
             v-if="dictionary.state === 'loading' || dictionary.state === 'idle'"
             class="dict-state"
@@ -260,21 +350,50 @@ async function confirmSubmit(): Promise<void> {
         >
           <span class="status pass">
             <v-icon :icon="mdiCheckCircleOutline" size="16" />
-            {{ $t('contribute.submitted.title', { number: store.pullRequestNumber }) }}
+            {{
+              store.editing
+                ? $t('contribute.submitted.updated_title', { number: store.pullRequestNumber })
+                : $t('contribute.submitted.title', { number: store.pullRequestNumber })
+            }}
           </span>
-          <span class="submitted-note">{{ $t('contribute.submitted.next') }}</span>
+          <span class="submitted-note">
+            {{
+              store.editing
+                ? $t('contribute.submitted.updated_next')
+                : $t('contribute.submitted.next')
+            }}
+          </span>
           <div class="bar-actions">
             <a class="btn btn-secondary btn-sm" :href="store.pullRequestUrl" target="_blank">
               <v-icon :icon="mdiOpenInNew" size="14" />{{ $t('contribute.submitted.view_pr') }}
             </a>
-            <button class="btn btn-primary btn-sm" type="button" @click="store.reset()">
+            <router-link
+              v-if="!store.editing"
+              class="btn btn-secondary btn-sm"
+              :to="{ name: 'ContributeEdit', params: { prNumber: store.pullRequestNumber } }"
+            >
+              <v-icon :icon="mdiPencilOutline" size="14" />{{ $t('contribute.submitted.update') }}
+            </router-link>
+            <button class="btn btn-primary btn-sm" type="button" @click="startNew()">
               {{ $t('contribute.submitted.new') }}
             </button>
           </div>
+          <p v-if="!store.editing" class="submitted-howto">
+            {{ $t('contribute.submitted.how_to_update') }}
+            <a v-if="store.csvOnGitHubUrl" :href="store.csvOnGitHubUrl" target="_blank">
+              {{ $t('contribute.submitted.edit_on_github') }}
+            </a>
+          </p>
         </footer>
 
         <footer v-else-if="store.database && dictionary.ready" class="status-bar">
-          <span class="status" :class="statusClass">
+          <!-- While the batch is on its way to GitHub, say what is being sent. -->
+          <progress-line
+            v-if="store.submitStatus === 'submitting'"
+            :active="true"
+            :label="$t('contribute.submitting_files', { count: store.submitFileCount })"
+          />
+          <span v-else class="status" :class="statusClass">
             <v-icon
               :icon="
                 statusClass === 'pass'
@@ -350,6 +469,8 @@ async function confirmSubmit(): Promise<void> {
               {{
                 store.submitStatus === 'submitting'
                   ? $t('contribute.submitting')
+                  : store.editing
+                  ? $t('contribute.edit.submit')
                   : $t('contribute.submit')
               }}
             </button>
@@ -405,6 +526,10 @@ async function confirmSubmit(): Promise<void> {
               </template>
             </div>
           </div>
+          <p v-if="store.submitConflict" class="submit-error conflict-note">
+            <v-icon :icon="mdiAlertOutline" size="14" />
+            {{ $t('contribute.edit.conflict') }}
+          </p>
           <failure-details
             v-if="store.submitStatus === 'error' && store.submitFailure"
             class="submit-error"
@@ -417,7 +542,9 @@ async function confirmSubmit(): Promise<void> {
             :report="store.checkFailure"
             :label="$t('contribute.status.error')"
           />
-          <p class="draft-note">{{ $t('contribute.draft_notice') }}</p>
+          <p class="draft-note">
+            {{ store.editing ? $t('contribute.edit.draft_notice') : $t('contribute.draft_notice') }}
+          </p>
         </footer>
       </div>
 
@@ -428,7 +555,7 @@ async function confirmSubmit(): Promise<void> {
 
     <div v-if="dialogOpen" class="dialog-backdrop" @click.self="dialogOpen = false">
       <div class="dialog tool-card" role="dialog" aria-modal="true">
-        <div class="tool-card-h">{{ $t('contribute.dialog.title') }}</div>
+        <div class="tool-card-h">{{ dialogTitle }}</div>
         <p class="dialog-recap">
           {{
             $t('contribute.dialog.recap', {
@@ -447,24 +574,24 @@ async function confirmSubmit(): Promise<void> {
             }}
           </template>
         </p>
-        <div class="dialog-grid">
-          <label class="dialog-field">
-            <span>{{ $t('contribute.dialog.name') }} *</span>
-            <input v-model="contributor.name" type="text" autocomplete="name" />
-          </label>
-          <label class="dialog-field">
-            <span>{{ $t('contribute.dialog.email') }} *</span>
-            <input v-model="contributor.email" type="email" autocomplete="email" />
-          </label>
-          <label class="dialog-field">
-            <span>{{ $t('contribute.dialog.institution') }}</span>
-            <input v-model="contributor.institution" type="text" autocomplete="organization" />
-          </label>
-          <label class="dialog-field">
-            <span>{{ $t('contribute.dialog.orcid') }}</span>
-            <input v-model="contributor.orcid" type="text" placeholder="0000-0000-0000-0000" />
-          </label>
+        <div class="dialog-identity">
+          <p class="dialog-identity-line">
+            {{ $t('contribute.dialog.submitting_as') }}
+            <strong>{{ contributor?.display_name || $t('auth.account.no_name') }}</strong>
+            <span v-if="contributor?.email"> · {{ contributor.email }}</span>
+            <span v-if="contributor?.institution"> · {{ contributor.institution }}</span>
+            <span v-if="contributor?.github_login"> · @{{ contributor.github_login }}</span>
+          </p>
+          <router-link class="dialog-identity-edit" to="/account">
+            {{ $t('contribute.dialog.edit_identity') }}
+          </router-link>
         </div>
+        <p v-if="!contributorReady" class="dialog-blocked">
+          {{ $t('contribute.dialog.identity_incomplete') }}
+        </p>
+        <p v-else-if="!contributor?.github_login" class="dialog-note">
+          {{ $t('contribute.dialog.link_github_hint') }}
+        </p>
         <p class="dialog-note">{{ $t('contribute.dialog.note') }}</p>
         <div class="dialog-actions">
           <button class="btn btn-secondary btn-sm" type="button" @click="dialogOpen = false">
@@ -472,11 +599,11 @@ async function confirmSubmit(): Promise<void> {
           </button>
           <button
             class="btn btn-primary btn-sm"
-            :disabled="!contributorValid"
+            :disabled="!contributorReady"
             type="button"
             @click="confirmSubmit()"
           >
-            <v-icon :icon="mdiSend" size="14" />{{ $t('contribute.dialog.confirm') }}
+            <v-icon :icon="mdiSend" size="14" />{{ dialogConfirm }}
           </button>
         </div>
       </div>
@@ -974,6 +1101,53 @@ async function confirmSubmit(): Promise<void> {
 .submitted-bar .btn {
   text-decoration: none;
 }
+/* The edit banner and the load error sit where the editor would be. */
+.edit-banner,
+.load-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  font-size: 13px;
+}
+.edit-banner {
+  border-color: var(--epfl-red);
+}
+.edit-banner-text,
+.load-error-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.edit-banner .btn {
+  text-decoration: none;
+}
+.conflict-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--epfl-orange);
+}
+.db[disabled] {
+  cursor: default;
+  opacity: 0.55;
+}
+.db[disabled].active {
+  opacity: 1;
+}
+/* Spans the bar's two columns: a full sentence, not a status line. */
+.submitted-howto {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--fg-muted);
+}
 /* Below ~700px the two columns cannot hold both the verdict and the buttons. */
 @media (max-width: 700px) {
   .status-bar {
@@ -1009,34 +1183,37 @@ async function confirmSubmit(): Promise<void> {
   line-height: 1.5;
   color: var(--fg-muted);
 }
-.dialog-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px 16px;
+/* Who is submitting is a recap now, not a form: it comes from the account
+   (#247). */
+.dialog-identity {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-subtle);
+  border-left: 3px solid var(--epfl-red);
 }
-.dialog-field {
-  display: block;
+.dialog-identity-line {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg-muted);
   min-width: 0;
 }
-.dialog-field span {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 12.5px;
-  font-weight: 600;
-}
-.dialog-field input {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border-strong);
-  background: var(--bg);
+.dialog-identity-line strong {
   color: var(--fg);
-  font: inherit;
-  font-size: 13.5px;
-  border-radius: var(--radius);
 }
-.dialog-field input:focus {
-  outline: 2px solid var(--epfl-red);
-  outline-offset: -1px;
+.dialog-identity-edit {
+  flex: none;
+  font-size: 12px;
+  color: var(--epfl-red);
+}
+.dialog-blocked {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--epfl-red);
 }
 .dialog-note {
   margin: 14px 0;

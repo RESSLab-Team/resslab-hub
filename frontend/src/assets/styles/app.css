@@ -212,6 +212,37 @@ a {
   width: 3px;
   background: var(--epfl-red);
 }
+/* Account row (#247): the avatar stands in for the icon slot the other links
+   use, and the role sits under the name. */
+.account-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  background: var(--epfl-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+.account-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.account-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-role {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
 .sidebar-group {
   display: flex;
   align-items: stretch;

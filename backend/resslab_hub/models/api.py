@@ -268,6 +268,7 @@ class DictionaryColumnModel(BaseModel):
     type: str
     example: str
     nullable: bool
+    group: str = ""
 
 
 class DatabaseReadmeModel(BaseModel):
@@ -590,14 +591,13 @@ class MaterialModel(ApiModel):
     ca: Optional[float]
     h: Optional[float]
     fe: Optional[float]
-    file: Optional[str]
     reference: Optional[str]
     link: Optional[str]
     latitude: Optional[float]
     longitude: Optional[float]
     citekey: Optional[str]
     uvc_phi__prct_: Optional[float]
-    uvc_e__mpa_: Optional[float]
+    uvc_e__gpa_: Optional[float]
     uvc_sigma__mpa_: Optional[float]
     uvc_q__mpa_: Optional[float]
     uvc_b: Optional[float]

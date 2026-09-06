@@ -113,3 +113,92 @@ describe('mapResponse — file naming', () => {
     expect(report.experiments[0].fileIssues.map((f) => f.kindKey)).toEqual(['processed_data'])
   })
 })
+
+describe('mapResponse — the README rules (resslab-hub#243)', () => {
+  // The shapes /validate really returns for the rules added with the
+  // contributor READMEs. What matters here is where each one lands: a cell
+  // the grid can scroll to, or the global list.
+  const response: ValidationResponse = {
+    valid: false,
+    message: '',
+    error_count: 2,
+    results: [
+      {
+        file: 'steel_braces.csv',
+        path: 'braces/steel_braces.csv',
+        valid: false,
+        errors: [
+          {
+            row: 1,
+            column: 'date',
+            value: '2024.7',
+            message: 'Must be a whole number, for example 2024, not 2024.5.'
+          },
+          {
+            row: 2,
+            column: 'area',
+            value: '1,5',
+            message: 'Use a decimal point and no thousands separator: write 1234.5, not 1,5.'
+          }
+        ],
+        warnings: [
+          {
+            row: 1,
+            column: 'investigator',
+            value: 'NR',
+            message: "This column is mandatory. NR is stored as 'Not reported'."
+          },
+          {
+            row: 0,
+            column: 'file',
+            value: 'steel_braces.csv',
+            message: 'File uses Windows line endings (CRLF). Save it with LF line endings.'
+          }
+        ]
+      },
+      {
+        file: 'B1.csv',
+        path: 'braces/force_displacement/B1.csv',
+        valid: true,
+        errors: [],
+        warnings: [
+          {
+            row: 12,
+            column: 'Force [kN]',
+            value: null,
+            message: 'Rows 12, 13, 14 and 47 more: NaN means no reading.'
+          }
+        ]
+      }
+    ]
+  }
+
+  it('puts every cell rule on the cell the grid can open', () => {
+    const report = mapResponse('braces', rows('B1', 'B2'), response)
+    const first = report.experiments.find((e) => e.uid === 0)!
+    const second = report.experiments.find((e) => e.uid === 1)!
+
+    expect(first.cellIssues.map((entry) => entry.ref.column).sort()).toEqual([
+      'date',
+      'investigator'
+    ])
+    expect(second.cellIssues.map((entry) => entry.ref.column)).toEqual(['area'])
+    expect(first.level).toBe('fail')
+  })
+
+  it('keeps a file-level warning out of the cells', () => {
+    const report = mapResponse('braces', rows('B1', 'B2'), response)
+
+    expect(report.global.map((entry) => entry.issue.column)).toEqual(['file'])
+    expect(report.global[0].severity).toBe('warning')
+  })
+
+  it('attaches a grouped time-series warning to its experiment and kind', () => {
+    const report = mapResponse('braces', rows('B1', 'B2'), response)
+    const first = report.experiments.find((e) => e.uid === 0)!
+
+    expect(first.fileIssues[0].kindKey).toBe('force_displacement')
+    // The row number lives in the message: the sparkline shows no column.
+    expect(first.fileIssues[0].issue.message).toContain('Rows 12, 13, 14')
+  })
+})

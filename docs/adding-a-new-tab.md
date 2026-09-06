@@ -298,7 +298,7 @@ File: `/mnt/data/Documents/Code/resslab-hub/backend/Makefile`
 Add:
 ```makefile
 upload-new-thing:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-new-things ../../resslab-hub-data
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all-new-things ../../resslab-hub-data
 ```
 And make sure `upload-data` still picks up the aggregate via `all` (it already dispatches via `get_args_all`).
 
@@ -345,7 +345,7 @@ From the repo root:
 make api
 ```
 
-This runs `DATABASE_UPGRADE=false uv run python api.py ../openapi.json` and then `npm run api` in the frontend. Result: fresh `openapi.json` at the repo root plus regenerated `frontend/src/backend/` (with `NewThingApi`, `NewThingModel`, `NewThingField`, `NewThingNumberField`). Commit these regenerated files.
+This runs `DATABASE_UPGRADE=false uv run python api.py ../openapi.json` and then `pnpm run api` in the frontend. Result: fresh `openapi.json` at the repo root plus regenerated `frontend/src/backend/` (with `NewThingApi`, `NewThingModel`, `NewThingField`, `NewThingNumberField`). Commit these regenerated files.
 
 ---
 
@@ -411,7 +411,7 @@ Don't scaffold a Model view unless the component actually has a published model.
 - **View:** `frontend/src/views/NewThingFragilityCurve.vue` — thin router-view wrapper.
 - **Component:** `frontend/src/components/new_thing/NewThingFragility.vue` — the UI. Reference implementation: `frontend/src/components/braces/BraceFragility.vue`.
 - **Shared utility:** `frontend/src/utils/fragility.ts` — `fragilityCurve(median, sigma)` via `@stdlib/stats-base-dists-lognormal-cdf`, plus `univariateOption()` and the `DamageState` interface. Do NOT reinvent these; import from this file.
-- **3D surface plots:** `echarts-gl` via `frontend/src/utils/echarts-gl.ts`. Already installed — no new npm deps needed.
+- **3D surface plots:** `echarts-gl` via `frontend/src/utils/echarts-gl.ts`. Already installed — no new deps needed.
 - **Parameter source:** fragility parameters are **not** stored in the data repo or the database. They are computed externally in the sibling repo `resslab-hub-scripts` (e.g. `fragility_curves_steel_braces/`) and **hard-coded as TypeScript constants** in the fragility component. This is deliberate — fragility parameters are a published research artifact, not experimental data.
 - **Router block becomes:**
   ```ts
@@ -572,7 +572,7 @@ The EBF iteration showed that adding a tab often requires *small* improvements t
 5. **Chart colors.** Default palettes looked muddy for EBF; pick distinct colors early (see `EbfDashboard.vue` palette).
 6. **Parallel-chart sort order.** Ordered categorical axes (`short → intermediate → long`) need explicit `sortValues`. Commit `a3bee8a` restored these after they were lost.
 7. **Image sizing.** Detail images need a max-width (EBF fix: 50% of row). Set responsive CSS from the start, don't let the raw PNG expand.
-8. **TypeScript imports.** Ensure all new types (`NewThingModel`, `NewThingField`, `NewThingNumberField`) are exported from the generated barrel so `vue-tsc` passes. `fix(ebf): fix import type build problem` (`573cc4a`) caught a circular-import regression — run `npm run type-check` before opening the PR.
+8. **TypeScript imports.** Ensure all new types (`NewThingModel`, `NewThingField`, `NewThingNumberField`) are exported from the generated barrel so `vue-tsc` passes. `fix(ebf): fix import type build problem` (`573cc4a`) caught a circular-import regression — run `pnpm run type-check` before opening the PR.
 9. **Info tooltips on table columns.** Users asked for field explanations (commit `476c98e`). Add `InfoTooltip` to column headers from the start with a short description from the data dictionary.
 10. **Carousel / detail content.** Don't ship a detail view with only raw fields — group them ("Loading and Geometric Parameters", "Steel Material Designation (flange / web)") and label units. EBF got two rounds of detail-content rework (`bdec4f8`, `50ba7f7`, `e70b30d`).
 11. **Data-repo validation workflow filter.** `.github/workflows/data-validation.yml` has a hardcoded `filters:` list. EBF was never added to it, so no EBF PR has ever been validated by CI. Add your filter line *before* opening the first data-repo PR; otherwise silent pass-through is indistinguishable from a real green check.
@@ -650,8 +650,8 @@ After implementation, run end-to-end locally:
 
 3. **Frontend regeneration + dev**
    - From repo root: `make api` — no errors; diff shows new client under `frontend/src/backend/`.
-   - `cd frontend && npm run type-check` — clean.
-   - `cd frontend && npm run lint` — clean.
+   - `cd frontend && pnpm run type-check` — clean.
+   - `cd frontend && pnpm run lint` — clean.
    - `make dev-frontend` — Vite up.
    - Navigate `http://127.0.0.1:5173/new-things/database`:
      - Table renders rows; pagination, sorting, filtering work.
@@ -663,7 +663,7 @@ After implementation, run end-to-end locally:
    - Switch locale (if multiple locales exist) — all new labels translate.
 
 4. **Build**
-   - `cd frontend && npm run build` — production build passes.
+   - `cd frontend && pnpm run build` — production build passes.
    - `cd .. && make run` — full Docker stack comes up; hit `https://localhost/api/new-thing` through Traefik (remember the `/api` prefix in prod).
 
 5. **Commit hygiene**

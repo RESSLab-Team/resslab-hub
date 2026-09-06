@@ -2,24 +2,30 @@ import type { Type } from '@/backend'
 import { axiosInstance, baseUrl } from '@/plugins/axios'
 
 /**
- * Hand-written client for `POST /contributions` (the generated client does not
- * cover it yet — regenerate with `make api` to add it). The endpoint
- * re-validates the archive server-side and opens a pull request on the
- * resslab-hub-data repository.
+ * Hand-written client for the two write endpoints of the contribution flow.
+ *
+ * Both send the batch as a gzipped tar in a multipart form: `POST` opens a
+ * pull request on the resslab-hub-data repository, `PUT` pushes a new commit
+ * on an open one. The server re-validates the archive either way.
+ *
+ * Who is submitting is not sent: since #247 the backend takes it from the
+ * session, which is what makes the pull request attributable.
  */
 
-export interface ContributorInfo {
-  name: string
-  email: string
-  institution: string
-  orcid: string
-}
-
-/** The pull request opened for a submission. */
+/** The pull request a submission lives in. */
 export interface ContributionResult {
   pr_url: string
   pr_number: number
   branch: string
+  /** Commit the submission points at; sent back when updating it. */
+  head_sha: string
+}
+
+/** The submission and the commit an edit is written against. */
+export interface EditTarget {
+  prNumber: number
+  prUrl: string
+  headSha: string
 }
 
 export function isContributionResult(data: unknown): data is ContributionResult {
@@ -29,23 +35,24 @@ export function isContributionResult(data: unknown): data is ContributionResult 
     candidate !== null &&
     typeof candidate.pr_url === 'string' &&
     typeof candidate.pr_number === 'number' &&
-    typeof candidate.branch === 'string'
+    typeof candidate.branch === 'string' &&
+    typeof candidate.head_sha === 'string'
   )
+}
+
+function contributionForm(dismissedWarnings: string[], archive: File): FormData {
+  const form = new FormData()
+  form.append('file', archive)
+  form.append('dismissed_warnings', JSON.stringify(dismissedWarnings))
+  return form
 }
 
 export async function postContribution(
   type: Type,
   archive: File,
-  contributor: ContributorInfo,
   dismissedWarnings: string[]
 ): Promise<ContributionResult> {
-  const form = new FormData()
-  form.append('file', archive)
-  form.append('contributor_name', contributor.name)
-  form.append('contributor_email', contributor.email)
-  form.append('institution', contributor.institution)
-  form.append('orcid', contributor.orcid)
-  form.append('dismissed_warnings', JSON.stringify(dismissedWarnings))
+  const form = contributionForm(dismissedWarnings, archive)
   const { data } = await axiosInstance.post(`${baseUrl}/contributions`, form, {
     params: { type }
   })
@@ -55,31 +62,24 @@ export async function postContribution(
   return data
 }
 
-const CONTRIBUTOR_STORAGE_KEY = 'resslab.contributor'
-
-/** Remembered contributor details, so repeat submissions start prefilled. */
-export function loadContributor(): ContributorInfo {
-  try {
-    const raw = localStorage.getItem(CONTRIBUTOR_STORAGE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      return {
-        name: String(parsed.name ?? ''),
-        email: String(parsed.email ?? ''),
-        institution: String(parsed.institution ?? ''),
-        orcid: String(parsed.orcid ?? '')
-      }
-    }
-  } catch {
-    // Corrupt or unavailable storage falls through to a blank form.
+/**
+ * Push the batch again on an open submission's own branch.
+ *
+ * `target.headSha` is the commit the editor loaded: the server refuses the
+ * update (409) when the branch moved since, rather than overwriting whoever
+ * pushed in between. It also refuses (403) a submission made from another
+ * account.
+ */
+export async function putContribution(
+  archive: File,
+  target: EditTarget,
+  dismissedWarnings: string[]
+): Promise<ContributionResult> {
+  const form = contributionForm(dismissedWarnings, archive)
+  form.append('head_sha', target.headSha)
+  const { data } = await axiosInstance.put(`${baseUrl}/contributions/${target.prNumber}`, form)
+  if (!isContributionResult(data)) {
+    throw new Error('Unexpected submission response shape.')
   }
-  return { name: '', email: '', institution: '', orcid: '' }
-}
-
-export function saveContributor(contributor: ContributorInfo): void {
-  try {
-    localStorage.setItem(CONTRIBUTOR_STORAGE_KEY, JSON.stringify(contributor))
-  } catch {
-    // Private-mode storage errors are not worth surfacing.
-  }
+  return data
 }

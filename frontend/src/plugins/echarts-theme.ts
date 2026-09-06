@@ -29,7 +29,7 @@ export const AXIS = '#c1c1c1' // hairline axis line
 const GRID = '#ececec' // very light gridline
 export const TICK = '#8e8e8e' // tick label ink
 export const NAME = '#6e6e73' // muted axis-name ink (uniform across every chart)
-const INK = '#212121' // soft black
+export const INK = '#212121' // soft black
 // Undifferentiated "density" ink for many-line charts where hue carries no
 // information (the parallel-coordinates hairball).
 export const INK_SLATE = '#5b6b78'
@@ -56,6 +56,20 @@ export const echartsTheme = {
   color: SERIES,
   backgroundColor: 'transparent',
   textStyle: { fontFamily: SANS },
+
+  // A tooltip is raw DOM hung outside the chart, so Vuetify's square-corner /
+  // no-shadow rules in app.css never reach it and it keeps ECharts' rounded,
+  // drop-shadowed, system-font default. Restate the house style here, where
+  // every chart in the app picks it up: flat, hairline-bordered, Suisse.
+  tooltip: {
+    backgroundColor: '#fff',
+    borderColor: AXIS,
+    borderWidth: 1,
+    borderRadius: 0,
+    padding: [8, 10],
+    textStyle: { color: INK, fontFamily: SANS, fontSize: 12 },
+    extraCssText: 'box-shadow: none;'
+  },
 
   // Snappy filter updates: a short, linear transition instead of ECharts' default
   // ~1s elasticOut ENTER animation, which (under setOption notMerge) replayed in

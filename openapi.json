@@ -112,6 +112,11 @@
       "post": {
         "summary": "Validate Data",
         "operationId": "validate_data",
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ],
         "parameters": [
           {
             "name": "type",
@@ -187,6 +192,302 @@
         ]
       }
     },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Get Me",
+        "description": "Who is signed in, if anyone.\n\n200 with a null user when nobody is, rather than 401: the SPA asks on\nevery page load, and an anonymous visitor is not an error.",
+        "operationId": "get_me",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/email/start": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Start Email Login",
+        "description": "Mail a sign-in code (and a link that does the same) to an address.",
+        "operationId": "start_email_login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailStartResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/email/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Verify Email Login",
+        "description": "Finish a mail sign-in, with the typed code or the mailed link.",
+        "operationId": "verify_email_login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Logout",
+        "description": "Sign out. Idempotent, so a stale cookie is not an error.",
+        "operationId": "logout",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/auth/identities": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "List Identities",
+        "operationId": "list_identities",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IdentityOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Identities Auth Identities Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/identities/{identity_id}": {
+      "delete": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Delete Identity",
+        "description": "Unlink a provider.\n\nNot the last one, it would lock the account. And not ``email``: the\naccount is found by its address, so whoever proves the address gets in\nwhatever this table says, and removing the row would only pretend\notherwise.",
+        "operationId": "delete_identity",
+        "parameters": [
+          {
+            "name": "identity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/github/start": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Start Github Login",
+        "description": "Send the browser to GitHub, to sign in or to link an account.",
+        "operationId": "start_github_login",
+        "parameters": [
+          {
+            "name": "redirect_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "/",
+              "title": "Redirect To"
+            }
+          },
+          {
+            "name": "link",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Link"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/github/callback": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Finish Github Login",
+        "description": "Come back from GitHub: sign the person in, or link the account.\n\nAlways a redirect into the SPA, with ``?error=<slug>`` when something went\nwrong: the browser lands here by navigation and cannot render JSON.",
+        "operationId": "finish_github_login",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Code"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "State"
+            }
+          },
+          {
+            "name": "error",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Error"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/contributions": {
       "post": {
         "summary": "Create Contribution",
@@ -254,6 +555,54 @@
       }
     },
     "/contributions/{pr_number}": {
+      "put": {
+        "summary": "Update Open Contribution",
+        "description": "Replace an open submission's batch with a new commit on its own branch.\nThe pull request updates and its checks rerun; no second review is opened.\n\nAnswers 403 when the submission was made from another account, and 409\nwhen the branch moved since the editor loaded it: reload and make the\nchanges again.",
+        "operationId": "update_open_contribution",
+        "parameters": [
+          {
+            "name": "pr_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pr Number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_update_open_contribution_contributions__pr_number__put"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContributionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      },
       "get": {
         "summary": "Get Contribution",
         "description": "Everything the review screen needs about one submission, reconstructed\nfrom the pull request at its current head commit.",
@@ -6635,30 +6984,6 @@
             "format": "binary",
             "title": "File"
           },
-          "contributor_name": {
-            "type": "string",
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Contributor Name"
-          },
-          "contributor_email": {
-            "type": "string",
-            "maxLength": 200,
-            "minLength": 3,
-            "title": "Contributor Email"
-          },
-          "institution": {
-            "type": "string",
-            "maxLength": 200,
-            "title": "Institution",
-            "default": ""
-          },
-          "orcid": {
-            "type": "string",
-            "maxLength": 50,
-            "title": "Orcid",
-            "default": ""
-          },
           "dismissed_warnings": {
             "type": "string",
             "title": "Dismissed Warnings",
@@ -6667,9 +6992,7 @@
         },
         "type": "object",
         "required": [
-          "file",
-          "contributor_name",
-          "contributor_email"
+          "file"
         ],
         "title": "Body_create_contribution_contributions_post"
       },
@@ -6686,6 +7009,32 @@
           "file"
         ],
         "title": "Body_create_upload_file_upload_post"
+      },
+      "Body_update_open_contribution_contributions__pr_number__put": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "head_sha": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 40,
+            "title": "Head Sha"
+          },
+          "dismissed_warnings": {
+            "type": "string",
+            "title": "Dismissed Warnings",
+            "default": "[]"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "head_sha"
+        ],
+        "title": "Body_update_open_contribution_contributions__pr_number__put"
       },
       "Body_validate_data_validate_post": {
         "properties": {
@@ -10900,13 +11249,18 @@
           "branch": {
             "type": "string",
             "title": "Branch"
+          },
+          "head_sha": {
+            "type": "string",
+            "title": "Head Sha"
           }
         },
         "type": "object",
         "required": [
           "pr_url",
           "pr_number",
-          "branch"
+          "branch",
+          "head_sha"
         ],
         "title": "ContributionResponse",
         "description": "The pull request opened on the data repository for a submission."
@@ -11018,6 +11372,11 @@
           "orcid": {
             "type": "string",
             "title": "Orcid",
+            "default": ""
+          },
+          "github_login": {
+            "type": "string",
+            "title": "Github Login",
             "default": ""
           }
         },
@@ -11133,6 +11492,11 @@
               }
             ],
             "title": "Reconstruction Warning"
+          },
+          "mine": {
+            "type": "boolean",
+            "title": "Mine",
+            "default": false
           }
         },
         "type": "object",
@@ -11381,6 +11745,11 @@
           "nullable": {
             "type": "boolean",
             "title": "Nullable"
+          },
+          "group": {
+            "type": "string",
+            "title": "Group",
+            "default": ""
           }
         },
         "type": "object",
@@ -13377,6 +13746,78 @@
         ],
         "title": "EccentricBracedFrameNumberField"
       },
+      "EmailStartRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "redirect_to": {
+            "type": "string",
+            "title": "Redirect To",
+            "default": "/"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "EmailStartRequest"
+      },
+      "EmailStartResponse": {
+        "properties": {
+          "sent": {
+            "type": "boolean",
+            "title": "Sent",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "EmailStartResponse",
+        "description": "Always the same answer, so nobody can probe for existing accounts."
+      },
+      "EmailVerifyRequest": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 12
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "challenge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Challenge"
+          },
+          "token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "title": "EmailVerifyRequest",
+        "description": "Either the typed code (with the login cookie), or the mailed pair."
+      },
       "ExtendedPage_BraceModel_": {
         "properties": {
           "items": {
@@ -14724,6 +15165,29 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "IdentityOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "handle": {
+            "type": "string",
+            "title": "Handle"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "provider",
+          "handle"
+        ],
+        "title": "IdentityOut"
+      },
       "Info": {
         "properties": {
           "name": {
@@ -14859,14 +15323,13 @@
           "ca",
           "h",
           "fe",
-          "file",
           "reference",
           "link",
           "latitude",
           "longitude",
           "citekey",
           "uvc_phi__prct_",
-          "uvc_e__mpa_",
+          "uvc_e__gpa_",
           "uvc_sigma__mpa_",
           "uvc_q__mpa_",
           "uvc_b",
@@ -15388,17 +15851,6 @@
             ],
             "title": "Fe"
           },
-          "file": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "File"
-          },
           "reference": {
             "anyOf": [
               {
@@ -15465,7 +15917,7 @@
             ],
             "title": "Uvc Phi  Prct"
           },
-          "uvc_e__mpa_": {
+          "uvc_e__gpa_": {
             "anyOf": [
               {
                 "type": "number"
@@ -15474,7 +15926,7 @@
                 "type": "null"
               }
             ],
-            "title": "Uvc E  Mpa"
+            "title": "Uvc E  Gpa"
           },
           "uvc_sigma__mpa_": {
             "anyOf": [
@@ -15714,14 +16166,13 @@
           "ca",
           "h",
           "fe",
-          "file",
           "reference",
           "link",
           "latitude",
           "longitude",
           "citekey",
           "uvc_phi__prct_",
-          "uvc_e__mpa_",
+          "uvc_e__gpa_",
           "uvc_sigma__mpa_",
           "uvc_q__mpa_",
           "uvc_b",
@@ -15791,7 +16242,7 @@
           "latitude",
           "longitude",
           "uvc_phi__prct_",
-          "uvc_e__mpa_",
+          "uvc_e__gpa_",
           "uvc_sigma__mpa_",
           "uvc_q__mpa_",
           "uvc_b",
@@ -15849,6 +16300,23 @@
           "data"
         ],
         "title": "MatrixModel"
+      },
+      "MeResponse": {
+        "properties": {
+          "user": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "MeResponse",
+        "description": "``GET /auth/me``. ``user`` is null when nobody is signed in.\n\nNot a 401: every page load asks, and the app logs each HTTPException as an\nerror. An anonymous visitor is a normal answer, not a failure."
       },
       "RangeModel": {
         "properties": {
@@ -17069,6 +17537,73 @@
         ],
         "title": "Type"
       },
+      "UserOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "email_verified": {
+            "type": "boolean",
+            "title": "Email Verified",
+            "default": false
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name",
+            "default": ""
+          },
+          "institution": {
+            "type": "string",
+            "title": "Institution",
+            "default": ""
+          },
+          "orcid": {
+            "type": "string",
+            "title": "Orcid",
+            "default": ""
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "default": "viewer"
+          },
+          "role_source": {
+            "type": "string",
+            "title": "Role Source",
+            "default": "default"
+          },
+          "github_login": {
+            "type": "string",
+            "title": "Github Login",
+            "default": ""
+          },
+          "identities": {
+            "items": {
+              "$ref": "#/components/schemas/IdentityOut"
+            },
+            "type": "array",
+            "title": "Identities",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "UserOut"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -17183,6 +17718,23 @@
           "error_count"
         ],
         "title": "ValidationResponse"
+      },
+      "VerifyResponse": {
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserOut"
+          },
+          "redirect_to": {
+            "type": "string",
+            "title": "Redirect To",
+            "default": "/"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user"
+        ],
+        "title": "VerifyResponse"
       }
     },
     "securitySchemes": {

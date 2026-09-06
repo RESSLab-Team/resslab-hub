@@ -43,39 +43,66 @@ export function inferFieldTypes(rows: Row[]): FieldTypes {
   return types
 }
 
-// Single-entry memo: during a crossfilter drag every chart on a dashboard filters
-// with the SAME query string against the SAME dataset each frame, so remembering
-// the last compiled predicate turns ~9 parses (and regex compiles) per frame into
-// one. Keyed on the exact (query, fieldTypes) pair — fieldTypes is a stable
-// per-dataset object, so an identity check is enough; any other input recompiles.
-let memoQuery: string | undefined
-let memoTypes: FieldTypes | undefined
-let memoPredicate: RowPredicate | undefined
+// Memo capacity. A dashboard drag frame asks for more than one distinct query:
+// every chart and the table filter on the committed query, while the parallel
+// chart strips its own clause (`stripOwned` in composables/chart.ts) and so asks
+// for a second string. A single-entry memo ping-pongs between the two and misses
+// on every call; a handful of slots makes the hit rate order-independent.
+const MEMO_CAPACITY = 8
+
+const TRUE_PREDICATE: RowPredicate = () => true
+
+// Least-recently-used helpers over an insertion-ordered Map: re-inserting on a
+// hit moves the key to the back, so the first key is always the coldest one.
+function lruGet<V>(memo: Map<string, V>, key: string): V | undefined {
+  const hit = memo.get(key)
+  if (hit !== undefined) {
+    memo.delete(key)
+    memo.set(key, hit)
+  }
+  return hit
+}
+
+function lruSet<V>(memo: Map<string, V>, key: string, value: V): void {
+  memo.set(key, value)
+  if (memo.size > MEMO_CAPACITY) memo.delete(memo.keys().next().value as string)
+}
+
+// Compiled-predicate memo: during a crossfilter drag the dashboard re-parses the
+// same few query strings against the same dataset every frame, and parsing is
+// the expensive half (a RegExp per clause). Keyed by fieldTypes identity — a
+// stable per-dataset object — so each dataset gets its own memo and a reloaded
+// one starts empty instead of needing explicit invalidation.
+const predicateMemos = new WeakMap<FieldTypes, Map<string, RowPredicate>>()
 
 /** Compile a query string into a reusable per-row predicate (parsed once). */
 export function compileQuery(query: string | undefined, fieldTypes: FieldTypes): RowPredicate {
-  if (!query) return () => true
-  if (query === memoQuery && fieldTypes === memoTypes && memoPredicate) return memoPredicate
+  if (!query) return TRUE_PREDICATE
+  let memo = predicateMemos.get(fieldTypes)
+  if (!memo) {
+    memo = new Map()
+    predicateMemos.set(fieldTypes, memo)
+  }
+  const cached = lruGet(memo, query)
+  if (cached) return cached
   const clauses = query
     .split(queryFieldSeparator)
     .filter((clause) => clause.length > 0)
     .map((clause) => compileClause(clause, fieldTypes))
   const predicate: RowPredicate = (row) => clauses.every((p) => p(row))
-  memoQuery = query
-  memoTypes = fieldTypes
-  memoPredicate = predicate
+  lruSet(memo, query, predicate)
   return predicate
 }
 
-// Filtered-result memo (single entry, same reasoning as the predicate memo):
-// during a drag frame every chart AND the table filter the same rows with the
-// same query, so remembering the last result turns ~10 O(n) passes per frame
-// into one. Identity-keyed on the rows array; callers never mutate the result
-// (they map/slice/copy-sort it), so sharing one array is safe.
-let memoRows: Row[] | undefined
-let memoFilterQuery: string | undefined
-let memoFilterTypes: FieldTypes | undefined
-let memoFiltered: Row[] | undefined
+// Filtered-result memo (same reasoning as the predicate memo): every chart and
+// the table run the same O(n) pass each frame, so caching the result collapses
+// ~10 passes into one per distinct query. Keyed by rows-array identity, which
+// also makes a dataset reload self-invalidating. Stable identities matter beyond
+// the scan itself: the sort memo in composables/useDataset.ts and the matrix
+// memo in utils/aggregate.ts both key off the array returned here.
+// Callers must never mutate a result — they map/slice/copy-sort it — since up to
+// MEMO_CAPACITY arrays are now shared per dataset.
+const filterMemos = new WeakMap<Row[], { types: FieldTypes; byQuery: Map<string, Row[]> }>()
 
 /** Filter rows by a query string, compiling the predicate once. */
 export function filterRows<T extends Row>(
@@ -84,15 +111,17 @@ export function filterRows<T extends Row>(
   fieldTypes: FieldTypes
 ): T[] {
   if (!query) return rows
-  if (rows === memoRows && query === memoFilterQuery && fieldTypes === memoFilterTypes) {
-    return memoFiltered as T[]
+  let entry = filterMemos.get(rows)
+  // Guard against a caller pairing the same rows with different field types:
+  // drop the cached results rather than returning ones compiled from the old map.
+  if (!entry || entry.types !== fieldTypes) {
+    entry = { types: fieldTypes, byQuery: new Map() }
+    filterMemos.set(rows, entry)
   }
-  const predicate = compileQuery(query, fieldTypes)
-  const filtered = rows.filter(predicate)
-  memoRows = rows
-  memoFilterQuery = query
-  memoFilterTypes = fieldTypes
-  memoFiltered = filtered
+  const cached = lruGet(entry.byQuery, query)
+  if (cached) return cached as T[]
+  const filtered = rows.filter(compileQuery(query, fieldTypes))
+  lruSet(entry.byQuery, query, filtered)
   return filtered
 }
 

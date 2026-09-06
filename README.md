@@ -14,6 +14,7 @@ Prerequisites:
 - [uv](https://docs.astral.sh/uv/) (manages Python automatically)
 - [Make](https://www.gnu.org/software/make/)
 - [Node.js](https://nodejs.org/) ≥ 18 (CI uses the current LTS)
+- [pnpm](https://pnpm.io) 11 (`npm install -g pnpm`), one shared store for every checkout and worktree
 - [Docker](https://www.docker.com/) with the [Compose v2 plugin](https://docs.docker.com/compose/)
 
 ### Secrets
@@ -98,6 +99,18 @@ make api
 ```
 
 ## Deployment
+
+### Environments
+
+| Branch or tag | Deploys to |
+|---|---|
+| `dev` | https://resslab-hub-dev.epfl.ch |
+| `stage` | https://resslab-hub-test.epfl.ch |
+| tag `v*.*.*` | https://resslab-hub.epfl.ch |
+
+Promotion goes `dev` -> `stage` -> `main`, and Release Please tags `main`. The
+steps, and the rules that make them work, are in
+[docs/releasing.md](docs/releasing.md).
 
 ### Locally with Docker Compose
 

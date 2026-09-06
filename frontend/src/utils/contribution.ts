@@ -10,8 +10,11 @@ export interface ContributionDatabase {
   /** i18n namespace holding this database's field labels. */
   namespace: string
   /**
-   * The backend's `validate_one_file` has no branch for these types and raises
-   * `NotImplementedError`, which surfaces as a 500. Skip the request instead.
+   * Whether `POST /validate` knows this database. Every database has a
+   * validator since resslab-hub#243, so this is true everywhere today; it
+   * stays as the switch for a new tab whose validator is not written yet
+   * (`validate_one_file` raises `NotImplementedError`, which surfaces as a
+   * 500, so the frontend must skip the request rather than send it).
    */
   qualityCheckSupported: boolean
 }
@@ -57,7 +60,7 @@ export const CONTRIBUTION_DATABASES: Record<DatabaseId, ContributionDatabase> = 
     type: Type.AllEccentricBracedFrames,
     csvPath: 'eccentric_braced_frames/eccentric_braced_frames.csv',
     namespace: 'ebf',
-    qualityCheckSupported: false
+    qualityCheckSupported: true
   },
   tensile: {
     type: Type.AllTensileCoupons,
@@ -69,7 +72,7 @@ export const CONTRIBUTION_DATABASES: Record<DatabaseId, ContributionDatabase> = 
     type: Type.AllDuctileFractures,
     csvPath: 'material/ductile_fracture/ductile_fracture.csv',
     namespace: 'ductile_fracture',
-    qualityCheckSupported: false
+    qualityCheckSupported: true
   }
 }
 

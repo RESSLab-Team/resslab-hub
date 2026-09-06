@@ -22,7 +22,7 @@ MAX_AGE = 123
 def make_app() -> tuple[TestClient, dict]:
     app = FastAPI()
     app.add_middleware(HTTPCacheMiddleware, max_age=MAX_AGE)
-    calls = {"connections": 0}
+    calls = {"connections": 0, "contributions": 0}
 
     @app.get("/connections/")
     def list_connections(query: str = ""):
@@ -40,6 +40,24 @@ def make_app() -> tuple[TestClient, dict]:
     @app.get("/healthz")
     def healthz():
         return {"status": "ok"}
+
+    @app.get("/contributions/{number}")
+    def get_contribution(number: int):
+        calls["contributions"] += 1
+        return {"pr_number": number, "head_sha": "abc"}
+
+    # Per-user answers (#247): they must never reach the shared body cache.
+    @app.get("/auth/me")
+    def me():
+        return {"user": None}
+
+    @app.get("/account")
+    def account():
+        return {"display_name": ""}
+
+    @app.get("/admin/users")
+    def admin_users():
+        return []
 
     return TestClient(app), calls
 
@@ -76,11 +94,35 @@ def test_bumped_data_version_serves_fresh_content():
 
 def test_non_json_and_excluded_paths_are_not_cached():
     client, _ = make_app()
-    for path in ("/connections/csv", "/analytics/users", "/healthz"):
+    for path in (
+        "/connections/csv",
+        "/analytics/users",
+        "/healthz",
+        # Signed-in answers: the cache is keyed on the URL alone and marks what
+        # it stores `public`, so caching these would hand one person's account
+        # to the next visitor.
+        "/auth/me",
+        "/account",
+        "/admin/users",
+    ):
         response = client.get(path)
         assert response.status_code == 200
         assert "cache-control" not in response.headers, path
         assert "etag" not in response.headers, path
+
+
+def test_contributions_are_never_cached():
+    """Submissions live on GitHub and move on their own (#321).
+
+    A cached copy would show a submission that changed or closed since, and
+    the editor would build its update on a head commit that no longer exists.
+    """
+    client, calls = make_app()
+    first = client.get("/contributions/7")
+    second = client.get("/contributions/7")
+    assert calls["contributions"] == 2  # the endpoint ran both times
+    assert "cache-control" not in first.headers
+    assert "etag" not in second.headers
 
 
 def test_repeat_get_is_served_from_body_cache_without_running_endpoint():

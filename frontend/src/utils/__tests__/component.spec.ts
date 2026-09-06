@@ -3,6 +3,8 @@ import {
   getColumnImage,
   getColumnMapImage,
   getConnectionSpecimenImage,
+  getConnectionTypeImage,
+  getDuctileFractureSpecimenImage,
   getEbfImage,
   getHSSColumnImage,
   getResidualStressImage
@@ -29,6 +31,24 @@ describe('component.getConnectionSpecimenImage', () => {
 
   it('returns an empty string for an unknown specimen type', () => {
     expect(getConnectionSpecimenImage('something else')).toBe('')
+  })
+})
+
+describe('component.getConnectionTypeImage', () => {
+  it('slugs the connection type into its sketch', () => {
+    expect(getConnectionTypeImage('WUF-W')).toMatch(/img\/connection-type\/wuf-w\.svg$/)
+    expect(getConnectionTypeImage('RBS')).toMatch(/img\/connection-type\/rbs\.svg$/)
+  })
+})
+
+describe('component.getDuctileFractureSpecimenImage', () => {
+  it('maps each specimen geometry to its sketch', () => {
+    expect(getDuctileFractureSpecimenImage('CNT')).toMatch(/img\/ductile-fracture\/cnt\.png$/)
+    expect(getDuctileFractureSpecimenImage('GP')).toMatch(/img\/ductile-fracture\/gp\.png$/)
+  })
+
+  it('has no sketch for an unknown geometry', () => {
+    expect(getDuctileFractureSpecimenImage('DEMO-SPEC-01')).toBeUndefined()
   })
 })
 

@@ -128,7 +128,7 @@ validator, not to stand in for real data.
 
 ## Using them in the UI
 
-1. Start the backend, database and `npm run dev`.
+1. Start the backend, database and `pnpm run dev`.
 2. Go to `/contribute/new` and pick the matching database.
 3. Drop the `sample-data/<db>/` folder on the editor (or **Choose a folder**,
    or zip it and drop the zip) → 15 experiment cards with every curve file

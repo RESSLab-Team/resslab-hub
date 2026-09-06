@@ -15,7 +15,7 @@ import tarfile
 from resslab_hub.data.uploader import Type, upload_one
 from resslab_hub.models.database.brace import Brace
 from resslab_hub.models.database.material import Material
-from tests.conftest import write_main_csv, write_measurement_csv
+from tests.conftest import SERVICE_AUTH, write_main_csv, write_measurement_csv
 
 
 def _seed_braces(tmp_path):
@@ -153,13 +153,17 @@ async def test_materials_date_range(client, tmp_path):
     response = await client.get("/materials/date-range", params={"field": "date"})
     assert response.status_code == 200
     body = response.json()
-    # Both fixture rows default to 01.01.20 -> 2020-01-01.
+    # Both fixture rows default to 01.01.2020.
     assert body["min"] == "2020-01-01"
     assert body["max"] == "2020-01-01"
 
 
 # ---------------------------------------------------------------------------
 # /validate — structured response + archive hardening
+#
+# These calls carry the machine credential, which is how the data repository's
+# validation workflow reaches this endpoint. The contributor's way in (a
+# session cookie) is covered in test_auth_flow.py.
 # ---------------------------------------------------------------------------
 def _braces_targz(tmp_path, rows) -> bytes:
     """A gzipped tar holding only the primary braces CSV (no DB needed)."""
@@ -178,7 +182,10 @@ def _upload(field_bytes, filename="c.tar.gz"):
 async def test_validate_valid_archive_returns_200_structured(client, tmp_path):
     archive = _braces_targz(tmp_path, [{"id": "B1"}, {"id": "B2"}])
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(archive)
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(archive),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 200
     body = response.json()
@@ -197,7 +204,10 @@ async def test_validate_invalid_data_is_200_with_structured_issue(client, tmp_pa
     # transport error, so it comes back as 200 valid=false.
     archive = _braces_targz(tmp_path, [{"id": "B1", "area": "not-a-number"}])
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(archive)
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(archive),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 200
     body = response.json()
@@ -214,14 +224,20 @@ async def test_validate_rejects_path_traversal(client, tmp_path):
         info.size = 1
         tar.addfile(info, io.BytesIO(b"x"))
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(buffer.getvalue())
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(buffer.getvalue()),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 400
 
 
 async def test_validate_rejects_non_archive(client, tmp_path):
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(b"not a tar")
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(b"not a tar"),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 400
 
@@ -241,7 +257,10 @@ async def test_validate_ignores_dictionary_files(client, tmp_path):
         info.size = len(dictionary)
         tar.addfile(info, io.BytesIO(dictionary))
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(buffer.getvalue())
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(buffer.getvalue()),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 200
     body = response.json()
@@ -251,7 +270,7 @@ async def test_validate_ignores_dictionary_files(client, tmp_path):
 
 async def test_validate_surfaces_range_warnings(client, tmp_path):
     # Seed enough braces that "the norm" is established, then validate an
-    # outlier: it must warn (please-verify) while remaining valid.
+    # outlier: it must warn (far outside the range) while remaining valid.
     seed_path = tmp_path / "seed.csv"
     write_main_csv(
         seed_path,
@@ -262,15 +281,20 @@ async def test_validate_surfaces_range_warnings(client, tmp_path):
 
     archive = _braces_targz(tmp_path, [{"id": "NEW", "area": "10000"}])
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(archive)
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(archive),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 200
     body = response.json()
     assert body["valid"] is True
     warnings = body["results"][0]["warnings"]
-    assert any(w["column"] == "area" and "verify" in w["message"] for w in warnings)
+    assert any(
+        w["column"] == "area" and "Far outside" in w["message"] for w in warnings
+    )
     # Legacy arrays still carry the same information for the data-repo CI.
-    assert any("verify" in w for w in body["valid_results"][0]["warnings"])
+    assert any("Far outside" in w for w in body["valid_results"][0]["warnings"])
 
 
 async def test_readme_endpoint_serves_uploaded_markdown(client, tmp_path):
@@ -307,7 +331,10 @@ async def test_validate_ignores_readme_files(client, tmp_path):
         info.size = len(readme)
         tar.addfile(info, io.BytesIO(readme))
     response = await client.post(
-        "/validate", params={"type": "all-braces"}, files=_upload(buffer.getvalue())
+        "/validate",
+        params={"type": "all-braces"},
+        files=_upload(buffer.getvalue()),
+        auth=SERVICE_AUTH,
     )
     assert response.status_code == 200
     assert response.json()["valid"] is True
@@ -321,9 +348,9 @@ async def test_dictionary_endpoint_groups_by_database(client, tmp_path):
 
     file_path = tmp_path / "steel_braces_data_dictionary.csv"
     file_path.write_text(
-        "column_name,description,symbol,unit,type,example_value,nullable\n"
-        "id,Unique identifier,,-,String,B1,False\n"
-        "area,Cross-section area,A,mm2,DecimalFloat,120.5,True\n",
+        "column_name,description,symbol,unit,type,example_value,nullable,group\n"
+        "id,Unique identifier,,-,String,B1,False,Experimental program details\n"
+        "area,Cross-section area,A,mm2,DecimalFloat,120.5,True,Section properties\n",
         encoding="utf-8",
     )
     upload(Type.DICTIONARY, str(file_path))
@@ -340,6 +367,7 @@ async def test_dictionary_endpoint_groups_by_database(client, tmp_path):
             "type": "String",
             "example": "B1",
             "nullable": False,
+            "group": "Experimental program details",
         },
         {
             "name": "area",
@@ -349,5 +377,6 @@ async def test_dictionary_endpoint_groups_by_database(client, tmp_path):
             "type": "DecimalFloat",
             "example": "120.5",
             "nullable": True,
+            "group": "Section properties",
         },
     ]

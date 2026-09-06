@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CountModel } from '@/backend'
-import { measureTextWidth } from '@/components/commons/charts/utils'
+import { buildAxisTooltipFormatter, measureTextWidth } from '@/components/commons/charts/utils'
 import { useEChart, type LegendSelectChangedParams } from '@/composables/useEChart'
 import DateDistributionBrush from '@/components/commons/sliders/DateDistributionBrush.vue'
 import DistributionBrush, {
@@ -216,10 +216,18 @@ const secondDomain = computed<string[]>(() => categoryDomain(props.allCounts, 1)
 const colorFor = computed<ColorScale>(
   () => props.colorFor ?? categoryColorScale(secondDomain.value)
 )
+// Rank of each category in the stable unfiltered order. Computed, not rebuilt
+// inside buildOption: the domain is filter-independent, so a drag would
+// otherwise re-allocate this map on every frame.
+const domainIndex = computed<Map<string, number>>(
+  () => new Map(secondDomain.value.map((key, index) => [key, index]))
+)
 // The brush overview replicates the main chart's stacked series — same category
-// order, same colours, same counting — but built from the stable unfiltered
-// allCounts so it never collapses as filters apply. When nothing is filtered,
-// allCounts === counts, so the brush is pixel-for-pixel the chart's distribution.
+// order, same colours, but built from the stable unfiltered allCounts so it
+// never collapses as filters apply. For bars the counting matches too, so with
+// no filter the brush is pixel-for-pixel the chart's distribution. For line
+// charts it does not: the chart draws a cumulative curve, the brush stays a
+// plain per-x distribution, which is what you want to pick a range from.
 const brushSecondKeys = secondDomain
 const brushColors = computed<string[]>(() => brushSecondKeys.value.map(colorFor.value))
 // Unique sorted x positions (numeric values / day numbers) across all series, so
@@ -324,7 +332,7 @@ function buildOption(countsData: CountModel[]): EChartsOption {
   const countMap = buildCountMap(countsData)
   // Keys present in the (filtered) data, in the stable unfiltered order; a key
   // missing from allCounts (still loading) falls back to its filtered rank.
-  const domainIndex = new Map(secondDomain.value.map((key, index) => [key, index]))
+  const rankOf = domainIndex.value
   const secondKeys: string[] = chain(countsData)
     .groupBy((count) => count.names[1])
     .map((values, key) => ({
@@ -332,7 +340,7 @@ function buildOption(countsData: CountModel[]): EChartsOption {
       value: values.reduce((total, count) => total + count.value, 0)
     }))
     .sortBy(
-      (item) => domainIndex.get(item.key) ?? Number.MAX_SAFE_INTEGER,
+      (item) => rankOf.get(item.key) ?? Number.MAX_SAFE_INTEGER,
       (item) => -item.value,
       (item) => item.key
     )
@@ -422,7 +430,10 @@ function buildOption(countsData: CountModel[]): EChartsOption {
       axisPointer: {
         type: props.type === 'bar' ? 'shadow' : undefined
       },
-      confine: true
+      confine: true,
+      // Square colour chips per series, matching the rest of the charts —
+      // ECharts' built-in axis marker is a circle with no option to change it.
+      formatter: buildAxisTooltipFormatter()
     },
     series: getSerie(secondKeys, firstKeysValue, countMap).map((serie) => ({
       id: serie.name,

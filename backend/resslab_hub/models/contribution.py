@@ -9,3 +9,6 @@ class ContributionResponse(BaseModel):
     pr_url: str
     pr_number: int
     branch: str
+    #: Commit the submission points at. Send it back when updating the
+    #: submission, so a branch that moved meanwhile is caught.
+    head_sha: str

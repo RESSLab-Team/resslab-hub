@@ -22,9 +22,11 @@ import {
 } from '@/utils/templates'
 import { fileStemFor, timeSeriesKindsFor, type TimeSeriesKind } from '@/utils/timeseries'
 import {
+  mdiAlertCircleOutline,
   mdiAlertOutline,
   mdiBellOffOutline,
   mdiBookOpenPageVariantOutline,
+  mdiCheckCircleOutline,
   mdiChevronRight,
   mdiClose,
   mdiContentCopy,
@@ -33,9 +35,11 @@ import {
   mdiPackageVariantClosed,
   mdiPlus,
   mdiRestore,
-  mdiTrayArrowUp
+  mdiTrayArrowUp,
+  mdiUnfoldLessHorizontal,
+  mdiUnfoldMoreHorizontal
 } from '@mdi/js'
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t, te } = useI18n({ useScope: 'global' })
@@ -67,6 +71,54 @@ const headlineColumns = computed(() => {
   return store.columns.filter((column) => picked.includes(column.name))
 })
 
+// --- Sticky heads ----------------------------------------------------------
+// An experiment head, and the head of the group being filled in, stay pinned
+// while their own content scrolls past, so the title a contributor is reading
+// fields under — and the button that folds it away — are always in reach. A
+// group head pins directly under its card head, so its offset has to follow
+// that head's real height, which grows when the response-type chips wrap on a
+// narrow screen. Every head holds the same shape, so one measurement sizes them
+// all; only a width change can alter it, hence one observer on the list rather
+// than one per card.
+const editorEl = ref<HTMLElement>()
+const cardHeadHeight = ref('44px')
+let headObserver: ResizeObserver | undefined
+
+function measureCardHead(): void {
+  const head = editorEl.value?.querySelector<HTMLElement>('.card-head')
+  if (head) cardHeadHeight.value = `${head.offsetHeight}px`
+}
+
+// The first card carries the measurement, so re-measure whenever the batch (or
+// the database behind the chips) changes under it.
+watch([() => store.rows.length, kinds], async () => {
+  await nextTick()
+  measureCardHead()
+})
+
+onMounted(() => {
+  measureCardHead()
+  if ('ResizeObserver' in window && editorEl.value) {
+    headObserver = new ResizeObserver(measureCardHead)
+    headObserver.observe(editorEl.value)
+  }
+})
+onUnmounted(() => headObserver?.disconnect())
+
+/**
+ * Folding from a pinned head: the content the reader was in vanishes from above
+ * them, which would drop them further down the batch. Hold the head where it
+ * was on screen instead — it also absorbs the reflow when a group opens on the
+ * cards above this one, the groups being shared across cards.
+ */
+async function keepHeadInView(head: HTMLElement | null): Promise<void> {
+  if (!head) return
+  const before = head.getBoundingClientRect().top
+  await nextTick()
+  const after = head.getBoundingClientRect().top
+  if (Math.abs(after - before) > 1) window.scrollBy(0, after - before)
+}
+
 // --- Field groups --------------------------------------------------------
 // The editor used to render one input per column in a single grid, which is 70
 // to 150 inputs for a real database. Same categories as the filter rail, so a
@@ -75,29 +127,47 @@ const columnGroups = computed(() =>
   store.database ? groupBy(store.database, store.columns, (column) => column) : []
 )
 
-const openFieldGroups = ref<Set<FieldGroupId>>(
-  new Set<FieldGroupId>(['experimental_program_details'])
-)
+// Every group starts folded: an open card then shows its problems and its group
+// headings on one screen, and the contributor opens what they need.
+const openFieldGroups = ref<Set<FieldGroupId>>(new Set<FieldGroupId>())
 
-function toggleFieldGroup(id: FieldGroupId): void {
+function toggleFieldGroup(id: FieldGroupId, event?: MouseEvent): void {
   const next = new Set(openFieldGroups.value)
   if (!next.delete(id)) next.add(id)
   openFieldGroups.value = next
+  if (event) void keepHeadInView(event.currentTarget as HTMLElement)
 }
 
-/** Cell problems this row has inside one group, so the head can carry a count.
- *  A draft's "still to fill in" hints are not problems and do not count. */
-function issuesIn(uid: number, columns: { name: string }[]): number {
-  return columns.filter((column) => {
-    const issue = store.cellIssueFor(uid, column.name)
-    return issue && issue.level !== 'todo'
-  }).length
+const allFieldGroupsOpen = computed(
+  () =>
+    columnGroups.value.length > 0 &&
+    columnGroups.value.every((group) => openFieldGroups.value.has(group.id))
+)
+
+function toggleAllFieldGroups(event?: MouseEvent): void {
+  openFieldGroups.value = allFieldGroupsOpen.value
+    ? new Set<FieldGroupId>()
+    : new Set(columnGroups.value.map((group) => group.id))
+  if (event) void keepHeadInView(event.currentTarget as HTMLElement)
 }
 
-/** A group holding a problem is always open: a contributor cannot fix what a
- *  collapsed heading is hiding. */
-function isFieldGroupOpen(uid: number, id: FieldGroupId, columns: { name: string }[]): boolean {
-  return openFieldGroups.value.has(id) || issuesIn(uid, columns) > 0
+/** Cell problems this row has inside one group, by level, so the head carries
+ *  the same counts as the card. A draft's "still to fill in" hints do not
+ *  count. Clicking a problem opens the group it points at, so a folded heading
+ *  never hides a cell the contributor has to fix. */
+function issuesIn(uid: number, columns: { name: string }[], level: 'error' | 'warn'): number {
+  return columns.filter((column) => store.cellIssueFor(uid, column.name)?.level === level).length
+}
+
+/** The count in a group head is a shortcut to its first problem of that level:
+ *  one warning behind a folded heading is then one click away, without opening
+ *  the group and reading it, or scrolling back to the list on top. */
+function goToGroupIssue(uid: number, columns: { name: string }[], level: 'error' | 'warn'): void {
+  const names = new Set(columns.map((column) => column.name))
+  const issue = store
+    .activeIssuesFor(uid)
+    .find((entry) => entry.level === level && entry.column && names.has(entry.column))
+  if (issue) void goToIssue(uid, issue)
 }
 
 /** Which group a column landed in, for the jump-to-field path below. */
@@ -194,6 +264,10 @@ function toggleDismissed(uid: number): void {
   showDismissed.value = next
 }
 
+function issueCount(uid: number, level: 'error' | 'warn'): number {
+  return store.activeIssuesFor(uid).filter((issue) => issue.level === level).length
+}
+
 const expanded = ref<Set<number>>(new Set())
 
 /** A hand-added experiment opens straight away: there is nothing to see folded. */
@@ -202,7 +276,7 @@ function addExperiment(): void {
   expanded.value = new Set([...expanded.value, uid])
 }
 
-function toggle(uid: number): void {
+function toggle(uid: number, event?: MouseEvent): void {
   const next = new Set(expanded.value)
   if (next.has(uid)) {
     next.delete(uid)
@@ -210,6 +284,7 @@ function toggle(uid: number): void {
     store.settle(uid)
   } else next.add(uid)
   expanded.value = next
+  if (event) void keepHeadInView(event.currentTarget as HTMLElement)
 }
 
 // --- Intake ----------------------------------------------------------------
@@ -344,7 +419,7 @@ function noteFor(kind: TimeSeriesKind): string {
 </script>
 
 <template>
-  <div class="block editor">
+  <div ref="editorEl" class="block editor" :style="{ '--card-head-h': cardHeadHeight }">
     <!-- Section bar: what this block is on the left, its tools on the right. -->
     <div class="block-bar">
       <h2 class="block-h">
@@ -444,17 +519,22 @@ function noteFor(kind: TimeSeriesKind): string {
       :id="`x-${row.uid}`"
       :key="row.uid"
       class="card"
-      :class="[store.levelFor(row.uid), { flashed: flashed === `x-${row.uid}` }]"
+      :class="[
+        store.levelFor(row.uid),
+        { flashed: flashed === `x-${row.uid}`, open: expanded.has(row.uid) }
+      ]"
     >
-      <button class="card-head" type="button" @click="toggle(row.uid)">
+      <button class="card-head" type="button" @click="toggle(row.uid, $event)">
         <v-icon
           class="chevron"
           :class="{ open: expanded.has(row.uid) }"
           :icon="mdiChevronRight"
           size="18"
         />
-        <span v-if="cardState(row.uid) === 'checking'" class="spinner" />
-        <span v-else class="dot" :class="cardState(row.uid)" />
+        <span class="state">
+          <span v-if="cardState(row.uid) === 'checking'" class="spinner" />
+          <span v-else class="dot" :class="cardState(row.uid)" />
+        </span>
         <span class="card-id">
           {{ row.cells.id?.trim() || $t('contribute.editor.untitled', { n: index + 1 }) }}
         </span>
@@ -479,9 +559,21 @@ function noteFor(kind: TimeSeriesKind): string {
         </span>
         <span class="badge" :class="cardState(row.uid)">
           <template v-if="store.activeIssuesFor(row.uid).length">
-            {{
-              $t('contribute.editor.issue_count', { count: store.activeIssuesFor(row.uid).length })
-            }}
+            <span class="issue-counts">
+              <span v-if="issueCount(row.uid, 'error')" class="n error">
+                {{ issueCount(row.uid, 'error') }}<v-icon :icon="mdiAlertCircleOutline" size="13" />
+              </span>
+              <span v-if="issueCount(row.uid, 'warn')" class="n warn">
+                {{ issueCount(row.uid, 'warn') }}<v-icon :icon="mdiAlertOutline" size="13" />
+              </span>
+            </span>
+            <span class="issue-text">
+              {{
+                $t('contribute.editor.issue_count', {
+                  count: store.activeIssuesFor(row.uid).length
+                })
+              }}
+            </span>
           </template>
           <template v-else-if="cardState(row.uid) === 'draft' && store.todoFor(row.uid).length">
             {{ todoLabel(row.uid) }}
@@ -492,7 +584,12 @@ function noteFor(kind: TimeSeriesKind): string {
           <template v-else-if="cardState(row.uid) === 'unchecked'">
             {{ $t('contribute.editor.unchecked') }}
           </template>
-          <template v-else>{{ $t('contribute.editor.clean') }}</template>
+          <template v-else>
+            <span class="issue-counts" :title="$t('contribute.editor.clean')">
+              <span class="n"><v-icon :icon="mdiCheckCircleOutline" size="13" /></span>
+            </span>
+            <span class="issue-text">{{ $t('contribute.editor.clean') }}</span>
+          </template>
         </span>
         <span v-if="store.dismissedIssuesFor(row.uid).length" class="badge muted">
           <v-icon :icon="mdiBellOffOutline" size="13" />
@@ -502,11 +599,22 @@ function noteFor(kind: TimeSeriesKind): string {
 
       <div v-if="expanded.has(row.uid)" class="card-body">
         <div class="card-actions">
-          <button class="btn btn-ghost btn-sm" type="button" @click="store.duplicateRow(row.uid)">
-            <v-icon :icon="mdiContentCopy" size="13" />{{ $t('contribute.editor.duplicate') }}
+          <button class="card-action" type="button" @click="toggleAllFieldGroups($event)">
+            <v-icon
+              :icon="allFieldGroupsOpen ? mdiUnfoldLessHorizontal : mdiUnfoldMoreHorizontal"
+              size="14"
+            />
+            {{
+              allFieldGroupsOpen
+                ? $t('contribute.editor.collapse_groups')
+                : $t('contribute.editor.expand_groups')
+            }}
           </button>
-          <button class="btn btn-ghost btn-sm" type="button" @click="store.removeRow(row.uid)">
-            <v-icon :icon="mdiClose" size="13" />{{ $t('contribute.editor.remove') }}
+          <button class="card-action" type="button" @click="store.duplicateRow(row.uid)">
+            <v-icon :icon="mdiContentCopy" size="14" />{{ $t('contribute.editor.duplicate') }}
+          </button>
+          <button class="card-action danger" type="button" @click="store.removeRow(row.uid)">
+            <v-icon :icon="mdiClose" size="14" />{{ $t('contribute.editor.remove') }}
           </button>
         </div>
 
@@ -603,27 +711,48 @@ function noteFor(kind: TimeSeriesKind): string {
             v-for="group in columnGroups"
             :key="group.id"
             class="field-group"
-            :class="{ open: isFieldGroupOpen(row.uid, group.id, group.items) }"
+            :class="{ open: openFieldGroups.has(group.id) }"
           >
-            <button
-              class="field-group-head"
-              type="button"
-              :aria-expanded="isFieldGroupOpen(row.uid, group.id, group.items)"
-              @click="toggleFieldGroup(group.id)"
-            >
-              <v-icon
-                class="chevron"
-                :class="{ open: isFieldGroupOpen(row.uid, group.id, group.items) }"
-                :icon="mdiChevronRight"
-                size="14"
-              />
-              <span class="field-group-label">{{ $t(`field_group.${group.id}`) }}</span>
-              <span v-if="issuesIn(row.uid, group.items) > 0" class="field-group-issues">
-                {{ issuesIn(row.uid, group.items) }}
+            <div class="field-group-head">
+              <button
+                class="field-group-toggle"
+                type="button"
+                :aria-expanded="openFieldGroups.has(group.id)"
+                @click="toggleFieldGroup(group.id, $event)"
+              >
+                <v-icon
+                  class="chevron"
+                  :class="{ open: openFieldGroups.has(group.id) }"
+                  :icon="mdiChevronRight"
+                  size="14"
+                />
+                <span class="field-group-label">{{ $t(`field_group.${group.id}`) }}</span>
+              </button>
+              <span class="issue-counts">
+                <button
+                  v-if="issuesIn(row.uid, group.items, 'error')"
+                  class="n error"
+                  type="button"
+                  :title="$t('contribute.editor.go_to_issue')"
+                  @click="goToGroupIssue(row.uid, group.items, 'error')"
+                >
+                  {{ issuesIn(row.uid, group.items, 'error')
+                  }}<v-icon :icon="mdiAlertCircleOutline" size="12" />
+                </button>
+                <button
+                  v-if="issuesIn(row.uid, group.items, 'warn')"
+                  class="n warn"
+                  type="button"
+                  :title="$t('contribute.editor.go_to_issue')"
+                  @click="goToGroupIssue(row.uid, group.items, 'warn')"
+                >
+                  {{ issuesIn(row.uid, group.items, 'warn')
+                  }}<v-icon :icon="mdiAlertOutline" size="12" />
+                </button>
               </span>
               <span class="field-group-count">{{ group.items.length }}</span>
-            </button>
-            <div v-if="isFieldGroupOpen(row.uid, group.id, group.items)" class="fields">
+            </div>
+            <div v-if="openFieldGroups.has(group.id)" class="fields">
               <div
                 v-for="column in group.items"
                 :key="column.name"
@@ -962,12 +1091,24 @@ function noteFor(kind: TimeSeriesKind): string {
   font-style: italic;
 }
 
+/* How far down the viewport a pinned head has to start: above the mobile
+   breakpoint the sidebar is the chrome and nothing overlays the page, below it
+   the app header owns the first 56px (`.mhdr` in assets/styles/app.css). */
+.editor {
+  --stick-top: 0px;
+}
+@media (max-width: 1023px) {
+  .editor {
+    --stick-top: 56px;
+  }
+}
+
 .card {
   border: 1px solid var(--border);
   border-left: 3px solid var(--border-strong);
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   background: var(--bg);
-  scroll-margin-top: 12px;
+  scroll-margin-top: calc(var(--stick-top) + 12px);
 }
 .card:last-of-type {
   margin-bottom: 0;
@@ -983,17 +1124,25 @@ function noteFor(kind: TimeSeriesKind): string {
    headline columns then line up from one card to the next, and the verdict
    badge always ends at the same right edge. */
 .card-head {
+  position: sticky;
+  top: var(--stick-top);
+  z-index: 2;
   display: grid;
-  grid-template-columns: 18px 9px minmax(0, 220px) minmax(0, 1fr) auto auto auto;
+  grid-template-columns: 18px minmax(0, 220px) minmax(0, 1fr) auto auto auto;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
-  padding: 13px 16px;
+  padding: 9px 14px;
   border: none;
-  background: transparent;
+  /* Opaque, and carrying the body's top rule while pinned: the fields have to
+     pass under a line rather than under a floating title. */
+  background: var(--bg);
   font: inherit;
   text-align: left;
   cursor: pointer;
+}
+.card.open .card-head {
+  border-bottom: 1px solid var(--border-subtle);
 }
 .card-head:hover {
   background: var(--bg-subtle);
@@ -1003,6 +1152,11 @@ function noteFor(kind: TimeSeriesKind): string {
 }
 .chevron.open {
   transform: rotate(90deg);
+}
+/* The status dot only shows on the roomy layout: the left border and the
+   counts already say the same thing, and "Checking…" is in the badge. */
+.state {
+  display: none;
 }
 .dot {
   width: 9px;
@@ -1049,7 +1203,8 @@ function noteFor(kind: TimeSeriesKind): string {
   }
 }
 .card-id {
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1067,7 +1222,7 @@ function noteFor(kind: TimeSeriesKind): string {
   min-width: 0;
 }
 .headline-item .k {
-  font-size: 10.5px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--fg-muted);
@@ -1076,7 +1231,7 @@ function noteFor(kind: TimeSeriesKind): string {
   white-space: nowrap;
 }
 .headline-item .v {
-  font-size: 13px;
+  font-size: 12.5px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1084,9 +1239,6 @@ function noteFor(kind: TimeSeriesKind): string {
 .badge {
   font-size: 12px;
   font-weight: 600;
-  /* Reserved width: the label swaps between "No issues", "Checking…" and an
-     issue count, and the headline next to it would reflow on every change. */
-  min-width: 8em;
   text-align: right;
   color: var(--epfl-green-text);
 }
@@ -1110,12 +1262,32 @@ function noteFor(kind: TimeSeriesKind): string {
   color: var(--fg-muted);
   font-weight: 400;
 }
+/* "1 (!) 4 (⚠)": a count per level, the icon says which, and a lone green tick
+   when there is none. The words are for the roomy layout only. */
+.issue-counts {
+  display: inline-flex;
+  gap: 8px;
+}
+.issue-counts .n {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.issue-counts .n.error {
+  color: var(--epfl-red);
+}
+.issue-counts .n.warn {
+  color: var(--epfl-orange);
+}
+.issue-text {
+  display: none;
+}
 /* Laptop and below: the headline columns no longer fit beside the identifier
    and the verdict, so they drop rather than squeeze to two characters. */
 @media (max-width: 1023px) {
   .card-head {
-    grid-template-columns: 18px 9px minmax(0, 1fr) auto auto auto;
-    gap: 12px;
+    grid-template-columns: 18px minmax(0, 1fr) auto auto auto;
   }
   .headline {
     display: none;
@@ -1204,21 +1376,49 @@ function noteFor(kind: TimeSeriesKind): string {
 }
 
 .card-body {
-  padding: 16px;
-  border-top: 1px solid var(--border-subtle);
+  padding: 12px 14px;
 }
+/* One strip of card chrome, right under the head: the view control on the left,
+   the row actions on the right. Full bleed, so it reads as part of the card and
+   not as two buttons floating over an empty line. */
 .card-actions {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-bottom: 4px;
+  align-items: center;
+  gap: 2px;
+  margin: -12px -14px 10px;
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+}
+.card-actions .card-action:first-child {
+  margin-right: auto;
+}
+.card-action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color var(--t-fast);
+}
+.card-action:hover {
+  color: var(--fg);
+}
+.card-action.danger:hover {
+  color: var(--epfl-red);
 }
 .card-section + .card-section {
-  margin-top: 22px;
+  margin-top: 16px;
 }
 .card-section h3 {
   padding-bottom: 6px;
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   border-bottom: 1px solid var(--border-subtle);
   font-size: 11px;
   font-weight: 700;
@@ -1231,8 +1431,8 @@ function noteFor(kind: TimeSeriesKind): string {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: 4px;
-  font-size: 13px;
+  margin-bottom: 2px;
+  font-size: 12.5px;
 }
 .issue.error {
   color: var(--epfl-red);
@@ -1250,7 +1450,7 @@ function noteFor(kind: TimeSeriesKind): string {
   gap: 6px;
   flex: 1;
   min-width: 0;
-  padding: 3px 6px;
+  padding: 2px 4px;
   border: none;
   background: transparent;
   color: inherit;
@@ -1331,22 +1531,38 @@ function noteFor(kind: TimeSeriesKind): string {
 .field-group + .field-group {
   margin-top: 4px;
 }
+/* Pinned right under the card head it belongs to, and only for as long as its
+   own fields are on screen — the next group's head takes over from there. */
 .field-group-head {
+  position: sticky;
+  top: calc(var(--stick-top) + var(--card-head-h, 44px));
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
   padding: 7px 8px;
-  background: none;
-  border: 0;
+  background: var(--bg);
   border-radius: 4px;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
   color: var(--fg);
 }
 .field-group-head:hover {
   background: var(--bg-subtle);
+}
+/* The heading folds, the counts beside it jump to a problem, so they are two
+   buttons and not one. The toggle takes the whole free width all the same. */
+.field-group-toggle {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 .field-group-head .chevron {
   flex: 0 0 auto;
@@ -1370,36 +1586,39 @@ function noteFor(kind: TimeSeriesKind): string {
   font-variant-numeric: tabular-nums;
   color: var(--fg-muted);
 }
-.field-group-issues {
+.field-group-head .issue-counts {
   flex: 0 0 auto;
-  min-width: 16px;
-  padding: 0 5px;
-  border-radius: 8px;
-  background: var(--epfl-red);
-  color: #fff;
-  font-size: 10px;
+  gap: 6px;
+  font-size: 11px;
   font-weight: 600;
-  line-height: 16px;
-  text-align: center;
+}
+.field-group-head .issue-counts .n {
+  padding: 0 2px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+.field-group-head .issue-counts .n:hover {
+  background: var(--bg);
+  text-decoration: underline;
 }
 .field-group.open .fields {
-  padding: 6px 8px 14px;
+  padding: 4px 8px 10px;
 }
 
 .fields {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 14px 20px;
+  gap: 8px 16px;
 }
-/* Labels wrap to two lines for the longer variables. Reserving both lines keeps
-   every input in a row on the same baseline instead of stepping up and down. */
 .field label {
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 2px 5px;
-  min-height: 32px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   font-size: 12.5px;
   font-weight: 600;
   line-height: 1.3;
@@ -1416,7 +1635,7 @@ function noteFor(kind: TimeSeriesKind): string {
 }
 .field input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid var(--border-strong);
   background: var(--bg);
   color: var(--fg);
@@ -1675,5 +1894,80 @@ function noteFor(kind: TimeSeriesKind): string {
   stroke-width: 1.4;
   stroke-linejoin: round;
   stroke-linecap: round;
+}
+
+/* Roomy layout, for screens wider than a laptop: the status dot is back, the
+   verdict is spelled out, and labels reserve two lines so the inputs of a row
+   share a baseline. Everything above is the dense default, which a 13" laptop
+   needs. */
+@media (min-width: 1600px) {
+  .card {
+    margin-bottom: 10px;
+  }
+  .card-head {
+    grid-template-columns: 18px 9px minmax(0, 220px) minmax(0, 1fr) auto auto auto;
+    gap: 14px;
+    padding: 13px 16px;
+  }
+  .state {
+    display: flex;
+  }
+  .card-id {
+    font-size: inherit;
+    font-weight: 700;
+  }
+  .headline-item .k {
+    font-size: 10.5px;
+  }
+  .headline-item .v {
+    font-size: 13px;
+  }
+  /* Reserved width: the label swaps between "No issues", "Checking…" and an
+     issue count, and the headline next to it would reflow on every change. */
+  .badge {
+    min-width: 8em;
+  }
+  .card-head .issue-counts {
+    display: none;
+  }
+  .issue-text {
+    display: inline;
+  }
+  .card-body {
+    padding: 16px;
+  }
+  .card-actions {
+    margin: -16px -16px 14px;
+    padding: 5px 10px;
+  }
+  .card-action {
+    font-size: 12.5px;
+  }
+  .card-section + .card-section {
+    margin-top: 22px;
+  }
+  .card-section h3 {
+    margin-bottom: 12px;
+  }
+  .issue {
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+  .issue-go {
+    padding: 3px 6px;
+  }
+  .field label {
+    min-height: 32px;
+    margin-bottom: 4px;
+  }
+  .field input {
+    padding: 8px 10px;
+  }
+  .field-group.open .fields {
+    padding: 6px 8px 14px;
+  }
+  .fields {
+    gap: 14px 20px;
+  }
 }
 </style>

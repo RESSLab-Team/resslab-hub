@@ -460,7 +460,7 @@
     "lab_homepage": "Lab homepage",
     "people": "People",
     "contact": "Contact",
-    "copyright": "© {year} EPFL — RESSLab Hub. Data under {ccby} / {gpl}.",
+    "copyright": "© {year} EPFL — RESSLab Hub. Data under {pddl}, code under {agpl}.",
     "contribute": "Contribute"
   },
   "commons": {
@@ -550,6 +550,7 @@
     "axial_resistance": "Axial resistance",
     "measured_response": "Measured response",
     "specimen_details": "Specimen details",
+    "brace_member_geometric_properties": "Brace member geometric properties",
     "gusset_plate_dimensions": "Gusset plate dimensions",
     "gusset_plate_material_properties": "Gusset plate material properties",
     "measured_and_theoretical_resistance": "Measured and theoretical resistance",
@@ -561,6 +562,7 @@
     "stiffener_details": "Stiffener details",
     "geometric_properties": "Geometric properties",
     "test_equipment_details": "Test equipment details",
+    "elongation_and_reduction_of_area": "Elongation and reduction of area",
     "chemical_composition": "Chemical composition",
     "cyclic_material_model_parameters": "Cyclic material model parameters",
     "measured_quantities_at_fracture": "Measured quantities at fracture",
@@ -1030,9 +1032,9 @@
   "about": {
     "eyebrow": "About",
     "title": "A service to the earthquake-engineering community.",
-    "lede": "The databases in RESSLab Hub were assembled as a service to the research and practice communities in earthquake engineering. Data are fully digitized from experimental reports and shared under the {ccLicence} and the {gplLicence} licences. EPFL, and the researchers who performed the experiments, make no warranties to the accuracy of the information collected and provided on this website.",
-    "ccLicence": "Creative Commons Attribution 2.0 Generic",
-    "gplLicence": "GNU General Public",
+    "lede": "The databases in RESSLab Hub were assembled as a service to the research and practice communities in earthquake engineering. Data are fully digitized from experimental reports and shared under the {dataLicence}. The source code of the Hub is under the {codeLicence}. EPFL, and the researchers who performed the experiments, make no warranties to the accuracy of the information collected and provided on this website.",
+    "dataLicence": "Open Data Commons Public Domain Dedication and License (PDDL 1.0)",
+    "codeLicence": "GNU Affero General Public License v3.0",
     "contributors": {
       "eyebrow": "Contributors",
       "title": "People who built the Hub.",
@@ -1101,6 +1103,9 @@
       "clean": "No issues",
       "todo": "Still to fill in",
       "todo_count": "{count} still to fill in",
+      "expand_groups": "Expand all groups",
+      "collapse_groups": "Collapse all groups",
+      "go_to_issue": "Go to the first one",
       "duplicate": "Duplicate",
       "remove": "Remove",
       "problems": "Problems",
@@ -1256,22 +1261,28 @@
       "copy_failed": "The details could not be copied — select the text above instead."
     },
     "submitting": "Submitting…",
+    "submitting_files": "Sending {count} files to GitHub…",
     "submit_failed": "The submission failed:",
     "submitted": {
-      "title": "Submitted — review request #{number} is open.",
+      "title": "Submitted. Review request #{number} is open.",
       "next": "A curator will review it; the data goes live once the request is approved and merged.",
       "view_pr": "View review request",
-      "new": "Start a new contribution"
+      "new": "Start a new contribution",
+      "how_to_update": "Need to change something after a review? Do not open a second submission, it would open a second review request and the review would start again. Edit the CSV on your own branch on GitHub, or post the corrected file in a comment on the review request and a maintainer pushes it for you.",
+      "edit_on_github": "Edit the CSV on GitHub",
+      "updated_title": "Updated. Review request #{number} now has your changes.",
+      "updated_next": "A curator will review the new version. You can keep editing here and submit again.",
+      "update": "Update this submission"
     },
     "dialog": {
       "title": "Submit for review",
       "recap": "You are submitting {experiments} experiment(s) and {files} test-data file(s).",
       "recap_no_data": "{count} experiment(s) have no test data attached.",
       "recap_dismissed": "{count} dismissed warning(s) will be listed for the curator.",
-      "name": "Your name",
-      "email": "Email",
-      "institution": "Institution",
-      "orcid": "ORCID iD",
+      "submitting_as": "Submitting as",
+      "edit_identity": "Edit",
+      "identity_incomplete": "This account has no confirmed email address. Sign in with your email address to submit.",
+      "link_github_hint": "Link GitHub on your account page to be mentioned on the pull request and follow its review.",
       "note": "These details are recorded with the submission so curators can credit and contact you. They appear publicly in the data repository.",
       "cancel": "Cancel",
       "confirm": "Submit"
@@ -1313,6 +1324,23 @@
       "attach": "Attach",
       "ignore": "Ignore",
       "ignore_all": "Ignore all remaining"
+    },
+    "edit": {
+      "title": "Edit submission #{number}",
+      "description": "Change the experiments or the files of an open submission. Submitting again updates the same review request.",
+      "banner": "You are editing submission #{number}.",
+      "loading": "Loading submission #{number}…",
+      "loading_files": "Loading {done} of {total} files…",
+      "not_open": "This submission does not exist, or it is no longer open.",
+      "unknown_database": "This submission is for a database the editor does not know.",
+      "load_failed": "The submission could not be loaded. Check your connection and try again.",
+      "skipped_files": "{count} file(s) of this submission cannot be edited here and are left as they are.",
+      "submit": "Submit the update",
+      "dialog_title": "Update the submission",
+      "dialog_confirm": "Update",
+      "draft_notice": "Submitting again adds a commit to the open review request on the RESSLab data repository. The checks rerun and the review goes on.",
+      "conflict": "This submission changed on GitHub after you opened it. Reload the page to get the latest version, then make your changes again.",
+      "not_mine": "This submission was made from another account. Only the person who submitted it can change it here."
     }
   },
   "curation": {
@@ -1351,7 +1379,8 @@
       "experiments_label": "{count} experiments in this submission",
       "open_pr": "Open PR on GitHub",
       "submitted_by": "Submitted by {name}",
-      "unknown_contributor": "Unknown contributor"
+      "unknown_contributor": "Unknown contributor",
+      "edit_on_hub": "Edit on the Hub"
     },
     "actions": {
       "approve": "Approve",
@@ -1374,7 +1403,12 @@
       "compare_add": "Add a specimen from the cohort…",
       "compare_limit": "Limit of {count} overlays reached",
       "compare_candidates": "{count} cohort specimens have comparable test data",
-      "ghosts": "{count} compared"
+      "ghosts": "{count} compared",
+      "uvc_title": "Material model",
+      "uvc_model": "UVC model",
+      "uvc_phi": "Calibration error φ = {value} %",
+      "uvc_unavailable": "The model did not converge on this strain history.",
+      "uvc_missing": "The material model is not drawn: this submission does not report {columns}."
     },
     "cohort": {
       "title": "Comparison with similar experiments",
@@ -1430,6 +1464,76 @@
       "summary": "submission",
       "refresh": "Refresh the discussion",
       "unknown_author": "Unknown author"
+    }
+  },
+  "auth": {
+    "login": {
+      "sign_in": "Sign in",
+      "eyebrow": "Account",
+      "title": "Sign in to contribute",
+      "lede": "Browsing needs no account. You need one to submit data or to review a submission.",
+      "github": "Continue with GitHub",
+      "github_note": "Linking GitHub lets you follow and answer the review of your own submission.",
+      "or_email": "or with your email",
+      "email_label": "Email",
+      "send_code": "Send me a code",
+      "sending": "Sending...",
+      "sent": "We sent a six-digit code to {email}. The mail also has a link, if you read it on this device.",
+      "code_label": "Six-digit code",
+      "confirm": "Sign in",
+      "checking": "Checking...",
+      "other_email": "Use another address",
+      "browsing_is_free": "Every database stays open to read, without an account."
+    },
+    "verify": {
+      "signing_in": "Signing you in...",
+      "try_again": "Back to sign in"
+    },
+    "account": {
+      "section": "Account",
+      "eyebrow": "Account",
+      "title": "Your account",
+      "no_name": "No name yet",
+      "no_email": "No confirmed address",
+      "verified": "confirmed",
+      "identities": "Ways to sign in",
+      "identities_lede": "Each one signs you into the same account. GitHub can be added and removed. The email address stays: it is how the account is found.",
+      "unlink": "Remove",
+      "link_github": "Link GitHub",
+      "link_github_why": "With GitHub linked, your submission mentions you on its pull request, so you get the review comments and can answer them.",
+      "sign_out": "Sign out"
+    },
+    "forbidden": {
+      "eyebrow": "Account",
+      "title": "Not open to your account",
+      "lede": "Your account cannot open this page.",
+      "needs_role": "This page needs the {role} role. Ask an administrator of the lab for it.",
+      "back_home": "Back to the databases"
+    },
+    "roles": {
+      "viewer": "Viewer",
+      "contributor": "Contributor",
+      "curator": "Curator",
+      "admin": "Administrator"
+    },
+    "providers": {
+      "email": "Email",
+      "github": "GitHub",
+      "orcid": "ORCID",
+      "entra": "EPFL",
+      "switch": "Institutional SSO"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "invalid_code": "That code is not right. Check the mail and try again.",
+      "invalid_or_expired": "That code or link is no longer valid. Ask for a new one.",
+      "too_many_attempts": "Too many tries. Ask for a new code.",
+      "github_failed": "GitHub sign-in did not finish. Please try again.",
+      "email_in_use": "That address already has an account here. Sign in with it, then link GitHub from your account page.",
+      "identity_taken": "That GitHub account is already linked to another account here.",
+      "github_denied": "You cancelled the GitHub sign-in.",
+      "github_disabled": "GitHub sign-in is not available here. Use your email address.",
+      "cannot_unlink": "This one cannot be removed: it is how your account is found."
     }
   }
 }

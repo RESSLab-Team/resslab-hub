@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ProgressLine from '@/components/commons/ProgressLine.vue'
 import type { CurationSummary } from '@/backend'
 import { useCurationStore } from '@/stores/curation'
 import { databaseIdForType, formatAge } from '@/utils/curation'
@@ -63,9 +64,11 @@ const rows = computed<QueueRow[]>(() =>
     </div>
 
     <div class="pbody">
-      <p v-if="store.listState === 'loading' || store.listState === 'idle'" class="state">
-        {{ $t('curation.queue.loading') }}
-      </p>
+      <progress-line
+        v-if="store.listState === 'loading' || store.listState === 'idle'"
+        :active="true"
+        :label="$t('curation.queue.loading')"
+      />
 
       <p v-else-if="store.listState === 'error'" class="state">
         <v-icon :icon="mdiAlertOutline" size="15" />

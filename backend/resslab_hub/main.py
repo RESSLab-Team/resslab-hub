@@ -8,7 +8,6 @@ import sys
 import time
 
 from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi_pagination import add_pagination
@@ -17,9 +16,12 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from resslab_hub import __name__ as title
 from resslab_hub import __version__
+from resslab_hub.auth.csrf import CSRFMiddleware
 from resslab_hub.config import settings
+from resslab_hub.contributions.github import aclose_github
 from resslab_hub.routers import (
     analytics,
+    auth,
     braces,
     columns,
     connections,
@@ -83,17 +85,12 @@ if settings.cache_max_age > 0:
 # minimum_size avoids the overhead of compressing tiny responses.
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-if settings.cors_enabled:
-    logging.debug("cors enabled")
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-else:
-    logging.warning("cors disabled")
+# Refuse cookie-authenticated writes that another site started (#247). There
+# is no CORS layer to pair it with any more: the app is same-origin everywhere,
+# behind Traefik in the deployments and behind the Vite proxy in development,
+# so nothing legitimate is cross-origin. Requests carrying no session cookie
+# (the data-repo CI with its Basic credential) pass through untouched.
+app.add_middleware(CSRFMiddleware)
 
 # Timestamped per-request log line + Server-Timing response header, so a slow
 # request seen in the browser can be split into in-app time (this number,
@@ -134,10 +131,18 @@ async def server_timing(request: Request, call_next):
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     logger.error(f"HTTP Exception: {exc.detail}")
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    # Keep the headers the raiser set: a 401 from the machine-credential path
+    # carries WWW-Authenticate, which is what makes `curl -f -u ...` report a
+    # bad password cleanly instead of a bare 401.
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+        headers=getattr(exc, "headers", None),
+    )
 
 
 app.include_router(root.router)
+app.include_router(auth.router)
 app.include_router(contributions.router)
 app.include_router(curation.router)
 app.include_router(analytics.router)
@@ -158,6 +163,13 @@ use_route_names_as_operation_ids(app)
 # and refresh entries before they expire, so no visitor ever pays the cold
 # database path. Refresh at 80% of the cache TTL; disabled with caching (dev).
 install_warmup(app, interval=settings.cache_max_age * 0.8)
+
+
+@app.on_event("shutdown")
+async def _close_github_client() -> None:
+    """Release the GitHub App's shared connection pool (contributions)."""
+    await aclose_github()
+
 
 if settings.database_upgrade:
     upgrade_database()

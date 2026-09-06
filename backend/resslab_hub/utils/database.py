@@ -32,7 +32,14 @@ engine = create_async_engine(
     pool_recycle=1800,
 )
 
-async_session = sessionmaker(engine, class_=AsyncSession)  # type: ignore
+# expire_on_commit=False, the recommended setting for AsyncSession: with the
+# default, reading any attribute after a commit triggers a lazy refresh, which
+# an async session cannot do outside its greenlet and which raises
+# MissingGreenlet. Only the sign-in code commits through this maker; the
+# uploader has its own sync session.
+async_session = sessionmaker(  # type: ignore
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 
 
 # qualify the base with __allow_unmapped__.

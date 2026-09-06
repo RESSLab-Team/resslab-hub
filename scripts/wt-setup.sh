@@ -20,6 +20,26 @@ tooling() { [ -f "$ROOT/scripts/$1" ] && echo "$ROOT/scripts/$1" || echo "$MAIN/
 
 echo "==> worktree $ROOT ($BRANCH)"
 
+# 0. Tracking. `wt create <branch> origin/dev` cuts the branch from a
+#    remote-tracking ref, and git's default autoSetupMerge then points the new
+#    branch's upstream at origin/dev. `git pull` there rebases the branch onto
+#    dev instead of fetching its own commits, the next push is refused as
+#    non-fast-forward, and `git pull` still answers "up to date" because it is
+#    comparing against dev. That happened on perf/improve-github-contribution
+#    and left its HEAD detached. `simple` only tracks a remote branch of the
+#    same name, and push.autoSetupRemote sets the upstream on the first push,
+#    so a new branch gets the right one or none at all. Repo-wide config, but
+#    written here so every checkout of this repo gets it.
+git config branch.autoSetupMerge simple || echo "note: could not set branch.autoSetupMerge"
+git config push.autoSetupRemote true || echo "note: could not set push.autoSetupRemote"
+if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH"; then
+  git branch --set-upstream-to="origin/$BRANCH" "$BRANCH" >/dev/null 2>&1 ||
+    echo "note: could not track origin/$BRANCH"
+elif [ "$(git config --get "branch.$BRANCH.merge" || true)" != "refs/heads/$BRANCH" ]; then
+  # Not pushed yet: no upstream at all beats one pointing at another branch.
+  git branch --unset-upstream "$BRANCH" >/dev/null 2>&1 || true
+fi
+
 # 1. Gitignored dev files aren't in the branch; the main checkout's copies on disk
 #    are the right source whatever it has checked out. Never overwrite.
 for f in secrets/.env docker-compose.override.yml frontend/.env.development.local; do
@@ -28,6 +48,23 @@ for f in secrets/.env docker-compose.override.yml frontend/.env.development.loca
   fi
 done
 [ -f secrets/.env ] || die "no secrets/.env in $MAIN to seed from — create it first (README > Secrets)"
+
+# 1b. Sample contribution batches. The CSVs are generated and untracked
+#     (sample-data/.gitignore), but fieldGroups.spec.ts reads their headers and
+#     the contribution flow wants drop-in test data, so a worktree without them
+#     starts broken. Copy only the generated batch folders: the top-level files
+#     (generate.py, README.md) are tracked and belong to the branch.
+if ! find sample-data -name '*.csv' -print -quit 2>/dev/null | grep -q .; then
+  found=""
+  for d in "$MAIN"/sample-data/*/; do
+    if [ -d "$d" ]; then cp -r "$d" sample-data/; found=yes; fi
+  done
+  if [ -n "$found" ]; then
+    echo "seeded sample-data/ from $MAIN"
+  else
+    echo "note: no generated sample-data in $MAIN; run 'make sample-data' (here or there) if you need it"
+  fi
+fi
 
 # 2. Ports and names. A previous run may have cloned a branch DB: keep it.
 branch_ports "$BRANCH"
@@ -48,18 +85,43 @@ RESSLAB_DATA_DIR=$DATA_DIR
 ENV
 echo "ports: backend $BACKEND_PORT, frontend $FRONTEND_PORT; database: $DB_NAME"
 
-# 3. This frontend talks to this backend; this backend talks to the right DB and
-#    never migrates the shared one (wt-db.sh create flips DATABASE_UPGRADE on).
-set_env_var frontend/.env.development.local VITE_APP_BACKEND_URL "http://127.0.0.1:$BACKEND_PORT"
+# 3. This frontend talks to this backend through the Vite proxy, which reads
+#    BACKEND_PORT from .env.worktree (same-origin, no CORS layer: the session
+#    cookie must be first-party, see docs/auth.md). An absolute
+#    VITE_APP_BACKEND_URL seeded from an older main checkout would send the
+#    browser to the backend port directly and break sign-in, so drop it.
+if [ -f frontend/.env.development.local ]; then
+  sed -i '/^VITE_APP_BACKEND_URL=/d' frontend/.env.development.local
+fi
+#    This backend talks to the right DB and never migrates the shared one
+#    (wt-db.sh create flips DATABASE_UPGRADE on).
 set_env_var secrets/.env POSTGRES_DB "$DB_NAME"
+set_env_var secrets/.env POSTGRES_MAINTENANCE_DB "$DB_NAME"
 set_env_var secrets/.env POSTGRES_TEST_DB "resslab_hub_test_$SLUG"
 if [ "$DB_NAME" = "$SHARED_DB" ]; then set_env_var secrets/.env DATABASE_UPGRADE false
 else set_env_var secrets/.env DATABASE_UPGRADE true; fi
 
+# 3b. Own throwaway database: clone the ~20 MB light template (sub-second) so
+#     this worktree can migrate, upload, or break its DB without touching the
+#     shared dataset. The clone comes with its own Postgres role, whose login
+#     replaces the admin one seeded from the main checkout above, so nothing in
+#     this worktree can reach another database. Best-effort: without the
+#     container or a template we stay on the shared DB as the admin user and say
+#     so; `make db-branch` retries later.
+if [ "$DB_NAME" = "$SHARED_DB" ]; then
+  if ROOT="$ROOT" "$(tooling wt-db.sh)" create; then :
+  else echo "note: staying on the shared $SHARED_DB — build the light template once with 'make db-template-light', then run 'make db-branch' here"
+  fi
+fi
+
 # 4. Claude Code runs sandboxed here with the ask/deny rules from the template.
 #    .claude/ is gitignored, so the worktree's copy never reaches a commit.
+#    Always read the template from the main checkout, not the branch: a branch
+#    forked before a template fix would otherwise write the old rules back (that
+#    is how two worktrees got the `python3 -` ask rule after it was removed),
+#    and a feature branch should not be able to change Claude's permissions.
 mkdir -p .claude
-sed "s|__RESSLAB_DATA_DIR__|$DATA_DIR|g" "$(tooling claude-worktree-settings.json)" > .claude/settings.local.json
+sed "s|__RESSLAB_DATA_DIR__|$DATA_DIR|g" "$MAIN/scripts/claude-worktree-settings.json" > .claude/settings.local.json
 echo "wrote .claude/settings.local.json"
 
 # 5. Dependencies (skipped when already present) and lefthook, which refuses

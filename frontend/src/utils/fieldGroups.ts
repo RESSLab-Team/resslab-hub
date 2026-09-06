@@ -41,6 +41,7 @@ export type FieldGroupId =
   | 'axial_resistance' // Axial resistance
   | 'measured_response' // Measured response
   | 'specimen_details' // Specimen details
+  | 'brace_member_geometric_properties' // Brace member geometric properties
   | 'gusset_plate_dimensions' // Gusset plate dimensions
   | 'gusset_plate_material_properties' // Gusset plate material properties
   | 'measured_and_theoretical_resistance' // Measured and theoretical resistance
@@ -52,6 +53,7 @@ export type FieldGroupId =
   | 'stiffener_details' // Stiffener details
   | 'geometric_properties' // Geometric properties
   | 'test_equipment_details' // Test equipment details
+  | 'elongation_and_reduction_of_area' // Elongation and reduction of area
   | 'chemical_composition' // Chemical composition
   | 'cyclic_material_model_parameters' // Cyclic material model parameters
   | 'measured_quantities_at_fracture' // Measured quantities at fracture
@@ -353,24 +355,15 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'p_g',
         'p_g_over_p_ym',
         'p_g_over_p_yn',
+        'p_t_over_p_ym',
+        'p_c_over_p_ym',
+        'p_c_over_p_yn',
         'p',
         'test_procedure',
         'cfe'
       ]
     },
-    {
-      id: 'axial_resistance',
-      match: [
-        'p_ym',
-        'p_yn',
-        'p_ye',
-        'p_t',
-        'p_c',
-        'p_t_over_p_ym',
-        'p_c_over_p_ym',
-        'p_c_over_p_yn'
-      ]
-    },
+    { id: 'axial_resistance', match: ['p_ym', 'p_yn', 'p_ye', 'p_t', 'p_c'] },
     {
       id: 'measured_response',
       match: [
@@ -433,6 +426,10 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
     },
     { id: 'material_properties', match: ['steel', 'e', 'f_yn', 'fy_m', 'f_um'] },
     {
+      id: 'brace_member_geometric_properties',
+      match: ['l_c', 'l_c_theory', 'k_assumed', 'kl_r', 'kl_r_theory']
+    },
+    {
       id: 'gusset_plate_dimensions',
       match: [
         'l_1t',
@@ -473,10 +470,7 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
       ]
     },
     { id: 'loading_details', match: ['loading_protocol'] },
-    {
-      id: 'measured_and_theoretical_resistance',
-      match: ['p_t', 'p_t_theory', 'p_c', 'kl_r', 'l_c', 'l_c_theory', 'k_assumed', 'kl_r_theory']
-    }
+    { id: 'measured_and_theoretical_resistance', match: ['p_t', 'p_t_theory', 'p_c'] }
   ],
   hss: [
     {
@@ -485,18 +479,17 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
     },
     {
       id: 'specimen_details',
-      match: [
-        'test_configuration',
-        'stiffness_coefficient',
-        'test_type',
-        'forming_process',
-        'seams',
-        'flexural_buckling'
-      ]
+      match: ['test_configuration', 'test_type', 'forming_process', 'seams']
     },
     {
       id: 'loading_details',
-      match: ['loading_protocol', 'axial_load_ratio', 'axial_load_sequence', 'loading_angle']
+      match: [
+        'loading_protocol',
+        'stiffness_coefficient',
+        'axial_load_ratio',
+        'axial_load_sequence',
+        'loading_angle'
+      ]
     },
     { id: 'steel_profile', match: ['tube_section'] },
     {
@@ -520,7 +513,10 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
       id: 'material_properties',
       match: ['steel_type', 'fy_nominal__n_mm2', 'fy_measured__n_mm2', 'f_ultimate__n_mm2']
     },
-    { id: 'measured_response', match: ['mp_measured__knmm', 'ke_measured__knmm_rad'] },
+    {
+      id: 'measured_response',
+      match: ['mp_measured__knmm', 'ke_measured__knmm_rad', 'flexural_buckling']
+    },
     { id: 'backbone_parameters_100_percent_fit', match: [/_100fit(__.+)?$/] },
     { id: 'backbone_parameters_80_percent_fit', match: [/_80fit(__.+)?$/] }
   ],
@@ -609,7 +605,6 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'date',
         'investigator',
         'location',
-        'file',
         'reference',
         'link',
         'latitude',
@@ -695,7 +690,20 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
     },
     {
       id: 'material_properties',
-      match: ['steel_grade', 'fy_n__mpa_', 'fu_n__mpa_', 't_a__deg_c_']
+      match: [
+        'steel_grade',
+        'fy_n__mpa_',
+        'fu_n__mpa_',
+        't_a__deg_c_',
+        'yield_stress_02__mpa_',
+        'yield_strain_02',
+        'bin_discont_yield',
+        'yield_stress_uyp__mpa_',
+        'yield_stress_lyp__mpa_',
+        'yield_point_elongation',
+        'tensile_strength__mpa_',
+        'elastic_modulus__mpa_'
+      ]
     },
     {
       id: 'geometric_properties',
@@ -710,20 +718,12 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
     },
     { id: 'test_equipment_details', match: [/^pid_/, 'machine'] },
     {
-      id: 'measured_response',
+      id: 'elongation_and_reduction_of_area',
       match: [
-        'yield_stress_02__mpa_',
-        'yield_strain_02',
-        'bin_discont_yield',
-        'yield_stress_uyp__mpa_',
-        'yield_stress_lyp__mpa_',
-        'yield_point_elongation',
-        'tensile_strength__mpa_',
         'uniform_elongation',
         'elongation_at_fracture',
         'elongation_after_fracture',
-        'reduction_of_area',
-        'elastic_modulus__mpa_'
+        'reduction_of_area'
       ]
     },
     {

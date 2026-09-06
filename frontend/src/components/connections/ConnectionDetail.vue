@@ -3,8 +3,8 @@ import type { ConnectionModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { connectionsApi } from '@/plugins/axios'
-import { publicPath } from '@/utils/common'
-import { getConnectionSpecimenImage } from '@/utils/component'
+import { isHttpUrl } from '@/utils/common'
+import { getConnectionSpecimenImage, getConnectionTypeImage } from '@/utils/component'
 import { formatNumber, formatString } from '@/utils/formatter'
 import { mdiOpenInNew } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
@@ -35,9 +35,7 @@ const specimenTypeImageSrc = computed<string>(() =>
 )
 
 const connectionTypeImageSrc = computed<string>(() =>
-  props.connection.connection_type
-    ? `${publicPath}img/connection-type/${props.connection.connection_type.toLowerCase()}.svg`
-    : ''
+  props.connection.connection_type ? getConnectionTypeImage(props.connection.connection_type) : ''
 )
 
 watch(
@@ -244,7 +242,7 @@ watch(
         </div>
       </div>
 
-      <div v-if="connection.link" class="cd-foot">
+      <div v-if="isHttpUrl(connection.link)" class="cd-foot">
         <a
           class="btn btn-secondary btn-sm"
           :href="connection.link"

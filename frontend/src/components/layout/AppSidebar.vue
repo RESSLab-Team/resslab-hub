@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import LanguageToggle from '@/components/layout/LanguageToggle.vue'
+import { useAuthStore } from '@/stores/auth'
 import { useCountsStore } from '@/stores/counts'
 import { NAV_GROUPS, type NavGroup } from '@/utils/navigation'
 import {
@@ -8,6 +9,7 @@ import {
   mdiClipboardCheckOutline,
   mdiHomeOutline,
   mdiInformationOutline,
+  mdiLoginVariant,
   mdiUploadOutline,
   mdiWeatherNight,
   mdiWeatherSunny
@@ -26,7 +28,25 @@ const emit = defineEmits<{
 
 const route = useRoute()
 const countsStore = useCountsStore()
-onMounted(() => countsStore.fetch())
+const auth = useAuthStore()
+onMounted(() => {
+  countsStore.fetch()
+  // The account block needs the answer, and the sidebar is on every page, so
+  // this is where the one /auth/me call gets made for anonymous browsing too.
+  auth.ensureLoaded()
+})
+
+const initials = computed(() => {
+  const name = auth.user?.display_name || auth.user?.email || ''
+  return (
+    name
+      .split(/[\s@.]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || '?'
+  )
+})
 
 const manuallyOpened = ref(new Set<string>())
 
@@ -313,6 +333,31 @@ function toggleGroup(group: NavGroup) {
     >
       <v-icon :icon="mdiClipboardCheckOutline" size="16" />
       {{ $t('curation.nav.review_queue') }}
+    </router-link>
+
+    <div class="sidebar-section">{{ $t('auth.account.section') }}</div>
+    <router-link
+      v-if="auth.isAuthenticated"
+      class="sidebar-link account-link"
+      :class="{ 'is-active': route.path === '/account' }"
+      to="/account"
+      @click="emit('close')"
+    >
+      <span class="account-avatar">{{ initials }}</span>
+      <span class="account-text">
+        <span class="account-name">{{ auth.user?.display_name || auth.user?.email }}</span>
+        <span class="account-role">{{ $t(`auth.roles.${auth.user?.role ?? 'viewer'}`) }}</span>
+      </span>
+    </router-link>
+    <router-link
+      v-else
+      class="sidebar-link"
+      :class="{ 'is-active': route.path.startsWith('/login') }"
+      :to="{ name: 'Login', query: { next: route.fullPath } }"
+      @click="emit('close')"
+    >
+      <v-icon :icon="mdiLoginVariant" size="16" />
+      {{ $t('auth.login.sign_in') }}
     </router-link>
 
     <div class="sidebar-section">{{ $t('shell.reference') }}</div>

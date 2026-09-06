@@ -3,6 +3,7 @@ import type { TensileCouponModel } from '@/backend'
 import CommonDetail, { type DetailCarouselItem } from '@/components/commons/CommonDetail.vue'
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { tensileCouponApi } from '@/plugins/axios'
+import { isHttpUrl } from '@/utils/common'
 import { getTensileCouponImage } from '@/utils/component'
 import { formatNumber } from '@/utils/formatter'
 import type { LineSeriesOption } from 'echarts'
@@ -54,10 +55,7 @@ const profileTypeWithSource = computed(() => {
 
 const publicationLink = computed(() => {
   const link = props.tensileCoupon.link
-  if (!link || link === 'TBA') {
-    return undefined
-  }
-  return link
+  return isHttpUrl(link) ? link : undefined
 })
 </script>
 

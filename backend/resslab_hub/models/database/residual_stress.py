@@ -82,7 +82,7 @@ class ResidualStress(Base):  # type: ignore
     spec_var = Column(String, nullable=True)
     steel = Column(String, nullable=False)
     fy_n = Column(DecimalFloat, nullable=True)
-    fy_e = Column(Numeric, nullable=True)
+    fy_e = Column(DecimalFloat, nullable=True)
     fy_mf = Column(DecimalFloat, nullable=True)
     fy_mw = Column(DecimalFloat, nullable=True)
     h = Column(DecimalFloat, nullable=True)

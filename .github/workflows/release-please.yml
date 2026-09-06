@@ -1,13 +1,29 @@
+# Opens (and keeps updating) a release PR on `main`. Merging it writes the
+# changelog, bumps the version files, creates the `v*.*.*` tag and the GitHub
+# release. The tag push is what deploys prod, through deploy.yml.
+#
+# The token must NOT be the default GITHUB_TOKEN: a tag created with it does not
+# trigger other workflows, so deploy.yml would never run and prod would stay on
+# the old version. RELEASE_PLEASE_TOKEN is a PAT with contents + pull-requests
+# write on this repo. Fallback if the tag lands without a deploy:
+#   gh workflow run deploy.yml --ref v<version>
+name: release-please
+
 on:
   push:
     branches:
       - main
-name: release-please
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      - uses: googleapis/release-please-action@v4
         with:
-          release-type: node
-          package-name: release-please-action
+          target-branch: main
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}

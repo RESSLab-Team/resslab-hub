@@ -2,11 +2,24 @@
 import type { CurationFile } from '@/backend'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
 import ToolSelect from '@/components/commons/tools/ToolSelect.vue'
-import { countFieldsFor, curveSourceFor, fetchCurve } from '@/components/curation/curves'
+import ToolSwitch from '@/components/commons/tools/ToolSwitch.vue'
+import {
+  countFieldsFor,
+  curveSourceFor,
+  fetchCurve,
+  ghostColor
+} from '@/components/curation/curves'
 import { GHOST_CONFIGS } from '@/components/curation/ghost'
 import { useDataset } from '@/composables/useDataset'
 import { useCurationStore } from '@/stores/curation'
+import { INK, RED } from '@/plugins/echarts-theme'
 import { kindForFile } from '@/utils/curation'
+import {
+  missingUvcColumns,
+  uvcCalibrationError,
+  uvcModelCurve,
+  uvcParametersFrom
+} from '@/utils/material'
 import { requiredColumns } from '@/utils/timeseries'
 import { parseCsv } from '@/utils/csv'
 import type { DatabaseId } from '@/utils/navigation'
@@ -30,15 +43,22 @@ const props = defineProps<{
   files: CurationFile[]
   /** Cohort restriction from the review view; `undefined` = whole database. */
   cohortQuery?: string
+  /** The selected experiment's submitted row, keyed by repo column name. */
+  cells?: Record<string, string>
 }>()
 
 const { t, te, n } = useI18n({ useScope: 'global' })
 const store = useCurationStore()
 
-const SUBMISSION_COLOR = '#e30713'
-const GHOST_COLOR = '#c1c1c1'
+const SUBMISSION_COLOR = RED
+// The model is the reference the data is judged against, not one more specimen:
+// the theme's soft black keeps it clear of both the red submission and the
+// muted palette hues the cohort curves take.
+const UVC_COLOR = INK
 /** Enough curves to see a trend without turning the frame into a hairball. */
 const MAX_OVERLAYS = 6
+/** The one curve kind the material model can be drawn on. */
+const UVC_KIND = 'stress_strain'
 
 interface Preview {
   path: string
@@ -47,6 +67,8 @@ interface Preview {
   xAxisName: string
   yAxisName: string
   rows: number
+  /** The x column on its own — the strain history the UVC model runs on. */
+  x: number[]
   series: LineSeriesOption[]
 }
 
@@ -82,6 +104,7 @@ function buildPreview(file: CurationFile, text: string): Preview | null {
     xAxisName: headers[xIndex] ?? '',
     yAxisName: headers[yIndex] ?? '',
     rows: parsed.length - 1,
+    x: data.map((point) => point[0]),
     series: [
       {
         name: specimenId(file),
@@ -223,27 +246,96 @@ watch(
   { deep: true }
 )
 
+// ── UVC material model ─────────────────────────────────────────────────────
+// The submitted row carries its calibrated UVC parameters; run them over the
+// submitted strain history and draw the answer on the same frame, exactly like
+// the Model feature of the Materials tab (#306). No extra request: the strain
+// history is the x column already parsed out of the file.
+
+const uvcParameters = computed(() =>
+  props.database === 'cyclic' ? uvcParametersFrom(props.cells ?? {}) : null
+)
+/** Calibration error, already rendered — two decimals like the dictionary. */
+const uvcPhi = computed(() => {
+  const phi = props.database === 'cyclic' ? uvcCalibrationError(props.cells ?? {}) : null
+  return phi === null ? null : phi.toFixed(2)
+})
+
+/** Model responses keyed by file path. Kept apart from `charts` so adding or
+ *  removing a cohort curve does not re-run the solver. */
+const uvcCurves = computed<Record<string, number[][]>>(() => {
+  const parameters = uvcParameters.value
+  if (!parameters) return {}
+  const result: Record<string, number[][]> = {}
+  for (const preview of previews.value) {
+    if (preview.kindKey !== UVC_KIND || !preview.x.length) continue
+    try {
+      result[preview.path] = uvcModelCurve(preview.x, parameters)
+    } catch {
+      // A strain history the return mapping cannot integrate: skip the curve,
+      // the measured data still shows.
+    }
+  }
+  return result
+})
+
+const showUvc = ref(true)
+/** A stress-strain frame is on screen, so the model is relevant to this row. */
+const uvcRelevant = computed(
+  () => props.database === 'cyclic' && previews.value.some((p) => p.kindKey === UVC_KIND)
+)
+/** True once a frame can actually take the model — drives the toggle's row. */
+const uvcAvailable = computed(() => uvcRelevant.value && !!uvcParameters.value)
+/**
+ * Parameters the row is missing, listed for the reviewer rather than left
+ * silent: a submission opened before a dictionary rename looks identical to one
+ * that simply has no model, and only the column names tell them apart.
+ */
+const uvcMissing = computed(() =>
+  uvcRelevant.value && !uvcParameters.value ? missingUvcColumns(props.cells ?? {}) : []
+)
+/** Parameters are there but no frame got a curve: the solver gave up. */
+const uvcFailed = computed(
+  () => uvcAvailable.value && !Object.keys(uvcCurves.value).length && !loading.value
+)
+
 /** Previews with the selected cohort curves appended underneath. */
 const charts = computed(() =>
   previews.value.map((preview) => {
     if (!preview.kindKey) return { ...preview, ghosts: 0 }
     const overlays: LineSeriesOption[] = []
-    for (const id of overlayIds.value) {
+    overlayIds.value.forEach((id, index) => {
       const data = curves.value[`${preview.kindKey}:${id}`]
-      if (!data) continue
+      if (!data) return
+      const color = ghostColor(index)
       overlays.push({
         name: id,
         data,
         showSymbol: false,
-        lineStyle: { color: GHOST_COLOR, width: 1 },
-        itemStyle: { color: GHOST_COLOR },
+        lineStyle: { color, width: 1 },
+        itemStyle: { color },
         z: 1
       })
-    }
+    })
+    const model = showUvc.value ? uvcCurves.value[preview.path] : undefined
+    const uvc: LineSeriesOption[] = model
+      ? [
+          {
+            name: t('curation.preview.uvc_model'),
+            data: model,
+            showSymbol: false,
+            lineStyle: { color: UVC_COLOR, width: 1.4, type: 'dashed' },
+            itemStyle: { color: UVC_COLOR },
+            z: 2
+          }
+        ]
+      : []
+    // Drawing order comes from `z`; this order is the legend's and the
+    // tooltip's: the submission first, then its model, then the cohort.
     return {
       ...preview,
       ghosts: overlays.length,
-      series: [...overlays, ...preview.series]
+      series: [...preview.series, ...uvc, ...overlays]
     }
   })
 )
@@ -282,16 +374,33 @@ const showPicker = computed(() => !!candidates.value.length || !!overlayIds.valu
       </div>
       <div v-if="overlayIds.length" class="compare-chips">
         <button
-          v-for="id in overlayIds"
+          v-for="(id, index) in overlayIds"
           :key="id"
           class="ochip"
           type="button"
           @click="removeOverlay(id)"
         >
+          <span class="odot" :style="{ background: ghostColor(index) }" />
           {{ id }}
           <v-icon :icon="mdiClose" size="12" />
         </button>
       </div>
+    </div>
+
+    <div v-if="uvcAvailable || uvcMissing.length" class="model">
+      <p class="compare-label">{{ $t('curation.preview.uvc_title') }}</p>
+      <template v-if="uvcAvailable">
+        <div class="compare-row">
+          <tool-switch v-model="showUvc" :label="$t('curation.preview.uvc_model')" />
+          <span v-if="uvcPhi !== null" class="compare-count">
+            {{ $t('curation.preview.uvc_phi', { value: uvcPhi }) }}
+          </span>
+        </div>
+        <p v-if="uvcFailed" class="state">{{ $t('curation.preview.uvc_unavailable') }}</p>
+      </template>
+      <p v-else class="state">
+        {{ $t('curation.preview.uvc_missing', { columns: uvcMissing.join(', ') }) }}
+      </p>
     </div>
 
     <div class="grid">
@@ -395,6 +504,16 @@ const showPicker = computed(() => !!candidates.value.length || !!overlayIds.valu
 .ochip:hover {
   border-color: var(--epfl-red);
   color: var(--epfl-red);
+}
+
+.odot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  background: var(--border-strong);
+}
+.model {
+  margin-bottom: 16px;
 }
 
 /* Frames tile side-by-side once the pane can fit two — on wide screens a

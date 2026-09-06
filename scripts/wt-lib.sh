@@ -7,8 +7,9 @@ ROOT="${ROOT:-$(cd "$WT_LIB_DIR/.." && pwd)}"
 BASE_BRANCH="${WT_BASE_BRANCH:-dev}"   # what scripts/wt-land.sh merges into
 PROTECTED_BRANCHES="dev stage main"    # never pushed from a worktree
 DB_CONTAINER="${DB_CONTAINER:-resslab-hub-database-1}"
-SHARED_DB="postgres"                   # the dev dataset every worktree shares by default
-TEMPLATE_DB="resslab_hub_template"     # idle copy of SHARED_DB that branch clones are made from
+SHARED_DB="postgres"                   # the full 3.4 GB dev dataset (read-only habits apply)
+TEMPLATE_DB="resslab_hub_template"     # idle copy of SHARED_DB for branches that need real data volumes
+LIGHT_TEMPLATE_DB="resslab_hub_light"  # ~20 MB build from the data repo: main CSVs + 1 series file per type
 MAIN_BACKEND_PORT=8000
 MAIN_FRONTEND_PORT=5173
 
@@ -19,6 +20,10 @@ in_worktree() { [ "$(git -C "$ROOT" rev-parse --git-dir)" != "$(git -C "$ROOT" r
 current_branch() { git -C "$ROOT" rev-parse --abbrev-ref HEAD; }
 # Branch name -> identifier safe for a Postgres database name.
 slug() { printf '%s' "$1" | tr -c 'A-Za-z0-9' '_' | tr 'A-Z' 'a-z'; }
+# Branch name -> the Postgres role that owns its clone (identifiers stop at 63 chars).
+db_role() { printf 'wt_%s' "$(slug "$1")" | cut -c1-63; }
+# 32 hex chars from the kernel; only ever written to a worktree's secrets/.env.
+random_password() { head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n'; }
 # "<repo>/<branch>" with the characters tmux forbids in session names replaced.
 session_name() { printf '%s/%s' "$(repo_name)" "$(printf '%s' "$1" | tr '.:' '--')"; }
 # Deterministic ports from the branch name: the same branch always gets the same pair,
@@ -27,17 +32,29 @@ branch_ports() {
   local h; h=$(printf '%s' "$1" | cksum | cut -d' ' -f1)
   BACKEND_PORT=$((18000 + h % 500)); FRONTEND_PORT=$((19000 + h % 500))
 }
-# Export .env.worktree if this checkout has one; the main checkout uses the classic ports.
+# The keys wt-setup.sh writes to .env.worktree (RESSLAB_DATA_DIR excluded: it
+# points at the same data repo everywhere, so an inherited value does no harm).
+ENV_WORKTREE_KEYS="WT_BRANCH WT_SLUG BACKEND_PORT FRONTEND_PORT DB_NAME POSTGRES_TEST_DB"
+# Export .env.worktree if this checkout has one. Without one (the main checkout)
+# drop those keys first: a shell that sourced another worktree's file, or a tmux
+# server started from one, would otherwise hand its ports to this checkout, and
+# the backend then listens where the frontend does not look.
 load_env_worktree() {
-  if [ -f "$ROOT/.env.worktree" ]; then set -a; . "$ROOT/.env.worktree"; set +a; fi
+  if [ -f "$ROOT/.env.worktree" ]; then set -a; . "$ROOT/.env.worktree"; set +a
+  else unset $ENV_WORKTREE_KEYS; fi
   : "${BACKEND_PORT:=$MAIN_BACKEND_PORT}" "${FRONTEND_PORT:=$MAIN_FRONTEND_PORT}"
 }
 psql_db() { docker exec -i "$DB_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -q "$@"; }
-# set_env_var FILE KEY VALUE — replace KEY=... in place, or append it.
+# set_env_var FILE KEY VALUE — replace KEY=... in place, or append it. A file
+# whose last line has no newline (an editor's paste, a hand-written key) gets
+# one first, otherwise the new key would land on that line.
 set_env_var() {
   local file=$1 key=$2 value=$3
   if grep -qE "^${key}=" "$file" 2>/dev/null; then sed -i "s|^${key}=.*|${key}=${value}|" "$file"
-  else printf '%s=%s\n' "$key" "$value" >> "$file"; fi
+  else
+    if [ -s "$file" ] && [ "$(tail -c 1 "$file")" != "" ]; then printf '\n' >> "$file"; fi
+    printf '%s=%s\n' "$key" "$value" >> "$file"
+  fi
 }
 # Path of the worktree that has BRANCH checked out, empty if none.
 worktree_path_for() {

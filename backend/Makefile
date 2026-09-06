@@ -77,49 +77,55 @@ database-revision:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run alembic revision --autogenerate -m "$(name)"
 
 upload-brace:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py brace $(RESSLAB_DATA_DIR)/braces/steel_braces.csv
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py brace-displacement $(RESSLAB_DATA_DIR)/braces/force_displacement/*.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader brace $(RESSLAB_DATA_DIR)/braces/steel_braces.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader brace-displacement $(RESSLAB_DATA_DIR)/braces/force_displacement/*.csv
 
 upload-column:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py column $(RESSLAB_DATA_DIR)/columns/steel_columns.csv
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py column-axial-shortening $(RESSLAB_DATA_DIR)/columns/axial_shortening_rotation/*.csv
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py column-moment-strong $(RESSLAB_DATA_DIR)/columns/moment_rotation_strong/*.csv
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py column-moment-weak $(RESSLAB_DATA_DIR)/columns/moment_rotation_weak/*.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader column $(RESSLAB_DATA_DIR)/columns/steel_columns.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader column-axial-shortening $(RESSLAB_DATA_DIR)/columns/axial_shortening_rotation/*.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader column-moment-strong $(RESSLAB_DATA_DIR)/columns/moment_rotation_strong/*.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader column-moment-weak $(RESSLAB_DATA_DIR)/columns/moment_rotation_weak/*.csv
 
 upload-connection:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py connection $(RESSLAB_DATA_DIR)/connections/connections.csv
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py connection-global $(RESSLAB_DATA_DIR)/connections/Global/*.csv
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py connection-global-west $(RESSLAB_DATA_DIR)/connections/Global_west/*.csv
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py connection-panel-zone $(RESSLAB_DATA_DIR)/connections/Panel_zone/*.csv
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py connection-beam $(RESSLAB_DATA_DIR)/connections/Beam_moment_rotation/*.csv
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py connection-beam-west $(RESSLAB_DATA_DIR)/connections/Beam_moment_rotation_west/*.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader connection $(RESSLAB_DATA_DIR)/connections/connections.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader connection-global $(RESSLAB_DATA_DIR)/connections/Global/*.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader connection-global-west $(RESSLAB_DATA_DIR)/connections/Global_west/*.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader connection-panel-zone $(RESSLAB_DATA_DIR)/connections/Panel_zone/*.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader connection-beam $(RESSLAB_DATA_DIR)/connections/Beam_moment_rotation/*.csv
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader connection-beam-west $(RESSLAB_DATA_DIR)/connections/Beam_moment_rotation_west/*.csv
 
 upload-material:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-material $(RESSLAB_DATA_DIR)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all-material $(RESSLAB_DATA_DIR)
 
 upload-residual-stress:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-residual-stresses $(RESSLAB_DATA_DIR)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all-residual-stresses $(RESSLAB_DATA_DIR)
 
 upload-hss-column:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-hss-columns $(RESSLAB_DATA_DIR)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all-hss-columns $(RESSLAB_DATA_DIR)
 
 upload-eccentric-braced-frame:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-eccentric-braced-frames $(RESSLAB_DATA_DIR)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all-eccentric-braced-frames $(RESSLAB_DATA_DIR)
 
 upload-tensile-coupon:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-tensile-coupons $(RESSLAB_DATA_DIR)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all-tensile-coupons $(RESSLAB_DATA_DIR)
 
 upload-ductile-fracture:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all-ductile-fractures $(RESSLAB_DATA_DIR)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all-ductile-fractures $(RESSLAB_DATA_DIR)
 
 precompute-sem:
 	uv run --group sem python data/precompute_sem.py $(RESSLAB_DATA_DIR)
 
-upload-data:
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/uploader.py all $(RESSLAB_DATA_DIR)
+precompute-fracture-figures:
+	uv run --group figures python data/precompute_fracture_figures.py $(RESSLAB_DATA_DIR)
 
-upload-data-test:
-	ENV_FOR_DYNACONF=test $(MAKE) upload-data
+upload-data:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR)
+
+# The ~20 MB dataset behind the light per-worktree template (make db-template-light
+# at the root): every main table, dictionary and README, one measurement file per
+# series type.
+upload-data-light:
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR) --series-limit 1
 
 transform-data:
 	uv run python data/csv_transformer.py aisc $(RESSLAB_DATA_DIR)/connections/component/aisc.csv ../frontend/src/assets/connection/aisc-sections.csv

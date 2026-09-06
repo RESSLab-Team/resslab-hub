@@ -11,14 +11,14 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
+from resslab_hub.contributions.projection import classify_files, type_for_branch
 from resslab_hub.contributions.submission import Contributor, build_pr_body
+from resslab_hub.contributions.trailers import build_commit_message
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import ValidationResult
 from resslab_hub.routers import curation
 from resslab_hub.routers.curation import (
-    _classify_files,
     _parse_pr_body,
-    _type_for_branch,
     get_contribution,
     get_contribution_comments,
     get_contribution_file,
@@ -32,9 +32,31 @@ HEAD_CSV = BASE_CSV + "B9,400,New one\n"
 CURVE_CSV = "Displacement [mm],Force [kN]\n0,0\n1,10\n"
 
 CONTRIBUTOR = Contributor(
-    name="Ada Lovelace", email="ada@example.edu", institution="EPFL", orcid="0000-1"
+    name="Ada Lovelace",
+    email="ada@example.edu",
+    institution="EPFL",
+    orcid="0000-1",
+    github_login="ada",
 )
 
+HUB_COMMITS = [
+    {
+        "sha": "first-sha",
+        "message": build_commit_message(
+            "data(braces): add 1 experiment (B9)",
+            "Ada Lovelace",
+            "ada@example.edu",
+            institution="EPFL",
+            orcid="0000-1",
+            github_login="ada",
+            dismissed_warnings=["Value is far outside the range"],
+        ),
+        "author_date": "2026-08-01T12:00:00+00:00",
+    }
+]
+
+# A submission opened before trailers: the JSON record answers instead.
+PROVENANCE_PATH = "contributions/braces/abcd1234.json"
 PROVENANCE = json.dumps(
     {
         "schema": 1,
@@ -45,7 +67,6 @@ PROVENANCE = json.dumps(
             "email": "ada@example.edu",
             "institution": "EPFL",
             "orcid": "0000-1",
-            "identity": "self-declared",
         },
         "files": [],
         "dismissed_warnings": ["Value is far outside the range"],
@@ -109,9 +130,10 @@ PR_FILES = [
 class FakeClient:
     """In-memory double for the curation read path."""
 
-    def __init__(self, pulls=None, files=None, texts=None, comments=None):
+    def __init__(self, pulls=None, files=None, texts=None, comments=None, commits=None):
         self.pulls = pulls if pulls is not None else [make_pull()]
         self.files = files if files is not None else list(PR_FILES)
+        self.commits = commits if commits is not None else list(HUB_COMMITS)
         self.comments = comments if comments is not None else list(PR_COMMENTS)
         #: Counts GitHub round-trips so a test can prove the TTL cache holds.
         self.comment_calls = 0
@@ -138,6 +160,9 @@ class FakeClient:
 
     async def list_pull_files(self, number):
         return self.files
+
+    async def list_pull_commits(self, number):
+        return self.commits
 
     async def get_file_text(self, path, ref=None):
         return self.texts[(path, ref)]
@@ -179,11 +204,11 @@ def use_client(monkeypatch, client: FakeClient):
 
 
 def test_type_for_branch():
-    assert _type_for_branch("contrib/braces/b9-ab12") is Type.ALL_BRACE
-    assert _type_for_branch("contrib/hss-columns/x-1") is Type.ALL_HSS_COLUMN
-    assert _type_for_branch("contrib/unknown/x-1") is None
-    assert _type_for_branch("contrib/braces") is None
-    assert _type_for_branch("feature/braces/x") is None
+    assert type_for_branch("contrib/braces/b9-ab12") is Type.ALL_BRACE
+    assert type_for_branch("contrib/hss-columns/x-1") is Type.ALL_HSS_COLUMN
+    assert type_for_branch("contrib/unknown/x-1") is None
+    assert type_for_branch("contrib/braces") is None
+    assert type_for_branch("feature/braces/x") is None
 
 
 def test_parse_pr_body_roundtrip():
@@ -193,6 +218,25 @@ def test_parse_pr_body_roundtrip():
     assert contributor.name == "Ada Lovelace"
     assert contributor.institution == "EPFL"
     assert contributor.orcid == "0000-1"
+    # The @mention that notifies the contributor of every review comment.
+    assert contributor.github_login == "ada"
+
+
+def test_parse_pr_body_roundtrip_with_update_help():
+    """The update section must not disturb the fields the review screen reads."""
+    body = build_pr_body(
+        CONTRIBUTOR,
+        Type.ALL_BRACE,
+        3,
+        2,
+        ["w1"],
+        "contrib/braces/b9-abcd1234",
+        "braces/steel_braces.csv",
+    )
+    count, contributor = _parse_pr_body(body)
+    assert count == 3
+    assert contributor.name == "Ada Lovelace"
+    assert contributor.institution == "EPFL"
 
 
 def test_parse_pr_body_tolerates_free_text():
@@ -202,14 +246,14 @@ def test_parse_pr_body_tolerates_free_text():
 
 
 def test_classify_files():
-    classified = {f.path: f for f in _classify_files(PR_FILES, Type.ALL_BRACE)}
+    classified = {f.path: f for f in classify_files(PR_FILES, Type.ALL_BRACE)}
     assert classified["braces/steel_braces.csv"].kind == "primary"
     curve = classified["braces/force_displacement/B9.csv"]
     assert curve.kind == "timeseries"
     assert curve.timeseries_dir == "braces/force_displacement"
     assert curve.experiment_id == "B9"
     assert classified["contributions/braces/abcd1234.json"].kind == "provenance"
-    extra = _classify_files([{"path": ".github/workflows/evil.yml"}], Type.ALL_BRACE)
+    extra = classify_files([{"path": ".github/workflows/evil.yml"}], Type.ALL_BRACE)
     assert extra[0].kind == "other"
 
 
@@ -252,6 +296,22 @@ async def test_detail_reconstructs_batch(monkeypatch):
     assert [e.id for e in detail.experiments] == ["B9"]
     assert detail.experiments[0].cells == {"id": "B9", "f_y": "400", "name": "New one"}
     assert detail.contributor.orcid == "0000-1"
+    assert detail.contributor.institution == "EPFL"
+    # The trailers carry it; the old JSON path never did.
+    assert detail.contributor.github_login == "ada"
+    assert detail.submitted_at == "2026-08-01T12:00:00+00:00"
+    assert detail.dismissed_warnings == ["Value is far outside the range"]
+    assert detail.reconstruction_warning is None
+
+
+async def test_detail_reads_a_legacy_record(monkeypatch):
+    """A submission opened before trailers still shows its contributor."""
+    client = FakeClient(commits=[])
+    client.texts[(PROVENANCE_PATH, "head-sha")] = PROVENANCE
+    use_client(monkeypatch, client)
+    detail = await get_contribution(make_request(), 7)
+    assert detail.contributor.name == "Ada Lovelace"
+    assert detail.contributor.orcid == "0000-1"
     assert detail.submitted_at == "2026-08-01T12:00:00+00:00"
     assert detail.dismissed_warnings == ["Value is far outside the range"]
     assert detail.reconstruction_warning is None
@@ -265,7 +325,6 @@ async def test_detail_handles_crlf_and_header_drift(monkeypatch):
         texts={
             ("braces/steel_braces.csv", "head-sha"): head,
             ("braces/steel_braces.csv", None): base,
-            ("contributions/braces/abcd1234.json", "head-sha"): PROVENANCE,
         }
     )
     use_client(monkeypatch, client)
@@ -275,14 +334,15 @@ async def test_detail_handles_crlf_and_header_drift(monkeypatch):
     assert detail.experiments[0].cells["f_y"] == "400"
 
 
-async def test_detail_flags_provenance_failure(monkeypatch):
-    client = FakeClient()
-    client.texts[("contributions/braces/abcd1234.json", "head-sha")] = "not json"
+async def test_detail_flags_unreadable_provenance(monkeypatch):
+    """No trailers and no readable record: say so, do not break the screen."""
+    client = FakeClient(commits=[{"sha": "x", "message": "pushed by hand"}])
+    client.texts[(PROVENANCE_PATH, "head-sha")] = "not json"
     use_client(monkeypatch, client)
     detail = await get_contribution(make_request(), 7)
     # Contributor falls back to the PR body; the warning is set.
     assert detail.contributor.name == "Ada Lovelace"
-    assert "provenance" in detail.reconstruction_warning
+    assert "commit trailers" in detail.reconstruction_warning
 
 
 async def test_detail_flags_count_mismatch(monkeypatch):
@@ -305,6 +365,23 @@ async def test_detail_404_on_closed_or_foreign(monkeypatch):
     with pytest.raises(HTTPException) as caught:
         await get_contribution(make_request(), 7)
     assert caught.value.status_code == 404
+
+
+async def test_detail_says_whether_it_is_mine(monkeypatch):
+    """Per request, never from the cache: two people read the same detail."""
+    from types import SimpleNamespace
+
+    use_client(monkeypatch, FakeClient())
+    anonymous = await get_contribution(make_request(), 7)
+    assert anonymous.mine is False
+
+    owner = make_request()
+    owner.state.user = SimpleNamespace(id="some-id", email="ada@example.edu")
+    assert (await get_contribution(owner, 7)).mine is True
+
+    stranger = make_request()
+    stranger.state.user = SimpleNamespace(id="other-id", email="grace@example.edu")
+    assert (await get_contribution(stranger, 7)).mine is False
 
 
 # --- validation -------------------------------------------------------------
@@ -438,3 +515,27 @@ async def test_comments_502_when_github_fails(monkeypatch):
     with pytest.raises(HTTPException) as caught:
         await get_contribution_comments(make_request(), 7)
     assert caught.value.status_code == 502
+
+
+async def test_invalidate_pull_forgets_a_submission(monkeypatch):
+    """An update through the Hub must show at once, not a minute later.
+
+    The detail and file caches are keyed by head sha and expire on their own,
+    but the pull request itself and the queue are keyed by number, so an
+    update would otherwise serve the head commit it just replaced.
+    """
+    client = FakeClient()
+    use_client(monkeypatch, client)
+    await list_contributions(make_request())
+    first = await get_contribution(make_request(), 7)
+    assert first.head_sha == "head-sha"
+
+    moved = make_pull(head_sha="new-sha")
+    client.pulls = [moved]
+    client.texts[("braces/steel_braces.csv", "new-sha")] = HEAD_CSV
+    client.texts[("contributions/braces/abcd1234.json", "new-sha")] = PROVENANCE
+
+    assert (await get_contribution(make_request(), 7)).head_sha == "head-sha"  # cached
+    curation.invalidate_pull(7)
+    assert (await get_contribution(make_request(), 7)).head_sha == "new-sha"
+    assert curation._cache.get("list") is None

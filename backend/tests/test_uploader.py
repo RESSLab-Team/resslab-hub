@@ -21,6 +21,7 @@ from resslab_hub.data.uploader import (
     TableUploader,
     Type,
     Uploader,
+    cap_series,
     upload_all,
     upload_one,
 )
@@ -213,14 +214,14 @@ def test_uploader_classes_share_interface():
 # DictionaryUploader
 # ---------------------------------------------------------------------------
 DICTIONARY_HEADER = "column_name,description,symbol,unit,type,example_value,nullable"
+# The group column arrived with RESSLab-Team/resslab-hub-data#46.
+DICTIONARY_HEADER_WITH_GROUP = DICTIONARY_HEADER + ",group"
 
 
-def write_dictionary_csv(tmp_path, rows):
+def write_dictionary_csv(tmp_path, rows, header=DICTIONARY_HEADER):
     # The basename selects the target database ("braces").
     file_path = tmp_path / "steel_braces_data_dictionary.csv"
-    file_path.write_text(
-        DICTIONARY_HEADER + "\n" + "\n".join(rows) + "\n", encoding="utf-8"
-    )
+    file_path.write_text(header + "\n" + "\n".join(rows) + "\n", encoding="utf-8")
     return file_path
 
 
@@ -246,6 +247,33 @@ def test_dictionary_uploader_roundtrip(tmp_path, db_session):
     assert rows[0].nullable is False
     assert rows[1].unit == "mm2"
     assert rows[1].example == "120.5"
+    # A dictionary without the group column still uploads.
+    assert [row.group for row in rows] == ["", ""]
+
+
+def test_dictionary_uploader_reads_the_group_column(tmp_path, db_session):
+    from resslab_hub.models.database.dictionary import DictionaryColumn
+
+    file_path = write_dictionary_csv(
+        tmp_path,
+        [
+            "id,Unique identifier,,-,String,B1,False,Experimental program details",
+            "area,Cross-section area,A,mm2,DecimalFloat,120.5,True,Section properties",
+        ],
+        header=DICTIONARY_HEADER_WITH_GROUP,
+    )
+    upload_one(Type.DICTIONARY, str(file_path))
+
+    rows = (
+        db_session.query(DictionaryColumn)
+        .filter(DictionaryColumn.database == "braces")
+        .order_by(DictionaryColumn.position)
+        .all()
+    )
+    assert [row.group for row in rows] == [
+        "Experimental program details",
+        "Section properties",
+    ]
 
 
 def test_dictionary_uploader_replaces_previous_rows(tmp_path, db_session):
@@ -355,3 +383,30 @@ def test_upload_all_recomputes_flags(tmp_path, db_session):
 
     flags = {b.id: b.displacement_count for b in db_session.query(Brace).all()}
     assert flags == {"B1": 1, "B2": 0}
+
+
+# ---------------------------------------------------------------------------
+# cap_series: the pure filter behind `upload-data-light` (per-worktree light DB)
+# ---------------------------------------------------------------------------
+def test_cap_series_caps_measurements_but_keeps_everything_else():
+    args = [
+        (Type.BRACE, "braces/steel_braces.csv"),
+        (Type.DICTIONARY, "braces/steel_braces_data_dictionary.csv"),
+        (Type.DICTIONARY, "columns/steel_columns_data_dictionary.csv"),
+        (Type.README, "braces/README.md"),
+        (Type.README, "columns/README.md"),
+        (Type.BRACE_DISPLACEMENT, "braces/force_displacement/b.csv"),
+        (Type.BRACE_DISPLACEMENT, "braces/force_displacement/a.csv"),
+        (Type.COLUMN_MOMENT_STRONG, "columns/moment_rotation_strong/x.csv"),
+    ]
+
+    capped = cap_series(args, 1)
+
+    # main tables and every per-folder dictionary/README survive untouched
+    for kept in args[:5]:
+        assert kept in capped
+    # one file per series type, chosen alphabetically so reruns are identical
+    assert (Type.BRACE_DISPLACEMENT, "braces/force_displacement/a.csv") in capped
+    assert (Type.BRACE_DISPLACEMENT, "braces/force_displacement/b.csv") not in capped
+    assert (Type.COLUMN_MOMENT_STRONG, "columns/moment_rotation_strong/x.csv") in capped
+    assert len(capped) == 7
