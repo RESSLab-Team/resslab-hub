@@ -20,6 +20,26 @@ tooling() { [ -f "$ROOT/scripts/$1" ] && echo "$ROOT/scripts/$1" || echo "$MAIN/
 
 echo "==> worktree $ROOT ($BRANCH)"
 
+# 0. Tracking. `wt create <branch> origin/dev` cuts the branch from a
+#    remote-tracking ref, and git's default autoSetupMerge then points the new
+#    branch's upstream at origin/dev. `git pull` there rebases the branch onto
+#    dev instead of fetching its own commits, the next push is refused as
+#    non-fast-forward, and `git pull` still answers "up to date" because it is
+#    comparing against dev. That happened on perf/improve-github-contribution
+#    and left its HEAD detached. `simple` only tracks a remote branch of the
+#    same name, and push.autoSetupRemote sets the upstream on the first push,
+#    so a new branch gets the right one or none at all. Repo-wide config, but
+#    written here so every checkout of this repo gets it.
+git config branch.autoSetupMerge simple || echo "note: could not set branch.autoSetupMerge"
+git config push.autoSetupRemote true || echo "note: could not set push.autoSetupRemote"
+if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH"; then
+  git branch --set-upstream-to="origin/$BRANCH" "$BRANCH" >/dev/null 2>&1 ||
+    echo "note: could not track origin/$BRANCH"
+elif [ "$(git config --get "branch.$BRANCH.merge" || true)" != "refs/heads/$BRANCH" ]; then
+  # Not pushed yet: no upstream at all beats one pointing at another branch.
+  git branch --unset-upstream "$BRANCH" >/dev/null 2>&1 || true
+fi
+
 # 1. Gitignored dev files aren't in the branch; the main checkout's copies on disk
 #    are the right source whatever it has checked out. Never overwrite.
 for f in secrets/.env docker-compose.override.yml frontend/.env.development.local; do
