@@ -13,6 +13,7 @@ from starlette.requests import Request
 
 from resslab_hub.contributions.projection import classify_files, type_for_branch
 from resslab_hub.contributions.submission import Contributor, build_pr_body
+from resslab_hub.contributions.trailers import build_commit_message
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import ValidationResult
 from resslab_hub.routers import curation
@@ -36,9 +37,26 @@ CONTRIBUTOR = Contributor(
     institution="EPFL",
     orcid="0000-1",
     github_login="ada",
-    identity="email",
 )
 
+HUB_COMMITS = [
+    {
+        "sha": "first-sha",
+        "message": build_commit_message(
+            "data(braces): add 1 experiment (B9)",
+            "Ada Lovelace",
+            "ada@example.edu",
+            institution="EPFL",
+            orcid="0000-1",
+            github_login="ada",
+            dismissed_warnings=["Value is far outside the range"],
+        ),
+        "author_date": "2026-08-01T12:00:00+00:00",
+    }
+]
+
+# A submission opened before trailers: the JSON record answers instead.
+PROVENANCE_PATH = "contributions/braces/abcd1234.json"
 PROVENANCE = json.dumps(
     {
         "schema": 1,
@@ -49,7 +67,6 @@ PROVENANCE = json.dumps(
             "email": "ada@example.edu",
             "institution": "EPFL",
             "orcid": "0000-1",
-            "identity": "self-declared",
         },
         "files": [],
         "dismissed_warnings": ["Value is far outside the range"],
@@ -113,9 +130,10 @@ PR_FILES = [
 class FakeClient:
     """In-memory double for the curation read path."""
 
-    def __init__(self, pulls=None, files=None, texts=None, comments=None):
+    def __init__(self, pulls=None, files=None, texts=None, comments=None, commits=None):
         self.pulls = pulls if pulls is not None else [make_pull()]
         self.files = files if files is not None else list(PR_FILES)
+        self.commits = commits if commits is not None else list(HUB_COMMITS)
         self.comments = comments if comments is not None else list(PR_COMMENTS)
         #: Counts GitHub round-trips so a test can prove the TTL cache holds.
         self.comment_calls = 0
@@ -142,6 +160,9 @@ class FakeClient:
 
     async def list_pull_files(self, number):
         return self.files
+
+    async def list_pull_commits(self, number):
+        return self.commits
 
     async def get_file_text(self, path, ref=None):
         return self.texts[(path, ref)]
@@ -275,6 +296,22 @@ async def test_detail_reconstructs_batch(monkeypatch):
     assert [e.id for e in detail.experiments] == ["B9"]
     assert detail.experiments[0].cells == {"id": "B9", "f_y": "400", "name": "New one"}
     assert detail.contributor.orcid == "0000-1"
+    assert detail.contributor.institution == "EPFL"
+    # The trailers carry it; the old JSON path never did.
+    assert detail.contributor.github_login == "ada"
+    assert detail.submitted_at == "2026-08-01T12:00:00+00:00"
+    assert detail.dismissed_warnings == ["Value is far outside the range"]
+    assert detail.reconstruction_warning is None
+
+
+async def test_detail_reads_a_legacy_record(monkeypatch):
+    """A submission opened before trailers still shows its contributor."""
+    client = FakeClient(commits=[])
+    client.texts[(PROVENANCE_PATH, "head-sha")] = PROVENANCE
+    use_client(monkeypatch, client)
+    detail = await get_contribution(make_request(), 7)
+    assert detail.contributor.name == "Ada Lovelace"
+    assert detail.contributor.orcid == "0000-1"
     assert detail.submitted_at == "2026-08-01T12:00:00+00:00"
     assert detail.dismissed_warnings == ["Value is far outside the range"]
     assert detail.reconstruction_warning is None
@@ -288,7 +325,6 @@ async def test_detail_handles_crlf_and_header_drift(monkeypatch):
         texts={
             ("braces/steel_braces.csv", "head-sha"): head,
             ("braces/steel_braces.csv", None): base,
-            ("contributions/braces/abcd1234.json", "head-sha"): PROVENANCE,
         }
     )
     use_client(monkeypatch, client)
@@ -298,14 +334,15 @@ async def test_detail_handles_crlf_and_header_drift(monkeypatch):
     assert detail.experiments[0].cells["f_y"] == "400"
 
 
-async def test_detail_flags_provenance_failure(monkeypatch):
-    client = FakeClient()
-    client.texts[("contributions/braces/abcd1234.json", "head-sha")] = "not json"
+async def test_detail_flags_unreadable_provenance(monkeypatch):
+    """No trailers and no readable record: say so, do not break the screen."""
+    client = FakeClient(commits=[{"sha": "x", "message": "pushed by hand"}])
+    client.texts[(PROVENANCE_PATH, "head-sha")] = "not json"
     use_client(monkeypatch, client)
     detail = await get_contribution(make_request(), 7)
     # Contributor falls back to the PR body; the warning is set.
     assert detail.contributor.name == "Ada Lovelace"
-    assert "provenance" in detail.reconstruction_warning
+    assert "commit trailers" in detail.reconstruction_warning
 
 
 async def test_detail_flags_count_mismatch(monkeypatch):

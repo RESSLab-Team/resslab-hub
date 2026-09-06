@@ -163,8 +163,9 @@ function issueSubject(issue: CardIssue): string {
 const dialogOpen = ref(false)
 
 // Who submits comes from the session now (#247), not from a form. The commit
-// author and the provenance record both need a name and a proven address, so
-// an account missing either is sent to /account rather than refused on submit.
+// author and its Submitted-by trailer both need a name and a proven address,
+// so an account missing either is sent to /account rather than refused on
+// submit.
 const contributor = computed(() => auth.user)
 const contributorReady = computed(
   () => !!contributor.value?.display_name?.trim() && !!contributor.value?.email_verified

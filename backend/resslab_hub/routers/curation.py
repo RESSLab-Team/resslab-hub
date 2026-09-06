@@ -16,7 +16,6 @@ on GitHub either way. The per-IP rate limits and the TTL caches keyed by the PR
 head sha also protect the GitHub App's API budget.
 """
 
-import json
 import os
 import re
 from os import path
@@ -39,8 +38,9 @@ from resslab_hub.contributions.projection import (
 from resslab_hub.contributions.submission import (
     _read_csv,
     _write_csv,
-    owns_submission,
+    read_provenance,
 )
+from resslab_hub.contributions.trailers import owns_submission
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import validate_all
 from resslab_hub.models.curation import (
@@ -202,32 +202,24 @@ async def _build_detail(
 
     # Provenance is informative, never load-bearing: any failure downgrades to
     # a reconstruction warning instead of breaking the review screen.
-    provenance_paths = [f.path for f in files if f.kind == "provenance"]
-    if provenance_paths:
-        try:
-            provenance = json.loads(
-                await client.get_file_text(provenance_paths[0], ref=head_sha)
-            )
-            contributor = provenance.get("contributor", {})
-            # Who may edit it, kept beside the detail rather than in it: the
-            # detail is cached across users, the answer is per user.
-            _cache.put(
-                ("owner", pull["number"], head_sha), provenance, DETAIL_TTL_SECONDS
-            )
-            detail.contributor = CurationContributor(
-                name=str(contributor.get("name", "")),
-                institution=str(contributor.get("institution", "")),
-                orcid=str(contributor.get("orcid", "")),
-            )
-            detail.submitted_at = str(provenance.get("submitted_at", ""))
-            dismissed = provenance.get("dismissed_warnings", [])
-            if isinstance(dismissed, list):
-                detail.dismissed_warnings = [str(w) for w in dismissed]
-        except Exception:
-            detail.reconstruction_warning = (
-                "The provenance record could not be read; contributor details "
-                "come from the pull request body."
-            )
+    provenance = await read_provenance(client, pull["number"], head_sha, files)
+    if provenance is None:
+        detail.reconstruction_warning = (
+            "The submission's commit trailers could not be read; contributor "
+            "details come from the pull request body."
+        )
+    else:
+        # Who may edit it, kept beside the detail rather than in it: the
+        # detail is cached across users, the answer is per user.
+        _cache.put(("owner", pull["number"], head_sha), provenance, DETAIL_TTL_SECONDS)
+        detail.contributor = CurationContributor(
+            name=provenance.name,
+            institution=provenance.institution,
+            orcid=provenance.orcid,
+            github_login=provenance.github_login,
+        )
+        detail.submitted_at = provenance.submitted_at
+        detail.dismissed_warnings = list(provenance.dismissed_warnings)
 
     # The appended batch = head rows whose id is not in the base CSV. Robust to
     # CRLF, column order and legacy columns because rows are keyed by name.
@@ -404,7 +396,7 @@ def _is_mine(request: Request, pr_number: int, detail: CurationDetail) -> bool:
     if user is None:
         return False
     provenance = _cache.get(("owner", pr_number, detail.head_sha))
-    return owns_submission(provenance, str(user.id), user.email or "")
+    return owns_submission(provenance, user.email or "")
 
 
 @router.get(
