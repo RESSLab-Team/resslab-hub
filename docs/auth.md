@@ -186,20 +186,28 @@ runbook below.
 The manifests and the secrets live outside this repo, so these steps are done
 by hand, once per environment (`dev`, then `staging`, then `prod`).
 
-1. In Infisical, project `/epfl-resslab/resslab-hub`, pick the environment and
-   add the six `SMTP_*` keys from the block above. The password is copied from
-   the `/enacit4r-email` path of the shared ENAC IT project. Values are stored
-   as they are, no escaping, so paste `INTRANET\noreply-enacitdev` plainly.
-2. In `enack8s-app-config`, check the backend Deployment already pulls that
+1. Copy the password out of the shared ENAC IT vault:
+   `enac-it-secrets.epfl.ch`, path `/enacit4r-email`. That vault is the only
+   source, this app never gets its own account.
+2. Paste it into our own vault: project `k8s-prod-yc-rz`, path
+   `/epfl-resslab/resslab-hub` (next to `API_PASSWORD`, which lands in the
+   `backend-secret`), environment `dev`, `staging` or `prod`. Add the six
+   `SMTP_*` keys from the block above. Values are stored as they are, no
+   escaping, so paste `INTRANET\noreply-enacitdev` plainly.
+   Always the vault first: the operator overwrites the k8s secret on resync,
+   so a secret patched directly in the cluster silently reverts.
+3. In `enack8s-app-config`, check the backend Deployment already pulls that
    secret with `envFrom: secretRef` (the GitHub App pair comes in that way,
-   so usually there is nothing to add).
-3. Check the cluster can reach `mail.epfl.ch:587`. The anonymous port 25 relay
+   so usually there is nothing to add). The resync runs every 12 hours, so to
+   apply it now delete the `InfisicalSecret` CR from the ArgoCD UI (ArgoCD has
+   the rights for it, your own account may not) or delete the managed secret.
+4. Check the cluster can reach `mail.epfl.ch:587`. The anonymous port 25 relay
    is network-restricted; the authenticated one on 587 should not be, but try
    `dev` first before touching the other two.
-4. `kubectl -n epfl-resslab-resslab-hub-<env> rollout restart deployment/<backend>`.
+5. `kubectl -n epfl-resslab-resslab-hub-<env> rollout restart deployment/resslab-hub-backend-<env>`.
    Dynaconf reads the environment at startup only, so without a restart the
    pods stay in log-only mode.
-5. Verify: the backend log must no longer show `Sign-in mail not sent (no
+6. Verify: the backend log must no longer show `Sign-in mail not sent (no
    SMTP_HOST)`. Sign in on the deployed `/login` with a real address, the mail
    arrives from "RESSLab Hub". If it fails, the page shows "The sign-in mail
    could not be sent" and `kubectl logs` has the reason on a `Sign-in mail to
