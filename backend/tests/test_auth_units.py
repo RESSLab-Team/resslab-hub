@@ -135,10 +135,11 @@ def test_the_mail_has_a_text_part_and_an_html_part():
     assert message.get_content_type() == "multipart/alternative"
 
     text, html = _parts(message)
-    # Text first, html second: the last part is the preferred one.
+    # Text first, the html and its images second: the last part is the
+    # preferred one.
     assert [p.get_content_type() for p in message.iter_parts()] == [
         "text/plain",
-        "text/html",
+        "multipart/related",
     ]
     for body in (text, html):
         assert "123456" in body
@@ -212,3 +213,31 @@ async def test_a_refusing_relay_becomes_a_mail_error(monkeypatch, caplog):
     # The reason is logged, the code never is.
     assert "relay is down" in caplog.text
     assert "123456" not in caplog.text
+
+
+def test_the_logos_travel_with_the_mail():
+    """Gmail and Outlook strip inline SVG, so the marks are attached images."""
+    message = mailer.build_message("ada@example.edu", "123456", LINK)
+    images = [p for p in message.walk() if p.get_content_type() == "image/png"]
+
+    assert [p["Content-ID"] for p in images] == [
+        "<rl-mark-light>",
+        "<rl-mark-dark>",
+        "<rl-epfl>",
+    ]
+    # Inline, so no client shows them as attachments to download.
+    assert all(p.get_content_disposition() == "inline" for p in images)
+    assert all(p.get_payload(decode=True) for p in images)
+
+    # And the html asks for exactly those three.
+    _, html = _parts(message)
+    for content_id in mailer.LOGOS:
+        assert f'src="cid:{content_id}"' in html
+
+
+def test_the_card_is_not_capped_at_600px():
+    """Asked for: the mail fills the window on a laptop."""
+    _, html = _parts(mailer.build_message("ada@example.edu", "123456", LINK))
+    assert "max-width:600px" not in html
+    # The Outlook-only wrapper that forced 600px is gone with it.
+    assert "[if mso]><table" not in html

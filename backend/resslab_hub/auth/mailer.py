@@ -41,9 +41,25 @@ FROM_NAME = "RESSLab Hub"
 TEMPLATE_DIR = Path(__file__).parent / "templates" / "email"
 
 
+#: Images referenced by the html part, by content id. They travel with the
+#: mail rather than sitting behind a URL: Gmail and Outlook strip inline SVG,
+#: and a hosted file would not load from a laptop running on 127.0.0.1.
+#: Two marks because the ink has to flip on a dark card.
+LOGOS = {
+    "rl-mark-light": "mark-light.png",
+    "rl-mark-dark": "mark-dark.png",
+    "rl-epfl": "epfl.png",
+}
+
+
 @lru_cache(maxsize=None)
 def _template(name: str) -> str:
     return (TEMPLATE_DIR / name).read_text(encoding="utf-8")
+
+
+@lru_cache(maxsize=None)
+def _image(name: str) -> bytes:
+    return (TEMPLATE_DIR / name).read_bytes()
 
 
 def _fill(template: str, values: dict) -> str:
@@ -92,6 +108,18 @@ def build_message(email: str, code: str, link: str) -> EmailMessage:
     # last part being the preferred one.
     message.set_content(text)
     message.add_alternative(html, subtype="html")
+    # The images hang off the html part, not off the message, so a reader
+    # that only wants the text part never downloads them.
+    html_part = message.get_payload()[-1]
+    for content_id, file_name in LOGOS.items():
+        html_part.add_related(
+            _image(file_name),
+            maintype="image",
+            subtype="png",
+            cid=f"<{content_id}>",
+            filename=file_name,
+            disposition="inline",
+        )
     return message
 
 

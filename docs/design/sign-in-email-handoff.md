@@ -71,6 +71,21 @@ See `signin_email.txt` — the HTML uses identical sentences. Plain English, no 
 - Sizes: 24/30 title · 20/24 wordmark · 16/24 lead · 15/22 body · 14/21 terms · 12/18 small · 11/16 label · 44/56 code
 - Square corners, no shadows, no gradients, no images
 
+## Changes made during implementation
+
+- **The marks are attached PNGs, not inline SVG.** Gmail and Outlook strip
+  inline SVG, so the handoff's "accepted" fallback meant no logo at all in
+  the two most common clients. The real `resslab-hub-mark-iso.svg` is
+  rendered to PNG at 2x (80px for a 40px slot) and travels with the mail as
+  a `cid:` related part. A hosted URL was rejected because it would not load
+  from a laptop serving on `127.0.0.1`, and because Gmail proxies images.
+  Two versions of the mark: the white fills in that logo are a masking
+  trick, so on a dark card they are remapped to the card colour and the ink
+  goes light. They swap in the `prefers-color-scheme` block.
+- **No `max-width: 600px`.** Asked for after seeing it on a laptop: the card
+  now fills the window. The Outlook conditional that forced 600px went with
+  it, since it would have pinned Outlook to the old width.
+
 ## Assets
 - Header mark: inline SVG, simplified redraw of the isometric braced-frame logo (single-line members, red X braces, bolt dots, dashed footings). To use the real `frontend/public/logo/resslab-hub-mark-iso.svg`, paste its paths into the `<svg class="rl-mark">` element, keep `width="36" height="44"`, and give the brace paths class `rl-brace` and ink paths `stroke="#212121"` so the dark-mode rules still apply.
 - Footer: EPFL logo paths from the official `epfl-logo.svg`, fill `#e30713`.

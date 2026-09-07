@@ -22,10 +22,8 @@ a.rl-btn:hover{background-color:#b51f1f !important}
 .rl-mut,.rl-mut a{color:#a3a3a3 !important}
 .rl-rule{border-color:#3a3a3a !important}
 .rl-red{color:#ff4a4a !important}
-.rl-mark path,.rl-mark circle{stroke:#ececec !important}
-.rl-mark circle{fill:#ececec !important}
-.rl-mark .rl-brace{stroke:#ff4a4a !important}
-.rl-epfl path,.rl-epfl polygon,.rl-epfl rect{fill:#ececec !important}
+.rl-logo-light{display:none !important}
+.rl-logo-dark{display:block !important;font-size:inherit !important;line-height:inherit !important;max-height:none !important;overflow:visible !important}
 }
 @media only screen and (max-width:480px){
 .rl-pad{padding-left:20px !important;padding-right:20px !important}
@@ -37,24 +35,15 @@ a.rl-btn:hover{background-color:#b51f1f !important}
 <div style="display:none;font-size:1px;color:#fcfcfc;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">Enter the code or open the link. Both stop working in {ttl_minutes} minutes.&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
 <table role="presentation" class="rl-ground" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fcfcfc;">
 <tr><td align="center" style="padding:32px 12px;">
-<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
-<table role="presentation" class="rl-card" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#ffffff;">
+<table role="presentation" class="rl-card" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;">
 
 <!-- Header -->
 <tr><td class="rl-pad rl-rule" style="padding:28px 40px 22px 40px;border-bottom:1px solid #e6e6e6;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
 <tr>
 <td valign="middle" style="padding-right:14px;line-height:0;">
-<svg class="rl-mark" xmlns="http://www.w3.org/2000/svg" width="36" height="44" viewBox="0 0 36 44" aria-hidden="true" style="display:block;">
-<g fill="none" stroke="#212121" stroke-width="1" stroke-linejoin="round">
-<path d="M2 11 L18 2 L34 11 L18 20 Z"></path>
-<path d="M2 11 L2 31 L18 40 L18 20"></path>
-<path d="M34 11 L34 31 L18 40"></path>
-<path class="rl-brace" stroke="#e30713" stroke-width="0.75" d="M2 11 L18 40 M18 20 L2 31 M18 20 L34 31 M34 11 L18 40"></path>
-<path stroke-dasharray="1.5 1.5" d="M0 33.5 L4 33.5 M14 42.5 L22 42.5 M32 33.5 L36 33.5"></path>
-</g>
-<g fill="#212121"><circle cx="2" cy="11" r="1.3"></circle><circle cx="18" cy="20" r="1.3"></circle><circle cx="34" cy="11" r="1.3"></circle><circle cx="18" cy="2" r="1.3"></circle><circle cx="2" cy="31" r="1.3"></circle><circle cx="18" cy="40" r="1.3"></circle><circle cx="34" cy="31" r="1.3"></circle></g>
-</svg>
+<img class="rl-logo-light" src="cid:rl-mark-light" width="40" height="40" alt="RESSLab Hub" style="display:block;border:0;outline:none;text-decoration:none;">
+<div class="rl-logo-dark" style="display:none;mso-hide:all;font-size:0;line-height:0;max-height:0;overflow:hidden;"><img src="cid:rl-mark-dark" width="40" height="40" alt="RESSLab Hub" style="display:block;border:0;outline:none;text-decoration:none;"></div>
 </td>
 <td valign="middle">
 <div class="rl-ink" style="font-family:Arial,Helvetica,sans-serif;font-size:20px;line-height:24px;font-weight:bold;color:#212121;letter-spacing:-0.2px;">RESSLab&nbsp;<span class="rl-red" style="color:#e30713;">Hub</span></div>
@@ -106,14 +95,12 @@ a.rl-btn:hover{background-color:#b51f1f !important}
 </table>
 
 <!-- Footer -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 <tr><td class="rl-pad" style="padding:24px 40px 8px 40px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 <tr>
 <td valign="top" style="line-height:0;padding-bottom:14px;">
-<svg class="rl-epfl" xmlns="http://www.w3.org/2000/svg" width="62" height="18" viewBox="0 0 182.4 53" aria-label="EPFL" role="img" style="display:block;" fill="#e30713">
-<polygon points="0 21.6 11.43 21.6 11.43 9.8 38.34 9.8 38.34 0 0 0 0 21.6"></polygon><polygon points="0 53 38.34 53 38.34 43.2 11.43 43.2 11.43 31.4 0 31.4 0 53"></polygon><rect x="11.43" y="21.6" width="24.61" height="9.8"></rect><path d="M86,4.87a16.12,16.12,0,0,0-5.68-3.53A23.76,23.76,0,0,0,71.82,0H48.14V53H59.57V31.4H71.82a23.76,23.76,0,0,0,8.46-1.34A16.12,16.12,0,0,0,86,26.53a13.43,13.43,0,0,0,3.19-5,17.38,17.38,0,0,0,0-11.62A13.52,13.52,0,0,0,86,4.87ZM78,18.73a5.7,5.7,0,0,1-2.26,1.8,11.33,11.33,0,0,1-3.27.85,32,32,0,0,1-3.86.22H59.57V9.8h9.05a32,32,0,0,1,3.86.22,11,11,0,0,1,3.27.86A5.59,5.59,0,0,1,78,12.67a5,5,0,0,1,.86,3A5,5,0,0,1,78,18.73Z"></path><polygon points="155.47 43.2 155.47 0 144.04 0 144.04 53 182.38 53 182.38 43.2 155.47 43.2"></polygon><polygon points="97.42 21.6 108.85 21.6 108.85 9.8 135.76 9.8 135.76 0 97.42 0 97.42 21.6"></polygon><rect x="97.42" y="31.4" width="11.43" height="21.6"></rect><rect x="108.85" y="21.6" width="24.61" height="9.8"></rect>
-</svg>
+<img src="cid:rl-epfl" width="62" height="18" alt="EPFL" style="display:block;border:0;outline:none;text-decoration:none;">
 </td>
 </tr>
 <tr><td class="rl-mut" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#6b6b6b;">
@@ -123,7 +110,6 @@ a.rl-btn:hover{background-color:#b51f1f !important}
 </table>
 </td></tr>
 </table>
-<!--[if mso]></td></tr></table><![endif]-->
 </td></tr>
 </table>
 </body>
