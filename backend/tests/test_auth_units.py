@@ -112,17 +112,63 @@ def test_display_name_guessed_from_the_address():
 
 
 # --- mail -----------------------------------------------------------------
+LINK = "http://127.0.0.1:5173/login/verify?challenge=abc&token=xyz"
+
+
+def _parts(message):
+    """The text and html bodies of the multipart/alternative message."""
+    by_type = {part.get_content_type(): part for part in message.walk()}
+    return by_type["text/plain"].get_content(), by_type["text/html"].get_content()
+
+
 def test_message_carries_the_code_the_link_and_a_display_name(monkeypatch):
     monkeypatch.setattr(mailer.settings, "smtp_from", "noreply-enacitdev@epfl.ch")
-    link = "http://127.0.0.1:5173/login/verify?challenge=abc&token=xyz"
-    message = mailer.build_message("ada@example.edu", "123456", link)
+    message = mailer.build_message("ada@example.edu", "123456", LINK)
 
     assert message["From"] == "RESSLab Hub <noreply-enacitdev@epfl.ch>"
     assert message["To"] == "ada@example.edu"
     assert "123456" in message["Subject"]
-    body = message.get_content()
-    assert "123456" in body
-    assert link in body
+
+
+def test_the_mail_has_a_text_part_and_an_html_part():
+    message = mailer.build_message("ada@example.edu", "123456", LINK)
+    assert message.get_content_type() == "multipart/alternative"
+
+    text, html = _parts(message)
+    # Text first, html second: the last part is the preferred one.
+    assert [p.get_content_type() for p in message.iter_parts()] == [
+        "text/plain",
+        "text/html",
+    ]
+    for body in (text, html):
+        assert "123456" in body
+        assert str(mailer.settings.login_code_ttl_minutes) in body
+    assert LINK in text
+
+
+def test_the_html_escapes_the_ampersand_in_the_link():
+    """The link joins its two parameters with "&", twice in the html."""
+    _, html = _parts(mailer.build_message("ada@example.edu", "123456", LINK))
+
+    assert "challenge=abc&amp;token=xyz" in html
+    # The raw form would cut the token off in a browser.
+    assert "challenge=abc&token=xyz" not in html
+    # Both the button and the copy-paste line carry it.
+    assert html.count("challenge=abc&amp;token=xyz") >= 2
+
+
+def test_no_placeholder_is_left_unfilled():
+    text, html = _parts(mailer.build_message("ada@example.edu", "123456", LINK))
+    for name in ("{code}", "{link}", "{ttl_minutes}"):
+        assert name not in text
+        assert name not in html
+
+
+def test_the_html_keeps_its_css_braces():
+    """The fill is str.replace, not str.format, so the style block survives."""
+    _, html = _parts(mailer.build_message("ada@example.edu", "123456", LINK))
+    assert "@media (prefers-color-scheme: dark)" in html
+    assert "background-color:#171717 !important" in html
 
 
 async def test_without_a_host_the_code_goes_to_the_log(monkeypatch, caplog):

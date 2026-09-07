@@ -19,6 +19,9 @@ hourly caps of the person trying to sign in.
 import logging
 from email.message import EmailMessage
 from email.utils import formataddr
+from functools import lru_cache
+from html import escape
+from pathlib import Path
 
 import aiosmtplib
 
@@ -33,6 +36,25 @@ TIMEOUT_SECONDS = 15
 #: Display name in the From header. The address itself is ``SMTP_FROM``.
 FROM_NAME = "RESSLab Hub"
 
+#: The two parts of the mail, designed together (docs/design/). Shipped as
+#: files rather than strings because the HTML one is 10 kB of table layout.
+TEMPLATE_DIR = Path(__file__).parent / "templates" / "email"
+
+
+@lru_cache(maxsize=None)
+def _template(name: str) -> str:
+    return (TEMPLATE_DIR / name).read_text(encoding="utf-8")
+
+
+def _fill(template: str, values: dict) -> str:
+    """Replace the ``{name}`` placeholders.
+
+    Not ``str.format``: the HTML carries a CSS block full of braces.
+    """
+    for key, value in values.items():
+        template = template.replace("{" + key + "}", value)
+    return template
+
 
 class MailError(Exception):
     """The relay refused the mail or did not answer. Not the caller's fault."""
@@ -44,23 +66,32 @@ def configured() -> bool:
 
 
 def build_message(email: str, code: str, link: str) -> EmailMessage:
+    ttl = str(settings.login_code_ttl_minutes)
+    text = _fill(
+        _template("signin_email.txt"),
+        {"code": code, "link": link, "ttl_minutes": ttl},
+    )
+    # The link holds a "&" between its two query parameters, and it is written
+    # both in an href and as visible text, so it needs escaping in the HTML.
+    html = _fill(
+        _template("signin_email.html"),
+        {
+            "code": escape(code),
+            "link": escape(link, quote=True),
+            "ttl_minutes": escape(ttl),
+        },
+    )
+
     message = EmailMessage()
     # A display name reads better in a mailbox list. aiosmtplib takes the bare
     # address out of it for the envelope, so the relay still sees just that.
     message["From"] = formataddr((FROM_NAME, str(settings.smtp_from)))
     message["To"] = email
     message["Subject"] = f"{code} is your RESSLab Hub sign-in code"
-    message.set_content(
-        "Hello,\n\n"
-        f"Your sign-in code for RESSLab Hub is: {code}\n\n"
-        "Type it in the tab where you asked for it, or open this link on this "
-        "device:\n\n"
-        f"{link}\n\n"
-        f"The code and the link both stop working in "
-        f"{settings.login_code_ttl_minutes} minutes, and each of them can only "
-        "be used once.\n\n"
-        "If you did not ask to sign in, you can ignore this mail.\n"
-    )
+    # Text first, HTML second: that is the order multipart/alternative wants,
+    # last part being the preferred one.
+    message.set_content(text)
+    message.add_alternative(html, subtype="html")
     return message
 
 
