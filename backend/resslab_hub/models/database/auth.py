@@ -70,8 +70,8 @@ class User(Base):  # type: ignore
     orcid = Column(String(50), nullable=False, server_default="")
     #: Effective role, recomputed by ``auth.roles.apply_role``.
     role = Column(String(20), nullable=False, server_default="viewer")
-    #: Why ``role`` has that value: ``override``, ``github``, ``admin-email``,
-    #: ``default`` (and the grant sources added in phase 2).
+    #: Why ``role`` has that value: ``override``, ``admin-email``,
+    #: ``academic-email``, ``default``, and ``github`` once #248 lands.
     role_source = Column(String(40), nullable=False, server_default="default")
     #: Set by an admin; wins over everything derived, in both directions.
     role_override = Column(String(20), nullable=True)

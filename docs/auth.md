@@ -179,6 +179,7 @@ the code never is.
 | `SMTP_USER` / `SMTP_PASSWORD` | The service account (above, mind the quoting). |
 | `SMTP_FROM` | Sender address. The display name is fixed in the code. |
 | `ADMIN_EMAILS` | Comma-separated addresses that become administrators at first sign-in, so a fresh deployment has one without a CLI. |
+| `CONTRIBUTOR_DOMAINS` | Comma-separated domains that count as academic on top of the built-in list (Roles, below). |
 | `SESSION_TTL_DAYS` | 30 by default. |
 | `LOGIN_CODE_TTL_MINUTES` | 10 by default. |
 | `SESSION_COOKIE_SECURE` | Derived from the `PUBLIC_BASE_URL` scheme; set it only to override. |
@@ -258,12 +259,73 @@ Sample-data submissions are easy to spot, their branches are named
 Locally, the email code needs no setup at all (see above). GitHub sign-in
 needs the dev App, only worth it to test the link flow and the @mention.
 
+## Roles
+
+Four roles, weakest first: `viewer`, `contributor`, `curator`, `admin`. The
+stored role is recomputed at every sign-in by `auth/roles.py`, and
+`role_source` records why, which the account page shows.
+
+Order of the checks, first match wins:
+
+1. `role_override` on the row, set by an administrator. Wins in both
+   directions, so it can also demote.
+2. The address is in `ADMIN_EMAILS` -> `admin`.
+3. The address is academic -> `contributor`.
+4. Otherwise `viewer`.
+
+Only a **verified** address counts. Mail sign-in verifies by construction;
+GitHub sign-in verifies when GitHub reports the address as verified.
+
+### What counts as academic
+
+The check is the `pyswot` package, which carries the domain list JetBrains
+uses to hand out student licences. Free mailboxes never pass, a stoplist of
+abused domains is refused, and everything else has to be on the list, where
+a subdomain matches its institution (`cs.stanford.edu` matches Stanford).
+
+It is an allowlist, not a rule about endings: `example.edu` is not academic
+just because it ends in `.edu`. The list is good on universities (EPFL,
+ETHZ, Stanford, Tokyo, Imperial, Politecnico, TUM are all on it) and knows
+nothing about research institutes or industry. Empa, NIST, AISC and Arup
+are all absent.
+
+That is what `CONTRIBUTOR_DOMAINS` is for:
+
+```env
+CONTRIBUTOR_DOMAINS=empa.ch,aisc.org
+```
+
+A subdomain of a listed domain matches too, so `lab.empa.ch` passes. A bare
+top-level domain never matches, so `ch` in that setting hands the role to
+nobody.
+
+### What the role gates
+
+`contributor` is needed to open or update a contribution
+(`POST`/`PUT /contributions`). Everything else is unchanged: browsing the
+databases needs no account, and the curation reads plus `/validate` need
+only a session, so someone can check their data before asking for access.
+
+### Promoting one person
+
+There is no admin screen yet (#248). Until then, set the override by hand
+and ask the person to sign in again:
+
+```sql
+UPDATE auth_user SET role_override = 'contributor' WHERE email = 'ada@somewhere.org';
+```
+
+Roles are recomputed at sign-in only, not per request. Someone who was
+already signed in when their domain was added keeps the old role until
+their next sign-in. Sessions last 30 days, so tell them to sign out and
+back in.
+
 ## Later
 
-- **#248** roles: academic email or an invitation grants `contributor`;
-  `curator` and `admin` come from the GitHub permission on `resslab-hub-data`,
-  so the app and the merge gate read the same source. Admin pages for members,
-  invitations and access requests.
+- **#248** roles, the rest of it: the academic grant is done (Roles, above),
+  invitations are not. `curator` and `admin` should come from the GitHub
+  permission on `resslab-hub-data`, so the app and the merge gate read the
+  same source. Admin pages for members, invitations and access requests.
 - **#249, #250, #252** the academic identity providers of the mockup: ORCID is
   self-service; SWITCH edu-ID / eduGAIN and EPFL Entra ID each need EPFL to
   register the application, so those requests should be filed early. Each one

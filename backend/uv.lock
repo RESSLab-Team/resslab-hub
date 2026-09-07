@@ -1902,6 +1902,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pyswot"
+version = "0.5.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/90/66/44fbe87145d6a3b5670a07e7629ebb5d29986a147fc8d55ac82055aa3f95/pyswot-0.5.2.tar.gz", hash = "sha256:336ab0b6684fb02d1cbe7af8536a454bf7d9db0f79e116593efb4662fc6779fc", size = 576212, upload-time = "2026-08-06T15:03:21.217Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8d/80/e28de3dc0c3fdc4c26cb98d61e2c087aa9cce12a6a26b9be5c925557aca2/pyswot-0.5.2-py3-none-any.whl", hash = "sha256:d81232b3f94bf3764fd88ade64355b6f6bfb6a847b9c2dbdaa09e219687db41b", size = 579860, upload-time = "2026-08-06T15:03:19.59Z" },
+]
+
+[[package]]
 name = "pytest"
 version = "7.4.4"
 source = { registry = "https://pypi.org/simple" }
@@ -2058,6 +2067,7 @@ dependencies = [
     { name = "httpx" },
     { name = "psycopg2-binary" },
     { name = "pydantic" },
+    { name = "pyswot" },
     { name = "python-multipart" },
     { name = "requests" },
     { name = "slowapi" },
@@ -2108,6 +2118,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.27,<1" },
     { name = "psycopg2-binary", specifier = ">=2.9.2,<3" },
     { name = "pydantic", specifier = ">=2,<3" },
+    { name = "pyswot", specifier = ">=0.5,<0.6" },
     { name = "python-multipart", specifier = ">=0.0.30,<0.1" },
     { name = "requests", specifier = ">=2.32.3,<3" },
     { name = "slowapi", specifier = ">=0.1.10,<0.2" },

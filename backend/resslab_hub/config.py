@@ -72,6 +72,10 @@ settings = Dynaconf(
         # Comma-separated addresses that get the admin role at first sign-in,
         # so a fresh deployment has an administrator without a CLI.
         Validator("admin_emails", default=""),
+        # Comma-separated domains that count as academic on top of the
+        # pyswot list, for the research institutes and firms it does not
+        # know (empa.ch, aisc.org). A subdomain of one of these matches too.
+        Validator("contributor_domains", default=""),
     ],
 )
 

@@ -22,6 +22,13 @@ onMounted(async () => {
   if (reason) error.value = t(`auth.errors.${reason}`, t('auth.errors.generic'))
 })
 
+// Why the role is what it is. The backend sends role_source for exactly
+// this; an unknown source shows nothing rather than a raw slug.
+const roleReason = computed(() => {
+  const source = auth.user?.role_source
+  return source ? t(`auth.role_source.${source}`, '') : ''
+})
+
 const initials = computed(() => {
   const name = auth.user?.display_name || auth.user?.email || '?'
   return name
@@ -74,7 +81,10 @@ async function signOut(): Promise<void> {
         </p>
         <p v-if="auth.user.institution" class="account-inst">{{ auth.user.institution }}</p>
       </div>
-      <p class="role-tag">{{ $t(`auth.roles.${auth.user.role}`) }}</p>
+      <div class="role-cell">
+        <p class="role-tag">{{ $t(`auth.roles.${auth.user.role}`) }}</p>
+        <p v-if="roleReason" class="role-why">{{ roleReason }}</p>
+      </div>
     </section>
 
     <section class="account-block">
@@ -175,6 +185,23 @@ async function signOut(): Promise<void> {
   color: var(--fg-muted);
   font-size: 13px;
 }
+.role-cell {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.role-why {
+  margin: 0;
+  max-width: 220px;
+  font-size: 11px;
+  line-height: 15px;
+  text-align: right;
+  color: var(--fg-muted);
+}
+
 .role-tag {
   flex: none;
   margin: 0;

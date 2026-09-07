@@ -1508,13 +1508,21 @@
       "title": "Not open to your account",
       "lede": "Your account cannot open this page.",
       "needs_role": "This page needs the {role} role. Ask an administrator of the lab for it.",
-      "back_home": "Back to the databases"
+      "back_home": "Back to the databases",
+      "contributor_hint": "Contributor access is granted automatically to academic email addresses. If your institution was not recognised, ask an administrator of the lab."
     },
     "roles": {
       "viewer": "Viewer",
       "contributor": "Contributor",
       "curator": "Curator",
       "admin": "Administrator"
+    },
+    "role_source": {
+      "default": "Everyone starts here.",
+      "academic-email": "Granted from your academic email address.",
+      "admin-email": "Listed as an administrator of this deployment.",
+      "override": "Set by an administrator.",
+      "github": "From your permission on the data repository."
     },
     "providers": {
       "email": "Email",

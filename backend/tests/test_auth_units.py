@@ -91,6 +91,80 @@ def test_admin_email_needs_a_verified_address(monkeypatch):
     assert roles.derive_role(user) == ("viewer", "default")
 
 
+def test_academic_addresses_are_recognised(monkeypatch):
+    monkeypatch.setattr(roles.settings, "contributor_domains", "")
+    # On the pyswot list.
+    assert roles.is_academic("ada@epfl.ch")
+    assert roles.is_academic("ada@ethz.ch")
+    assert roles.is_academic("ada@u-tokyo.ac.jp")
+    # A subdomain matches its institution.
+    assert roles.is_academic("ada@cs.stanford.edu")
+    # Free mailboxes never pass, and the list is an allowlist: a domain it
+    # does not know is not academic, whatever its ending.
+    assert not roles.is_academic("ada@gmail.com")
+    assert not roles.is_academic("ada@example.com")
+    assert not roles.is_academic("ada@example.edu")
+    # Nothing to read.
+    assert not roles.is_academic("")
+    assert not roles.is_academic("nobody")
+
+
+def test_configured_domains_fill_the_gaps(monkeypatch):
+    """The list knows universities, not research institutes or industry."""
+    monkeypatch.setattr(roles.settings, "contributor_domains", "empa.ch, AISC.org")
+    assert roles.is_academic("ada@empa.ch")
+    assert roles.is_academic("ada@aisc.org")
+    # Case and whitespace in the setting do not matter.
+    assert roles.is_academic("Ada@AISC.org")
+    # A subdomain of a configured one matches.
+    assert roles.is_academic("ada@lab.empa.ch")
+    # But a neighbour does not.
+    assert not roles.is_academic("ada@notempa.ch")
+
+
+def test_a_configured_tld_cannot_grant_a_whole_country(monkeypatch):
+    monkeypatch.setattr(roles.settings, "contributor_domains", "ch")
+    assert not roles.is_academic("ada@example.ch")
+
+
+def test_academic_email_grants_contributor(monkeypatch):
+    from datetime import datetime, timezone
+
+    monkeypatch.setattr(roles.settings, "admin_emails", "")
+    monkeypatch.setattr(roles.settings, "contributor_domains", "")
+    user = User(email="ada@epfl.ch", email_verified_at=datetime.now(timezone.utc))
+    assert roles.derive_role(user) == ("contributor", "academic-email")
+
+
+def test_an_unverified_academic_address_grants_nothing(monkeypatch):
+    monkeypatch.setattr(roles.settings, "admin_emails", "")
+    monkeypatch.setattr(roles.settings, "contributor_domains", "")
+    user = User(email="ada@epfl.ch", email_verified_at=None)
+    assert roles.derive_role(user) == ("viewer", "default")
+
+
+def test_admin_email_beats_the_academic_grant(monkeypatch):
+    from datetime import datetime, timezone
+
+    monkeypatch.setattr(roles.settings, "admin_emails", "ada@epfl.ch")
+    monkeypatch.setattr(roles.settings, "contributor_domains", "")
+    user = User(email="ada@epfl.ch", email_verified_at=datetime.now(timezone.utc))
+    assert roles.derive_role(user) == ("admin", "admin-email")
+
+
+def test_override_beats_the_academic_grant(monkeypatch):
+    from datetime import datetime, timezone
+
+    monkeypatch.setattr(roles.settings, "admin_emails", "")
+    monkeypatch.setattr(roles.settings, "contributor_domains", "")
+    user = User(
+        email="ada@epfl.ch",
+        email_verified_at=datetime.now(timezone.utc),
+        role_override="viewer",
+    )
+    assert roles.derive_role(user) == ("viewer", "override")
+
+
 def test_signed_in_without_a_grant_is_a_viewer(monkeypatch):
     from datetime import datetime, timezone
 

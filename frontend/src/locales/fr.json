@@ -1508,13 +1508,21 @@
       "title": "Page fermée à votre compte",
       "lede": "Votre compte ne peut pas ouvrir cette page.",
       "needs_role": "Cette page demande le rôle {role}. Demandez-le à un administrateur du labo.",
-      "back_home": "Retour aux bases de données"
+      "back_home": "Retour aux bases de données",
+      "contributor_hint": "L'accès contributeur est accordé automatiquement aux adresses e-mail académiques. Si votre institution n'a pas été reconnue, demandez à un administrateur du laboratoire."
     },
     "roles": {
       "viewer": "Lecteur",
       "contributor": "Contributeur",
       "curator": "Curateur",
       "admin": "Administrateur"
+    },
+    "role_source": {
+      "default": "Tout le monde commence ici.",
+      "academic-email": "Accordé d'après votre adresse e-mail académique.",
+      "admin-email": "Inscrit comme administrateur de ce déploiement.",
+      "override": "Défini par un administrateur.",
+      "github": "D'après votre permission sur le dépôt de données."
     },
     "providers": {
       "email": "Email",

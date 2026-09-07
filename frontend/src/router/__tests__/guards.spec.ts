@@ -34,6 +34,13 @@ describe('resolveGuard', () => {
     })
   })
 
+  it('sends a viewer away from the contribution editor (#248)', () => {
+    expect(resolveGuard(route('contributor'), { role: 'viewer' })).toEqual({
+      name: 'Forbidden',
+      query: { next: '/contribute/new', need: 'contributor' }
+    })
+  })
+
   it('treats a missing role as the weakest one', () => {
     expect(resolveGuard(route('contributor'), {})).toEqual({
       name: 'Forbidden',

@@ -97,6 +97,27 @@ async def test_code_sign_in_creates_the_account(client, mailbox, db_session):
     assert (await client.get("/auth/me")).json()["user"]["email"] == "ada@example.edu"
 
 
+async def test_an_academic_address_becomes_a_contributor(client, mailbox):
+    """The grant that lets someone submit, end to end (#248)."""
+    await _start(client, email="ada@epfl.ch")
+    response = await client.post(
+        "/auth/email/verify", json={"code": mailbox[0]["code"]}
+    )
+    user = response.json()["user"]
+    assert user["role"] == "contributor"
+    assert user["role_source"] == "academic-email"
+
+
+async def test_a_free_mailbox_stays_a_viewer(client, mailbox):
+    await _start(client, email="ada@gmail.com")
+    response = await client.post(
+        "/auth/email/verify", json={"code": mailbox[0]["code"]}
+    )
+    user = response.json()["user"]
+    assert user["role"] == "viewer"
+    assert user["role_source"] == "default"
+
+
 async def test_signing_in_twice_reuses_the_account(client, mailbox, db_session):
     for _ in range(2):
         await _start(client)
@@ -542,22 +563,43 @@ async def test_curation_queue_opens_for_a_signed_in_user(client, sign_in):
     assert (await client.get("/contributions")).status_code == 200
 
 
-async def test_submitting_needs_a_session(client):
-    response = await client.post(
+async def _submit(client):
+    return await client.post(
         "/contributions",
         params={"type": "all-braces"},
         files={"file": ("batch.tar.gz", b"x", "application/gzip")},
     )
-    assert response.status_code == 401
 
 
-async def test_updating_a_submission_needs_a_session(client):
-    response = await client.put(
+async def _update(client):
+    return await client.put(
         "/contributions/7",
         data={"head_sha": "a" * 40},
         files={"file": ("batch.tar.gz", b"x", "application/gzip")},
     )
-    assert response.status_code == 401
+
+
+async def test_submitting_needs_a_session(client):
+    assert (await _submit(client)).status_code == 401
+
+
+async def test_updating_a_submission_needs_a_session(client):
+    assert (await _update(client)).status_code == 401
+
+
+async def test_a_viewer_cannot_submit(client, sign_in):
+    """Signed in is not permission to open a pull request on the data repo."""
+    sign_in(email="ada@example.com")
+    assert (await _submit(client)).status_code == 403
+    assert (await _update(client)).status_code == 403
+
+
+async def test_a_contributor_is_past_the_gate(client, sign_in):
+    sign_in(email="ada@epfl.ch", role="contributor")
+    # The archive is junk, so this fails later on. What matters is that it
+    # is no longer refused by the role gate.
+    for response in (await _submit(client), await _update(client)):
+        assert response.status_code not in (401, 403)
 
 
 # --- /validate has two kinds of caller ------------------------------------
