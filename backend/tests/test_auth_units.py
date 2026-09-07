@@ -1,8 +1,11 @@
 """Pure-unit tests for the sign-in building blocks (no database)."""
 
+import logging
+
+import aiosmtplib
 import pytest
 
-from resslab_hub.auth import roles, tokens, urls
+from resslab_hub.auth import mailer, roles, tokens, urls
 from resslab_hub.auth.users import name_from_email, normalize_email
 from resslab_hub.models.database.auth import User
 
@@ -106,3 +109,60 @@ def test_email_normalisation():
 def test_display_name_guessed_from_the_address():
     assert name_from_email("ada.lovelace@epfl.ch") == "Ada Lovelace"
     assert name_from_email("dlignos@epfl.ch") == "Dlignos"
+
+
+# --- mail -----------------------------------------------------------------
+def test_message_carries_the_code_the_link_and_a_display_name(monkeypatch):
+    monkeypatch.setattr(mailer.settings, "smtp_from", "noreply+resslab-hub@epfl.ch")
+    link = "http://127.0.0.1:5173/login/verify?challenge=abc&token=xyz"
+    message = mailer.build_message("ada@example.edu", "123456", link)
+
+    assert message["From"] == "RESSLab Hub <noreply+resslab-hub@epfl.ch>"
+    assert message["To"] == "ada@example.edu"
+    assert "123456" in message["Subject"]
+    body = message.get_content()
+    assert "123456" in body
+    assert link in body
+
+
+async def test_without_a_host_the_code_goes_to_the_log(monkeypatch, caplog):
+    monkeypatch.setattr(mailer.settings, "smtp_host", None)
+    caplog.set_level(logging.WARNING, logger="resslab_hub.auth.mailer")
+
+    await mailer.send_login_mail("ada@example.edu", "123456", "http://x/verify")
+
+    assert "123456" in caplog.text
+    assert "http://x/verify" in caplog.text
+
+
+async def test_the_send_uses_starttls_and_a_short_timeout(monkeypatch):
+    seen = {}
+
+    async def _send(message, **kwargs):
+        seen.update(kwargs)
+
+    monkeypatch.setattr(mailer.settings, "smtp_host", "mail.example")
+    monkeypatch.setattr(mailer.settings, "smtp_starttls", True)
+    monkeypatch.setattr(mailer.aiosmtplib, "send", _send)
+
+    await mailer.send_login_mail("ada@example.edu", "123456", "http://x/verify")
+
+    assert seen["hostname"] == "mail.example"
+    assert seen["start_tls"] is True
+    assert seen["timeout"] == mailer.TIMEOUT_SECONDS
+
+
+async def test_a_refusing_relay_becomes_a_mail_error(monkeypatch, caplog):
+    async def _send(message, **kwargs):
+        raise aiosmtplib.SMTPConnectError("relay is down")
+
+    monkeypatch.setattr(mailer.settings, "smtp_host", "mail.example")
+    monkeypatch.setattr(mailer.aiosmtplib, "send", _send)
+    caplog.set_level(logging.ERROR, logger="resslab_hub.auth.mailer")
+
+    with pytest.raises(mailer.MailError):
+        await mailer.send_login_mail("ada@example.edu", "123456", "http://x/verify")
+
+    # The reason is logged, the code never is.
+    assert "relay is down" in caplog.text
+    assert "123456" not in caplog.text

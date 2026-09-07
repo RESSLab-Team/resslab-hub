@@ -50,8 +50,11 @@ async function sendCode(): Promise<void> {
   try {
     await auth.startEmailLogin(email.value.trim(), next.value)
     step.value = 'code'
-  } catch {
-    error.value = t('auth.errors.generic')
+  } catch (caught: unknown) {
+    // The backend says "mail_failed" when the relay is down. Anything else
+    // falls back to the generic line.
+    const detail = (caught as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+    error.value = t(`auth.errors.${detail}`, t('auth.errors.generic'))
   } finally {
     busy.value = false
   }

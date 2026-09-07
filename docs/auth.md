@@ -119,12 +119,47 @@ does not show a raw JSON error.
 
 ### Mail
 
-`SMTP_HOST`, `SMTP_PORT` (587), `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`.
 With no `SMTP_HOST` the code and the link are written to the log instead of
 being sent, which is how local development and the tests work.
 
-Still to settle with ENAC IT: which relay the cluster's pods may use, and
-whether `noreply@resslab-hub.epfl.ch` can be the sender.
+The relay is the EPFL one, documented by ENAC IT ("Sending email via epfl
+infra" in the enacit4r Notion). `mail.epfl.ch:587` with STARTTLS, and the
+shared service account whose password is in Infisical under `/enacit4r-email`.
+The server offers `AUTH GSSAPI NTLM LOGIN`; aiosmtplib knows cram-md5, plain
+and login, so it picks LOGIN and no NTLM code is needed.
+
+```env
+SMTP_HOST=mail.epfl.ch
+SMTP_PORT=587
+SMTP_STARTTLS=true
+SMTP_USER=INTRANET\noreply-enacitdev
+SMTP_PASSWORD=<Infisical /enacit4r-email>
+SMTP_FROM=noreply+resslab-hub@epfl.ch
+```
+
+Two traps in that block:
+
+- **Do not put double quotes around `SMTP_USER`.** Dynaconf reads the file
+  with python-dotenv, which turns `\n` inside double quotes into a real
+  newline, so `"INTRANET\noreply-enacitdev"` becomes two broken lines. No
+  quotes (as above) or single quotes both keep the backslash. Same rule in
+  YAML. If Exchange accepts the UPN form `noreply-enacitdev@epfl.ch` as the
+  login name, that avoids the question, but it is untested.
+- **The sender stays under `epfl.ch`.** `noreply+resslab-hub@epfl.ch` uses the
+  `+` suffix ENAC IT documents, so SPF and DKIM pass and Gmail does not junk
+  it. A sender on a subdomain like `resslab-hub.epfl.ch` has no DNS records of
+  its own and gets filtered. If the relay ever refuses that sender
+  (`SMTPSenderRefused`, "SendAsDenied"), fall back to the account's own
+  address `noreply-enacitdev@epfl.ch`.
+
+Mails go out as `RESSLab Hub <SMTP_FROM>`. There is no `Reply-To`: it is a
+noreply mailbox, and a reply would carry a sign-in code to whoever reads it.
+
+When the relay refuses or does not answer within 15 seconds, `POST
+/auth/email/start` answers `503` with `mail_failed` and the login page says
+so. The challenge is rolled back, so a broken relay does not eat the hourly
+caps of the person trying to sign in. The SMTP reason is in the backend log,
+the code never is.
 
 ### Settings
 
@@ -132,7 +167,10 @@ whether `noreply@resslab-hub.epfl.ch` can be the sender.
 |---|---|
 | `PUBLIC_BASE_URL` | Where the app is reached, without `/api`. Every absolute URL comes from it. |
 | `GITHUB_OAUTH_CLIENT_ID` / `_SECRET` | The App's OAuth pair (above). |
-| `SMTP_*` | Mail (above). |
+| `SMTP_HOST` / `SMTP_PORT` | The relay. No host = log-only mode (above). |
+| `SMTP_STARTTLS` | On by default; the EPFL relay needs it on port 587. |
+| `SMTP_USER` / `SMTP_PASSWORD` | The service account (above, mind the quoting). |
+| `SMTP_FROM` | Sender address. The display name is fixed in the code. |
 | `ADMIN_EMAILS` | Comma-separated addresses that become administrators at first sign-in, so a fresh deployment has one without a CLI. |
 | `SESSION_TTL_DAYS` | 30 by default. |
 | `LOGIN_CODE_TTL_MINUTES` | 10 by default. |
@@ -140,11 +178,37 @@ whether `noreply@resslab-hub.epfl.ch` can be the sender.
 
 In the deployments these go in Infisical and reach the pods through
 `envFrom: secretRef`, like the existing GitHub App credentials. `CORS_ENABLED`
-is gone and can be removed from the overlays.
+is gone and can be removed from the overlays. For the mail keys, see the
+runbook below.
+
+## Deploying the mail relay
+
+The manifests and the secrets live outside this repo, so these steps are done
+by hand, once per environment (`dev`, then `staging`, then `prod`).
+
+1. In Infisical, project `/epfl-resslab/resslab-hub`, pick the environment and
+   add the six `SMTP_*` keys from the block above. The password is copied from
+   the `/enacit4r-email` path of the shared ENAC IT project. Values are stored
+   as they are, no escaping, so paste `INTRANET\noreply-enacitdev` plainly.
+2. In `enack8s-app-config`, check the backend Deployment already pulls that
+   secret with `envFrom: secretRef` (the GitHub App pair comes in that way,
+   so usually there is nothing to add).
+3. Check the cluster can reach `mail.epfl.ch:587`. The anonymous port 25 relay
+   is network-restricted; the authenticated one on 587 should not be, but try
+   `dev` first before touching the other two.
+4. `kubectl -n epfl-resslab-resslab-hub-<env> rollout restart deployment/<backend>`.
+   Dynaconf reads the environment at startup only, so without a restart the
+   pods stay in log-only mode.
+5. Verify: the backend log must no longer show `Sign-in mail not sent (no
+   SMTP_HOST)`. Sign in on the deployed `/login` with a real address, the mail
+   arrives from "RESSLab Hub". If it fails, the page shows "The sign-in mail
+   could not be sent" and `kubectl logs` has the reason on a `Sign-in mail to
+   ... failed:` line.
 
 ## Signing in locally
 
-With no SMTP configured, the code is in the backend log:
+With no `SMTP_HOST` configured, the code is in the backend log, so no mail
+server is needed to sign in locally:
 
 ```
 make dev-all              # or the worktree's own tmux session

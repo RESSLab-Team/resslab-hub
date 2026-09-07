@@ -54,12 +54,14 @@ settings = Dynaconf(
         Validator("session_ttl_days", default=30),
         Validator("login_code_ttl_minutes", default=10),
         # Mail: without a host the mailer logs the code instead of sending it,
-        # which is how local dev and the tests work.
+        # which is how local dev and the tests work. The relay is the EPFL one
+        # (docs/auth.md). The sender stays under epfl.ch so SPF and DKIM pass;
+        # the "+resslab-hub" tag says which app sent it.
         Validator("smtp_host", default=None),
         Validator("smtp_port", default=587),
         Validator("smtp_user", default=None),
         Validator("smtp_password", default=None),
-        Validator("smtp_from", default="noreply@resslab-hub.epfl.ch"),
+        Validator("smtp_from", default="noreply+resslab-hub@epfl.ch"),
         Validator("smtp_starttls", default=True),
         # OAuth pair of a GitHub App: the one above in the deployments, a
         # separate dev App locally (docs/auth.md). Both present = "Sign in

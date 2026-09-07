@@ -1525,6 +1525,7 @@
     },
     "errors": {
       "generic": "Quelque chose n'a pas marché. Réessayez.",
+      "mail_failed": "Le mail de connexion n'a pas pu être envoyé. Réessayez dans quelques minutes.",
       "invalid_code": "Ce code n'est pas le bon. Vérifiez le mail et réessayez.",
       "invalid_or_expired": "Ce code ou ce lien n'est plus valable. Demandez-en un nouveau.",
       "too_many_attempts": "Trop d'essais. Demandez un nouveau code.",

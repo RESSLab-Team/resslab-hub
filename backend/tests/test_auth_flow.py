@@ -6,6 +6,7 @@ everything here goes through the ``client`` fixture rather than calling the
 endpoint functions.
 """
 
+import aiosmtplib
 import pytest
 from sqlalchemy import select, text
 
@@ -31,6 +32,17 @@ def mailbox(monkeypatch):
     monkeypatch.setattr(mailer, "send_login_mail", _send)
     monkeypatch.setattr(email_login.mailer, "send_login_mail", _send)
     return sent
+
+
+@pytest.fixture
+def broken_relay(monkeypatch):
+    """A configured relay that refuses every mail, through the real mailer."""
+
+    async def _send(message, **kwargs):
+        raise aiosmtplib.SMTPAuthenticationError(535, "denied")
+
+    monkeypatch.setattr(mailer.settings, "smtp_host", "mail.example")
+    monkeypatch.setattr(mailer.aiosmtplib, "send", _send)
 
 
 async def _start(client, email="ada@example.edu", redirect_to="/contribute/new"):
@@ -152,6 +164,27 @@ async def test_an_address_cannot_be_mail_bombed(client, mailbox, db_session):
     assert len(mailbox) == email_login.MAX_MAILS_PER_HOUR
     # Capped, but the answer never says so.
     assert len(db_session.execute(select(LoginChallenge)).scalars().all()) == 5
+
+
+async def test_a_broken_relay_does_not_burn_the_rate_limit(
+    client, broken_relay, db_session, monkeypatch
+):
+    """A dead relay must not cost the person their five mails per hour."""
+    for _ in range(email_login.MAX_MAILS_PER_HOUR + 1):
+        response = await client.post(
+            "/auth/email/start", json={"email": "ada@example.edu"}
+        )
+        assert response.status_code == 503
+        assert response.json()["detail"] == "mail_failed"
+        assert not response.cookies.get("resslab_login")
+
+    # Nothing was written, so nothing counts against the caps.
+    assert db_session.execute(select(LoginChallenge)).scalars().all() == []
+
+    # And once the relay is back, the address can still ask for a code.
+    monkeypatch.setattr(mailer.settings, "smtp_host", None)
+    await _start(client, redirect_to="/")
+    assert len(db_session.execute(select(LoginChallenge)).scalars().all()) == 1
 
 
 async def test_one_ip_cannot_mail_bomb_a_list_of_people(client, mailbox):
