@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from resslab_hub.auth import email_login, github_oauth, users
+from resslab_hub.auth import email_login, github_oauth, mailer, users
 from resslab_hub.auth.deps import get_current_user, require_user
 from resslab_hub.auth.sessions import (
     LOGIN_COOKIE,
@@ -94,9 +94,17 @@ async def start_email_login(
     db: AsyncSession = Depends(get_session),
 ) -> EmailStartResponse:
     """Mail a sign-in code (and a link that does the same) to an address."""
-    challenge_id = await email_login.start(
-        db, str(payload.email), payload.redirect_to, client_ip(request)
-    )
+    try:
+        challenge_id = await email_login.start(
+            db, str(payload.email), payload.redirect_to, client_ip(request)
+        )
+    except mailer.MailError as exc:
+        # The only case where the answer is not the same for everyone. It says
+        # nothing about the address, only that our relay is down, and the
+        # person needs to know no mail is coming.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="mail_failed"
+        ) from exc
     if challenge_id is not None:
         set_login_cookie(response, challenge_id)
     # Same answer whether the mail went out or the address was capped.

@@ -182,7 +182,8 @@ const router = createRouter({
       path: '/contribute/new',
       name: 'ContributeNew',
       component: () => import('@/views/ContributeView.vue'),
-      meta: { auth: 'viewer' }
+      // Submitting needs the role, not just a session (#248).
+      meta: { auth: 'contributor' }
     },
     {
       // The same editor, opened on an open submission (#321).
@@ -190,7 +191,7 @@ const router = createRouter({
       name: 'ContributeEdit',
       component: () => import('@/views/ContributeView.vue'),
       props: true,
-      meta: { auth: 'viewer' }
+      meta: { auth: 'contributor' }
     },
     {
       path: '/curation',

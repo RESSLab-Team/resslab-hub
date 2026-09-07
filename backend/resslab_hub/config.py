@@ -54,12 +54,15 @@ settings = Dynaconf(
         Validator("session_ttl_days", default=30),
         Validator("login_code_ttl_minutes", default=10),
         # Mail: without a host the mailer logs the code instead of sending it,
-        # which is how local dev and the tests work.
+        # which is how local dev and the tests work. The relay is the EPFL one
+        # (docs/auth.md). The sender must be the service account's own address:
+        # Exchange refuses anything else with 550 5.7.60 "does not have
+        # permissions to send as this sender".
         Validator("smtp_host", default=None),
         Validator("smtp_port", default=587),
         Validator("smtp_user", default=None),
         Validator("smtp_password", default=None),
-        Validator("smtp_from", default="noreply@resslab-hub.epfl.ch"),
+        Validator("smtp_from", default="noreply-enacitdev@epfl.ch"),
         Validator("smtp_starttls", default=True),
         # OAuth pair of a GitHub App: the one above in the deployments, a
         # separate dev App locally (docs/auth.md). Both present = "Sign in
@@ -69,6 +72,10 @@ settings = Dynaconf(
         # Comma-separated addresses that get the admin role at first sign-in,
         # so a fresh deployment has an administrator without a CLI.
         Validator("admin_emails", default=""),
+        # Comma-separated domains that count as academic on top of the
+        # pyswot list, for the research institutes and firms it does not
+        # know (empa.ch, aisc.org). A subdomain of one of these matches too.
+        Validator("contributor_domains", default=""),
     ],
 )
 

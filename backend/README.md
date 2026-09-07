@@ -86,6 +86,10 @@ POSTGRES_PASSWORD=<DB_PASSWORD>
 API_PASSWORD=<any non-empty value>   # machine credential, see docs/auth.md
 ```
 
+To send real sign-in mails instead of logging them, add the `SMTP_*` block
+from `docs/auth.md`. Watch the quoting of `SMTP_USER`: double quotes turn the
+backslash into a newline.
+
 If your local machine already runs a Postgres on 5432, port-forward to a different port (e.g. `5433:5432`) and set `POSTGRES_PORT=5433` in the `.env`.
 
 Then from `backend/`, run `make upload-data`. Note: it **erases** existing data in the tables it touches.

@@ -20,7 +20,8 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 
-from resslab_hub.auth.deps import require_user
+from resslab_hub.auth import roles
+from resslab_hub.auth.deps import require_role
 from resslab_hub.contributions.github import configured
 from resslab_hub.contributions.submission import (
     Contributor,
@@ -142,10 +143,12 @@ async def _run_on_archive(
         await file.close()
 
 
-# Signed in only (#247). Who submitted is not a form field any more: it is the
-# account, which is what makes the pull request attributable and lets a curator
-# reach the person who opened it. Phase 2 (#248) raises this to the contributor
-# role, so that being signed in is not by itself permission to submit.
+# Contributor role, not just a session (#248). Being signed in is not by
+# itself permission to submit: any address that can receive a code would
+# otherwise open pull requests on the data repository. The role comes from an
+# academic address, see `auth/roles.py`. Who submitted is not a form field
+# either: it is the account, which is what makes the pull request attributable
+# and lets a curator reach the person who opened it.
 @router.post(
     "/contributions",
     response_model=ContributionResponse,
@@ -158,7 +161,7 @@ async def create_contribution(
     file: UploadFile = File(...),
     type: Type = Query(...),
     dismissed_warnings: str = Form("[]"),
-    user: User = Depends(require_user),
+    user: User = Depends(require_role(roles.CONTRIBUTOR)),
     _: None = Depends(enforce_request_size),
 ):
     """
@@ -187,7 +190,7 @@ async def update_open_contribution(
     file: UploadFile = File(...),
     head_sha: str = Form(..., min_length=40, max_length=40),
     dismissed_warnings: str = Form("[]"),
-    user: User = Depends(require_user),
+    user: User = Depends(require_role(roles.CONTRIBUTOR)),
     _: None = Depends(enforce_request_size),
 ):
     """
