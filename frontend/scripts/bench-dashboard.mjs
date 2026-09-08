@@ -96,6 +96,14 @@ function installProbes() {
     recordingFrames: false
   }
   window.__bench = store
+  // The resource buffer holds 250 entries by default, and Vite's dev server
+  // serves hundreds of module files before the first API call. Without this
+  // the page requests fall off the end and "of which network" reads empty.
+  try {
+    performance.setResourceTimingBufferSize(5000)
+  } catch {
+    // Older browsers: the column just stays empty.
+  }
 
   const observe = (type, sink, extra = {}) => {
     try {
