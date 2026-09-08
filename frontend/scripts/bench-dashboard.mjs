@@ -55,10 +55,19 @@ function parseArgs(argv) {
     baseline: undefined
   }
   for (let i = 0; i < argv.length; i++) {
+    // `pnpm run x -- --db braces` forwards the `--` itself, npm swallows it.
+    // Skip it so the line works whichever the reader has in their fingers.
+    if (argv[i] === '--') continue
     const key = argv[i].replace(/^--/, '')
     if (key === 'headless') args.headless = true
     else if (key in args) args[key] = argv[++i]
-    else throw new Error(`unknown option: ${argv[i]}`)
+    else {
+      throw new Error(
+        `unknown option: ${argv[i]}\nknown: ${Object.keys(args)
+          .map((name) => '--' + name)
+          .join(' ')}`
+      )
+    }
   }
   args.runs = Number(args.runs)
   args.cpu = Number(args.cpu)

@@ -219,7 +219,8 @@ pnpm run bench:dashboard -- --db connections --runs 5 --cpu 4
 pnpm run bench:dashboard -- --db braces --baseline .bench/braces-300.json
 ```
 
-`--cpu 4` throttles the CPU fourfold, which is roughly a laptop on battery.
+The `--` is optional here (pnpm forwards it, npm eats it, the script skips it
+either way). `--cpu 4` throttles the CPU fourfold, roughly a laptop on battery.
 `--baseline` adds a delta column, for the 300-row control and for a rerun
 after a change. Raw entries land in `frontend/.bench/` (gitignored). Run 1 is
 printed apart: Vite's module cache is cold on it.
