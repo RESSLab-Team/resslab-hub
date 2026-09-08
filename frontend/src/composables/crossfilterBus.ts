@@ -38,6 +38,7 @@
  *      becomes the reconciling render. `dragend` fires even for a no-op click,
  *      so subscribers can never get stuck frozen.
  */
+import { perfMark, perfMeasure } from '@/utils/perf'
 
 export interface CrossfilterListener {
   /** A live drag frame: the full query string as it stands mid-drag. */
@@ -57,7 +58,12 @@ function flushLive(): void {
   if (!hasPending) return
   hasPending = false
   const query = pendingQuery
+  // Benchmark (#354): the cost of one drag frame, every subscribed chart
+  // included. Over ~16 ms here and the drag drops frames.
+  perfMark('brush:live:start')
   for (const listener of listeners) listener.onLive(query)
+  perfMark('brush:live:end', { charts: listeners.size })
+  perfMeasure('brush:live', 'brush:live:start', 'brush:live:end')
 }
 
 /** Subscribe a chart to live/settle frames. Returns an unsubscribe fn. */

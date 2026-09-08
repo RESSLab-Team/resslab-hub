@@ -37,6 +37,7 @@ import {
   type Ref
 } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { perfMark, perfMeasure } from '@/utils/perf'
 
 export interface LabeledFilter extends FilterDescriptor {
   /** Curated i18n label when the field has one, else the dictionary description. */
@@ -108,9 +109,20 @@ export function useAutoFilters<M extends { id: string }>(
     Promise.all([dictionary.fetch(), dataset.ready()])
       .then(() => {
         const cached = profiles.get(options.datasetKey)
+        // Benchmark (#354): this is the one pass that is O(rows x fields). It
+        // runs once per database for the life of the page, never on a toggle,
+        // so it belongs to the load and not to the filter interaction.
+        if (!cached) perfMark('filters:profile:start', { database: options.database })
         const profile =
           cached ??
           profileColumns(dataset.rowsSync() as Row[], dictionary.columnsFor(options.database))
+        if (!cached) {
+          perfMark('filters:profile:end', {
+            database: options.database,
+            fields: profile.length
+          })
+          perfMeasure('filters:profile', 'filters:profile:start', 'filters:profile:end')
+        }
         profiles.set(options.datasetKey, profile)
         profilesByDatabase.set(options.database, profile)
         descriptors.value = profile

@@ -164,6 +164,152 @@ Three pieces in `backend/resslab_hub/` make "load everything once" cheap:
 `CACHE_MAX_AGE` defaults to 3600 (`config.py`). Set it to 0 locally to turn
 the cache and the warmup off while you work on data.
 
+## Measuring it at 10 000 rows
+
+Our biggest real table has 371 rows (HSS columns), so nothing above tells you
+where this design starts to hurt. `frontend/scripts/bench-dashboard.mjs` drives
+a real Chrome through the four things a user does and prints the numbers. It
+measures, it does not judge: read the numbers before changing anything (#354).
+
+### Make the rows
+
+`backend/benchmark/bootstrap_rows.py` blows a real database up to any size by
+resampling its own CSV. Each column draws from its own real column, so the
+distinct values, their frequencies and the share of empty cells stay real;
+only the combinations are new. Numbers get a +/- 5 % jitter, else 10 000 rows
+would sit on 300 distinct values and the histograms and range filters would
+look cheaper than they are. Types come from the folder's
+`*_data_dictionary.csv`, so it needs no database and no settings.
+
+```bash
+cd backend
+make bench-rows                                  # braces, 10 000 rows
+make bench-rows BENCH_DB=connections             # the wide one, 153 columns
+make bench-rows BENCH_ROWS=300 BENCH_OUT=.benchmark-tmp-300   # the control
+```
+
+Then load it. **A throwaway database only**: the uploader deletes the ids that
+are not in the CSV, so this replaces the real rows. In a worktree that is the
+point (`make db-branch` re-clones it afterwards).
+
+```bash
+uv run python -m resslab_hub.data.uploader brace \
+  .benchmark-tmp/braces/steel_braces.csv
+```
+
+The main-table uploader merges row by row, so 10 000 rows take about a minute.
+No time-series files are generated, so the `*_count` flags come out empty and
+the drawer's curves are not part of the measurement.
+
+### Run it
+
+Needs a dev stack up (the worktree's tmux panes, or `make dev-all`) and Chrome.
+
+```bash
+cd frontend
+pnpm run bench:dashboard -- --url http://localhost:19006 --db braces --runs 5
+pnpm run bench:dashboard -- --db connections --runs 5 --cpu 4
+pnpm run bench:dashboard -- --db braces --baseline .bench/braces-300.json
+```
+
+`--cpu 4` throttles the CPU fourfold, which is roughly a laptop on battery.
+`--baseline` adds a delta column, for the 300-row control and for a rerun
+after a change. Raw entries land in `frontend/.bench/` (gitignored). Run 1 is
+printed apart: Vite's module cache is cold on it.
+
+The four scenarios:
+
+- **Load** — navigate, wait for the table's rows, then for a quiet main thread.
+- **Filter** — tick the first option of the rail's widest categorical filter,
+  then untick it. The second click shows what the query memo buys.
+- **Brush** — drag a `DistributionBrush` from 30 % to 70 % in 60 steps over
+  about a second, recording every animation frame.
+- **Sort** — click a numeric column header three times (asc, desc, off).
+
+### Reading the numbers
+
+Everything comes from the browser: the paint entries, Event Timing, the
+long-task observer, and the `rh:` marks `src/utils/perf.ts` writes inside the
+app (the fetch, the rail profile, each ECharts repaint, each table window,
+each filter commit, each drag frame). Those marks are always on, in production
+too: a `performance.mark` costs microseconds and makes a Performance panel
+profile readable.
+
+Four things are worth knowing before you blame the wrong piece:
+
+- **The load is mostly the fetch.** `fetchAllPages` drains the list endpoint
+  1000 rows at a time, one request after the other, so 10 000 rows are 10
+  sequential round-trips. The table splits the fetch from the network time
+  inside it.
+- **The filter rail's counts are computed once**, by `profileColumns` over the
+  unfiltered rows. That pass is O(rows x fields) and it is the one to watch on
+  connections (153 columns), but it belongs to the load: a filter toggle never
+  redoes it, and the option counts you see are the unfiltered ones.
+- **The table is already windowed** (`useVirtualRows`), so its cost follows the
+  page size, not the row count. What follows the row count is the filter and
+  the sort behind it.
+- **A drag never touches Vue.** The frames come off `crossfilterBus`, one per
+  animation frame whatever the pointer does, so the number to read is the cost
+  of one frame (`rh:brush:live`), not the number of pointer moves.
+
+### The numbers, 2026-09-08
+
+Linux, Chrome headless shell 1228, 1440x900, no CPU throttle, 4 runs each
+(median of runs 2 to 4, run 1 excluded because Vite's module cache is cold).
+Braces is 71 columns, connections 153. Milliseconds, from navigation start for
+the load rows and from the click for the rest.
+
+| | braces 300 | braces 10 000 | connections 300 | connections 10 000 |
+|---|---|---|---|---|
+| First contentful paint | 284 | 296 | 256 | 252 |
+| Dataset fetch | 203 | 577 | 244 | 898 |
+| Filter rail profile | 18 | 185 | 27 | 766 |
+| Table has rows | 899 | 1436 | 1005 | 2526 |
+| Interactive | 978 | 1513 | 1005 | 2526 |
+| Total blocking time | 318 | 419 | 314 | 1234 |
+| Longest task | 230 | 279 | 272 | **1016** |
+| Filter: charts settled | 85 | 174 | 124 | 205 |
+| Filter: table updated | 36 | 76 | 51 | 88 |
+| Brush: median live frame | 11 | 19 | 23 | **52** |
+| Brush: longest frame | 53 | 74 | 58 | **167** |
+| Sort: table sorted | 32 | 32 | 37 | 24 |
+
+What the numbers say, before anyone changes code:
+
+- **Connections at 10 000 rows is the one that hurts.** 2.5 s before the table
+  has rows, and a single 1016 ms task inside that. Braces at the same size stays
+  at 1.5 s, so it is the 153 columns, not the rows alone.
+- **The filter rail profile is the cost that grows fastest**: 27 ms to 766 ms on
+  connections, 28 times more for 33 times the rows. It is O(rows x fields) and
+  it runs once, inside the load, before any filter can be used.
+- **A drag on connections drops frames.** One live frame costs 52 ms against a
+  16.7 ms budget, so roughly two frames in three are lost, and the worst frame
+  is 167 ms. Braces stays near the budget at 19 ms.
+- **Sorting does not care about the row count at all** (24 to 37 ms
+  everywhere). Neither does first paint: the shell is up in about 260 ms while
+  the data is still loading.
+- **A filter toggle stays usable everywhere**: input delay is about 1 ms, the
+  table follows in under 90 ms, the charts in about 200 ms.
+
+So the load is the problem, and inside the load the rail profile and whatever
+makes that one 1 s task on connections. The drag is second. The table, the sort
+and the paint are fine. Nothing here is a decision yet.
+
+Two caveats on how these were taken:
+
+- They come from a stub server feeding the bootstrapped rows to the real app,
+  because the sandbox this ran in cannot reach Postgres. Everything above the
+  HTTP layer is the real dashboard, so browser time is real; the "of which
+  network" column is empty and the fetch number is a floor, not what a user on
+  a real backend would see. Rerun the same commands against a real stack to
+  fill it in.
+- The second measured click ticks a *different* value rather than unticking the
+  first. Clicking an option twice does not clear it today: the filter applies
+  and the chip shows, but the box never reads back as checked, so the second
+  click re-sends the same query and nothing recomputes. Seen on the braces rail
+  with a real investigator name, it needs its own issue and is not a
+  benchmarking artefact.
+
 ## What a new tab must implement
 
 - A `fetchAll()` that drains its list endpoint with `fetchAllPages`, and a

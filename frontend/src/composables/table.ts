@@ -9,6 +9,7 @@ import { debounce } from 'lodash'
 import { computed, onScopeDispose, ref, shallowRef, unref, watch, type Ref } from 'vue'
 import { subscribeCrossfilter } from './crossfilterBus'
 import { cancelScheduled, scheduleFrameUpdate } from './frameScheduler'
+import { perfMark } from '@/utils/perf'
 
 // Unique per table instance for the frame scheduler's latest-wins coalescing.
 let tableInstanceId = 0
@@ -197,6 +198,9 @@ export function useTable<M extends { id: string }, P extends Page<M> = Page<M>>(
               items.value = page.items
               totalFilteredCount.value = page.total || 0
               emit('update:page', page)
+              // Benchmark (#354): the table has its rows. This is the end of a
+              // sort and the slowest half of a filter toggle.
+              perfMark('table:items', { count: page.items.length, total: page.total })
             })
           })
           .finally(() => {

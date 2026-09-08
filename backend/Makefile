@@ -9,7 +9,7 @@ help: ## Show available targets
 
 # `benchmark` collides with the benchmark/ directory; mark targets phony so make
 # always runs the recipe instead of treating the directory as an up-to-date file.
-.PHONY: install dev test test-cov benchmark lint update sample-data
+.PHONY: install dev test test-cov benchmark bench-rows lint update sample-data
 
 install:                ## uv sync
 	uv sync
@@ -27,6 +27,12 @@ ROWS ?= 5000
 ROUNDS ?= 50
 benchmark:              ## performance benchmark against a throwaway DB (needs make dev-database); make benchmark ROWS=20000 ROUNDS=100
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m benchmark.benchmark --rows $(ROWS) --rounds $(ROUNDS)
+
+BENCH_DB ?= braces
+BENCH_ROWS ?= 10000
+BENCH_OUT ?= .benchmark-tmp
+bench-rows:             ## resample a real CSV up to BENCH_ROWS for the dashboard benchmark; BENCH_DB=connections BENCH_OUT=.benchmark-tmp-300
+	uv run python -m benchmark.bootstrap_rows $(BENCH_DB) --rows $(BENCH_ROWS) --out $(BENCH_OUT)
 
 lint:                   ## ruff + ruff-format through pre-commit, all files
 	uv run pre-commit run --all-files
