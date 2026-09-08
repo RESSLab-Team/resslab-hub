@@ -33,29 +33,6 @@ make install
 
 Git hooks (commitlint + lint/format) are managed by [Lefthook](https://lefthook.dev) and installed automatically by `make install`. Skip with `LEFTHOOK=0`.
 
-#### for MAC OS
-
-1. Use brew to install openssl and postgresql
-2. if you encounter any problem, clear your uv cache (`uv cache clean`)
-
-https://github.com/psycopg/psycopg2/issues/1200#issuecomment-776159466
-
-```
-$ brew install postgresql ## need to be done first
-
-$ brew link openssl
-Warning: Refusing to link macOS provided/shadowed software: openssl@1.1
-If you need to have openssl@1.1 first in your PATH, run:
-  echo 'export PATH="/opt/homebrew/opt/openssl@1.1/bin:$PATH"' >> ~/.zshrc
-
-For compilers to find openssl@1.1 you may need to set:
-  export LDFLAGS="-L/opt/homebrew/opt/openssl@1.1/lib"
-  export CPPFLAGS="-I/opt/homebrew/opt/openssl@1.1/include"
-
-For pkg-config to find openssl@1.1 you may need to set:
-  export PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@1.1/lib/pkgconfig"
-```
-
 ### Run for development
 
 #### CLI
