@@ -1,5 +1,11 @@
 # Brief: sign-in email for RESSLab Hub
 
+> Historical. The mail shipped on 2026-09-07: templates in
+> `backend/resslab_hub/auth/templates/email/`, assembled by `auth/mailer.py`.
+> Two constraints below were dropped on the way (images are CID PNGs, no
+> 600 px cap), see [the handoff](sign-in-email-handoff.md). Kept for the
+> reasoning and the copy.
+
 Design the HTML sign-in email for RESSLab Hub, an open-access research
 database from the RESSLab at EPFL. Today the mail is plain text only and it
 reads like a script wrote it. It should read like mail from an established

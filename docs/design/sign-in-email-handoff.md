@@ -43,20 +43,20 @@ Send as `multipart/alternative` with the text part first, HTML second. Set `Cont
 `{code} is your RESSLab Hub sign-in code` — code first so it shows in phone notifications. The hidden preheader in the HTML adds "Enter the code or open the link. Both stop working in {ttl_minutes} minutes."
 
 ## Structure of the HTML part
-Single column, 600px max, centred on a `#fcfcfc` ground. White card, 40px side padding (20px under 480px via media query, which Gmail/Apple Mail honour; Outlook keeps 40px).
+Single column, full width of the window (no 600px cap, dropped during implementation), centred on a `#fcfcfc` ground. White card, 40px side padding (20px under 480px via media query, which Gmail/Apple Mail honour; Outlook keeps 40px).
 
-1. **Header** — inline SVG mark (36×44) + wordmark "RESSLab" ink / "Hub" `#e30713`, 20px bold; tagline "Steel structures research · EPFL" 12px `#6b6b6b`. 1px `#e6e6e6` rule below.
+1. **Header** — the mark as an attached PNG (`cid:rl-mark-light`, 40×40, with a `cid:rl-mark-dark` twin for dark mode) + wordmark "RESSLab" ink / "Hub" `#e30713`, 20px bold; tagline "Steel structures research · EPFL" 12px `#6b6b6b`. 1px `#e6e6e6` rule below.
 2. **Title + lead** — "Sign in to RESSLab Hub" 24/30 bold; lead 16/24.
 3. **Code block** — between two 1px rules. Label "YOUR SIGN-IN CODE" 11px, 1.5px tracking, uppercase, grey. Code: one `<div>` containing only `{code}`, `'Courier New',Courier,monospace` 44/56 bold, 10px letter-spacing (36px / 6px under 480px). Line "Type it in the tab where you asked to sign in." 15/22.
 4. **Link block** — intro line; bulletproof button (`<td bgcolor="#e30713">` + block `<a>`, 13px 26px padding, 15px bold white, square corners, MSO padding fix inline); "Or copy this address into your browser:" then the raw URL in 12px monospace grey with `word-break:break-all`.
 5. **Terms** — above a 1px rule: expiry line and security line, both 14/21 in full ink.
-6. **Footer** (outside the card, on the ground) — inline EPFL logo SVG (62×18, red), one sentence about the project, link to resslab-hub.epfl.ch. 12/18 grey.
+6. **Footer** (outside the card, on the ground) — the EPFL logo as an attached PNG (`cid:rl-epfl`, 62×18, red), one sentence about the project, link to resslab-hub.epfl.ch. 12/18 grey.
 
 ## Behaviour in mail clients
-- **Images blocked**: nothing changes — there are no `<img>` tags. Code, button and URL are live text.
-- **Gmail / Outlook**: strip inline SVG. The header then reads as the wordmark alone; the footer keeps "EPFL" in text. This is accepted.
+- **Images blocked**: the two logos show their alt text, everything else is live text (code, button, URL). The logos travel with the mail as `cid:` parts, so no remote load is needed when images are on.
+- **Gmail / Outlook**: strip inline SVG, which is why the logos are PNG parts and not SVG (see "Changes made during implementation").
 - **Dark mode**: `color-scheme` meta + `supported-color-schemes` are set. A `prefers-color-scheme: dark` block in `<style>` remaps classes `rl-ground` `#171717`, `rl-card` `#212121`, `rl-ink` `#ececec`, `rl-mut` `#a3a3a3`, `rl-rule` `#3a3a3a`, `rl-red` `#ff4a4a` (brighter red for text on dark), SVG strokes/fills. The button keeps `#e30713` with white text in both modes. Clients that ignore the block (Gmail) apply their own inversion; the palette has no pure `#000`/`#fff` so it survives.
-- **Outlook desktop**: wrapper table forced to 600px via `<!--[if mso]>` conditional; `mso-line-height-rule:exactly` on the code; button padding via MSO `<i>` spacers.
+- **Outlook desktop**: `mso-line-height-rule:exactly` on the code; button padding via MSO `<i>` spacers. No width conditional any more (it went with the 600px cap).
 - **320px**: single column throughout; the URL wraps with `word-break:break-all`; the code shrinks via media query and still fits (6 digits × ~22px + 5 × 6px).
 
 ## Copy (final)
@@ -69,7 +69,7 @@ See `signin_email.txt` — the HTML uses identical sentences. Plain English, no 
 - Dark: ground `#171717`, card `#212121`, ink `#ececec`, muted `#a3a3a3`, rule `#3a3a3a`, red text `#ff4a4a`
 - Type stack: `Arial, Helvetica, sans-serif`; code and URL: `'Courier New', Courier, monospace`
 - Sizes: 24/30 title · 20/24 wordmark · 16/24 lead · 15/22 body · 14/21 terms · 12/18 small · 11/16 label · 44/56 code
-- Square corners, no shadows, no gradients, no images
+- Square corners, no shadows, no gradients. The only images are the two logos, attached as PNG parts
 
 ## Changes made during implementation
 
@@ -87,8 +87,8 @@ See `signin_email.txt` — the HTML uses identical sentences. Plain English, no 
   it, since it would have pinned Outlook to the old width.
 
 ## Assets
-- Header mark: inline SVG, simplified redraw of the isometric braced-frame logo (single-line members, red X braces, bolt dots, dashed footings). To use the real `frontend/public/logo/resslab-hub-mark-iso.svg`, paste its paths into the `<svg class="rl-mark">` element, keep `width="36" height="44"`, and give the brace paths class `rl-brace` and ink paths `stroke="#212121"` so the dark-mode rules still apply.
-- Footer: EPFL logo paths from the official `epfl-logo.svg`, fill `#e30713`.
+- Header mark: `mark-light.png` and `mark-dark.png` next to the templates, rendered at 2x from `frontend/public/logo/resslab-hub-mark-iso.svg`. Attached by `mailer.py` (`LOGOS`) under the content ids `rl-mark-light` and `rl-mark-dark`; the `prefers-color-scheme` block swaps them.
+- Footer: `epfl.png`, same folder, from the official `epfl-logo.svg`, content id `rl-epfl`.
 
 ## Files (as implemented)
 The two parts live in the backend package, next to the mailer that loads them:
@@ -104,4 +104,4 @@ They are filled and assembled by `build_message()` in
 - Send to Gmail web, Apple Mail (light + dark), Outlook desktop, Outlook.com, iOS Mail at 320px.
 - Copy the code on a phone: one long-press selects all six digits.
 - Click the button and the raw URL: both hit `/login/verify` with intact `challenge` and `token`.
-- Images blocked: mail unchanged.
+- Images blocked: the two logos fall back to their alt text, the rest is unchanged.

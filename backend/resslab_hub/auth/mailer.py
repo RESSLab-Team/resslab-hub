@@ -37,7 +37,7 @@ TIMEOUT_SECONDS = 15
 FROM_NAME = "RESSLab Hub"
 
 #: The two parts of the mail, designed together (docs/design/). Shipped as
-#: files rather than strings because the HTML one is 10 kB of table layout.
+#: files rather than strings because the HTML one is 8 kB of table layout.
 TEMPLATE_DIR = Path(__file__).parent / "templates" / "email"
 
 

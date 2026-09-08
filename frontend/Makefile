@@ -1,20 +1,23 @@
+.PHONY: help
+help: ## Show available targets
+	@grep -E '^[a-zA-Z_%-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-28s\033[0m %s\n", $$1, $$2}'
+
 .PHONY: install dev test test-coverage lint api
 
-install:
+install:                ## pnpm install
 	pnpm install
 
-dev:
+dev:                    ## Vite dev server
 	pnpm run dev
 
-test:
+test:                   ## vitest, one run
 	pnpm run test:unit run
 
-# Coverage: terminal summary + browsable HTML report in frontend/coverage/index.html
-test-coverage:
+test-coverage:          ## vitest with coverage: terminal summary + HTML report in coverage/index.html
 	pnpm run test:coverage
 
-lint:
+lint:                   ## ESLint with auto-fix
 	pnpm run lint
 
-api:
+api:                    ## regenerate src/backend/ from ../openapi.json
 	pnpm run api

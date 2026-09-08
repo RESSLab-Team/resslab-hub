@@ -23,7 +23,7 @@ Both mirror the directory layout the backend expects inside an upload archive
 tarred up and posted directly:
 
     tar czf braces.tar.gz braces/ && \
-      curl -F file=@braces.tar.gz \
+      curl -F file=@braces.tar.gz -u user:$API_PASSWORD \
         "http://127.0.0.1:8000/validate?type=all-braces"
 """
 
