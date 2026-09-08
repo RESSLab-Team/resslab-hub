@@ -1,0 +1,96 @@
+/* Layer: base — element defaults and the typography roles.
+   Everything here is the ground the app is built on: the root type and
+   colour, links, and the five title roles driven by the --title-* tokens in
+   epfl-tokens.css. Loaded through index.css inside @layer base, so any app
+   rule (and any component <style>) can restyle it without a fight.
+   See docs/design-system.md. */
+
+/* ================ BASE / VUETIFY HARMONIZATION ================ */
+.v-application {
+  font-family: var(--font-sans) !important;
+  color: var(--fg);
+  background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Links are never underlined (EPFL DS underlines them by default; the redesign
+   rejects that). Underline only where explicitly opted back in. */
+a {
+  text-decoration: none;
+}
+
+/* ================ TITLE ROLES ================
+   Five canonical title treatments, driven by the --title-* tokens in
+   epfl-tokens.css. Use these classes directly on new markup; existing
+   component classes below are rewritten to consume the same tokens, so
+   every card / section / panel / eyebrow title stays uniform app-wide. */
+.t-page {
+  margin: 0;
+  font-size: var(--title-page-size);
+  font-weight: var(--title-page-weight);
+  line-height: var(--title-page-lh);
+  letter-spacing: var(--title-page-tracking);
+}
+.t-card {
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
+  line-height: 1.3;
+  color: var(--fg);
+}
+.t-panel {
+  font-size: var(--title-panel-size);
+  font-weight: var(--title-panel-weight);
+  letter-spacing: var(--title-panel-tracking);
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.t-eyebrow {
+  font-size: var(--title-eyebrow-size);
+  font-weight: var(--title-eyebrow-weight);
+  letter-spacing: var(--title-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--epfl-red);
+}
+.t-subhead {
+  font-size: var(--title-subhead-size);
+  font-weight: var(--title-subhead-weight);
+  letter-spacing: var(--title-subhead-tracking);
+  color: var(--fg);
+}
+
+/* Eyebrows share one font role (the eyebrow token). One rule so every eyebrow
+   variant picks it up. */
+.t-eyebrow,
+.eyebrow,
+.hero-eyebrow,
+.section-eyebrow,
+.logos-eyebrow,
+.cd-eyebrow,
+.cd-section-h,
+.drawer-body h2 {
+  font-family: var(--title-eyebrow-font);
+}
+/* Two-tone split (EyebrowText.vue): primary segment red, qualifier muted —
+   matches the handoff's `<span class="red">…</span><span class="mut">…</span>`. */
+.ey-red {
+  color: var(--epfl-red);
+}
+.ey-mut {
+  color: var(--fg-subtle);
+}
+
+/* Number inputs: hide the spinner arrows (they break the field's square,
+   hairline look). Moved here from the old assets/main.scss.
+   https://www.w3schools.com/howto/howto_css_hide_arrow_number.asp */
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+}

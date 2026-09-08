@@ -1,0 +1,27 @@
+/* The one stylesheet the app imports (src/main.ts).
+   It declares the cascade layers, in order, then pulls each sheet into its
+   layer. Order is lowest priority first:
+
+     vuetify    everything Vuetify emits, in its own sub-layers
+                ($layers in src/settings.scss, theme.layers in plugins/vuetify.ts)
+     tokens     the custom properties every rule below reads
+     base       element defaults and the title roles
+     overrides  the broad rules that restyle Vuetify's components
+     app        the shell, the pages, the tool pages
+
+   A component's own <style> block stays unlayered, and unlayered rules beat
+   every layer, so a component always wins over its page. That is the point:
+   no rule below needs !important to be seen.
+
+   @font-face is not affected by layers, so fonts.css is imported bare.
+   See docs/design-system.md. */
+
+@layer vuetify, tokens, base, overrides, app;
+
+@import './fonts.css';
+@import './epfl-tokens.css' layer(tokens);
+@import './chart-colors.css' layer(tokens);
+@import './base.css' layer(base);
+@import './vuetify-overrides.css' layer(overrides);
+@import './app.css' layer(app);
+@import './tool-pages.css' layer(app);

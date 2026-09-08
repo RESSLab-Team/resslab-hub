@@ -1,0 +1,51 @@
+/* Layer: overrides — the rules that restyle Vuetify's own components.
+   Only broad, unscoped .v-* rules belong here. A rule scoped under one of our
+   own classes (.dash-table .v-card, .sidebar-link .v-icon, ...) is an app rule
+   and stays in app.css.
+
+   This layer sits above `vuetify`, so nothing here needs a .v-application
+   prefix or !important to win. See docs/design-system.md. */
+
+/* ================ BRUTALIST: FLAT CORNERS + NO ELEVATION ================
+   Square every corner across the app and Vuetify's own components, from one
+   broad rule rather than per-component overrides. Genuine circles (legend /
+   status dots, slider thumbs, toggle knobs) opt back in with border-radius:50%
+   locally and are not matched here. Custom classes inherit 0 via --radius. */
+.v-application .v-card,
+.v-application .v-btn,
+.v-application .v-btn__overlay,
+.v-application .v-field,
+.v-application .v-field__outline__start,
+.v-application .v-field__outline__end,
+.v-application .v-chip,
+.v-application .v-sheet,
+.v-application .v-list,
+.v-application .v-menu > .v-overlay__content,
+.v-application .v-overlay__content > .v-card,
+.v-application .v-tooltip > .v-overlay__content,
+.v-application .v-snackbar__wrapper,
+.v-application .v-alert,
+.v-application .v-input__control {
+  border-radius: 0 !important;
+}
+/* Flat, hairline-bordered surfaces — no card elevation shadows anywhere. */
+.v-application .v-card {
+  box-shadow: none !important;
+}
+
+/* Links inside a card follow the app link colour, not Vuetify's primary. */
+.v-card a {
+  color: var(--fg);
+}
+/* The list item's content box clips the ellipsis of a long label. */
+.v-list-item__content {
+  overflow: unset;
+}
+/* One field height across the app, so a row of inputs lines up. */
+.v-input__control {
+  height: 40px;
+}
+/* Firefox scrolling issue: without the gap the list eats the scrollbar. */
+.v-list-item {
+  margin-right: 1px;
+}
