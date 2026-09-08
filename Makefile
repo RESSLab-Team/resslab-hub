@@ -2,7 +2,7 @@
 
 .PHONY: help
 help: ## Show available targets
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_%-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 
 install:                ## pnpm + uv sync + frontend deps, then the git hooks
@@ -13,15 +13,10 @@ install:                ## pnpm + uv sync + frontend deps, then the git hooks
 hooks:                  ## install the Lefthook git hooks (done by make install)
 	pnpm exec lefthook install
 
-# Database, backend and frontend in this terminal (Ctrl-C stops both servers).
-# In a worktree, export its ports first: set -a; . .env.worktree; set +a
-dev-all: dev-database   ## database + backend + frontend in this terminal
+dev-all: dev-database   ## database + backend + frontend in this terminal, Ctrl-C stops both servers (in a worktree: set -a; . .env.worktree; set +a first)
 	$(MAKE) -j2 --no-print-directory dev-backend dev-frontend
 
-# Same thing as a tmux session "resslab-hub/<branch>" with four panes: claude,
-# backend, frontend and shell. Works in the main checkout and in every git
-# worktree (see docs/worktree-dev-environment.md).
-tmux-dev-all:           ## same, as a tmux session with claude, backend, frontend and shell panes
+tmux-dev-all:           ## same, as the tmux session resslab-hub/<branch> with claude, backend, frontend and shell panes (main checkout and worktrees)
 	scripts/tmux-dev.sh
 
 dev-backend:            ## FastAPI on http://127.0.0.1:8000 (BACKEND_PORT in a worktree)
@@ -69,10 +64,10 @@ backup-dump:            ## make backup-dump DEST_FOLDER=path, pg_dumpall of the 
 	@docker compose exec database sh -c 'pg_dumpall -U postgres' > ${DEST_FOLDER}/all-databases.sql
 
 # --- git worktrees (docs/worktree-dev-environment.md)
-new:                    ## make new BRANCH=feat/x [BASE=origin/dev] [PROMPT=brief.md]  — worktree + deps + session, attached
+new:                    ## make new BRANCH=feat/x [BASE=origin/dev] [PROMPT=brief.md]: worktree + deps + session, attached
 	scripts/wt-new.sh $(BRANCH) $(BASE) $(if $(PROMPT),--prompt '$(PROMPT)')
 
-go: new                 ## make go BRANCH=feat/x  — same thing, truthful verb: jump to the branch's session, creating branch/worktree/session as needed (tab completion: wtgo, scripts/wt-go.bash)
+go: new                 ## make go BRANCH=feat/x: same thing, truthful verb: jump to the branch's session, creating branch/worktree/session as needed (tab completion: wtgo, scripts/wt-go.bash)
 
 db-template-light:      ## build the ~20 MB resslab_hub_light template from the data repo (main CSVs + 1 series file per type, ~30 s)
 	scripts/wt-db.sh template-light
@@ -92,10 +87,10 @@ db-branch-drop:         ## drop this worktree's DB and go back to the shared one
 db-status:              ## which database this checkout uses
 	scripts/wt-db.sh status
 
-wt-land:                ## make wt-land BRANCH=feat/x [MODE=--local]  — rebase, PR + squash-merge into dev, clean up
+wt-land:                ## make wt-land BRANCH=feat/x [MODE=--local]: rebase, PR + squash-merge into dev, clean up
 	scripts/wt-land.sh $(BRANCH) $(MODE)
 
-wt-done:                ## make wt-done BRANCH=feat/x  — kill the session + remove the worktree, keep the branch
+wt-done:                ## make wt-done BRANCH=feat/x: kill the session + remove the worktree, keep the branch
 	scripts/wt-done.sh $(BRANCH)
 
 wt-open:                ## make wt-open [TARGET=frontend|backend] [BRANCH=feat/x]

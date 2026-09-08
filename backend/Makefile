@@ -5,7 +5,7 @@ RESSLAB_DATA_DIR ?= ../../resslab-hub-data
 
 .PHONY: help
 help: ## Show available targets
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-28s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_%-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-28s\033[0m %s\n", $$1, $$2}'
 
 # `benchmark` collides with the benchmark/ directory; mark targets phony so make
 # always runs the recipe instead of treating the directory as an up-to-date file.
@@ -14,33 +14,26 @@ help: ## Show available targets
 install:                ## uv sync
 	uv sync
 
-# --log-level info: debug puts the root logger at DEBUG, which makes
-# SQLAlchemy log every statement and adds real per-request latency.
-dev:                    ## uvicorn with reload on BACKEND_PORT (default 8000)
+dev:                    ## uvicorn with reload on BACKEND_PORT (default 8000); log level info, debug would log every SQL statement
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run uvicorn resslab_hub.main:app --reload --log-level info --port $(BACKEND_PORT)
 
 test:                   ## pytest (needs the database, uses POSTGRES_TEST_DB)
 	uv run pytest
 
-# Coverage: terminal summary + browsable HTML report in backend/htmlcov/index.html
-test-cov:               ## pytest with coverage, HTML report in htmlcov/
+test-cov:               ## pytest with coverage: terminal summary + HTML report in htmlcov/index.html
 	uv run pytest --cov --cov-report=term-missing --cov-report=html
 
-# Performance benchmark against a throwaway DB (needs `make dev-database`).
-# Override defaults with ROWS/ROUNDS, e.g. `make benchmark ROWS=20000 ROUNDS=100`.
 ROWS ?= 5000
 ROUNDS ?= 50
-benchmark:              ## make benchmark ROWS=5000 ROUNDS=50, against a throwaway DB
+benchmark:              ## performance benchmark against a throwaway DB (needs make dev-database); make benchmark ROWS=20000 ROUNDS=100
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m benchmark.benchmark --rows $(ROWS) --rounds $(ROUNDS)
 
 lint:                   ## ruff + ruff-format through pre-commit, all files
 	uv run pre-commit run --all-files
 
-# Sample contribution batches for /contribute/new. Needs the database: the
-# in-range values are drawn from it. Override with EXPERIMENTS/OUTLIERS.
 EXPERIMENTS ?= 15
 OUTLIERS ?= 3
-sample-data:            ## synthetic contribution batches (EXPERIMENTS=15 OUTLIERS=3), reads the DB
+sample-data:            ## synthetic contribution batches for /contribute/new, in-range values read from the DB; EXPERIMENTS=15 OUTLIERS=3
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python ../sample-data/generate.py \
 		--experiments $(EXPERIMENTS) --outliers $(OUTLIERS)
 
@@ -52,8 +45,7 @@ validate-data:          ## list the validate-<type> targets
 	@echo "Types: braces, columns, connections, material, residual-stresses, hss-columns,"
 	@echo "       eccentric-braced-frames, tensile-coupons, ductile-fractures"
 
-# Tar one component directory of the data repo and POST it to /validate.
-validate-%:
+validate-%:             ## tar one folder of the data repo and POST it to /validate on the running backend, e.g. make validate-braces
 	@echo "Preparing archive for validating $*..."
 	$(eval DIRECTORY=$(subst -,_,$*))
 	$(eval TAR_NAME=$(DIRECTORY).tar.gz)
@@ -126,10 +118,7 @@ precompute-fracture-figures: ## redraw the per-specimen ductile-fracture SVGs (c
 upload-data:            ## upload everything from RESSLAB_DATA_DIR (erases the tables, ~1 min)
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR)
 
-# The ~20 MB dataset behind the light per-worktree template (make db-template-light
-# at the root): every main table, dictionary and README, one measurement file per
-# series type.
-upload-data-light:      ## same with one measurement file per series type (~30 s)
+upload-data-light:      ## same with one measurement file per series type (~30 s); the ~20 MB dataset behind make db-template-light
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR) --series-limit 1
 
 transform-data:         ## regenerate the frontend section CSVs from the data repo
@@ -140,9 +129,7 @@ transform-data:         ## regenerate the frontend section CSVs from the data re
 	uv run python data/hss_csv_transformer.py european $(RESSLAB_DATA_DIR)/hss_columns/sections/european.csv ../frontend/src/assets/hss/hss-european-sections.csv
 	uv run python data/hss_csv_transformer.py japanese $(RESSLAB_DATA_DIR)/hss_columns/sections/japanese.csv ../frontend/src/assets/hss/hss-japanese-sections.csv
 
-#This is outdated now that we use the data dictionnaries
-#We keep it for local testing purposes
-analyze-data:           ## old CSV analyzer, kept for local checks
+analyze-data:           ## old CSV analyzer from before the data dictionaries, kept for local checks
 	uv run python -m data.analyzer $(RESSLAB_DATA_DIR)/connections/connections.csv $(RESSLAB_DATA_DIR)/material/cyclic_coupons/steel_material.csv $(RESSLAB_DATA_DIR)/columns/steel_columns.csv $(RESSLAB_DATA_DIR)/braces/steel_braces.csv $(RESSLAB_DATA_DIR)/residual_stresses/residual_stresses.csv $(RESSLAB_DATA_DIR)/hss_columns/hss_columns.csv
 
 generate-model:         ## regenerate ORM models and Pydantic schemas from the data dictionaries
