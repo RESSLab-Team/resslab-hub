@@ -1,5 +1,10 @@
 .PHONY: install hooks dev-all tmux-dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data backup-dump new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
 
+.PHONY: help
+help: ## Show available targets
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+
 install:
 	pnpm install
 	$(MAKE) -C backend install
