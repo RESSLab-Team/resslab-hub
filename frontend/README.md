@@ -50,7 +50,7 @@ the specs that import i18n.
 
 - `.env.development`: `VITE_APP_BACKEND_URL=/api` (keep it relative, see above)
   and `VITE_SEM_CDN_BASE_URL=/sem` for the local SEM images (symlink
-  `public/sem`, see the SEM section of `CLAUDE.md`).
+  `public/sem`, see [docs/sem-images.md](../docs/sem-images.md)).
 - `.env.production`: the real CDN base URL.
 - `.env.development.local` (gitignored): per-checkout overrides. Worktrees
   get theirs from `scripts/wt-setup.sh`.

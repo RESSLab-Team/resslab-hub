@@ -21,6 +21,7 @@ Production: https://resslab-hub.epfl.ch.
   - [docs/worktree-dev-environment.md](docs/worktree-dev-environment.md): one branch, its own servers and Claude session
   - [docs/auth.md](docs/auth.md): sign-in, roles, the settings a deployment needs
   - [docs/contributing-data.md](docs/contributing-data.md): the submission pipeline
+  - [docs/sem-images.md](docs/sem-images.md): the SEM images, the script that converts and uploads them
 - `CLAUDE.md`: the map of the repo written for coding agents, also a good quick reference
 
 ## Related repositories
@@ -101,7 +102,7 @@ The data lives in [resslab-hub-data](https://github.com/RESSLab-Team/resslab-hub
    the upload works without LFS installed. If `git lfs` is installed and you
    do not want the images, clone with `GIT_LFS_SKIP_SMUDGE=1`. To get them
    later: `git lfs install` then `git lfs pull`. The images are only needed
-   for `make precompute-sem` (see the SEM section of `CLAUDE.md`).
+   for `make precompute-sem` ([docs/sem-images.md](docs/sem-images.md)).
 
 3. Upload:
 

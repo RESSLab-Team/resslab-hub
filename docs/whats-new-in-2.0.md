@@ -55,8 +55,8 @@ shadows, the red braced-bay mark. Details:
 ## New tabs and data
 
 - Tensile coupons and ductile fracture, as sub-tabs of Materials. Ductile
-  fracture specimens have SEM images (WebP on the EPFL CDN, TIFs in Git LFS)
-  and a drawn figure of their own geometry.
+  fracture specimens have SEM images (WebP on the EPFL CDN, TIFs in Git LFS,
+  [sem-images.md](sem-images.md)) and a drawn figure of their own geometry.
 - EBF links, with the confirmed link geometry on the icon.
 - The data dictionaries carry a `group` column; the categories come from the
   data ([variable-categories.md](variable-categories.md)).

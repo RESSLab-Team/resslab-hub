@@ -18,6 +18,7 @@ One line per guide. Start with the root [README](../README.md) to run the app.
 - [curation.md](curation.md): the review queue and the review page
 - [dashboard-architecture.md](dashboard-architecture.md): the client-side dashboard engine, and the backend cache behind it
 - [variable-categories.md](variable-categories.md): the scientific category of every column, per database
+- [sem-images.md](sem-images.md): the SEM fracture images, from the TIFs in the data repo to the CDN and the dialog
 
 ## Maintain it
 

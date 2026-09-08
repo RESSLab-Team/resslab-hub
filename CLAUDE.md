@@ -175,7 +175,7 @@ The data repo has its own GitHub Actions (`.github/workflows/data-validation.yml
 
 ### SEM (ductile-fracture) local dev
 
-SEM images live on the EPFL enacit4r-cdn in prod. For local dev:
+Full guide: `docs/sem-images.md` (file names, what the script computes, the CDN variables, adding images). SEM images live on the EPFL enacit4r-cdn in prod. For local dev:
 
 1. Run `cd backend && DRY_RUN=1 make precompute-sem` — converts every TIF under `resslab-hub-data/material/ductile_fracture/sem/<id>/` to WebP and writes dimple JSONs alongside, output goes to `resslab-hub-data/material/ductile_fracture/sem/_webp/` (gitignored).
 2. Create the symlink **once**: `ln -s ../../../resslab-hub-data/material/ductile_fracture/sem/_webp frontend/public/sem`. It's gitignored (it would be a dangling link inside the Docker build context and break the prod build). Vite serves the files at `/sem/<id>/...`. `.env.development` already sets `VITE_SEM_CDN_BASE_URL=/sem`, so `pnpm run dev` hits the local files. Production builds use `.env.production` → the real CDN.
@@ -191,7 +191,7 @@ Two different things, both committed under `frontend/public/img/ductile-fracture
 
 ### Adding a new component tab
 
-See `docs/adding-a-new-tab.md` for the exhaustive end-to-end playbook (data repo → backend codegen/router/uploader/migration → OpenAPI regen → frontend views/components/charts/utils/i18n/map/home + contribution, curation and field groups + gotchas from EBF's post-launch feedback). `docs/README.md` indexes every guide: `whats-new-in-2.0.md` (the refactor versus the old app on `main`), `contributing-data.md`, `curation.md`, `dashboard-architecture.md`, `auth.md`, `releasing.md`, `worktree-dev-environment.md`, `variable-categories.md`, `modernization-followups.md`.
+See `docs/adding-a-new-tab.md` for the exhaustive end-to-end playbook (data repo → backend codegen/router/uploader/migration → OpenAPI regen → frontend views/components/charts/utils/i18n/map/home + contribution, curation and field groups + gotchas from EBF's post-launch feedback). `docs/README.md` indexes every guide: `whats-new-in-2.0.md` (the refactor versus the old app on `main`), `contributing-data.md`, `curation.md`, `dashboard-architecture.md`, `sem-images.md`, `auth.md`, `releasing.md`, `worktree-dev-environment.md`, `variable-categories.md`, `modernization-followups.md`.
 
 **Chart colors for categorical fields** come from `frontend/src/utils/categoryColors.ts`, never from a chart's own ordering: `useDataset(...).colorFor(field)` hands out the Okabe–Ito slots once per field, by frequency in the unfiltered dataset (ties alphabetical), so a value keeps its color when filters reshuffle the ranking and the treemap, stacked histogram and brush overview all agree. Values past the 8 slots repeat the palette muted toward grey. To pin a value whose color people have learnt (a data upload can reorder the frequencies), add it to `CATEGORY_COLOR_OVERRIDES` keyed `'<dataset key>:<field>'`.
 

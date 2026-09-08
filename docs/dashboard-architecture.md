@@ -124,8 +124,8 @@ ECharts' `dataZoom`), `DateDistributionBrush`, and the plain two-handle
 item: title, axis labels and bounds, and either the series or a promise of
 it) and, with `databaseId` and `record`, appends every recorded property of
 the specimen grouped by category (`GroupedProperties.vue`,
-`PropertyItem.vue`). The ductile-fracture figures and the SEM viewer plug in
-there too.
+`PropertyItem.vue`). The ductile-fracture figures and the SEM viewer
+([sem-images.md](sem-images.md)) plug in there too.
 
 ## The home page numbers
 
