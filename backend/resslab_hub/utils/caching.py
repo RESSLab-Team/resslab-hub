@@ -22,6 +22,8 @@ upload. Two layers share it:
 
 Deliberately per-process, no shared store: a restart or a second worker just
 means a fresh token and an empty cache — never stale data beyond ``max_age``.
+What that costs with several pods, and why we keep it that way:
+``docs/dashboard-architecture.md``.
 """
 
 import time

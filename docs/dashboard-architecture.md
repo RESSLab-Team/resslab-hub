@@ -164,6 +164,75 @@ Three pieces in `backend/resslab_hub/` make "load everything once" cheap:
 `CACHE_MAX_AGE` defaults to 3600 (`config.py`). Set it to 0 locally to turn
 the cache and the warmup off while you work on data.
 
+### Per process, on purpose
+
+One uvicorn process per pod (`backend/Dockerfile`, no `--workers`), and every
+cache above lives inside it. The rule across the backend: what only saves
+work stays in the process and dies with it, what must hold across replicas
+goes in Postgres. In the process: this cache and its warmup, the curation
+`_TTLCache` ([curation.md](curation.md)), the rate limiter
+(`utils/rate_limit.py`), the two Google Analytics caches
+(`routers/analytics.py`). In Postgres: sessions, login challenges and the
+mail caps ([auth.md](auth.md)), counted in SQL exactly because they must hold
+across replicas.
+
+There is one backend pod per environment today: `replicas: 1` in
+`base/backend-deployment.yaml` of the `enack8s-app-config` repository, no
+overlay raises it, no autoscaler. The seven backends of `make run` are docker
+compose, for local load tests. The rest of this section is what happens if
+that changes.
+
+**The analytics locks** guard the token cache and the result cache with
+`threading.Lock`, not `asyncio.Lock`, because `get_users` hands the blocking
+auth and HTTP calls to `run_in_threadpool`: several threads of one process
+reach those dicts. They are about threads, not about pods. With N pods each
+pod keeps its own copy, which is correct, just N times the calls to Google.
+
+Per pod that is one token per 50 min (`_TOKEN_TTL`) and at most two reports
+per hour (`_RESULT_TTL`, and the home tile is the only caller, asking for one
+date window). A report like ours costs about ten quota tokens, against
+ceilings that are per property, so every pod draws on the same bucket:
+
+| GA4 Data API, standard property | Limit |
+| --- | --- |
+| Tokens per property per day | 200,000 |
+| Tokens per property per hour | 40,000 |
+| Tokens per project per property per hour | 14,000 |
+| Concurrent requests per property | 10 |
+
+So about 20 tokens an hour per pod, near 1% of the hourly project quota at
+seven pods, and several hundred pods before it hurts. Minting the token has
+no published quota and a token lasts an hour. Numbers from the
+[quota page](https://developers.google.com/analytics/devguides/reporting/data/v1/quotas),
+read 2026-08-26. Dev is the exception: it mounts no
+`GOOGLE_APPLICATION_CREDENTIALS` (stage and prod do), so it never calls
+Google and its home tile keeps the seeded number.
+
+Failures are never cached, so a broken setup calls Google on every home page
+hit instead of twice an hour. That is the one case worth watching.
+
+**The response cache after an upload.** Each pod warms itself and holds its
+own data version, so a pod that did not handle the upload serves the old
+bytes for at most `CACHE_MAX_AGE`, the window the browser already has. In the
+cluster no pod handles it at all: `bump_data_version()` only runs inside
+`POST /upload`, while the deployed upload is the
+`resslab-hub-upload-data-<env>` CronJob, which runs the uploader in its own
+pod and writes straight to Postgres. That is why every runbook says to
+restart the backend pods when new data must show at once.
+
+**Why no Redis.** The data is static between uploads and the staleness is
+already bounded. The analytics number is a cumulative total on one tile. A
+fresh pod rebuilds both on its own, which is what the warmup is for. A shared
+store would add a service to run, secure and rotate, plus a network hop on
+every hit, for nothing a visitor sees. Sharing the Google token would also
+put a credential in that store to save one JWT exchange per pod per 50 min.
+Worth revisiting if the pod count or the number of analytics callers grows by
+two orders of magnitude.
+
+This is the "brief, single-transaction cache" that
+[12factor](https://www.12factor.net/processes) allows in process memory. The
+state it wants in a backing service is the state already in Postgres.
+
 ## What a new tab must implement
 
 - A `fetchAll()` that drains its list endpoint with `fetchAllPages`, and a

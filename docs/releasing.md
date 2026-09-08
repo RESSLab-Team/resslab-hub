@@ -108,4 +108,4 @@ database schema or the deployment, do the boring checks: dump the prod database
 (`make backup-dump DEST_FOLDER=...`), confirm the prod secrets are in place, and
 confirm the Alembic migrations that ran on stage are the same ones prod will get.
 The backend caches responses for an hour per process, so restart the prod pods if
-new data must show right away.
+new data must show right away ([why](dashboard-architecture.md)).

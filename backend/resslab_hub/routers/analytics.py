@@ -26,6 +26,10 @@ GA_TIMEOUT = 10  # seconds, so a slow Google call can't hang a worker indefinite
 
 # Cache the OAuth token to avoid re-minting it (a blocking network call) on
 # every request. Google access tokens are valid ~1h; refresh well before then.
+# threading.Lock and not asyncio.Lock: the fetch below runs in a threadpool,
+# so real threads share these two dicts. Both caches are per process, so each
+# pod keeps its own copy and pays its own calls to Google. That is on purpose,
+# and the two TTLs bound the cost: see docs/dashboard-architecture.md.
 _TOKEN_TTL = 3000  # ~50 min
 _token_cache: dict = {"token": None, "expiry": 0.0}
 _token_lock = Lock()

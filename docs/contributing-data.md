@@ -170,7 +170,7 @@ Two things in `contributions/github.py`:
 - The data reaches a deployment when someone runs its upload CronJob from
   ArgoCD ([backend/README.md](../backend/README.md)). The backend caches
   responses for an hour per process, so restart the pods if it must show at
-  once.
+  once ([why](dashboard-architecture.md)).
 
 ## Trying it locally
 
