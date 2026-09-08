@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 /**
- * The checked-in sample CSVs carry the exact column list of every database, in
- * dictionary order, and they are regenerated from the data repo whenever the
- * schema moves. Reading their headers here means the taxonomy is checked against
+ * The generated sample CSVs (`make sample-data`, gitignored) carry the exact
+ * column list of every database, in dictionary order, and they are regenerated
+ * from the ORM whenever the schema moves. Reading their headers here means the taxonomy is checked against
  * the real schema rather than against a fixture someone has to remember to update.
  */
 const SAMPLE_CSV: Record<DatabaseId, string> = {

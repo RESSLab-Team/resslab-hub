@@ -247,9 +247,11 @@ SERIES_EXEMPT_TYPES = PRIMARY_TYPES | {Type.DICTIONARY, Type.README}
 class Uploader(ABC):
     """
     Abstract class for all uploaders
-    Two concrete implementations:
+    Four concrete implementations:
     - TableUploader: For main entity tables (1:1 mapping with DB schema)
     - CsvFileUploader: For measurement data (linked to parent records)
+    - DictionaryUploader: For the *_data_dictionary.csv of a database
+    - ReadmeUploader: For the README.md contributor guide of a database folder
     """
 
     @abstractmethod
