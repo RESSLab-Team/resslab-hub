@@ -20,7 +20,6 @@
 
 @import './fonts.css';
 @import './epfl-tokens.css' layer(tokens);
-@import './chart-colors.css' layer(tokens);
 @import './base.css' layer(base);
 @import './vuetify-overrides.css' layer(overrides);
 @import './app.css' layer(app);
