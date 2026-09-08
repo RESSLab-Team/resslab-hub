@@ -43,7 +43,7 @@ the specs that import i18n.
 | `utils/` | pure functions: query engine, aggregates, field groups, category colours, submission archive, validation reports |
 | `locales/` | `en.json` and `fr.json`. Every key exists in both, French keeps its accents |
 | `backend/` | the generated API client. Never edit by hand, run `make api` |
-| `assets/` | styles (EPFL tokens, Suisse font faces, `app.css`), the section CSVs used by the component selectors, the KPI snapshot |
+| `assets/` | styles (EPFL tokens, Suisse font faces, `app.css`, all pulled by `styles/index.css` - see [design-system.md](../docs/design-system.md)), the section CSVs used by the component selectors, the KPI snapshot |
 | `plugins/` | axios, i18n, vuetify, the ECharts theme, gtag |
 
 ## Environment files
