@@ -769,15 +769,15 @@ body.theme-dark .logos img {
 
 /* Result tables (model pages) */
 .tool-page table thead th {
-  font-size: 11px !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.06em !important;
-  color: var(--fg-muted) !important;
-  font-weight: 700 !important;
-  background: var(--bg-subtle) !important;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+  font-weight: 700;
+  background: var(--bg-subtle);
 }
 .tool-page table tbody tr:hover td {
-  background: var(--bg-subtle) !important;
+  background: var(--bg-subtle);
 }
 
 /* ================ DASHBOARD ================ */
@@ -1052,9 +1052,9 @@ body.theme-dark .logos img {
   left: 0;
 }
 .dash-filters-overlay {
-  position: static !important;
-  height: auto !important;
-  border: 0 !important;
+  position: static;
+  height: auto;
+  border: 0;
   flex: 1;
 }
 .dash-filters-trigger {
@@ -1721,8 +1721,8 @@ body.theme-dark .logos img {
   text-decoration: underline;
 }
 .chart-cell .v-card {
-  box-shadow: none !important;
-  background: transparent !important;
+  box-shadow: none;
+  background: transparent;
 }
 .chart-body {
   flex: 1;
@@ -1805,6 +1805,11 @@ body.theme-dark .logos img {
 .dash-table {
   padding: 0 32px 24px;
 }
+/* SimpleTable's own scoped style puts a hairline border on this card
+   (`.stbl` in SimpleTable.vue). A component <style> is unlayered on purpose,
+   so it beats every layer here: !important is the only way for the page to
+   strip the border back off. The real fix is a variant prop on SimpleTable,
+   see docs/design-system.md. */
 .dash-table .v-card {
   box-shadow: none !important;
   border: 0 !important;
@@ -1813,6 +1818,7 @@ body.theme-dark .logos img {
 .dash-table-full {
   padding: 0;
 }
+/* Same as .dash-table above: beats SimpleTable's own `.stbl` border. */
 .dash-table-full .v-card {
   box-shadow: none !important;
   border: 0 !important;
@@ -2498,9 +2504,15 @@ a.cd-publication-ref:hover {
   .dash-table {
     padding: 0 8px 16px;
   }
+  /* The wide-chart rule above is a :has() selector, so name it here too
+     rather than reaching for !important: on one column every cell is full
+     width. */
+  .chart-cell,
+  .chart-cell:has(.double-chart__canvas) {
+    flex-basis: 100%;
+    min-width: 0;
+  }
   .chart-cell {
-    flex-basis: 100% !important;
-    min-width: 0 !important;
     border-right: 0;
     border-bottom: 1px solid var(--border-subtle);
   }

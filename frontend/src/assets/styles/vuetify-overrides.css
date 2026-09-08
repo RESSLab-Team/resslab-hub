@@ -10,27 +10,29 @@
    Square every corner across the app and Vuetify's own components, from one
    broad rule rather than per-component overrides. Genuine circles (legend /
    status dots, slider thumbs, toggle knobs) opt back in with border-radius:50%
-   locally and are not matched here. Custom classes inherit 0 via --radius. */
-.v-application .v-card,
-.v-application .v-btn,
-.v-application .v-btn__overlay,
-.v-application .v-field,
-.v-application .v-field__outline__start,
-.v-application .v-field__outline__end,
-.v-application .v-chip,
-.v-application .v-sheet,
-.v-application .v-list,
-.v-application .v-menu > .v-overlay__content,
-.v-application .v-overlay__content > .v-card,
-.v-application .v-tooltip > .v-overlay__content,
-.v-application .v-snackbar__wrapper,
-.v-application .v-alert,
-.v-application .v-input__control {
-  border-radius: 0 !important;
+   locally and are not matched here. Custom classes inherit 0 via --radius.
+   Vuetify sets these in @layer vuetify.components, below us, so plain
+   selectors are enough. */
+.v-card,
+.v-btn,
+.v-btn__overlay,
+.v-field,
+.v-field__outline__start,
+.v-field__outline__end,
+.v-chip,
+.v-sheet,
+.v-list,
+.v-menu > .v-overlay__content,
+.v-overlay__content > .v-card,
+.v-tooltip > .v-overlay__content,
+.v-snackbar__wrapper,
+.v-alert,
+.v-input__control {
+  border-radius: 0;
 }
 /* Flat, hairline-bordered surfaces — no card elevation shadows anywhere. */
-.v-application .v-card {
-  box-shadow: none !important;
+.v-card {
+  box-shadow: none;
 }
 
 /* Links inside a card follow the app link colour, not Vuetify's primary. */
@@ -48,4 +50,25 @@
 /* Firefox scrolling issue: without the gap the list eats the scrollbar. */
 .v-list-item {
   margin-right: 1px;
+}
+
+/* Vuetify's typography utilities (.text-h6, .text-body-2, .text-caption, ...)
+   hardcode font-family: Roboto, which we dropped. Left alone they fall back to
+   the generic sans and read foreign next to the rest of the app, so point them
+   at the brand face. The .t-* roles in base.css are what new markup should
+   use. */
+.text-h1,
+.text-h2,
+.text-h3,
+.text-h4,
+.text-h5,
+.text-h6,
+.text-subtitle-1,
+.text-subtitle-2,
+.text-body-1,
+.text-body-2,
+.text-button,
+.text-caption,
+.text-overline {
+  font-family: var(--font-sans);
 }

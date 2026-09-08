@@ -7,7 +7,7 @@
 
 /* ================ BASE / VUETIFY HARMONIZATION ================ */
 .v-application {
-  font-family: var(--font-sans) !important;
+  font-family: var(--font-sans);
   color: var(--fg);
   background: var(--bg-app);
   -webkit-font-smoothing: antialiased;

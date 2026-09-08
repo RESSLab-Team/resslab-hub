@@ -71,6 +71,6 @@ function clearFilter(): void {
   display: none;
 }
 .chart-cell :deep(.v-card) {
-  border: 0 !important;
+  border: 0;
 }
 </style>
