@@ -115,18 +115,17 @@ You can split or fuse rows if the diff is trivial or huge — EBF fused 5–10 i
 All schema work starts in the data repo. Nothing in the code repo will compile correctly until the data dictionary is stable, because `make generate-model` reads from it.
 
 **Branch model**
-- `main` → feeds production (`resslab-hub.epfl.ch`)
-- `test` → feeds test deployment (`resslab-hub-test.epfl.ch`)
+- `main` is the only long-lived branch. It builds the `resslab-hub-data:main` image that every environment (dev, test, prod) uploads from.
 - Standard workflow: fork (or branch) → `git switch -c data/new-thing-initial-load` → commit → PR → validation CI → **squash-merge** (this is mandatory per the data-repo README; the CI validates only the final squashed diff on `main`).
 
 ### 1.1 Directory layout
 
-Create `/home/pierre/dev/resslab-hub-data/new_things/` with:
+Create `new_things/` at the root of the data repo with:
 
 | Path | Required | Notes |
 |------|----------|-------|
 | `new_things/new_things.csv` | yes | Main entity table. Header row + data rows. First column is the stable id (convention: `experimental_program_date_specimen_designation`, e.g. `Engelhardt_et_al_2000_DBBWWPZ`). |
-| `new_things/new_things_data_dictionary.csv` | yes | 7-column dictionary (exact header order below). |
+| `new_things/new_things_data_dictionary.csv` | yes | 8-column dictionary (exact header order below). |
 | `new_things/processed_data/` or `new_things/<subdir>/` | optional | One file per specimen holding time-series/curve data. |
 | `new_things/README.md` | yes | The contributor guide for the database, on the model of the nine existing ones (contents, identifier convention, response files with exact headers and units, submitting). It is uploaded with the data (`Type.README`, keyed by folder in `README_DATABASES` in `uploader.py`, so add the new folder there), served by `GET /dictionary/{database}/readme` and rendered in the submission form next to the dictionary table. Do not duplicate the dictionary in it; link to the CSV. |
 
@@ -141,7 +140,7 @@ Create `/home/pierre/dev/resslab-hub-data/new_things/` with:
 Header row is exactly:
 
 ```
-column_name,description,symbol,unit,type,example_value,nullable
+column_name,description,symbol,unit,type,example_value,nullable,group
 ```
 
 Rules (verified against `eccentric_braced_frames_data_dictionary.csv` and code-repo `data/generate_model.py`):
@@ -153,29 +152,33 @@ Rules (verified against `eccentric_braced_frames_data_dictionary.csv` and code-r
 - `type` — one of `Numeric`, `DecimalFloat`, `SmallInteger` (< 30 000), `BigInteger` (up to 10^9), `Integer`, `String`, `Date` (ISO 8601; if only a year is available, use `SmallInteger`), `Boolean`.
 - `example_value` — a realistic sample value (`1989`, `W12x16`, `Engelhardt & Popov`).
 - `nullable` — `True` / `False`. Convention: `False` for ids/investigator/year/reference/nominal geometry; `True` for measured/expected properties, optional test details, anything that may legitimately be `NA`. Use the literal string `NA` in data cells for missing values — never empty cells.
+- `group` — the scientific category of the column (`Experimental program details`, `Section properties`, `Material properties`, ...). It drives the collapsible groups of the filter rail, the contribution editor, the review panel and the drawer. Pick from the names in [variable-categories.md](variable-categories.md); a new name needs a matching id in `frontend/src/utils/fieldGroups.ts`. `generate_model.py` ignores this column, the uploader reads it (`DictionaryUploader`) and `GET /dictionary` serves it. A column with no group and no matching pattern in `fieldGroups.ts` fails `fieldGroups.spec.ts`.
 
 > The data-repo's own README lists these fields in a different order (column_name, type, example_value, symbol, description, unit, nullable); **the CSV header order above is the canonical one** — `generate_model.py` indexes by column position.
 
 ### 1.3 Update the data-repo README
 
-Edit `/home/pierre/dev/resslab-hub-data/README.md`. Under **Making Changes** (~line 58) there is an explicit bullet list of supported directories. Add the new folder to that list. The EBF commit did this — skipping it gives contributors the impression the new type isn't officially supported.
+Edit the data repo's `README.md`. Under **Making Changes** (~line 58) there is an explicit bullet list of supported directories. Add the new folder to that list. The EBF commit did this — skipping it gives contributors the impression the new type isn't officially supported.
 
-### 1.4 Wire the validation workflow (mandatory — EBF missed this)
+### 1.4 Wire the validation workflow (mandatory)
 
-File: `/home/pierre/dev/resslab-hub-data/.github/workflows/data-validation.yml`
+File: `.github/workflows/data-validation.yml` in the data repo.
 
-The `changes` job uses `dorny/paths-filter` with a hardcoded list of component folders (around lines 27–33). **This file was never updated for EBF** — meaning PRs touching `eccentric_braced_frames/` don't actually trigger validation on the backend. Don't repeat that mistake:
+The `changes` job uses `dorny/paths-filter` with a hardcoded list of component folders. A folder missing from that list is never validated, and nothing warns about it (EBF shipped like that for a while). Add the new one:
 
 ```yaml
 filters: |
   braces: 'braces/**'
   columns: 'columns/**'
   connections: 'connections/**'
+  eccentric-braced-frames: 'eccentric_braced_frames/**'
   hss-columns: 'hss_columns/**'
   material: 'material/**'
   residual-stresses: 'residual_stresses/**'
-  new-thing: 'new_things/**'       # ← add this line, hyphens in key, underscores in path
+  new-things: 'new_things/**'       # ← add this line, hyphens in key, underscores in path
 ```
+
+The same workflow has a `line-endings` job (LF and a final newline on every CSV); it needs no change for a new folder.
 
 The downstream steps already handle the hyphen↔underscore conversion and call `POST $SERVER_URL/api/validate/?type=all-<filter-key>`. So `filter-key` must match the backend uploader `Type` enum value (`all-new-things` → filter key `new-things` → directory `new_things/`). Mismatches silently skip validation.
 
@@ -193,14 +196,14 @@ Common dictionary mistakes seen in EBF history:
 
 ### 1.6 Large archives / tarballs
 
-The repo contains a few pre-built archives at root (`braces.tar.gz`, `data.tar.gz`, `material.tar.gz`) used for manual `curl`-based uploads (see README "Process to compress & upload data"). No Git-LFS. Don't ship a `new_things.tar.gz` unless there's a concrete distribution need — the CI already tars on the fly.
+Don't commit archives (`new_things.tar.gz`): the CI and `make validate-<type>` tar on the fly. Git LFS is used only for the SEM TIFs of ductile fracture (`.gitattributes`); CSVs stay plain git. Large binary assets for a new tab go the SEM way (LFS in the data repo, WebP on the EPFL CDN), not into this repo.
 
 ### 1.7 Data-repo ↔ code-repo handshake
 
 Once the dictionary is stable on a branch:
 1. In the **code repo**, make sure `../../resslab-hub-data` points at that branch (or a local checkout with the same contents).
 2. Run `make generate-model` (code repo, backend) — this is Step 2 below.
-3. Only after the backend compiles cleanly, squash-merge the data-repo PR to `main` (or `test` first if you want to stage the new tab on `resslab-hub-test.epfl.ch` before prod).
+3. Only after the backend compiles cleanly, squash-merge the data-repo PR to `main`. Every environment uploads from `main`, so the new data reaches dev, test and prod alike once someone runs the upload CronJob there.
 
 ---
 
@@ -455,6 +458,13 @@ Create `/mnt/data/Documents/Code/resslab-hub/frontend/src/components/{short_name
 
 No new composables needed — reuse `composables/dashboard.ts`, `table.ts`, `chart.ts` with the new type params.
 
+What the copied templates give you, so you know what not to reinvent (the whole engine is described in [dashboard-architecture.md](dashboard-architecture.md)):
+
+- The dashboard sits in `components/commons/DashboardShell.vue` (head, toolbar, active filter chips, `#table` / `#charts` / `#detail` slots) and gets its data from `useDataset()`: one drain of the paginated list endpoint, then every count, range and matrix is computed in the browser. The filter rail (`AutoFilterRail.vue`, `useAutoFilters()`) is derived from the data dictionary, so a new column shows up as a filter without any list to edit.
+- `NewThingDetail.vue` wraps `components/commons/CommonDetail.vue` and hands it `DetailCarouselItem[][]` (title, axis labels, series or a promise of one), plus `databaseId` and `record` so the drawer lists every property grouped by scientific category (`GroupedProperties.vue`).
+- The table uses `useVirtualRows()` and `useColumnWidths()` through the shared table component; do not add a Vuetify data table.
+- Chart colours for categorical fields come from `useDataset(...).colorFor(field)`, never from a palette in the chart (see Step 10b).
+
 ---
 
 ## Step 10 — Frontend: utilities
@@ -495,9 +505,18 @@ export type LocationNewThing = Pick<NewThingModel, typeof _locationNewThingField
 
 ---
 
+## Step 10b — Field groups and colours
+
+Two things the test suite and the UI expect from every new column:
+
+- **A scientific category.** `frontend/src/utils/fieldGroups.ts` maps every column of every database to a group id; `groupFor()` prefers the `group` column of the data dictionary (Step 1.2) and falls back to the per-database patterns in that file. A column with neither lands in `other`, and `fieldGroups.spec.ts` fails: it reads the real headers from `sample-data/<db>/*.csv` (run `make sample-data` after the upload). Add the database to `FIELD_GROUPS` there, mirroring the dictionary. Tables of the existing groups: [variable-categories.md](variable-categories.md).
+- **Stable colours.** `frontend/src/utils/categoryColors.ts` gives Okabe-Ito slots per field by frequency in the unfiltered dataset, so the treemap, the stacked histogram and the brush agree and a value keeps its colour when filters change. Nothing to add for a new tab; pin a value with `CATEGORY_COLOR_OVERRIDES` (`'<dataset key>:<field>'`) only if a colour people learnt gets reshuffled by a data upload.
+
+---
+
 ## Step 11 — Frontend: i18n
 
-File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/locales/en.json`
+Files: `frontend/src/locales/en.json` and `frontend/src/locales/fr.json`
 
 Add a `new_thing` namespace with every display-critical field label, e.g.:
 ```json
@@ -506,7 +525,7 @@ Add a `new_thing` namespace with every display-critical field label, e.g.:
   "field_b": "Field B"
 }
 ```
-Only `en.json` exists today — no other language files to touch.
+Every key must exist in both files. French keeps its accents (`Propriétés de la section`, not `Proprietes`).
 
 ---
 
@@ -560,6 +579,23 @@ The EBF iteration showed that adding a tab often requires *small* improvements t
 - `components/commons/charts/SingleChart.vue` — accept an optional `mapping` prop if your values need humanization (commit `bafde72`).
 - Parallel chart height — the #225 fix (`0bf430f`) made parallel chart height computed so every category is visible. This is now generic; just make sure your parallel chart's dimensions are set so no labels are cut off.
 - `SteelTypeCardTitle.vue` or other card-title components — extend tooltips if your detail view surfaces new property categories.
+
+---
+
+## Step 16 — Contribution, validation and curation
+
+A tab is not done when it browses. Contributors must be able to submit to it and the lab to review it:
+
+| Where | What |
+|---|---|
+| `backend/resslab_hub/data/validator.py` | a `case Type.NEW_THING` branch (and one per series type) in `validate_one_file`, so `POST /validate` checks the CSV against the model and the README's rules. Without it the type raises `NotImplementedError` (tensile coupons, EBF and ductile fracture shipped like that, #274). Range warnings come for free from `TableValidator._check_range`. |
+| `backend/resslab_hub/data/uploader.py` | `README_DATABASES` entry for the folder (Step 1.1), and the `get_args_all` tuples the contribution archive layout follows. |
+| `frontend/src/utils/contribution.ts` | a `CONTRIBUTION_DATABASES` entry: backend `Type`, primary CSV path inside the archive, `qualityCheckSupported: true` once the validator branch exists. This is also what the curation review and the edit flow use to place files. |
+| `frontend/src/utils/timeseries.ts` | `requiredColumns` per series directory, so the editor recognises a dropped curve file by its headers and folder name. |
+| `sample-data/generate.py` | a `DATABASES` entry and the `TIME_SERIES` shapes, so `make sample-data` produces a test batch (and `fieldGroups.spec.ts` gets its headers). |
+| `frontend/src/utils/curation.ts` | derived columns (`withDerivedCells`) if the ORM computes any `column_property` the review must show. |
+
+Then walk the whole pipeline once with the sample batch: [contributing-data.md](contributing-data.md) and [curation.md](curation.md). Close the pull request it opens on the data repo, never merge it.
 
 ---
 
@@ -660,7 +696,7 @@ After implementation, run end-to-end locally:
      - CSV export downloads.
    - Home page `/` — the test-count indicator includes the new component.
    - Overview map — markers for the new type appear; tooltip renders with the new template and deep-links back to `/new-things/database?id=...&detail=true`.
-   - Switch locale (if multiple locales exist) — all new labels translate.
+   - Switch locale to French — every new label translates, nothing falls back to the key.
 
 4. **Build**
    - `cd frontend && pnpm run build` — production build passes.

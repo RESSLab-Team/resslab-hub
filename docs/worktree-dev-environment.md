@@ -9,7 +9,7 @@ wt create feat/123-thing origin/dev
   └─ .wt.toml → scripts/wt-setup.sh                (idempotent)
        ├─ seeds secrets/.env, docker-compose.override.yml, frontend/.env.development.local,
        │        sample-data/ batch folders (fieldGroups.spec.ts and the contribution flow need them)
-       ├─ hashes the branch name → .env.worktree  (BACKEND_PORT 18xxx, FRONTEND_PORT 19xxx, DB, test DB, data dir)
+       ├─ hashes <repo>/<branch> → .env.worktree  (BACKEND_PORT 18xxx, FRONTEND_PORT 19xxx, DB, test DB, data dir)
        ├─ points this frontend at this backend, this backend at the right DB with migrations OFF
        ├─ writes .claude/settings.local.json     (sandbox + ask/deny rules for the Claude session)
        ├─ make install && make hooks
@@ -378,7 +378,8 @@ checked out in a worktree (cli/cli#13380).
 - **The sandbox cannot reach `localhost`.** Verified: a sandboxed
   `curl http://localhost:19234/` returns `000` even with `localhost` and
   `127.0.0.1` in `allowedDomains` — the proxy refuses loopback. So `curl *` is
-  in `sandbox.excludedCommands`: it runs outside the sandbox, which means
+  in `sandbox.excludedCommands` (so is `docker *`): it runs outside the
+  sandbox, which means
   every `curl` goes through the classifier (read-only GETs are allowed by
   default) and the ask rules (write forms prompt). Verified both ways: with
   the exclusion, `curl` to the worktree's own frontend and backend returns

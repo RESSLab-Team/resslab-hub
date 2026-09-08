@@ -65,8 +65,8 @@ braces: 15 experiments × 71 columns -> braces/steel_braces.csv  [DEMO-BRC-001 �
     warning: DEMO-BRC-014: t_br=82.4 — outside 2 to 22.1
 ```
 
-which is the same range the UI then quotes back: *"Value is far outside the
-range of existing data for this column (116.49 to 17100) — please verify it."*
+which is the same range the UI then quotes back: *"Far outside the existing
+range (116.49 to 17100)."*
 
 **A populated database is required** for this half to work. Against an empty
 database no column reaches 20 values, the generator says so per database, and
@@ -77,7 +77,7 @@ validator cannot warn about them either way.
 
 ## Time-series files
 
-Six databases accept measured-response files, in fixed subdirectories:
+All nine databases accept measured-response files, in fixed subdirectories:
 
 | Database | Subdirectories |
 |---|---|
@@ -85,7 +85,10 @@ Six databases accept measured-response files, in fixed subdirectories:
 | Columns | `axial_shortening_rotation/`, `moment_rotation_strong/`, `moment_rotation_weak/` |
 | Connections | `Beam_moment_rotation/`, `Beam_moment_rotation_west/`, `Global/`, `Global_west/`, `Panel_zone/` |
 | HSS columns | `Moment_Rotation/` |
+| EBF links | `processed_data/` |
 | Cyclic coupons | `stress_strain/` |
+| Tensile coupons | `stress_strain/` |
+| Ductile fracture | `force_elongation/`, `force_radial/`, and the five simulation dirs `force_elongation_simulation/`, `force_radial_simulation/`, `equivalent_plastic_strain_elongation_simulation/`, `lode_angle_elongation_simulation/`, `triaxiality_elongation_simulation/` |
 | Residual stresses | `Distributions/Distributions_{F1,F2,W1}/`, `QP_Coefficients/` |
 
 Each has its own required column names, and **the filename is the foreign key**:
@@ -119,6 +122,10 @@ the data repo:
 | Connections, beam / global | As strong axis; the `_west` pair degrades faster |
 | Panel zone | Pinched — the loop collapses to a waist through the origin |
 | Cyclic coupon, stress–strain | No degradation, strong hardening — loops grow |
+| EBF link, shear vs rotation | Hysteresis cycled to failure, twelve cycles |
+| Tensile coupon, stress–strain | Monotonic tension: elastic rise, plateau, hardening, necking |
+| Ductile fracture, force vs elongation / radial | Monotonic pull to fracture; the `_simulation` twin is the same curve with fewer points |
+| Ductile fracture, plastic strain / Lode angle / triaxiality vs elongation | Growth curves and the two stress-state indicators, simulation only |
 | Residual stress distributions | Spatial profile, not a loop: self-equilibrating across the section (flanges parabolic, web inverted, F2 tilted) |
 | QP coefficients | Four values in a single column |
 
@@ -150,11 +157,13 @@ refuses a file with no overlap, so step 2 must match the file.
 
 ```bash
 tar czf braces.tar.gz braces/
-curl -F file=@braces.tar.gz "http://127.0.0.1:8000/validate?type=all-braces"
+curl -F file=@braces.tar.gz -u user:$API_PASSWORD "http://127.0.0.1:8000/validate?type=all-braces"
 ```
 
 The archive must contain the component directory, not a bare CSV. `/validate`
-needs no credentials; it always answers `200` with a structured body, so read
+takes the machine credential (`API_PASSWORD` from `secrets/.env`, see
+`docs/auth.md`) or a session cookie; without either it answers `401`. With
+data problems it still answers `200` with a structured body, so read
 `valid` / `results`, not the HTTP status. Note that tarring the whole directory
 includes `<name>.invalid.csv`, which the backend ignores (it globs the exact
 primary CSV name) — copy the one file you want into a clean directory to check
@@ -162,11 +171,11 @@ the invalid variant.
 
 ## Coverage
 
-Only six of the nine databases can be validated. `validate_one_file` has no
-branch for **tensile coupons, ductile fracture and EBF** — they raise
-`NotImplementedError`, which surfaces as HTTP 500. The UI marks these
-"validation not yet available" and skips the request, so their CSVs are useful
-for exercising the editor and import but not the check.
+All nine databases validate (`validate_one_file` in
+`backend/resslab_hub/data/validator.py` has a branch per type and per series
+type, and every entry of `CONTRIBUTION_DATABASES` has `qualityCheckSupported`
+on). An unknown type still raises `NotImplementedError`; that is the first
+thing to add when a new tab lands, see `docs/adding-a-new-tab.md` Step 16.
 
 ## One difference between the two paths
 

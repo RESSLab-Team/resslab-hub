@@ -1,20 +1,26 @@
-# Modernization — done & follow-ups
+# Toolchain: done and follow-ups
 
-Status of the dependency-modernization pass on `perf/performance-improvements`
-(June 2026). Lists what landed and what is deliberately left for later.
+Status of the dependency and performance work that started on
+`perf/performance-improvements` in June 2026 and is merged in `dev` since.
+The first table is history, the rest is the list of what is still open.
 
-## Done (on this branch)
+## Done
 
 | Area | Change |
 |---|---|
-| Backend lint | `black`+`flake8`+`isort` → **ruff** (`ruff` + `ruff-format`) |
+| Backend lint | `black`+`flake8`+`isort` → **ruff** (`ruff` + `ruff-format`, `backend/.pre-commit-config.yaml`) |
 | Frontend build | Vite 4 → **6**, `@vitejs/plugin-vue` 4 → **5**, `vite-plugin-vuetify` 1 → **2** |
 | Frontend types | TypeScript 4.8 → **5.9**, `vue-tsc` 1.8 → **2.2**, `@vue/tsconfig` 0.1 → **0.7** — type-check **14.4 s → ~9.5 s**, now incremental |
-| Frontend tests | Vitest 0.31 → **2** (`deps.inline` → `server.deps.inline`) |
+| Frontend tests | Vitest 0.31 → 2 (`deps.inline` → `server.deps.inline`), then **4** (4.1.10 today) |
 | Frontend framework | Vue 3.3 → **3.5**, Vuetify 3.3 → **3.12**, vue-router/pinia/echarts/axios bumped; `vuetify/labs/VDataTable` → `vuetify/components` |
 | Backend API | FastAPI 0.95 → **0.115**, **Pydantic v1 → v2**, uvicorn 0.22 → 0.49, Python 3.13 unblocked (`requires-python <3.14`) |
+| `make api` under OpenAPI 3.1 | generator-cli 7.24.0 in `openapitools.json`, spec and `frontend/src/backend/` regenerated. The model-level `model_serializer` on `ApiModel` collapsed serialization schemas to `{}` and was replaced by plain `float` field types (`Numeric` -> `float` in `generate_model.py`); series endpoints return JSON numbers, nullable fields are typed `T \| null` in the client (2026-07) |
+| `*_count` flags | the correlated `column_property` subqueries became real `SmallInteger` columns, recomputed at the end of every upload (migration `2a42de2d3438_materialize_count_flags.py`, `resslab_hub/data/count_flags.py`) |
+| HTTP cache | weak ETag on a process-wide data version + `Cache-Control: max-age` + an in-process store of rendered bodies, bumped by `/upload` (`resslab_hub/utils/caching.py`); the hot URLs are rendered at startup and refreshed before expiry (`utils/warmup.py`). See `docs/dashboard-architecture.md` |
+| Backend tests | from one test to 18 files and about 240 tests, run in CI against a Postgres service with coverage (`make test-cov`) |
+| Package manager | npm → **pnpm** for the root and the frontend (#313) |
 
-## Upload ingestion perf (done on this branch)
+## Upload ingestion perf (done)
 
 `make upload-data` / the `/upload` endpoint, profiled and optimized against the
 live local DB (resslab-hub-data, ~11.3M measurement rows). End-to-end wall time
@@ -56,53 +62,37 @@ parallel. Splitting a single file's rows across workers would **not** help
 + coordinating the one delete). Going below ~60s needs faster per-row throughput
 (COPY is already near-optimal) or more cores — not a different scheme.
 
-## Required follow-up (created by this work)
+## Still open
 
-- **`make api` — regenerate the frontend client under OpenAPI 3.1.** ✅ Done
-  (2026-07): generator-cli bumped to 7.24.0 in `openapitools.json`, spec and
-  `frontend/src/backend/` regenerated under 3.1. The model-level
-  `model_serializer` on `ApiModel` collapsed serialization schemas to `{}` and
-  had to be replaced by plain `float` field types (`Numeric` -> `float` in
-  `generate_model.py`); series endpoints now return JSON numbers instead of
-  Decimal-as-string; nullable fields are typed `T | null` in the client.
+### Frontend lint (churn-heavy)
+- ESLint 8 → 9: flat config rewrite of `.eslintrc.cjs`, drop
+  `@rushstack/eslint-patch`, move `--ignore-path .gitignore` into flat
+  `ignores`. `lefthook.yml` has a comment tied to ESLint 8.
+- Prettier 2 → 3: one whole-repo reflow commit, bump
+  `@vue/eslint-config-prettier` / `-typescript`, update the lefthook hooks.
 
-## Deferred — deliberately out of scope this round
-
-### Frontend lint modernization (churn-heavy)
-- ESLint 8 → 9 (**flat config** rewrite of `.eslintrc.cjs`; drop
-  `@rushstack/eslint-patch`; move `--ignore-path .gitignore` into flat `ignores`).
-- Prettier 2 → 3 (**whole-repo reflow** in one commit; bump
-  `@vue/eslint-config-prettier`/`-typescript`). Update the lefthook hooks.
-
-### Bleeding-edge majors (proven baseline kept at Vite 6 / TS 5.9)
+### Bleeding-edge majors (baseline kept at Vite 6 / TS 5.9)
 - Vite 6 → **8**, TypeScript 5.9 → **6** (needs `vue-tsc` 2 → **3**).
 - Vuetify 3 → **4**, vue-router 4 → **5**, pinia 2 → **3**, echarts 5 → **6**,
   `vue-echarts` 6 → **8**, mathjs 11 → **15**.
-- `@intlify/unplugin-vue-i18n` + `vue-i18n` 9 → **11** (vue-i18n v9 is EOL /
-  deprecation-warned; the precompiled-message format changed, so plugin and
-  runtime must move together).
-- Rationale: `vue-tsc` 2 (the type-check speedup) pairs with TS 5, not TS 6; and
-  the Vuetify/echarts/i18n plugins are not all certified against Vite 8 yet.
+- `@intlify/unplugin-vue-i18n` + `vue-i18n` 9 → **11** (vue-i18n v9 is EOL;
+  the precompiled-message format changed, so plugin and runtime move together).
+- Why not yet: `vue-tsc` 2 pairs with TS 5, not TS 6, and the Vuetify, echarts
+  and i18n plugins are not all certified against Vite 8.
 
 ### Minor
-- **Dart Sass legacy-JS-API deprecation** warning from `vite-plugin-vuetify`
-  (Sass building Vuetify styles). Silence via
+- Dart Sass legacy JS API warning from `vite-plugin-vuetify`. Silence with
   `css.preprocessorOptions.scss.api = 'modern-compiler'` in `vite.config.ts`
-  once verified it doesn't change Vuetify's compiled output.
+  once checked that Vuetify's compiled output does not change. Not set today.
 
-### Backend DB-schema perf (needs a live Postgres + the `resslab-hub-data` repo)
-Each item needs an Alembic migration + `make upload-data` (which **wipes** the
-local DB), so they were left for a session with the data repo available:
-- Denormalize the `*_count` `column_property` correlated subqueries into real
-  Integer columns (defs are hand-written below `# END_OF_GENERATED_CODE`).
-- Secondary indexes on the frontend filter/sort/facet columns.
-- `get_series` row_number() subsampling (drop the computed-mod full scan).
-- ETag / `Cache-Control` keyed off a data-version stamp on the static aggregate
-  endpoints (`/fields`, `/counts`, `/range`, `/matrix`, `/distinct`, per-id
-  series/CSV).
+### Backend DB perf (needs a live Postgres + the data repo)
+Each item needs an Alembic migration and a `make upload-data` (which wipes the
+local DB):
+- Secondary indexes on the frontend filter/sort/facet columns. The only
+  indexes today are the ids of the child tables and the auth tables.
+- `get_series` row_number() subsampling, instead of the computed-mod full
+  scan (`resslab_hub/utils/common.py`, `func.mod(id_column, n) == 0`).
 
-### Other (pre-existing, not from this work)
-- Backend test suite is **one test** — the Pydantic v2 migration was verified by
-  live endpoint testing, not by coverage. Worth building out.
-- Dependabot reports ~118 vulnerabilities on the default branch — triage
-  separately.
+### Other
+- Dependabot reported about 118 vulnerabilities on the default branch in
+  June 2026. Check the current count on GitHub and triage separately.

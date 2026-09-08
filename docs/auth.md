@@ -173,6 +173,7 @@ the code never is.
 | Key | What it is |
 |---|---|
 | `PUBLIC_BASE_URL` | Where the app is reached, without `/api`. Every absolute URL comes from it. |
+| `API_USERNAME` / `API_PASSWORD` | The machine credential (Basic auth). Username defaults to `user`. |
 | `GITHUB_OAUTH_CLIENT_ID` / `_SECRET` | The App's OAuth pair (above). |
 | `SMTP_HOST` / `SMTP_PORT` | The relay. No host = log-only mode (above). |
 | `SMTP_STARTTLS` | On by default; the EPFL relay needs it on port 587. |

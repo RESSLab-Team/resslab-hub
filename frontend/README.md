@@ -1,57 +1,67 @@
-# resslab-hub
+# resslab-hub frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Vue 3 single page app: Vuetify 3 for the components, Vite 6 for the build,
+TypeScript 5.9 in strict mode, Pinia for the stores, vue-router, vue-i18n
+(English and French), ECharts for the charts, Vitest 4 for the tests.
+Package manager is pnpm (`npm install -g pnpm`).
 
-## Recommended IDE Setup
+## IDE
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+VS Code with the "Vue (Official)" extension (the old Volar and TypeScript Vue
+Plugin pair is folded into it). `.vscode/` at the repo root has the launch
+configurations.
 
-## Type Support for `.vue` Imports in TS
+## Scripts
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+Run them from `frontend/`, or through the root `Makefile` (`make help`).
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+| Command | What it does |
+|---|---|
+| `pnpm install` | dependencies (`make install` at the root does it too) |
+| `pnpm run dev` | Vite dev server on http://127.0.0.1:5173 (`FRONTEND_PORT` in a worktree). It proxies `/api` to the backend, open the app here and not on the backend port, or the session cookie is not first-party |
+| `pnpm run build` | type-check + production build, in parallel |
+| `pnpm run type-check` | `vue-tsc`, no emit |
+| `pnpm run lint` | ESLint (Vue 3 + TS + Prettier rules) with auto-fix |
+| `pnpm run format` | Prettier on `src/` |
+| `pnpm run format:check` | same, read-only. CI runs it, so run it before pushing |
+| `pnpm run test:unit` | Vitest in watch mode. One run: `pnpm run test:unit run` (what `make test` does) |
+| `pnpm run test:coverage` | Vitest with coverage, report in `coverage/` |
+| `pnpm run api` | regenerate `src/backend/` from `../openapi.json` (use `make api` at the root, it regenerates the spec first) |
+| `pnpm run kpi:snapshot` | refresh `src/assets/kpi-snapshot.json`, the home page numbers shown before the live fetch (hits production by default) |
 
-1. Disable the built-in TypeScript Extension
-   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+Node 24 is the safe choice for the tests: Node 26 with the current jsdom kills
+the specs that import i18n.
 
-## Customize configuration
+## Layout of `src/`
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+| Folder | Content |
+|---|---|
+| `views/` | one component per page. Per database: `{Type}View.vue` (dashboard), `{Type}Database.vue` (table), `{Type}ModelView.vue` (model curves), `{Type}FragilityCurve.vue` where it exists. Plus the pages: home, about, login, account, contribute, curation queue and review |
+| `components/` | by domain (`braces/`, `columns/`, ..., `contribute/`, `curation/`, `map/`, `home/`, `layout/`) and `commons/` for what every dashboard shares (shell, filter rail, charts, sliders, the detail drawer) |
+| `composables/` | the dashboard engine: dataset cache, crossfilter bus, auto filters, virtual rows, ECharts binding. See [docs/dashboard-architecture.md](../docs/dashboard-architecture.md) |
+| `stores/` | Pinia: auth, contribution, curation, counts, dictionary, notification, unit |
+| `utils/` | pure functions: query engine, aggregates, field groups, category colours, submission archive, validation reports |
+| `locales/` | `en.json` and `fr.json`. Every key exists in both, French keeps its accents |
+| `backend/` | the generated API client. Never edit by hand, run `make api` |
+| `assets/` | styles (EPFL tokens, Suisse font faces, `app.css`), the section CSVs used by the component selectors, the KPI snapshot |
+| `plugins/` | axios, i18n, vuetify, the ECharts theme, gtag |
 
-## Project Setup
+## Environment files
 
-```sh
-pnpm install
-```
+- `.env.development`: `VITE_APP_BACKEND_URL=/api` (keep it relative, see above)
+  and `VITE_SEM_CDN_BASE_URL=/sem` for the local SEM images (symlink
+  `public/sem`, see the SEM section of `CLAUDE.md`).
+- `.env.production`: the real CDN base URL.
+- `.env.development.local` (gitignored): per-checkout overrides. Worktrees
+  get theirs from `scripts/wt-setup.sh`.
 
-### Compile and Hot-Reload for Development
+## Adding a database tab
 
-```sh
-pnpm run dev
-```
+[docs/adding-a-new-tab.md](../docs/adding-a-new-tab.md), end to end.
 
-### Type-Check, Compile and Minify for Production
+## Video optimization
 
-```sh
-pnpm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-pnpm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm run lint
-```
-
-## Video Optimization
+The home page video is `public/video/steel-mrf-front-page.mp4`.
 
 ```bash
 # Crop video if necessary
