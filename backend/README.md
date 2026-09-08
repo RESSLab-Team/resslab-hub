@@ -68,7 +68,8 @@ Two things to know:
   during the run.
 - The backend caches responses per process for one hour, so the new data can
   take up to an hour to show. Restart the backend pods from ArgoCD if you need
-  it right away.
+  it right away. The job writes to Postgres directly, so it cannot expire that
+  cache itself ([dashboard-architecture.md](../docs/dashboard-architecture.md)).
 
 Fallback if the cluster job is not an option (the data image is not built yet,
 or you need to upload something that is not in the data repo): port-forward the
