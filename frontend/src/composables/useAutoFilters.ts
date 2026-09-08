@@ -37,6 +37,7 @@ import {
   type Ref
 } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { whenIdle } from '@/utils/idle'
 import { perfMark, perfMeasure } from '@/utils/perf'
 
 export interface LabeledFilter extends FilterDescriptor {
@@ -105,34 +106,49 @@ export function useAutoFilters<M extends { id: string }>(
   const loading = ref<boolean>(descriptors.value.length === 0)
   if (!loading.value) profilesByDatabase.set(options.database, descriptors.value)
 
+  function publish(profile: FilterDescriptor[]): void {
+    profiles.set(options.datasetKey, profile)
+    profilesByDatabase.set(options.database, profile)
+    descriptors.value = profile
+    loading.value = false
+  }
+
+  function profileNow(): void {
+    // The one pass that is O(rows x fields): 0.7 s on connections at 10 000
+    // rows (#354). It runs once per database for the life of the page, never
+    // on a toggle.
+    perfMark('filters:profile:start', { database: options.database })
+    try {
+      const profile = profileColumns(
+        dataset.rowsSync() as Row[],
+        dictionary.columnsFor(options.database)
+      )
+      perfMark('filters:profile:end', { database: options.database, fields: profile.length })
+      perfMeasure('filters:profile', 'filters:profile:start', 'filters:profile:end')
+      publish(profile)
+      if (import.meta.env.DEV) auditProfile(options.database, profile)
+    } catch {
+      // Same as a missing dictionary: no auto filters, but no rail stuck on
+      // "loading" either.
+      loading.value = false
+    }
+  }
+
   if (loading.value) {
     Promise.all([dictionary.fetch(), dataset.ready()])
       .then(() => {
         const cached = profiles.get(options.datasetKey)
-        // Benchmark (#354): this is the one pass that is O(rows x fields). It
-        // runs once per database for the life of the page, never on a toggle,
-        // so it belongs to the load and not to the filter interaction.
-        if (!cached) perfMark('filters:profile:start', { database: options.database })
-        const profile =
-          cached ??
-          profileColumns(dataset.rowsSync() as Row[], dictionary.columnsFor(options.database))
-        if (!cached) {
-          perfMark('filters:profile:end', {
-            database: options.database,
-            fields: profile.length
-          })
-          perfMeasure('filters:profile', 'filters:profile:start', 'filters:profile:end')
-        }
-        profiles.set(options.datasetKey, profile)
-        profilesByDatabase.set(options.database, profile)
-        descriptors.value = profile
-        if (import.meta.env.DEV && !cached) auditProfile(options.database, profile)
+        if (cached) return publish(cached)
+        // Not right away: the rows have just landed and the table and the
+        // charts are about to paint them. The rail is a closed drawer at this
+        // point, so its profile can wait for the main thread to go quiet;
+        // until then the rail says it is loading and the chips fall back to
+        // their i18n labels.
+        whenIdle(profileNow)
       })
       .catch(() => {
         // A missing dictionary or dataset simply means no auto filters — the
         // dashboard's table and charts surface the failure themselves.
-      })
-      .finally(() => {
         loading.value = false
       })
   }

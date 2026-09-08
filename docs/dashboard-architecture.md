@@ -24,7 +24,9 @@ A tab does not query the aggregate endpoints on every filter change. On its
 first visit it drains the paginated list endpoint of the database
 (`GET /eccentric-braced-frame?page=..&size=1000` and so on) with
 `fetchAllPages` in `utils/backend.ts`, and keeps the rows in memory for the
-life of the page. `inferFieldTypes` in `utils/queryEngine.ts` types every
+life of the page. The first page gives the total, then every other page is
+requested at once, so a big table costs one round-trip plus the slowest page
+rather than one round-trip per page. `inferFieldTypes` in `utils/queryEngine.ts` types every
 column (string, number, date, boolean) from the first non-null value.
 
 The backend routes `/fields`, `/counts`, `/range`, `/matrix` and `/distinct`
@@ -107,7 +109,11 @@ jitter.
 symbol, unit, description per column) with the cached rows and produces a
 ready-to-render list of typed filters. Adding a column to a dictionary is
 enough for its filter to appear. `utils/filterProfile.ts` scans the dataset
-once per database and memoises the profile.
+once per database and memoises the profile. That scan is O(rows x fields),
+and the rail is a closed drawer when the rows land, so it runs through
+`whenIdle` (`utils/idle.ts`) once the table and the charts have painted;
+until then the rail says it is loading and the active chips use their i18n
+labels.
 
 The list is folded by scientific category (`utils/fieldGroups.ts`, the
 dictionary's `group` column first, [variable-categories.md](variable-categories.md)).
@@ -246,13 +252,13 @@ profile readable.
 Four things are worth knowing before you blame the wrong piece:
 
 - **The load is mostly the fetch.** `fetchAllPages` drains the list endpoint
-  1000 rows at a time, one request after the other, so 10 000 rows are 10
-  sequential round-trips. The table splits the fetch from the network time
-  inside it.
+  1000 rows at a time, the pages after the first in parallel. The table splits
+  the fetch from the network span inside it.
 - **The filter rail's counts are computed once**, by `profileColumns` over the
   unfiltered rows. That pass is O(rows x fields) and it is the one to watch on
-  connections (153 columns), but it belongs to the load: a filter toggle never
-  redoes it, and the option counts you see are the unfiltered ones.
+  connections (153 columns). A filter toggle never redoes it, the option
+  counts you see are the unfiltered ones, and it runs at idle after the table
+  has painted, so it no longer sits between the data and the first rows.
 - **The table is already windowed** (`useVirtualRows`), so its cost follows the
   page size, not the row count. What follows the row count is the filter and
   the sort behind it.
@@ -322,6 +328,31 @@ server side is about 3 s of the wait, ahead of everything the browser then does
 with it. Ten sequential requests is the shape to question first, not the SQL
 behind one of them. In production the response cache serves the second visitor
 from memory, but the first one still pays this.
+
+### After the two cheap changes, same day
+
+Two things followed straight from the table above: the pages after the first
+are fetched together, and the rail profile waits for idle instead of running
+between the data and the table. Same stub, same rows, connections at 10 000,
+median of runs 2 to 4:
+
+| | before | after |
+|---|---|---|
+| Table has rows | 2526 ms | 1336 ms |
+| Interactive (main thread quiet) | 2526 ms | 2289 ms |
+| Longest task | 1016 ms | 686 ms |
+| Total blocking time | 1234 ms | 915 ms |
+| Dataset fetch | 898 ms | 695 ms |
+
+The table shows its rows 1.2 s sooner. The main thread goes quiet only a
+little sooner, because the profile still costs its 0.7 s, just after the
+rows are on screen instead of before. The fetch gain is small here because the
+stub is one Node process; against the real backend and its seven replicas the
+parallel pages should count for more, and that run is the one to record.
+
+The two heavier items, one bulk endpoint per database and a shared filtered set
+across charts during a drag, are parked in their own issue until a database
+actually grows past a few thousand rows.
 
 One more caveat:
 - The second measured click ticks a *different* value rather than unticking the
