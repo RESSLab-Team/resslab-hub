@@ -13,6 +13,10 @@ export default createVuetify({
     }
   },
   theme: {
+    // Emit the runtime theme stylesheet inside `@layer vuetify.theme` so it
+    // sits in the same layer block as the rest of Vuetify, below our own
+    // layers. Pairs with `$layers: true` in src/settings.scss.
+    layers: true,
     themes: {
       light: {
         colors: {

@@ -1,5 +1,12 @@
 // https://vuetifyjs.com/en/features/sass-variables/
 @use 'vuetify/_settings' with (
+  // Wrap every Vuetify rule in @layer vuetify.<reset|transitions|base|
+  // components|overrides|utilities>. Our own sheets then win by layer order
+  // instead of by specificity, so the overrides in styles/vuetify-overrides.css
+  // need neither a .v-application prefix nor !important. The runtime theme
+  // stylesheet is layered separately (`theme.layers` in plugins/vuetify.ts).
+  // See docs/design-system.md.
+  $layers: true,
   $overlay-opacity: 50%,
   // The static Material color pack (.bg-red-lighten-4, .text-blue-*, ~900
   // selectors) is unused: theme colors (bg-primary, …) come from Vuetify's
