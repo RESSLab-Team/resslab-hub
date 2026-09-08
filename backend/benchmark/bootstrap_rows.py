@@ -189,7 +189,18 @@ def bootstrap(
     prefix: str,
     rng: random.Random,
 ) -> list[dict[str, str]]:
-    """One independent draw per column, so each column keeps its own shape."""
+    """The real rows, then synthetic ones on top until there are ``count``.
+
+    The real rows come first and unchanged for two reasons. Their ids stay in
+    the table, so the uploader has nothing to delete and the time-series rows
+    that reference them keep their parent (deleting a brace that still has a
+    `brace_displacement` row is a foreign-key error, and the whole upload rolls
+    back). And the specimens people know stay explorable, curves included.
+
+    The synthetic rows take one independent draw per column, so each column
+    keeps its own distinct values, their frequencies and its share of empty
+    cells; only the combinations across a row are new.
+    """
     pools = {name: [row.get(name, "") or "" for row in rows] for name in header}
 
     numeric: dict[str, bool] = {}
@@ -207,8 +218,10 @@ def bootstrap(
         numeric[name] = is_numeric and not _NO_JITTER.search(name)
         integer[name] = is_integer
 
-    out: list[dict[str, str]] = []
-    for index in range(1, count + 1):
+    out: list[dict[str, str]] = [
+        {name: row.get(name, "") or "" for name in header} for row in rows[:count]
+    ]
+    for index in range(1, count - len(out) + 1):
         row: dict[str, str] = {}
         for name in header:
             if name == "id":

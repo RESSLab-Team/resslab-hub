@@ -188,18 +188,25 @@ make bench-rows BENCH_DB=connections             # the wide one, 153 columns
 make bench-rows BENCH_ROWS=300 BENCH_OUT=.benchmark-tmp-300   # the control
 ```
 
-Then load it. **A throwaway database only**: the uploader deletes the ids that
-are not in the CSV, so this replaces the real rows. In a worktree that is the
-point (`make db-branch` re-clones it afterwards).
+The real rows are kept, first and unchanged, and the synthetic ones are added
+on top (294 real braces + 9706 generated). That is not politeness: the uploader
+deletes every id that is not in the CSV, and a brace that still has
+`brace_displacement` rows cannot be deleted, so a file of synthetic ids only
+fails on the foreign key and rolls the whole upload back. Keeping the ids also
+keeps the real specimens explorable, curves included.
+
+Then load it, into **a throwaway database only** (a worktree clone;
+`make db-branch` puts the real data back afterwards):
 
 ```bash
 uv run python -m resslab_hub.data.uploader brace \
   .benchmark-tmp/braces/steel_braces.csv
 ```
 
-The main-table uploader merges row by row, so 10 000 rows take about a minute.
-No time-series files are generated, so the `*_count` flags come out empty and
-the drawer's curves are not part of the measurement.
+The main-table uploader merges row by row: about 16 s for 10 000 braces, 32 s
+for 10 000 connections. No time-series files are generated for the synthetic
+rows, so their `*_count` flags stay empty and only the real specimens have
+curves in the drawer.
 
 ### Run it
 
@@ -291,18 +298,31 @@ What the numbers say, before anyone changes code:
 - **A filter toggle stays usable everywhere**: input delay is about 1 ms, the
   table follows in under 90 ms, the charts in about 200 ms.
 
-So the load is the problem, and inside the load the rail profile and whatever
-makes that one 1 s task on connections. The drag is second. The table, the sort
-and the paint are fine. Nothing here is a decision yet.
+So the load is the problem, and inside it the ten sequential page requests, the
+rail profile and whatever makes that one 1 s task on connections. The drag is
+second. The table, the sort and the paint are fine. Nothing here is a decision
+yet.
 
-Two caveats on how these were taken:
+The browser numbers above come from a stub server feeding the bootstrapped rows
+to the real app. Everything above the HTTP layer is the real dashboard, so the
+browser time is real, but the fetch row is a floor. The backend was measured
+separately, against a real Postgres holding the same 10 000 rows, in dev mode
+(`CACHE_MAX_AGE=0`, so every request pays the SQL):
 
-- They come from a stub server feeding the bootstrapped rows to the real app,
-  because the sandbox this ran in cannot reach Postgres. Everything above the
-  HTTP layer is the real dashboard, so browser time is real; the "of which
-  network" column is empty and the fetch number is a floor, not what a user on
-  a real backend would see. Rerun the same commands against a real stack to
-  fill it in.
+| | braces 10 000 | connections 10 000 |
+|---|---|---|
+| The 10 pages `fetchAllPages` drains | 1467 ms | 2981 ms |
+| One page, 1000 rows | 147 ms | 298 ms |
+| Sent over the wire, gzipped | 2195 KiB | 6364 KiB |
+| One page before gzip | 1564 KiB | 3081 KiB |
+
+So the load is worse than the browser table alone suggests: on connections the
+server side is about 3 s of the wait, ahead of everything the browser then does
+with it. Ten sequential requests is the shape to question first, not the SQL
+behind one of them. In production the response cache serves the second visitor
+from memory, but the first one still pays this.
+
+One more caveat:
 - The second measured click ticks a *different* value rather than unticking the
   first. Clicking an option twice does not clear it today: the filter applies
   and the chip shows, but the box never reads back as checked, so the second

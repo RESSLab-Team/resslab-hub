@@ -51,7 +51,17 @@ class TestBootstrap:
         rows = generate(500)
         assert len(rows) == 500
         assert len({row["id"] for row in rows}) == 500
-        assert rows[0]["id"] == "BENCH-BRC-00001"
+
+    def test_keeps_the_real_rows_first_and_unchanged(self):
+        """Their ids must stay in the table, else the uploader deletes rows the
+        time-series tables still point at and the whole upload rolls back."""
+        rows = generate(500)
+        assert rows[: len(ROWS)] == ROWS
+        assert rows[len(ROWS)]["id"] == "BENCH-BRC-00001"
+
+    def test_returns_only_real_rows_when_asked_for_fewer(self):
+        rows = generate(5)
+        assert rows == ROWS[:5]
 
     def test_keeps_every_column(self):
         assert list(generate(10)[0]) == HEADER
