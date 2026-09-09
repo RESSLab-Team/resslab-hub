@@ -48,7 +48,7 @@ export interface SelectItemObject<V = string | number | object> {
 export type SelectItem<V = string | number | object> = string | SelectItemObject<V>
 
 /* ============================================================
-   EPFL chart palette — soft pastels (see assets/styles/chart-colors.css).
+   EPFL chart palette — soft pastels, defined here in TypeScript.
    Brand red #E30713 is reserved for primary actions and selection
    emphasis; it never appears as a series color.
    ============================================================ */

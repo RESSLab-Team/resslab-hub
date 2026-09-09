@@ -1,0 +1,74 @@
+/* Layer: overrides, the rules that restyle Vuetify's own components.
+   Only broad, unscoped .v-* rules belong here. A rule scoped under one of our
+   own classes (.dash-table .v-card, .sidebar-link .v-icon, ...) is an app rule
+   and stays in app.css.
+
+   This layer sits above `vuetify`, so nothing here needs a .v-application
+   prefix or !important to win. See docs/design-system.md. */
+
+/* ================ BRUTALIST: FLAT CORNERS + NO ELEVATION ================
+   Square every corner across the app and Vuetify's own components, from one
+   broad rule rather than per-component overrides. Real circles (legend /
+   status dots, slider thumbs, toggle knobs) opt back in with border-radius:50%
+   locally and are not matched here. Custom classes inherit 0 via --radius.
+   Vuetify sets these in @layer vuetify.components, below us, so plain
+   selectors are enough. */
+.v-card,
+.v-btn,
+.v-btn__overlay,
+.v-field,
+.v-field__outline__start,
+.v-field__outline__end,
+.v-chip,
+.v-sheet,
+.v-list,
+.v-menu > .v-overlay__content,
+.v-overlay__content > .v-card,
+.v-tooltip > .v-overlay__content,
+.v-snackbar__wrapper,
+.v-alert,
+.v-input__control {
+  border-radius: 0;
+}
+/* Flat, hairline-bordered surfaces, no card elevation shadows anywhere. */
+.v-card {
+  box-shadow: none;
+}
+
+/* Links inside a card follow the app link colour, not Vuetify's primary. */
+.v-card a {
+  color: var(--fg);
+}
+/* The list item's content box clips the ellipsis of a long label. */
+.v-list-item__content {
+  overflow: unset;
+}
+/* One field height across the app, so a row of inputs lines up. */
+.v-input__control {
+  height: 40px;
+}
+/* Firefox scrolling issue: without the gap the list eats the scrollbar. */
+.v-list-item {
+  margin-right: 1px;
+}
+
+/* Vuetify's typography utilities (.text-h6, .text-body-2, .text-caption, ...)
+   hardcode font-family: Roboto, which we dropped. Left alone they fall back to
+   the generic sans and read foreign next to the rest of the app, so point them
+   at the brand face. The .t-* roles in base.css are what new markup should
+   use. */
+.text-h1,
+.text-h2,
+.text-h3,
+.text-h4,
+.text-h5,
+.text-h6,
+.text-subtitle-1,
+.text-subtitle-2,
+.text-body-1,
+.text-body-2,
+.text-button,
+.text-caption,
+.text-overline {
+  font-family: var(--font-sans);
+}

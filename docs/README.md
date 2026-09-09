@@ -17,6 +17,7 @@ One line per guide. Start with the root [README](../README.md) to run the app.
 - [contributing-data.md](contributing-data.md): from a dropped folder to a pull request on the data repo, and editing it
 - [curation.md](curation.md): the review queue and the review page
 - [dashboard-architecture.md](dashboard-architecture.md): the client-side dashboard engine, and the backend cache behind it
+- [design-system.md](design-system.md): the tokens, options versus decisions, the cascade layers, a few use cases
 - [variable-categories.md](variable-categories.md): the scientific category of every column, per database
 - [sem-images.md](sem-images.md): the SEM fracture images, from the TIFs in the data repo to the CDN and the dialog
 

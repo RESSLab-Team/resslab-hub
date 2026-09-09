@@ -50,7 +50,8 @@ scientific category. Category colours are stable across filters. The table
 uses virtual rows. The detail view is a drawer with every property of the
 specimen, grouped by category. The look is the EPFL system: Suisse Int'l, square corners, no
 shadows, the red braced-bay mark. Details:
-[dashboard-architecture.md](dashboard-architecture.md).
+[dashboard-architecture.md](dashboard-architecture.md) and
+[design-system.md](design-system.md).
 
 ## New tabs and data
 
