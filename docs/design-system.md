@@ -7,6 +7,33 @@ engine that uses it is in [dashboard-architecture.md](dashboard-architecture.md)
 The short version: the values live in one token file, the rules live in five
 sheets stacked in cascade layers, and you almost never need `!important`.
 
+## Where the design comes from
+
+The look is a Claude Design project, "EPFL Design System", a Swiss-brutalist
+take on the official EPFL web charter (`epfl-si/elements`), plus four screens
+drawn on top of it for the hub: the dashboard, the tool pages, the specimen
+drawer and the chart library. The export is not in this repo. It sits,
+untracked, in the sibling checkout `../resslab-hub-redesign/`:
+
+| Path | What it is |
+|---|---|
+| `design_handoff_resslab_hub/README.md` | the handoff spec: design language, tokens, each screen, the softer-contrast pass |
+| `design_handoff_resslab_hub/screens/screenshots/*.png` | the five reference renders |
+| `design_handoff_resslab_hub/screens/_ds/epfl-design-system-brutalist-*/` | the design system itself: its `README.md`, `colors_and_type.css` (what `epfl-tokens.css` was copied from), the Suisse files |
+| `handoff_tool_layout/LAYOUT-SPEC.md` | the rail + stage system behind `tool-pages.css` |
+
+The app does not follow the bundle to the letter. The departures, all on
+purpose:
+
+| | Bundle | App |
+|---|---|---|
+| brand red | `--epfl-red` is web red `#ff0000`, `--epfl-red-print` is `#e30713` | only the print red, as `--epfl-red` |
+| structural hairlines | soft black in the first screens | `#cfcfcf` (`--epfl-gray-150`), and table gridlines lighter still |
+| series colours | red, canard, blue, grey | Okabe-Ito, red never a series |
+| links | underlined | never underlined |
+| icons | Feather | Material Design Icons through Vuetify, plus the `rl` database set |
+| dark mode | none | `body.theme-dark` re-assigns the decisions |
+
 ## Where it lives
 
 Everything is under `frontend/src/assets/styles/`, plus two plugins:
@@ -124,6 +151,10 @@ The page-level scaffolds are `DashboardShell.vue`, `PageHeader.vue` and
 - **No shadows.** Depth comes from hairlines. The `--shadow*` tokens survive for
   the popover over the filter rail and the toggle thumb in `ToolSwitch.vue`,
   nothing else uses them.
+- **Sentence case.** Titles and buttons in sentence case. Uppercase only for
+  eyebrows and panel labels. No emoji, no gradients.
+- **Numbers in mono.** IDs, units, values and axis ticks use `--font-mono`
+  with tabular figures, so columns line up.
 - **Links are never underlined.** The EPFL system underlines them, the redesign
   does not. Underline only where you opt back in.
 - **Red is reserved.** The primary action, the active nav item, the eyebrow, and
