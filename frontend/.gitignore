@@ -30,3 +30,6 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# Dashboard benchmark output (scripts/bench-dashboard.mjs), see docs/dashboard-architecture.md
+/.bench/

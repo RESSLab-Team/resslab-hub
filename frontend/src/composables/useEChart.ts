@@ -22,6 +22,8 @@ import type { EChartsOption } from 'echarts'
 import { init } from 'echarts/core'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
 import { onBeforeUnmount, onMounted, type Ref } from 'vue'
+import { isBrushDragging } from '@/composables/interactionState'
+import { perfMark } from '@/utils/perf'
 
 /** Payload of ECharts' `legendselectchanged` (fired after its own toggle). */
 export interface LegendSelectChangedParams {
@@ -59,7 +61,11 @@ export function useEChart(
 
   /** Diff-merge an option into the live instance. No-op before mount / after dispose. */
   function render(option: EChartsOption): void {
-    chart?.setOption(option, updateOptions)
+    if (!chart) return
+    chart.setOption(option, updateOptions)
+    // Benchmark (#354): one mark per repaint. `live` separates the imperative
+    // frames of a brush drag from the reactive repaints that follow a commit.
+    perfMark('chart:render', { live: isBrushDragging.value })
   }
 
   onMounted(() => {

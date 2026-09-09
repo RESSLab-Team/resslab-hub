@@ -17,6 +17,7 @@
 import type { CountModel, DateRangeModel, MatrixModel, RangeModel } from '@/backend'
 import { counts, dateRange, matrix, range, totalCount } from '@/utils/aggregate'
 import type { Page } from '@/utils/backend'
+import { perfMark, perfMeasure } from '@/utils/perf'
 import {
   CATEGORY_COLOR_OVERRIDES,
   categoryColorScale,
@@ -49,10 +50,16 @@ function ensure(key: string, fetchAll: () => Promise<Row[]>): DatasetEntry {
     ready: Promise.resolve(),
     colorScales: new Map()
   }
+  perfMark('dataset:fetch:start', { key })
   entry.ready = fetchAll().then(
     (rows) => {
       entry.rows = rows
       entry.fieldTypes = inferFieldTypes(rows)
+      // Benchmark (#354): the whole load, the sequential pages and the parse
+      // included. `inferFieldTypes` is inside on purpose, it is one more pass
+      // over every row before anything can be drawn.
+      perfMark('dataset:fetch:end', { key, rows: rows.length })
+      perfMeasure('dataset:fetch', 'dataset:fetch:start', 'dataset:fetch:end')
     },
     (error) => {
       // Evict the poisoned entry so the next visit retries the fetch instead of
