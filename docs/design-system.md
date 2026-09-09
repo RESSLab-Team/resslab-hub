@@ -9,23 +9,33 @@ sheets stacked in cascade layers, and you almost never need `!important`.
 
 ## Where the design comes from
 
-The look is a Claude Design project, "EPFL Design System", a Swiss-brutalist
-take on the official EPFL web charter (`epfl-si/elements`), plus four screens
-drawn on top of it for the hub: the dashboard, the tool pages, the specimen
-drawer and the chart library. The export is not in this repo. It sits,
-untracked, in the sibling checkout `../resslab-hub-redesign/`:
+Two Claude Design projects, in Pierre's claude.ai account:
 
-| Path | What it is |
-|---|---|
-| `design_handoff_resslab_hub/README.md` | the handoff spec: design language, tokens, each screen, the softer-contrast pass |
-| `design_handoff_resslab_hub/screens/screenshots/*.png` | the five reference renders |
-| `design_handoff_resslab_hub/screens/_ds/epfl-design-system-brutalist-*/` | the design system itself: its `README.md`, `colors_and_type.css` (what `epfl-tokens.css` was copied from), the Suisse files |
-| `handoff_tool_layout/LAYOUT-SPEC.md` | the rail + stage system behind `tool-pages.css` |
+- **"EPFL Design System"** (0.1.0, June 2026) is the heritage: the official
+  EPFL web charter (`epfl-si/elements`) turned into tokens, Suisse Int'l and
+  a web UI kit. The four handoff screens for the hub (dashboard, tool pages,
+  specimen drawer, chart library) were drawn on it. That bundle is not in
+  git. It sits, untracked, in the sibling checkout `../resslab-hub-redesign/`:
+  `design_handoff_resslab_hub/README.md` (the spec and the softer-contrast
+  pass), `screens/screenshots/*.png`, `screens/_ds/.../colors_and_type.css`
+  (what `epfl-tokens.css` was first copied from), and
+  `handoff_tool_layout/LAYOUT-SPEC.md` (the rail + stage system behind
+  `tool-pages.css`).
+- **"RESSLab Hub - Design System"** (1.0.0, 2026-08-24) goes the other way:
+  it was extracted from this code, from the `stage` branch. It carries the
+  same tokens and title roles, the ECharts theme, the `rl` icons, the marks,
+  and an app UI kit (sidebar, buttons, key numbers, tiles, filter rail, data
+  table, chart cells, hero) whose class names match `app.css` one to one.
+  Use it to make mocks and new screens with the brand. It has no dark mode,
+  on purpose.
 
-The app does not follow the bundle to the letter. The departures, all on
-purpose:
+The code is the source. When a token changes here, re-sync the RESSLab Hub
+project (the `DesignSync` tool in Claude Code reads and writes it), or the
+next mock will be drawn with stale values.
 
-| | Bundle | App |
+Where the app departs from the EPFL heritage, all on purpose:
+
+| | EPFL system | App |
 |---|---|---|
 | brand red | `--epfl-red` is web red `#ff0000`, `--epfl-red-print` is `#e30713` | only the print red, as `--epfl-red` |
 | structural hairlines | soft black in the first screens | `#cfcfcf` (`--epfl-gray-150`), and table gridlines lighter still |
@@ -33,6 +43,15 @@ purpose:
 | links | underlined | never underlined |
 | icons | Feather | Material Design Icons through Vuetify, plus the `rl` database set |
 | dark mode | none | `body.theme-dark` re-assigns the decisions |
+
+Where the RESSLab Hub mirror is ahead of the code, as of 1.0.0: it publishes
+the chart ink and the eight series as `--chart-*` custom properties (here they
+are constants in `plugins/echarts-theme.ts` and `utils/palette.ts`), it has
+`--space-1` to `--space-6`, status intents (`--success`, `--info`,
+`--warning`, `--danger`), a `.tnum` utility for tabular figures, and a 2px
+red `:focus-visible` outline on buttons. None of those exist here yet. Add
+them to `epfl-tokens.css` if a component needs them, do not invent a
+different name.
 
 ## Where it lives
 
@@ -307,6 +326,8 @@ own `<style scoped>` with a plain selector. No `.v-application` chain, no
 3. `pnpm run test:unit`, `designTokens.spec.ts` catches a copy you missed.
 4. Look at home, one dashboard, one tool page and a detail drawer, in light and
    dark. Those four cover most of the app.
+5. Re-sync the "RESSLab Hub - Design System" project in Claude Design, so
+   mocks keep the new value.
 
 ## Known gaps
 
