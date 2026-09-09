@@ -1,7 +1,8 @@
 """Where the SEM artifacts go: local folder or CDN keys (no database, no S3).
 
-These run in CI: resslab_hub.sem.cdn imports the enacit4r-files library only
-inside make_s3_service, so the module itself needs nothing from the ``sem``
+These run in CI. resslab_hub.sem.cdn takes its Artifact type from
+resslab_hub.sem.models (no OpenCV, no Pillow) and imports the enacit4r-files
+library only inside make_s3_service, so nothing here needs the ``sem``
 dependency group.
 """
 
@@ -10,17 +11,17 @@ from types import SimpleNamespace
 
 import pytest
 
-from resslab_hub.sem.artifacts import (
-    JSON_CONTENT_TYPE,
-    WEBP_CONTENT_TYPE,
-    Artifact,
-)
 from resslab_hub.sem.cdn import (
     CdnConfig,
     CdnNotConfigured,
     s3_folder_and_name,
     upload_artifacts,
     write_artifacts,
+)
+from resslab_hub.sem.models import (
+    JSON_CONTENT_TYPE,
+    WEBP_CONTENT_TYPE,
+    Artifact,
 )
 
 SPECIMEN = "Ozden_et_al_CNT_C_R0_5_C2"

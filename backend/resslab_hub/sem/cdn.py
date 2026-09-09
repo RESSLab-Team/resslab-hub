@@ -27,7 +27,7 @@ from typing import Iterable, List, Sequence, Tuple
 from fastapi.datastructures import UploadFile
 from starlette.datastructures import Headers
 
-from .artifacts import Artifact
+from .models import Artifact
 
 # Setting name -> attribute of CdnConfig. The setting names are the ENAC ones,
 # so the ConfigMap of this app looks like the ConfigMap of every other one.

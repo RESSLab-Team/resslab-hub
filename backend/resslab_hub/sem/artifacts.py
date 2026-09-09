@@ -18,7 +18,6 @@ from __future__ import annotations
 import io
 import json
 import re
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple
 
@@ -26,7 +25,25 @@ import exifread
 import numpy as np
 from PIL import Image
 
+from .models import (
+    JSON_CONTENT_TYPE,
+    MANIFEST_NAME,
+    WEBP_CONTENT_TYPE,
+    Artifact,
+)
 from .process_sem import crop_legend, process_sem
+
+__all__ = [
+    "Artifact",
+    "JSON_CONTENT_TYPE",
+    "MANIFEST_NAME",
+    "WEBP_CONTENT_TYPE",
+    "build_specimen_artifacts",
+    "count_dimple_files",
+    "parse_filename",
+    "read_manifest",
+    "surface_subpath",
+]
 
 WEBP_QUALITY = 85
 EXIF_PIXEL_SIZE_TAG = "Image Tag 0x8546"
@@ -38,19 +55,6 @@ LOCAL_FILENAME = re.compile(
     r"^(?P<location>[a-zA-Z]+)_(?P<mag>\d+)(?:_(?P<surface>\d+))?\.tif$"
 )
 GLOBAL_FILENAME = re.compile(r"^global(?:_(?P<surface>\d+))?\.tif$")
-
-WEBP_CONTENT_TYPE = "image/webp"
-JSON_CONTENT_TYPE = "application/json"
-MANIFEST_NAME = "manifest.json"
-
-
-@dataclass(frozen=True)
-class Artifact:
-    """One file to write or upload, relative to the specimen's own folder."""
-
-    rel_path: str  # "global.webp", "s2/north_250.webp", "manifest.json"
-    data: bytes
-    content_type: str
 
 
 def parse_filename(name: str) -> Optional[Tuple[str, Optional[int], int]]:
