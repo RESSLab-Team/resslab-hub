@@ -85,7 +85,7 @@ describe('the token file is the source of the brand values', () => {
     })
 
     it('draws axis names in the dark-mode subtle grey', () => {
-      // Deliberate: the axis name is quieter than the tick label, and this is
+      // On purpose: the axis name is quieter than the tick label, and this is
       // the one grey in the file that lands there.
       expect(same(NAME, dark['--fg-subtle'])).toBe(true)
     })

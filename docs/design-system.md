@@ -30,6 +30,20 @@ utility classes down to the groups we actually use. If a Vuetify utility class
 (`ma-4`, `text-right`, ...) does nothing, its group is switched off there.
 Re-enable the group, do not write the rule by hand.
 
+Rules of thumb, the rest of this page explains them:
+
+- In a component, write decisions (`--bg`, `--fg`, `--border`, `--primary`),
+  never a raw option or a hex value. If the decision you need is missing, add
+  it to the token file.
+- A new page or component styles itself in its own `<style scoped>`, with the
+  tokens. `app.css` holds the pages that came with the handoff, prefer not to
+  grow it.
+- A rule on a Vuetify class (`.v-card`, `.v-field`, ...) that applies app-wide
+  goes in `vuetify-overrides.css`. Inside one component, write it there with
+  `:deep()`.
+- Never `!important` to beat Vuetify. It sits in a lower layer, a plain
+  selector wins.
+
 ## Options, decisions, components
 
 Three tiers, the vocabulary the EPFL co2-calculator docs use.
@@ -46,7 +60,7 @@ put them in a component: `var(--epfl-gray-600)` says nothing about why.
 | `--epfl-gray-100 … -600` | `#e6e6e6` → `#707070` | five neutrals, plus `-150` for hairlines |
 | `--epfl-black` | `#212121` | soft black, never pure |
 | `--epfl-blue`, `-orange`, `-green` | | status only |
-| `--fs-h1 … --fs-xs` | `3rem` → `0.75rem` | the type scale, verbatim from the EPFL handoff |
+| `--fs-h1 … --fs-xs` | `3rem` → `0.75rem` | the type scale, as in the EPFL handoff |
 | `--w-light … --w-bold` | `300` → `700` | |
 | `--lh-tight … --lh-relaxed` | `1.1` → `1.5` | |
 
@@ -108,7 +122,8 @@ The page-level scaffolds are `DashboardShell.vue`, `PageHeader.vue` and
   circles (legend dots, slider thumbs) set `border-radius: 50%` themselves and
   are not matched by that rule.
 - **No shadows.** Depth comes from hairlines. The `--shadow*` tokens survive for
-  the one popover that floats over the filter rail, nothing else uses them.
+  the popover over the filter rail and the toggle thumb in `ToolSwitch.vue`,
+  nothing else uses them.
 - **Links are never underlined.** The EPFL system underlines them, the redesign
   does not. Underline only where you opt back in.
 - **Red is reserved.** The primary action, the active nav item, the eyebrow, and
@@ -144,7 +159,7 @@ rather than by looking at a chart next to a button.
 
 Two mechanisms, toggled together in `App.vue`'s `applyTheme()`: `theme.change()`
 for Vuetify, and a `theme-dark` class on `<body>` for the tokens. The token
-file re-assigns about a dozen custom properties under `body.theme-dark`, so
+file re-assigns fifteen custom properties under `body.theme-dark`, so
 anything written with decisions follows automatically.
 
 Only reach for the class in JavaScript when a canvas needs a colour it cannot
@@ -185,14 +200,14 @@ Two rules follow from this:
    `app` already wins. If your rule does not apply, the problem is the layer or
    the element, not the specificity.
 
-There are two `!important` left in the global sheets, both honest:
+Two places in the global sheets still use `!important`, both for a reason:
 `tool-pages.css` kills transitions under `prefers-reduced-motion`, and
 `app.css` strips the border off the dashboard table card. That second one
 fights `SimpleTable.vue`'s own scoped `.stbl` border, which is unlayered and so
 outranks the page. The clean fix is a variant prop on `SimpleTable`, not a
 louder rule.
 
-Watch out for one asymmetry: for `!important` declarations the layer order is
+One trap: for `!important` declarations the layer order is
 reversed, so Vuetify's `!important` utilities (`.elevation-*`,
 `.font-weight-*`, `.text-h1` and friends) still beat our normal rules. Prefer
 the `.t-*` roles over Vuetify's typography utilities.
@@ -258,7 +273,7 @@ own `<style scoped>` with a plain selector. No `.v-application` chain, no
 1. Edit `styles/epfl-tokens.css`.
 2. If it is one of the values in the table above, update
    `plugins/vuetify.ts` and `plugins/echarts-theme.ts` too.
-3. `pnpm run test:unit` — `designTokens.spec.ts` catches a copy you missed.
+3. `pnpm run test:unit`, `designTokens.spec.ts` catches a copy you missed.
 4. Look at home, one dashboard, one tool page and a detail drawer, in light and
    dark. Those four cover most of the app.
 

@@ -1,4 +1,4 @@
-/* Layer: overrides — the rules that restyle Vuetify's own components.
+/* Layer: overrides, the rules that restyle Vuetify's own components.
    Only broad, unscoped .v-* rules belong here. A rule scoped under one of our
    own classes (.dash-table .v-card, .sidebar-link .v-icon, ...) is an app rule
    and stays in app.css.
@@ -8,7 +8,7 @@
 
 /* ================ BRUTALIST: FLAT CORNERS + NO ELEVATION ================
    Square every corner across the app and Vuetify's own components, from one
-   broad rule rather than per-component overrides. Genuine circles (legend /
+   broad rule rather than per-component overrides. Real circles (legend /
    status dots, slider thumbs, toggle knobs) opt back in with border-radius:50%
    locally and are not matched here. Custom classes inherit 0 via --radius.
    Vuetify sets these in @layer vuetify.components, below us, so plain
@@ -30,7 +30,7 @@
 .v-input__control {
   border-radius: 0;
 }
-/* Flat, hairline-bordered surfaces — no card elevation shadows anywhere. */
+/* Flat, hairline-bordered surfaces, no card elevation shadows anywhere. */
 .v-card {
   box-shadow: none;
 }

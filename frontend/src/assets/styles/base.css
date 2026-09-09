@@ -1,4 +1,4 @@
-/* Layer: base — element defaults and the typography roles.
+/* Layer: base, element defaults and the typography roles.
    Everything here is the ground the app is built on: the root type and
    colour, links, and the five title roles driven by the --title-* tokens in
    epfl-tokens.css. Loaded through index.css inside @layer base, so any app
@@ -21,7 +21,7 @@ a {
 }
 
 /* ================ TITLE ROLES ================
-   Five canonical title treatments, driven by the --title-* tokens in
+   Five title treatments, driven by the --title-* tokens in
    epfl-tokens.css. Use these classes directly on new markup; existing
    component classes below are rewritten to consume the same tokens, so
    every card / section / panel / eyebrow title stays uniform app-wide. */
@@ -72,7 +72,7 @@ a {
 .drawer-body h2 {
   font-family: var(--title-eyebrow-font);
 }
-/* Two-tone split (EyebrowText.vue): primary segment red, qualifier muted —
+/* Two-tone split (EyebrowText.vue): primary segment red, qualifier muted,
    matches the handoff's `<span class="red">…</span><span class="mut">…</span>`. */
 .ey-red {
   color: var(--epfl-red);

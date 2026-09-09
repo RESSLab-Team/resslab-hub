@@ -11,7 +11,7 @@ import 'vuetify/styles'
 export const themes = {
   light: {
     colors: {
-      primary: '#E30713', // EPFL rouge (print red — softer-contrast UI target)
+      primary: '#E30713', // EPFL rouge (print red, softer on screen)
       secondary: '#413D3A', // EPFL ardoise
       accent: '#00A79F', // EPFL leman
       background: '#FFFFFF',
