@@ -110,7 +110,7 @@ You can split or fuse rows if the diff is trivial or huge — EBF fused 5–10 i
 
 ---
 
-## Step 1 — Data repository (`resslab-hub-data`, sibling `../../resslab-hub-data`)
+## Step 1: Data repository (`resslab-hub-data`, sibling `../../resslab-hub-data`)
 
 All schema work starts in the data repo. Nothing in the code repo will compile correctly until the data dictionary is stable, because `make generate-model` reads from it.
 
@@ -152,13 +152,13 @@ Rules (verified against `eccentric_braced_frames_data_dictionary.csv` and code-r
 - `type` — one of `Numeric`, `DecimalFloat`, `SmallInteger` (< 30 000), `BigInteger` (up to 10^9), `Integer`, `String`, `Date` (ISO 8601; if only a year is available, use `SmallInteger`), `Boolean`.
 - `example_value` — a realistic sample value (`1989`, `W12x16`, `Engelhardt & Popov`).
 - `nullable` — `True` / `False`. Convention: `False` for ids/investigator/year/reference/nominal geometry; `True` for measured/expected properties, optional test details, anything that may legitimately be `NA`. Use the literal string `NA` in data cells for missing values — never empty cells.
-- `group` — the scientific category of the column (`Experimental program details`, `Section properties`, `Material properties`, ...). It drives the collapsible groups of the filter rail, the contribution editor, the review panel and the drawer. Pick from the names in [variable-categories.md](variable-categories.md); a new name needs a matching id in `frontend/src/utils/fieldGroups.ts`. `generate_model.py` ignores this column, the uploader reads it (`DictionaryUploader`) and `GET /dictionary` serves it. A column with no group and no matching pattern in `fieldGroups.ts` fails `fieldGroups.spec.ts`.
+- `group`: the scientific category of the column (`Experimental program details`, `Section properties`, `Material properties`, ...). It drives the collapsible groups of the filter rail, the contribution editor, the review panel and the drawer. Pick from the names in [variable-categories.md](variable-categories.md); a new name needs a matching id in `frontend/src/utils/fieldGroups.ts`. `generate_model.py` ignores this column, the uploader reads it (`DictionaryUploader`) and `GET /dictionary` serves it. A column with no group and no matching pattern in `fieldGroups.ts` fails `fieldGroups.spec.ts`.
 
 > The data-repo's own README lists these fields in a different order (column_name, type, example_value, symbol, description, unit, nullable); **the CSV header order above is the canonical one** — `generate_model.py` indexes by column position.
 
 ### 1.3 Update the data-repo README
 
-Edit the data repo's `README.md`. Under **Making Changes** (~line 58) there is an explicit bullet list of supported directories. Add the new folder to that list. The EBF commit did this — skipping it gives contributors the impression the new type isn't officially supported.
+Edit the data repo's `README.md`. Under **Making Changes** (~line 58) there is an explicit bullet list of supported directories. Add the new folder to that list. The EBF commit did this, skipping it gives contributors the impression the new type isn't officially supported.
 
 ### 1.4 Wire the validation workflow (mandatory)
 
@@ -207,7 +207,7 @@ Once the dictionary is stable on a branch:
 
 ---
 
-## Step 2 — Backend: model generation
+## Step 2: Backend: model generation
 
 File: `/mnt/data/Documents/Code/resslab-hub/backend/Makefile`
 
@@ -236,7 +236,7 @@ Run `make generate-model` and review the diff — the codegen only overwrites be
 
 ---
 
-## Step 3 — Backend: router
+## Step 3: Backend: router
 
 File: `/mnt/data/Documents/Code/resslab-hub/backend/resslab_hub/routers/new_thing.py` (NEW)
 
@@ -277,7 +277,7 @@ Two edits:
 
 ---
 
-## Step 4 — Backend: data uploader
+## Step 4: Backend: data uploader
 
 File: `/mnt/data/Documents/Code/resslab-hub/backend/resslab_hub/data/uploader.py`
 
@@ -321,7 +321,7 @@ The uploader and the validator are two separate dispatch tables, and only the fi
 
 ---
 
-## Step 5 — Backend: Alembic migration
+## Step 5: Backend: Alembic migration
 
 ```bash
 cd backend
@@ -340,7 +340,7 @@ If you later iterate on the data dictionary (very likely — see #225 which requ
 
 ---
 
-## Step 6 — Regenerate OpenAPI + frontend client
+## Step 6: Regenerate OpenAPI + frontend client
 
 From the repo root:
 
@@ -352,7 +352,7 @@ This runs `DATABASE_UPGRADE=false uv run python api.py ../openapi.json` and then
 
 ---
 
-## Step 7 — Frontend: axios API client instance
+## Step 7: Frontend: axios API client instance
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/plugins/axios.ts`
 
@@ -365,7 +365,7 @@ export const newThingApi = new NewThingApi(undefined, baseUrl, axiosInstance)
 
 ---
 
-## Step 8 — Frontend: views and router
+## Step 8: Frontend: views and router
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/views/NewThingView.vue` (NEW)
 
@@ -443,7 +443,7 @@ Add to `menuItems[]`:
 
 ---
 
-## Step 9 — Frontend: components
+## Step 9: Frontend: components
 
 Create `/mnt/data/Documents/Code/resslab-hub/frontend/src/components/{short_name}/` — use the **short, human-friendly name** (EBF → `components/ebf/`, HSS → `components/hss/`), not the full snake_case. Backend module paths and data-repo folders use full snake_case; URL slug, frontend component folder, and class-name acronyms use the short form. Populate the folder with:
 
@@ -467,7 +467,7 @@ What the copied templates give you, so you know what not to reinvent (the whole 
 
 ---
 
-## Step 10 — Frontend: utilities
+## Step 10: Frontend: utilities
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/utils/new_thing.ts` (NEW)
 
@@ -505,7 +505,7 @@ export type LocationNewThing = Pick<NewThingModel, typeof _locationNewThingField
 
 ---
 
-## Step 10b — Field groups and colours
+## Step 10b: Field groups and colours
 
 Two things the test suite and the UI expect from every new column:
 
@@ -514,7 +514,7 @@ Two things the test suite and the UI expect from every new column:
 
 ---
 
-## Step 11 — Frontend: i18n
+## Step 11: Frontend: i18n
 
 Files: `frontend/src/locales/en.json` and `frontend/src/locales/fr.json`
 
@@ -529,7 +529,7 @@ Every key must exist in both files. French keeps its accents (`Propriétés de l
 
 ---
 
-## Step 12 — Frontend: overview map + tooltip
+## Step 12: Frontend: overview map + tooltip
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/components/map/OverviewMap.vue`
 
@@ -545,7 +545,7 @@ File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/components/map/TooltipC
 
 ---
 
-## Step 13 — Frontend: home page indicator
+## Step 13: Frontend: home page indicator
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/views/HomeView.vue`
 
@@ -554,7 +554,7 @@ File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/views/HomeView.vue`
 
 ---
 
-## Step 14 — Static assets
+## Step 14: Static assets
 
 - Configuration diagrams (if any): `/mnt/data/Documents/Code/resslab-hub/frontend/public/img/new_thing/NT_1.png` … — keep the naming aligned with the keys used by `getNewThingImage`.
 - Section/property CSVs (if the component has section libraries — like HSS or Connections):
@@ -572,7 +572,7 @@ File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/views/HomeView.vue`
 
 ---
 
-## Step 15 — Shared-component touch-ups commonly needed
+## Step 15: Shared-component touch-ups commonly needed
 
 The EBF iteration showed that adding a tab often requires *small* improvements to shared components. Keep an eye out for these:
 
@@ -582,7 +582,7 @@ The EBF iteration showed that adding a tab often requires *small* improvements t
 
 ---
 
-## Step 16 — Contribution, validation and curation
+## Step 16: Contribution, validation and curation
 
 A tab is not done when it browses. Contributors must be able to submit to it and the lab to review it:
 
@@ -696,7 +696,7 @@ After implementation, run end-to-end locally:
      - CSV export downloads.
    - Home page `/` — the test-count indicator includes the new component.
    - Overview map — markers for the new type appear; tooltip renders with the new template and deep-links back to `/new-things/database?id=...&detail=true`.
-   - Switch locale to French — every new label translates, nothing falls back to the key.
+   - Switch locale to French, every new label translates, nothing falls back to the key.
 
 4. **Build**
    - `cd frontend && pnpm run build` — production build passes.
