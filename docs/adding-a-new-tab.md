@@ -9,6 +9,7 @@ The EBF (Eccentric Braced Frames / "EBF Links") tab was added most recently (Git
 **Intended outcome:** a single reference the dev (and future Claude sessions) can follow top-to-bottom to scaffold a new component tab, plus a "gotchas" section prebuilt from the EBF feedback so we don't relearn those lessons.
 
 References consulted:
+
 - Code repo: `/mnt/data/Documents/Code/resslab-hub`
 - Data repo: `/home/pierre/dev/resslab-hub-data` (sibling of `../../resslab-hub-data` from the backend)
 - Issue #215 (initial request) — https://github.com/RESSLab-Team/resslab-hub/issues/215
@@ -81,20 +82,20 @@ The HSS Model view was added one commit later (`feat(hss): add hss component mod
 
 ### Distilled template for the next tab
 
-| # | Commit | Layer | Notes |
-|---|--------|-------|-------|
-| 1 | `feat(<tab>): generate <tab> model & alembic revision #<issue>` | Backend data | Output of `make generate-model` + `make database-revision` |
-| 2 | `feat(<tab>): create <tab> api & router model #<issue>` | Backend API | Pydantic schema + FastAPI router + `main.py` wiring |
-| 3 | `feat(<tab>): add uploader #<issue>` | Backend ingest | `uploader.py` + Makefile `upload-<tab>` target |
-| 4 | `feat(<tab>): generate open api files #<issue>` | Generated bridge | `openapi.json` + `frontend/src/backend/` — nothing else in this commit |
-| 5 | `feat(<tab>): create <tab> views & dashboard #<issue>` | Frontend scaffold | Views + dashboard + router + nav + `axios.ts` + i18n |
-| 6 | `feat(<tab>): add charts #<issue>` | Frontend UI | Parallel + Double + Single charts |
-| 7 | `feat(<tab>): add detail #<issue>` | Frontend UI | Detail panel + time-series carousel |
-| 8 | `feat(<tab>): add utils & mappings #<issue>` | Frontend util | `utils/<tab>.ts`, `component.ts`, `backend.ts` edits |
-| 9 | `feat(<tab>): add detail images #<issue>` | Frontend assets | `public/img/<tab>/*.png` |
-| 10 | `feat(<tab>): add <tab> to overview map & tooltip #<issue>` | Cross-cutting | `OverviewMap.vue`, `TooltipContent.vue`, `HomeView.vue` |
-| (11+) | `feat(<tab>): add <tab> model view #<issue>` | Optional | Only if the component has a published analytical model |
-| (11+) | `feat(<tab>): add <tab> fragility view #<issue>` | Optional | Only if fragility parameters exist (Braces only today) |
+| #     | Commit                                                          | Layer             | Notes                                                                  |
+| ----- | --------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------- |
+| 1     | `feat(<tab>): generate <tab> model & alembic revision #<issue>` | Backend data      | Output of `make generate-model` + `make database-revision`             |
+| 2     | `feat(<tab>): create <tab> api & router model #<issue>`         | Backend API       | Pydantic schema + FastAPI router + `main.py` wiring                    |
+| 3     | `feat(<tab>): add uploader #<issue>`                            | Backend ingest    | `uploader.py` + Makefile `upload-<tab>` target                         |
+| 4     | `feat(<tab>): generate open api files #<issue>`                 | Generated bridge  | `openapi.json` + `frontend/src/backend/` — nothing else in this commit |
+| 5     | `feat(<tab>): create <tab> views & dashboard #<issue>`          | Frontend scaffold | Views + dashboard + router + nav + `axios.ts` + i18n                   |
+| 6     | `feat(<tab>): add charts #<issue>`                              | Frontend UI       | Parallel + Double + Single charts                                      |
+| 7     | `feat(<tab>): add detail #<issue>`                              | Frontend UI       | Detail panel + time-series carousel                                    |
+| 8     | `feat(<tab>): add utils & mappings #<issue>`                    | Frontend util     | `utils/<tab>.ts`, `component.ts`, `backend.ts` edits                   |
+| 9     | `feat(<tab>): add detail images #<issue>`                       | Frontend assets   | `public/img/<tab>/*.png`                                               |
+| 10    | `feat(<tab>): add <tab> to overview map & tooltip #<issue>`     | Cross-cutting     | `OverviewMap.vue`, `TooltipContent.vue`, `HomeView.vue`                |
+| (11+) | `feat(<tab>): add <tab> model view #<issue>`                    | Optional          | Only if the component has a published analytical model                 |
+| (11+) | `feat(<tab>): add <tab> fragility view #<issue>`                | Optional          | Only if fragility parameters exist (Braces only today)                 |
 
 You can split or fuse rows if the diff is trivial or huge — EBF fused 5–10 into one "feat: add all ebf components" commit, HSS split them. What matters is the **order**: backend-first, generated-bridge as its own commit, frontend scaffold before UI details, cross-cutting wiring last.
 
@@ -110,11 +111,12 @@ You can split or fuse rows if the diff is trivial or huge — EBF fused 5–10 i
 
 ---
 
-## Step 1 — Data repository (`resslab-hub-data`, sibling `../../resslab-hub-data`)
+## Step 1: Data repository (`resslab-hub-data`, sibling `../../resslab-hub-data`)
 
 All schema work starts in the data repo. Nothing in the code repo will compile correctly until the data dictionary is stable, because `make generate-model` reads from it.
 
 **Branch model**
+
 - `main` is the only long-lived branch. It builds the `resslab-hub-data:main` image that every environment (dev, test, prod) uploads from.
 - Standard workflow: fork (or branch) → `git switch -c data/new-thing-initial-load` → commit → PR → validation CI → **squash-merge** (this is mandatory per the data-repo README; the CI validates only the final squashed diff on `main`).
 
@@ -122,14 +124,15 @@ All schema work starts in the data repo. Nothing in the code repo will compile c
 
 Create `new_things/` at the root of the data repo with:
 
-| Path | Required | Notes |
-|------|----------|-------|
-| `new_things/new_things.csv` | yes | Main entity table. Header row + data rows. First column is the stable id (convention: `experimental_program_date_specimen_designation`, e.g. `Engelhardt_et_al_2000_DBBWWPZ`). |
-| `new_things/new_things_data_dictionary.csv` | yes | 8-column dictionary (exact header order below). |
-| `new_things/processed_data/` or `new_things/<subdir>/` | optional | One file per specimen holding time-series/curve data. |
-| `new_things/README.md` | yes | The contributor guide for the database, on the model of the nine existing ones (contents, identifier convention, response files with exact headers and units, submitting). It is uploaded with the data (`Type.README`, keyed by folder in `README_DATABASES` in `uploader.py`, so add the new folder there), served by `GET /dictionary/{database}/readme` and rendered in the submission form next to the dictionary table. Do not duplicate the dictionary in it; link to the CSV. |
+| Path                                                   | Required | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `new_things/new_things.csv`                            | yes      | Main entity table. Header row + data rows. First column is the stable id (convention: `experimental_program_date_specimen_designation`, e.g. `Engelhardt_et_al_2000_DBBWWPZ`).                                                                                                                                                                                                                                                                                                        |
+| `new_things/new_things_data_dictionary.csv`            | yes      | 8-column dictionary (exact header order below).                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `new_things/processed_data/` or `new_things/<subdir>/` | optional | One file per specimen holding time-series/curve data.                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `new_things/README.md`                                 | yes      | The contributor guide for the database, on the model of the nine existing ones (contents, identifier convention, response files with exact headers and units, submitting). It is uploaded with the data (`Type.README`, keyed by folder in `README_DATABASES` in `uploader.py`, so add the new folder there), served by `GET /dictionary/{database}/readme` and rendered in the submission form next to the dictionary table. Do not duplicate the dictionary in it; link to the CSV. |
 
 **Time-series filename convention:** two idioms exist in the repo — **prefer id-as-filename** unless specimen ids would be filesystem-unfriendly. Two of three existing tabs (Braces, HSS) use it; EBF's integer-alias scheme is the outlier.
+
 - **Id-as-filename (default — Braces, HSS):** `force_displacement/{spec_id}.csv` or `Moment_Rotation/{spec_id}.csv` — the file stem IS the specimen id (e.g. `Fadden_McCormick_2012__HSS-203.2x152.4x9.5.csv`, `Tremblay_RHS13.csv`). Transparent and self-documenting.
 - **Integer alias (EBF):** `processed_data/id{N}.csv` (e.g. `id1.csv`, `id240.csv`) with an internal `data_ind` column tying back to the specimen row. Use only when specimen ids contain slashes, spaces, or non-ASCII characters — don't reach for this "to match EBF."
 
@@ -152,13 +155,13 @@ Rules (verified against `eccentric_braced_frames_data_dictionary.csv` and code-r
 - `type` — one of `Numeric`, `DecimalFloat`, `SmallInteger` (< 30 000), `BigInteger` (up to 10^9), `Integer`, `String`, `Date` (ISO 8601; if only a year is available, use `SmallInteger`), `Boolean`.
 - `example_value` — a realistic sample value (`1989`, `W12x16`, `Engelhardt & Popov`).
 - `nullable` — `True` / `False`. Convention: `False` for ids/investigator/year/reference/nominal geometry; `True` for measured/expected properties, optional test details, anything that may legitimately be `NA`. Use the literal string `NA` in data cells for missing values — never empty cells.
-- `group` — the scientific category of the column (`Experimental program details`, `Section properties`, `Material properties`, ...). It drives the collapsible groups of the filter rail, the contribution editor, the review panel and the drawer. Pick from the names in [variable-categories.md](variable-categories.md); a new name needs a matching id in `frontend/src/utils/fieldGroups.ts`. `generate_model.py` ignores this column, the uploader reads it (`DictionaryUploader`) and `GET /dictionary` serves it. A column with no group and no matching pattern in `fieldGroups.ts` fails `fieldGroups.spec.ts`.
+- `group`: the scientific category of the column (`Experimental program details`, `Section properties`, `Material properties`, ...). It drives the collapsible groups of the filter rail, the contribution editor, the review panel and the drawer. Pick from the names in [variable-categories.md](variable-categories.md); a new name needs a matching id in `frontend/src/utils/fieldGroups.ts`. `generate_model.py` ignores this column, the uploader reads it (`DictionaryUploader`) and `GET /dictionary` serves it. A column with no group and no matching pattern in `fieldGroups.ts` fails `fieldGroups.spec.ts`.
 
 > The data-repo's own README lists these fields in a different order (column_name, type, example_value, symbol, description, unit, nullable); **the CSV header order above is the canonical one** — `generate_model.py` indexes by column position.
 
 ### 1.3 Update the data-repo README
 
-Edit the data repo's `README.md`. Under **Making Changes** (~line 58) there is an explicit bullet list of supported directories. Add the new folder to that list. The EBF commit did this — skipping it gives contributors the impression the new type isn't officially supported.
+Edit the data repo's `README.md`. Under **Making Changes** (~line 58) there is an explicit bullet list of supported directories. Add the new folder to that list. The EBF commit did this, skipping it gives contributors the impression the new type isn't officially supported.
 
 ### 1.4 Wire the validation workflow (mandatory)
 
@@ -185,10 +188,12 @@ The downstream steps already handle the hyphen↔underscore conversion and call 
 ### 1.5 Expect iteration on the dictionary
 
 EBF needed ~15 commits on the dictionary alone (type corrections, nullable flags, CSV quoting, column renames like `f_y_exp_l`). Plan for at least two rounds:
+
 1. First pass: author the dictionary and master CSV, push, let validation run.
 2. Second pass: fix types/nullables/quoting based on validation output.
 
 Common dictionary mistakes seen in EBF history:
+
 - Missing `"..."` quoting on descriptions containing commas (`fix(eccentric_braced_frames): correct CSV formatting`).
 - Wrong nullable flag on columns full of `NA`/`NR` values (`fix(ebf): set l_s_d_pnl_2_f nullable as they are NA & NR values`).
 - Using `Integer` for floats like `6000.0` (should be `DecimalFloat`).
@@ -201,13 +206,14 @@ Don't commit archives (`new_things.tar.gz`): the CI and `make validate-<type>` t
 ### 1.7 Data-repo ↔ code-repo handshake
 
 Once the dictionary is stable on a branch:
+
 1. In the **code repo**, make sure `../../resslab-hub-data` points at that branch (or a local checkout with the same contents).
 2. Run `make generate-model` (code repo, backend) — this is Step 2 below.
 3. Only after the backend compiles cleanly, squash-merge the data-repo PR to `main`. Every environment uploads from `main`, so the new data reaches dev, test and prod alike once someone runs the upload CronJob there.
 
 ---
 
-## Step 2 — Backend: model generation
+## Step 2: Backend: model generation
 
 File: `/mnt/data/Documents/Code/resslab-hub/backend/Makefile`
 
@@ -236,7 +242,7 @@ Run `make generate-model` and review the diff — the codegen only overwrites be
 
 ---
 
-## Step 3 — Backend: router
+## Step 3: Backend: router
 
 File: `/mnt/data/Documents/Code/resslab-hub/backend/resslab_hub/routers/new_thing.py` (NEW)
 
@@ -255,6 +261,7 @@ GET /new-thing/{id}/{sub}/csv         # sub-resource export
 ```
 
 Construct the `Component` with:
+
 - database type: `NewThing`
 - model type: `NewThingModel`
 - id column: `NewThing.id`
@@ -265,6 +272,7 @@ For each time-series child table, build a `SubComponent` mirroring the EBF `shea
 File: `/mnt/data/Documents/Code/resslab-hub/backend/resslab_hub/models/database/__init__.py`
 
 Add one import line next to the existing component imports:
+
 ```python
 import resslab_hub.models.database.new_thing
 ```
@@ -272,12 +280,13 @@ import resslab_hub.models.database.new_thing
 File: `/mnt/data/Documents/Code/resslab-hub/backend/resslab_hub/main.py`
 
 Two edits:
+
 - Add `new_thing` to the `from resslab_hub.routers import (...)` block.
 - Add `app.include_router(new_thing.router)` near the other `include_router` calls.
 
 ---
 
-## Step 4 — Backend: data uploader
+## Step 4: Backend: data uploader
 
 File: `/mnt/data/Documents/Code/resslab-hub/backend/resslab_hub/data/uploader.py`
 
@@ -299,10 +308,12 @@ Three additions, modeled on the EBF block (see commit `12981ce`):
 File: `/mnt/data/Documents/Code/resslab-hub/backend/Makefile`
 
 Add:
+
 ```makefile
 upload-new-thing:
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all-new-things ../../resslab-hub-data
 ```
+
 And make sure `upload-data` still picks up the aggregate via `all` (it already dispatches via `get_args_all`).
 
 Optionally add a `validate-new-things` rule — the existing `validate-%:` pattern works if the directory name matches.
@@ -321,7 +332,7 @@ The uploader and the validator are two separate dispatch tables, and only the fi
 
 ---
 
-## Step 5 — Backend: Alembic migration
+## Step 5: Backend: Alembic migration
 
 ```bash
 cd backend
@@ -329,6 +340,7 @@ make database-revision name="add_new_thing_model"
 ```
 
 Alembic autogenerates from the ORM diff. **Review the file** under `backend/alembic/versions/` — pay attention to:
+
 - Correct nullability (compare to data dictionary's `nullable` column).
 - Foreign-key cascade on the child table (`ondelete="CASCADE"` is the convention).
 - Index on the foreign key column.
@@ -340,7 +352,7 @@ If you later iterate on the data dictionary (very likely — see #225 which requ
 
 ---
 
-## Step 6 — Regenerate OpenAPI + frontend client
+## Step 6: Regenerate OpenAPI + frontend client
 
 From the repo root:
 
@@ -352,20 +364,21 @@ This runs `DATABASE_UPGRADE=false uv run python api.py ../openapi.json` and then
 
 ---
 
-## Step 7 — Frontend: axios API client instance
+## Step 7: Frontend: axios API client instance
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/plugins/axios.ts`
 
 Two edits mirroring `ebfApi`:
+
 ```ts
-import { NewThingApi } from '@/backend/api'
+import { NewThingApi } from "@/backend/api";
 // ...
-export const newThingApi = new NewThingApi(undefined, baseUrl, axiosInstance)
+export const newThingApi = new NewThingApi(undefined, baseUrl, axiosInstance);
 ```
 
 ---
 
-## Step 8 — Frontend: views and router
+## Step 8: Frontend: views and router
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/views/NewThingView.vue` (NEW)
 
@@ -378,6 +391,7 @@ Imports and renders `NewThingDashboard.vue` (copy `EbfDatabase.vue`).
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/router/index.ts`
 
 Add a block modeled on the EBF route:
+
 ```ts
 {
   path: '/new-things',
@@ -393,15 +407,16 @@ Add a block modeled on the EBF route:
 **Naming decision for the URL slug** — remember the #225 lesson: EBF moved from `/eccentric-braced-frames` to `/ebf-links`. Pick the short, user-facing slug up front, not the scientific full name, to avoid renaming later. Keep backend identifiers full snake_case; only the URL/nav labels get the short form.
 
 **Optional: Model view.** Components that ship a published analytical model (closed-form backbone + fragility curve) add a second child route. HSS shows the full pattern:
+
 - `frontend/src/views/HssModelView.vue` — thin router-view wrapper.
 - `frontend/src/components/hss/HssModel.vue` — the UI itself (section picker backed by the transformed section CSVs in Step 14, parameter inputs, live-rendered backbone curves).
 - Router block becomes:
   ```ts
   children: [
-    { path: '', redirect: '/hss-columns/database' },
-    { path: 'database', component: () => import('@/views/HssDatabase.vue') },
-    { path: 'model',    component: () => import('@/views/HssModelView.vue') },
-  ]
+    { path: "", redirect: "/hss-columns/database" },
+    { path: "database", component: () => import("@/views/HssDatabase.vue") },
+    { path: "model", component: () => import("@/views/HssModelView.vue") },
+  ];
   ```
 - Nav: add a `{ title: 'Model', to: '/model' }` entry alongside `Database` in `App.vue`.
 
@@ -419,11 +434,17 @@ Don't scaffold a Model view unless the component actually has a published model.
 - **Router block becomes:**
   ```ts
   children: [
-    { path: '', redirect: '/new-things/database' },
-    { path: 'database',        component: () => import('@/views/NewThingDatabase.vue') },
-    { path: 'fragility-curve', component: () => import('@/views/NewThingFragilityCurve.vue') },
-    { path: 'model',           component: () => import('@/views/NewThingModelView.vue') },
-  ]
+    { path: "", redirect: "/new-things/database" },
+    {
+      path: "database",
+      component: () => import("@/views/NewThingDatabase.vue"),
+    },
+    {
+      path: "fragility-curve",
+      component: () => import("@/views/NewThingFragilityCurve.vue"),
+    },
+    { path: "model", component: () => import("@/views/NewThingModelView.vue") },
+  ];
   ```
 - **Nav:** add `{ title: 'Fragility Curve', to: '/fragility-curve' }` in `App.vue` (kebab-case slug).
 
@@ -432,6 +453,7 @@ Skip this route entirely if you don't have parameters yet — no placeholder vie
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/App.vue`
 
 Add to `menuItems[]`:
+
 ```ts
 {
   title: 'Short Display Name',       // e.g. 'EBF Links'
@@ -443,18 +465,18 @@ Add to `menuItems[]`:
 
 ---
 
-## Step 9 — Frontend: components
+## Step 9: Frontend: components
 
 Create `/mnt/data/Documents/Code/resslab-hub/frontend/src/components/{short_name}/` — use the **short, human-friendly name** (EBF → `components/ebf/`, HSS → `components/hss/`), not the full snake_case. Backend module paths and data-repo folders use full snake_case; URL slug, frontend component folder, and class-name acronyms use the short form. Populate the folder with:
 
-| File | Purpose | Template to copy |
-|------|---------|------------------|
-| `NewThingDashboard.vue` | Layout (table + detail + charts); defines `parallelFields`, `doubleChartFields`, color palette. Uses `useDashboard<NewThingModel>`. | `components/ebf/EbfDashboard.vue` |
-| `NewThingTable.vue` | Paginated data grid. Uses `useTable<NewThingModel>` and `newThingApi.getNewThings()`. Emits row click to the dashboard. | `components/ebf/EbfTable.vue` |
-| `NewThingDetail.vue` | Detail panel for selected row. Fetches time-series via `newThingApi.getNewThingSub()`. Wraps `CommonDetail.vue`. Renders configuration image via utility helper. | `components/ebf/EbfDetail.vue` |
-| `charts/NewThingParallelChart.vue` | Parallel coordinates. Uses `useParallelChart<NewThingField>` + `getNewThingsMatrix`. i18n prefix `"new_thing."`. | `components/ebf/charts/EbfParallelChart.vue` |
-| `charts/NewThingDoubleChart.vue` | Two-field histogram (typ. year × category). `useDoubleChart<NewThingField, NewThingNumberField>` + `getNewThingsCounts` + `getNewThingsRange`. | `components/ebf/charts/EbfDoubleChart.vue` |
-| `charts/NewThingSingleChart.vue` | Single-field categorical bar. `useSingleChart<NewThingField>`. Pass the optional `mapping` prop introduced in PR #224 commit `bafde72` to map raw values (e.g. `hot-rolled` → `Hot-Rolled`). | `components/ebf/charts/EbfSingleChart.vue` |
+| File                               | Purpose                                                                                                                                                                                      | Template to copy                             |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `NewThingDashboard.vue`            | Layout (table + detail + charts); defines `parallelFields`, `doubleChartFields`, color palette. Uses `useDashboard<NewThingModel>`.                                                          | `components/ebf/EbfDashboard.vue`            |
+| `NewThingTable.vue`                | Paginated data grid. Uses `useTable<NewThingModel>` and `newThingApi.getNewThings()`. Emits row click to the dashboard.                                                                      | `components/ebf/EbfTable.vue`                |
+| `NewThingDetail.vue`               | Detail panel for selected row. Fetches time-series via `newThingApi.getNewThingSub()`. Wraps `CommonDetail.vue`. Renders configuration image via utility helper.                             | `components/ebf/EbfDetail.vue`               |
+| `charts/NewThingParallelChart.vue` | Parallel coordinates. Uses `useParallelChart<NewThingField>` + `getNewThingsMatrix`. i18n prefix `"new_thing."`.                                                                             | `components/ebf/charts/EbfParallelChart.vue` |
+| `charts/NewThingDoubleChart.vue`   | Two-field histogram (typ. year × category). `useDoubleChart<NewThingField, NewThingNumberField>` + `getNewThingsCounts` + `getNewThingsRange`.                                               | `components/ebf/charts/EbfDoubleChart.vue`   |
+| `charts/NewThingSingleChart.vue`   | Single-field categorical bar. `useSingleChart<NewThingField>`. Pass the optional `mapping` prop introduced in PR #224 commit `bafde72` to map raw values (e.g. `hot-rolled` → `Hot-Rolled`). | `components/ebf/charts/EbfSingleChart.vue`   |
 
 No new composables needed — reuse `composables/dashboard.ts`, `table.ts`, `chart.ts` with the new type params.
 
@@ -467,7 +489,7 @@ What the copied templates give you, so you know what not to reinvent (the whole 
 
 ---
 
-## Step 10 — Frontend: utilities
+## Step 10: Frontend: utilities
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/utils/new_thing.ts` (NEW)
 
@@ -476,15 +498,18 @@ Per-component display mappings (raw DB value → human label). Mirror `utils/ebf
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/utils/component.ts`
 
 Add `getNewThingImage(code: string): string` that returns the PNG path for a given configuration key. Pattern from `getEbfImage()`:
+
 ```ts
 const map: Record<string, string> = { TF1: 'NT_1.png', ... }
 return map[code] ? `/img/new_thing/${map[code]}` : ''
 ```
+
 **Do not lower-case** the input — the #225 fix (`abcd882`) removed unnecessary `toLowerCase()` because the upstream data is already correctly cased.
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/utils/backend.ts`
 
 Add the display name to the `Type` union and `typesNames[]` array:
+
 ```ts
 export type Type = ... | 'New Thing Display Name'
 export const typesNames: Type[] = [..., 'New Thing Display Name']
@@ -493,19 +518,28 @@ export const typesNames: Type[] = [..., 'New Thing Display Name']
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/utils/overviewmap.ts`
 
 If the component has geographic coords, add:
+
 ```ts
 const _locationNewThingFields = [
-  NewThingField.id, NewThingField.investigator, NewThingField.year,
-  NewThingField.spec_id, /* ... */ NewThingField.latitude, NewThingField.longitude,
-  NewThingField.reference, NewThingField.url,
-]
-export const locationNewThingFields = _locationNewThingFields
-export type LocationNewThing = Pick<NewThingModel, typeof _locationNewThingFields[number]>
+  NewThingField.id,
+  NewThingField.investigator,
+  NewThingField.year,
+  NewThingField.spec_id,
+  /* ... */ NewThingField.latitude,
+  NewThingField.longitude,
+  NewThingField.reference,
+  NewThingField.url,
+];
+export const locationNewThingFields = _locationNewThingFields;
+export type LocationNewThing = Pick<
+  NewThingModel,
+  (typeof _locationNewThingFields)[number]
+>;
 ```
 
 ---
 
-## Step 10b — Field groups and colours
+## Step 10b: Field groups and colours
 
 Two things the test suite and the UI expect from every new column:
 
@@ -514,22 +548,24 @@ Two things the test suite and the UI expect from every new column:
 
 ---
 
-## Step 11 — Frontend: i18n
+## Step 11: Frontend: i18n
 
 Files: `frontend/src/locales/en.json` and `frontend/src/locales/fr.json`
 
 Add a `new_thing` namespace with every display-critical field label, e.g.:
+
 ```json
 "new_thing": {
   "field_a": "Field A",
   "field_b": "Field B"
 }
 ```
+
 Every key must exist in both files. French keeps its accents (`Propriétés de la section`, not `Proprietes`).
 
 ---
 
-## Step 12 — Frontend: overview map + tooltip
+## Step 12: Frontend: overview map + tooltip
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/components/map/OverviewMap.vue`
 
@@ -545,7 +581,7 @@ File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/components/map/TooltipC
 
 ---
 
-## Step 13 — Frontend: home page indicator
+## Step 13: Frontend: home page indicator
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/views/HomeView.vue`
 
@@ -554,7 +590,7 @@ File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/views/HomeView.vue`
 
 ---
 
-## Step 14 — Static assets
+## Step 14: Static assets
 
 - Configuration diagrams (if any): `/mnt/data/Documents/Code/resslab-hub/frontend/public/img/new_thing/NT_1.png` … — keep the naming aligned with the keys used by `getNewThingImage`.
 - Section/property CSVs (if the component has section libraries — like HSS or Connections):
@@ -572,9 +608,9 @@ File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/views/HomeView.vue`
 
 ---
 
-## Step 15 — Shared-component touch-ups commonly needed
+## Step 15: Shared-component touch-ups commonly needed
 
-The EBF iteration showed that adding a tab often requires *small* improvements to shared components. Keep an eye out for these:
+The EBF iteration showed that adding a tab often requires _small_ improvements to shared components. Keep an eye out for these:
 
 - `components/commons/charts/SingleChart.vue` — accept an optional `mapping` prop if your values need humanization (commit `bafde72`).
 - Parallel chart height — the #225 fix (`0bf430f`) made parallel chart height computed so every category is visible. This is now generic; just make sure your parallel chart's dimensions are set so no labels are cut off.
@@ -582,18 +618,18 @@ The EBF iteration showed that adding a tab often requires *small* improvements t
 
 ---
 
-## Step 16 — Contribution, validation and curation
+## Step 16: Contribution, validation and curation
 
 A tab is not done when it browses. Contributors must be able to submit to it and the lab to review it:
 
-| Where | What |
-|---|---|
+| Where                                   | What                                                                                                                                                                                                                                                                                                                                                 |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `backend/resslab_hub/data/validator.py` | a `case Type.NEW_THING` branch (and one per series type) in `validate_one_file`, so `POST /validate` checks the CSV against the model and the README's rules. Without it the type raises `NotImplementedError` (tensile coupons, EBF and ductile fracture shipped like that, #274). Range warnings come for free from `TableValidator._check_range`. |
-| `backend/resslab_hub/data/uploader.py` | `README_DATABASES` entry for the folder (Step 1.1), and the `get_args_all` tuples the contribution archive layout follows. |
-| `frontend/src/utils/contribution.ts` | a `CONTRIBUTION_DATABASES` entry: backend `Type`, primary CSV path inside the archive, `qualityCheckSupported: true` once the validator branch exists. This is also what the curation review and the edit flow use to place files. |
-| `frontend/src/utils/timeseries.ts` | `requiredColumns` per series directory, so the editor recognises a dropped curve file by its headers and folder name. |
-| `sample-data/generate.py` | a `DATABASES` entry and the `TIME_SERIES` shapes, so `make sample-data` produces a test batch (and `fieldGroups.spec.ts` gets its headers). |
-| `frontend/src/utils/curation.ts` | derived columns (`withDerivedCells`) if the ORM computes any `column_property` the review must show. |
+| `backend/resslab_hub/data/uploader.py`  | `README_DATABASES` entry for the folder (Step 1.1), and the `get_args_all` tuples the contribution archive layout follows.                                                                                                                                                                                                                           |
+| `frontend/src/utils/contribution.ts`    | a `CONTRIBUTION_DATABASES` entry: backend `Type`, primary CSV path inside the archive, `qualityCheckSupported: true` once the validator branch exists. This is also what the curation review and the edit flow use to place files.                                                                                                                   |
+| `frontend/src/utils/timeseries.ts`      | `requiredColumns` per series directory, so the editor recognises a dropped curve file by its headers and folder name.                                                                                                                                                                                                                                |
+| `sample-data/generate.py`               | a `DATABASES` entry and the `TIME_SERIES` shapes, so `make sample-data` produces a test batch (and `fieldGroups.spec.ts` gets its headers).                                                                                                                                                                                                          |
+| `frontend/src/utils/curation.ts`        | derived columns (`withDerivedCells`) if the ORM computes any `column_property` the review must show.                                                                                                                                                                                                                                                 |
 
 Then walk the whole pipeline once with the sample batch: [contributing-data.md](contributing-data.md) and [curation.md](curation.md). Close the pull request it opens on the data repo, never merge it.
 
@@ -604,14 +640,14 @@ Then walk the whole pipeline once with the sample batch: [contributing-data.md](
 1. **Pick the short display name first.** We renamed "Eccentric Braced Frames" → "EBF Links" after launch; URLs, menus, `typesNames`, `Type` union all had to change. Commit to the short form before starting.
 2. **Don't lower-case data values.** Keys like `TF1`/`LC5` are already correctly cased in the dictionary. Omit `.toLowerCase()` in frontend mappings; add it only if the data genuinely disagrees.
 3. **Integrate indicators day one.** `HomeView.vue` test-count aggregation and overview-map data-length both need the new API. Adding these late means a second PR.
-4. **Validate the data dictionary twice.** EBF needed a schema-refinement migration (`f5abf9d8561b`) because nullability/naming drifted during review. Run `make generate-model` → inspect diff → hand to a reviewer *before* the first migration lands.
+4. **Validate the data dictionary twice.** EBF needed a schema-refinement migration (`f5abf9d8561b`) because nullability/naming drifted during review. Run `make generate-model` → inspect diff → hand to a reviewer _before_ the first migration lands.
 5. **Chart colors.** Default palettes looked muddy for EBF; pick distinct colors early (see `EbfDashboard.vue` palette).
 6. **Parallel-chart sort order.** Ordered categorical axes (`short → intermediate → long`) need explicit `sortValues`. Commit `a3bee8a` restored these after they were lost.
 7. **Image sizing.** Detail images need a max-width (EBF fix: 50% of row). Set responsive CSS from the start, don't let the raw PNG expand.
 8. **TypeScript imports.** Ensure all new types (`NewThingModel`, `NewThingField`, `NewThingNumberField`) are exported from the generated barrel so `vue-tsc` passes. `fix(ebf): fix import type build problem` (`573cc4a`) caught a circular-import regression — run `pnpm run type-check` before opening the PR.
 9. **Info tooltips on table columns.** Users asked for field explanations (commit `476c98e`). Add `InfoTooltip` to column headers from the start with a short description from the data dictionary.
 10. **Carousel / detail content.** Don't ship a detail view with only raw fields — group them ("Loading and Geometric Parameters", "Steel Material Designation (flange / web)") and label units. EBF got two rounds of detail-content rework (`bdec4f8`, `50ba7f7`, `e70b30d`).
-11. **Data-repo validation workflow filter.** `.github/workflows/data-validation.yml` has a hardcoded `filters:` list. EBF was never added to it, so no EBF PR has ever been validated by CI. Add your filter line *before* opening the first data-repo PR; otherwise silent pass-through is indistinguishable from a real green check.
+11. **Data-repo validation workflow filter.** `.github/workflows/data-validation.yml` has a hardcoded `filters:` list. EBF was never added to it, so no EBF PR has ever been validated by CI. Add your filter line _before_ opening the first data-repo PR; otherwise silent pass-through is indistinguishable from a real green check.
 12. **Data-dictionary file name.** The suffix must be `_data_dictionary.csv` (not `_dictionnary.csv` — that typo actually shipped in EBF's first commit and had to be renamed). The backend `generate_model.py` invocation in `backend/Makefile` spells out the exact filename; mismatches produce an unhelpful "file not found" error.
 13. **Squash-merge is mandatory on the data repo.** The validation CI only diffs `HEAD~1..HEAD` on `main` after merge, so any non-squashed merge makes the validation log useless. Configure the PR to "Squash and merge" before clicking.
 14. **Router file naming — singular, not plural.** New routers should be `backend/resslab_hub/routers/new_thing.py`. HSS's `routers/hss_columns.py` is an older plural convention; don't copy it. The ORM class is singular (`NewThing`), the Pydantic model is singular (`NewThingModel`), and the uploader `Type` enum members are singular (`NEW_THING`), so the router file name should match.
@@ -624,6 +660,7 @@ Then walk the whole pipeline once with the sample batch: [contributing-data.md](
 ## Critical files to have open while doing this work
 
 Backend:
+
 - `backend/resslab_hub/routers/eccentric_braced_frame.py` — router template.
 - `backend/resslab_hub/models/database/eccentric_braced_frame.py` — ORM template (parent + time-series child).
 - `backend/resslab_hub/models/database/__init__.py` — package imports.
@@ -635,6 +672,7 @@ Backend:
 - `backend/alembic/versions/869602dd5a65_add_ebf_model.py` + `f5abf9d8561b_update_ebf_model.py` — migration shapes.
 
 Frontend:
+
 - `frontend/src/views/EbfView.vue`, `EbfDatabase.vue`.
 - `frontend/src/components/ebf/*` (dashboard, table, detail, 3 charts).
 - `frontend/src/utils/ebf.ts`, `component.ts`, `backend.ts`, `overviewmap.ts`.
@@ -646,12 +684,14 @@ Frontend:
 - `frontend/src/components/commons/charts/SingleChart.vue` — shared chart with `mapping` prop.
 
 HSS-specific references (useful when your tab needs a Model view or section libraries — neither of which EBF has):
+
 - `backend/resslab_hub/routers/hss_columns.py` — older plural-named router; still a clean example of the shared `Component` + `SubComponent` shape.
 - `frontend/src/views/HssModelView.vue`, `frontend/src/components/hss/HssModel.vue` — Model-tab template.
 - `backend/data/hss_csv_transformer.py` — custom section-library transformer template.
 - `frontend/src/assets/hss/hss-aisc-sections.csv`, `hss-european-sections.csv`, `hss-japanese-sections.csv` — output shape of the transformed section libraries (these are committed assets, not runtime fetches).
 
 Braces-specific references (useful when your tab needs a Fragility Curve view — Braces is the only example today):
+
 - `backend/resslab_hub/routers/braces.py` — the oldest router, plural convention like HSS; still a clean example of the shared `Component` + `SubComponent` shape with id-as-filename time-series.
 - `frontend/src/views/BracesFragilityCurve.vue` — thin view wrapper for the fragility tab.
 - `frontend/src/components/braces/BraceFragility.vue` — **the reference fragility component.** Hard-coded `DamageState[]` constants (4 cross-section types × 3 damage states + slenderness KL/r data), `echarts-gl` 3D surface plot, `@stdlib` lognormal CDF.
@@ -665,6 +705,7 @@ Braces-specific references (useful when your tab needs a Fragility Curve view �
 After implementation, run end-to-end locally:
 
 0. **Data repo**
+
    - `new_things/new_things.csv` and `new_things/new_things_data_dictionary.csv` exist with matching columns.
    - `README.md` lists `new_things` under "Making Changes".
    - `.github/workflows/data-validation.yml` has a `new-things: 'new_things/**'` filter.
@@ -672,6 +713,7 @@ After implementation, run end-to-end locally:
    - Squash-merge (not standard merge) when green.
 
 1. **Backend alone**
+
    - `cd backend && make database-upgrade` — apply migrations cleanly.
    - `make dev` — start FastAPI on `:8000`.
    - `curl http://127.0.0.1:8000/new-thing?limit=5` — list endpoint.
@@ -681,10 +723,12 @@ After implementation, run end-to-end locally:
    - `cd backend && uv run pytest` — existing tests still pass.
 
 2. **Data upload**
+
    - `cd backend && make upload-new-thing` — ingest succeeds without errors.
    - Verify row counts in psql: `SELECT COUNT(*) FROM new_thing; SELECT COUNT(*) FROM new_thing_sub_table;`.
 
 3. **Frontend regeneration + dev**
+
    - From repo root: `make api` — no errors; diff shows new client under `frontend/src/backend/`.
    - `cd frontend && pnpm run type-check` — clean.
    - `cd frontend && pnpm run lint` — clean.
@@ -696,9 +740,10 @@ After implementation, run end-to-end locally:
      - CSV export downloads.
    - Home page `/` — the test-count indicator includes the new component.
    - Overview map — markers for the new type appear; tooltip renders with the new template and deep-links back to `/new-things/database?id=...&detail=true`.
-   - Switch locale to French — every new label translates, nothing falls back to the key.
+   - Switch locale to French, every new label translates, nothing falls back to the key.
 
 4. **Build**
+
    - `cd frontend && pnpm run build` — production build passes.
    - `cd .. && make run` — full Docker stack comes up; hit `https://localhost/api/new-thing` through Traefik (remember the `/api` prefix in prod).
 
@@ -711,16 +756,18 @@ After implementation, run end-to-end locally:
 ## Summary: minimum file set for a new tab with one time-series child (like EBF)
 
 Backend (NEW unless noted):
+
 - `backend/resslab_hub/routers/new_thing.py`
 - `backend/resslab_hub/models/database/new_thing.py`
-- `backend/resslab_hub/models/database/__init__.py` *(edit — 1 line)*
-- `backend/resslab_hub/models/api.py` *(edit — add Model + 2 enums)*
-- `backend/resslab_hub/main.py` *(edit — import + include_router)*
-- `backend/resslab_hub/data/uploader.py` *(edit — Type enum, handlers, get_args_all)*
-- `backend/Makefile` *(edit — `generate-model` + `upload-new-thing`)*
-- `backend/alembic/versions/<rev>_add_new_thing_model.py` *(autogenerated, reviewed)*
+- `backend/resslab_hub/models/database/__init__.py` _(edit — 1 line)_
+- `backend/resslab_hub/models/api.py` _(edit — add Model + 2 enums)_
+- `backend/resslab_hub/main.py` _(edit — import + include_router)_
+- `backend/resslab_hub/data/uploader.py` _(edit — Type enum, handlers, get_args_all)_
+- `backend/Makefile` _(edit — `generate-model` + `upload-new-thing`)_
+- `backend/alembic/versions/<rev>_add_new_thing_model.py` _(autogenerated, reviewed)_
 
 Frontend (NEW unless noted):
+
 - `frontend/src/views/NewThingView.vue`
 - `frontend/src/views/NewThingDatabase.vue`
 - `frontend/src/components/new_thing/NewThingDashboard.vue`
@@ -730,17 +777,17 @@ Frontend (NEW unless noted):
 - `frontend/src/components/new_thing/charts/NewThingDoubleChart.vue`
 - `frontend/src/components/new_thing/charts/NewThingSingleChart.vue`
 - `frontend/src/utils/new_thing.ts`
-- `frontend/src/utils/component.ts` *(edit — add `getNewThingImage`)*
-- `frontend/src/utils/backend.ts` *(edit — `Type` + `typesNames`)*
-- `frontend/src/utils/overviewmap.ts` *(edit — location fields + type)*
-- `frontend/src/plugins/axios.ts` *(edit — `newThingApi`)*
-- `frontend/src/router/index.ts` *(edit — route block)*
-- `frontend/src/App.vue` *(edit — menu item)*
-- `frontend/src/locales/en.json` *(edit — `new_thing.*` keys)*
-- `frontend/src/views/HomeView.vue` *(edit — distinct call)*
-- `frontend/src/components/map/OverviewMap.vue` *(edit — fetch + length)*
-- `frontend/src/components/map/TooltipContent.vue` *(edit — template block)*
-- `frontend/public/img/new_thing/*.png` *(assets, if configuration diagrams)*
-- `openapi.json` + `frontend/src/backend/*` *(regenerated, committed)*
+- `frontend/src/utils/component.ts` _(edit — add `getNewThingImage`)_
+- `frontend/src/utils/backend.ts` _(edit — `Type` + `typesNames`)_
+- `frontend/src/utils/overviewmap.ts` _(edit — location fields + type)_
+- `frontend/src/plugins/axios.ts` _(edit — `newThingApi`)_
+- `frontend/src/router/index.ts` _(edit — route block)_
+- `frontend/src/App.vue` _(edit — menu item)_
+- `frontend/src/locales/en.json` _(edit — `new_thing._` keys)\*
+- `frontend/src/views/HomeView.vue` _(edit — distinct call)_
+- `frontend/src/components/map/OverviewMap.vue` _(edit — fetch + length)_
+- `frontend/src/components/map/TooltipContent.vue` _(edit — template block)_
+- `frontend/public/img/new_thing/*.png` _(assets, if configuration diagrams)_
+- `openapi.json` + `frontend/src/backend/*` _(regenerated, committed)_
 
 Total for a tab like EBF: ~20 edits + ~14 new files + auto-regenerated client and migration.

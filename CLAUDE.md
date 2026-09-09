@@ -59,7 +59,7 @@ pnpm run dev           # Vite dev server
 pnpm run build         # Production build (runs type-check + build-only in parallel)
 pnpm run type-check    # vue-tsc type check (no emit)
 pnpm run lint          # ESLint with auto-fix
-pnpm run format        # Prettier write on src/
+pnpm run format        # Prettier write on the whole frontend folder
 pnpm run test:unit     # Vitest unit tests
 pnpm run test:unit path/to/file.spec.ts  # Run a single test file
 pnpm run api           # Regenerate TypeScript client from openapi.json
@@ -88,15 +88,15 @@ Every checkout — the main one and each git worktree under `.claude/worktrees/<
 
 FastAPI + SQLAlchemy 2.0 async + PostgreSQL. Key files:
 
-- `main.py` — app setup, router registration, middleware (response cache, gzip, CSRF)
-- `config.py` — Dynaconf settings with required keys (`POSTGRES_PASSWORD`, `API_PASSWORD`)
-- `models/api.py` — Pydantic schemas (auto-generated, do not edit manually)
-- `models/database/` — SQLAlchemy ORM models (auto-generated from CSV data dictionaries)
-- `routers/` — one file per component type (braces, columns, connections, materials [cyclic coupons], tensile_coupon, ductile_fracture, residual_stress, hss_columns, eccentric_braced_frame) plus `root.py` (`/validate`, `/upload`, health), `auth.py`, `contributions.py` (submit and edit, see `docs/contributing-data.md`), `curation.py` (the review queue, `docs/curation.md`), `dictionary.py` (data dictionaries and READMEs) and `analytics.py` (Google Analytics counts)
-- `contributions/` — how a submission becomes a branch and pull request on the data repo: `github.py` (githubkit client, one shared HTTP client per process), `submission.py`, `projection.py`, `trailers.py` (provenance as commit trailers)
-- `utils/caching.py` and `utils/warmup.py` — the per-process response cache (ETag on a data version, `CACHE_MAX_AGE`, bumped by `/upload`) and the startup warmup that fills it; `docs/dashboard-architecture.md`
+- `main.py`: app setup, router registration, middleware (response cache, gzip, CSRF)
+- `config.py`: Dynaconf settings with required keys (`POSTGRES_PASSWORD`, `API_PASSWORD`)
+- `models/api.py`: Pydantic schemas (auto-generated, do not edit manually)
+- `models/database/`: SQLAlchemy ORM models (auto-generated from CSV data dictionaries)
+- `routers/`: one file per component type (braces, columns, connections, materials [cyclic coupons], tensile_coupon, ductile_fracture, residual_stress, hss_columns, eccentric_braced_frame) plus `root.py` (`/validate`, `/upload`, health), `auth.py`, `contributions.py` (submit and edit, see `docs/contributing-data.md`), `curation.py` (the review queue, `docs/curation.md`), `dictionary.py` (data dictionaries and READMEs) and `analytics.py` (Google Analytics counts)
+- `contributions/`: how a submission becomes a branch and pull request on the data repo: `github.py` (githubkit client, one shared HTTP client per process), `submission.py`, `projection.py`, `trailers.py` (provenance as commit trailers)
+- `utils/caching.py` and `utils/warmup.py`: the per-process response cache (ETag on a data version, `CACHE_MAX_AGE`, bumped by `/upload`) and the startup warmup that fills it; `docs/dashboard-architecture.md`
 - `auth/`: sign-in, sessions and roles (#247). `deps.py` holds the FastAPI dependencies (`require_user`, `require_role`, and the machine-credential ones); see `docs/auth.md`
-- `data/generate_model.py` — reads CSV data dictionaries from `resslab-hub-data` repo and generates both ORM models and Pydantic schemas
+- `data/generate_model.py`: reads CSV data dictionaries from `resslab-hub-data` repo and generates both ORM models and Pydantic schemas
 
 **Model generation workflow**: When the data schema changes, run `make generate-model` (requires the `resslab-hub-data` repo; `backend/Makefile` finds it through `RESSLAB_DATA_DIR`, default `../../resslab-hub-data`, which worktrees export as an absolute path from `.env.worktree`), then create an Alembic migration with `make database-revision`.
 
@@ -104,13 +104,13 @@ FastAPI + SQLAlchemy 2.0 async + PostgreSQL. Key files:
 
 Vue 3 + TypeScript + Vite + Vuetify 3 + Pinia.
 
-- `backend/` — auto-generated TypeScript API client (from `openapi.json` via `make api`); never edit manually
-- `views/` — page-level components. Per database: `{Type}View.vue` (overview), `{Type}Database.vue` (data table), `{Type}ModelView.vue` (model curves), `{Type}FragilityCurve.vue` (braces, columns, connections); tensile coupons and ductile fracture only have a `Database` view (sub-tabs of Materials). Plus the pages: `HomeView`, `AboutView`, `LoginView`, `LoginVerifyView`, `AccountView`, `ForbiddenView`, `ContributeView`, `CurationQueueView`, `CurationReviewView`
-- `components/` — reusable components, organized by domain (`braces/`, `columns/`, etc.) plus `commons/`
-- `composables/` — Vue 3 composition functions
-- `stores/` — Pinia stores
-- `locales/` — i18n translation files
-- `assets/` — static CSV section tables used for component selection
+- `backend/`: auto-generated TypeScript API client (from `openapi.json` via `make api`); never edit manually
+- `views/`: page-level components. Per database: `{Type}View.vue` (overview), `{Type}Database.vue` (data table), `{Type}ModelView.vue` (model curves), `{Type}FragilityCurve.vue` (braces, columns, connections); tensile coupons and ductile fracture only have a `Database` view (sub-tabs of Materials). Plus the pages: `HomeView`, `AboutView`, `LoginView`, `LoginVerifyView`, `AccountView`, `ForbiddenView`, `ContributeView`, `CurationQueueView`, `CurationReviewView`
+- `components/`: reusable components, organized by domain (`braces/`, `columns/`, etc.) plus `commons/`
+- `composables/`: Vue 3 composition functions
+- `stores/`: Pinia stores
+- `locales/`: i18n translation files
+- `assets/`: static CSV section tables used for component selection
 
 **Frontend API client**: When the backend API changes, run `make api` from the root to regenerate `frontend/src/backend/`.
 
@@ -124,8 +124,8 @@ Vue 3 + TypeScript + Vite + Vuetify 3 + Pinia.
 
 ### Related Repositories
 
-- `resslab-hub-data` — CSV data files and data dictionaries that drive schema generation. `backend/Makefile` reaches it through `RESSLAB_DATA_DIR` (default `../../resslab-hub-data`, i.e. a sibling of the main checkout); git worktrees live deeper in the tree, so `scripts/wt-setup.sh` writes the absolute path into their `.env.worktree`. See below.
-- `resslab-hub-scripts` — MATLAB scripts for component models and fragility curves
+- `resslab-hub-data`: CSV data files and data dictionaries that drive schema generation. `backend/Makefile` reaches it through `RESSLAB_DATA_DIR` (default `../../resslab-hub-data`, i.e. a sibling of the main checkout); git worktrees live deeper in the tree, so `scripts/wt-setup.sh` writes the absolute path into their `.env.worktree`. See below.
+- `resslab-hub-scripts`: MATLAB scripts for component models and fragility curves
 
 ## resslab-hub-data Repository
 
@@ -135,17 +135,17 @@ Contains all raw experimental data and the data dictionaries that drive schema g
 
 Each component type has its own directory with a main CSV and a data dictionary. The material family (cyclic coupons, tensile coupons, ductile fracture) is nested under a shared `material/` parent to mirror the frontend's Materials tab:
 
-| Component | Directory | Main CSV | Data Dictionary |
-|-----------|-----------|----------|-----------------|
-| Braces | `braces/` | `steel_braces.csv` | `steel_braces_data_dictionary.csv` |
-| Columns | `columns/` | `steel_columns.csv` | `steel_columns_data_dictionary.csv` |
-| Connections | `connections/` | `connections.csv` | `connections_data_dictionary.csv` |
-| HSS Columns | `hss_columns/` | `hss_columns.csv` | `hss_columns_data_dictionary.csv` |
-| EBF | `eccentric_braced_frames/` | `eccentric_braced_frames.csv` | `eccentric_braced_frames_data_dictionary.csv` |
-| Cyclic Coupons | `material/cyclic_coupons/` | `steel_material.csv` | `steel_material_data_dictionary.csv` |
-| Tensile Coupons | `material/tensile_coupons/` | `tensile_coupons.csv` | `tensile_coupons_data_dictionary.csv` |
-| Ductile Fracture | `material/ductile_fracture/` | `ductile_fracture.csv` | `ductile_fracture_data_dictionary.csv` |
-| Residual Stresses | `residual_stresses/` | `residual_stresses.csv` | `residual_stresses_data_dictionary.csv` |
+| Component         | Directory                    | Main CSV                      | Data Dictionary                               |
+| ----------------- | ---------------------------- | ----------------------------- | --------------------------------------------- |
+| Braces            | `braces/`                    | `steel_braces.csv`            | `steel_braces_data_dictionary.csv`            |
+| Columns           | `columns/`                   | `steel_columns.csv`           | `steel_columns_data_dictionary.csv`           |
+| Connections       | `connections/`               | `connections.csv`             | `connections_data_dictionary.csv`             |
+| HSS Columns       | `hss_columns/`               | `hss_columns.csv`             | `hss_columns_data_dictionary.csv`             |
+| EBF               | `eccentric_braced_frames/`   | `eccentric_braced_frames.csv` | `eccentric_braced_frames_data_dictionary.csv` |
+| Cyclic Coupons    | `material/cyclic_coupons/`   | `steel_material.csv`          | `steel_material_data_dictionary.csv`          |
+| Tensile Coupons   | `material/tensile_coupons/`  | `tensile_coupons.csv`         | `tensile_coupons_data_dictionary.csv`         |
+| Ductile Fracture  | `material/ductile_fracture/` | `ductile_fracture.csv`        | `ductile_fracture_data_dictionary.csv`        |
+| Residual Stresses | `residual_stresses/`         | `residual_stresses.csv`       | `residual_stresses_data_dictionary.csv`       |
 
 Two more top-level folders: `contributions/` (per-submission JSON records from before provenance moved to commit trailers; the curation code still reads them for old pull requests) and `sample-data/` (an older, single-record copy of the synthetic batches this repo generates with `make sample-data`).
 
@@ -186,8 +186,8 @@ For real CDN uploads, drop `DRY_RUN` and provide `ACCESS_KEY_ID` / `ACCESS_KEY_S
 
 Two different things, both committed under `frontend/public/img/ductile-fracture/`:
 
-- `cnt.png` / `gp.png` — annotated sketches of the two specimen geometries (issue #238), shown inside the tooltip when hovering a specimen type on the dashboard treemap. The connection-type sketches work the same way; both go through `SingleChart`'s `imageFor` prop, which switches its ECharts tooltip to an HTML formatter that appends the figure (`buildFigureTooltipFormatter` in `components/commons/charts/utils.ts`). Putting the figure in the tooltip rather than under the chart is deliberate: the old version pushed the card taller on every hover and had to force one aspect ratio onto figures that don't share one. The tooltip is placed by hand (`buildFigureTooltipPosition`) on the offset/flip/shift rules Floating UI uses — beside the pointer, flipped to its other side when the window has no room, slid back into view vertically. Don't swap that for ECharts' `confine`: it clamps to the *chart*, so a figure taller than the cell gets pinned to the cell's corner and buries the chart. The tooltip's chrome (square, hairline, Suisse, no shadow) lives in `plugins/echarts-theme.ts` rather than the component, since a tooltip is raw DOM hung outside the chart where the square-corner and no-shadow rules in `assets/styles/vuetify-overrides.css` never reach it.
-- `figures/<id>.svg` — a drawing of each specimen's own geometry, scaled from its nominal dimensions, shown in the detail drawer. Generated by `cd backend && make precompute-fracture-figures` (needs `RESSLAB_DATA_DIR`), ported from andskia's notebook into `backend/data/fracture_figures_lib.py`. **Commit the output**: unlike the SEM rasters these are a few kB of vector line work each, so there is no CDN in the loop. Rerun after the data repo adds specimens or changes dimensions; the output is deterministic, so an unchanged row rewrites byte-identically and shows no diff. A specimen with no committed figure falls back to its geometry sketch, then to the generic placeholder.
+- `cnt.png` / `gp.png` — annotated sketches of the two specimen geometries (issue #238), shown inside the tooltip when hovering a specimen type on the dashboard treemap. The connection-type sketches work the same way; both go through `SingleChart`'s `imageFor` prop, which switches its ECharts tooltip to an HTML formatter that appends the figure (`buildFigureTooltipFormatter` in `components/commons/charts/utils.ts`). Putting the figure in the tooltip rather than under the chart is deliberate: the old version pushed the card taller on every hover and had to force one aspect ratio onto figures that don't share one. The tooltip is placed by hand (`buildFigureTooltipPosition`) on the offset/flip/shift rules Floating UI uses — beside the pointer, flipped to its other side when the window has no room, slid back into view vertically. Don't swap that for ECharts' `confine`: it clamps to the _chart_, so a figure taller than the cell gets pinned to the cell's corner and buries the chart. The tooltip's chrome (square, hairline, Suisse, no shadow) lives in `plugins/echarts-theme.ts` rather than the component, since a tooltip is raw DOM hung outside the chart where the square-corner and no-shadow rules in `assets/styles/vuetify-overrides.css` never reach it.
+- `figures/<id>.svg`: a drawing of each specimen's own geometry, scaled from its nominal dimensions, shown in the detail drawer. Generated by `cd backend && make precompute-fracture-figures` (needs `RESSLAB_DATA_DIR`), ported from andskia's notebook into `backend/data/fracture_figures_lib.py`. **Commit the output**: unlike the SEM rasters these are a few kB of vector line work each, so there is no CDN in the loop. Rerun after the data repo adds specimens or changes dimensions; the output is deterministic, so an unchanged row rewrites byte-identically and shows no diff. A specimen with no committed figure falls back to its geometry sketch, then to the generic placeholder.
 
 ### Adding a new component tab
 

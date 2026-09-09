@@ -74,7 +74,7 @@ shadows, the red braced-bay mark. Details:
   isort. Pydantic v2, FastAPI 0.115, Vite 6, TypeScript 5.9, Vitest 4.
 - Upload is 3.7x faster (`COPY FROM STDIN`, biggest files first). Responses
   are cached per process with an ETag and warmed at startup.
-- A backend test suite (18 files, about 240 tests) run in CI against
+- A backend test suite (18 files, about 380 tests) run in CI against
   Postgres.
 - Per-branch dev environments: a git worktree, its own ports, its own
   database clone and a tmux session
@@ -84,18 +84,18 @@ shadows, the red braced-bay mark. Details:
 
 ## Schema changes
 
-Nine migrations run at backend startup on a v1.1.0 database:
+Nine migrations run at backend startup on a v1.1.0 database, in this order:
 
 ```
-630367b7b682  add dictionary column table
 7428c25e3b9f  add tensile coupon model
-816d65afefa6  add has_sem
 d6db08cd309d  add ductile fracture model
+816d65afefa6  add has_sem
+630367b7b682  add dictionary column table
 2a42de2d3438  materialize count flags
 b7c1e2d4f5a6  add database readme table
-a4e91c73b0d2  add auth tables
 c3f7a91b2e08  rename uvc_e to GPa, drop material file, fix fy_e type
 fd4c75d51fa4  add group to dictionary columns
+a4e91c73b0d2  add auth tables
 ```
 
 The `uvc_e` rename keeps the values (they were always GPa, only the name said

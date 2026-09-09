@@ -35,14 +35,14 @@ next mock will be drawn with stale values.
 
 Where the app departs from the EPFL heritage, all on purpose:
 
-| | EPFL system | App |
-|---|---|---|
-| brand red | `--epfl-red` is web red `#ff0000`, `--epfl-red-print` is `#e30713` | only the print red, as `--epfl-red` |
-| structural hairlines | soft black in the first screens | `#cfcfcf` (`--epfl-gray-150`), and table gridlines lighter still |
-| series colours | red, canard, blue, grey | Okabe-Ito, red never a series |
-| links | underlined | never underlined |
-| icons | Feather | Material Design Icons through Vuetify, plus the `rl` database set |
-| dark mode | none | `body.theme-dark` re-assigns the decisions |
+|                      | EPFL system                                                        | App                                                               |
+| -------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| brand red            | `--epfl-red` is web red `#ff0000`, `--epfl-red-print` is `#e30713` | only the print red, as `--epfl-red`                               |
+| structural hairlines | soft black in the first screens                                    | `#cfcfcf` (`--epfl-gray-150`), and table gridlines lighter still  |
+| series colours       | red, canard, blue, grey                                            | Okabe-Ito, red never a series                                     |
+| links                | underlined                                                         | never underlined                                                  |
+| icons                | Feather                                                            | Material Design Icons through Vuetify, plus the `rl` database set |
+| dark mode            | none                                                               | `body.theme-dark` re-assigns the decisions                        |
 
 Where the RESSLab Hub mirror is ahead of the code, as of 1.0.0: it publishes
 the chart ink and the eight series as `--chart-*` custom properties (here they
@@ -57,18 +57,18 @@ different name.
 
 Everything is under `frontend/src/assets/styles/`, plus two plugins:
 
-| File | What it holds |
-|---|---|
-| `styles/index.css` | the only sheet `main.ts` imports. Declares the layers, pulls the others in |
-| `styles/epfl-tokens.css` | every custom property, light and dark |
-| `styles/fonts.css` | the five `@font-face` for Suisse Int'l |
-| `styles/base.css` | element defaults and the five title roles |
-| `styles/vuetify-overrides.css` | the broad rules that restyle Vuetify components |
-| `styles/app.css` | the shell, the home page, the dashboards, the drawer |
-| `styles/tool-pages.css` | the rail + stage layout of the model and fragility pages |
-| `plugins/vuetify.ts` | the Vuetify theme colours, as hex |
-| `plugins/echarts-theme.ts` | the chart chrome, as hex and font strings |
-| `utils/palette.ts`, `utils/categoryColors.ts` | the categorical series colours |
+| File                                          | What it holds                                                              |
+| --------------------------------------------- | -------------------------------------------------------------------------- |
+| `styles/index.css`                            | the only sheet `main.ts` imports. Declares the layers, pulls the others in |
+| `styles/epfl-tokens.css`                      | every custom property, light and dark                                      |
+| `styles/fonts.css`                            | the five `@font-face` for Suisse Int'l                                     |
+| `styles/base.css`                             | element defaults and the five title roles                                  |
+| `styles/vuetify-overrides.css`                | the broad rules that restyle Vuetify components                            |
+| `styles/app.css`                              | the shell, the home page, the dashboards, the drawer                       |
+| `styles/tool-pages.css`                       | the rail + stage layout of the model and fragility pages                   |
+| `plugins/vuetify.ts`                          | the Vuetify theme colours, as hex                                          |
+| `plugins/echarts-theme.ts`                    | the chart chrome, as hex and font strings                                  |
+| `utils/palette.ts`, `utils/categoryColors.ts` | the categorical series colours                                             |
 
 `src/settings.scss` is not a stylesheet, it configures Vuetify's SASS build:
 it turns cascade layers on, drops the Material colour pack, and trims the
@@ -97,53 +97,53 @@ Three tiers, the vocabulary the EPFL co2-calculator docs use.
 **Options** are the raw values. They name a colour or a size, not a use. Do not
 put them in a component: `var(--epfl-gray-600)` says nothing about why.
 
-| Option | Value | |
-|---|---|---|
-| `--epfl-red` | `#e30713` | the brand red, print red rather than screen `#ff0000` |
-| `--epfl-red-dark` | `#b51f1f` | hover |
-| `--epfl-leman`, `--epfl-canard` | `#00a79f`, `#007480` | the EPFL secondary hues |
-| `--epfl-white` | `#ffffff` | |
-| `--epfl-gray-100 … -600` | `#e6e6e6` → `#707070` | five neutrals, plus `-150` for hairlines |
-| `--epfl-black` | `#212121` | soft black, never pure |
-| `--epfl-blue`, `-orange`, `-green` | | status only |
-| `--fs-h1 … --fs-xs` | `3rem` → `0.75rem` | the type scale, as in the EPFL handoff |
-| `--w-light … --w-bold` | `300` → `700` | |
-| `--lh-tight … --lh-relaxed` | `1.1` → `1.5` | |
+| Option                             | Value                 |                                                       |
+| ---------------------------------- | --------------------- | ----------------------------------------------------- |
+| `--epfl-red`                       | `#e30713`             | the brand red, print red rather than screen `#ff0000` |
+| `--epfl-red-dark`                  | `#b51f1f`             | hover                                                 |
+| `--epfl-leman`, `--epfl-canard`    | `#00a79f`, `#007480`  | the EPFL secondary hues                               |
+| `--epfl-white`                     | `#ffffff`             |                                                       |
+| `--epfl-gray-100 … -600`           | `#e6e6e6` → `#707070` | five neutrals, plus `-150` for hairlines              |
+| `--epfl-black`                     | `#212121`             | soft black, never pure                                |
+| `--epfl-blue`, `-orange`, `-green` |                       | status only                                           |
+| `--fs-h1 … --fs-xs`                | `3rem` → `0.75rem`    | the type scale, as in the EPFL handoff                |
+| `--w-light … --w-bold`             | `300` → `700`         |                                                       |
+| `--lh-tight … --lh-relaxed`        | `1.1` → `1.5`         |                                                       |
 
 **Decisions** map an option to a use. This is what you write in a component.
 Change one here and the whole app follows.
 
-| Decision | Resolves to | Use it for |
-|---|---|---|
-| `--bg` | white | a card, a panel, anything raised off the page |
-| `--bg-app` | `#fcfcfc` | the page ground behind the cards |
-| `--bg-subtle` | `#f5f5f5` | hover and selected fills, table head bands |
-| `--bg-muted` | gray-100 | a filled, inactive area |
-| `--fg` | soft black | body text |
-| `--fg-muted` | gray-600 | secondary text, axis names, captions |
-| `--fg-subtle` | gray-500 | the quietest text that is still text |
-| `--fg-disabled` | gray-300 | |
-| `--border` | gray-200 | the standard hairline |
-| `--border-subtle` | gray-100 | a hairline that should barely show |
-| `--border-strong` | gray-500 | a border that reads as a line, not a seam |
-| `--table-gridline`, `--table-row-stripe` | `#ededed`, `#fafafa` | data tables only, tuned lighter than the hairline on purpose |
-| `--primary`, `--primary-hover`, `--on-primary` | red, dark red, white | the primary action |
-| `--link`, `--link-hover` | black, red | |
-| `--font-sans`, `--font-mono` | Suisse Int'l, system mono | |
-| `--radius`, `--radius-lg`, `--radius-sm` | `0` | see "square corners" below |
-| `--focus-ring` | red at 25% | keyboard focus |
-| `--t-fast`, `--t-base` | `0.15s`, `0.2s` | transitions |
+| Decision                                       | Resolves to               | Use it for                                                   |
+| ---------------------------------------------- | ------------------------- | ------------------------------------------------------------ |
+| `--bg`                                         | white                     | a card, a panel, anything raised off the page                |
+| `--bg-app`                                     | `#fcfcfc`                 | the page ground behind the cards                             |
+| `--bg-subtle`                                  | `#f5f5f5`                 | hover and selected fills, table head bands                   |
+| `--bg-muted`                                   | gray-100                  | a filled, inactive area                                      |
+| `--fg`                                         | soft black                | body text                                                    |
+| `--fg-muted`                                   | gray-600                  | secondary text, axis names, captions                         |
+| `--fg-subtle`                                  | gray-500                  | the quietest text that is still text                         |
+| `--fg-disabled`                                | gray-300                  |                                                              |
+| `--border`                                     | gray-200                  | the standard hairline                                        |
+| `--border-subtle`                              | gray-100                  | a hairline that should barely show                           |
+| `--border-strong`                              | gray-500                  | a border that reads as a line, not a seam                    |
+| `--table-gridline`, `--table-row-stripe`       | `#ededed`, `#fafafa`      | data tables only, tuned lighter than the hairline on purpose |
+| `--primary`, `--primary-hover`, `--on-primary` | red, dark red, white      | the primary action                                           |
+| `--link`, `--link-hover`                       | black, red                |                                                              |
+| `--font-sans`, `--font-mono`                   | Suisse Int'l, system mono |                                                              |
+| `--radius`, `--radius-lg`, `--radius-sm`       | `0`                       | see "square corners" below                                   |
+| `--focus-ring`                                 | red at 25%                | keyboard focus                                               |
+| `--t-fast`, `--t-base`                         | `0.15s`, `0.2s`           | transitions                                                  |
 
 **Component classes** are the shapes built from those. The five title roles in
 `base.css` are the ones you will use most:
 
-| Class | Role |
-|---|---|
-| `.t-page` | the per-view H1, large and regular weight |
-| `.t-card` | a chart, table or carousel card heading |
-| `.t-panel` | an uppercase control or data panel heading |
-| `.t-eyebrow` | the small red category line above a title |
-| `.t-subhead` | a small ruled field-group label |
+| Class        | Role                                       |
+| ------------ | ------------------------------------------ |
+| `.t-page`    | the per-view H1, large and regular weight  |
+| `.t-card`    | a chart, table or carousel card heading    |
+| `.t-panel`   | an uppercase control or data panel heading |
+| `.t-eyebrow` | the small red category line above a title  |
+| `.t-subhead` | a small ruled field-group label            |
 
 Each is driven by its own `--title-*` tokens, so the five treatments stay
 uniform across the app. `.ey-red` and `.ey-mut` split an eyebrow into its red
@@ -191,15 +191,15 @@ Vuetify's theme wants plain hex (it splits it into the rgb triplet behind
 `--v-theme-*`), and ECharts draws on a canvas where `var(--epfl-red)` resolves
 to nothing.
 
-| Meaning | Token | `plugins/vuetify.ts` | `plugins/echarts-theme.ts` |
-|---|---|---|---|
-| brand red | `--epfl-red` | `primary` | `RED` |
-| leman | `--epfl-leman` | `accent` | |
-| soft black | `--epfl-black` | | `INK` |
-| hairline | `--epfl-gray-300` | | `AXIS` |
-| tick ink | `--epfl-gray-500` | | `TICK` |
-| dark ground | dark `--bg` | dark `background` | |
-| brand face | `--font-sans` | | `SANS` |
+| Meaning     | Token             | `plugins/vuetify.ts` | `plugins/echarts-theme.ts` |
+| ----------- | ----------------- | -------------------- | -------------------------- |
+| brand red   | `--epfl-red`      | `primary`            | `RED`                      |
+| leman       | `--epfl-leman`    | `accent`             |                            |
+| soft black  | `--epfl-black`    |                      | `INK`                      |
+| hairline    | `--epfl-gray-300` |                      | `AXIS`                     |
+| tick ink    | `--epfl-gray-500` |                      | `TICK`                     |
+| dark ground | dark `--bg`       | dark `background`    |                            |
+| brand face  | `--font-sans`     |                      | `SANS`                     |
 
 Change one, change the others. `plugins/__tests__/designTokens.spec.ts` reads
 the token file and fails if they drift, so you will find out at test time
@@ -216,7 +216,7 @@ Only reach for the class in JavaScript when a canvas needs a colour it cannot
 inherit, the way `DistributionBrush.vue` does:
 
 ```ts
-const dark = document.body.classList.contains('theme-dark')
+const dark = document.body.classList.contains("theme-dark");
 ```
 
 ## Cascade layers
@@ -229,13 +229,13 @@ const dark = document.body.classList.contains('theme-dark')
 
 Lowest priority first:
 
-| Layer | Holds |
-|---|---|
-| `vuetify` | everything Vuetify emits, in its own sub-layers |
-| `tokens` | the custom properties |
-| `base` | element defaults, the title roles |
+| Layer       | Holds                                           |
+| ----------- | ----------------------------------------------- |
+| `vuetify`   | everything Vuetify emits, in its own sub-layers |
+| `tokens`    | the custom properties                           |
+| `base`      | element defaults, the title roles               |
 | `overrides` | the broad rules that restyle Vuetify components |
-| `app` | the shell, the pages, the tool pages |
+| `app`       | the shell, the pages, the tool pages            |
 
 Vuetify is layered by `$layers: true` in `src/settings.scss` (its stylesheets)
 and `theme: { layers: true }` in `plugins/vuetify.ts` (the runtime theme sheet).
