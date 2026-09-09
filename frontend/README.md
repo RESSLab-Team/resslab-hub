@@ -15,36 +15,36 @@ configurations.
 
 Run them from `frontend/`, or through the root `Makefile` (`make help`).
 
-| Command | What it does |
-|---|---|
-| `pnpm install` | dependencies (`make install` at the root does it too) |
-| `pnpm run dev` | Vite dev server on http://127.0.0.1:5173 (`FRONTEND_PORT` in a worktree). It proxies `/api` to the backend, open the app here and not on the backend port, or the session cookie is not first-party |
-| `pnpm run build` | type-check + production build, in parallel |
-| `pnpm run type-check` | `vue-tsc`, no emit |
-| `pnpm run lint` | ESLint (Vue 3 + TS + Prettier rules) with auto-fix |
-| `pnpm run format` | Prettier on `src/` |
-| `pnpm run format:check` | same, read-only. CI runs it, so run it before pushing |
-| `pnpm run test:unit` | Vitest in watch mode. One run: `pnpm run test:unit run` (what `make test` does) |
-| `pnpm run test:coverage` | Vitest with coverage, report in `coverage/` |
-| `pnpm run api` | regenerate `src/backend/` from `../openapi.json` (use `make api` at the root, it regenerates the spec first) |
-| `pnpm run kpi:snapshot` | refresh `src/assets/kpi-snapshot.json`, the home page numbers shown before the live fetch (hits production by default) |
+| Command                  | What it does                                                                                                                                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm install`           | dependencies (`make install` at the root does it too)                                                                                                                                               |
+| `pnpm run dev`           | Vite dev server on http://127.0.0.1:5173 (`FRONTEND_PORT` in a worktree). It proxies `/api` to the backend, open the app here and not on the backend port, or the session cookie is not first-party |
+| `pnpm run build`         | type-check + production build, in parallel                                                                                                                                                          |
+| `pnpm run type-check`    | `vue-tsc`, no emit                                                                                                                                                                                  |
+| `pnpm run lint`          | ESLint (Vue 3 + TS + Prettier rules) with auto-fix                                                                                                                                                  |
+| `pnpm run format`        | Prettier on `src/`                                                                                                                                                                                  |
+| `pnpm run format:check`  | same, read-only. CI runs it, so run it before pushing                                                                                                                                               |
+| `pnpm run test:unit`     | Vitest in watch mode. One run: `pnpm run test:unit run` (what `make test` does)                                                                                                                     |
+| `pnpm run test:coverage` | Vitest with coverage, report in `coverage/`                                                                                                                                                         |
+| `pnpm run api`           | regenerate `src/backend/` from `../openapi.json` (use `make api` at the root, it regenerates the spec first)                                                                                        |
+| `pnpm run kpi:snapshot`  | refresh `src/assets/kpi-snapshot.json`, the home page numbers shown before the live fetch (hits production by default)                                                                              |
 
 Node 24 is the safe choice for the tests: Node 26 with the current jsdom kills
 the specs that import i18n.
 
 ## Layout of `src/`
 
-| Folder | Content |
-|---|---|
-| `views/` | one component per page. Per database: `{Type}View.vue` (dashboard), `{Type}Database.vue` (table), `{Type}ModelView.vue` (model curves), `{Type}FragilityCurve.vue` where it exists. Plus the pages: home, about, login, account, contribute, curation queue and review |
-| `components/` | by domain (`braces/`, `columns/`, ..., `contribute/`, `curation/`, `map/`, `home/`, `layout/`) and `commons/` for what every dashboard shares (shell, filter rail, charts, sliders, the detail drawer) |
-| `composables/` | the dashboard engine: dataset cache, crossfilter bus, auto filters, virtual rows, ECharts binding. See [docs/dashboard-architecture.md](../docs/dashboard-architecture.md) |
-| `stores/` | Pinia: auth, contribution, curation, counts, dictionary, notification, unit |
-| `utils/` | pure functions: query engine, aggregates, field groups, category colours, submission archive, validation reports |
-| `locales/` | `en.json` and `fr.json`. Every key exists in both, French keeps its accents |
-| `backend/` | the generated API client. Never edit by hand, run `make api` |
-| `assets/` | styles (EPFL tokens, Suisse font faces, `app.css`, all pulled by `styles/index.css` - see [design-system.md](../docs/design-system.md)), the section CSVs used by the component selectors, the KPI snapshot |
-| `plugins/` | axios, i18n, vuetify, the ECharts theme, gtag |
+| Folder         | Content                                                                                                                                                                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `views/`       | one component per page. Per database: `{Type}View.vue` (dashboard), `{Type}Database.vue` (table), `{Type}ModelView.vue` (model curves), `{Type}FragilityCurve.vue` where it exists. Plus the pages: home, about, login, account, contribute, curation queue and review |
+| `components/`  | by domain (`braces/`, `columns/`, ..., `contribute/`, `curation/`, `map/`, `home/`, `layout/`) and `commons/` for what every dashboard shares (shell, filter rail, charts, sliders, the detail drawer)                                                                 |
+| `composables/` | the dashboard engine: dataset cache, crossfilter bus, auto filters, virtual rows, ECharts binding. See [docs/dashboard-architecture.md](../docs/dashboard-architecture.md)                                                                                             |
+| `stores/`      | Pinia: auth, contribution, curation, counts, dictionary, notification, unit                                                                                                                                                                                            |
+| `utils/`       | pure functions: query engine, aggregates, field groups, category colours, submission archive, validation reports                                                                                                                                                       |
+| `locales/`     | `en.json` and `fr.json`. Every key exists in both, French keeps its accents                                                                                                                                                                                            |
+| `backend/`     | the generated API client. Never edit by hand, run `make api`                                                                                                                                                                                                           |
+| `assets/`      | styles (EPFL tokens, Suisse font faces, `app.css`, all pulled by `styles/index.css` - see [design-system.md](../docs/design-system.md)), the section CSVs used by the component selectors, the KPI snapshot                                                            |
+| `plugins/`     | axios, i18n, vuetify, the ECharts theme, gtag                                                                                                                                                                                                                          |
 
 ## Environment files
 
