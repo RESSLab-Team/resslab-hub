@@ -59,12 +59,17 @@ sem = [
   "scikit-image>=0.22,<1",
   "Pillow>=12.3,<13",
   "exifread>=3.0,<4",
-  "boto3>=1.34,<2",
+  # ENAC IT4R's S3 client, the one the other ENAC apps use. Not on PyPI, so it
+  # comes from git with the tag pinned in [tool.uv.sources] below.
+  "enacit4r-files",
 ]
 figures = [
   "matplotlib>=3.8,<4",
   "numpy>=1.24,<3",
 ]
+
+[tool.uv.sources]
+enacit4r-files = { git = "https://github.com/EPFL-ENAC/enacit4r-files", tag = "1.4.0" }
 
 [build-system]
 requires = ["hatchling"]

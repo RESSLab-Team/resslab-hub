@@ -120,8 +120,8 @@ upload-tensile-coupon:  ## upload tensile coupons
 upload-ductile-fracture: ## upload ductile fracture
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all-ductile-fractures $(RESSLAB_DATA_DIR)
 
-precompute-sem:         ## SEM TIFs to WebP + dimple JSONs; DRY_RUN=1 keeps them local, else uploads to the CDN
-	uv run --group sem python data/precompute_sem.py $(RESSLAB_DATA_DIR)
+precompute-sem:         ## SEM TIFs to WebP + dimple JSONs in sem/_webp/; without DRY_RUN=1 also uploads to the CDN (S3_* in secrets/.env)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run --group sem python data/precompute_sem.py $(RESSLAB_DATA_DIR)
 
 precompute-fracture-figures: ## redraw the per-specimen ductile-fracture SVGs (committed)
 	uv run --group figures python data/precompute_fracture_figures.py $(RESSLAB_DATA_DIR)

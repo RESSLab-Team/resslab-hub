@@ -95,7 +95,8 @@ API_PASSWORD=<any non-empty value>   # machine credential, see docs/auth.md
 
 To send real sign-in mails instead of logging them, add the `SMTP_*` block
 from `docs/auth.md`. Watch the quoting of `SMTP_USER`: double quotes turn the
-backslash into a newline.
+backslash into a newline. To upload SEM images to the CDN, add the `S3_*`
+block from `docs/sem-images.md`.
 
 Then from `backend/`, run `make upload-data`. Note: it **erases** existing data in the tables it touches.
 

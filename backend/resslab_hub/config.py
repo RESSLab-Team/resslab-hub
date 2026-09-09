@@ -76,6 +76,20 @@ settings = Dynaconf(
         # pyswot list, for the research institutes and firms it does not
         # know (empa.ch, aisc.org). A subdomain of one of these matches too.
         Validator("contributor_domains", default=""),
+        # --- S3, the enacit4r-cdn that serves the SEM images ----------------
+        # Same names as the other ENAC apps (eesd-mast, co2-calculator), so the
+        # five public ones come from the resslab-hub-backend ConfigMap and the
+        # two keys from Infisical, or from secrets/.env on a laptop. No default
+        # here on purpose: the values belong to the deployment, not the code.
+        # All unset = no CDN, which is every deployment today; only
+        # `make precompute-sem` reads them. See docs/sem-images.md.
+        Validator("s3_endpoint_protocol", default=None),
+        Validator("s3_endpoint_hostname", default=None),
+        Validator("s3_region", default=None),
+        Validator("s3_bucket", default=None),
+        Validator("s3_path_prefix", default=None),
+        Validator("s3_access_key_id", default=None),
+        Validator("s3_secret_access_key", default=None),
     ],
 )
 
