@@ -110,7 +110,9 @@ class TestBuildSpecimenArtifacts:
     def test_nothing_recognized_gives_nothing(self, tmp_path):
         (tmp_path / "notes.tif").write_bytes(b"not an image")
 
-        assert build_specimen_artifacts([tmp_path / "notes.tif"], log=lambda _: None) == []
+        assert (
+            build_specimen_artifacts([tmp_path / "notes.tif"], log=lambda _: None) == []
+        )
 
     def test_the_webps_carry_their_content_type(self, tmp_path):
         _write_tif(tmp_path / "global.tif")

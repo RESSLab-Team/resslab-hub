@@ -168,7 +168,9 @@ def build_specimen_artifacts(
     for surface in sorted(surfaces):
         sub = surface_subpath(surface)
         for name, diameters in per_image.get(surface, []):
-            artifacts.append(Artifact(f"{sub}{name}", _json(diameters), JSON_CONTENT_TYPE))
+            artifacts.append(
+                Artifact(f"{sub}{name}", _json(diameters), JSON_CONTENT_TYPE)
+            )
         pooled_surface = sorted(pooled.get(surface, []))
         artifacts.append(
             Artifact(f"{sub}dimples_all.json", _json(pooled_surface), JSON_CONTENT_TYPE)

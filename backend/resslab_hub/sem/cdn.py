@@ -118,9 +118,7 @@ def _upload_file(artifact: Artifact, name: str) -> UploadFile:
     )
 
 
-async def upload_artifacts(
-    s3, specimen_id: str, artifacts: Sequence[Artifact]
-) -> int:
+async def upload_artifacts(s3, specimen_id: str, artifacts: Sequence[Artifact]) -> int:
     """Upload one specimen's artifacts, in memory. Returns the file count.
 
     A failure raises (``S3Error`` from the library), which is what we want: the
