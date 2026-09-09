@@ -75,11 +75,11 @@ or you need to upload something that is not in the data repo): port-forward the
 database and upload from your machine.
 
 ```bash
-kubectl -n epfl-resslab-resslab-hub-dev port-forward svc/resslab-hub-db-dev 5433:5432
+kubectl -n epfl-resslab-resslab-hub-dev port-forward svc/resslab-hub-db-dev 5434:5432
 ```
 
-The local dev database already uses 5433 (see the root README), so pick
-another local port if it is running, and set `POSTGRES_PORT` to match.
+The local dev database already uses 5433 (see the root README), so the
+example takes 5434. Set `POSTGRES_PORT` to the same value.
 
 Set `secrets/.env` (at the **repo root**, not under `backend/`, the Makefile
 loads `../secrets/.env`) with the creds from Infisical
@@ -87,7 +87,7 @@ loads `../secrets/.env`) with the creds from Infisical
 
 ```env
 POSTGRES_HOST=localhost
-POSTGRES_PORT=5433
+POSTGRES_PORT=5434
 POSTGRES_USER=<DB_USER>
 POSTGRES_PASSWORD=<DB_PASSWORD>
 API_PASSWORD=<any non-empty value>   # machine credential, see docs/auth.md

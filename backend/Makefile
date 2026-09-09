@@ -45,10 +45,15 @@ validate-data:          ## list the validate-<type> targets
 	@echo "Types: braces, columns, connections, material, residual-stresses, hss-columns,"
 	@echo "       eccentric-braced-frames, tensile-coupons, ductile-fractures"
 
+# the three material types live under material/, the other folders match the type name
+VALIDATE_DIR_material = material/cyclic_coupons
+VALIDATE_DIR_tensile-coupons = material/tensile_coupons
+VALIDATE_DIR_ductile-fractures = material/ductile_fracture
+
 validate-%:             ## tar one folder of the data repo and POST it to /validate on the running backend, e.g. make validate-braces
 	@echo "Preparing archive for validating $*..."
-	$(eval DIRECTORY=$(subst -,_,$*))
-	$(eval TAR_NAME=$(DIRECTORY).tar.gz)
+	$(eval DIRECTORY=$(or $(VALIDATE_DIR_$*),$(subst -,_,$*)))
+	$(eval TAR_NAME=$(notdir $(DIRECTORY)).tar.gz)
 	@echo "Looking for files in: $(RESSLAB_DATA_DIR)/$(DIRECTORY)"
 	@ls $(RESSLAB_DATA_DIR)/$(DIRECTORY) || (echo "Directory not found or empty" && exit 1)
 	@echo "Creating archive $(TAR_NAME)..."
