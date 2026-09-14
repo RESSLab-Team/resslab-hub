@@ -52,3 +52,6 @@ PROMPT.sent.md
 .claude/rules/wtx.md
 .claude/worktrees/
 opencode.json
+
+# Research papers for docs/research (never commit sources or full-text conversions)
+docs/research/*/raw/
