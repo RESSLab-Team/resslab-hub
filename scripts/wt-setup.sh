@@ -76,9 +76,9 @@ fi
 #    the next free one (branch_ports in wt-lib.sh).
 prev_backend=""; prev_frontend=""; prev_db=""
 if [ -f .env.worktree ]; then
-  prev_backend="$(sed -n 's/^BACKEND_PORT=//p' .env.worktree)"
-  prev_frontend="$(sed -n 's/^FRONTEND_PORT=//p' .env.worktree)"
-  prev_db="$(sed -n 's/^DB_NAME=//p' .env.worktree)"
+  prev_backend="$(sed -n 's/^BACKEND_PORT=//p' .env.worktree | head -1)"
+  prev_frontend="$(sed -n 's/^FRONTEND_PORT=//p' .env.worktree | head -1)"
+  prev_db="$(sed -n 's/^DB_NAME=//p' .env.worktree | head -1)"
 fi
 if [ -n "$WTX" ]; then
   BACKEND_PORT="$prev_backend"; FRONTEND_PORT="$prev_frontend"   # wtx picked them

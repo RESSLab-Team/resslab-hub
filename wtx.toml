@@ -20,16 +20,11 @@ main = 8000   # what the main checkout keeps
 name = "frontend"
 main = 5173   # what the main checkout keeps
 
-# Written by scripts/wt-setup.sh --wtx (post_setup), carried over by wtx.
-[env]
-computed = ["WT_SLUG", "DB_NAME", "POSTGRES_TEST_DB", "RESSLAB_DATA_DIR"]
-
 # Gitignored files a fresh worktree needs. Never overwritten.
 [seed]
 copy = ["CLAUDE.md"]
 
 [deps]
-python_version_file = ".python-version"   # uv does not look up the tree for it
 post_install = ["npx --no-install lefthook install"]
 
 [[deps.step]]
@@ -44,7 +39,7 @@ run = "pnpm install --frozen-lockfile"
 [[deps.step]]
 if_missing = "backend/.venv"
 cwd = "backend"
-run = "uv sync --frozen --python {python_version}"
+run = "uv sync --frozen"   # the root .python-version is a pyenv name, not a version
 
 # The agent pane fills the left half, the rest stack on the right.
 [panes]
