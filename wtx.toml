@@ -1,0 +1,124 @@
+# wtx: every branch gets its own worktree, ports, tmux session and agent.
+# Reference for every key: https://github.com/EPFL-ENAC/wtx/blob/main/docs/schema.md
+schema_version = 1
+
+[repo]
+name = "resslab-hub"
+lab = "resslab"   # fills {lab} in the paths below
+base_branch = "dev"
+# The single source for the push guard, the completion and the deny rules.
+protected_branches = ["dev", "stage", "main"]
+
+# One offset per worktree, one port per family at that offset.
+[ports]
+
+[[ports.family]]
+name = "backend"
+main = 8000   # what the main checkout keeps
+
+[[ports.family]]
+name = "frontend"
+main = 5173   # what the main checkout keeps
+
+# Written by scripts/wt-setup.sh --wtx (post_setup), carried over by wtx.
+[env]
+computed = ["WT_SLUG", "DB_NAME", "POSTGRES_TEST_DB", "RESSLAB_DATA_DIR"]
+
+# Gitignored files a fresh worktree needs. Never overwritten.
+[seed]
+copy = ["CLAUDE.md"]
+
+[deps]
+python_version_file = ".python-version"   # uv does not look up the tree for it
+post_install = ["npx --no-install lefthook install"]
+
+[[deps.step]]
+if_missing = "node_modules"
+run = "pnpm install --frozen-lockfile"
+
+[[deps.step]]
+if_missing = "frontend/node_modules"
+cwd = "frontend"
+run = "pnpm install --frozen-lockfile"
+
+[[deps.step]]
+if_missing = "backend/.venv"
+cwd = "backend"
+run = "uv sync --frozen --python {python_version}"
+
+# The agent pane fills the left half, the rest stack on the right.
+[panes]
+
+[[panes.pane]]
+name = "agent"
+role = "agent"
+
+[[panes.pane]]
+name = "backend"
+role = "server"
+cwd = "backend"
+cmd = "make dev"
+log = true   # mirrored to .wt-logs/, the agent reads it
+
+[[panes.pane]]
+name = "frontend"
+role = "server"
+cwd = "frontend"
+cmd = "pnpm run dev"
+log = true   # mirrored to .wt-logs/, the agent reads it
+
+[[panes.pane]]
+name = "shell"
+role = "shell"
+
+[agent]
+tool = "claude"
+llm = "opus"
+subagent_model = "sonnet"
+auto_compact_window = 200000
+explore_agent_model = "haiku"
+
+# Plan on one model, implement on another. A brief starts on
+# plan_model in plan mode. With Claude, accepting the plan carries
+# the same conversation on to build_model, at the effort its size
+# asks for. With opencode the agent switch does it, and the effort
+# routing does not apply.
+[agent.orchestration]
+enabled = true
+plan_model = "fable"
+build_model = "opus"
+small_effort = "medium"
+large_effort = "xhigh"
+
+# Added to the baseline wtx ships. A repo can tighten, never loosen.
+[permissions]
+allow = ["Bash(make lint)", "Bash(make test)", "Bash(make api)", "Bash(uv run ruff *)", "Bash(uv run pytest *)", "Bash(pnpm run lint *)", "Bash(pnpm run type-check *)", "Bash(pnpm run test:unit *)"]
+deny = ["Bash(git tag *)", "Bash(git push --tags*)", "Bash(git push * --tags*)", "Bash(git push --follow-tags*)", "Bash(git push * --follow-tags*)", "Bash(kubectl apply *)", "Bash(kubectl delete *)", "Bash(argocd *)"]
+
+# Run by `wtx land --local`.
+[checks]
+lint = ["make lint"]
+test = ["make test"]
+
+[[repos]]
+name = "k8s"
+path = "~/code/enack8s-app-config/epfl-{lab}/{repo}"
+access = "read"   # read free, never writable
+base_branch = "main"
+
+[[repos]]
+name = "resslab-hub-data"
+path = "../resslab-hub-data"
+access = "pair"   # read free, edits only through a paired worktree
+base_branch = "main"
+
+# This repo's own steps, run by wtx setup and teardown.
+[hooks]
+# The seeds wtx does not know (secrets/.env, sample-data), this worktree's own
+# database, and the DB keys in secrets/.env. Ports, deps, agent settings and the
+# session stay wtx's own.
+# Taken from the main checkout, not the branch: a branch cut before --wtx
+# existed would run the old full script (second session, lefthook over the guard).
+post_setup = '''"$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")/scripts/wt-setup.sh" --wtx'''
+# Drops the branch database. The session and ports are already wtx's job.
+pre_teardown = '''"$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")/scripts/wt-teardown.sh"'''
