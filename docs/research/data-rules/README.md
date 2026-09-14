@@ -6,7 +6,7 @@ Goal: know enough to design the rules file, the archive statistics and the issue
 
 ## Start here
 
-Read [techniques.md](techniques.md) for a plain-words guide to the nine techniques we picked, with examples. Then [synthesis.md](synthesis.md). It merges the papers by topic, lists where they disagree and how we resolve it, maps everything to the layers of #366, and ends with a checklist. Open a single digest only when you need the detail behind a claim (each claim in the synthesis cites a paper and page).
+Read [techniques.md](techniques.md) for a plain-words guide to the nine techniques we picked, with examples. Then [synthesis.md](synthesis.md). [weights.md](weights.md) ranks the papers by how much to trust them (citations, authors, venue) and says which conclusions rest on strong papers and which on young ones. It merges the papers by topic, lists where they disagree and how we resolve it, maps everything to the layers of #366, and ends with a checklist. Open a single digest only when you need the detail behind a claim (each claim in the synthesis cites a paper and page).
 
 ## Digests
 
