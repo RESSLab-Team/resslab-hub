@@ -1,12 +1,12 @@
 # Data rules for scientific submissions: paper digests
 
-Digests of 25 papers on data validation, rule discovery, outlier detection with explanations, units, and LLM data cleaning. Made for issue #366 (per-column and cross-column rules for RESSLab-Hub submissions, follow-up of #272).
+Digests of 30 papers on data validation, rule discovery, outlier detection with explanations, units, and LLM data cleaning. Made for issue #366 (per-column and cross-column rules for RESSLab-Hub submissions, follow-up of #272).
 
 Goal: know enough to design the rules file, the archive statistics and the issue messages of #366, and to decide what not to build at our size (tables of a few hundred to a few thousand rows, submissions of a handful of rows).
 
 ## Start here
 
-Read [techniques.md](techniques.md) for a plain-words guide to the nine techniques we picked, with examples. Then [synthesis.md](synthesis.md). [weights.md](weights.md) ranks the papers by how much to trust them (citations, authors, venue) and says which conclusions rest on strong papers and which on young ones. It merges the papers by topic, lists where they disagree and how we resolve it, maps everything to the layers of #366, and ends with a checklist. Open a single digest only when you need the detail behind a claim (each claim in the synthesis cites a paper and page).
+Read [techniques.md](techniques.md) for a plain-words guide to the nine techniques we picked, with examples. Then [synthesis.md](synthesis.md): it merges the papers by topic, lists where they disagree and how we resolve it, maps everything to the layers of #366, and ends with a checklist. [weights.md](weights.md) ranks the papers by how much to trust them (citations, authors, venue) and says which conclusions rest on strong papers and which on young ones. Open a single digest only when you need the detail behind a claim (each claim in the synthesis cites a paper and page).
 
 ## Digests
 
@@ -37,6 +37,11 @@ Read [techniques.md](techniques.md) for a plain-words guide to the nine techniqu
 | [wang-2019-uni-detect.md](wang-2019-uni-detect.md) | Wang, He 2019, Uni-Detect | PDF, pdftotext |
 | [williams-2020-units-in-spreadsheets.md](williams-2020-units-in-spreadsheets.md) | Williams et al. 2020, Understanding and inferring units in spreadsheets | PDF, pdftotext |
 | [zhang-2023-jellyfish.md](zhang-2023-jellyfish.md) | Zhang et al. 2023, Jellyfish | PDF, pdftotext |
+| [narayan-2022-foundation-models-wrangle.md](narayan-2022-foundation-models-wrangle.md) | Narayan, Chami, Orr, Ré 2022, Can foundation models wrangle your data? | PDF, pdftotext |
+| [fernandez-2023-llms-disrupt-data-management.md](fernandez-2023-llms-disrupt-data-management.md) | Fernandez et al. 2023, How large language models will disrupt data management | PDF, pdftotext |
+| [fang-2024-llms-tabular-survey.md](fang-2024-llms-tabular-survey.md) | Fang et al. 2024, LLMs on tabular data, a survey | PDF, pdftotext |
+| [li-2023-table-gpt.md](li-2023-table-gpt.md) | Li et al. 2023, Table-GPT | PDF, pdftotext |
+| [peeters-2023-chatgpt-entity-matching.md](peeters-2023-chatgpt-entity-matching.md) | Peeters, Bizer 2023, Using ChatGPT for entity matching | PDF, pdftotext |
 
 Not read, no open PDF found: Gore et al. 2017 (wwPDB validation reports), Gupta et al. 2018 (LookOut), "Quality by Prompt", Antwarg et al. 2021 (SHAP for anomalies). The synthesis says where they would matter.
 

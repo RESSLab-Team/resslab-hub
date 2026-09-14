@@ -1,6 +1,6 @@
 # Data rules for scientific submissions: synthesis
 
-This file merges 25 paper digests into one set of rules. The goal is to help design and write per-column and cross-column data rules, statistical warnings based on the existing database, and fix suggestions for RESSLab-Hub submissions, and to give an LLM helper the context it needs to explain them. It is written against the proposal in GitHub issue #366 and the current validator (`backend/resslab_hub/data/validator.py`).
+This file merges 30 paper digests into one set of rules. The goal is to help design and write per-column and cross-column data rules, statistical warnings based on the existing database, and fix suggestions for RESSLab-Hub submissions, and to give an LLM helper the context it needs to explain them. It is written against the proposal in GitHub issue #366 and the current validator (`backend/resslab_hub/data/validator.py`).
 
 Sources are cited as short name and page, for example (Breck p. 7). Each short name is the first word of a digest file in this folder (`breck-2019-data-validation-ml.md`). When a rule is a transfer to our case and not a claim of the paper, it says "transfer". Most transfers come from the digests themselves, a few are new here and say "this synthesis".
 
@@ -130,6 +130,12 @@ Resulting severity policy (transfer, backed by Breck p. 1-2 and p. 5, Polyzotis 
 
 ### 2.8 What the LLM does
 
+- The strongest sources agree on the frame: LLMs belong at the edges of a data system (writing rules, mapping schemas, explaining), not inside the checks, because they are static, costly and "sometimes wrong, and, worse, subtly wrong" (Fernandez p. 3304). Provenance stays outside the model (Fernandez p. 3306).
+- With no examples, an LLM is useless at error detection (F1 of 6.9 and 2.1 on two benchmarks); with 10 good examples in the prompt it is near perfect on the same tasks (99.1), but a wording change alone swings entity matching by 9 points and which examples are shown by 15 (Narayan p. 4-6). Fixed, tested prompt templates, never free wording (Narayan, transfer).
+- Explicit rules written in the prompt give most of the gain of examples at a fraction of the cost: +6 F1 for rules, +8 for 20 examples, at 2 versus 14 times the price; rules plus examples together lowered recall (Peeters p. 7-9). The rule file's `message` and `why` are that text (Peeters, transfer).
+- LLMs cannot say which cell is wrong: GPT-3.5 finds the column of a missing cell 26 % to 51 % of the time and answers change when columns are reordered (Li 2023 p. 4). Code locates the cell, the model phrases the message (Li 2023, transfer).
+- LLMs are unreliable at arithmetic on serialized numbers and lose accuracy past about 1,000 tokens of table (Fang p. 10, 24, 27). Every bound and score is computed in code, the prompt holds one row and one column group, as `column: value` pairs or Markdown, with the dictionary description and unit (Fang p. 8-10, Li 2023 p. 13-14).
+- An unguided LLM over-flags: zero-shot recall near 98 % with low precision (Peeters p. 4-5). Rules and archive statistics bound what counts as an issue.
 - LLMs fix errors visible in one row (a negative age, an illogical category) and largely miss errors visible only across rows, such as one year of values shifted or one subgroup moved (Bendinelli p. 1, p. 8). All peer-group statistics and the unit-factor detector stay in code (Bendinelli, transfer).
 - Row-level prompts cannot see relations across rows (Zhang p. 19-20). Compute the check outside the model, then give it the result to explain (Zhang, transfer).
 - Prompt shape for an explanation: the task, knowledge sentences (the rule's `why`), the row as `column: value` pairs, the question, an output constraint (Zhang p. 3-6). Injecting knowledge helps measurably (Zhang p. 6-7).
@@ -171,7 +177,7 @@ Resulting severity policy (transfer, backed by Breck p. 1-2 and p. 5, Polyzotis 
 
 **Is an unseen value an error.** Huang and ED2 flag rare shapes and rare values. Breck, Redyuk and Polyzotis show unseen categorical values are usually valid. *Resolution:* both hold: a rare shape ("W610X195" next to "W610x195") is a likely typo, a new well-formed value (a new steel grade) is likely valid. Flag both, as info or warning, with the nearest known value as a suggestion.
 
-**LLMs for data quality.** Zhang shows a tuned model explains decisions better than GPT-3.5 (46 % and 73 % win rates, p. 17). Bendinelli shows LLM agents miss multi-row errors and do not reach clean-data quality (p. 8). Eltabakh shows plain LLMs fail on private data. *Resolution:* no real conflict, they test different jobs. Code detects, the LLM drafts rules and explains issues, with the rule's `why` and similar rows in the prompt.
+**LLMs for data quality.** Narayan reports near-perfect error detection with 10 examples in the prompt (p. 4), Bendinelli shows LLM agents miss multi-row errors and do not reach clean-data quality (p. 8), Li 2023 shows the model cannot even locate the bad cell reliably (p. 4), Eltabakh shows plain LLMs fail on private data. Zhang shows a tuned model explains decisions better than GPT-3.5 (p. 17). *Resolution:* Narayan's benchmarks are short-string tables with hand-picked examples, and the same paper shows the result is fragile to wording. Nothing tests physical measurements. Code detects, the LLM drafts rules and explains issues, with the rule's `why` and similar rows in the prompt. This is the Fernandez framing, and it now rests on two well-cited papers rather than three young ones.
 
 **Batch history or static table.** Schelter (`OnlineNormal`), Microsoft and Redyuk compare a new batch to past batches. Our contributions are small additions to a table without a time axis. *Resolution:* treat the accepted rows as the history, compare one row to them. Keep per-version metric history as a later addition (Schelter p. 1791-1792, transfer), not iteration one.
 
@@ -246,7 +252,8 @@ Code, severity, suggestion and why fit the lint and culprit patterns. Add the af
 - **The unit-factor detector.** No paper proposes value / median near a conversion factor. Microsoft and Polyzotis only name the failure class.
 - **wwPDB-style percentile reports.** The digests support percentile messages (ECOD, Uni-Detect, Breck) but none describes the wwPDB report itself. Gore et al. 2017 (wwPDB validation) was not available and is the paper to read.
 - **Explaining a flagged row with two plots.** LookOut (Gupta et al. 2018) was not available. Vinh covers the column-subset idea only.
-- **LLMs drafting rules from documentation.** The "Quality by Prompt" chapter (Springer) was not available. Zhang covers explanation, not drafting.
+- **LLMs drafting rules from documentation.** The "Quality by Prompt" chapter (Springer) was not available. Zhang covers explanation, not drafting. Peeters shows rules in a prompt work, not the reverse direction (a model writing them).
+- **LLMs on numeric physical data.** Narayan, Li 2023 and Peeters test short-string and categorical tables. Fang only says arithmetic on serialized numbers is weak. No paper tests an LLM judging a yield strength or a slenderness ratio.
 - **Feature attribution with SHAP for autoencoder outliers.** Antwarg et al. 2021 was not available, and it is out of iteration one anyway.
 - **Structural steel domain knowledge.** No paper covers section catalogs, steel grade vocabularies, or test protocols. The `why` texts and references must come from the lab and the standards (AISC 360, EN 1993).
 - **Rule file format.** No paper specifies a YAML rule language with severity, fix and why. Deequ is a Scala API, Andersen a query grammar. Our format is our own design.
