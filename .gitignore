@@ -45,3 +45,10 @@ handoff_dashboard_charts/
 PROMPT.md
 PROMPT.sent.md
 .wt-prompts/
+
+# wtx: per-worktree files, local to one checkout
+.claude/settings.local.json
+.claude/agents/Explore.md
+.claude/rules/wtx.md
+.claude/worktrees/
+opencode.json
