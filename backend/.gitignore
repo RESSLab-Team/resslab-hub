@@ -137,5 +137,5 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Benchmark fixture scratch
-.benchmark-tmp/
+# Benchmark fixture scratch (benchmark.py, and bootstrap_rows.py --out)
+.benchmark-tmp*/

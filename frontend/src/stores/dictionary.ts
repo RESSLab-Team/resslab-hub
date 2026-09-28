@@ -27,10 +27,10 @@ export interface DictColumn {
   /** `false` marks a mandatory field. */
   nullable: boolean
   /**
-   * Scientific category of the column, e.g. `Beam section properties`. Arrives
-   * once the data repo carries the `group` column of the data dictionaries
-   * (RESSLab-Team/resslab-hub-data#46); `groupFor()` prefers it over the rules in
-   * `utils/fieldGroups.ts` the moment it does.
+   * Scientific category of the column, e.g. `Beam section properties`, from the
+   * `group` column of the data dictionaries (RESSLab-Team/resslab-hub-data#46).
+   * `groupFor()` prefers it over the rules in `utils/fieldGroups.ts`; optional
+   * only because an old database row may predate the column.
    */
   group?: string
 }

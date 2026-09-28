@@ -27,7 +27,7 @@ from typing import List, Optional, Tuple
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 
-from resslab_hub.auth.deps import require_user
+from resslab_hub.auth.deps import require_contributions_enabled, require_user
 from resslab_hub.contributions.github import (
     MAX_PARALLEL_CALLS,
     DataRepoClient,
@@ -65,7 +65,8 @@ from resslab_hub.models.validation import (
 from resslab_hub.routers.root import _build_response
 from resslab_hub.utils.rate_limit import limiter
 
-router = APIRouter()
+# Router-level, so it runs before the sign-in check of each route.
+router = APIRouter(dependencies=[Depends(require_contributions_enabled)])
 
 #: Caps for the validation endpoint's file downloads. A submission beyond them
 #: still validates its primary CSV; skipped curves get an explicit warning.

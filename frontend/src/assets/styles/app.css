@@ -1,107 +1,10 @@
 /* RESSLab Hub — EPFL-grounded redesign styles
    Adapted from the Claude Design handoff prototype (app.css). */
 
-/* ================ BASE / VUETIFY HARMONIZATION ================ */
-.v-application {
-  font-family: var(--font-sans) !important;
-  color: var(--fg);
-  background: var(--bg-app);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Links are never underlined (EPFL DS underlines them by default; the redesign
-   rejects that). Underline only where explicitly opted back in. */
-a {
-  text-decoration: none;
-}
-/* ================ BRUTALIST: FLAT CORNERS + NO ELEVATION ================
-   Square every corner across the app and Vuetify's own components, from one
-   broad rule rather than per-component overrides. Genuine circles (legend /
-   status dots, slider thumbs, toggle knobs) opt back in with border-radius:50%
-   locally and are not matched here. Custom classes inherit 0 via --radius. */
-.v-application .v-card,
-.v-application .v-btn,
-.v-application .v-btn__overlay,
-.v-application .v-field,
-.v-application .v-field__outline__start,
-.v-application .v-field__outline__end,
-.v-application .v-chip,
-.v-application .v-sheet,
-.v-application .v-list,
-.v-application .v-menu > .v-overlay__content,
-.v-application .v-overlay__content > .v-card,
-.v-application .v-tooltip > .v-overlay__content,
-.v-application .v-snackbar__wrapper,
-.v-application .v-alert,
-.v-application .v-input__control {
-  border-radius: 0 !important;
-}
-/* Flat, hairline-bordered surfaces — no card elevation shadows anywhere. */
-.v-application .v-card {
-  box-shadow: none !important;
-}
-
-/* ================ TITLE ROLES ================
-   Five canonical title treatments, driven by the --title-* tokens in
-   epfl-tokens.css. Use these classes directly on new markup; existing
-   component classes below are rewritten to consume the same tokens, so
-   every card / section / panel / eyebrow title stays uniform app-wide. */
-.t-page {
-  margin: 0;
-  font-size: var(--title-page-size);
-  font-weight: var(--title-page-weight);
-  line-height: var(--title-page-lh);
-  letter-spacing: var(--title-page-tracking);
-}
-.t-card {
-  font-size: var(--title-card-size);
-  font-weight: var(--title-card-weight);
-  letter-spacing: var(--title-card-tracking);
-  line-height: 1.3;
-  color: var(--fg);
-}
-.t-panel {
-  font-size: var(--title-panel-size);
-  font-weight: var(--title-panel-weight);
-  letter-spacing: var(--title-panel-tracking);
-  text-transform: uppercase;
-  color: var(--fg);
-}
-.t-eyebrow {
-  font-size: var(--title-eyebrow-size);
-  font-weight: var(--title-eyebrow-weight);
-  letter-spacing: var(--title-eyebrow-tracking);
-  text-transform: uppercase;
-  color: var(--epfl-red);
-}
-.t-subhead {
-  font-size: var(--title-subhead-size);
-  font-weight: var(--title-subhead-weight);
-  letter-spacing: var(--title-subhead-tracking);
-  color: var(--fg);
-}
-
-/* Eyebrows share one font role (the eyebrow token). One rule so every eyebrow
-   variant picks it up. */
-.t-eyebrow,
-.eyebrow,
-.hero-eyebrow,
-.section-eyebrow,
-.logos-eyebrow,
-.cd-eyebrow,
-.cd-section-h,
-.drawer-body h2 {
-  font-family: var(--title-eyebrow-font);
-}
-/* Two-tone split (EyebrowText.vue): primary segment red, qualifier muted —
-   matches the handoff's `<span class="red">…</span><span class="mut">…</span>`. */
-.ey-red {
-  color: var(--epfl-red);
-}
-.ey-mut {
-  color: var(--fg-subtle);
-}
+/* Layer: app — the shell, the pages and their components.
+   The base typography, the title roles and the broad Vuetify overrides live in
+   base.css and vuetify-overrides.css; this file is everything above them.
+   See docs/design-system.md. */
 
 /* ================ APP SHELL (SIDEBAR LAYOUT) ================ */
 .app-shell {
@@ -866,15 +769,15 @@ body.theme-dark .logos img {
 
 /* Result tables (model pages) */
 .tool-page table thead th {
-  font-size: 11px !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.06em !important;
-  color: var(--fg-muted) !important;
-  font-weight: 700 !important;
-  background: var(--bg-subtle) !important;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+  font-weight: 700;
+  background: var(--bg-subtle);
 }
 .tool-page table tbody tr:hover td {
-  background: var(--bg-subtle) !important;
+  background: var(--bg-subtle);
 }
 
 /* ================ DASHBOARD ================ */
@@ -1149,9 +1052,9 @@ body.theme-dark .logos img {
   left: 0;
 }
 .dash-filters-overlay {
-  position: static !important;
-  height: auto !important;
-  border: 0 !important;
+  position: static;
+  height: auto;
+  border: 0;
   flex: 1;
 }
 .dash-filters-trigger {
@@ -1818,8 +1721,8 @@ body.theme-dark .logos img {
   text-decoration: underline;
 }
 .chart-cell .v-card {
-  box-shadow: none !important;
-  background: transparent !important;
+  box-shadow: none;
+  background: transparent;
 }
 .chart-body {
   flex: 1;
@@ -1902,6 +1805,11 @@ body.theme-dark .logos img {
 .dash-table {
   padding: 0 32px 24px;
 }
+/* SimpleTable's own scoped style puts a hairline border on this card
+   (`.stbl` in SimpleTable.vue). A component <style> is unlayered on purpose,
+   so it beats every layer here: !important is the only way for the page to
+   strip the border back off. The real fix is a variant prop on SimpleTable,
+   see docs/design-system.md. */
 .dash-table .v-card {
   box-shadow: none !important;
   border: 0 !important;
@@ -1910,6 +1818,7 @@ body.theme-dark .logos img {
 .dash-table-full {
   padding: 0;
 }
+/* Same as .dash-table above: beats SimpleTable's own `.stbl` border. */
 .dash-table-full .v-card {
   box-shadow: none !important;
   border: 0 !important;
@@ -2595,9 +2504,15 @@ a.cd-publication-ref:hover {
   .dash-table {
     padding: 0 8px 16px;
   }
+  /* The wide-chart rule above is a :has() selector, so name it here too
+     rather than reaching for !important: on one column every cell is full
+     width. */
+  .chart-cell,
+  .chart-cell:has(.double-chart__canvas) {
+    flex-basis: 100%;
+    min-width: 0;
+  }
   .chart-cell {
-    flex-basis: 100% !important;
-    min-width: 0 !important;
     border-right: 0;
     border-bottom: 1px solid var(--border-subtle);
   }

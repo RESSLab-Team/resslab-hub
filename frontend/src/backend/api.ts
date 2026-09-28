@@ -1736,6 +1736,12 @@ export interface ExtendedPageTensileCouponModel {
     'pages'?: number | null;
 }
 /**
+ * What this deployment offers, read once by the frontend at start.
+ */
+export interface Features {
+    'contributions': boolean;
+}
+/**
  * Structured validation outcome for one file in the archive.
  */
 export interface FileValidationResult {
@@ -6560,6 +6566,36 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Which optional parts of the app this deployment offers.  Public, and never cached (utils/caching.py skips it): the value comes from the deployment\'s settings, and a browser holding the old answer for an hour after the pods restart would hide or show the wrong links.
+         * @summary Get Features
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFeatures: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/features`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Get User
          * @param {*} [options] Override http request option.
@@ -6917,6 +6953,18 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Which optional parts of the app this deployment offers.  Public, and never cached (utils/caching.py skips it): the value comes from the deployment\'s settings, and a browser holding the old answer for an hour after the pods restart would hide or show the wrong links.
+         * @summary Get Features
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getFeatures(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Features>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFeatures(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getFeatures']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Get User
          * @param {*} [options] Override http request option.
@@ -7081,6 +7129,15 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getContributionValidation(prNumber, options).then((request) => request(axios, basePath));
         },
         /**
+         * Which optional parts of the app this deployment offers.  Public, and never cached (utils/caching.py skips it): the value comes from the deployment\'s settings, and a browser holding the old answer for an hour after the pods restart would hide or show the wrong links.
+         * @summary Get Features
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFeatures(options?: RawAxiosRequestConfig): AxiosPromise<Features> {
+            return localVarFp.getFeatures(options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Get User
          * @param {*} [options] Override http request option.
@@ -7225,6 +7282,16 @@ export class DefaultApi extends BaseAPI {
      */
     public getContributionValidation(prNumber: number, options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).getContributionValidation(prNumber, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Which optional parts of the app this deployment offers.  Public, and never cached (utils/caching.py skips it): the value comes from the deployment\'s settings, and a browser holding the old answer for an hour after the pods restart would hide or show the wrong links.
+     * @summary Get Features
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getFeatures(options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getFeatures(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

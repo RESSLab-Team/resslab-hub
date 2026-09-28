@@ -9,6 +9,7 @@ import {
 import { debounce } from 'lodash'
 import { computed, provide, ref, triggerRef, unref, watch, type InjectionKey, type Ref } from 'vue'
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router'
+import { perfMark } from '@/utils/perf'
 
 export const queryFieldSeparator = ';'
 export const queryKeyValueSeparator = ':'
@@ -76,6 +77,9 @@ export function useDashboard<M>(
       delete searches.value[key]
     }
     triggerRef(searches)
+    // Benchmark (#354): the start of a filter interaction. Everything the
+    // charts and the table then do is downstream of this one mark.
+    perfMark('query:commit', { key })
   }
 
   const query = computed<string>(() => {

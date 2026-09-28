@@ -34,6 +34,11 @@ settings = Dynaconf(
         Validator("github_app_id", default=None),
         Validator("github_app_private_key", default=None),
         Validator("github_app_installation_id", default=None),
+        # The deploy-time switch for the whole contribution pipeline (submit,
+        # curation, sign-in, account). False in prod until it is released
+        # there: the endpoints answer 404 and the frontend hides every link.
+        # Read at startup, so a change needs a pod restart.
+        Validator("contributions_enabled", default=True),
         Validator("data_repo", default="RESSLab-Team/resslab-hub-data"),
         Validator("data_repo_base_branch", default="main"),
         # --- Sign-in (#247) --------------------------------------------------
@@ -54,12 +59,15 @@ settings = Dynaconf(
         Validator("session_ttl_days", default=30),
         Validator("login_code_ttl_minutes", default=10),
         # Mail: without a host the mailer logs the code instead of sending it,
-        # which is how local dev and the tests work.
+        # which is how local dev and the tests work. The relay is the EPFL one
+        # (docs/auth.md). The sender must be the service account's own address:
+        # Exchange refuses anything else with 550 5.7.60 "does not have
+        # permissions to send as this sender".
         Validator("smtp_host", default=None),
         Validator("smtp_port", default=587),
         Validator("smtp_user", default=None),
         Validator("smtp_password", default=None),
-        Validator("smtp_from", default="noreply@resslab-hub.epfl.ch"),
+        Validator("smtp_from", default="noreply-enacitdev@epfl.ch"),
         Validator("smtp_starttls", default=True),
         # OAuth pair of a GitHub App: the one above in the deployments, a
         # separate dev App locally (docs/auth.md). Both present = "Sign in
@@ -69,6 +77,24 @@ settings = Dynaconf(
         # Comma-separated addresses that get the admin role at first sign-in,
         # so a fresh deployment has an administrator without a CLI.
         Validator("admin_emails", default=""),
+        # Comma-separated domains that count as academic on top of the
+        # pyswot list, for the research institutes and firms it does not
+        # know (empa.ch, aisc.org). A subdomain of one of these matches too.
+        Validator("contributor_domains", default=""),
+        # --- S3, the enacit4r-cdn that serves the SEM images ----------------
+        # Same names as the other ENAC apps (eesd-mast, co2-calculator), so the
+        # five public ones come from the resslab-hub-backend ConfigMap and the
+        # two keys from Infisical, or from secrets/.env on a laptop. No default
+        # here on purpose: the values belong to the deployment, not the code.
+        # All unset = no CDN, which is every deployment today; only
+        # `make precompute-sem` reads them. See docs/sem-images.md.
+        Validator("s3_endpoint_protocol", default=None),
+        Validator("s3_endpoint_hostname", default=None),
+        Validator("s3_region", default=None),
+        Validator("s3_bucket", default=None),
+        Validator("s3_path_prefix", default=None),
+        Validator("s3_access_key_id", default=None),
+        Validator("s3_secret_access_key", default=None),
     ],
 )
 

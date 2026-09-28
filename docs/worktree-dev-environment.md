@@ -9,7 +9,7 @@ wt create feat/123-thing origin/dev
   └─ .wt.toml → scripts/wt-setup.sh                (idempotent)
        ├─ seeds secrets/.env, docker-compose.override.yml, frontend/.env.development.local,
        │        sample-data/ batch folders (fieldGroups.spec.ts and the contribution flow need them)
-       ├─ hashes the branch name → .env.worktree  (BACKEND_PORT 18xxx, FRONTEND_PORT 19xxx, DB, test DB, data dir)
+       ├─ hashes <repo>/<branch> → .env.worktree  (BACKEND_PORT 18xxx, FRONTEND_PORT 19xxx, DB, test DB, data dir)
        ├─ points this frontend at this backend, this backend at the right DB with migrations OFF
        ├─ writes .claude/settings.local.json     (sandbox + ask/deny rules for the Claude session)
        ├─ make install && make hooks
@@ -63,7 +63,8 @@ git config --global push.autoSetupRemote true
 git config --global branch.autoSetupMerge simple   # a new branch tracks a remote branch of its own name, never its base
 
 printf '**/.claude/worktrees/\n' >> ~/.config/git/ignore
-echo 'source ~/code/resslab-hub/scripts/wt-go.bash' >> ~/.bashrc   # wtgo <branch> + tab completion
+echo 'source ~/code/resslab-hub/scripts/wt-go.bash' >> ~/.bashrc   # wtgo <branch> + tab completion; ONE line for every
+                                                            # repo that has the tooling: wtgo acts on the repo you stand in
 printf 'bind s choose-tree -wZ -O name\n' >> ~/.tmux.conf   # prefix+s: sessions sorted "<repo>/<branch>"; -w keeps each
                                                             # session's single dev window visible (-s would hide the four
                                                             # panes behind a second expand)
@@ -204,10 +205,18 @@ script.
 
 ## Ports
 
-`scripts/wt-lib.sh` hashes the branch name (`cksum`) into `BACKEND_PORT = 18000 + h % 500`
+`scripts/wt-lib.sh` hashes `<repo>/<branch>` (`cksum`) into `BACKEND_PORT = 18000 + h % 500`
 and `FRONTEND_PORT = 19000 + h % 500` — same suffix on both, so `18042 ↔ 19042`
 read as one worktree, and the same branch always gets the same pair. The main
 checkout keeps 8000/5173 through the Makefile / vite defaults.
+
+500 slots is not many, so `branch_ports` steps forward from the hashed offset
+while the pair is taken: by another worktree of this repo (its `.env.worktree`),
+or by anything listening on the machine (`ss`), which covers the worktrees of
+another repo that runs the same tooling. The repo name is in the hash for the
+same reason: the same branch name in resslab-hub and bluecity-viz once got the
+same pair. A worktree that already has ports keeps them on every re-run of
+`wt-setup.sh` (delete `.env.worktree` to get a fresh pair).
 
 `.env.worktree` is the single source: `backend/Makefile` reads `BACKEND_PORT`
 and `RESSLAB_DATA_DIR`, `vite.config.ts` reads `FRONTEND_PORT` and proxies
@@ -369,7 +378,8 @@ checked out in a worktree (cli/cli#13380).
 - **The sandbox cannot reach `localhost`.** Verified: a sandboxed
   `curl http://localhost:19234/` returns `000` even with `localhost` and
   `127.0.0.1` in `allowedDomains` — the proxy refuses loopback. So `curl *` is
-  in `sandbox.excludedCommands`: it runs outside the sandbox, which means
+  in `sandbox.excludedCommands` (so is `docker *`): it runs outside the
+  sandbox, which means
   every `curl` goes through the classifier (read-only GETs are allowed by
   default) and the ask rules (write forms prompt). Verified both ways: with
   the exclusion, `curl` to the worktree's own frontend and backend returns
@@ -388,6 +398,17 @@ checked out in a worktree (cli/cli#13380).
   A branch DB is another 3.4 GB — keep one alive at a time.
 - **tmux session names** can't contain `.` or `:`; `session_name()` maps them
   to `-`. `/` is fine.
+- **`wtgo` acts on the repo you are standing in.** One `source` line serves
+  every repo with the tooling; `wt-new.sh` prints `==> <repo>: <branch>` so
+  the target is never a guess. Standing outside any such repo it falls back to
+  `WTGO_DEFAULT_REPO`, else the repo the sourced file lives in, and says so.
+  The older copy pinned the repo at source time, so a `wtgo` typed in
+  bluecity-viz created its worktree, and its `resslab-hub/...` session, here.
+- **Panes are found by `@wt_role`, not by title.** `tmux-dev.sh` sets it on
+  all four panes; `wt-db.sh` (backend restart), the `--brief` restart and
+  `claude-notify` look panes up by it. A title is not a tmux target, and claude
+  rewrites its own. After editing `scripts/claude-notify.sh`, re-run
+  `scripts/claude-notify-install.sh` to refresh the `~/.local/bin` copy.
 - **`~/.claude/settings.json` can't be edited by Claude** — the classifier
   blocks an agent changing its own permissions. Edit it yourself.
 
@@ -400,9 +421,12 @@ checked out in a worktree (cli/cli#13380).
    `claude-notify.sh` needs no copying — the `~/.local/bin` install is
    machine-wide and derives the session name from any repo's origin + branch.
 3. In `wt-lib.sh`: the DB container/name/template, `BASE_BRANCH`,
-   `PROTECTED_BRANCHES`, the main checkout's ports. In `wt-setup.sh`: the list
-   of gitignored files to seed and the env keys to rewrite. In `tmux-dev.sh`:
-   the pane list.
+   `PROTECTED_BRANCHES`, the main checkout's ports. The protected list is
+   also in `git-push-guard.sh` (on purpose: the guard must not depend on a
+   file an old branch may lack) and, as the union across repos, in the
+   completion filter of `wt-go.bash`; change all three. In `wt-setup.sh`: the
+   list of gitignored files to seed and the env keys to rewrite. In
+   `tmux-dev.sh`: the pane list.
 4. Make every hardcoded port a variable with the old value as default —
    including the ones services use to find each other (proxy targets,
    `VITE_*_URL`, CORS origins, OAuth redirect URIs). Miss one and worktrees

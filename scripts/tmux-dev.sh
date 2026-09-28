@@ -145,11 +145,14 @@ P_CLAUDE="$(tmux display-message -p -t "=$SESSION:dev" '#{pane_id}')"
 P_BACKEND="$(tmux split-window -h -l 50% -P -F '#{pane_id}' -t "$P_CLAUDE" -c "$ROOT/backend")"
 P_FRONTEND="$(tmux split-window -v -l 67% -P -F '#{pane_id}' -t "$P_BACKEND" -c "$ROOT/frontend")"
 P_SHELL="$(tmux split-window -v -l 50% -P -F '#{pane_id}' -t "$P_FRONTEND" -c "$ROOT")"
-tmux select-pane -t "$P_CLAUDE" -T claude
-tmux set-option -p -t "$P_CLAUDE" @wt_role claude   # stable handle: the title follows claude's own
-tmux select-pane -t "$P_BACKEND" -T backend
-tmux select-pane -t "$P_FRONTEND" -T frontend
-tmux select-pane -t "$P_SHELL" -T shell
+# Titles are for the eye; @wt_role is the stable handle scripts look panes up
+# by (send_brief here, restart_backend in wt-db.sh, claude-notify.sh): claude
+# rewrites its pane title as it works, and a title is not a tmux target anyway.
+for spec in "$P_CLAUDE claude" "$P_BACKEND backend" "$P_FRONTEND frontend" "$P_SHELL shell"; do
+  set -- $spec
+  tmux select-pane -t "$1" -T "$2"
+  tmux set-option -p -t "$1" @wt_role "$2"
+done
 tmux set-option -w -t "=$SESSION:dev" pane-border-status top
 
 tmux send-keys -t "$P_BACKEND" "$LOAD; make dev" C-m

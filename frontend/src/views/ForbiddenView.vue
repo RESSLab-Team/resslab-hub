@@ -4,7 +4,7 @@
  *
  * Separate from the sign-in page on purpose: sending someone back to sign in
  * would suggest that signing in again would help, when what they need is a
- * role. Phase 2 (#248) adds the "ask for access" form here.
+ * role. #248 adds the "ask for access" form here.
  */
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
@@ -28,6 +28,9 @@ const needed = computed(() => {
           : $t('auth.forbidden.lede')
       }}
     </p>
+    <p v-if="needed === 'contributor'" class="forbidden-hint">
+      {{ $t('auth.forbidden.contributor_hint') }}
+    </p>
     <router-link class="btn btn-secondary btn-sm" to="/">
       {{ $t('auth.forbidden.back_home') }}
     </router-link>
@@ -35,6 +38,13 @@ const needed = computed(() => {
 </template>
 
 <style scoped>
+.forbidden-hint {
+  margin: 0 0 24px;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--fg-muted);
+}
+
 .forbidden {
   max-width: 560px;
   padding: 64px 32px 96px;

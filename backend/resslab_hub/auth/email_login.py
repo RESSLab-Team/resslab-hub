@@ -90,8 +90,19 @@ async def start(
         expires_at=now() + timedelta(minutes=int(settings.login_code_ttl_minutes)),
     )
     db.add(challenge)
+    # The id is a Python-side default, so it only exists after the flush, and
+    # the link needs it.
+    await db.flush()
+    try:
+        await mailer.send_login_mail(email, code, verify_url(challenge.id, token))
+    except mailer.MailError:
+        # Undo the row: it is what the hourly caps count, and nothing went out.
+        # A broken relay must not eat someone's five mails per hour.
+        await db.rollback()
+        raise
+    # This keeps the transaction open for as long as the send takes (15 s at
+    # worst). Fine at pool 5 + overflow 10 with ten starts per minute per IP.
     await db.commit()
-    await mailer.send_login_mail(email, code, verify_url(challenge.id, token))
     return challenge.id
 
 

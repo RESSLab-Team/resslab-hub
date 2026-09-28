@@ -1,0 +1,30 @@
+RESSLab Hub
+Steel structures research · EPFL
+
+Sign in to RESSLab Hub
+
+Someone asked to sign in with this email address. If that was you, use
+the code or the link below.
+
+Your sign-in code:
+
+    {code}
+
+Type it in the tab where you asked to sign in.
+
+If you are reading this on the same device, you can open this link
+instead:
+
+{link}
+
+The code and the link stop working in {ttl_minutes} minutes. Each can be
+used once.
+
+If you did not ask to sign in, you can ignore this mail. Nothing will
+change on your account.
+
+--
+RESSLab Hub is a project of the Resilient Steel Structures Laboratory at
+EPFL, Lausanne, Switzerland. Open-access databases and models for design
+and assessment of steel structures.
+https://resslab-hub.epfl.ch

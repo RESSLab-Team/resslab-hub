@@ -179,10 +179,14 @@ const router = createRouter({
       // `meta.auth` names the weakest role that may open the route; the guard
       // in router/guards.ts does the rest. Everything without it is public,
       // which is every database page: browsing needs no account.
+      // `meta.contributions` marks the contribution pipeline (submit,
+      // curation, sign-in, account): it goes home on a deployment that
+      // switched it off with CONTRIBUTIONS_ENABLED=false.
       path: '/contribute/new',
       name: 'ContributeNew',
       component: () => import('@/views/ContributeView.vue'),
-      meta: { auth: 'viewer' }
+      // Submitting needs the role, not just a session (#248).
+      meta: { auth: 'contributor', contributions: true }
     },
     {
       // The same editor, opened on an open submission (#321).
@@ -190,38 +194,40 @@ const router = createRouter({
       name: 'ContributeEdit',
       component: () => import('@/views/ContributeView.vue'),
       props: true,
-      meta: { auth: 'viewer' }
+      meta: { auth: 'contributor', contributions: true }
     },
     {
       path: '/curation',
       name: 'CurationQueue',
       component: () => import('@/views/CurationQueueView.vue'),
-      meta: { auth: 'viewer' }
+      meta: { auth: 'viewer', contributions: true }
     },
     {
       path: '/curation/:prNumber(\\d+)',
       name: 'CurationReview',
       component: () => import('@/views/CurationReviewView.vue'),
       props: true,
-      meta: { auth: 'viewer' }
+      meta: { auth: 'viewer', contributions: true }
     },
     {
       path: '/login',
       name: 'Login',
-      component: () => import('@/views/LoginView.vue')
+      component: () => import('@/views/LoginView.vue'),
+      meta: { contributions: true }
     },
     {
       // Where the mailed link lands: it carries the challenge and the token in
       // the query, and this view posts them.
       path: '/login/verify',
       name: 'LoginVerify',
-      component: () => import('@/views/LoginVerifyView.vue')
+      component: () => import('@/views/LoginVerifyView.vue'),
+      meta: { contributions: true }
     },
     {
       path: '/account',
       name: 'Account',
       component: () => import('@/views/AccountView.vue'),
-      meta: { auth: 'viewer' }
+      meta: { auth: 'viewer', contributions: true }
     },
     {
       path: '/forbidden',
