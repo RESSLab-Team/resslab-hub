@@ -101,6 +101,7 @@ nothing else. The curation queue reads through the same client.
 | Key | What it is |
 |---|---|
 | `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_APP_INSTALLATION_ID` | The App that opens the pull requests. All three or the feature is off: `POST /contributions` and the curation endpoints answer `503`, the queue says `configured: false`. Not the OAuth pair of [auth.md](auth.md), which is for sign-in. |
+| `CONTRIBUTIONS_ENABLED` | `true` by default. `false` switches the whole pipeline off: submit and edit, curation, sign-in and account. The backend answers `404` on those endpoints and the frontend hides every link to them (the routes go to `/`). `GET /auth/me` keeps answering `{"user": null}`, and `/validate` and `/upload` do not change. Read at startup, so restart the pods after a change. `GET /features` tells the frontend the value it acts on: this setting and the GitHub App above. How prod uses it: [releasing.md](releasing.md). |
 | `DATA_REPO` | `RESSLab-Team/resslab-hub-data` by default. |
 | `DATA_REPO_BASE_BRANCH` | `main` by default, the only branch the data repo has. Submissions from dev, test and laptops all land there; close those, never merge them. |
 

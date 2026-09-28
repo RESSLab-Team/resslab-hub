@@ -184,6 +184,7 @@ the code never is.
 | `SESSION_TTL_DAYS` | 30 by default. |
 | `LOGIN_CODE_TTL_MINUTES` | 10 by default. |
 | `SESSION_COOKIE_SECURE` | Derived from the `PUBLIC_BASE_URL` scheme; set it only to override. |
+| `CONTRIBUTIONS_ENABLED` | `true` by default. `false` also switches sign-in and the account page off, see [contributing-data.md](contributing-data.md#settings). |
 
 In the deployments these go in Infisical and reach the pods through
 `envFrom: secretRef`, like the existing GitHub App credentials. `CORS_ENABLED`
