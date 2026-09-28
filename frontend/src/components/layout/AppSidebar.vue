@@ -2,6 +2,7 @@
 import LanguageToggle from '@/components/layout/LanguageToggle.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCountsStore } from '@/stores/counts'
+import { useFeaturesStore } from '@/stores/features'
 import { NAV_GROUPS, type NavGroup } from '@/utils/navigation'
 import {
   mdiBookOpenVariant,
@@ -29,8 +30,12 @@ const emit = defineEmits<{
 const route = useRoute()
 const countsStore = useCountsStore()
 const auth = useAuthStore()
+const features = useFeaturesStore()
 onMounted(() => {
   countsStore.fetch()
+  // Hidden until the answer is in, so a deployment that switched the pipeline
+  // off never flashes its links (CONTRIBUTIONS_ENABLED, docs/releasing.md).
+  features.ensureLoaded()
   // The account block needs the answer, and the sidebar is on every page, so
   // this is where the one /auth/me call gets made for anonymous browsing too.
   auth.ensureLoaded()
@@ -313,52 +318,54 @@ function toggleGroup(group: NavGroup) {
       </template>
     </template>
 
-    <div class="sidebar-section">{{ $t('shell.contribute') }}</div>
-    <router-link
-      class="sidebar-link"
-      :class="{ 'is-active': route.path.startsWith('/contribute') }"
-      to="/contribute/new"
-      @click="emit('close')"
-    >
-      <v-icon :icon="mdiUploadOutline" size="16" />
-      {{ $t('contribute.new_submission') }}
-    </router-link>
+    <template v-if="features.contributions">
+      <div class="sidebar-section">{{ $t('shell.contribute') }}</div>
+      <router-link
+        class="sidebar-link"
+        :class="{ 'is-active': route.path.startsWith('/contribute') }"
+        to="/contribute/new"
+        @click="emit('close')"
+      >
+        <v-icon :icon="mdiUploadOutline" size="16" />
+        {{ $t('contribute.new_submission') }}
+      </router-link>
 
-    <div class="sidebar-section">{{ $t('curation.eyebrow') }}</div>
-    <router-link
-      class="sidebar-link"
-      :class="{ 'is-active': route.path.startsWith('/curation') }"
-      to="/curation"
-      @click="emit('close')"
-    >
-      <v-icon :icon="mdiClipboardCheckOutline" size="16" />
-      {{ $t('curation.nav.review_queue') }}
-    </router-link>
+      <div class="sidebar-section">{{ $t('curation.eyebrow') }}</div>
+      <router-link
+        class="sidebar-link"
+        :class="{ 'is-active': route.path.startsWith('/curation') }"
+        to="/curation"
+        @click="emit('close')"
+      >
+        <v-icon :icon="mdiClipboardCheckOutline" size="16" />
+        {{ $t('curation.nav.review_queue') }}
+      </router-link>
 
-    <div class="sidebar-section">{{ $t('auth.account.section') }}</div>
-    <router-link
-      v-if="auth.isAuthenticated"
-      class="sidebar-link account-link"
-      :class="{ 'is-active': route.path === '/account' }"
-      to="/account"
-      @click="emit('close')"
-    >
-      <span class="account-avatar">{{ initials }}</span>
-      <span class="account-text">
-        <span class="account-name">{{ auth.user?.display_name || auth.user?.email }}</span>
-        <span class="account-role">{{ $t(`auth.roles.${auth.user?.role ?? 'viewer'}`) }}</span>
-      </span>
-    </router-link>
-    <router-link
-      v-else
-      class="sidebar-link"
-      :class="{ 'is-active': route.path.startsWith('/login') }"
-      :to="{ name: 'Login', query: { next: route.fullPath } }"
-      @click="emit('close')"
-    >
-      <v-icon :icon="mdiLoginVariant" size="16" />
-      {{ $t('auth.login.sign_in') }}
-    </router-link>
+      <div class="sidebar-section">{{ $t('auth.account.section') }}</div>
+      <router-link
+        v-if="auth.isAuthenticated"
+        class="sidebar-link account-link"
+        :class="{ 'is-active': route.path === '/account' }"
+        to="/account"
+        @click="emit('close')"
+      >
+        <span class="account-avatar">{{ initials }}</span>
+        <span class="account-text">
+          <span class="account-name">{{ auth.user?.display_name || auth.user?.email }}</span>
+          <span class="account-role">{{ $t(`auth.roles.${auth.user?.role ?? 'viewer'}`) }}</span>
+        </span>
+      </router-link>
+      <router-link
+        v-else
+        class="sidebar-link"
+        :class="{ 'is-active': route.path.startsWith('/login') }"
+        :to="{ name: 'Login', query: { next: route.fullPath } }"
+        @click="emit('close')"
+      >
+        <v-icon :icon="mdiLoginVariant" size="16" />
+        {{ $t('auth.login.sign_in') }}
+      </router-link>
+    </template>
 
     <div class="sidebar-section">{{ $t('shell.reference') }}</div>
     <router-link
