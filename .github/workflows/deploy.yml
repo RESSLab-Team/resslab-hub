@@ -10,6 +10,13 @@ on:
   #   gh workflow run deploy.yml --ref v<version>
   workflow_dispatch:
 
+# One deploy per branch or tag at a time. Two close pushes could finish in the
+# wrong order and write the older image digest last, so a new run cancels the
+# one still going.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     permissions:
