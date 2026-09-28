@@ -34,6 +34,11 @@ settings = Dynaconf(
         Validator("github_app_id", default=None),
         Validator("github_app_private_key", default=None),
         Validator("github_app_installation_id", default=None),
+        # The deploy-time switch for the whole contribution pipeline (submit,
+        # curation, sign-in, account). False in prod until it is released
+        # there: the endpoints answer 404 and the frontend hides every link.
+        # Read at startup, so a change needs a pod restart.
+        Validator("contributions_enabled", default=True),
         Validator("data_repo", default="RESSLab-Team/resslab-hub-data"),
         Validator("data_repo_base_branch", default="main"),
         # --- Sign-in (#247) --------------------------------------------------

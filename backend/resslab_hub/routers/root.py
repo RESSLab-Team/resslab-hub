@@ -13,6 +13,7 @@ from fastapi import (
     HTTPException,
     Query,
     Request,
+    Response,
     UploadFile,
     status,
 )
@@ -21,11 +22,11 @@ from fastapi.responses import JSONResponse
 from resslab_hub import __name__ as name
 from resslab_hub import __version__
 from resslab_hub.auth.deps import require_service, require_user_or_service
-from resslab_hub.contributions.github import configured
+from resslab_hub.contributions.github import configured, enabled
 from resslab_hub.contributions.submission import flag_repo_duplicates
 from resslab_hub.data.uploader import Type, upload_all
 from resslab_hub.data.validator import validate_all
-from resslab_hub.models import Info
+from resslab_hub.models import Features, Info
 from resslab_hub.models.validation import (
     FileValidationResult,
     LegacyFileResult,
@@ -69,6 +70,19 @@ async def root() -> Info:
     Get Info
     """
     return Info(name=name, version=__version__)
+
+
+@router.get("/features", response_model=Features)
+async def get_features(response: Response) -> Features:
+    """
+    Which optional parts of the app this deployment offers.
+
+    Public, and never cached (utils/caching.py skips it): the value comes from
+    the deployment's settings, and a browser holding the old answer for an
+    hour after the pods restart would hide or show the wrong links.
+    """
+    response.headers["Cache-Control"] = "no-store"
+    return Features(contributions=enabled())
 
 
 @router.get("/healthz")

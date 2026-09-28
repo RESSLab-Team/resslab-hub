@@ -59,6 +59,11 @@ def make_app() -> tuple[TestClient, dict]:
     def admin_users():
         return []
 
+    # Deployment settings (CONTRIBUTIONS_ENABLED): must change on a restart.
+    @app.get("/features")
+    def features():
+        return {"contributions": False}
+
     return TestClient(app), calls
 
 
@@ -104,6 +109,9 @@ def test_non_json_and_excluded_paths_are_not_cached():
         "/auth/me",
         "/account",
         "/admin/users",
+        # A browser keeping this for max-age would show the old links after
+        # the pods restart with a new CONTRIBUTIONS_ENABLED.
+        "/features",
     ):
         response = client.get(path)
         assert response.status_code == 200

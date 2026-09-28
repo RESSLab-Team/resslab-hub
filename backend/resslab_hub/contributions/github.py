@@ -45,6 +45,16 @@ def configured() -> bool:
     )
 
 
+def enabled() -> bool:
+    """What the frontend reads on `/features`: the switch, and an App behind it.
+
+    `CONTRIBUTIONS_ENABLED` alone decides whether the endpoints answer at all
+    (`require_contributions_enabled`). Without the App they still answer, with
+    the 503 they always had, but there is nothing to show in the interface.
+    """
+    return bool(settings.contributions_enabled) and configured()
+
+
 @dataclass
 class NewFile:
     """One file to commit: repo-relative path + full text content."""
