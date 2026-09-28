@@ -5,6 +5,9 @@ import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { bracesApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n({ useScope: 'global' })
 
 const props = defineProps<{
   brace: BraceModel
@@ -39,9 +42,9 @@ watch(
         {
           count: brace.displacement_count,
           promise: bracesApi.getBracesDisplacement(brace.id),
-          title: 'Force Displacement',
-          xAxisName: 'Displacement [mm]',
-          yAxisName: 'Force [kN]'
+          title: t('detail.brace.chart_force_displacement'),
+          xAxisName: t('detail.brace.axis_displacement'),
+          yAxisName: t('detail.brace.axis_force')
         }
       ]
     ]
@@ -51,14 +54,14 @@ watch(
   }
 )
 
-function formatNumber(value?: number) {
-  return value ?? 'Not Reported'
+function formatNumber(value?: number | null) {
+  return value ?? t('detail.brace.not_reported')
 }
-function formatString(value?: string): string {
-  if (value === undefined) {
-    return 'No'
+function formatString(value?: string | null): string {
+  if (value == null) {
+    return t('detail.brace.no')
   } else if (value === 'NR') {
-    return 'Not Reported'
+    return t('detail.brace.not_reported')
   } else {
     return value
   }
@@ -67,6 +70,8 @@ function formatString(value?: string): string {
 
 <template>
   <common-detail
+    database-id="braces"
+    :record="brace"
     :reference="brace.reference"
     :link="brace.link"
     :carousel-items="carouselItems"
@@ -81,27 +86,27 @@ function formatString(value?: string): string {
         <v-col cols="6">
           <v-row>
             <v-col>
-              <h2>Loading and Geometric Parameters</h2>
-              <property-item name="Loading protocol">
+              <h2>{{ $t('detail.brace.section_loading_geometric') }}</h2>
+              <property-item :name="$t('detail.brace.loading_protocol')">
                 {{ brace.loading_protocol }}
               </property-item>
-              <property-item name="Brace boundary conditions">
+              <property-item :name="$t('detail.brace.brace_boundary_conditions')">
                 {{ brace.boundary_condition }}
               </property-item>
-              <property-item name="Brace cross section shape">
+              <property-item :name="$t('detail.brace.brace_cross_section_shape')">
                 {{ brace.cross_section_shape }}
               </property-item>
-              <property-item name="Brace cross section size">
+              <property-item :name="$t('detail.brace.brace_cross_section_size')">
                 {{ brace.cross_section_size }}
               </property-item>
-              <property-item name="Member slenderness ratio KL/r">
+              <property-item :name="$t('detail.brace.member_slenderness_ratio')">
                 {{ brace.kl_r }}
               </property-item>
               <template v-if="isGussetPlate">
-                <property-item name="Gusset plate thickness" unit="mm">
+                <property-item :name="$t('detail.brace.gusset_plate_thickness')" unit="mm">
                   {{ brace.t_t }}
                 </property-item>
-                <property-item name="Reinforcement plate">
+                <property-item :name="$t('detail.brace.reinforcement_plate')">
                   {{ formatString(brace.reinforcement_pl) }}
                 </property-item>
               </template>
@@ -109,36 +114,36 @@ function formatString(value?: string): string {
           </v-row>
           <v-row>
             <v-col>
-              <h2>Steel Material Designation</h2>
-              <h3>Brace</h3>
-              <property-item name="Steel type">
+              <h2>{{ $t('detail.brace.section_steel_material_designation') }}</h2>
+              <h3>{{ $t('detail.brace.sub_brace') }}</h3>
+              <property-item :name="$t('detail.brace.steel_type')">
                 {{ brace.steel }}
               </property-item>
-              <property-item name="Nominal yield stress" unit="MPa">
+              <property-item :name="$t('detail.brace.nominal_yield_stress')" unit="MPa">
                 {{ formatNumber(brace.f_yn) }}
               </property-item>
-              <property-item name="Measured yield stress" unit="MPa">
+              <property-item :name="$t('detail.brace.measured_yield_stress')" unit="MPa">
                 {{ formatNumber(brace.fy_m) }}
               </property-item>
-              <property-item name="Ultimate tensile stress" unit="MPa">
+              <property-item :name="$t('detail.brace.ultimate_tensile_stress')" unit="MPa">
                 {{ formatNumber(brace.f_um) }}
               </property-item>
-              <h3>Gusset Plate</h3>
+              <h3>{{ $t('detail.brace.sub_gusset_plate') }}</h3>
               <template v-if="isGussetPlate">
-                <property-item name="Steel type">
+                <property-item :name="$t('detail.brace.steel_type')">
                   {{ brace.steel_gp }}
                 </property-item>
-                <property-item name="Nominal yield stress" unit="MPa">
+                <property-item :name="$t('detail.brace.nominal_yield_stress')" unit="MPa">
                   {{ formatNumber(brace.f_yn_gp) }}
                 </property-item>
-                <property-item name="Measured yield stress" unit="MPa">
+                <property-item :name="$t('detail.brace.measured_yield_stress')" unit="MPa">
                   {{ formatNumber(brace.f_ym_gp) }}
                 </property-item>
-                <property-item name="Ultimate tensile stress" unit="MPa">
+                <property-item :name="$t('detail.brace.ultimate_tensile_stress')" unit="MPa">
                   {{ formatNumber(brace.f_um_gp) }}
                 </property-item>
               </template>
-              <template v-else> The configuration does not include gusset plates </template>
+              <template v-else>{{ $t('detail.brace.no_gusset_plates') }}</template>
             </v-col>
           </v-row>
         </v-col>

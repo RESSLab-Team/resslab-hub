@@ -1,19 +1,24 @@
-export function formatNumber(value?: number, fractionDigits = 0): string {
+import i18n from '@/plugins/i18n'
+
+export function formatNumber(value?: number | null, fractionDigits = 0): string {
   if (value === null || value === undefined) {
-    return "Not Applicable";
-  } else if (isNaN(value)) {
-    return "Not Reported";
-  } else {
-    return value.toFixed(fractionDigits);
+    return i18n.global.t('enum.notApplicable')
   }
+  // Defensive coercion: all numeric fields are JSON numbers since the backend
+  // dropped Decimal serialization, but tolerate strings from older payloads.
+  const num = typeof value === 'number' ? value : Number(value)
+  if (isNaN(num)) {
+    return i18n.global.t('enum.notReported')
+  }
+  return num.toFixed(fractionDigits)
 }
 
-export function formatString(value?: string): string {
+export function formatString(value?: string | null): string {
   if (value === null || value === undefined) {
-    return "Not Applicable";
-  } else if (value === "NR") {
-    return "Not Reported";
+    return i18n.global.t('enum.notApplicable')
+  } else if (value === 'NR') {
+    return i18n.global.t('enum.notReported')
   } else {
-    return value;
+    return value
   }
 }

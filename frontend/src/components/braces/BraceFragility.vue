@@ -1,10 +1,9 @@
 <script setup lang="ts">
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_braces
-import SurfaceGlChart from '@/components/commons/charts/SurfaceGlChart.vue'
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import SimpleToggle from '@/components/commons/SimpleToggle.vue'
-import TitleRow from '@/components/commons/TitleRow.vue'
+import ToolShell from '@/components/commons/ToolShell.vue'
+import ToolSegmented from '@/components/commons/tools/ToolSegmented.vue'
+import UnitToggle from '@/components/commons/UnitToggle.vue'
 import type { EChartsGlOption } from '@/utils/echarts-gl'
 import { univariateOption, type DamageState } from '@/utils/fragility'
 import type { ToggleItem } from '@/utils/toggle'
@@ -13,7 +12,16 @@ import cdf from '@stdlib/stats-base-dists-lognormal-cdf'
 import type { EChartsOption } from 'echarts'
 import { range, zip } from 'lodash'
 import { index, Matrix, matrix, max, sum } from 'mathjs'
-import { computed, ref } from 'vue'
+import { computed, defineAsyncComponent, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n({ useScope: 'global' })
+
+// Lazy-load the 3D surface so the heavy echarts-gl (WebGL) bundle only loads
+// when a 3D plot is actually rendered.
+const SurfaceGlChart = defineAsyncComponent(
+  () => import('@/components/commons/charts/SurfaceGlChart.vue')
+)
 
 type Option = 'square-hss' | 'round-hss' | 'w-shape' | 'l-shape'
 
@@ -75,24 +83,24 @@ const damageStates: Record<Option, DamageState[]> = {
     }
   ]
 }
-const options: ToggleItem<Option>[] = [
+const options = computed<ToggleItem<Option>[]>(() => [
   {
     value: 'square-hss',
-    text: 'Square HSS'
+    text: t('tools.brace_fragility.opt_square_hss')
   },
   {
     value: 'round-hss',
-    text: 'Round HSS'
+    text: t('tools.brace_fragility.opt_round_hss')
   },
   {
     value: 'w-shape',
-    text: 'Wide-Flange'
+    text: t('tools.brace_fragility.opt_w_shape')
   },
   {
     value: 'l-shape',
-    text: 'Angle (L-shape)'
+    text: t('tools.brace_fragility.opt_l_shape')
   }
-]
+])
 /**
  * Global slenderness KL/r
  */
@@ -280,40 +288,58 @@ function correlatedBivariate(
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12">
-      <title-row>
-        <h1>Fragility Curve Plotter for Steel Bracings</h1>
-        <p>
-          This interactive module plots univariate and multivariate fragility curves for steel
-          bracings of various types of cross sections. the multivariate curves depict the dependence
-          of the fragility curve on member slenderness. For further information refer to
+  <tool-shell
+    :eyebrow="$t('tools.common.fragility_eyebrow')"
+    :title="$t('tools.brace_fragility.title')"
+    layout="parambar"
+  >
+    <template #actions><unit-toggle /></template>
+    <template #intro>
+      <i18n-t keypath="tools.brace_fragility.intro" tag="span" scope="global">
+        <template #reference>
           <a
             href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
             target="_blank"
-            >Lignos and Karamanci (2013)</a
-          >.
-        </p>
-      </title-row>
-    </v-col>
-    <v-col cols="12">
-      <simple-toggle v-model="option" :items="options" />
-      <info-tooltip>
-        Select the appropriate cross sectional shape of the bracing member to visualize the
-        corresponding fragility curve.
-      </info-tooltip>
-    </v-col>
-    <v-col cols="4">
-      <h2>Univariate Fragilities</h2>
-      <unit-chart :aspect-ratio="2" :option="univariateOptions[option]" x-unit="rad" />
-    </v-col>
-    <v-col cols="8">
-      <h2>Multivariate Fragilities</h2>
-      <v-row>
-        <v-col v-for="(item, i) in multivariateOptions" :key="i" cols="4">
-          <surface-gl-chart :aspect-ratio="1" :option="item" />
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+            >{{ $t('tools.brace_fragility.intro_reference') }}</a
+          >
+        </template>
+      </i18n-t>
+    </template>
+
+    <template #parambar>
+      <div class="pb-group pb-seg">
+        <span class="pb-lbl">{{ $t('tools.brace_fragility.cross_section') }}</span>
+        <tool-segmented
+          full
+          :items="options"
+          :model-value="option"
+          @update:model-value="option = $event as Option"
+        />
+      </div>
+    </template>
+
+    <template #stage>
+      <div class="st-chart">
+        <div class="chart-cap">
+          <div class="chart-cap-t">
+            <h2 class="chart-h">{{ $t('tools.brace_fragility.univariate_fragilities') }}</h2>
+            <p class="chart-sub">{{ $t('tools.brace_fragility.univariate_fragilities_sub') }}</p>
+          </div>
+        </div>
+        <div class="tchart h-chart">
+          <unit-chart fill :option="univariateOptions[option]" x-unit="rad" />
+        </div>
+      </div>
+
+      <div class="e-surfaces-head">
+        <h3 class="chart-h">{{ $t('tools.brace_fragility.multivariate_fragilities') }}</h3>
+        <p class="chart-sub">{{ $t('tools.brace_fragility.multivariate_fragilities_sub') }}</p>
+      </div>
+      <div class="st-surfaces">
+        <div v-for="(item, i) in multivariateOptions" :key="i" class="tchart h-surface">
+          <surface-gl-chart fill :option="item" />
+        </div>
+      </div>
+    </template>
+  </tool-shell>
 </template>

@@ -1,132 +1,149 @@
 <script setup lang="ts">
 import { MaterialField, type MaterialModel } from '@/backend'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
+import ChartCell from '@/components/commons/ChartCell.vue'
+import DashboardShell from '@/components/commons/DashboardShell.vue'
 import MaterialDoubleChart from '@/components/materials/charts/MaterialDoubleChart.vue'
 import MaterialParallelChart from '@/components/materials/charts/MaterialParallelChart.vue'
 import MaterialSingleChart from '@/components/materials/charts/MaterialSingleChart.vue'
 import MaterialDetail from '@/components/materials/MaterialDetail.vue'
 import MaterialTable from '@/components/materials/MaterialTable.vue'
-import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
-import ResetChartButton from '@/components/commons/ResetChartButton.vue'
-
-import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { MATERIAL_KEY, PARALLEL_FIELDS, fetchMaterials } from '@/components/materials/data'
+import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
+import { useCountsStore } from '@/stores/counts'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import colors from 'vuetify/lib/util/colors'
 
 const route = useRoute()
 const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
   useDashboard<MaterialModel>(route, router, MaterialField)
 
-const parallelFields: ParallelField<MaterialField>[] = [
-  { id: MaterialField.Type },
-  { id: MaterialField.YieldStressMpa },
-  {
-    id: {
-      dividend: MaterialField.YieldStressMpa,
-      divisor: MaterialField.FyNMpa
-    }
-  },
-  { id: MaterialField.FractureStrain },
-  { id: MaterialField.Thickness }
+const countsStore = useCountsStore()
+onMounted(() => countsStore.fetch())
+
+const parallelFields = PARALLEL_FIELDS
+
+const parallelFilterFields: string[] = [
+  MaterialField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
 ]
 const profileFields: DoubleFields<MaterialField> = [MaterialField.Year, MaterialField.ProfileType]
 const profileThicknessFields: DoubleFields<MaterialField> = [
   MaterialField.Thickness,
   MaterialField.ProfileType
 ]
-const steelField = MaterialField.Type
 
-const profileTypeFields: MaterialField[] = [
-  MaterialField.Year,
-  MaterialField.ProfileType,
-  MaterialField.Thickness,
-  MaterialField.ProfileType
-]
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file, and fieldGroups.ts
+// decides which category of the rail it shows up under.
+const {
+  filters,
+  groups: filterGroups,
+  loading: filtersLoading
+} = useAutoFilters({
+  database: 'cyclic',
+  datasetKey: MATERIAL_KEY,
+  fetchAll: fetchMaterials,
+  i18nPrefix: 'material.'
+})
 </script>
 
 <template>
-  <v-row>
-    <v-col md="6">
-      <v-row>
-        <v-col cols="12">
-          <material-table
-            v-model:search="search"
-            v-model:searches="searches"
-            :query="query"
-            @click:row="clickTableRow"
-            @update:page="updatePage"
+  <dashboard-shell
+    v-model:search="search"
+    :eyebrow="$t('dashboards.common.eyebrow_materials')"
+    :title="$t('dashboards.material.title')"
+    :count="countsStore.counts.cyclic"
+    count-label="coupons"
+    :description="$t('dashboards.material.description')"
+    database-id="cyclic"
+    i18n-prefix="material."
+    :filters="filters"
+    :filter-groups="filterGroups"
+    :filters-loading="filtersLoading"
+    :searches="searches"
+    :detail-open="!!item"
+    @change:searches="changeSearches"
+    @close:detail="closeDetail"
+  >
+    <template #table>
+      <material-table
+        v-model:search="search"
+        v-model:searches="searches"
+        :query="query"
+        @click:row="clickTableRow"
+        @update:page="updatePage"
+      />
+    </template>
+
+    <template #charts>
+      <div class="charts-strip">
+        <chart-cell
+          :title="$t('dashboards.material.chart_coupons_per_year_profile')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="profileFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <material-double-chart
+            :fields="profileFields"
+            type="line"
+            @change:searches="changeSearches"
           />
-        </v-col>
-      </v-row>
-      <v-row v-if="!item">
-        <v-col cols="12">
-          <material-parallel-chart
-            :color="colors.orange"
-            :fields="parallelFields"
-            :query="query"
+        </chart-cell>
+        <chart-cell
+          :title="$t('dashboards.material.chart_thickness_profile')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="profileThicknessFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <material-double-chart
+            :fields="profileThicknessFields"
+            type="bar"
             @change:searches="changeSearches"
-          >
-            <template #title>
-              <info-tooltip>Parallel Axis</info-tooltip>
-            </template>
-          </material-parallel-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col md="6">
-      <v-row v-if="item">
-        <v-col cols="12">
-          <material-detail :material="item" @close="closeDetail" />
-        </v-col>
-      </v-row>
-      <v-row v-else>
-        <v-col cols="12">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              Profile Type
-              <reset-chart-button
-                :field="profileTypeFields"
-                :is-filtered="profileTypeFields.some(field => query.includes((field as string)))"
-                @change:searches="changeSearches"
-              />
-            </v-card-title>
-            <v-card-text>
-              <v-row>
-                <v-col cols="12" md="6">
-                  <material-double-chart
-                    :fields="profileFields"
-                    :query="query"
-                    type="line"
-                    @change:searches="changeSearches"
-                  />
-                </v-col>
-                <v-col cols="12" md="6">
-                  <material-double-chart
-                    :fields="profileThicknessFields"
-                    :query="query"
-                    type="bar"
-                    @change:searches="changeSearches"
-                  />
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12">
+          />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.material.chart_steel_type')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="MaterialField.Type"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
           <material-single-chart
-            :color="colors.deepPurple"
-            :field="steelField"
-            :query="query"
+            :field="MaterialField.Type"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
-          >
-            <template #title>
-              <steel-type-card-title />
-            </template>
-          </material-single-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+          />
+        </chart-cell>
+      </div>
+
+      <div class="charts-strip charts-strip-1col">
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <material-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+        </chart-cell>
+      </div>
+    </template>
+
+    <template #detail>
+      <material-detail v-if="item" :material="item" @close="closeDetail" />
+    </template>
+  </dashboard-shell>
 </template>

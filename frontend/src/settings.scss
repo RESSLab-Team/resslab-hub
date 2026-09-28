@@ -1,4 +1,142 @@
 // https://vuetifyjs.com/en/features/sass-variables/
 @use 'vuetify/_settings' with (
-  $overlay-opacity: 50%
+  // Wrap every Vuetify rule in @layer vuetify.<reset|transitions|base|
+  // components|overrides|utilities>. Our own sheets then win by layer order
+  // instead of by specificity, so the overrides in styles/vuetify-overrides.css
+  // need neither a .v-application prefix nor !important. The runtime theme
+  // stylesheet is layered separately (`theme.layers` in plugins/vuetify.ts).
+  // See docs/design-system.md.
+  $layers: true,
+  $overlay-opacity: 50%,
+  // The static Material color pack (.bg-red-lighten-4, .text-blue-*, ~900
+  // selectors) is unused: theme colors (bg-primary, …) come from Vuetify's
+  // runtime theme stylesheet, and charts pass hex values as inline styles.
+  $color-pack: false,
+  // Vuetify generates ~250 KB of utility classes (every spacing step × every
+  // breakpoint) into the render-blocking entry stylesheet. Each map entry set
+  // to `false` drops that group; only the groups actually used in templates
+  // stay enabled: margin (mb-/mt-/ml-/mx-/my-), padding (pa-/px-/pb-), gap
+  // (ga-), d-flex, flex-wrap, align-center, justify-space-between,
+  // text-center/right/end, fill-height, text-medium-emphasis, text-capitalize,
+  // font-weight-*, and typography (text-h6/body-2/caption). When adding a new
+  // utility class in a template, re-enable its group here (delete its line).
+  // The kept groups drop their responsive breakpoint variants (mb-sm-*, …,
+  // a 6× multiplier) — none is used; restore with `responsive: true` if one
+  // ever is.
+  $utilities:
+    (
+      'align-items': (
+        responsive: false
+      ),
+      'display': (
+        responsive: false
+      ),
+      'flex-wrap': (
+        responsive: false
+      ),
+      'gap': (
+        responsive: false
+      ),
+      'justify-content': (
+        responsive: false
+      ),
+      'margin-bottom': (
+        responsive: false
+      ),
+      'margin-left': (
+        responsive: false
+      ),
+      'margin-top': (
+        responsive: false
+      ),
+      'margin-x': (
+        responsive: false
+      ),
+      'margin-y': (
+        responsive: false
+      ),
+      'padding': (
+        responsive: false
+      ),
+      'padding-bottom': (
+        responsive: false
+      ),
+      'padding-x': (
+        responsive: false
+      ),
+      'text-align': (
+        responsive: false
+      ),
+      'typography': (
+        responsive: false
+      ),
+      'align-content': false,
+      'align-self': false,
+      'border': false,
+      'border-bottom': false,
+      'border-current': false,
+      'border-end': false,
+      'border-opacity': false,
+      'border-start': false,
+      'border-style': false,
+      'border-top': false,
+      'bottom': false,
+      'cursor': false,
+      'flex': false,
+      'flex-direction': false,
+      'flex-grow': false,
+      'flex-shrink': false,
+      'float': false,
+      'float:ltr': false,
+      'float:rtl': false,
+      'font-italic': false,
+      'gap-column': false,
+      'gap-row': false,
+      'height': false,
+      'height-screen': false,
+      'justify-items': false,
+      'left': false,
+      'margin': false,
+      'margin-end': false,
+      'margin-right': false,
+      'margin-start': false,
+      'negative-margin': false,
+      'negative-margin-bottom': false,
+      'negative-margin-end': false,
+      'negative-margin-left': false,
+      'negative-margin-right': false,
+      'negative-margin-start': false,
+      'negative-margin-top': false,
+      'negative-margin-x': false,
+      'negative-margin-y': false,
+      'opacity': false,
+      'order': false,
+      'overflow': false,
+      'overflow-wrap': false,
+      'overflow-x': false,
+      'overflow-y': false,
+      'padding-end': false,
+      'padding-left': false,
+      'padding-right': false,
+      'padding-start': false,
+      'padding-top': false,
+      'padding-y': false,
+      'position': false,
+      'right': false,
+      'rounded': false,
+      'rounded-bottom': false,
+      'rounded-bottom-end': false,
+      'rounded-bottom-start': false,
+      'rounded-end': false,
+      'rounded-start': false,
+      'rounded-top': false,
+      'rounded-top-end': false,
+      'rounded-top-start': false,
+      'text-decoration': false,
+      'text-mono': false,
+      'text-overflow': false,
+      'top': false,
+      'white-space': false,
+      'width': false
+    )
 );

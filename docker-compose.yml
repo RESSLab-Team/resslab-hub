@@ -17,6 +17,7 @@ services:
     labels:
       - "traefik.http.middlewares.secureHeaders.headers.stsSeconds=31536000"
       - "traefik.http.middlewares.secureHeaders.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.compress.compress=true"
       # - "traefik.enable=true"
       # - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
       # - "traefik.http.routers.traefik.service=api@internal"
@@ -40,7 +41,7 @@ services:
     labels:
       - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.frontend.middlewares=secureHeaders@docker"
+      - "traefik.http.routers.frontend.middlewares=secureHeaders@docker,compress@docker"
     restart: unless-stopped
 
   backend:
@@ -52,13 +53,16 @@ services:
     environment:
       MODULE_NAME: resslab_hub.main
       FORWARDED_ALLOW_IPS: "*"
-      CORS_ENABLED: "true"
       POSTGRES_HOST: database
       ROOT_PATH: /api
+      # Where a browser reaches the app, without the /api prefix. Every
+      # absolute URL the sign-in flow emits is built from it (#247), because
+      # Traefik has already stripped the prefix and rewritten the Host.
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://resslab-hub.epfl.ch}
     labels:
       - "traefik.http.routers.backend.tls=true"
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.middlewares=backend-stripprefix,secureHeaders@docker"
+      - "traefik.http.routers.backend.middlewares=backend-stripprefix,secureHeaders@docker,compress@docker"
       - "traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api"
     restart: unless-stopped
 

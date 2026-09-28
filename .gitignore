@@ -16,3 +16,39 @@ node_modules/
 *.vsix
 .DS_Store
 **/.DS_Store
+
+.claude/*
+
+# uv virtualenv
+backend/.venv/
+.env
+
+.python-version
+/tensile-coupons/
+
+docker-compose.override.yml
+
+# Lefthook local overrides
+lefthook-local.yml
+
+# Design / chart handoff bundles (kept locally, never committed)
+design_handoff_resslab_hub/
+handoff_dashboard_charts/
+
+# Per-worktree ports/DB settings written by scripts/wt-setup.sh
+.env.worktree
+
+# Server window output mirrored by scripts/tmux-dev.sh (pipe-pane)
+.wt-logs/
+
+# One-shot agent briefs (wtgo --prompt / tmux-dev.sh) and local brief drafts
+PROMPT.md
+PROMPT.sent.md
+.wt-prompts/
+
+# wtx: per-worktree files, local to one checkout
+.claude/settings.local.json
+.claude/agents/Explore.md
+.claude/rules/wtx.md
+.claude/worktrees/
+opencode.json

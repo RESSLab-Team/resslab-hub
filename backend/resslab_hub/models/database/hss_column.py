@@ -1,6 +1,7 @@
 """
 HSS Columns Database Models
 """
+
 from sqlalchemy import (
     BigInteger,
     Column,
@@ -8,10 +9,8 @@ from sqlalchemy import (
     ForeignKey,
     SmallInteger,
     String,
-    func,
-    select,
+    text,
 )
-from sqlalchemy.orm import column_property
 
 from resslab_hub.models.database.common import DecimalFloat
 from resslab_hub.utils.database import Base
@@ -99,9 +98,8 @@ class HSSColumn(Base):  # type: ignore
     longitude = Column(DecimalFloat, nullable=True)
     # END_OF_GENERATED_CODE
 
-    moment_rotation_count = column_property(
-        select(func.count(HSSColumnMomentRotation.id))
-        .where(HSSColumnMomentRotation.hss_column_id == id)
-        .correlate_except(HSSColumnMomentRotation)
-        .scalar_subquery()  # type: ignore
+    # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
+    # of every upload (see resslab_hub/data/count_flags.py).
+    moment_rotation_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )

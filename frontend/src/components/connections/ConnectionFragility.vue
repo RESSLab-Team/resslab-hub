@@ -1,9 +1,16 @@
 <script setup lang="ts">
 // Computations from https://github.com/RESSLab-Team/resslab-hub-scripts/tree/main/fragility_curves_steel_connections
+//
+// Layout: EPFL design handoff "Fragility A" — three-pane (controls + schematic
+// left) with one full-width FOCUS chart and Pre-/Post-Northridge preview
+// thumbnails below. Inputs use the EPFL tool controls (ToolSegmented / ToolSwitch
+// / ToolSlider); the curves stay on the existing ECharts UnitChart wrapper.
 import UnitChart from '@/components/commons/charts/UnitChart.vue'
-import SimpleToggle from '@/components/commons/SimpleToggle.vue'
-import UnitSlider, { type UnitSliderItem } from '@/components/commons/sliders/UnitSlider.vue'
-import type { ToggleItem } from '@/utils/toggle'
+import ToolShell from '@/components/commons/ToolShell.vue'
+import UnitToggle from '@/components/commons/UnitToggle.vue'
+import ToolSegmented from '@/components/commons/tools/ToolSegmented.vue'
+import ToolSlider from '@/components/commons/tools/ToolSlider.vue'
+import ToolSwitch from '@/components/commons/tools/ToolSwitch.vue'
 
 import { publicPath } from '@/utils/common'
 import { fragilityCurve } from '@/utils/fragility'
@@ -11,48 +18,25 @@ import { getColorMap } from '@/utils/vuetify'
 import { MAX_ECHARTS_POINTS, sampleArray } from '@/utils/echarts'
 import type { EChartsOption } from 'echarts'
 import { computed, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import TitleRow from '@/components/commons/TitleRow.vue'
+const { t } = useI18n({ useScope: 'global' })
 
-type Material = 'a36' | 'a572'
+type FocusId = 'pre' | 'post'
 interface Variables {
   l: number
   db: number
 }
 
-const parameters: UnitSliderItem<keyof Variables>[] = [
-  {
-    key: 'l',
-    label: 'L',
-    min: 1000,
-    max: 12000,
-    unit: 'mm'
-  },
-  {
-    key: 'db',
-    label: 'd<sub>b</sub>',
-    min: 100,
-    max: 2000,
-    unit: 'mm'
-  }
-]
-const materials: ToggleItem<Material>[] = [
-  {
-    value: 'a36',
-    text: 'ASTM A36'
-  },
-  {
-    value: 'a572',
-    text: 'ASTM A572'
-  }
+const materials: { value: string; text: string }[] = [
+  { value: 'a36', text: 'ASTM A36' },
+  { value: 'a572', text: 'ASTM A572' }
 ]
 
 const infoAvailable = ref(true)
-const material = ref<Material>('a36')
-const variables = reactive<Variables>({
-  l: 4000,
-  db: 600
-})
+const material = ref('a36')
+const focus = ref<FocusId>('pre')
+const variables = reactive<Variables>({ l: 4000, db: 600 })
 
 const preNorthridgeOption = computed<EChartsOption>(() => {
   const { l, db } = variables
@@ -76,23 +60,19 @@ const preNorthridgeOption = computed<EChartsOption>(() => {
     fractureSigma = 0.47
   }
   return {
-    xAxis: {
-      name: 'SDR'
-    },
-    yAxis: {
-      name: 'P(DS)'
-    },
+    xAxis: { name: 'SDR' },
+    yAxis: { name: 'P(DS)' },
     color: getColorMap(2),
     series: [
       {
         type: 'line',
-        name: 'Yielding',
+        name: t('tools.connection_fragility.series_yielding'),
         showSymbol: false,
         data: sampleArray(fragilityCurve(yieldingMedian, yieldingSigma), MAX_ECHARTS_POINTS)
       },
       {
         type: 'line',
-        name: 'Brittle Fracture',
+        name: t('tools.connection_fragility.series_brittle_fracture'),
         showSymbol: false,
         data: sampleArray(fragilityCurve(fractureMedian, fractureSigma), MAX_ECHARTS_POINTS)
       }
@@ -102,108 +82,203 @@ const preNorthridgeOption = computed<EChartsOption>(() => {
 
 const postNorthridgeOption = computed<EChartsOption>(() => {
   return {
-    xAxis: {
-      name: 'SDR'
-    },
-    yAxis: {
-      name: 'P(DS)'
-    },
+    xAxis: { name: 'SDR' },
+    yAxis: { name: 'P(DS)' },
     color: getColorMap(5),
     series: [
       {
         type: 'line',
-        name: 'Yielding Anywhere',
+        name: t('tools.connection_fragility.series_yielding_anywhere'),
         showSymbol: false,
         data: fragilityCurve(1, 0.17)
       },
       {
         type: 'line',
-        name: 'Yielding @ Panel Zone',
+        name: t('tools.connection_fragility.series_yielding_panel_zone'),
         showSymbol: false,
         data: fragilityCurve(1, 0.15)
       },
       {
         type: 'line',
-        name: 'Yielding @ Flanges',
+        name: t('tools.connection_fragility.series_yielding_flanges'),
         showSymbol: false,
         data: fragilityCurve(0.96, 0.1)
       },
       {
         type: 'line',
-        name: 'Local Buckling',
+        name: t('tools.connection_fragility.series_local_buckling'),
         showSymbol: false,
         data: fragilityCurve(2.16, 0.3)
       },
       {
         type: 'line',
-        name: 'Ductile Tearing',
+        name: t('tools.connection_fragility.series_ductile_tearing'),
         showSymbol: false,
         data: fragilityCurve(5, 0.31)
       }
     ]
   }
 })
+
+// `count` is the number of damage states plotted, surfaced as the thumbnail's
+// meta line so the two panels are distinguishable at thumbnail size.
+const panels = computed<{ id: FocusId; title: string; option: EChartsOption; count: number }[]>(
+  () => [
+    {
+      id: 'pre',
+      title: t('tools.connection_fragility.panel_pre_northridge'),
+      option: preNorthridgeOption.value,
+      count: (preNorthridgeOption.value.series as unknown[]).length
+    },
+    {
+      id: 'post',
+      title: t('tools.connection_fragility.panel_post_northridge'),
+      option: postNorthridgeOption.value,
+      count: (postNorthridgeOption.value.series as unknown[]).length
+    }
+  ]
+)
+const activePanel = computed(() => panels.value.find((p) => p.id === focus.value)!)
+
+// Compact, label-free clone for the preview thumbnails; inactive series go grey.
+// Computed once per panel rather than called from the template, so a slider drag
+// doesn't hand vue-echarts a brand-new option object for each thumbnail.
+const thumbOptions = computed<Record<FocusId, EChartsOption>>(
+  () =>
+    Object.fromEntries(
+      panels.value.map((panel) => {
+        const option = panel.option
+        const series = option.series as { type: string }[]
+        const active = focus.value === panel.id
+        return [
+          panel.id,
+          {
+            ...option,
+            grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: false },
+            xAxis: { ...(option.xAxis as object), name: '', axisLabel: { show: false } },
+            yAxis: { ...(option.yAxis as object), name: '', axisLabel: { show: false } },
+            color: active ? (option.color as string[]) : series.map(() => '#c1c1c1'),
+            legend: { show: false }
+          } as EChartsOption
+        ]
+      })
+    ) as Record<FocusId, EChartsOption>
+)
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12">
-      <title-row>
-        <h1>Fragility Curve Plotter for Steel Component</h1>
-        <p>
-          This tab introduces a web-based interactive module for visualizing fragility curves of
-          Pre- and Post-Northridge beam-to-column connections. For further information refer to
+  <tool-shell
+    :eyebrow="$t('tools.common.fragility_eyebrow')"
+    :title="$t('tools.connection_fragility.title')"
+    :param-count="2"
+    stage-class="stage-d"
+  >
+    <template #actions><unit-toggle /></template>
+    <template #intro>
+      <i18n-t keypath="tools.connection_fragility.intro" tag="span" scope="global">
+        <template #lignos>
           <a
             href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0000214"
             target="_blank"
-            >Lignos et al. (2010)</a
+            >{{ $t('tools.connection_fragility.intro_lignos') }}</a
           >
-          and
+        </template>
+        <template #ramirez>
           <a
             href="https://www.sciencedirect.com/science/article/abs/pii/S0141029612003689"
             target="_blank"
-            >Ramirez et al. (2012)</a
-          >.
-        </p>
-      </title-row>
-    </v-col>
-    <v-col cols="4">
-      <v-card>
-        <v-card-title>Steel Type</v-card-title>
-        <v-card-text>
-          <simple-toggle v-model="material" class="my-4" :items="materials" />
-        </v-card-text>
-        <v-card-title>Geometric Parameters</v-card-title>
-        <v-card-text>
-          <v-switch
+            >{{ $t('tools.connection_fragility.intro_ramirez') }}</a
+          >
+        </template>
+      </i18n-t>
+    </template>
+
+    <template #rail>
+      <div class="tool-card">
+        <div class="tfield">
+          <div class="tfield-label">{{ $t('tools.connection_fragility.steel_type') }}</div>
+          <tool-segmented v-model="material" full :items="materials" />
+        </div>
+        <div class="tfield">
+          <div class="tfield-label">
+            {{ $t('tools.connection_fragility.geometric_parameters') }}
+          </div>
+          <tool-switch
             v-model="infoAvailable"
-            color="primary"
-            label="Geometric parameters available"
+            :label="$t('tools.connection_fragility.parameters_available')"
           />
-          <unit-slider
-            v-for="item in parameters"
-            :key="item.key"
-            v-model="variables[item.key]"
-            class="my-4"
+        </div>
+        <div class="tfield">
+          <tool-slider
+            v-model="variables.l"
             :disabled="!infoAvailable"
-            :label="item.label"
-            :max="item.max"
-            :min="item.min"
-            :unit="item.unit"
+            label="L"
+            :max="12000"
+            :min="1000"
+            :step="50"
+            unit="mm"
           />
-        </v-card-text>
-      </v-card>
-      <v-col cols="12">
-        <v-img height="300px" :src="publicPath + 'img/connection/connection_fragility.png'" />
-      </v-col>
-    </v-col>
-    <v-col cols="4">
-      <h2>Pre-Northridge</h2>
-      <unit-chart :option="preNorthridgeOption" x-unit="rad" />
-    </v-col>
-    <v-col cols="4">
-      <h2>Post-Northridge</h2>
-      <unit-chart :option="postNorthridgeOption" x-unit="rad" />
-    </v-col>
-  </v-row>
+        </div>
+        <div class="tfield">
+          <tool-slider
+            v-model="variables.db"
+            :disabled="!infoAvailable"
+            label="d<sub>b</sub>"
+            :max="2000"
+            :min="100"
+            :step="10"
+            unit="mm"
+          />
+        </div>
+        <div class="tfield-ratio">
+          <span>L / d<sub>b</sub></span>
+          <strong>{{ (variables.l / variables.db).toFixed(2) }}</strong>
+        </div>
+      </div>
+      <figure class="tool-schematic">
+        <img
+          :alt="$t('tools.connection_fragility.schematic_alt')"
+          :src="publicPath + 'img/connection/connection_fragility.png'"
+        />
+        <figcaption>
+          <i18n-t keypath="tools.connection_fragility.figcaption" tag="span" scope="global">
+            <template #l>L</template>
+            <template #db>d<sub>b</sub></template>
+          </i18n-t>
+        </figcaption>
+      </figure>
+    </template>
+
+    <template #stage>
+      <div class="st-block st-chart">
+        <div class="chart-cap">
+          <div class="chart-cap-t">
+            <h2 class="chart-h">{{ activePanel.title }}</h2>
+            <p class="chart-sub">{{ $t('tools.connection_fragility.panel_sub') }}</p>
+          </div>
+        </div>
+        <div class="tchart h-chart">
+          <unit-chart fill :option="activePanel.option" x-unit="rad" />
+        </div>
+        <div class="mat-thumbs frag-thumbs">
+          <button
+            v-for="panel in panels"
+            :key="panel.id"
+            class="mat-thumb"
+            :class="{ 'is-active': focus === panel.id }"
+            type="button"
+            @click="focus = panel.id"
+          >
+            <div class="mat-thumb-chart">
+              <unit-chart :aspect-ratio="3" :option="thumbOptions[panel.id]" x-unit="rad" />
+            </div>
+            <span class="mat-thumb-label">{{ panel.title }}</span>
+            <span class="mat-thumb-meta">
+              {{ $t('tools.connection_fragility.damage_states', { count: panel.count }) }}
+            </span>
+          </button>
+        </div>
+      </div>
+    </template>
+  </tool-shell>
 </template>

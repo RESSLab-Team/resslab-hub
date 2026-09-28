@@ -4,15 +4,18 @@ CLI for uploading csv to database
 
 import traceback
 from abc import ABC, abstractmethod
+from argparse import ArgumentParser
+from collections import Counter
 from csv import DictReader, reader
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from glob import iglob
-from logging import debug, error, getLogger, info, warning
+from io import StringIO
+from logging import DEBUG, INFO, basicConfig, debug, error, getLogger, info, warning
 from multiprocessing import get_context
-from os import path
-from typing import Any, Callable, List, Tuple
+from os import path, sep
+from typing import Any, Callable, List, Optional, Tuple
 
 from sqlalchemy import (
     Boolean,
@@ -25,10 +28,10 @@ from sqlalchemy import (
     create_engine,
     delete,
 )
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
 from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
+from resslab_hub.data.count_flags import COUNT_FLAGS, recompute_count_flags
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
 from resslab_hub.models.database.column import (
     ColumnAxialShortening,
@@ -44,6 +47,17 @@ from resslab_hub.models.database.connection import (
     ConnectionGlobalWest,
     ConnectionPanelZone,
 )
+from resslab_hub.models.database.dictionary import DatabaseReadme, DictionaryColumn
+from resslab_hub.models.database.ductile_fracture import (
+    DuctileFracture,
+    DuctileFractureEpeqSimulation,
+    DuctileFractureForceElongation,
+    DuctileFractureForceElongationSimulation,
+    DuctileFractureForceRadial,
+    DuctileFractureForceRadialSimulation,
+    DuctileFractureLodeSimulation,
+    DuctileFractureTriaxSimulation,
+)
 from resslab_hub.models.database.eccentric_braced_frame import (
     EccentricBracedFrame,
     EccentricBracedFrameShearLinkAngle,
@@ -57,6 +71,10 @@ from resslab_hub.models.database.residual_stress import (
     ResidualStressDistributionW1,
     ResidualStressQPCoefficient,
 )
+from resslab_hub.models.database.tensile_coupon import (
+    TensileCoupon,
+    TensileCouponStressStrain,
+)
 from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
@@ -68,18 +86,57 @@ Session = sessionmaker(engine)
 # see https://docs.python.org/3/library/os.html#os.cpu_count
 
 
+def _cgroup_cpu_quota():
+    """CPUs the current cgroup is allowed, rounded up, or None if unrestricted.
+
+    Inside a container sched_getaffinity()/cpu_count() still report every core
+    on the *node* -- a CPU limit is a CFS bandwidth quota, not an affinity mask
+    -- so they wildly overcount the CPUs a limited pod can actually use. Read
+    the quota straight from the cgroup instead.
+    """
+    # cgroup v2
+    try:
+        with open("/sys/fs/cgroup/cpu.max") as f:
+            quota, period = f.read().split()
+        if quota != "max" and int(period) > 0:
+            return max(1, -(-int(quota) // int(period)))
+    except (OSError, ValueError):
+        pass
+    # cgroup v1
+    try:
+        with open("/sys/fs/cgroup/cpu/cpu.cfs_quota_us") as f:
+            quota = int(f.read())
+        with open("/sys/fs/cgroup/cpu/cpu.cfs_period_us") as f:
+            period = int(f.read())
+        if quota > 0 and period > 0:
+            return max(1, -(-quota // period))
+    except (OSError, ValueError):
+        pass
+    return None
+
+
 def get_safe_cpu_count() -> int:
-    """Get a safe number of CPU count in a cross-platform way"""
+    """Get a safe number of CPU count in a cross-platform way.
+
+    Honours the container's CPU quota when present so a resource-capped pod does
+    not spawn one worker per *node* core (which OOM-kills a memory-limited pod).
+    """
     try:
         # Try Linux-specific sched_getaffinity first
         from os import sched_getaffinity
 
-        return max(1, len(sched_getaffinity(0)) - 1)
+        available = len(sched_getaffinity(0))
     except (ImportError, AttributeError):
         # Fallback to cpu_count() for other platforms
         from multiprocessing import cpu_count
 
-        return max(1, cpu_count() - 1)
+        available = cpu_count()
+
+    quota = _cgroup_cpu_quota()
+    if quota is not None:
+        available = min(available, quota)
+
+    return max(1, available - 1)
 
 
 def initializer(log_level=None, log_format=None):
@@ -114,6 +171,8 @@ def initializer(log_level=None, log_format=None):
 
 class Type(Enum):
     ALL = "all"  # Triggers upload of all data types
+    DICTIONARY = "dictionary"  # A *_data_dictionary.csv file
+    README = "readme"  # The README.md contributor guide of a database folder
     ALL_COLUMN = "all-columns"  # Main column table + related measurements
     ALL_BRACE = "all-braces"
     ALL_CONNECTION = "all-connections"
@@ -144,15 +203,55 @@ class Type(Enum):
     HSS_COLUMN_MOMENT_ROTATION = "hss-column-moment-rotation"
     ECCENTRIC_BRACED_FRAME = "eccentric-braced-frame"
     ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE = "eccentric-braced-frame-shear-link-angle"
+    ALL_TENSILE_COUPON = "all-tensile-coupons"
+    TENSILE_COUPON = "tensile-coupon"
+    TENSILE_COUPON_STRESS_STRAIN = "tensile-coupon-stress-strain"
+    ALL_DUCTILE_FRACTURE = "all-ductile-fractures"
+    DUCTILE_FRACTURE = "ductile-fracture"
+    DUCTILE_FRACTURE_FORCE_ELONGATION = "ductile-fracture-force-elongation"
+    DUCTILE_FRACTURE_FORCE_ELONGATION_SIMULATION = (
+        "ductile-fracture-force-elongation-simulation"
+    )
+    DUCTILE_FRACTURE_FORCE_RADIAL = "ductile-fracture-force-radial"
+    DUCTILE_FRACTURE_FORCE_RADIAL_SIMULATION = (
+        "ductile-fracture-force-radial-simulation"
+    )
+    DUCTILE_FRACTURE_EPEQ_SIMULATION = "ductile-fracture-epeq-simulation"
+    DUCTILE_FRACTURE_LODE_SIMULATION = "ductile-fracture-lode-simulation"
+    DUCTILE_FRACTURE_TRIAX_SIMULATION = "ductile-fracture-triax-simulation"
+
+
+# Main-table types: uploaded before everything else so the per-experiment
+# measurement rows have their foreign-key targets in place.
+PRIMARY_TYPES = frozenset(
+    {
+        Type.BRACE,
+        Type.COLUMN,
+        Type.CONNECTION,
+        Type.MATERIAL,
+        Type.RESIDUAL_STRESS,
+        Type.HSS_COLUMN,
+        Type.ECCENTRIC_BRACED_FRAME,
+        Type.TENSILE_COUPON,
+        Type.DUCTILE_FRACTURE,
+    }
+)
+
+# Types never capped by upload_all's series_limit: the main tables plus the
+# one-per-folder dictionary/README files (capping those per Type would keep a
+# single component's dictionary and drop the other eight).
+SERIES_EXEMPT_TYPES = PRIMARY_TYPES | {Type.DICTIONARY, Type.README}
 
 
 # Abstract base class defining the upload interface
 class Uploader(ABC):
     """
     Abstract class for all uploaders
-    Two concrete implementations:
+    Four concrete implementations:
     - TableUploader: For main entity tables (1:1 mapping with DB schema)
     - CsvFileUploader: For measurement data (linked to parent records)
+    - DictionaryUploader: For the *_data_dictionary.csv of a database
+    - ReadmeUploader: For the README.md contributor guide of a database folder
     """
 
     @abstractmethod
@@ -211,8 +310,10 @@ class TableUploader(Uploader):
                     debug(f"Header {i}: '{header}'")
 
                 existing_ids = {row[0] for row in session.query(self.id_column).all()}
+                # derived flags have no CSV header; recomputed after the upload
+                derived = COUNT_FLAGS.get(self.base_model, {})
                 debug(
-                    f"Opened file {path.basename(file_path)},"
+                    f"Opened file {path.basename(file_path)}, "
                     f"encoding: {encoding}, id_index: {id_index}"
                 )
                 # add new rows
@@ -230,6 +331,7 @@ class TableUploader(Uploader):
                         data = {
                             column.key: self.__get_value(column, headers, row)
                             for column in self.base_model.__table__.c
+                            if column.key not in derived
                         }
                         if row[id_index] in existing_ids:
                             modified_count += 1
@@ -254,7 +356,7 @@ class TableUploader(Uploader):
             error_traceback = traceback.format_exc()
             error_message = f"Skipping {file_path} due to error: {e}"
             error(error_message)
-            debug(f"Full traceback:\n{error_traceback}")
+            debug(f"Full traceback: \n{error_traceback}")
             return f"{error_message} (see logs for details)"
 
     @staticmethod
@@ -271,6 +373,10 @@ class TableUploader(Uploader):
         index = headers.index(column.key or "")
         value = row[index]
 
+        if value == "":
+            if isinstance(column.type, String):
+                return ""
+            return None
         if value.upper() == "NA":
             if isinstance(column.type, String):
                 return "Not applicable"
@@ -306,6 +412,26 @@ class TableUploader(Uploader):
         return str(value)
 
 
+def _copy_encode(value: Any) -> str:
+    """
+    Encode one value for a ``COPY ... FROM STDIN`` text-format stream.
+
+    ``None`` becomes the NULL marker (``\\N``); an empty string stays an empty
+    field, so it still fails a numeric column exactly as the previous INSERT
+    did -- keeping skip behaviour identical. Backslash and the field/record
+    separators are escaped per the COPY text format.
+    """
+    if value is None:
+        return r"\N"
+    return (
+        str(value)
+        .replace("\\", "\\\\")
+        .replace("\t", "\\t")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+    )
+
+
 # Handles measurement data that belongs to parent records
 class CsvFileUploader(Uploader):
     """
@@ -320,17 +446,20 @@ class CsvFileUploader(Uploader):
 
     def __init__(
         self,
+        base_model: Any,
         get_delete: Callable[[str], delete],
-        get_instance: Callable[[str, int, dict[str, str]], Any],
+        get_instance: Callable[[str, int, dict[str, str]], dict[str, Any]],
         filename_prefix="",
         filename_suffix="",
     ) -> None:
         """
         Initialize uploader for measurement data
+        - base_model: SQLAlchemy model defining the measurement table schema
         - get_delete: Function to remove existing measurements
-        - get_instance: Function to create new measurement records
+        - get_instance: Function returning a column->value mapping for one row
         - filename_prefix/suffix: For extracting parent ID from filename
         """
+        self.base_model = base_model
         self.get_delete = get_delete
         self.get_instance = get_instance
         self.filename_prefix = filename_prefix
@@ -359,18 +488,45 @@ class CsvFileUploader(Uploader):
             ):
                 reader = DictReader(file, strict=True)
                 session.execute(self.get_delete(id))
-                for index, value in enumerate(reader):
-                    session.add(self.get_instance(id, index, value))
+                # The parent's rows are deleted and fully re-inserted, so there
+                # is no merge/identity to resolve. Build plain column->value
+                # mappings (no ORM objects) and stream them in with a single
+                # COPY -- far cheaper than batched INSERTs.
+                mappings = [
+                    self.get_instance(id, index, value)
+                    for index, value in enumerate(reader)
+                ]
                 try:
+                    if mappings:
+                        self.__copy(connection, mappings)
                     session.commit()
                     return path.basename(file_path)
-                except IntegrityError as e:
+                except Exception:
                     session.rollback()
-                    raise Exception(e.orig)
+                    raise
         except Exception as e:
             error_message = f"skiping {file_path} due to error {e}"
             error(error_message)
             return error_message
+
+    def __copy(self, connection, mappings: List[dict]) -> None:
+        """
+        Bulk-load row mappings into the table with a single COPY ... FROM STDIN,
+        running on the session's existing transaction so it commits/rolls back
+        together with the preceding delete.
+        """
+        columns = list(mappings[0].keys())
+        buffer = StringIO()
+        for row in mappings:
+            buffer.write("\t".join(_copy_encode(row[column]) for column in columns))
+            buffer.write("\n")
+        buffer.seek(0)
+        column_list = ", ".join(f'"{column}"' for column in columns)
+        table_name = self.base_model.__table__.name
+        statement = f'COPY "{table_name}" ({column_list}) FROM STDIN'
+        dbapi_connection = connection.connection.driver_connection
+        with dbapi_connection.cursor() as cursor:
+            cursor.copy_expert(statement, buffer)
 
     @staticmethod
     def __get_filename(file_path: str) -> str:
@@ -380,6 +536,115 @@ class CsvFileUploader(Uploader):
         """
         basename = path.basename(file_path)
         return path.splitext(basename)[0]
+
+
+# Data-dictionary CSV basename -> frontend DatabaseId. The mapping lives here so
+# the frontend consumes /dictionary keys as-is.
+DICTIONARY_DATABASES = {
+    "connections_data_dictionary.csv": "connections",
+    "steel_columns_data_dictionary.csv": "columns",
+    "steel_braces_data_dictionary.csv": "braces",
+    "hss_columns_data_dictionary.csv": "hss",
+    "steel_material_data_dictionary.csv": "cyclic",
+    "residual_stresses_data_dictionary.csv": "residuals",
+    "eccentric_braced_frames_data_dictionary.csv": "ebf",
+    "tensile_coupons_data_dictionary.csv": "tensile",
+    "ductile_fracture_data_dictionary.csv": "ductile-fracture",
+}
+
+
+class DictionaryUploader(Uploader):
+    """
+    Loads a ``*_data_dictionary.csv`` into the dictionary_column table.
+
+    The dictionary CSVs don't fit TableUploader (they carry neither the
+    database discriminator nor the row position), so rows are built here and the
+    database's previous entries replaced wholesale.
+    """
+
+    def upload_one(self, file_path: str) -> str:
+        file_path = get_abs_path(file_path)
+        database = DICTIONARY_DATABASES.get(path.basename(file_path))
+        if database is None:
+            return f"Skipping unknown dictionary file {path.basename(file_path)}"
+
+        rows = []
+        with open(file_path, newline="", encoding="utf-8-sig") as file:
+            for position, entry in enumerate(DictReader(file)):
+                column_name = (entry.get("column_name") or "").strip()
+                if not column_name:
+                    continue
+                rows.append(
+                    DictionaryColumn(
+                        database=database,
+                        column_name=column_name,
+                        position=position,
+                        description=(entry.get("description") or "").strip(),
+                        symbol=(entry.get("symbol") or "").strip(),
+                        unit=(entry.get("unit") or "").strip(),
+                        type=(entry.get("type") or "String").strip(),
+                        example=(entry.get("example_value") or "").strip(),
+                        nullable=(entry.get("nullable") or "").strip() == "True",
+                        group=(entry.get("group") or "").strip(),
+                    )
+                )
+
+        with Session() as session:
+            session.execute(
+                delete(DictionaryColumn).where(DictionaryColumn.database == database)
+            )
+            session.add_all(rows)
+            session.commit()
+        return f"{path.basename(file_path)}: {len(rows)} dictionary columns"
+
+
+# Data-repo folder (relative to the archive root) -> frontend DatabaseId, for
+# the README.md each folder carries.
+README_DATABASES = {
+    "braces": "braces",
+    "columns": "columns",
+    "connections": "connections",
+    "hss_columns": "hss",
+    "material/cyclic_coupons": "cyclic",
+    "material/tensile_coupons": "tensile",
+    "material/ductile_fracture": "ductile-fracture",
+    "residual_stresses": "residuals",
+    "eccentric_braced_frames": "ebf",
+}
+
+
+def readme_database(file_path: str) -> Optional[str]:
+    """
+    The DatabaseId a README.md belongs to, from the folder it sits in. The
+    archive root is unknown here, so the deepest matching suffix wins
+    (``.../material/cyclic_coupons/README.md`` -> ``cyclic``).
+    """
+    folder = path.dirname(path.abspath(file_path)).replace(sep, "/")
+    for suffix, database in sorted(
+        README_DATABASES.items(), key=lambda item: -len(item[0])
+    ):
+        if folder == suffix or folder.endswith("/" + suffix):
+            return database
+    return None
+
+
+class ReadmeUploader(Uploader):
+    """
+    Stores a database folder's ``README.md`` verbatim so the frontend can
+    render the contributor guide next to the data dictionary.
+    """
+
+    def upload_one(self, file_path: str) -> str:
+        file_path = get_abs_path(file_path)
+        database = readme_database(file_path)
+        if database is None:
+            return f"Skipping README in unknown folder {path.dirname(file_path)}"
+        with open(file_path, encoding="utf-8-sig") as file:
+            content = file.read()
+        with Session() as session:
+            session.merge(DatabaseReadme(database=database, content=content))
+            session.commit()
+        return f"{database}/README.md: {len(content)} characters"
 
 
 def upload_one(input_type: Type, filename: str) -> str:
@@ -398,6 +663,10 @@ def upload_one(input_type: Type, filename: str) -> str:
     info(f"Upload one: {input_type}, {filename}")
     try:
         match input_type:
+            case Type.DICTIONARY:
+                uploader = DictionaryUploader()
+            case Type.README:
+                uploader = ReadmeUploader()
             case Type.BRACE:
                 uploader = TableUploader(Brace)
             case Type.COLUMN:
@@ -412,13 +681,29 @@ def upload_one(input_type: Type, filename: str) -> str:
                 uploader = TableUploader(HSSColumn)
             case Type.ECCENTRIC_BRACED_FRAME:
                 uploader = TableUploader(EccentricBracedFrame)
+            case Type.TENSILE_COUPON:
+                uploader = TableUploader(TensileCoupon)
+            case Type.TENSILE_COUPON_STRESS_STRAIN:
+                uploader = CsvFileUploader(
+                    TensileCouponStressStrain,
+                    lambda id: delete(TensileCouponStressStrain).where(
+                        TensileCouponStressStrain.tensile_coupon_id == id
+                    ),
+                    lambda id, index, value: dict(
+                        tensile_coupon_id=id,
+                        id=index,
+                        stress=value.get("Stress_eng"),
+                        strain=value.get("strain_eng"),
+                    ),
+                )
             case Type.ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE:
                 uploader = CsvFileUploader(
+                    EccentricBracedFrameShearLinkAngle,
                     lambda id: delete(EccentricBracedFrameShearLinkAngle).where(
                         EccentricBracedFrameShearLinkAngle.eccentric_braced_frame_id
                         == id
                     ),
-                    lambda id, index, value: EccentricBracedFrameShearLinkAngle(
+                    lambda id, index, value: dict(
                         eccentric_braced_frame_id=id,
                         id=index,
                         gamma_t=value.get("gamma_t"),
@@ -428,10 +713,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.BRACE_DISPLACEMENT:
                 uploader = CsvFileUploader(
+                    BraceDisplacement,
                     lambda id: delete(BraceDisplacement).where(
                         BraceDisplacement.brace_id == id
                     ),
-                    lambda id, index, value: BraceDisplacement(
+                    lambda id, index, value: dict(
                         brace_id=id,
                         id=index,
                         displacement=value.get("Displacement [mm]"),
@@ -440,10 +726,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.COLUMN_AXIAL_SHORTENING:
                 uploader = CsvFileUploader(
+                    ColumnAxialShortening,
                     lambda id: delete(ColumnAxialShortening).where(
                         ColumnAxialShortening.column_id == id
                     ),
-                    lambda id, index, value: ColumnAxialShortening(
+                    lambda id, index, value: dict(
                         column_id=id,
                         id=index,
                         chord_rotation=value.get("Chord Rotation [rads]"),
@@ -452,10 +739,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.COLUMN_MOMENT_STRONG:
                 uploader = CsvFileUploader(
+                    ColumnMomentStrong,
                     lambda id: delete(ColumnMomentStrong).where(
                         ColumnMomentStrong.column_id == id
                     ),
-                    lambda id, index, value: ColumnMomentStrong(
+                    lambda id, index, value: dict(
                         column_id=id,
                         id=index,
                         chord_rotation=value.get("Chord Rotation [rads]"),
@@ -464,10 +752,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.COLUMN_MOMENT_WEAK:
                 uploader = CsvFileUploader(
+                    ColumnMomentWeak,
                     lambda id: delete(ColumnMomentWeak).where(
                         ColumnMomentWeak.column_id == id
                     ),
-                    lambda id, index, value: ColumnMomentWeak(
+                    lambda id, index, value: dict(
                         column_id=id,
                         id=index,
                         chord_rotation=value.get("Chord Rotation [rads]"),
@@ -476,10 +765,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.CONNECTION_BEAM:
                 uploader = CsvFileUploader(
+                    ConnectionBeam,
                     lambda id: delete(ConnectionBeam).where(
                         ConnectionBeam.connection_id == id
                     ),
-                    lambda id, index, value: ConnectionBeam(
+                    lambda id, index, value: dict(
                         connection_id=id,
                         id=index,
                         chord_rotation=value.get("Chord Rotation [rads]")
@@ -489,10 +779,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.CONNECTION_BEAM_WEST:
                 uploader = CsvFileUploader(
+                    ConnectionBeamWest,
                     lambda id: delete(ConnectionBeamWest).where(
                         ConnectionBeamWest.connection_id == id
                     ),
-                    lambda id, index, value: ConnectionBeamWest(
+                    lambda id, index, value: dict(
                         connection_id=id,
                         id=index,
                         chord_rotation=value.get("Chord Rotation [rads]")
@@ -502,10 +793,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.CONNECTION_GLOBAL:
                 uploader = CsvFileUploader(
+                    ConnectionGlobal,
                     lambda id: delete(ConnectionGlobal).where(
                         ConnectionGlobal.connection_id == id
                     ),
-                    lambda id, index, value: ConnectionGlobal(
+                    lambda id, index, value: dict(
                         connection_id=id,
                         id=index,
                         story_drift_angle=value.get("Total story drift angle (rad)"),
@@ -514,10 +806,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.CONNECTION_GLOBAL_WEST:
                 uploader = CsvFileUploader(
+                    ConnectionGlobalWest,
                     lambda id: delete(ConnectionGlobalWest).where(
                         ConnectionGlobalWest.connection_id == id
                     ),
-                    lambda id, index, value: ConnectionGlobalWest(
+                    lambda id, index, value: dict(
                         connection_id=id,
                         id=index,
                         story_drift_angle=value.get("Total story drift angle (rad)"),
@@ -526,10 +819,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.CONNECTION_PANEL_ZONE:
                 uploader = CsvFileUploader(
+                    ConnectionPanelZone,
                     lambda id: delete(ConnectionPanelZone).where(
                         ConnectionPanelZone.connection_id == id
                     ),
-                    lambda id, index, value: ConnectionPanelZone(
+                    lambda id, index, value: dict(
                         connection_id=id,
                         id=index,
                         shear_distortion=value.get("panel zone shear distortion (rad)"),
@@ -538,10 +832,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.MATERIAL_STRESS_STRAIN:
                 uploader = CsvFileUploader(
+                    MaterialStressStrain,
                     lambda id: delete(MaterialStressStrain).where(
                         MaterialStressStrain.material_id == id
                     ),
-                    lambda id, index, value: MaterialStressStrain(
+                    lambda id, index, value: dict(
                         material_id=id,
                         id=index,
                         stress=value.get("Sigma_true"),
@@ -550,10 +845,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
                 uploader = CsvFileUploader(
+                    ResidualStressDistributionF1,
                     lambda id: delete(ResidualStressDistributionF1).where(
                         ResidualStressDistributionF1.residual_stress_id == id
                     ),
-                    lambda id, index, value: ResidualStressDistributionF1(
+                    lambda id, index, value: dict(
                         residual_stress_id=id,
                         id=index,
                         coordinate=value.get("coordinate"),
@@ -562,10 +858,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.RESIDUAL_STRESS_DISTRIBUTION_F2:
                 uploader = CsvFileUploader(
+                    ResidualStressDistributionF2,
                     lambda id: delete(ResidualStressDistributionF2).where(
                         ResidualStressDistributionF2.residual_stress_id == id
                     ),
-                    lambda id, index, value: ResidualStressDistributionF2(
+                    lambda id, index, value: dict(
                         residual_stress_id=id,
                         id=index,
                         coordinate=value.get("coordinate"),
@@ -574,10 +871,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.RESIDUAL_STRESS_DISTRIBUTION_W1:
                 uploader = CsvFileUploader(
+                    ResidualStressDistributionW1,
                     lambda id: delete(ResidualStressDistributionW1).where(
                         ResidualStressDistributionW1.residual_stress_id == id
                     ),
-                    lambda id, index, value: ResidualStressDistributionW1(
+                    lambda id, index, value: dict(
                         residual_stress_id=id,
                         id=index,
                         coordinate=value.get("coordinate"),
@@ -586,10 +884,11 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.RESIDUAL_STRESS_QP_COEFFICIENT:
                 uploader = CsvFileUploader(
+                    ResidualStressQPCoefficient,
                     lambda id: delete(ResidualStressQPCoefficient).where(
                         ResidualStressQPCoefficient.residual_stress_id == id
                     ),
-                    lambda id, index, value: ResidualStressQPCoefficient(
+                    lambda id, index, value: dict(
                         residual_stress_id=id,
                         id=index,
                         qp_coefficient=value.get("qp_coefficient"),
@@ -597,14 +896,109 @@ def upload_one(input_type: Type, filename: str) -> str:
                 )
             case Type.HSS_COLUMN_MOMENT_ROTATION:
                 uploader = CsvFileUploader(
+                    HSSColumnMomentRotation,
                     lambda id: delete(HSSColumnMomentRotation).where(
                         HSSColumnMomentRotation.hss_column_id == id
                     ),
-                    lambda id, index, value: HSSColumnMomentRotation(
+                    lambda id, index, value: dict(
                         hss_column_id=id,
                         id=index,
                         rotation=value.get("rotation (rad)"),
                         moment=value.get("moment (kN.m)"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE:
+                uploader = TableUploader(DuctileFracture)
+            case Type.DUCTILE_FRACTURE_FORCE_ELONGATION:
+                uploader = CsvFileUploader(
+                    DuctileFractureForceElongation,
+                    lambda id: delete(DuctileFractureForceElongation).where(
+                        DuctileFractureForceElongation.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: dict(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Elongation [mm]"),
+                        load=value.get("Load [kN]"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_FORCE_ELONGATION_SIMULATION:
+                uploader = CsvFileUploader(
+                    DuctileFractureForceElongationSimulation,
+                    lambda id: delete(DuctileFractureForceElongationSimulation).where(
+                        DuctileFractureForceElongationSimulation.ductile_fracture_id
+                        == id
+                    ),
+                    lambda id, index, value: dict(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Elongation [mm]"),
+                        load=value.get("Load [kN]"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_FORCE_RADIAL:
+                uploader = CsvFileUploader(
+                    DuctileFractureForceRadial,
+                    lambda id: delete(DuctileFractureForceRadial).where(
+                        DuctileFractureForceRadial.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: dict(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Radial elongation [mm]"),
+                        load=value.get("Load [kN]"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_FORCE_RADIAL_SIMULATION:
+                uploader = CsvFileUploader(
+                    DuctileFractureForceRadialSimulation,
+                    lambda id: delete(DuctileFractureForceRadialSimulation).where(
+                        DuctileFractureForceRadialSimulation.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: dict(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Radial elongation [mm]"),
+                        load=value.get("Load [kN]"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_EPEQ_SIMULATION:
+                uploader = CsvFileUploader(
+                    DuctileFractureEpeqSimulation,
+                    lambda id: delete(DuctileFractureEpeqSimulation).where(
+                        DuctileFractureEpeqSimulation.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: dict(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Elongation [mm]"),
+                        peeq=value.get("Equivalent plastic strain"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_LODE_SIMULATION:
+                uploader = CsvFileUploader(
+                    DuctileFractureLodeSimulation,
+                    lambda id: delete(DuctileFractureLodeSimulation).where(
+                        DuctileFractureLodeSimulation.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: dict(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Elongation [mm]"),
+                        lode=value.get("Lode angle"),
+                    ),
+                )
+            case Type.DUCTILE_FRACTURE_TRIAX_SIMULATION:
+                uploader = CsvFileUploader(
+                    DuctileFractureTriaxSimulation,
+                    lambda id: delete(DuctileFractureTriaxSimulation).where(
+                        DuctileFractureTriaxSimulation.ductile_fracture_id == id
+                    ),
+                    lambda id, index, value: dict(
+                        ductile_fracture_id=id,
+                        id=index,
+                        elongation=value.get("Elongation [mm]"),
+                        triaxiality=value.get("Triaxiality"),
                     ),
                 )
             case _:
@@ -639,11 +1033,18 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 + get_args_all(Type.ALL_RESIDUAL_STRESS, filename)
                 + get_args_all(Type.ALL_HSS_COLUMN, filename)
                 + get_args_all(Type.ALL_ECCENTRIC_BRACED_FRAME, filename)
+                + get_args_all(Type.ALL_TENSILE_COUPON, filename)
+                + get_args_all(Type.ALL_DUCTILE_FRACTURE, filename)
             )
         case Type.ALL_BRACE:
             root_folder = path.join(filename, "braces")
             return [
                 (Type.BRACE, path.join(root_folder, "steel_braces.csv")),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "steel_braces_data_dictionary.csv"),
+                ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.BRACE_DISPLACEMENT,
                     path.join(root_folder, "force_displacement", "*.csv"),
@@ -653,6 +1054,11 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             root_folder = path.join(filename, "columns")
             return [
                 (Type.COLUMN, path.join(root_folder, "steel_columns.csv")),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "steel_columns_data_dictionary.csv"),
+                ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.COLUMN_AXIAL_SHORTENING,
                     path.join(
@@ -674,6 +1080,11 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             root_folder = path.join(filename, "connections")
             return [
                 (Type.CONNECTION, path.join(root_folder, "connections.csv")),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "connections_data_dictionary.csv"),
+                ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.CONNECTION_BEAM,
                     path.join(root_folder, "Beam_moment_rotation", "*.csv"),
@@ -700,9 +1111,14 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                 ),
             ]
         case Type.ALL_MATERIAL:
-            root_folder = path.join(filename, "material")
+            root_folder = path.join(filename, "material", "cyclic_coupons")
             return [
                 (Type.MATERIAL, path.join(root_folder, "steel_material.csv")),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "steel_material_data_dictionary.csv"),
+                ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.MATERIAL_STRESS_STRAIN,
                     path.join(root_folder, "stress_strain", "*.csv"),
@@ -715,6 +1131,11 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     Type.RESIDUAL_STRESS,
                     path.join(root_folder, "residual_stresses.csv"),
                 ),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "residual_stresses_data_dictionary.csv"),
+                ),
+                (Type.README, path.join(root_folder, "README.md")),
                 (
                     Type.RESIDUAL_STRESS_DISTRIBUTION_F1,
                     path.join(
@@ -752,6 +1173,11 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     path.join(root_folder, "hss_columns.csv"),
                 ),
                 (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "hss_columns_data_dictionary.csv"),
+                ),
+                (Type.README, path.join(root_folder, "README.md")),
+                (
                     Type.HSS_COLUMN_MOMENT_ROTATION,
                     path.join(root_folder, "Moment_Rotation", "*.csv"),
                 ),
@@ -764,8 +1190,76 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
                     path.join(root_folder, "eccentric_braced_frames.csv"),
                 ),
                 (
+                    Type.DICTIONARY,
+                    path.join(
+                        root_folder, "eccentric_braced_frames_data_dictionary.csv"
+                    ),
+                ),
+                (Type.README, path.join(root_folder, "README.md")),
+                (
                     Type.ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE,
                     path.join(root_folder, "processed_data", "*.csv"),
+                ),
+            ]
+        case Type.ALL_TENSILE_COUPON:
+            root_folder = path.join(filename, "material", "tensile_coupons")
+            return [
+                (Type.TENSILE_COUPON, path.join(root_folder, "tensile_coupons.csv")),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "tensile_coupons_data_dictionary.csv"),
+                ),
+                (Type.README, path.join(root_folder, "README.md")),
+                (
+                    Type.TENSILE_COUPON_STRESS_STRAIN,
+                    path.join(root_folder, "stress_strain", "*.csv"),
+                ),
+            ]
+        case Type.ALL_DUCTILE_FRACTURE:
+            root_folder = path.join(filename, "material", "ductile_fracture")
+            return [
+                (
+                    Type.DUCTILE_FRACTURE,
+                    path.join(root_folder, "ductile_fracture.csv"),
+                ),
+                (
+                    Type.DICTIONARY,
+                    path.join(root_folder, "ductile_fracture_data_dictionary.csv"),
+                ),
+                (Type.README, path.join(root_folder, "README.md")),
+                (
+                    Type.DUCTILE_FRACTURE_FORCE_ELONGATION,
+                    path.join(root_folder, "force_elongation", "*.csv"),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_FORCE_ELONGATION_SIMULATION,
+                    path.join(root_folder, "force_elongation_simulation", "*.csv"),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_FORCE_RADIAL,
+                    path.join(root_folder, "force_radial", "*.csv"),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_FORCE_RADIAL_SIMULATION,
+                    path.join(root_folder, "force_radial_simulation", "*.csv"),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_EPEQ_SIMULATION,
+                    path.join(
+                        root_folder,
+                        "equivalent_plastic_strain_elongation_simulation",
+                        "*.csv",
+                    ),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_LODE_SIMULATION,
+                    path.join(root_folder, "lode_angle_elongation_simulation", "*.csv"),
+                ),
+                (
+                    Type.DUCTILE_FRACTURE_TRIAX_SIMULATION,
+                    path.join(
+                        root_folder, "triaxiality_elongation_simulation", "*.csv"
+                    ),
                 ),
             ]
         case _:
@@ -787,22 +1281,55 @@ def upload_parallel(upload_args, cpu=None):
     if root_logger.handlers and hasattr(root_logger.handlers[0], "formatter"):
         if root_logger.handlers[0].formatter:
             current_log_format = root_logger.handlers[0].formatter._fmt
+
+    # Longest-processing-time-first scheduling: hand out the biggest files first
+    # and one at a time (chunksize=1) so a handful of huge files fan out across
+    # workers instead of landing in the same starmap chunk and serializing.
+    def _size(arg):
+        try:
+            return path.getsize(arg[1])
+        except OSError:
+            return 0
+
+    upload_args = sorted(upload_args, key=_size, reverse=True)
     with get_context("spawn").Pool(
         n_workers,
         initializer=initializer,
         initargs=(current_log_level, current_log_format),
     ) as pool:
-        return pool.starmap(upload_one, upload_args)
+        return pool.starmap(upload_one, upload_args, chunksize=1)
 
 
-def upload_all(input_type: Type, filenames: List[str]):
+def cap_series(
+    args: List[Tuple[Type, str]], series_limit: int
+) -> List[Tuple[Type, str]]:
+    """
+    Keep every main-table, dictionary and README file, but at most
+    ``series_limit`` measurement files per series type. Files are considered in
+    sorted order so the same exemplars survive every run.
+    """
+    kept: List[Tuple[Type, str]] = []
+    per_type: Counter = Counter()
+    for upload_type, file_path in sorted(args, key=lambda a: (a[0].value, a[1])):
+        if upload_type not in SERIES_EXEMPT_TYPES:
+            if per_type[upload_type] >= series_limit:
+                continue
+            per_type[upload_type] += 1
+        kept.append((upload_type, file_path))
+    return kept
+
+
+def upload_all(
+    input_type: Type, filenames: List[str], series_limit: Optional[int] = None
+):
     """
     Main upload orchestration:
     1. Collects all (Type, filepath) tuples via get_args_all
     2. Expands wildcards into actual filenames
-    3. Splits into primary (main tables) and subsidiary (measurements) types
-    4. Processes primary tables first (required for foreign key constraints)
-    5. Processes subsidiary data in parallel
+    3. Caps measurement files per series type when series_limit is given
+    4. Splits into primary (main tables) and subsidiary (measurements) types
+    5. Processes primary tables first (required for foreign key constraints)
+    6. Processes subsidiary data in parallel
     """
 
     cpu = get_safe_cpu_count()
@@ -814,21 +1341,11 @@ def upload_all(input_type: Type, filenames: List[str]):
     ]
     args = [(arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])]
 
-    primary_types = [
-        arg
-        for arg in args
-        if arg[0]
-        in [
-            Type.BRACE,
-            Type.COLUMN,
-            Type.CONNECTION,
-            Type.MATERIAL,
-            Type.RESIDUAL_STRESS,
-            Type.HSS_COLUMN,
-            Type.ECCENTRIC_BRACED_FRAME,
-        ]
-    ]
-    subsidiary_types = [arg for arg in args if arg not in primary_types]
+    if series_limit is not None:
+        args = cap_series(args, series_limit)
+
+    primary_types = [arg for arg in args if arg[0] in PRIMARY_TYPES]
+    subsidiary_types = [arg for arg in args if arg[0] not in PRIMARY_TYPES]
 
     primary_results = upload_parallel(primary_types, cpu) if primary_types else []
     subsidiary_results = (
@@ -839,4 +1356,45 @@ def upload_all(input_type: Type, filenames: List[str]):
         result for result in (primary_results + subsidiary_results) if result
     ]
     info(f"Uploaded all: {all_results}")
+
+    with Session() as session:
+        recompute_count_flags(session)
+        session.commit()
+
     return [primary_results, subsidiary_results]
+
+
+def main():
+    parser = ArgumentParser(description="Upload csv files to database")
+    parser.add_argument("type", type=Type, choices=list(Type))
+    parser.add_argument("filenames", nargs="+", help="data input file pattern")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument(
+        "--series-limit",
+        type=int,
+        default=None,
+        help="upload at most N measurement files per series type; main tables, "
+        "dictionaries and READMEs are always uploaded in full (used to build "
+        "the lightweight per-worktree database template)",
+    )
+
+    args = parser.parse_args()
+    input_type: Type = args.type
+    filenames: List[str] = args.filenames
+
+    log_level = DEBUG if args.debug else INFO
+    basicConfig(
+        level=log_level,
+        format="[%(process)d] %(levelname)s:  %(message)s %(filename)s:%(lineno)d",
+    )
+
+    debug(f"Connecting to {engine.url}")
+    debug(f"Log level set to {log_level}")
+
+    upload_all(input_type, filenames, series_limit=args.series_limit)
+
+
+# Run with `python -m resslab_hub.data.uploader <type> <files...>`. The guard
+# matters: the parallel pool uses spawn, so children re-import this module.
+if __name__ == "__main__":
+    main()

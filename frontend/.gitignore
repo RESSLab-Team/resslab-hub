@@ -17,6 +17,10 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 
+# Local dev symlink to ../../resslab-hub-data/ductile_fracture/sem/_webp.
+# See CLAUDE.md "SEM (ductile-fracture) local dev".
+/public/sem
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -26,3 +30,6 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# Dashboard benchmark output (scripts/bench-dashboard.mjs), see docs/dashboard-architecture.md
+/.bench/

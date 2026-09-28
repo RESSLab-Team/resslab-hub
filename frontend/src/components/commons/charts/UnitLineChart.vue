@@ -4,7 +4,6 @@ import { primaryColors, type Color } from '@/utils/vuetify'
 import type { EChartsOption, LineSeriesOption } from 'echarts'
 import { TitleComponent } from 'echarts/components'
 import { use } from 'echarts/core'
-import { merge } from 'lodash'
 import { computed } from 'vue'
 
 const props = withDefaults(
@@ -14,23 +13,33 @@ const props = withDefaults(
     aspectRatio?: number
     axisPointerType?: string
     maxWidth?: number
-    title: string
+    title?: string
     xAxisName: string
     yAxisName: string
     xUnit?: string
     yUnit?: string
+    xAxisMin?: number
+    yAxisMin?: number
+    xAxisMax?: number
+    yAxisMax?: number
+    fill?: boolean
   }>(),
   {
     colors: () => primaryColors,
     series: () => [],
     aspectRatio: 1,
     axisPointerType: 'x',
+    fill: false,
     maxWidth: undefined,
     title: undefined,
     xAxisName: undefined,
     yAxisName: undefined,
     xUnit: undefined,
-    yUnit: undefined
+    yUnit: undefined,
+    xAxisMin: undefined,
+    yAxisMin: undefined,
+    xAxisMax: undefined,
+    yAxisMax: undefined
   }
 )
 
@@ -43,19 +52,23 @@ const option = computed<EChartsOption>(
         text: props.title,
         left: 'center'
       },
+      // Leave headroom for the title when present; otherwise inherit UnitChart's
+      // compact top (legend now lives below the plot, not above it).
       grid: {
-        //If there are more than 2 series, the legend will be on the right so we don't need to leave more space for it
-        top: props.series.length > 2 ? 40 : 60
+        top: props.title ? 36 : undefined
       },
       legend: {
-        top: 30,
         show: props.series.length > 1
       },
       xAxis: {
-        name: props.xAxisName
+        name: props.xAxisName,
+        min: props.xAxisMin,
+        max: props.xAxisMax
       },
       yAxis: {
-        name: props.yAxisName
+        name: props.yAxisName,
+        min: props.yAxisMin,
+        max: props.yAxisMax
       },
       tooltip: {
         formatter: null as unknown as undefined,
@@ -63,18 +76,15 @@ const option = computed<EChartsOption>(
           axis: props.axisPointerType
         }
       },
-      series: props.series.map((serie) =>
-        merge<LineSeriesOption, LineSeriesOption>(
-          {
-            type: 'line',
-            showSymbol: false,
-            lineStyle: {
-              width: 1
-            }
-          },
-          serie
-        )
-      ),
+      // Spread rather than `merge`: the callers' `data` arrays run to thousands
+      // of points and a deep merge would clone every one of them on each update.
+      // Only `lineStyle` actually needs merging with the default.
+      series: props.series.map((serie) => ({
+        type: 'line',
+        showSymbol: false,
+        ...serie,
+        lineStyle: { width: 1, ...serie.lineStyle }
+      })),
       color: props.colors.map((color) => color.base)
     } as EChartsOption)
 )
@@ -83,6 +93,7 @@ const option = computed<EChartsOption>(
 <template>
   <unit-chart
     :aspect-ratio="aspectRatio"
+    :fill="fill"
     :legend-side="props.series.length > 2"
     :max-width="maxWidth"
     :option="option"

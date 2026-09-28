@@ -1,7 +1,6 @@
 from abc import ABC
 from datetime import date, datetime
 from decimal import Decimal
-from distutils.util import strtobool
 from functools import reduce
 from math import ceil, isnan
 from typing import Any, Dict, Generic, List, Optional, Set, TypeVar, Union
@@ -23,12 +22,22 @@ from resslab_hub.models.api import (
     MatrixModel,
     RangeModel,
 )
-from resslab_hub.utils.database import Base
+from resslab_hub.utils.database import Base, async_session
 from resslab_hub.utils.fastapi import HttpHeader, MediaType, attachment
 from resslab_hub.utils.pagination import paginate
 
 D = TypeVar("D", bound=Base)  # type: ignore
 M = TypeVar("M", bound=BaseModel)
+
+
+# Replacement for distutils.util.strtobool (removed in Python 3.12).
+def strtobool(value: str) -> int:
+    v = value.lower()
+    if v in ("y", "yes", "t", "true", "on", "1"):
+        return 1
+    if v in ("n", "no", "f", "false", "off", "0"):
+        return 0
+    raise ValueError(f"invalid truth value {value!r}")
 
 
 class SubComponent:
@@ -50,7 +59,7 @@ class SubComponent:
         session: AsyncSession,
         parent_id: str,
         size: int,
-    ) -> List[List[Decimal]]:
+    ) -> List[List[float]]:
         return await Component.get_series(
             session,
             select(*self.columns)
@@ -91,7 +100,7 @@ class Component(ABC, Generic[D, M]):
         self.id_column = id_column
         self.ignored_columns = ignored_columns
 
-        model_keys: Set[str] = set(model_type.__fields__.keys())
+        model_keys: Set[str] = set(model_type.model_fields.keys())
         self.model_columns: Dict[str, Column] = {
             key: column
             for key, column in database_type.__dict__.items()
@@ -120,8 +129,10 @@ class Component(ABC, Generic[D, M]):
             select(*self.model_columns.values())
             .where(and_(*where_clauses))
             .order_by(*order_clauses),
-            self.model_type,
             self.__get_non_nan,
+            count_query=select(func.count())
+            .select_from(self.database_type)
+            .where(and_(*where_clauses)),
         )
         return page
 
@@ -169,7 +180,11 @@ class Component(ABC, Generic[D, M]):
         column: Column[Union[Float, Integer, Numeric]] = self.__get_column(number_field)
         rows = await session.execute(select(func.min(column), func.max(column)))
         row = next(rows)
-        return RangeModel(min=row[0], max=row[1])
+        # Postgres sorts NaN above every number, so max() over a column with
+        # NaN sentinels returns NaN; RangeModel maps that to None.
+        return RangeModel(
+            min=self.__get_non_nan(row[0]), max=self.__get_non_nan(row[1])
+        )
 
     async def get_date_range(
         self,
@@ -247,7 +262,7 @@ class Component(ABC, Generic[D, M]):
         statement: Select,
         id_column: Column[int],
         size: int,
-    ) -> List[List[Decimal]]:
+    ) -> List[List[float]]:
         if size > 0:
             count: Optional[int] = await session.scalar(
                 select(func.count()).select_from(statement.subquery())
@@ -272,9 +287,11 @@ class Component(ABC, Generic[D, M]):
         headers: List[str],
         filename: str,
     ) -> StreamingResponse:
+        # The request-scoped `session` is closed as soon as this handler returns
+        # the StreamingResponse, before the body generator runs. The generator
+        # therefore opens and owns its own session (see __get_csv_stream).
         return StreamingResponse(
             Component.__get_csv_stream(
-                session,
                 statement,
                 headers,
             ),
@@ -283,8 +300,8 @@ class Component(ABC, Generic[D, M]):
         )
 
     @staticmethod
-    def __clean_value(value: Any) -> Optional[Union[Decimal, str]]:
-        if type(value) == Decimal and isnan(value):
+    def __clean_value(value: Any) -> Optional[Union[Decimal, float, str]]:
+        if isinstance(value, (float, Decimal)) and isnan(value):
             return None
         return value
 
@@ -358,34 +375,45 @@ class Component(ABC, Generic[D, M]):
         return column == expression
 
     @staticmethod
-    def __format_value(value: Optional[Union[str, Decimal]]) -> Union[str, Decimal]:
+    def __format_value(
+        value: Optional[Union[str, float, Decimal]],
+    ) -> Union[str, Decimal]:
         if value is None:
             return "NA"
+        if isinstance(value, float):
+            # Go through Decimal so floats keep the historical CSV/counts
+            # formatting (normalize drops trailing zeros: 300.0 -> "300").
+            value = Decimal(str(value))
         if isinstance(value, Decimal):
             if isnan(value):
                 return "NR"
-            return Decimal(f"{value.normalize():f}")
+            return Decimal(f"{value.normalize():f}")  # noqa: E231
         return value
 
     @staticmethod
     def __get_non_nan(value: Any) -> Any:
-        if isinstance(value, Decimal) and isnan(value):
+        if isinstance(value, (float, Decimal)) and isnan(value):
             return None
         else:
             return value
 
     @staticmethod
     async def __get_csv_stream(
-        session: AsyncSession,
         statement: Select,
         headers: List[str],
         partition_size=128,
         separator=",",
     ):
         yield separator.join(headers) + "\n"
-        result = await session.stream(statement)
-        async for partition in result.partitions(partition_size):  # type: ignore
-            for row in partition:
-                yield separator.join(
-                    [str(Component.__format_value(item)) for item in row]
-                ) + "\n"
+        # Own a dedicated session: the request-scoped one is already closed by
+        # the time Starlette consumes this generator.
+        async with async_session() as session:
+            result = await session.stream(statement)
+            async for partition in result.partitions(partition_size):  # type: ignore
+                for row in partition:
+                    yield (
+                        separator.join(
+                            [str(Component.__format_value(item)) for item in row]
+                        )
+                        + "\n"
+                    )

@@ -1,33 +1,66 @@
 <script setup lang="ts">
-import { EccentricBracedFrameField, EccentricBracedFrameNumberField } from '@/backend'
+import {
+  EccentricBracedFrameField,
+  EccentricBracedFrameNumberField,
+  type CountModel
+} from '@/backend'
 import DoubleChart from '@/components/commons/charts/DoubleChart.vue'
-import { doubleChartProps, useDoubleChart, type ChartEmits } from '@/composables/chart'
-import { ebfApi } from '@/plugins/axios'
-import { toRef } from 'vue'
+import {
+  doubleChartProps,
+  getRequestFields,
+  useDoubleChart,
+  type ChartEmits
+} from '@/composables/chart'
+import { dashboardQueryKey } from '@/composables/dashboard'
+import { useDataset } from '@/composables/useDataset'
+import { EBF_KEY, fetchEbfs } from '@/components/ebf/data'
+import { inject, toRef } from 'vue'
 
 const props = defineProps(doubleChartProps<EccentricBracedFrameField>())
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Emits extends ChartEmits {}
 const emit = defineEmits<Emits>()
 
-const { counts, changeSearches, dateMax, dateMin, dateRange, numberMax, numberMin, numberRange } =
-  useDoubleChart<EccentricBracedFrameField, EccentricBracedFrameNumberField>(
-    emit,
-    props.fields,
-    toRef(props, 'query'),
-    (fields, query) => ebfApi.getEccentricBracedFramesCounts(fields, query),
-    {
-      field: EccentricBracedFrameNumberField,
-      getRange: (field) => ebfApi.getEccentricBracedFramesRange(field)
-    }
-  )
+// query via inject (not prop) so a filter change doesn't re-render this chart.
+const query = inject(dashboardQueryKey, toRef(props, 'query'))
+const { getCounts, countsSync, colorFor, getRange } = useDataset(EBF_KEY, fetchEbfs)
+// Stable reference: a fresh closure per render would re-render the chart for nothing.
+const colorForSecond = colorFor(getRequestFields(props.fields)[1])
+
+// Synchronous counts for the crossfilter drag path — bound to this chart's request
+// fields so DoubleChart can repaint imperatively (off Vue's reactivity) mid-drag.
+const getLiveCounts = (liveQuery?: string): CountModel[] =>
+  countsSync(getRequestFields(props.fields), liveQuery)
+const {
+  counts,
+  allCounts,
+  changeSearches,
+  dateMax,
+  dateMin,
+  dateRange,
+  numberMax,
+  numberMin,
+  numberRange
+} = useDoubleChart<EccentricBracedFrameField, EccentricBracedFrameNumberField>(
+  emit,
+  props.fields,
+  query,
+  getCounts,
+  {
+    field: EccentricBracedFrameNumberField,
+    getRange
+  }
+)
 </script>
 
 <template>
   <double-chart
     v-model:date-range="dateRange"
     v-model:number-range="numberRange"
-    :color="color"
+    :animate="false"
+    :all-counts="allCounts"
+    :live-counts="getLiveCounts"
+    :color-for="colorForSecond"
     :counts="counts"
     :date-max="dateMax"
     :date-min="dateMin"

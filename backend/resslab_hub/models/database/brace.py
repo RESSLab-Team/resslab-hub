@@ -1,6 +1,7 @@
 """
 Brace Database Models
 """
+
 from sqlalchemy import (
     BigInteger,
     Column,
@@ -8,10 +9,9 @@ from sqlalchemy import (
     Numeric,
     SmallInteger,
     String,
-    func,
-    select,
+    text,
 )
-from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm import relationship
 
 from resslab_hub.models.database.common import DecimalFloat
 from resslab_hub.utils.database import Base
@@ -112,9 +112,6 @@ class Brace(Base):  # type: ignore
     longitude = Column(Numeric, nullable=True)
     # END_OF_GENERATED_CODE
 
-    displacement_count = column_property(
-        select(func.count(BraceDisplacement.id))
-        .where(BraceDisplacement.brace_id == id)
-        .correlate_except(BraceDisplacement)
-        .scalar_subquery()  # type: ignore
-    )
+    # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
+    # of every upload (see resslab_hub/data/count_flags.py).
+    displacement_count = Column(SmallInteger, nullable=False, server_default=text("0"))

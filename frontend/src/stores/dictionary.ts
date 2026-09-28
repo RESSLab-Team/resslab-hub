@@ -1,0 +1,120 @@
+import type { DatabaseId } from '@/utils/navigation'
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
+
+/** Column types carried by the data dictionary (mirrors the backend validator). */
+export type DictType =
+  | 'String'
+  | 'Boolean'
+  | 'SmallInteger'
+  | 'Integer'
+  | 'BigInteger'
+  | 'Numeric'
+  | 'DecimalFloat'
+  | 'Date'
+
+export interface DictColumn {
+  /** Column name — identical to the table column and CSV header. */
+  name: string
+  description: string
+  /** Symbol markup (may contain `<sub>`/`<sup>`), or empty. */
+  symbol: string
+  /** SI unit string, or `-` when unitless. */
+  unit: string
+  type: DictType
+  /** Example value, used to seed template CSVs. */
+  example: string
+  /** `false` marks a mandatory field. */
+  nullable: boolean
+  /**
+   * Scientific category of the column, e.g. `Beam section properties`, from the
+   * `group` column of the data dictionaries (RESSLab-Team/resslab-hub-data#46).
+   * `groupFor()` prefers it over the rules in `utils/fieldGroups.ts`; optional
+   * only because an old database row may predate the column.
+   */
+  group?: string
+}
+
+/** Symbol cleaned for display — markdown code backticks dropped, the `-`
+ *  no-symbol sentinel mapped to undefined. */
+export function displaySymbol(column: DictColumn): string | undefined {
+  const symbol = column.symbol.trim().replace(/^`(.*)`$/, '$1')
+  return symbol && symbol !== '-' ? symbol : undefined
+}
+
+/** Unit for display — undefined when unitless (`-`, or the literal "None"
+ *  some dictionaries carry instead). */
+export function displayUnit(column: DictColumn): string | undefined {
+  const unit = column.unit.trim()
+  return unit && unit !== '-' && unit.toLowerCase() !== 'none' ? unit : undefined
+}
+
+/**
+ * The data dictionary, served by `GET /dictionary` and fetched once per
+ * session (same pattern as the counts store). It is the single source of truth
+ * for the contribution editor's columns, labels, units and validation types.
+ */
+export const useDictionaryStore = defineStore('dictionary', () => {
+  const columns = ref<Partial<Record<DatabaseId, DictColumn[]>>>({})
+  const state = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  /**
+   * Contributor guides (the data repo's per-database `README.md`, served by
+   * `GET /dictionary/{database}/readme` as raw markdown), fetched on demand and
+   * kept for the session. `null` records a database that has none.
+   */
+  const readmes = ref<Partial<Record<DatabaseId, string | null>>>({})
+
+  /** The request in flight, so a second `fetch()` can await the first. */
+  let inFlight: Promise<void> | null = null
+
+  function fetch(): Promise<void> {
+    if (state.value === 'ready') return Promise.resolve()
+    inFlight ??= (async () => {
+      state.value = 'loading'
+      try {
+        // Lazy import keeps axios out of the entry bundle (see stores/counts.ts).
+        const { axiosInstance, baseUrl } = await import('@/plugins/axios')
+        const { data } = await axiosInstance.get(`${baseUrl}/dictionary`)
+        columns.value = data
+        state.value = 'ready'
+      } catch {
+        state.value = 'error'
+      } finally {
+        inFlight = null
+      }
+    })()
+    return inFlight
+  }
+
+  const ready = computed(() => state.value === 'ready')
+
+  function columnsFor(database: DatabaseId | null): DictColumn[] {
+    return database ? columns.value[database] ?? [] : []
+  }
+
+  function columnFor(database: DatabaseId, name: string): DictColumn | undefined {
+    return columnsFor(database).find((column) => column.name === name)
+  }
+
+  async function fetchReadme(database: DatabaseId): Promise<void> {
+    if (database in readmes.value) return
+    try {
+      const { axiosInstance, baseUrl } = await import('@/plugins/axios')
+      const { data } = await axiosInstance.get(`${baseUrl}/dictionary/${database}/readme`)
+      readmes.value[database] = data.content
+    } catch {
+      readmes.value[database] = null
+    }
+  }
+
+  return {
+    columns,
+    state,
+    ready,
+    fetch,
+    columnsFor,
+    columnFor,
+    readmes,
+    fetchReadme
+  }
+})

@@ -10,10 +10,8 @@ from sqlalchemy import (
     Numeric,
     SmallInteger,
     String,
-    func,
-    select,
+    text,
 )
-from sqlalchemy.orm import column_property
 
 from resslab_hub.models.database.common import DecimalFloat
 from resslab_hub.utils.database import Base
@@ -142,10 +140,8 @@ class EccentricBracedFrame(Base):  # type: ignore
     longitude = Column(DecimalFloat, nullable=False)
     # END_OF_GENERATED_CODE
 
-    # Add column property to check for related data
-    shear_link_angle_count = column_property(
-        select(func.count(EccentricBracedFrameShearLinkAngle.id))  # Changed from .id
-        .where(EccentricBracedFrameShearLinkAngle.eccentric_braced_frame_id == id)
-        .correlate_except(EccentricBracedFrameShearLinkAngle)
-        .scalar_subquery()  # type: ignore
+    # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
+    # of every upload (see resslab_hub/data/count_flags.py).
+    shear_link_angle_count = Column(
+        SmallInteger, nullable=False, server_default=text("0")
     )

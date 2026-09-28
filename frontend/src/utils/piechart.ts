@@ -1,6 +1,9 @@
 import { typesNames, type Type } from '@/utils/backend'
 import { colorPalette } from '@/utils/vuetify'
-import { arc, create, pie, range, scaleLinear, scaleOrdinal, sum } from 'd3'
+import { range, sum } from 'd3-array'
+import { scaleLinear, scaleOrdinal } from 'd3-scale'
+import { create } from 'd3-selection'
+import { arc, pie } from 'd3-shape'
 
 export interface Datum {
   name: string

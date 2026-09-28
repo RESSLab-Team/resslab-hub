@@ -1,30 +1,39 @@
 <script setup lang="ts">
 import { ColumnField, type ColumnModel } from '@/backend'
+import ChartCell from '@/components/commons/ChartCell.vue'
+import DashboardShell from '@/components/commons/DashboardShell.vue'
 import ColumnDoubleChart from '@/components/columns/charts/ColumnDoubleChart.vue'
 import ColumnParallelChart from '@/components/columns/charts/ColumnParallelChart.vue'
 import ColumnSingleChart from '@/components/columns/charts/ColumnSingleChart.vue'
 import ColumnDetail from '@/components/columns/ColumnDetail.vue'
 import ColumnTable from '@/components/columns/ColumnTable.vue'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
-import ResetChartButton from '@/components/commons/ResetChartButton.vue'
-
-import type { DoubleFields, ParallelField } from '@/composables/chart'
+import { COLUMN_KEY, PARALLEL_FIELDS, fetchColumns } from '@/components/columns/data'
+import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
+import { useCountsStore } from '@/stores/counts'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import colors from 'vuetify/lib/util/colors'
 
 const route = useRoute()
 const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
   useDashboard<ColumnModel>(route, router, ColumnField)
 
-const parallelFields: ParallelField<ColumnField>[] = [
-  { id: ColumnField.Th80 },
-  { id: ColumnField.HOverTCw },
-  { id: ColumnField.BFOverTCf },
-  { id: ColumnField.LBOverRYc },
-  { id: ColumnField.PGOverPYm }
+const countsStore = useCountsStore()
+onMounted(() => countsStore.fetch())
+
+const parallelFields = PARALLEL_FIELDS
+
+const parallelFilterFields: string[] = [
+  ColumnField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
 ]
 const boundaryConditionFields: DoubleFields<ColumnField> = [
   ColumnField.Date,
@@ -40,109 +49,105 @@ const columnDepthFields: DoubleFields<ColumnField> = [
     ])
   }
 ]
-const steelField = ColumnField.SteelC
+
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file, and fieldGroups.ts
+// decides which category of the rail it shows up under.
+const {
+  filters,
+  groups: filterGroups,
+  loading: filtersLoading
+} = useAutoFilters({
+  database: 'columns',
+  datasetKey: COLUMN_KEY,
+  fetchAll: fetchColumns,
+  i18nPrefix: 'column.'
+})
 </script>
 
 <template>
-  <v-row>
-    <v-col md="6">
-      <v-row>
-        <v-col cols="12">
-          <column-table
-            v-model:search="search"
-            v-model:searches="searches"
-            :query="query"
-            @click:row="clickTableRow"
-            @update:page="updatePage"
-          />
-        </v-col>
-      </v-row>
-      <v-row v-if="!item">
-        <v-col cols="12">
-          <column-parallel-chart
-            :color="colors.orange"
-            :fields="parallelFields"
-            :query="query"
+  <dashboard-shell
+    v-model:search="search"
+    :eyebrow="$t('dashboards.common.eyebrow_components')"
+    :title="$t('dashboards.column.title')"
+    :count="countsStore.counts.columns"
+    :description="$t('dashboards.column.description')"
+    database-id="columns"
+    i18n-prefix="column."
+    :filters="filters"
+    :filter-groups="filterGroups"
+    :filters-loading="filtersLoading"
+    :searches="searches"
+    :detail-open="!!item"
+    @change:searches="changeSearches"
+    @close:detail="closeDetail"
+  >
+    <template #table>
+      <column-table
+        v-model:search="search"
+        v-model:searches="searches"
+        :query="query"
+        @click:row="clickTableRow"
+        @update:page="updatePage"
+      />
+    </template>
+
+    <template #charts>
+      <div class="charts-strip">
+        <chart-cell
+          :title="$t('dashboards.column.chart_tests_per_year_bc')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="boundaryConditionFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <column-double-chart
+            :fields="boundaryConditionFields"
+            type="line"
             @change:searches="changeSearches"
           />
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col md="6">
-      <v-row v-if="item">
-        <v-col cols="12">
-          <column-detail :column="item" @close="closeDetail" />
-        </v-col>
-      </v-row>
-      <v-row v-else>
-        <v-col cols="12" md="6">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              Boundary Condition
-              <reset-chart-button
-                :field="boundaryConditionFields"
-                :is-filtered="boundaryConditionFields.some(field => query.includes(field as string))"
-                @change:searches="changeSearches"
-            /></v-card-title>
-            <v-card-text>
-              <column-double-chart
-                :fields="boundaryConditionFields"
-                :query="query"
-                type="line"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12" md="6">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              <div>
-                Column Depth [mm]
-                <info-tooltip>
-                  <p>This histogram displays the distribution of column depths in the Database.</p>
-                  How to use?
-                  <ul>
-                    <li>
-                      Filter database for specific column depths, by clicking on a bar or using the
-                      slider below
-                    </li>
-                    <li>
-                      Filter database for built-up or hot-rolled cross sections by clicking on the
-                      appropriate legend
-                    </li>
-                  </ul>
-                </info-tooltip>
-              </div>
-              <reset-chart-button
-                :field="columnDepthFields"
-                :is-filtered="columnDepthFields.some(field => query.includes(field as string))"
-                @change:searches="changeSearches"
-              />
-            </v-card-title>
-            <v-card-text>
-              <column-double-chart
-                :color="colors.green"
-                :fields="columnDepthFields"
-                :query="query"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12">
+        </chart-cell>
+        <chart-cell
+          :title="$t('dashboards.column.chart_column_depth_fabrication')"
+          :hint="$t('dashboards.common.hint_stacked_histogram')"
+          :field="columnDepthFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <column-double-chart :fields="columnDepthFields" @change:searches="changeSearches" />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.column.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="ColumnField.SteelC"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
           <column-single-chart
-            :color="colors.deepPurple"
-            :field="steelField"
-            :query="query"
+            :field="ColumnField.SteelC"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
-          >
-            <template #title>
-              <steel-type-card-title />
-            </template>
-          </column-single-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+          />
+        </chart-cell>
+      </div>
+
+      <div class="charts-strip charts-strip-1col">
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <column-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+        </chart-cell>
+      </div>
+    </template>
+
+    <template #detail>
+      <column-detail v-if="item" :column="item" @close="closeDetail" />
+    </template>
+  </dashboard-shell>
 </template>

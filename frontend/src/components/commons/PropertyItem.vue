@@ -2,13 +2,16 @@
 const props = defineProps<{
   name: string
   unit?: string
+  mono?: boolean
 }>()
 </script>
 
 <template>
-  <div>
-    <span class="text--primary">{{ props.name }}: </span>
-    <slot />
-    <template v-if="props.unit">[{{ props.unit }}]</template>
+  <div class="prop-item">
+    <span class="prop-name">{{ props.name }}</span>
+    <span class="prop-val" :class="{ mono: props.mono }">
+      <slot />
+      <span v-if="props.unit" class="prop-unit">{{ props.unit }}</span>
+    </span>
   </div>
 </template>

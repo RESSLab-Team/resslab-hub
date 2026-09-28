@@ -3,6 +3,8 @@ import { EccentricBracedFrameField, type EccentricBracedFrameModel } from '@/bac
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { EBF_KEY, fetchEbfs } from '@/components/ebf/data'
 import { ebfApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
 import { toRef } from 'vue'
@@ -10,32 +12,35 @@ import { toRef } from 'vue'
 const columns: Column[] = [
   {
     value: EccentricBracedFrameField.Investigator,
-    title: 'Experimental Program',
+    titleKey: 'table.ebf.columns.experimentalProgram',
     type: 'text'
   },
   {
     value: EccentricBracedFrameField.SpecId,
-    title: 'Specimen Designation',
-    type: 'text'
+    titleKey: 'table.ebf.columns.specimenDesignation',
+    type: 'text',
+    cellVariant: 'strong'
   },
   {
     value: EccentricBracedFrameField.Profile,
-    title: 'Link cross-section',
-    type: 'text'
+    titleKey: 'table.ebf.columns.linkCrossSection',
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: EccentricBracedFrameField.LinkLoc,
-    title: 'Link location',
+    titleKey: 'table.ebf.columns.linkLocation',
     type: 'text'
   },
   {
     value: EccentricBracedFrameField.E,
-    title: 'Link length [mm]',
+    titleKey: 'table.ebf.columns.linkLength',
     type: 'number'
   },
   {
     value: EccentricBracedFrameField.SgFlgLink,
-    title: 'Steel material [MPa]',
+    categoryColor: true,
+    titleKey: 'table.ebf.columns.steelMaterial',
     type: 'text'
   }
 ]
@@ -46,10 +51,14 @@ interface Emits extends TableEmits<EccentricBracedFrameModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync, colorFor } =
+  useDataset<EccentricBracedFrameModel>(EBF_KEY, fetchEbfs)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -69,11 +78,11 @@ const {
       getCsv: (id) => ebfApi.getEccentricBracedFramesShearLinkAngleCsv(id)
     }
   ],
-  () => ebfApi.getEccentricBracedFramesCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    ebfApi.getEccentricBracedFrames(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => ebfApi.getEccentricBracedFramesCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 </script>
 
@@ -82,40 +91,33 @@ const {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    :color-for="colorFor"
+    database-id="ebf"
     :columns="columns"
+    hide-toolbar
+    :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
+    instant
     :loading="loading"
     prefix="ebf."
     :query="query"
-    title="EBF Links"
+    :title="$t('table.ebf.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"
     @download="downloadFiles"
   >
     <template #title>
-      EBF Links
+      {{ $t('table.ebf.title') }}
       <info-tooltip>
-        <p>
-          The database on eccentric braced frame (EBF) links presents data from early 1977s on EBF
-          Links under reversed cyclic and monotonic loading. The primary data involve the deduced
-          shear-link angle of the EBF link.
-        </p>
-        How to use?
+        <p>{{ $t('table.ebf.tooltip.intro') }}</p>
+        {{ $t('table.ebf.tooltip.howToUse') }}
         <ul>
-          <li>
-            Filter the table by making selections in the various plots around the table, or by using
-            the filters and dropdowns above the table headers.
-          </li>
-          <li>Click on a row to see the data of a single test.</li>
-          <li>
-            Download specific tests results by selecting the test (left-most column) and click
-            "Download" below.
-          </li>
-          <li>
-            Share specific tests results by selecting the test (left-most column) and click "Share"
-            below.
-          </li>
+          <li>{{ $t('table.ebf.tooltip.bulletFilter') }}</li>
+          <li>{{ $t('table.ebf.tooltip.bulletClick') }}</li>
+          <li>{{ $t('table.ebf.tooltip.bulletDownload') }}</li>
+          <li>{{ $t('table.ebf.tooltip.bulletShare') }}</li>
         </ul>
       </info-tooltip>
     </template>

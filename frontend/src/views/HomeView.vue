@@ -1,31 +1,25 @@
 <script setup lang="ts">
-import type {
-  BraceField,
-  ColumnField,
-  ConnectionField,
-  HSSColumnField,
-  MaterialField
-} from '@/backend'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import OverviewMap from '@/components/map/OverviewMap.vue'
-import {
-  analyticsApi,
-  bracesApi,
-  columnsApi,
-  connectionsApi,
-  ebfApi,
-  hssApi,
-  materialsApi,
-  residualsApi
-} from '@/plugins/axios'
+import EyebrowText from '@/components/commons/EyebrowText.vue'
+import PhotoCarousel from '@/components/home/PhotoCarousel.vue'
+import AppFooter from '@/components/layout/AppFooter.vue'
+import { useCountUp } from '@/composables/useCountUp'
+import { useCountsStore } from '@/stores/counts'
 import { publicPath } from '@/utils/common'
-import { chain } from 'lodash'
-import { onMounted, ref, shallowRef, triggerRef } from 'vue'
+import { kpiSnapshot, type KpiStatus } from '@/utils/kpiSnapshot'
+import { DATABASES, TOOLS } from '@/utils/navigation'
+import { mdiArrowRight } from '@mdi/js'
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const carouselImages: {
-  src: string
-  credit: string
-}[] = [
+// Lazy-load the map so leaflet + d3 + markercluster ship in a separate chunk and
+// don't block the home page's initial render.
+const OverviewMap = defineAsyncComponent(() => import('@/components/map/OverviewMap.vue'))
+
+const { t } = useI18n({ useScope: 'global' })
+const countsStore = useCountsStore()
+
+// Lab photos + credits carried over from the pre-redesign home carousel.
+const galleryImages = [
   'El Jisr and Lignos (2022)',
   'Elkady and Lignos (2018)',
   'Prof. Dimitrios Lignos, EPFL',
@@ -35,306 +29,300 @@ const carouselImages: {
   'Elkady and Lignos (2018)',
   'Andronikos Skiadopoulos, EPFL'
 ].map((credit, index) => ({
-  src: publicPath + `img/home/Photo${index + 1}.jpg`,
-  credit: credit
+  src: publicPath + `img/home/Photo${index + 1}.webp`,
+  credit
 }))
+// KPI values live in the counts store, seeded from the committed snapshot
+// (see utils/kpiSnapshot.ts) — overlaid with this session's cached live
+// values — so the key numbers render on first paint; the live fetches
+// overwrite them. Each KPI's status drives the bar under its number:
+// ping-ponging while the live fetch is in flight, muted + tooltip when it
+// failed and the snapshot stays. Displayed values go through useCountUp so a
+// live number that differs from the seed counts into place instead of jumping.
 
-const logos: {
-  src: string
-  url: string
-}[] = [
-  {
-    src: publicPath + 'logo/resslab_logo_v1.svg',
-    url: 'https://www.epfl.ch/labs/resslab'
-  },
-  {
-    src: publicPath + 'logo/EPFL_Logo_184X53.svg',
-    url: 'https://www.epfl.ch'
-  },
+// The loading class is only dropped on an `animationiteration` boundary —
+// each keyframe cycle is a full left-right round trip, so even a fetch that
+// resolves instantly shows one clean trip before the bar settles. Reduced
+// motion runs no animation (and fires no events), so it skips straight to
+// the settled state. KPIs already loaded earlier this session (store fetched,
+// or hydrated from the session cache after a reload) skip the bar entirely —
+// their numbers are already the live ones.
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const barAnimating = ref([
+  !reducedMotion && !countsStore.hydrated.counts && countsStore.countsStatus === 'loading',
+  !reducedMotion &&
+    !countsStore.hydrated.universities &&
+    countsStore.universitiesStatus === 'loading',
+  !reducedMotion && !countsStore.hydrated.users && countsStore.usersStatus === 'loading',
+  false
+])
 
-  {
-    src: publicPath + 'logo/logo_IT4R.svg',
-    url: 'https://enac-it4r.epfl.ch'
-  },
-  {
-    src: publicPath + 'logo/SNF_logo_standard_web_color_pos_e.svg',
-    url: 'https://www.snf.ch'
+function onBarCycle(index: number): void {
+  if (keyNumbers.value[index].status !== 'loading') {
+    barAnimating.value[index] = false
   }
-]
+}
 
-const imageIndex = ref(0)
-const indicators = shallowRef<
-  Record<'test' | 'university' | 'user', { text: string; count: number | string }>
->({
-  test: {
-    text: 'Tests',
-    count: '...'
+// Displayed values hold the snapshot number while the bar is still animating,
+// then count up to the live value in a single tween once it has settled —
+// this also keeps the total from wobbling as its nine counts land one by one.
+const initialTotal = countsStore.total
+const displayedTotal = useCountUp(() => (barAnimating.value[0] ? initialTotal : countsStore.total))
+const displayedUniversities = useCountUp(() =>
+  barAnimating.value[1] ? kpiSnapshot.universities : countsStore.universities
+)
+const displayedUsers = useCountUp(() =>
+  barAnimating.value[2] ? kpiSnapshot.users : countsStore.users
+)
+
+const keyNumbers = computed<{ num: number | string; label: string; status: KpiStatus }[]>(() => [
+  {
+    num: displayedTotal.value != null ? displayedTotal.value.toLocaleString('en-CH') : '…',
+    label: t('home.keyNumbers.testsDigitized'),
+    status: countsStore.countsStatus
   },
-  university: {
-    text: 'Universities contributed',
-    count: '...'
+  {
+    num: displayedUniversities.value ?? '…',
+    label: t('home.keyNumbers.universities'),
+    status: countsStore.universitiesStatus
   },
-  user: {
-    text: 'Users worldwide',
-    count: '...'
-  }
+  {
+    num: displayedUsers.value != null ? displayedUsers.value.toLocaleString('en-CH') : '…',
+    label: t('home.keyNumbers.researchers'),
+    status: countsStore.usersStatus
+  },
+  { num: DATABASES.length, label: t('home.keyNumbers.databases'), status: 'live' }
+])
+
+// The hero <video> renders poster-only until the page has fully loaded, so its
+// ~1 MB fetch never competes with the initial CSS/JS/font/API traffic: the src
+// is only attached on `window` load, and autoplay+muted picks it up from there.
+// `load` fires once per page, so SPA re-mounts of Home check readyState instead.
+const heroVideoSrc = ref<string>()
+const heroVideo = ref<HTMLVideoElement>()
+const startHeroVideo = async () => {
+  heroVideoSrc.value = publicPath + 'video/steel-mrf-front-page.mp4'
+  await nextTick()
+  // Reinforce the autoplay attribute: an explicit play() is the documented
+  // path for sources attached after mount. Rejections (e.g. hidden tab, where
+  // the browser defers playback until visible) are fine — autoplay takes over.
+  heroVideo.value?.play().catch(() => {})
+}
+onMounted(() => {
+  if (document.readyState === 'complete') startHeroVideo()
+  else window.addEventListener('load', startHeroVideo, { once: true })
 })
+onBeforeUnmount(() => window.removeEventListener('load', startHeroVideo))
 
 onMounted(() => {
-  // Get test count
-  Promise.all([
-    bracesApi.getBracesDistinct(),
-    columnsApi.getColumnsDistinct(),
-    connectionsApi.getConnectionsDistinct(),
-    materialsApi.getMaterialsDistinct(),
-    residualsApi.getResidualStressesDistinct(),
-    hssApi.getHssColumnsDistinct(),
-    ebfApi.getEccentricBracedFramesDistinct()
-  ])
-    .then((responses) =>
-      chain(responses)
-        .flatMap((response) => response.data)
-        .sum()
-        .value()
-    )
-    .then((count) => {
-      indicators.value.test.count = count
-      triggerRef(indicators)
-    })
-
-  // Get university count
-  const latLngFields: (BraceField &
-    ColumnField &
-    ConnectionField &
-    MaterialField &
-    HSSColumnField)[] = ['latitude', 'longitude']
-  Promise.all([
-    bracesApi.getBracesCounts(latLngFields),
-    columnsApi.getColumnsCounts(latLngFields),
-    connectionsApi.getConnectionsCounts(latLngFields),
-    materialsApi.getMaterialsCounts(latLngFields),
-    residualsApi.getResidualStressesCounts(latLngFields),
-    hssApi.getHssColumnsCounts(latLngFields)
-  ])
-    .then((responses) =>
-      chain(responses)
-        .flatMap((response) => response.data)
-        .uniqBy((count) => count.names)
-        .size()
-        .value()
-    )
-    .then((count) => {
-      indicators.value.university.count = count
-      triggerRef(indicators)
-    })
-
-  // Get user count
-  analyticsApi
-    .getUsers()
-    .then((response) => response.data)
-    .then((count) => {
-      indicators.value.user.count = count
-      triggerRef(indicators)
-    })
+  countsStore.fetch()
+  countsStore.fetchHomeKpis()
 })
 </script>
 
 <template>
-  <v-container class="text-justify">
-    <v-row>
-      <v-col>
-        <v-card>
-          <v-responsive content-class="d-flex align-center" height="256px">
-            <video class="w-100" autoplay loop muted preload="auto">
-              <source :src="publicPath + 'video/steel-mrf-front-page.mp4'" type="video/mp4" />
-            </video>
-            <v-overlay
-              class="align-center justify-center"
-              contained
-              :model-value="true"
-              persistent
-              no-click-animation
-            >
-              <h1 class="pa-5 text-center text-white">
-                RESSLab Hub: Open-access databases and models for design and assessment of steel
-                structures
-              </h1>
-            </v-overlay>
-          </v-responsive>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-row class="">
-      <v-col>
-        <v-card class="fill-height">
-          <div class="pa-5">
-            <p>
-              Recent developments in Performance-Based Earthquake Engineering enable studies to
-              benchmark the seismic performance of infrastructure systems, further develop our codes
-              and standards and to minimize the impacts of earthquakes worldwide. Moreover,
-              digitalization of our cities requires the use of standardized predictive models for
-              maintenance and life-cycle assessment of infrastructure systems. Within such a
-              context, the RESSLab-hub provides open-access to the engineering and research
-              communities to databases along with state-of-the-art modeling with the overarching
-              goal to advance knowledge for minimizing the earthquake risk of steel and
-              composite-steel concrete structures.
-            </p>
-            <br />
-            <p>RESSLab Hub is composed of :</p>
-            <p>
-              - Databases
-              <info-tooltip>
-                A series of databases have been developed with enhanced visualization features for
-                efficient search and data exploitation. The databases provide access to physical
-                experiments of a rich set of structural steel materials, structural components and
-                connections, residual stress measurements that were tested worldwide since the
-                1970s. In particular, the databases include highly heterogenous data in a consistent
-                format with parallel axis search and visualization capabilities. Fully digitized
-                experimental data is made available that were extracted from experimental reports.
-              </info-tooltip>
-            </p>
-            <p>
-              - Component Models
-              <info-tooltip>
-                A web-based interactive module allows for the automatically constructed backbone and
-                first-cycle envelope curves for structural steel components for direct use in
-                nonlinear static and dynamic analyses procedures. This module incorporates the
-                state-of-the-art in component modeling for seismic assessment of existing structures
-                in North America and Europe. Besides the use of built-up cross sections, it links
-                with currently available cross-sectional databases from North America, Europe and
-                Japan to extract geometric features from standardized hot-rolled profiles, which are
-                currently used in steel construction worldwide.
-              </info-tooltip>
-            </p>
-            <p>
-              - Fragility Curves
-              <info-tooltip>
-                A web-based interactive tool enables the exploitation of fragility curves for
-                structural components that allows for financial loss estimation within the PBEE
-                framework. The fragility curves are either univariate or multivariate depending on
-                the component modeling resolution of interest. Visualization features include bar
-                plots to enable exploitation of fragility curves and surfaces based on pertinent
-                geometric and material parameters of interest.
-              </info-tooltip>
-            </p>
-            <p>
-              - ... and future updates
-              <info-tooltip>
-                Other databases and web-based interactive tools are currently under development.
-                Stay tuned for future updates.
-              </info-tooltip>
-            </p>
+  <div>
+    <!-- Ultrawide screens (≥2100px) re-lay these blocks via `grid-template-areas`
+         (see app.css) — hence the `hp-*` hooks: hero and key numbers full-width
+         on top, then databases | map + video in two columns (three from 2400px,
+         where the video splits off), with the photo strip and the partners
+         strip closing the page. Below that the wrapper is `display: contents`,
+         so the page keeps the normal laptop flow in DOM order — databases
+         full-width, then the map | video row. -->
+    <div class="home-split">
+      <!-- Hero — overlapping white text panel breaking the media edge -->
+      <section class="hero hp-hero">
+        <div class="hero-text">
+          <div class="hero-eyebrow"><eyebrow-text text="EPFL · RESSLab" /></div>
+          <h1 class="hero-title">
+            <i18n-t keypath="home.hero.title" tag="span" scope="global">
+              <template #emphasis
+                ><em>{{ t('home.hero.titleEmphasis') }}</em></template
+              >
+              <template #break><br /></template>
+            </i18n-t>
+          </h1>
+          <p class="hero-lede">{{ t('home.hero.lede') }}</p>
+          <div class="hero-cta">
+            <router-link class="btn btn-primary" to="/connections/database">
+              {{ t('home.hero.browseDatabases') }}
+              <v-icon :icon="mdiArrowRight" size="14" />
+            </router-link>
+            <router-link class="btn btn-secondary" to="/about">
+              {{ t('home.hero.aboutProject') }}
+            </router-link>
           </div>
-        </v-card>
-      </v-col>
-      <v-col lg="7" xl="8">
-        <v-card class="fill-height">
-          <overview-map />
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12">
-        <v-card class="pa-5" color="secondary">
-          <v-row>
-            <v-col
-              v-for="(item, index) in indicators"
-              :key="index"
-              class="d-flex flex-column align-center"
-            >
-              <h1>
-                {{ item.count }}
-              </h1>
-              <span>{{ item.text }}</span>
-            </v-col>
-          </v-row>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="7">
-        <v-card class="fill-height pa-5">
-          <h1>Video introduction & tutorial</h1>
-          <v-carousel class="rounded pb-10" height="500">
-            <v-carousel-item class="pa-10">
+        </div>
+        <div class="hero-img">
+          <!-- The poster paints the hero immediately; the src is deferred to
+             `window` load (see heroVideoSrc) so the ~1 MB video never competes
+             with the critical CSS/JS/font/API downloads. -->
+          <video
+            ref="heroVideo"
+            autoplay
+            loop
+            muted
+            playsinline
+            preload="none"
+            :src="heroVideoSrc"
+            :poster="publicPath + 'video/steel-mrf-front-page-poster.webp'"
+          ></video>
+          <div class="hero-img-credit">RESSLab, EPFL</div>
+        </div>
+      </section>
+
+      <!-- Key numbers -->
+      <div class="keynums hp-kpis">
+        <div
+          v-for="(item, index) in keyNumbers"
+          :key="index"
+          class="keynum"
+          :title="
+            item.status === 'stale'
+              ? t('home.keyNumbers.staleTooltip', { date: kpiSnapshot.generatedAt })
+              : undefined
+          "
+        >
+          <div class="keynum-num">{{ item.num }}</div>
+          <div
+            class="keynum-bar"
+            :class="{
+              'keynum-bar--loading': barAnimating[index],
+              'keynum-bar--stale': item.status === 'stale'
+            }"
+            @animationiteration="onBarCycle(index)"
+          />
+          <div class="keynum-label">{{ item.label }}</div>
+        </div>
+      </div>
+
+      <!-- Databases -->
+      <section class="section hp-data">
+        <div class="section-head">
+          <div>
+            <div class="section-eyebrow">
+              <eyebrow-text :text="t('home.databases.eyebrow')" />
+            </div>
+            <h2 class="section-title">{{ t('home.databases.title') }}</h2>
+            <p class="section-sub">{{ t('home.databases.sub') }}</p>
+          </div>
+          <router-link class="section-link" to="/connections/database">
+            {{ t('home.databases.viewAll') }} →
+          </router-link>
+        </div>
+        <div class="cat-grid">
+          <router-link v-for="db in DATABASES" :key="db.id" class="cat-tile" :to="db.to">
+            <div class="cat-tile-icon"><v-icon :icon="db.icon" size="22" /></div>
+            <h3 class="cat-tile-title">{{ db.name }}</h3>
+            <p class="cat-tile-desc">{{ db.desc }}</p>
+            <!-- The dashboard's own description; only shown where the tiles have
+                 the room for it (the ultrawide column layout). -->
+            <p class="cat-tile-desc-long">{{ db.descLong }}</p>
+            <div class="cat-tile-meta">
+              <template v-if="countsStore.counts[db.id] != null">
+                <strong>{{ countsStore.counts[db.id] }}</strong>
+                <span>{{ t('home.databases.tests') }}</span>
+              </template>
+              <template v-if="countsStore.sources[db.id] != null">
+                <strong>{{ countsStore.sources[db.id] }}</strong>
+                <span>{{ t('home.databases.sources', countsStore.sources[db.id]!) }}</span>
+              </template>
+              <span style="flex: 1" />
+              <span class="cat-tab">{{ db.group }}</span>
+            </div>
+            <v-icon :icon="mdiArrowRight" size="16" class="cat-arrow" />
+          </router-link>
+        </div>
+      </section>
+
+      <!-- Worldwide reach + tutorial -->
+      <section class="section section-bg-subtle hp-reach">
+        <div class="section-head">
+          <div>
+            <div class="section-eyebrow"><eyebrow-text :text="t('home.reach.eyebrow')" /></div>
+            <h2 class="section-title">
+              {{
+                t('home.reach.title', {
+                  count: countsStore.universities ?? t('home.reach.dozensOf')
+                })
+              }}
+            </h2>
+          </div>
+        </div>
+        <div class="split-7-5">
+          <div class="map-frame">
+            <overview-map />
+          </div>
+          <!-- Inline styles moved to .tools-panel* in app.css: at ≥2100px this
+               panel becomes video-beside-copy, which an inline `display: flex`
+               would outrank. -->
+          <div class="surface surface-pad tools-panel">
+            <div class="video-frame">
+              <!-- loading=lazy: the YouTube embed pulls hundreds of kB of
+                   third-party player assets, and this panel sits below the
+                   fold — don't fetch any of it until the user scrolls near. -->
               <iframe
-                width="100%"
-                height="100%"
                 src="https://www.youtube.com/embed/5TkO07T16z4"
-                frameborder="10"
+                :title="t('home.tools.videoTitle')"
+                loading="lazy"
                 allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowfullscreen
               ></iframe>
-            </v-carousel-item>
-            <v-carousel-item>
-              <iframe
-                width="100%"
-                height="100%"
-                src="https://www.youtube.com/embed/JLWvJ_K3bAs"
-                frameborder="0"
-                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-              ></iframe>
-            </v-carousel-item>
-          </v-carousel>
-        </v-card>
-      </v-col>
-      <v-col cols="5">
-        <v-card class="rounded pa-5">
-          <v-carousel
-            v-model="imageIndex"
-            class="bg-secondary rounded"
-            cycle
-            height="500"
-            hide-delimiter-background
-            :show-arrows="false"
-          >
-            <v-carousel-item v-for="(image, index) in carouselImages" :key="index" cover>
-              <v-img :src="image.src" height="100%" />
-            </v-carousel-item>
-          </v-carousel>
-          <v-card-text class="pa-0 pt-5 mb-0 text-right">
-            Credits: {{ carouselImages[imageIndex].credit }}
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-row class="my-10">
-      <v-col v-for="(logo, index) in logos" :key="index">
-        <a :href="logo.url" target="_blank">
-          <v-img :src="logo.src" max-height="64" />
-        </a>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12">
-        <v-card class="rounded">
-          <div class="pa-5">
-            <h1>Copyrights</h1>
-            <p>
-              The databases in RESSLab-hub were assembled as a service to the research and practice
-              communities in earthquake engineering. The assembled data, which have been fully
-              digitized from various experimental reports, are shared under the
-              <a href="https://creativecommons.org/licenses/by/2.0/legalcode" target="_blank"
-                >Creative Commons Attribution 2.0 Generic</a
-              >
-              and the
-              <a
-                href="https://github.com/amaelkady/Steel-Columns-Test-Data/blob/main/LICENSE"
-                target="_blank"
-                >GNU General Public</a
-              >
-              licences. EPFL, and the researchers who performed the experiments make no warranties
-              to the accuracy of the information that has been collected and provided in this
-              website. If you have any questions, comments or suggestions, please contact
-              <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank"
-                >Prof. Dimitrios Lignos</a
-              >
-              at <a href="https://www.epfl.ch" target="_blank">EPFL</a>.
-            </p>
+            </div>
+            <div class="tools-panel-copy">
+              <div class="eyebrow tools-panel-eyebrow">
+                <eyebrow-text :text="t('home.tools.eyebrow')" />
+              </div>
+              <p class="tools-panel-blurb">{{ t('home.tools.blurb') }}</p>
+              <div class="tools-panel-links">
+                <router-link
+                  v-for="tool in TOOLS"
+                  :key="tool.to"
+                  class="btn btn-secondary btn-sm"
+                  :to="tool.to"
+                >
+                  {{ tool.name }}
+                </router-link>
+              </div>
+            </div>
           </div>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+        </div>
+      </section>
+
+      <!-- From the lab -->
+      <section class="section hp-gallery">
+        <div class="section-head">
+          <div>
+            <div class="section-eyebrow"><eyebrow-text :text="t('home.gallery.eyebrow')" /></div>
+            <h2 class="section-title">{{ t('home.gallery.title') }}</h2>
+          </div>
+        </div>
+        <photo-carousel :images="galleryImages" />
+      </section>
+
+      <!-- Partners -->
+      <div class="logos hp-partners">
+        <div class="logos-eyebrow">{{ t('home.partners.eyebrow') }}</div>
+        <div class="logos-items">
+          <a href="https://www.epfl.ch/labs/resslab" target="_blank" rel="noreferrer">
+            <img :src="publicPath + 'logo/resslab_logo_v1.svg'" alt="RESSLab" />
+          </a>
+          <a href="https://www.epfl.ch" target="_blank" rel="noreferrer">
+            <img :src="publicPath + 'logo/EPFL_Logo_184X53.svg'" alt="EPFL" />
+          </a>
+          <a href="https://enac-it4r.epfl.ch" target="_blank" rel="noreferrer">
+            <img :src="publicPath + 'logo/logo_IT4R.svg'" alt="ENAC-IT4R" />
+          </a>
+          <a href="https://www.snf.ch" target="_blank" rel="noreferrer">
+            <img
+              :src="publicPath + 'logo/SNF_logo_standard_web_color_pos_e.svg'"
+              alt="Swiss National Science Foundation"
+            />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <app-footer />
+  </div>
 </template>

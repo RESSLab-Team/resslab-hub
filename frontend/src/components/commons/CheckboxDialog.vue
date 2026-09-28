@@ -82,9 +82,9 @@ function close(): void {
           :prepend-icon="mdiCheck"
           @click="onConfirm"
         >
-          Confirm
+          {{ $t('commons.confirm') }}
         </v-btn>
-        <v-btn :prepend-icon="mdiClose" @click="close">Cancel</v-btn>
+        <v-btn :prepend-icon="mdiClose" @click="close">{{ $t('commons.cancel') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

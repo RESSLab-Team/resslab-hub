@@ -3,9 +3,11 @@ import { ConnectionField, type ConnectionModel } from '@/backend'
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
+import { useDataset } from '@/composables/useDataset'
+import { CONNECTION_KEY, fetchConnections } from '@/components/connections/data'
 import { connectionsApi } from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notification'
-import { publicPath } from '@/utils/common'
+import { getConnectionTypeImage } from '@/utils/component'
 import { toRef } from 'vue'
 
 const columns: Column[] = [
@@ -20,7 +22,8 @@ const columns: Column[] = [
   },
   {
     value: ConnectionField.SpecimenDesignation,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'strong'
   },
   {
     value: ConnectionField.Northridge,
@@ -41,16 +44,20 @@ const columns: Column[] = [
   },
   {
     value: ConnectionField.ConnectionType,
+    categoryColor: true,
     type: 'option',
-    options: ['WUF-W', 'RBS', 'WUF-B', 'BFP', 'WFP', 'KBB', 'BEEP']
+    options: ['WUF-W', 'RBS', 'WUF-B', 'BFP', 'WFP', 'KBB', 'BEEP'],
+    cellVariant: 'tag'
   },
   {
     value: ConnectionField.SectionB,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: ConnectionField.SectionC,
-    type: 'text'
+    type: 'text',
+    cellVariant: 'mono'
   },
   {
     value: ConnectionField.NDp,
@@ -70,10 +77,16 @@ interface Emits extends TableEmits<ConnectionModel> {}
 const emit = defineEmits<Emits>()
 
 const notificationStore = useNotificationStore()
+const { getTotal, getPage, countRowsSync, pageSync, colorFor } = useDataset<ConnectionModel>(
+  CONNECTION_KEY,
+  fetchConnections
+)
 const {
   clickRow,
   downloadFiles,
   items,
+  liveCount,
+  liveItems,
   loading,
   options,
   search,
@@ -113,15 +126,15 @@ const {
       getCsv: (id) => connectionsApi.getConnectionsPanelZonesCsv(id)
     }
   ],
-  () => connectionsApi.getConnectionsCounts(),
-  (query, sortBy, sortDesc, page, size) =>
-    connectionsApi.getConnections(query, sortBy, sortDesc, page, size),
+  getTotal,
+  getPage,
   (ids) => connectionsApi.getConnectionsCsv(ids),
-  (message) => notificationStore.notify(message)
+  (message) => notificationStore.notify(message),
+  { countRowsSync, pageSync } // live crossfilter rows during a drag (see useTable)
 )
 
 function getImageSource(item: string): string {
-  return publicPath + 'img/connection-type/' + item.toLowerCase() + '.svg'
+  return getConnectionTypeImage(item)
 }
 </script>
 
@@ -130,7 +143,14 @@ function getImageSource(item: string): string {
     v-model:options="options"
     v-model:search="search"
     v-model:searches="searches"
+    :color-for="colorFor"
+    database-id="connections"
     :columns="columns"
+    hide-filter-only
+    hide-toolbar
+    instant
+    :live-count="liveCount"
+    :live-items="liveItems"
     :items="items"
     :loading="loading"
     prefix="connection."
@@ -141,35 +161,21 @@ function getImageSource(item: string): string {
     @download="downloadFiles"
   >
     <template #title>
-      Connections
+      {{ $t('table.connection.title') }}
       <info-tooltip>
-        <p>
-          The Connections Database presents data from early 1970s on beam-to-column connections
-          under reversed cyclic and monotonic loading. The primary data involve the global behavior
-          of the connection and the decomposed panel zone shear versus shear distortion, deduced
-          beam end moment versus chord rotation, whenever available.
-        </p>
-        How to use?
+        <p>{{ $t('table.connection.tooltip.intro') }}</p>
+        {{ $t('table.connection.tooltip.howToUse') }}
         <ul>
-          <li>
-            Filter the table by making selections in the various plots around the table, or by using
-            the filters and dropdowns above the table headers.
-          </li>
-          <li>Click on a row to see the data of a single test.</li>
-          <li>
-            Download specific tests results by selecting the test (left-most column) and click
-            "Download" below.
-          </li>
-          <li>
-            Share specific tests results by selecting the test (left-most column) and click "Share"
-            below.
-          </li>
+          <li>{{ $t('table.connection.tooltip.bulletFilter') }}</li>
+          <li>{{ $t('table.connection.tooltip.bulletClick') }}</li>
+          <li>{{ $t('table.connection.tooltip.bulletDownload') }}</li>
+          <li>{{ $t('table.connection.tooltip.bulletShare') }}</li>
         </ul>
       </info-tooltip>
     </template>
     <!-- eslint-disable-next-line vue/no-template-shadow -->
     <template #[`header-select-item.connection_type`]="{ props }">
-      <v-list-item v-bind="props" @click="props.onClick">
+      <v-list-item v-bind="props" @click="props.onClick as VoidFunction">
         <template #prepend="{ isSelected }">
           <v-checkbox hide-details :model-value="isSelected" :ripple="false" />
           <v-img max-height="128" width="128" :src="getImageSource(props.value as string)" />

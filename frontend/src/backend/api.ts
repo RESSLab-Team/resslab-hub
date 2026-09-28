@@ -14,20 +14,15 @@
 
 
 import type { Configuration } from './configuration';
-import type { AxiosPromise, AxiosInstance, AxiosRequestConfig } from 'axios';
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
 import globalAxios from 'axios';
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from './common';
+import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction, replaceWithSerializableTypeIfNeeded } from './common';
 import type { RequestArgs } from './base';
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError } from './base';
+import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const BraceField = {
     Id: 'id',
@@ -100,450 +95,85 @@ export const BraceField = {
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
-    DisplacementCount: 'displacement_count'
+    DisplacementCount: 'displacement_count',
 } as const;
 
 export type BraceField = typeof BraceField[keyof typeof BraceField];
 
 
-/**
- * 
- * @export
- * @interface BraceModel
- */
 export interface BraceModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
     'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
     'investigator': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
     'specimen_ID': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
     'date': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
     'cross_section_shape': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
     'cross_section_size': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'area'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'd_br'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'b_br'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    't_br'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'w_br'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'i_x'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'i_y'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'r_x'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'r_y'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'z_x'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'z_y'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'j'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
+    'area': number | null;
+    'd_br': number | null;
+    'b_br': number | null;
+    't_br': number | null;
+    'w_br': number | null;
+    'i_x': number | null;
+    'i_y': number | null;
+    'r_x': number | null;
+    'r_y': number | null;
+    'z_x': number | null;
+    'z_y': number | null;
+    'j': number | null;
     'configuration': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'brace_angle': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'l_b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'l_b_clear'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
+    'brace_angle': number | null;
+    'l_b': number | null;
+    'l_b_clear': number | null;
     'steel': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'e'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'f_yn'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'fy_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'f_um'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
+    'e': number | null;
+    'f_yn': number | null;
+    'fy_m': number | null;
+    'f_um': number | null;
     'boundary_condition': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_1t'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_2t'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_3t'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'l_4t'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_5t'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_6t'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_7t'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    't_t'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_1b'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_2b'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_3b'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_4b'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_5b'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'l_6b'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'l_7b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'l_8b'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    't_b'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'steel_gp'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'f_yn_gp'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'f_ym_gp'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'f_um_gp'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'weld_type'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'l_weld'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    't_weld'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'stick_space'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'nub_bolts'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'bolt_size'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'bolt_mat'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'reinforcement_pl'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
+    'l_1t': string | null;
+    'l_2t': string | null;
+    'l_3t': string | null;
+    'l_4t': number | null;
+    'l_5t': string | null;
+    'l_6t': string | null;
+    'l_7t': string | null;
+    't_t': number | null;
+    'l_1b': string | null;
+    'l_2b': string | null;
+    'l_3b': string | null;
+    'l_4b': string | null;
+    'l_5b': string | null;
+    'l_6b': string | null;
+    'l_7b': number | null;
+    'l_8b': number | null;
+    't_b': string | null;
+    'steel_gp': string | null;
+    'f_yn_gp': number | null;
+    'f_ym_gp': number | null;
+    'f_um_gp': number | null;
+    'weld_type': string | null;
+    'l_weld': number | null;
+    't_weld': number | null;
+    'stick_space': number | null;
+    'nub_bolts': number | null;
+    'bolt_size': string | null;
+    'bolt_mat': string | null;
+    'reinforcement_pl': string | null;
     'loading_protocol': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'p_t'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'p_t_theory'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'p_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'kl_r'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'l_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'l_c_theory'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'k_assumed'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'kl_r_theory'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
+    'p_t': number | null;
+    'p_t_theory': number | null;
+    'p_c': number | null;
+    'kl_r': number | null;
+    'l_c': number | null;
+    'l_c_theory': number | null;
+    'k_assumed': number | null;
+    'kl_r_theory': number | null;
     'reference': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof BraceModel
-     */
-    'link'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'latitude'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
-    'longitude'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof BraceModel
-     */
+    'link': string | null;
+    'latitude': number | null;
+    'longitude': number | null;
     'displacement_count': number;
 }
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const BraceNumberField = {
     Date: 'date',
@@ -587,17 +217,12 @@ export const BraceNumberField = {
     KlRTheory: 'kl_r_theory',
     Latitude: 'latitude',
     Longitude: 'longitude',
-    DisplacementCount: 'displacement_count'
+    DisplacementCount: 'displacement_count',
 } as const;
 
 export type BraceNumberField = typeof BraceNumberField[keyof typeof BraceNumberField];
 
 
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const ColumnField = {
     Id: 'id',
@@ -700,630 +325,115 @@ export const ColumnField = {
     BuiltUp: 'built_up',
     AxialShorteningCount: 'axial_shortening_count',
     MomentStrongCount: 'moment_strong_count',
-    MomentWeakCount: 'moment_weak_count'
+    MomentWeakCount: 'moment_weak_count',
 } as const;
 
 export type ColumnField = typeof ColumnField[keyof typeof ColumnField];
 
 
-/**
- * 
- * @export
- * @interface ColumnModel
- */
 export interface ColumnModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'experimental_program': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
     'date': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'section_c': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'specimen_designation': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'd_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'k_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'k1_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'h_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    't_cw'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'h_over_t_cw'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'b_cf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    't_cf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'b_f_over_t_cf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'a_cm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'a_cn'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'i_xb'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'i_xc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    's_xc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    's_yc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'z_xc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'z_yc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'j_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'c_wc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'r_yc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'r_xc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'l_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'l_sc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'l_bc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'l_b_over_r_yc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'k_xc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'k_yc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'lambda_xc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'lambda_yc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'lambda_ltb'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
+    'd_c': number | null;
+    'k_c': number | null;
+    'k1_c': number | null;
+    'h_c': number | null;
+    't_cw': number | null;
+    'h_over_t_cw': number | null;
+    'b_cf': number | null;
+    't_cf': number | null;
+    'b_f_over_t_cf': number | null;
+    'a_cm': number | null;
+    'a_cn': number | null;
+    'i_xb': number | null;
+    'i_xc': number | null;
+    's_xc': number | null;
+    's_yc': number | null;
+    'z_xc': number | null;
+    'z_yc': number | null;
+    'j_c': number | null;
+    'c_wc': number | null;
+    'r_yc': number | null;
+    'r_xc': number | null;
+    'l_c': number | null;
+    'l_sc': number | null;
+    'l_bc': number | null;
+    'l_b_over_r_yc': number | null;
+    'k_xc': number | null;
+    'k_yc': number | null;
+    'lambda_xc': number | null;
+    'lambda_yc': number | null;
+    'lambda_ltb': number | null;
     'steel_c': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'r_y'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'r_t'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'f_ymf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'f_ymw'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'f_umf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'f_umw'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'f_yn'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'f_un'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'e_nc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'e_mc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'g_nc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'g_mc'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
+    'r_y': number | null;
+    'r_t': number | null;
+    'f_ymf': number | null;
+    'f_ymw': number | null;
+    'f_umf': number | null;
+    'f_umw': number | null;
+    'f_yn': number | null;
+    'f_un': number | null;
+    'e_nc': number | null;
+    'e_mc': number | null;
+    'g_nc': number | null;
+    'g_mc': number | null;
     'boundary_condition': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p_ym'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p_yn'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p_ye'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
+    'p_ym': number | null;
+    'p_yn': number | null;
+    'p_ye': number | null;
     'lateral_lp': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'direction_lp': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'axis_of_bending': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'axial_lp': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p_g'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p_t'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p_g_over_p_ym'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p_g_over_p_yn'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p_t_over_p_ym'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p_c_over_p_ym'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p_c_over_p_yn'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'p'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    't_top_plate'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    't_bottom_plate'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
+    'p_g': number | null;
+    'p_t': number | null;
+    'p_c': number | null;
+    'p_g_over_p_ym': number | null;
+    'p_g_over_p_yn': number | null;
+    'p_t_over_p_ym': number | null;
+    'p_c_over_p_ym': number | null;
+    'p_c_over_p_yn': number | null;
+    'p': number | null;
+    't_top_plate': number | null;
+    't_bottom_plate': number | null;
     'test_procedure': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
-    'comments'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'k_test'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'k_flexure_th'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'k_shear_th'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'k_theory'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'th_y'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'th_lb'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'th_80'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'th_50'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'th_20'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'th_1l'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'th_2l'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'th_3l'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'th_4l'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'th_6l'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'd_80'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'd_50'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
-    'd_20'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
+    'comments': string | null;
+    'k_test': number | null;
+    'k_flexure_th': number | null;
+    'k_shear_th': number | null;
+    'k_theory': number | null;
+    'th_y': number | null;
+    'th_lb': number | null;
+    'th_80': number | null;
+    'th_50': number | null;
+    'th_20': number | null;
+    'th_1l': number | null;
+    'th_2l': number | null;
+    'th_3l': number | null;
+    'th_4l': number | null;
+    'th_6l': number | null;
+    'd_80': number | null;
+    'd_50': number | null;
+    'd_20': number | null;
     'f_class_us': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'w_class_us': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'cs_class_us': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'f_class_eu': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'w_class_eu': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'cs_class_eu': string;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ColumnModel
-     */
     'cfe': boolean;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
     'reference': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ColumnModel
-     */
-    'link'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
+    'link': string | null;
     'latitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
     'longitude': number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ColumnModel
-     */
     'built_up': boolean;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
     'axial_shortening_count': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
     'moment_strong_count': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ColumnModel
-     */
     'moment_weak_count': number;
 }
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const ColumnNumberField = {
     Date: 'date',
@@ -1404,17 +514,12 @@ export const ColumnNumberField = {
     Longitude: 'longitude',
     AxialShorteningCount: 'axial_shortening_count',
     MomentStrongCount: 'moment_strong_count',
-    MomentWeakCount: 'moment_weak_count'
+    MomentWeakCount: 'moment_weak_count',
 } as const;
 
 export type ColumnNumberField = typeof ColumnNumberField[keyof typeof ColumnNumberField];
 
 
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const ConnectionField = {
     Id: 'id',
@@ -1574,7 +679,7 @@ export const ConnectionField = {
     BeamWestCount: 'beam_west_count',
     GlobalCount: 'global_count',
     GlobalWestCount: 'global_west_count',
-    PanelZoneCount: 'panel_zone_count'
+    PanelZoneCount: 'panel_zone_count',
 } as const;
 
 export type ConnectionField = typeof ConnectionField[keyof typeof ConnectionField];
@@ -1582,964 +687,167 @@ export type ConnectionField = typeof ConnectionField[keyof typeof ConnectionFiel
 
 /**
  * Connection
- * @export
- * @interface ConnectionModel
  */
 export interface ConnectionModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
     'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
     'experimental_program': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
     'date': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
     'specimen_designation': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
     'northridge': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
     'specimen_type': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
-    'comments'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
+    'comments': string | null;
     'loading_protocol': string;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ConnectionModel
-     */
     'slab': boolean;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
     'connection_type': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_pl'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'rbs_cut'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    's_h'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd_h'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
+    't_pl': number | null;
+    'rbs_cut': number | null;
+    's_h': number | null;
+    'd_h': number | null;
     'section_b': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd_b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd_bg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_bw'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'b_bf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_bf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'r_b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'a_b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'i_xb'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'z_xb'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'z_xb_bfp'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'r_yb'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'b_bf_rbs'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd_gb_rbs'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'a_b_rbs'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'i_xb_rbs'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'z_xb_rbs'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd_bm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd_bgm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_bwm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'b_bfm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_bfm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'z_xbm'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
+    'd_b': number | null;
+    'd_bg': number | null;
+    't_bw': number | null;
+    'b_bf': number | null;
+    't_bf': number | null;
+    'r_b': number | null;
+    'a_b': number | null;
+    'i_xb': number | null;
+    'z_xb': number | null;
+    'z_xb_bfp': number | null;
+    'r_yb': number | null;
+    'b_bf_rbs': number | null;
+    'd_gb_rbs': number | null;
+    'a_b_rbs': number | null;
+    'i_xb_rbs': number | null;
+    'z_xb_rbs': number | null;
+    'd_bm': number | null;
+    'd_bgm': number | null;
+    't_bwm': number | null;
+    'b_bfm': number | null;
+    't_bfm': number | null;
+    'z_xbm': number | null;
     'steel_b': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_yb'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_ybw'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_ybf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_yb_mill'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_yb_avg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'l_b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'l_fc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'l_o'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'lo_db'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
+    'f_yb': number | null;
+    'f_ybw': number | null;
+    'f_ybf': number | null;
+    'f_yb_mill': number | null;
+    'f_yb_avg': number | null;
+    'l_b': number | null;
+    'l_fc': number | null;
+    'l_o': number | null;
+    'lo_db': number | null;
     'section_c': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_cw'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'b_cf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'c_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_cf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'r_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'a_c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'i_xc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd_cm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_wcm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'c_cm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'b_fcm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_fcm'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
+    'd_c': number | null;
+    't_cw': number | null;
+    'b_cf': number | null;
+    'c_c': number | null;
+    't_cf': number | null;
+    'r_c': number | null;
+    'a_c': number | null;
+    'i_xc': number | null;
+    'd_cm': number | null;
+    't_wcm': number | null;
+    'c_cm': number | null;
+    'b_fcm': number | null;
+    't_fcm': number | null;
     'steel_c': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_yc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_ydp'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_ycw'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_ycf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_yc_mill'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_yc_avg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'h_c'?: number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ConnectionModel
-     */
-    'backing_bar'?: boolean;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
+    'f_yc': number | null;
+    'f_ydp': number | null;
+    'f_ycw': number | null;
+    'f_ycf': number | null;
+    'f_yc_mill': number | null;
+    'f_yc_avg': number | null;
+    'h_c': number | null;
+    'backing_bar': boolean | null;
     'electrode': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd_electrode'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'cvn_0f'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'cvn_minus20f'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'cvn_70f'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
-    'access_hole_geometry'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'w'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'w_l'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'w_r'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'h_t'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'a_s'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_sk'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_sm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'h_co'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
-    'slab_con_type'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_ck'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_cm'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
-    'cur_days'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_c_compr_calc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'h_sc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'n_studs'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'n_diss'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'n_r'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'f_u_sc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'h_p'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'b_o'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
-    'deck_ribs_orientation'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
+    'd_electrode': number | null;
+    'cvn_0f': number | null;
+    'cvn_minus20f': number | null;
+    'cvn_70f': number | null;
+    'access_hole_geometry': string | null;
+    'w': number | null;
+    'w_l': number | null;
+    'w_r': number | null;
+    'h_t': number | null;
+    'a_s': number | null;
+    'f_sk': number | null;
+    'f_sm': number | null;
+    'h_co': number | null;
+    'slab_con_type': string | null;
+    'f_ck': number | null;
+    'f_cm': number | null;
+    'cur_days': string | null;
+    'f_c_compr_calc': number | null;
+    'd': number | null;
+    'h_sc': number | null;
+    'n_studs': number | null;
+    'n_diss': number | null;
+    'n_r': number | null;
+    'f_u_sc': number | null;
+    'h_p': number | null;
+    'b_o': number | null;
+    'deck_ribs_orientation': string | null;
     'section_shape_c': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd_pz'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'tw_pz'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'bf_pz'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'tf_pz'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'dz'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'zw'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'dz_plug'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'wz_plug'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'wd'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'n_dp'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_dp'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_dp_tot'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_p'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    't_cp'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'd_cp'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'db_plus'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'db_minus'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'a_vc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'fy_pz_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'p_cm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'n_pm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'v_pz_el_m_europe'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'r_n_el_m_aisc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'r_n_pl_m_aisc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'v_pz_m_aij'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'fy_pz_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'p_cn'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'n_pn'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'v_pz_el_n_europe'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'r_n_el_n_aisc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'r_n_pl_n_aisc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'v_pz_n_aij'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'm_cf_minus_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'm_cf_plus_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'm_cf_minus_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'm_cf_plus_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'v_bf_plus_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'v_bf_minus_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'v_col_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'r_u_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'r_u_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'ru_rn_el_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'ru_rn_pl_n'?: number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ConnectionModel
-     */
-    'aisc_pz_violation_n'?: boolean;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'ru_rn_el_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'ru_rn_pl_m'?: number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ConnectionModel
-     */
-    'aisc_pz_violation_m'?: boolean;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'g_max'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'g_y'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'g_max_g_y'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
+    'd_pz': number | null;
+    'tw_pz': number | null;
+    'bf_pz': number | null;
+    'tf_pz': number | null;
+    'dz': number | null;
+    'zw': number | null;
+    'dz_plug': number | null;
+    'wz_plug': number | null;
+    'wd': number | null;
+    'n_dp': number | null;
+    't_dp': number | null;
+    't_dp_tot': number | null;
+    't_p': number | null;
+    't_cp': number | null;
+    'd_cp': number | null;
+    'db_plus': number | null;
+    'db_minus': number | null;
+    'a_vc': number | null;
+    'fy_pz_m': number | null;
+    'p_cm': number | null;
+    'n_pm': number | null;
+    'v_pz_el_m_europe': number | null;
+    'r_n_el_m_aisc': number | null;
+    'r_n_pl_m_aisc': number | null;
+    'v_pz_m_aij': number | null;
+    'fy_pz_n': number | null;
+    'p_cn': number | null;
+    'n_pn': number | null;
+    'v_pz_el_n_europe': number | null;
+    'r_n_el_n_aisc': number | null;
+    'r_n_pl_n_aisc': number | null;
+    'v_pz_n_aij': number | null;
+    'm_cf_minus_n': number | null;
+    'm_cf_plus_n': number | null;
+    'm_cf_minus_m': number | null;
+    'm_cf_plus_m': number | null;
+    'v_bf_plus_n': number | null;
+    'v_bf_minus_n': number | null;
+    'v_col_n': number | null;
+    'r_u_n': number | null;
+    'r_u_m': number | null;
+    'ru_rn_el_n': number | null;
+    'ru_rn_pl_n': number | null;
+    'aisc_pz_violation_n': boolean | null;
+    'ru_rn_el_m': number | null;
+    'ru_rn_pl_m': number | null;
+    'aisc_pz_violation_m': boolean | null;
+    'g_max': number | null;
+    'g_y': number | null;
+    'g_max_g_y': number | null;
     'reference': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConnectionModel
-     */
-    'link'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
-    'latitude'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
+    'link': string | null;
+    'latitude': number | null;
     'longitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
     'beam_count': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
     'beam_west_count': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
     'global_count': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
     'global_west_count': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConnectionModel
-     */
     'panel_zone_count': number;
 }
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const ConnectionNumberField = {
     Date: 'date',
@@ -2675,62 +983,388 @@ export const ConnectionNumberField = {
     BeamWestCount: 'beam_west_count',
     GlobalCount: 'global_count',
     GlobalWestCount: 'global_west_count',
-    PanelZoneCount: 'panel_zone_count'
+    PanelZoneCount: 'panel_zone_count',
 } as const;
 
 export type ConnectionNumberField = typeof ConnectionNumberField[keyof typeof ConnectionNumberField];
 
 
 /**
+ * The pull request opened on the data repository for a submission.
+ */
+export interface ContributionResponse {
+    'pr_url': string;
+    'pr_number': number;
+    'branch': string;
+    'head_sha': string;
+}
+/**
  * Count
- * @export
- * @interface CountModel
  */
 export interface CountModel {
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof CountModel
-     */
     'names': Array<string>;
-    /**
-     * 
-     * @type {number}
-     * @memberof CountModel
-     */
     'value': number;
 }
 /**
- * 
- * @export
- * @interface DataInnerInner
+ * One message of a submission\'s discussion thread.  Bodies are raw GitHub-flavoured markdown — the review screen renders and sanitizes them client-side, the same way it renders a database README.
  */
+export interface CurationComment {
+    'id': number;
+    'author': string;
+    'author_type': string;
+    'body': string;
+    'html_url': string;
+    'created_at': string;
+    'updated_at': string;
+    'is_body': boolean;
+}
+export interface CurationCommentsResponse {
+    'pr_number': number;
+    'items': Array<CurationComment>;
+}
+export interface CurationContributor {
+    'name'?: string;
+    'institution'?: string;
+    'orcid'?: string;
+    'github_login'?: string;
+}
+/**
+ * Everything the review screen needs about one submission.  The list-ish fields carry no defaults on purpose: they are always present in the response, and a default would mark them optional in the OpenAPI schema (and therefore in the generated frontend client).
+ */
+export interface CurationDetail {
+    'pr_number': number;
+    'pr_url': string;
+    'title': string;
+    'branch': string;
+    'type': string;
+    'draft': boolean;
+    'created_at': string;
+    'updated_at': string;
+    'experiment_count'?: number | null;
+    'contributor'?: CurationContributor | null;
+    'state': string;
+    'head_sha': string;
+    'body': string;
+    'submitted_at': string;
+    'dismissed_warnings': Array<string>;
+    'columns': Array<string>;
+    'experiments': Array<CurationExperiment>;
+    'files': Array<CurationFile>;
+    'reconstruction_warning': string | null;
+    'mine'?: boolean;
+}
+/**
+ * One submitted row of the primary CSV, keyed by repo column name.
+ */
+export interface CurationExperiment {
+    'id': string;
+    'cells': { [key: string]: string; };
+}
+/**
+ * One file added by the PR, classified against the type\'s layout.
+ */
+export interface CurationFile {
+    'path': string;
+    'kind': string;
+    'timeseries_dir'?: string | null;
+    'experiment_id'?: string | null;
+}
+export interface CurationListResponse {
+    'configured': boolean;
+    'items'?: Array<CurationSummary>;
+}
+/**
+ * One open contribution PR, as listed in the review queue.
+ */
+export interface CurationSummary {
+    'pr_number': number;
+    'pr_url': string;
+    'title': string;
+    'branch': string;
+    'type': string;
+    'draft': boolean;
+    'created_at': string;
+    'updated_at': string;
+    'experiment_count'?: number | null;
+    'contributor'?: CurationContributor | null;
+}
 export interface DataInnerInner {
 }
 /**
+ * The contributor guide (README.md of the data-repo folder) of one database.
+ */
+export interface DatabaseReadmeModel {
+    'database': string;
+    'content': string;
+}
+/**
  * Date Range
- * @export
- * @interface DateRangeModel
  */
 export interface DateRangeModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof DateRangeModel
-     */
     'min': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof DateRangeModel
-     */
     'max': string;
 }
 /**
- * An enumeration.
- * @export
- * @enum {string}
+ * One column of a database\'s data dictionary. Field names match the frontend\'s DictColumn shape.
  */
+export interface DictionaryColumnModel {
+    'name': string;
+    'description': string;
+    'symbol': string;
+    'unit': string;
+    'type': string;
+    'example': string;
+    'nullable': boolean;
+    'group'?: string;
+}
+
+export const DuctileFractureField = {
+    Id: 'id',
+    SpecimenDesignation: 'specimen_designation',
+    ExperimentalProgram: 'experimental_program',
+    Date: 'date',
+    SpecimenType: 'specimen_type',
+    Piece: 'piece',
+    Loading: 'loading',
+    LoadingProtocol: 'loading_protocol',
+    LocationCoupon: 'location_coupon',
+    SectionType: 'section_type',
+    SectionProfile: 'section_profile',
+    SteelType: 'steel_type',
+    CouponDirection: 'coupon_direction',
+    CrackOpeningDirection: 'crack_opening_direction',
+    PlateThickness: 'plate_thickness',
+    FYn: 'f_yn',
+    FUn: 'f_un',
+    FyM: 'fy_m',
+    FuM: 'fu_m',
+    ElongationFr: 'elongation_fr',
+    Temperature: 'temperature',
+    ChemicalCompositionC: 'chemical_composition_C',
+    ChemicalCompositionSi: 'chemical_composition_Si',
+    ChemicalCompositionMn: 'chemical_composition_Mn',
+    ChemicalCompositionP: 'chemical_composition_P',
+    ChemicalCompositionS: 'chemical_composition_S',
+    ChemicalCompositionCu: 'chemical_composition_Cu',
+    ChemicalCompositionNi: 'chemical_composition_Ni',
+    ChemicalCompositionCr: 'chemical_composition_Cr',
+    ChemicalCompositionV: 'chemical_composition_V',
+    ChemicalCompositionNb: 'chemical_composition_Nb',
+    ChemicalCompositionMo: 'chemical_composition_Mo',
+    ChemicalCompositionTi: 'chemical_composition_Ti',
+    ChemicalCompositionAl: 'chemical_composition_Al',
+    ChemicalCompositionN: 'chemical_composition_N',
+    GaugeLength: 'gauge_length',
+    NomNotchRadius: 'nom_notch_radius',
+    NomWholeDiameterCnt: 'nom_whole_diameter_cnt',
+    NomNotchDiameterCnt: 'nom_notch_diameter_cnt',
+    NomNotchWidth: 'nom_notch_width',
+    NomWidthGp: 'nom_width_gp',
+    NomWholeThicknessGp: 'nom_whole_thickness_gp',
+    NomNotchThicknessGp: 'nom_notch_thickness_gp',
+    MeasWholeDiameterCnt: 'meas_whole_diameter_cnt',
+    MeasNotchDiameterCnt: 'meas_notch_diameter_cnt',
+    MeasNotchWidth: 'meas_notch_width',
+    MeasWidthGp: 'meas_width_gp',
+    MeasWholeThicknessGp: 'meas_whole_thickness_gp',
+    MeasNotchThicknessGp: 'meas_notch_thickness_gp',
+    DispFract: 'disp_fract',
+    ExcAtFract: 'exc_at_fract',
+    StepFract: 'step_fract',
+    FractLoc: 'fract_loc',
+    YoungMod: 'young_mod',
+    Nu: 'nu',
+    TriaxAtFr: 'triax_at_fr',
+    TriaxAvgTillFr: 'triax_avg_till_fr',
+    LodeAtFr: 'lode_at_fr',
+    LodeAvgTillFr: 'lode_avg_till_fr',
+    PeeqAtFr: 'peeq_at_fr',
+    CvgmEtamono: 'cvgm_etamono',
+    CvgmLambda: 'cvgm_lambda',
+    SwdfmAlphaPos: 'swdfm_alpha_pos',
+    SwdfmAlphaNeg: 'swdfm_alpha_neg',
+    SwdfmKappa: 'swdfm_kappa',
+    SwdfmC: 'swdfm_C',
+    SwdfmBeta: 'swdfm_beta',
+    KkAlpha1: 'kk_alpha_1',
+    KkAlpha2: 'kk_alpha_2',
+    KkBeta1: 'kk_beta_1',
+    KkBeta2: 'kk_beta_2',
+    KkDCr: 'kk_d_cr',
+    LStar: 'l_star',
+    Reference: 'reference',
+    Link: 'link',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    HasSem: 'has_sem',
+    ForceElongationCount: 'force_elongation_count',
+    ForceElongationSimulationCount: 'force_elongation_simulation_count',
+    ForceRadialCount: 'force_radial_count',
+    ForceRadialSimulationCount: 'force_radial_simulation_count',
+    EpeqSimulationCount: 'epeq_simulation_count',
+    LodeSimulationCount: 'lode_simulation_count',
+    TriaxSimulationCount: 'triax_simulation_count',
+} as const;
+
+export type DuctileFractureField = typeof DuctileFractureField[keyof typeof DuctileFractureField];
+
+
+export interface DuctileFractureModel {
+    'id': string;
+    'specimen_designation': string;
+    'experimental_program': string;
+    'date': number;
+    'specimen_type': string;
+    'piece': string;
+    'loading': string;
+    'loading_protocol': string;
+    'location_coupon': string;
+    'section_type': string;
+    'section_profile': string;
+    'steel_type': string;
+    'coupon_direction': string;
+    'crack_opening_direction': string;
+    'plate_thickness': number;
+    'f_yn': number;
+    'f_un': number | null;
+    'fy_m': number | null;
+    'fu_m': number | null;
+    'elongation_fr': number | null;
+    'temperature': number;
+    'chemical_composition_C': number | null;
+    'chemical_composition_Si': number | null;
+    'chemical_composition_Mn': number | null;
+    'chemical_composition_P': number | null;
+    'chemical_composition_S': number | null;
+    'chemical_composition_Cu': number | null;
+    'chemical_composition_Ni': number | null;
+    'chemical_composition_Cr': number | null;
+    'chemical_composition_V': number | null;
+    'chemical_composition_Nb': number | null;
+    'chemical_composition_Mo': number | null;
+    'chemical_composition_Ti': number | null;
+    'chemical_composition_Al': number | null;
+    'chemical_composition_N': number | null;
+    'gauge_length': number;
+    'nom_notch_radius': number;
+    'nom_whole_diameter_cnt': number | null;
+    'nom_notch_diameter_cnt': number | null;
+    'nom_notch_width': number;
+    'nom_width_gp': number | null;
+    'nom_whole_thickness_gp': number | null;
+    'nom_notch_thickness_gp': number | null;
+    'meas_whole_diameter_cnt': string | null;
+    'meas_notch_diameter_cnt': string | null;
+    'meas_notch_width': string;
+    'meas_width_gp': string | null;
+    'meas_whole_thickness_gp': string | null;
+    'meas_notch_thickness_gp': string | null;
+    'disp_fract': number | null;
+    'exc_at_fract': number | null;
+    'step_fract': number;
+    'fract_loc': string;
+    'young_mod': number;
+    'nu': number;
+    'triax_at_fr': number | null;
+    'triax_avg_till_fr': number;
+    'lode_at_fr': number;
+    'lode_avg_till_fr': number;
+    'peeq_at_fr': number;
+    'cvgm_etamono': number;
+    'cvgm_lambda': number;
+    'swdfm_alpha_pos': number;
+    'swdfm_alpha_neg': number;
+    'swdfm_kappa': number;
+    'swdfm_C': number;
+    'swdfm_beta': number;
+    'kk_alpha_1': number;
+    'kk_alpha_2': number;
+    'kk_beta_1': number;
+    'kk_beta_2': number;
+    'kk_d_cr': number;
+    'l_star': number | null;
+    'reference': string;
+    'link': string;
+    'latitude': number;
+    'longitude': number;
+    'has_sem': boolean | null;
+    'force_elongation_count': number;
+    'force_elongation_simulation_count': number;
+    'force_radial_count': number;
+    'force_radial_simulation_count': number;
+    'epeq_simulation_count': number;
+    'lode_simulation_count': number;
+    'triax_simulation_count': number;
+}
+
+export const DuctileFractureNumberField = {
+    Date: 'date',
+    PlateThickness: 'plate_thickness',
+    FYn: 'f_yn',
+    FUn: 'f_un',
+    FyM: 'fy_m',
+    FuM: 'fu_m',
+    ElongationFr: 'elongation_fr',
+    Temperature: 'temperature',
+    ChemicalCompositionC: 'chemical_composition_C',
+    ChemicalCompositionSi: 'chemical_composition_Si',
+    ChemicalCompositionMn: 'chemical_composition_Mn',
+    ChemicalCompositionP: 'chemical_composition_P',
+    ChemicalCompositionS: 'chemical_composition_S',
+    ChemicalCompositionCu: 'chemical_composition_Cu',
+    ChemicalCompositionNi: 'chemical_composition_Ni',
+    ChemicalCompositionCr: 'chemical_composition_Cr',
+    ChemicalCompositionV: 'chemical_composition_V',
+    ChemicalCompositionNb: 'chemical_composition_Nb',
+    ChemicalCompositionMo: 'chemical_composition_Mo',
+    ChemicalCompositionTi: 'chemical_composition_Ti',
+    ChemicalCompositionAl: 'chemical_composition_Al',
+    ChemicalCompositionN: 'chemical_composition_N',
+    GaugeLength: 'gauge_length',
+    NomNotchRadius: 'nom_notch_radius',
+    NomWholeDiameterCnt: 'nom_whole_diameter_cnt',
+    NomNotchDiameterCnt: 'nom_notch_diameter_cnt',
+    NomNotchWidth: 'nom_notch_width',
+    NomWidthGp: 'nom_width_gp',
+    NomWholeThicknessGp: 'nom_whole_thickness_gp',
+    NomNotchThicknessGp: 'nom_notch_thickness_gp',
+    DispFract: 'disp_fract',
+    ExcAtFract: 'exc_at_fract',
+    StepFract: 'step_fract',
+    YoungMod: 'young_mod',
+    Nu: 'nu',
+    TriaxAtFr: 'triax_at_fr',
+    TriaxAvgTillFr: 'triax_avg_till_fr',
+    LodeAtFr: 'lode_at_fr',
+    LodeAvgTillFr: 'lode_avg_till_fr',
+    PeeqAtFr: 'peeq_at_fr',
+    CvgmEtamono: 'cvgm_etamono',
+    CvgmLambda: 'cvgm_lambda',
+    SwdfmAlphaPos: 'swdfm_alpha_pos',
+    SwdfmAlphaNeg: 'swdfm_alpha_neg',
+    SwdfmKappa: 'swdfm_kappa',
+    SwdfmC: 'swdfm_C',
+    SwdfmBeta: 'swdfm_beta',
+    KkAlpha1: 'kk_alpha_1',
+    KkAlpha2: 'kk_alpha_2',
+    KkBeta1: 'kk_beta_1',
+    KkBeta2: 'kk_beta_2',
+    KkDCr: 'kk_d_cr',
+    LStar: 'l_star',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    ForceElongationCount: 'force_elongation_count',
+    ForceElongationSimulationCount: 'force_elongation_simulation_count',
+    ForceRadialCount: 'force_radial_count',
+    ForceRadialSimulationCount: 'force_radial_simulation_count',
+    EpeqSimulationCount: 'epeq_simulation_count',
+    LodeSimulationCount: 'lode_simulation_count',
+    TriaxSimulationCount: 'triax_simulation_count',
+} as const;
+
+export type DuctileFractureNumberField = typeof DuctileFractureNumberField[keyof typeof DuctileFractureNumberField];
+
+
 
 export const EccentricBracedFrameField = {
     Id: 'id',
@@ -2752,24 +1386,16 @@ export const EccentricBracedFrameField = {
     FYMWeb: 'f_y_m_web',
     FYExpLFlg: 'f_y_exp_l_flg',
     FYExpLWeb: 'f_y_exp_l_web',
-    FYExpUFlg: 'f_y_exp_u_flg',
-    FYExpUWeb: 'f_y_exp_u_web',
     FUMFlg: 'f_u_m_flg',
     FUMWeb: 'f_u_m_web',
     FUExpLFlg: 'f_u_exp_l_flg',
     FUExpLWeb: 'f_u_exp_l_web',
-    FUExpUFlg: 'f_u_exp_u_flg',
-    FUExpUWeb: 'f_u_exp_u_web',
     EMFlg: 'e_m_flg',
     EMWeb: 'e_m_web',
-    RYLFlg: 'r_y_l_flg',
-    RYLWeb: 'r_y_l_web',
-    RYUFlg: 'r_y_u_flg',
-    RYUWeb: 'r_y_u_web',
-    RTLFlg: 'r_t_l_flg',
-    RTLWeb: 'r_t_l_web',
-    RTUFlg: 'r_t_u_flg',
-    RTUWeb: 'r_t_u_web',
+    RYFlg: 'r_y_flg',
+    RYWeb: 'r_y_web',
+    RTFlg: 'r_t_flg',
+    RTWeb: 'r_t_web',
     FUFYNFlg: 'f_u_f_y_n_flg',
     FUFYNWeb: 'f_u_f_y_n_web',
     FUFYMFlg: 'f_u_f_y_m_flg',
@@ -2839,666 +1465,113 @@ export const EccentricBracedFrameField = {
     Url: 'url',
     Latitude: 'latitude',
     Longitude: 'longitude',
-    ShearLinkAngleCount: 'shear_link_angle_count'
+    ShearLinkAngleCount: 'shear_link_angle_count',
 } as const;
 
 export type EccentricBracedFrameField = typeof EccentricBracedFrameField[keyof typeof EccentricBracedFrameField];
 
 
-/**
- * 
- * @export
- * @interface EccentricBracedFrameModel
- */
 export interface EccentricBracedFrameModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
     'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
     'investigator': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'year': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
     'spec_id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
     'profile': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
     'region': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
     'sec_type': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
     'sg_flg_link': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
     'sg_web_link': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'f_y_n_flg': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'f_y_n_web': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'f_u_n_flg': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'f_u_n_web': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'e_n_flg': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'e_n_web': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_y_m_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_y_m_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_y_exp_l_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_y_exp_l_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_y_exp_u_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_y_exp_u_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_m_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_m_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_exp_l_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_exp_l_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_exp_u_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_exp_u_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'e_m_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'e_m_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_y_l_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_y_l_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_y_u_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_y_u_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_l_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_l_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_u_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_t_u_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_f_y_n_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_f_y_n_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_f_y_m_flg'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'f_u_f_y_m_web'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
+    'f_y_m_flg': number | null;
+    'f_y_m_web': number | null;
+    'f_y_exp_l_flg': number | null;
+    'f_y_exp_l_web': number | null;
+    'f_u_m_flg': number | null;
+    'f_u_m_web': number | null;
+    'f_u_exp_l_flg': number | null;
+    'f_u_exp_l_web': number | null;
+    'e_m_flg': number | null;
+    'e_m_web': number | null;
+    'r_y_flg': number | null;
+    'r_y_web': number | null;
+    'r_t_flg': number | null;
+    'r_t_web': number | null;
+    'f_u_f_y_n_flg': number | null;
+    'f_u_f_y_n_web': number | null;
+    'f_u_f_y_m_flg': number | null;
+    'f_u_f_y_m_web': number | null;
     'h_n': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'tw_n': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'bf_n': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'tf_n': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'tf_add_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'r_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'h_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'tw_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'bf_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'tf_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'tf_add_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
+    'tf_add_n': number | null;
+    'r_n': number | null;
+    'h_m': number | null;
+    'tw_m': number | null;
+    'bf_m': number | null;
+    'tf_m': number | null;
+    'tf_add_m': number | null;
     'hw_n': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'hw_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'a_fil_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
+    'hw_m': number | null;
+    'a_fil_n': number | null;
     'af_n': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'aw_n': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'a_n': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'af_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'aw_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'a_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'zp_fil_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'zp_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'zp_no_fil_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'zp_fil_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'zp_m'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'zp_no_fil_m'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
-    'link_loc'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_confi'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_con_typ'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_st'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'h_st'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
+    'af_m': number | null;
+    'aw_m': number | null;
+    'a_m': number | null;
+    'zp_fil_n': number | null;
+    'zp_n': number | null;
+    'zp_no_fil_n': number | null;
+    'zp_fil_m': number | null;
+    'zp_m': number | null;
+    'zp_no_fil_m': number | null;
+    'link_loc': string | null;
+    'l_confi': string | null;
+    'l_con_typ': string | null;
+    'l_st': number | null;
+    'h_st': number | null;
     'e': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_con_confi'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_con_wld'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_endp_wld'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_bu_wld'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_s_side'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_s_reg'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_s_d_pnl_1_f'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_s_d_pnl_2_f'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_s_d_pnl_1_b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_s_d_pnl_2_b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    't_s'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_s_weld'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_s_no_f'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'l_s_no_b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'a_b_b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    't_e_s'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    't_b_s'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'd_b_s'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'd_b_pnl_1'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'd_b_pnl_2'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'b_s_no'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
+    'l_con_confi': string | null;
+    'l_con_wld': string | null;
+    'l_endp_wld': string | null;
+    'l_bu_wld': string | null;
+    'l_s_side': string | null;
+    'l_s_reg': string | null;
+    'l_s_d_pnl_1_f': number | null;
+    'l_s_d_pnl_2_f': number | null;
+    'l_s_d_pnl_1_b': number | null;
+    'l_s_d_pnl_2_b': number | null;
+    't_s': number | null;
+    'l_s_weld': string | null;
+    'l_s_no_f': number | null;
+    'l_s_no_b': number | null;
+    'a_b_b': number | null;
+    't_e_s': number | null;
+    't_b_s': number | null;
+    'd_b_s': number | null;
+    'd_b_pnl_1': number | null;
+    'd_b_pnl_2': number | null;
+    'b_s_no': number | null;
     'l_p_typ': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'n_d_n_pl_ten'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'n_d_n_pl_comp'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
-    'fail_mode'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'ov_aisc'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
-    'ov_ec8'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
+    'n_d_n_pl_ten': number | null;
+    'n_d_n_pl_comp': number | null;
+    'fail_mode': string | null;
+    'ov_aisc': number | null;
+    'ov_ec8': number | null;
     'class_aisc': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
     'class_ec8': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
     'reference': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EccentricBracedFrameModel
-     */
     'url': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'latitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'longitude': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof EccentricBracedFrameModel
-     */
     'shear_link_angle_count': number;
 }
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const EccentricBracedFrameNumberField = {
     Year: 'year',
@@ -3512,24 +1585,16 @@ export const EccentricBracedFrameNumberField = {
     FYMWeb: 'f_y_m_web',
     FYExpLFlg: 'f_y_exp_l_flg',
     FYExpLWeb: 'f_y_exp_l_web',
-    FYExpUFlg: 'f_y_exp_u_flg',
-    FYExpUWeb: 'f_y_exp_u_web',
     FUMFlg: 'f_u_m_flg',
     FUMWeb: 'f_u_m_web',
     FUExpLFlg: 'f_u_exp_l_flg',
     FUExpLWeb: 'f_u_exp_l_web',
-    FUExpUFlg: 'f_u_exp_u_flg',
-    FUExpUWeb: 'f_u_exp_u_web',
     EMFlg: 'e_m_flg',
     EMWeb: 'e_m_web',
-    RYLFlg: 'r_y_l_flg',
-    RYLWeb: 'r_y_l_web',
-    RYUFlg: 'r_y_u_flg',
-    RYUWeb: 'r_y_u_web',
-    RTLFlg: 'r_t_l_flg',
-    RTLWeb: 'r_t_l_web',
-    RTUFlg: 'r_t_u_flg',
-    RTUWeb: 'r_t_u_web',
+    RYFlg: 'r_y_flg',
+    RYWeb: 'r_y_web',
+    RTFlg: 'r_t_flg',
+    RTWeb: 'r_t_web',
     FUFYNFlg: 'f_u_f_y_n_flg',
     FUFYNWeb: 'f_u_f_y_n_web',
     FUFYMFlg: 'f_u_f_y_m_flg',
@@ -3583,276 +1648,109 @@ export const EccentricBracedFrameNumberField = {
     OvEc8: 'ov_ec8',
     Latitude: 'latitude',
     Longitude: 'longitude',
-    ShearLinkAngleCount: 'shear_link_angle_count'
+    ShearLinkAngleCount: 'shear_link_angle_count',
 } as const;
 
 export type EccentricBracedFrameNumberField = typeof EccentricBracedFrameNumberField[keyof typeof EccentricBracedFrameNumberField];
 
 
+export interface EmailStartRequest {
+    'email': string;
+    'redirect_to'?: string;
+}
 /**
- * 
- * @export
- * @interface ExtendedPageBraceModel
+ * Always the same answer, so nobody can probe for existing accounts.
  */
+export interface EmailStartResponse {
+    'sent'?: boolean;
+}
+/**
+ * Either the typed code (with the login cookie), or the mailed pair.
+ */
+export interface EmailVerifyRequest {
+    'code'?: string | null;
+    'challenge'?: string | null;
+    'token'?: string | null;
+}
 export interface ExtendedPageBraceModel {
-    /**
-     * 
-     * @type {Array<BraceModel>}
-     * @memberof ExtendedPageBraceModel
-     */
     'items': Array<BraceModel>;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageBraceModel
-     */
     'total': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageBraceModel
-     */
-    'page'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageBraceModel
-     */
-    'size'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageBraceModel
-     */
-    'pages'?: number;
+    'page': number | null;
+    'size': number | null;
+    'pages'?: number | null;
 }
-/**
- * 
- * @export
- * @interface ExtendedPageColumnModel
- */
 export interface ExtendedPageColumnModel {
-    /**
-     * 
-     * @type {Array<ColumnModel>}
-     * @memberof ExtendedPageColumnModel
-     */
     'items': Array<ColumnModel>;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageColumnModel
-     */
     'total': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageColumnModel
-     */
-    'page'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageColumnModel
-     */
-    'size'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageColumnModel
-     */
-    'pages'?: number;
+    'page': number | null;
+    'size': number | null;
+    'pages'?: number | null;
 }
-/**
- * 
- * @export
- * @interface ExtendedPageConnectionModel
- */
 export interface ExtendedPageConnectionModel {
-    /**
-     * 
-     * @type {Array<ConnectionModel>}
-     * @memberof ExtendedPageConnectionModel
-     */
     'items': Array<ConnectionModel>;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageConnectionModel
-     */
     'total': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageConnectionModel
-     */
-    'page'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageConnectionModel
-     */
-    'size'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageConnectionModel
-     */
-    'pages'?: number;
+    'page': number | null;
+    'size': number | null;
+    'pages'?: number | null;
 }
-/**
- * 
- * @export
- * @interface ExtendedPageEccentricBracedFrameModel
- */
+export interface ExtendedPageDuctileFractureModel {
+    'items': Array<DuctileFractureModel>;
+    'total': number;
+    'page': number | null;
+    'size': number | null;
+    'pages'?: number | null;
+}
 export interface ExtendedPageEccentricBracedFrameModel {
-    /**
-     * 
-     * @type {Array<EccentricBracedFrameModel>}
-     * @memberof ExtendedPageEccentricBracedFrameModel
-     */
     'items': Array<EccentricBracedFrameModel>;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageEccentricBracedFrameModel
-     */
     'total': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageEccentricBracedFrameModel
-     */
-    'page'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageEccentricBracedFrameModel
-     */
-    'size'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageEccentricBracedFrameModel
-     */
-    'pages'?: number;
+    'page': number | null;
+    'size': number | null;
+    'pages'?: number | null;
 }
-/**
- * 
- * @export
- * @interface ExtendedPageHSSColumnModel
- */
 export interface ExtendedPageHSSColumnModel {
-    /**
-     * 
-     * @type {Array<HSSColumnModel>}
-     * @memberof ExtendedPageHSSColumnModel
-     */
     'items': Array<HSSColumnModel>;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageHSSColumnModel
-     */
     'total': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageHSSColumnModel
-     */
-    'page'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageHSSColumnModel
-     */
-    'size'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageHSSColumnModel
-     */
-    'pages'?: number;
+    'page': number | null;
+    'size': number | null;
+    'pages'?: number | null;
 }
-/**
- * 
- * @export
- * @interface ExtendedPageMaterialModel
- */
 export interface ExtendedPageMaterialModel {
-    /**
-     * 
-     * @type {Array<MaterialModel>}
-     * @memberof ExtendedPageMaterialModel
-     */
     'items': Array<MaterialModel>;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageMaterialModel
-     */
     'total': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageMaterialModel
-     */
-    'page'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageMaterialModel
-     */
-    'size'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageMaterialModel
-     */
-    'pages'?: number;
+    'page': number | null;
+    'size': number | null;
+    'pages'?: number | null;
 }
-/**
- * 
- * @export
- * @interface ExtendedPageResidualStressModel
- */
 export interface ExtendedPageResidualStressModel {
-    /**
-     * 
-     * @type {Array<ResidualStressModel>}
-     * @memberof ExtendedPageResidualStressModel
-     */
     'items': Array<ResidualStressModel>;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageResidualStressModel
-     */
     'total': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageResidualStressModel
-     */
-    'page'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageResidualStressModel
-     */
-    'size'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ExtendedPageResidualStressModel
-     */
-    'pages'?: number;
+    'page': number | null;
+    'size': number | null;
+    'pages'?: number | null;
+}
+export interface ExtendedPageTensileCouponModel {
+    'items': Array<TensileCouponModel>;
+    'total': number;
+    'page': number | null;
+    'size': number | null;
+    'pages'?: number | null;
 }
 /**
- * An enumeration.
- * @export
- * @enum {string}
+ * What this deployment offers, read once by the frontend at start.
  */
+export interface Features {
+    'contributions': boolean;
+}
+/**
+ * Structured validation outcome for one file in the archive.
+ */
+export interface FileValidationResult {
+    'file': string;
+    'path': string;
+    'valid': boolean;
+    'errors'?: Array<ValidationIssue>;
+    'warnings'?: Array<ValidationIssue>;
+}
 
 export const HSSColumnField = {
     Id: 'id',
@@ -3915,390 +1813,75 @@ export const HSSColumnField = {
     FlexuralBuckling: 'flexural_buckling',
     Latitude: 'latitude',
     Longitude: 'longitude',
-    MomentRotationCount: 'moment_rotation_count'
+    MomentRotationCount: 'moment_rotation_count',
 } as const;
 
 export type HSSColumnField = typeof HSSColumnField[keyof typeof HSSColumnField];
 
 
-/**
- * 
- * @export
- * @interface HSSColumnModel
- */
 export interface HSSColumnModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
     'id': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
     'date': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
     'investigator': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
     'reference': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
-    'url'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
+    'url': string | null;
     'test_configuration': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
     'stiffness_coefficient': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
     'test_type': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
     'loading_protocol': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
     'forming_process': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
-    'seams'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
+    'seams': string | null;
     'tube_section': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'width__mm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'depth__mm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'flange_thickness__mm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'web_thickness__mm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'area__mm2'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'moment_of_inertia__mm4'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'radius__mm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'depth_over_t'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'plastic_section_modulus__mm3'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'axial_load_ratio'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
+    'width__mm': number | null;
+    'depth__mm': number | null;
+    'flange_thickness__mm': number | null;
+    'web_thickness__mm': number | null;
+    'area__mm2': number | null;
+    'moment_of_inertia__mm4': number | null;
+    'radius__mm': number | null;
+    'depth_over_t': number | null;
+    'plastic_section_modulus__mm3': number | null;
+    'axial_load_ratio': number | null;
     'axial_load_sequence': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'loading_angle'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
+    'loading_angle': number | null;
     'steel_type': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'fy_nominal__n_mm2'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'fy_measured__n_mm2'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'f_ultimate__n_mm2'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'mp_measured__knmm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'length__mm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'ke_measured__knmm_rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'my_pos_100fit__knmm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'my_neg_100fit__knmm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_p_pos_100fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_pc_pos_100fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_u_pos_100fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_p_neg_100fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_pc_neg_100fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_u_neg_100fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'mc_my_pos_100fit'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'mu_mc_pos_100fit'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'mc_my_neg_100fit'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'mu_mc_neg_100fit'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'my_pos_80fit__knmm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'my_neg_80fit__knmm'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_p_pos_80fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_pc_pos_80fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_u_pos_80fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_p_neg_80fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_pc_neg_80fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'theta_u_neg_80fit__rad'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'mc_my_pos_80fit'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'mu_mc_pos_80fit'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'mc_my_neg_80fit'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'mu_mc_neg_80fit'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'lambda_s'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'lambda_c'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof HSSColumnModel
-     */
+    'fy_nominal__n_mm2': number | null;
+    'fy_measured__n_mm2': number | null;
+    'f_ultimate__n_mm2': number | null;
+    'mp_measured__knmm': number | null;
+    'length__mm': number | null;
+    'ke_measured__knmm_rad': number | null;
+    'my_pos_100fit__knmm': number | null;
+    'my_neg_100fit__knmm': number | null;
+    'theta_p_pos_100fit__rad': number | null;
+    'theta_pc_pos_100fit__rad': number | null;
+    'theta_u_pos_100fit__rad': number | null;
+    'theta_p_neg_100fit__rad': number | null;
+    'theta_pc_neg_100fit__rad': number | null;
+    'theta_u_neg_100fit__rad': number | null;
+    'mc_my_pos_100fit': number | null;
+    'mu_mc_pos_100fit': number | null;
+    'mc_my_neg_100fit': number | null;
+    'mu_mc_neg_100fit': number | null;
+    'my_pos_80fit__knmm': number | null;
+    'my_neg_80fit__knmm': number | null;
+    'theta_p_pos_80fit__rad': number | null;
+    'theta_pc_pos_80fit__rad': number | null;
+    'theta_u_pos_80fit__rad': number | null;
+    'theta_p_neg_80fit__rad': number | null;
+    'theta_pc_neg_80fit__rad': number | null;
+    'theta_u_neg_80fit__rad': number | null;
+    'mc_my_pos_80fit': number | null;
+    'mu_mc_pos_80fit': number | null;
+    'mc_my_neg_80fit': number | null;
+    'mu_mc_neg_80fit': number | null;
+    'lambda_s': number | null;
+    'lambda_c': number | null;
     'flexural_buckling': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'latitude'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
-    'longitude'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof HSSColumnModel
-     */
+    'latitude': number | null;
+    'longitude': number | null;
     'moment_rotation_count': number;
 }
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const HSSColumnNumberField = {
     Date: 'date',
@@ -4348,69 +1931,47 @@ export const HSSColumnNumberField = {
     LambdaC: 'lambda_c',
     Latitude: 'latitude',
     Longitude: 'longitude',
-    MomentRotationCount: 'moment_rotation_count'
+    MomentRotationCount: 'moment_rotation_count',
 } as const;
 
 export type HSSColumnNumberField = typeof HSSColumnNumberField[keyof typeof HSSColumnNumberField];
 
 
-/**
- * 
- * @export
- * @interface HTTPValidationError
- */
 export interface HTTPValidationError {
-    /**
-     * 
-     * @type {Array<ValidationError>}
-     * @memberof HTTPValidationError
-     */
     'detail'?: Array<ValidationError>;
+}
+export interface IdentityOut {
+    'id': string;
+    'provider': string;
+    'handle': string;
 }
 /**
  * App Info
- * @export
- * @interface Info
  */
 export interface Info {
-    /**
-     * 
-     * @type {string}
-     * @memberof Info
-     */
     'name': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof Info
-     */
     'version': string;
 }
 /**
- * 
- * @export
- * @interface LocationInner
+ * Back-compat shape: flat error/warning strings, as the endpoint used to emit.
  */
+export interface LegacyFileResult {
+    'file': string;
+    'valid': boolean;
+    'errors_count'?: number | null;
+    'errors'?: Array<string> | null;
+    'warnings'?: Array<string>;
+}
 export interface LocationInner {
 }
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const MaterialDateField = {
-    Date: 'date'
+    Date: 'date',
 } as const;
 
 export type MaterialDateField = typeof MaterialDateField[keyof typeof MaterialDateField];
 
 
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const MaterialField = {
     HiddenIndex: 'hidden_index',
@@ -4467,14 +2028,13 @@ export const MaterialField = {
     Ca: 'ca',
     H: 'h',
     Fe: 'fe',
-    File: 'file',
     Reference: 'reference',
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
     Citekey: 'citekey',
     UvcPhiPrct: 'uvc_phi__prct_',
-    UvcEMpa: 'uvc_e__mpa_',
+    UvcEGpa: 'uvc_e__gpa_',
     UvcSigmaMpa: 'uvc_sigma__mpa_',
     UvcQMpa: 'uvc_q__mpa_',
     UvcB: 'uvc_b',
@@ -4493,510 +2053,94 @@ export const MaterialField = {
     UvcRhoD: 'uvc_rho_d',
     Type: 'type',
     Year: 'year',
-    StressStrainCount: 'stress_strain_count'
+    StressStrainCount: 'stress_strain_count',
 } as const;
 
 export type MaterialField = typeof MaterialField[keyof typeof MaterialField];
 
 
-/**
- * 
- * @export
- * @interface MaterialModel
- */
 export interface MaterialModel {
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
     'hidden_index': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
     'experimental_program': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
     'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
     'profile_type': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
     'profile': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
     'source': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
     'thickness': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
     'grade': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
-    'spec'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
+    'spec': string | null;
     'lp': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
     'size': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'gage_length__mm_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'avg_reduced_dia__mm_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'avg_fractured_dia_top__mm_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'avg_fractured_dia_bot__mm_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'fy_n__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'fu_n__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    't_a__deg_c_'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
+    'gage_length__mm_': number | null;
+    'avg_reduced_dia__mm_': number | null;
+    'avg_fractured_dia_top__mm_': number | null;
+    'avg_fractured_dia_bot__mm_': number | null;
+    'fy_n__mpa_': number | null;
+    'fu_n__mpa_': number | null;
+    't_a__deg_c_': number | null;
     'date': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
     'investigator': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
     'location': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
     'machine': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'pid_force_k_p'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'pid_force_t_i'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'pid_force_t_d'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'pid_disp_k_p'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'pid_disp_t_i'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'pid_disp_t_d'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'pid_extenso_k_p'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'pid_extenso_t_i'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'pid_extenso_t_d'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'yield_stress__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'elastic_modulus__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'fracture_strain'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'c'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'si'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'mn'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'p'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    's'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'cu'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'mo'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'ni'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'cr'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'v'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'nb'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'ti'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'al'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'zr'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'sn'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'ca'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'h'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'fe'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
-    'file'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
-    'reference'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
-    'link'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'latitude'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'longitude'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
-    'citekey'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_phi__prct_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_e__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_sigma__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_q__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_d__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_a'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_c1__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_g1'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_c2__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_g2'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
+    'pid_force_k_p': number | null;
+    'pid_force_t_i': number | null;
+    'pid_force_t_d': number | null;
+    'pid_disp_k_p': number | null;
+    'pid_disp_t_i': number | null;
+    'pid_disp_t_d': number | null;
+    'pid_extenso_k_p': number | null;
+    'pid_extenso_t_i': number | null;
+    'pid_extenso_t_d': number | null;
+    'yield_stress__mpa_': number | null;
+    'elastic_modulus__mpa_': number | null;
+    'fracture_strain': number | null;
+    'c': number | null;
+    'si': number | null;
+    'mn': number | null;
+    'p': number | null;
+    's': number | null;
+    'n': number | null;
+    'cu': number | null;
+    'mo': number | null;
+    'ni': number | null;
+    'cr': number | null;
+    'v': number | null;
+    'nb': number | null;
+    'ti': number | null;
+    'al': number | null;
+    'b': number | null;
+    'zr': number | null;
+    'sn': number | null;
+    'ca': number | null;
+    'h': number | null;
+    'fe': number | null;
+    'reference': string | null;
+    'link': string | null;
+    'latitude': number | null;
+    'longitude': number | null;
+    'citekey': string | null;
+    'uvc_phi__prct_': number | null;
+    'uvc_e__gpa_': number | null;
+    'uvc_sigma__mpa_': number | null;
+    'uvc_q__mpa_': number | null;
+    'uvc_b': number | null;
+    'uvc_d__mpa_': number | null;
+    'uvc_a': number | null;
+    'uvc_c1__mpa_': number | null;
+    'uvc_g1': number | null;
+    'uvc_c2__mpa_': number | null;
+    'uvc_g2': number | null;
     'hidden_dataset_index': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_sigma_sat__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_sigma_hard__mpa_'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_rho_yield'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_rho_iso'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_rho_kin'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
-    'uvc_rho_d'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof MaterialModel
-     */
+    'uvc_sigma_sat__mpa_': number | null;
+    'uvc_sigma_hard__mpa_': number | null;
+    'uvc_rho_yield': number | null;
+    'uvc_rho_iso': number | null;
+    'uvc_rho_kin': number | null;
+    'uvc_rho_d': number | null;
     'type': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
     'year': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof MaterialModel
-     */
     'stress_strain_count': number;
 }
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const MaterialNumberField = {
     HiddenIndex: 'hidden_index',
@@ -5043,7 +2187,7 @@ export const MaterialNumberField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     UvcPhiPrct: 'uvc_phi__prct_',
-    UvcEMpa: 'uvc_e__mpa_',
+    UvcEGpa: 'uvc_e__gpa_',
     UvcSigmaMpa: 'uvc_sigma__mpa_',
     UvcQMpa: 'uvc_q__mpa_',
     UvcB: 'uvc_b',
@@ -5061,55 +2205,29 @@ export const MaterialNumberField = {
     UvcRhoKin: 'uvc_rho_kin',
     UvcRhoD: 'uvc_rho_d',
     Year: 'year',
-    StressStrainCount: 'stress_strain_count'
+    StressStrainCount: 'stress_strain_count',
 } as const;
 
 export type MaterialNumberField = typeof MaterialNumberField[keyof typeof MaterialNumberField];
 
 
-/**
- * 
- * @export
- * @interface MatrixModel
- */
 export interface MatrixModel {
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof MatrixModel
-     */
     'ids': Array<string>;
-    /**
-     * 
-     * @type {Array<Array<DataInnerInner>>}
-     * @memberof MatrixModel
-     */
     'data': Array<Array<DataInnerInner>>;
 }
 /**
- * Range
- * @export
- * @interface RangeModel
+ * ``GET /auth/me``. ``user`` is null when nobody is signed in.  Not a 401: every page load asks, and the app logs each HTTPException as an error. An anonymous visitor is a normal answer, not a failure.
  */
-export interface RangeModel {
-    /**
-     * 
-     * @type {number}
-     * @memberof RangeModel
-     */
-    'min': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof RangeModel
-     */
-    'max': number;
+export interface MeResponse {
+    'user'?: UserOut | null;
 }
 /**
- * An enumeration.
- * @export
- * @enum {string}
+ * Range  min/max are None when the aggregate is NaN (Postgres sorts NaN above all numbers, so max() over a column with NaN sentinels returns NaN).
  */
+export interface RangeModel {
+    'min': number | null;
+    'max': number | null;
+}
 
 export const ResidualStressField = {
     Id: 'id',
@@ -5141,204 +2259,44 @@ export const ResidualStressField = {
     DistributionF1Count: 'distribution_F1_count',
     DistributionF2Count: 'distribution_F2_count',
     DistributionW1Count: 'distribution_W1_count',
-    HOverB: 'h_over_b'
+    HOverB: 'h_over_b',
 } as const;
 
 export type ResidualStressField = typeof ResidualStressField[keyof typeof ResidualStressField];
 
 
-/**
- * 
- * @export
- * @interface ResidualStressModel
- */
 export interface ResidualStressModel {
-    /**
-     * 
-     * @type {string}
-     * @memberof ResidualStressModel
-     */
     'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ResidualStressModel
-     */
     'experimental_program': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
     'date': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ResidualStressModel
-     */
     'profile_type': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ResidualStressModel
-     */
     'profile': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ResidualStressModel
-     */
-    'spec_var'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ResidualStressModel
-     */
+    'spec_var': string | null;
     'steel': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'fy_n'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'fy_e'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'fy_mf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'fy_mw'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'h'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'b'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'tw'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'tf'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'r'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'A'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
+    'fy_n': number | null;
+    'fy_e': number | null;
+    'fy_mf': number | null;
+    'fy_mw': number | null;
+    'h': number | null;
+    'b': number | null;
+    'tw': number | null;
+    'tf': number | null;
+    'r': number | null;
+    'A': number | null;
     'sigma_0_f': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
     'sigma_0_w': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
     'flange_nr_data': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
     'plot_sf': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ResidualStressModel
-     */
     'reference': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ResidualStressModel
-     */
-    'link'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'latitude'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
-    'longitude'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
+    'link': string | null;
+    'latitude': number | null;
+    'longitude': number | null;
     'qp_coefficient_count': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
     'distribution_F1_count': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
     'distribution_F2_count': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
     'distribution_W1_count': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ResidualStressModel
-     */
     'h_over_b': number;
 }
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
 
 export const ResidualStressNumberField = {
     Date: 'date',
@@ -5362,20 +2320,229 @@ export const ResidualStressNumberField = {
     DistributionF1Count: 'distribution_F1_count',
     DistributionF2Count: 'distribution_F2_count',
     DistributionW1Count: 'distribution_W1_count',
-    HOverB: 'h_over_b'
+    HOverB: 'h_over_b',
 } as const;
 
 export type ResidualStressNumberField = typeof ResidualStressNumberField[keyof typeof ResidualStressNumberField];
 
 
-/**
- * An enumeration.
- * @export
- * @enum {string}
- */
+
+export const TensileCouponField = {
+    ExperimentalProgram: 'experimental_program',
+    Standard: 'standard',
+    SpecimenType: 'specimen_type',
+    Id: 'id',
+    ProfileType: 'profile_type',
+    Profile: 'profile',
+    SpecimenSource: 'specimen_source',
+    SteelGrade: 'steel_grade',
+    AvgInitReducedWidthMm: 'avg_init_reduced_width__mm_',
+    AvgInitReducedThicknessMm: 'avg_init_reduced_thickness__mm_',
+    AvgInitMarkedGaugeLengthMm: 'avg_init_marked_gauge_length__mm_',
+    EffFracturedWidthMm: 'eff_fractured_width__mm_',
+    EffFracturedThicknessMm: 'eff_fractured_thickness__mm_',
+    AvgFracturedMarkedGaugeLengthMm: 'avg_fractured_marked_gauge_length__mm_',
+    FyNMpa: 'fy_n__mpa_',
+    FuNMpa: 'fu_n__mpa_',
+    TADegC: 't_a__deg_c_',
+    Date: 'date',
+    Year: 'year',
+    Investigator: 'investigator',
+    Location: 'location',
+    Machine: 'machine',
+    PidForceP: 'pid_force_p',
+    PidForceI: 'pid_force_i',
+    PidForceD: 'pid_force_d',
+    PidDispP: 'pid_disp_p',
+    PidDispI: 'pid_disp_i',
+    PidDispD: 'pid_disp_d',
+    PidExtP: 'pid_ext_p',
+    PidExtI: 'pid_ext_i',
+    PidExtD: 'pid_ext_d',
+    YieldStress02Mpa: 'yield_stress_02__mpa_',
+    YieldStrain02: 'yield_strain_02',
+    BinDiscontYield: 'bin_discont_yield',
+    YieldStressUypMpa: 'yield_stress_uyp__mpa_',
+    YieldStressLypMpa: 'yield_stress_lyp__mpa_',
+    YieldPointElongation: 'yield_point_elongation',
+    TensileStrengthMpa: 'tensile_strength__mpa_',
+    UniformElongation: 'uniform_elongation',
+    ElongationAtFracture: 'elongation_at_fracture',
+    ElongationAfterFracture: 'elongation_after_fracture',
+    ReductionOfArea: 'reduction_of_area',
+    ElasticModulusMpa: 'elastic_modulus__mpa_',
+    C: 'c',
+    Si: 'si',
+    Mn: 'mn',
+    P: 'p',
+    S: 's',
+    N: 'n',
+    Cu: 'cu',
+    Mo: 'mo',
+    Ni: 'ni',
+    Cr: 'cr',
+    V: 'v',
+    Nb: 'nb',
+    Ti: 'ti',
+    Al: 'al',
+    B: 'b',
+    Zr: 'zr',
+    Sn: 'sn',
+    Ca: 'ca',
+    H: 'h',
+    Fe: 'fe',
+    FilePath: 'file_path',
+    Reference: 'reference',
+    Link: 'link',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    PublicationKey: 'publication_key',
+    DatacolVersion: 'datacol_version',
+    StressStrainCount: 'stress_strain_count',
+} as const;
+
+export type TensileCouponField = typeof TensileCouponField[keyof typeof TensileCouponField];
+
+
+export interface TensileCouponModel {
+    'experimental_program': string;
+    'standard': string;
+    'specimen_type': string;
+    'id': string;
+    'profile_type': string;
+    'profile': string;
+    'specimen_source': string | null;
+    'steel_grade': string;
+    'avg_init_reduced_width__mm_': number;
+    'avg_init_reduced_thickness__mm_': number;
+    'avg_init_marked_gauge_length__mm_': number;
+    'eff_fractured_width__mm_': number;
+    'eff_fractured_thickness__mm_': number;
+    'avg_fractured_marked_gauge_length__mm_': number;
+    'fy_n__mpa_': number;
+    'fu_n__mpa_': number;
+    't_a__deg_c_': number;
+    'date': string;
+    'year': number;
+    'investigator': string;
+    'location': string;
+    'machine': string;
+    'pid_force_p': number | null;
+    'pid_force_i': number | null;
+    'pid_force_d': number | null;
+    'pid_disp_p': number | null;
+    'pid_disp_i': number | null;
+    'pid_disp_d': number | null;
+    'pid_ext_p': number | null;
+    'pid_ext_i': number | null;
+    'pid_ext_d': number | null;
+    'yield_stress_02__mpa_': number | null;
+    'yield_strain_02': number | null;
+    'bin_discont_yield': boolean;
+    'yield_stress_uyp__mpa_': number | null;
+    'yield_stress_lyp__mpa_': number | null;
+    'yield_point_elongation': number | null;
+    'tensile_strength__mpa_': number | null;
+    'uniform_elongation': number | null;
+    'elongation_at_fracture': number | null;
+    'elongation_after_fracture': number | null;
+    'reduction_of_area': number | null;
+    'elastic_modulus__mpa_': number | null;
+    'c': number | null;
+    'si': number | null;
+    'mn': number | null;
+    'p': number | null;
+    's': number | null;
+    'n': number | null;
+    'cu': number | null;
+    'mo': number | null;
+    'ni': number | null;
+    'cr': number | null;
+    'v': number | null;
+    'nb': number | null;
+    'ti': number | null;
+    'al': number | null;
+    'b': number | null;
+    'zr': number | null;
+    'sn': number | null;
+    'ca': number | null;
+    'h': number | null;
+    'fe': number | null;
+    'file_path': string | null;
+    'reference': string | null;
+    'link': string | null;
+    'latitude': number;
+    'longitude': number;
+    'publication_key': string | null;
+    'datacol_version': number;
+    'stress_strain_count': number;
+}
+
+export const TensileCouponNumberField = {
+    AvgInitReducedWidthMm: 'avg_init_reduced_width__mm_',
+    AvgInitReducedThicknessMm: 'avg_init_reduced_thickness__mm_',
+    AvgInitMarkedGaugeLengthMm: 'avg_init_marked_gauge_length__mm_',
+    EffFracturedWidthMm: 'eff_fractured_width__mm_',
+    EffFracturedThicknessMm: 'eff_fractured_thickness__mm_',
+    AvgFracturedMarkedGaugeLengthMm: 'avg_fractured_marked_gauge_length__mm_',
+    FyNMpa: 'fy_n__mpa_',
+    FuNMpa: 'fu_n__mpa_',
+    TADegC: 't_a__deg_c_',
+    Year: 'year',
+    PidForceP: 'pid_force_p',
+    PidForceI: 'pid_force_i',
+    PidForceD: 'pid_force_d',
+    PidDispP: 'pid_disp_p',
+    PidDispI: 'pid_disp_i',
+    PidDispD: 'pid_disp_d',
+    PidExtP: 'pid_ext_p',
+    PidExtI: 'pid_ext_i',
+    PidExtD: 'pid_ext_d',
+    YieldStress02Mpa: 'yield_stress_02__mpa_',
+    YieldStrain02: 'yield_strain_02',
+    YieldStressUypMpa: 'yield_stress_uyp__mpa_',
+    YieldStressLypMpa: 'yield_stress_lyp__mpa_',
+    YieldPointElongation: 'yield_point_elongation',
+    TensileStrengthMpa: 'tensile_strength__mpa_',
+    UniformElongation: 'uniform_elongation',
+    ElongationAtFracture: 'elongation_at_fracture',
+    ElongationAfterFracture: 'elongation_after_fracture',
+    ReductionOfArea: 'reduction_of_area',
+    ElasticModulusMpa: 'elastic_modulus__mpa_',
+    C: 'c',
+    Si: 'si',
+    Mn: 'mn',
+    P: 'p',
+    S: 's',
+    N: 'n',
+    Cu: 'cu',
+    Mo: 'mo',
+    Ni: 'ni',
+    Cr: 'cr',
+    V: 'v',
+    Nb: 'nb',
+    Ti: 'ti',
+    Al: 'al',
+    B: 'b',
+    Zr: 'zr',
+    Sn: 'sn',
+    Ca: 'ca',
+    H: 'h',
+    Fe: 'fe',
+    Latitude: 'latitude',
+    Longitude: 'longitude',
+    DatacolVersion: 'datacol_version',
+    StressStrainCount: 'stress_strain_count',
+} as const;
+
+export type TensileCouponNumberField = typeof TensileCouponNumberField[keyof typeof TensileCouponNumberField];
+
+
 
 export const Type = {
     All: 'all',
+    Dictionary: 'dictionary',
+    Readme: 'readme',
     AllColumns: 'all-columns',
     AllBraces: 'all-braces',
     AllConnections: 'all-connections',
@@ -5405,52 +2572,76 @@ export const Type = {
     HssColumn: 'hss-column',
     HssColumnMomentRotation: 'hss-column-moment-rotation',
     EccentricBracedFrame: 'eccentric-braced-frame',
-    EccentricBracedFrameShearLinkAngle: 'eccentric-braced-frame-shear-link-angle'
+    EccentricBracedFrameShearLinkAngle: 'eccentric-braced-frame-shear-link-angle',
+    AllTensileCoupons: 'all-tensile-coupons',
+    TensileCoupon: 'tensile-coupon',
+    TensileCouponStressStrain: 'tensile-coupon-stress-strain',
+    AllDuctileFractures: 'all-ductile-fractures',
+    DuctileFracture: 'ductile-fracture',
+    DuctileFractureForceElongation: 'ductile-fracture-force-elongation',
+    DuctileFractureForceElongationSimulation: 'ductile-fracture-force-elongation-simulation',
+    DuctileFractureForceRadial: 'ductile-fracture-force-radial',
+    DuctileFractureForceRadialSimulation: 'ductile-fracture-force-radial-simulation',
+    DuctileFractureEpeqSimulation: 'ductile-fracture-epeq-simulation',
+    DuctileFractureLodeSimulation: 'ductile-fracture-lode-simulation',
+    DuctileFractureTriaxSimulation: 'ductile-fracture-triax-simulation',
 } as const;
 
 export type Type = typeof Type[keyof typeof Type];
 
 
-/**
- * 
- * @export
- * @interface ValidationError
- */
+export interface UserOut {
+    'id': string;
+    'email'?: string | null;
+    'email_verified'?: boolean;
+    'display_name'?: string;
+    'institution'?: string;
+    'orcid'?: string;
+    'role'?: string;
+    'role_source'?: string;
+    'github_login'?: string;
+    'identities'?: Array<IdentityOut>;
+}
 export interface ValidationError {
-    /**
-     * 
-     * @type {Array<LocationInner>}
-     * @memberof ValidationError
-     */
     'loc': Array<LocationInner>;
-    /**
-     * 
-     * @type {string}
-     * @memberof ValidationError
-     */
     'msg': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ValidationError
-     */
     'type': string;
+}
+/**
+ * A single error or warning, anchored to a cell where possible.
+ */
+export interface ValidationIssue {
+    'row': number;
+    'column': string;
+    'value'?: string | null;
+    'message': string;
+}
+export interface ValidationResponse {
+    'valid': boolean;
+    'message': string;
+    'error_count': number;
+    'results'?: Array<FileValidationResult>;
+    'error_results'?: Array<LegacyFileResult>;
+    'valid_results'?: Array<LegacyFileResult>;
+}
+export interface VerifyResponse {
+    'user': UserOut;
+    'redirect_to'?: string;
 }
 
 /**
  * AnalyticsApi - axios parameter creator
- * @export
  */
 export const AnalyticsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Get user count using Google Analytics Data API with requests.
+         * Get user count using Google Analytics Data API.
          * @summary Get Users
-         * @param {number} [days] 
+         * @param {number | null} [days] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getUsers: async (days?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getUsers: async (days?: number | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/analytics/users`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -5467,8 +2658,8 @@ export const AnalyticsApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['days'] = days;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5483,40 +2674,40 @@ export const AnalyticsApiAxiosParamCreator = function (configuration?: Configura
 
 /**
  * AnalyticsApi - functional programming interface
- * @export
  */
 export const AnalyticsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = AnalyticsApiAxiosParamCreator(configuration)
     return {
         /**
-         * Get user count using Google Analytics Data API with requests.
+         * Get user count using Google Analytics Data API.
          * @summary Get Users
-         * @param {number} [days] 
+         * @param {number | null} [days] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getUsers(days?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+        async getUsers(days?: number | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getUsers(days, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AnalyticsApi.getUsers']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
  * AnalyticsApi - factory interface
- * @export
  */
 export const AnalyticsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = AnalyticsApiFp(configuration)
     return {
         /**
-         * Get user count using Google Analytics Data API with requests.
+         * Get user count using Google Analytics Data API.
          * @summary Get Users
-         * @param {number} [days] 
+         * @param {number | null} [days] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getUsers(days?: number, options?: any): AxiosPromise<number> {
+        getUsers(days?: number | null, options?: RawAxiosRequestConfig): AxiosPromise<number> {
             return localVarFp.getUsers(days, options).then((request) => request(axios, basePath));
         },
     };
@@ -5524,43 +2715,622 @@ export const AnalyticsApiFactory = function (configuration?: Configuration, base
 
 /**
  * AnalyticsApi - object-oriented interface
- * @export
- * @class AnalyticsApi
- * @extends {BaseAPI}
  */
 export class AnalyticsApi extends BaseAPI {
     /**
-     * Get user count using Google Analytics Data API with requests.
+     * Get user count using Google Analytics Data API.
      * @summary Get Users
-     * @param {number} [days] 
+     * @param {number | null} [days] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof AnalyticsApi
      */
-    public getUsers(days?: number, options?: AxiosRequestConfig) {
+    public getUsers(days?: number | null, options?: RawAxiosRequestConfig) {
         return AnalyticsApiFp(this.configuration).getUsers(days, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
+
+/**
+ * AuthApi - axios parameter creator
+ */
+export const AuthApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+         * @summary Delete Identity
+         * @param {string} identityId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteIdentity: async (identityId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'identityId' is not null or undefined
+            assertParamExists('deleteIdentity', 'identityId', identityId)
+            const localVarPath = `/auth/identities/{identity_id}`
+                .replace('{identity_id}', encodeURIComponent(String(identityId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
+         * @summary Finish Github Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        finishGithubLogin: async (code?: string, state?: string, error?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/github/callback`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (code !== undefined) {
+                localVarQueryParameter['code'] = code;
+            }
+
+            if (state !== undefined) {
+                localVarQueryParameter['state'] = state;
+            }
+
+            if (error !== undefined) {
+                localVarQueryParameter['error'] = error;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
+         * @summary Get Me
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMe: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/me`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List Identities
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listIdentities: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/identities`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Sign out. Idempotent, so a stale cookie is not an error.
+         * @summary Logout
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logout: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/logout`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Mail a sign-in code (and a link that does the same) to an address.
+         * @summary Start Email Login
+         * @param {EmailStartRequest} emailStartRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startEmailLogin: async (emailStartRequest: EmailStartRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'emailStartRequest' is not null or undefined
+            assertParamExists('startEmailLogin', 'emailStartRequest', emailStartRequest)
+            const localVarPath = `/auth/email/start`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(emailStartRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Send the browser to GitHub, to sign in or to link an account.
+         * @summary Start Github Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startGithubLogin: async (redirectTo?: string, link?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/github/start`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (redirectTo !== undefined) {
+                localVarQueryParameter['redirect_to'] = redirectTo;
+            }
+
+            if (link !== undefined) {
+                localVarQueryParameter['link'] = link;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Finish a mail sign-in, with the typed code or the mailed link.
+         * @summary Verify Email Login
+         * @param {EmailVerifyRequest} emailVerifyRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verifyEmailLogin: async (emailVerifyRequest: EmailVerifyRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'emailVerifyRequest' is not null or undefined
+            assertParamExists('verifyEmailLogin', 'emailVerifyRequest', emailVerifyRequest)
+            const localVarPath = `/auth/email/verify`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(emailVerifyRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AuthApi - functional programming interface
+ */
+export const AuthApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AuthApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+         * @summary Delete Identity
+         * @param {string} identityId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteIdentity(identityId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteIdentity(identityId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.deleteIdentity']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
+         * @summary Finish Github Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async finishGithubLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.finishGithubLogin(code, state, error, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.finishGithubLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
+         * @summary Get Me
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMe(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MeResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMe(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.getMe']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary List Identities
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listIdentities(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<IdentityOut>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listIdentities(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.listIdentities']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Sign out. Idempotent, so a stale cookie is not an error.
+         * @summary Logout
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async logout(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.logout(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.logout']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Mail a sign-in code (and a link that does the same) to an address.
+         * @summary Start Email Login
+         * @param {EmailStartRequest} emailStartRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async startEmailLogin(emailStartRequest: EmailStartRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EmailStartResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.startEmailLogin(emailStartRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.startEmailLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Send the browser to GitHub, to sign in or to link an account.
+         * @summary Start Github Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async startGithubLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.startGithubLogin(redirectTo, link, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.startGithubLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Finish a mail sign-in, with the typed code or the mailed link.
+         * @summary Verify Email Login
+         * @param {EmailVerifyRequest} emailVerifyRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async verifyEmailLogin(emailVerifyRequest: EmailVerifyRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VerifyResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.verifyEmailLogin(emailVerifyRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.verifyEmailLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * AuthApi - factory interface
+ */
+export const AuthApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AuthApiFp(configuration)
+    return {
+        /**
+         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+         * @summary Delete Identity
+         * @param {string} identityId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteIdentity(identityId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteIdentity(identityId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
+         * @summary Finish Github Login
+         * @param {string} [code] 
+         * @param {string} [state] 
+         * @param {string} [error] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        finishGithubLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.finishGithubLogin(code, state, error, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
+         * @summary Get Me
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMe(options?: RawAxiosRequestConfig): AxiosPromise<MeResponse> {
+            return localVarFp.getMe(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List Identities
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listIdentities(options?: RawAxiosRequestConfig): AxiosPromise<Array<IdentityOut>> {
+            return localVarFp.listIdentities(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Sign out. Idempotent, so a stale cookie is not an error.
+         * @summary Logout
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logout(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.logout(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Mail a sign-in code (and a link that does the same) to an address.
+         * @summary Start Email Login
+         * @param {EmailStartRequest} emailStartRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startEmailLogin(emailStartRequest: EmailStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<EmailStartResponse> {
+            return localVarFp.startEmailLogin(emailStartRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Send the browser to GitHub, to sign in or to link an account.
+         * @summary Start Github Login
+         * @param {string} [redirectTo] 
+         * @param {boolean} [link] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startGithubLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.startGithubLogin(redirectTo, link, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Finish a mail sign-in, with the typed code or the mailed link.
+         * @summary Verify Email Login
+         * @param {EmailVerifyRequest} emailVerifyRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verifyEmailLogin(emailVerifyRequest: EmailVerifyRequest, options?: RawAxiosRequestConfig): AxiosPromise<VerifyResponse> {
+            return localVarFp.verifyEmailLogin(emailVerifyRequest, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AuthApi - object-oriented interface
+ */
+export class AuthApi extends BaseAPI {
+    /**
+     * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+     * @summary Delete Identity
+     * @param {string} identityId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deleteIdentity(identityId: string, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).deleteIdentity(identityId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Come back from GitHub: sign the person in, or link the account.  Always a redirect into the SPA, with ``?error=<slug>`` when something went wrong: the browser lands here by navigation and cannot render JSON.
+     * @summary Finish Github Login
+     * @param {string} [code] 
+     * @param {string} [state] 
+     * @param {string} [error] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public finishGithubLogin(code?: string, state?: string, error?: string, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).finishGithubLogin(code, state, error, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Who is signed in, if anyone.  200 with a null user when nobody is, rather than 401: the SPA asks on every page load, and an anonymous visitor is not an error.
+     * @summary Get Me
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getMe(options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).getMe(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List Identities
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listIdentities(options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).listIdentities(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Sign out. Idempotent, so a stale cookie is not an error.
+     * @summary Logout
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public logout(options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).logout(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Mail a sign-in code (and a link that does the same) to an address.
+     * @summary Start Email Login
+     * @param {EmailStartRequest} emailStartRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public startEmailLogin(emailStartRequest: EmailStartRequest, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).startEmailLogin(emailStartRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Send the browser to GitHub, to sign in or to link an account.
+     * @summary Start Github Login
+     * @param {string} [redirectTo] 
+     * @param {boolean} [link] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public startGithubLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).startGithubLogin(redirectTo, link, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Finish a mail sign-in, with the typed code or the mailed link.
+     * @summary Verify Email Login
+     * @param {EmailVerifyRequest} emailVerifyRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public verifyEmailLogin(emailVerifyRequest: EmailVerifyRequest, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).verifyEmailLogin(emailVerifyRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
 /**
  * BracesApi - axios parameter creator
- * @export
  */
 export const BracesApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * Get paginated Braces
          * @summary Get Braces
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBraces: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getBraces: async (query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/braces`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -5593,8 +3363,8 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5608,11 +3378,11 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
          * Get occurences count of field values
          * @summary Get Braces Counts
          * @param {Array<BraceField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesCounts: async (fields?: Array<BraceField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getBracesCounts: async (fields?: Array<BraceField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/braces/counts`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -5633,8 +3403,8 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5651,7 +3421,7 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getBracesCsv: async (ids?: Array<string>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/braces/csv`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -5668,8 +3438,8 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
                 localVarQueryParameter['ids'] = ids;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5687,11 +3457,11 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesDisplacement: async (braceId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getBracesDisplacement: async (braceId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'braceId' is not null or undefined
             assertParamExists('getBracesDisplacement', 'braceId', braceId)
             const localVarPath = `/braces/{brace_id}/displacement`
-                .replace(`{${"brace_id"}}`, encodeURIComponent(String(braceId)));
+                .replace('{brace_id}', encodeURIComponent(String(braceId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -5707,8 +3477,8 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5725,11 +3495,11 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesDisplacementCsv: async (braceId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getBracesDisplacementCsv: async (braceId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'braceId' is not null or undefined
             assertParamExists('getBracesDisplacementCsv', 'braceId', braceId)
             const localVarPath = `/braces/{brace_id}/displacement/csv`
-                .replace(`{${"brace_id"}}`, encodeURIComponent(String(braceId)));
+                .replace('{brace_id}', encodeURIComponent(String(braceId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -5741,8 +3511,8 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5759,7 +3529,7 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesDistinct: async (fields?: Array<BraceField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getBracesDistinct: async (fields?: Array<BraceField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/braces/distinct`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -5776,8 +3546,8 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5794,7 +3564,7 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesFields: async (fields?: Array<BraceField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getBracesFields: async (fields?: Array<BraceField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/braces/fields`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -5811,8 +3581,8 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5826,11 +3596,11 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
          * 
          * @summary Get Braces Matrix
          * @param {Array<BraceField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesMatrix: async (fields: Array<BraceField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getBracesMatrix: async (fields: Array<BraceField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'fields' is not null or undefined
             assertParamExists('getBracesMatrix', 'fields', fields)
             const localVarPath = `/braces/matrix`;
@@ -5853,8 +3623,8 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5871,7 +3641,7 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesRange: async (field: BraceNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getBracesRange: async (field: BraceNumberField, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'field' is not null or undefined
             assertParamExists('getBracesRange', 'field', field)
             const localVarPath = `/braces/range`;
@@ -5890,8 +3660,8 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
                 localVarQueryParameter['field'] = field;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5906,7 +3676,6 @@ export const BracesApiAxiosParamCreator = function (configuration?: Configuratio
 
 /**
  * BracesApi - functional programming interface
- * @export
  */
 export const BracesApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = BracesApiAxiosParamCreator(configuration)
@@ -5914,29 +3683,33 @@ export const BracesApiFp = function(configuration?: Configuration) {
         /**
          * Get paginated Braces
          * @summary Get Braces
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getBraces(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageBraceModel>> {
+        async getBraces(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageBraceModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getBraces(query, sortBy, sortDesc, page, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BracesApi.getBraces']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get occurences count of field values
          * @summary Get Braces Counts
          * @param {Array<BraceField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getBracesCounts(fields?: Array<BraceField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+        async getBracesCounts(fields?: Array<BraceField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesCounts(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BracesApi.getBracesCounts']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get master csv
@@ -5945,9 +3718,11 @@ export const BracesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getBracesCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getBracesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesCsv(ids, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BracesApi.getBracesCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get displacement series from brace
@@ -5957,9 +3732,11 @@ export const BracesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getBracesDisplacement(braceId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getBracesDisplacement(braceId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesDisplacement(braceId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BracesApi.getBracesDisplacement']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get displacement csv
@@ -5968,9 +3745,11 @@ export const BracesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getBracesDisplacementCsv(braceId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getBracesDisplacementCsv(braceId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesDisplacementCsv(braceId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BracesApi.getBracesDisplacementCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distinct count
@@ -5979,9 +3758,11 @@ export const BracesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getBracesDistinct(fields?: Array<BraceField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+        async getBracesDistinct(fields?: Array<BraceField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesDistinct(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BracesApi.getBracesDistinct']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get filtered fields
@@ -5990,21 +3771,25 @@ export const BracesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getBracesFields(fields?: Array<BraceField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+        async getBracesFields(fields?: Array<BraceField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<{ [key: string]: any | null; }>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesFields(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BracesApi.getBracesFields']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Get Braces Matrix
          * @param {Array<BraceField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getBracesMatrix(fields: Array<BraceField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+        async getBracesMatrix(fields: Array<BraceField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesMatrix(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BracesApi.getBracesMatrix']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get range of field
@@ -6013,16 +3798,17 @@ export const BracesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getBracesRange(field: BraceNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+        async getBracesRange(field: BraceNumberField, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getBracesRange(field, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BracesApi.getBracesRange']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
  * BracesApi - factory interface
- * @export
  */
 export const BracesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = BracesApiFp(configuration)
@@ -6030,26 +3816,26 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
         /**
          * Get paginated Braces
          * @summary Get Braces
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBraces(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageBraceModel> {
+        getBraces(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<ExtendedPageBraceModel> {
             return localVarFp.getBraces(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences count of field values
          * @summary Get Braces Counts
          * @param {Array<BraceField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesCounts(fields?: Array<BraceField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+        getBracesCounts(fields?: Array<BraceField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<Array<CountModel>> {
             return localVarFp.getBracesCounts(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -6059,7 +3845,7 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+        getBracesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getBracesCsv(ids, options).then((request) => request(axios, basePath));
         },
         /**
@@ -6070,7 +3856,7 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesDisplacement(braceId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getBracesDisplacement(braceId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getBracesDisplacement(braceId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -6080,7 +3866,7 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesDisplacementCsv(braceId: string, options?: any): AxiosPromise<void> {
+        getBracesDisplacementCsv(braceId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getBracesDisplacementCsv(braceId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -6090,7 +3876,7 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesDistinct(fields?: Array<BraceField>, options?: any): AxiosPromise<number> {
+        getBracesDistinct(fields?: Array<BraceField>, options?: RawAxiosRequestConfig): AxiosPromise<number> {
             return localVarFp.getBracesDistinct(fields, options).then((request) => request(axios, basePath));
         },
         /**
@@ -6100,18 +3886,18 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesFields(fields?: Array<BraceField>, options?: any): AxiosPromise<Array<object>> {
+        getBracesFields(fields?: Array<BraceField>, options?: RawAxiosRequestConfig): AxiosPromise<Array<{ [key: string]: any | null; }>> {
             return localVarFp.getBracesFields(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * 
          * @summary Get Braces Matrix
          * @param {Array<BraceField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesMatrix(fields: Array<BraceField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+        getBracesMatrix(fields: Array<BraceField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<MatrixModel> {
             return localVarFp.getBracesMatrix(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -6121,7 +3907,7 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getBracesRange(field: BraceNumberField, options?: any): AxiosPromise<RangeModel> {
+        getBracesRange(field: BraceNumberField, options?: RawAxiosRequestConfig): AxiosPromise<RangeModel> {
             return localVarFp.getBracesRange(field, options).then((request) => request(axios, basePath));
         },
     };
@@ -6129,24 +3915,20 @@ export const BracesApiFactory = function (configuration?: Configuration, basePat
 
 /**
  * BracesApi - object-oriented interface
- * @export
- * @class BracesApi
- * @extends {BaseAPI}
  */
 export class BracesApi extends BaseAPI {
     /**
      * Get paginated Braces
      * @summary Get Braces
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {Array<string>} [sortBy] 
      * @param {Array<boolean>} [sortDesc] 
-     * @param {number} [page] 
-     * @param {number} [size] 
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof BracesApi
      */
-    public getBraces(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+    public getBraces(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBraces(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -6154,12 +3936,11 @@ export class BracesApi extends BaseAPI {
      * Get occurences count of field values
      * @summary Get Braces Counts
      * @param {Array<BraceField>} [fields] 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof BracesApi
      */
-    public getBracesCounts(fields?: Array<BraceField>, query?: string, options?: AxiosRequestConfig) {
+    public getBracesCounts(fields?: Array<BraceField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -6169,9 +3950,8 @@ export class BracesApi extends BaseAPI {
      * @param {Array<string>} [ids] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof BracesApi
      */
-    public getBracesCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+    public getBracesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesCsv(ids, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -6182,9 +3962,8 @@ export class BracesApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof BracesApi
      */
-    public getBracesDisplacement(braceId: string, size?: number, options?: AxiosRequestConfig) {
+    public getBracesDisplacement(braceId: string, size?: number, options?: RawAxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesDisplacement(braceId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -6194,9 +3973,8 @@ export class BracesApi extends BaseAPI {
      * @param {string} braceId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof BracesApi
      */
-    public getBracesDisplacementCsv(braceId: string, options?: AxiosRequestConfig) {
+    public getBracesDisplacementCsv(braceId: string, options?: RawAxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesDisplacementCsv(braceId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -6206,9 +3984,8 @@ export class BracesApi extends BaseAPI {
      * @param {Array<BraceField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof BracesApi
      */
-    public getBracesDistinct(fields?: Array<BraceField>, options?: AxiosRequestConfig) {
+    public getBracesDistinct(fields?: Array<BraceField>, options?: RawAxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesDistinct(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -6218,9 +3995,8 @@ export class BracesApi extends BaseAPI {
      * @param {Array<BraceField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof BracesApi
      */
-    public getBracesFields(fields?: Array<BraceField>, options?: AxiosRequestConfig) {
+    public getBracesFields(fields?: Array<BraceField>, options?: RawAxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesFields(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -6228,12 +4004,11 @@ export class BracesApi extends BaseAPI {
      * 
      * @summary Get Braces Matrix
      * @param {Array<BraceField>} fields 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof BracesApi
      */
-    public getBracesMatrix(fields: Array<BraceField>, query?: string, options?: AxiosRequestConfig) {
+    public getBracesMatrix(fields: Array<BraceField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -6243,32 +4018,31 @@ export class BracesApi extends BaseAPI {
      * @param {BraceNumberField} field 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof BracesApi
      */
-    public getBracesRange(field: BraceNumberField, options?: AxiosRequestConfig) {
+    public getBracesRange(field: BraceNumberField, options?: RawAxiosRequestConfig) {
         return BracesApiFp(this.configuration).getBracesRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
+
 /**
  * ColumnsApi - axios parameter creator
- * @export
  */
 export const ColumnsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * Get paginated Columns
          * @summary Get Columns
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumns: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumns: async (query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/columns`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -6301,8 +4075,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6320,11 +4094,11 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsAxialShortening: async (columnId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsAxialShortening: async (columnId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'columnId' is not null or undefined
             assertParamExists('getColumnsAxialShortening', 'columnId', columnId)
             const localVarPath = `/columns/{column_id}/axial-shortening`
-                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+                .replace('{column_id}', encodeURIComponent(String(columnId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -6340,8 +4114,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6358,11 +4132,11 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsAxialShorteningCsv: async (columnId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsAxialShorteningCsv: async (columnId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'columnId' is not null or undefined
             assertParamExists('getColumnsAxialShorteningCsv', 'columnId', columnId)
             const localVarPath = `/columns/{column_id}/axial-shortening/csv`
-                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+                .replace('{column_id}', encodeURIComponent(String(columnId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -6374,8 +4148,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6389,11 +4163,11 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * Get occurences count of field values
          * @summary Get Columns Counts
          * @param {Array<ColumnField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsCounts: async (fields?: Array<ColumnField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsCounts: async (fields?: Array<ColumnField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/columns/counts`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -6414,8 +4188,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6432,7 +4206,7 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsCsv: async (ids?: Array<string>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/columns/csv`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -6449,8 +4223,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['ids'] = ids;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6467,7 +4241,7 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsDistinct: async (fields?: Array<ColumnField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsDistinct: async (fields?: Array<ColumnField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/columns/distinct`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -6484,8 +4258,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6502,7 +4276,7 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsFields: async (fields?: Array<ColumnField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsFields: async (fields?: Array<ColumnField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/columns/fields`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -6519,8 +4293,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6534,11 +4308,11 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * 
          * @summary Get Columns Matrix
          * @param {Array<ColumnField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMatrix: async (fields: Array<ColumnField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsMatrix: async (fields: Array<ColumnField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'fields' is not null or undefined
             assertParamExists('getColumnsMatrix', 'fields', fields)
             const localVarPath = `/columns/matrix`;
@@ -6561,8 +4335,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6580,11 +4354,11 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMomentStrong: async (columnId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsMomentStrong: async (columnId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'columnId' is not null or undefined
             assertParamExists('getColumnsMomentStrong', 'columnId', columnId)
             const localVarPath = `/columns/{column_id}/moment-strong`
-                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+                .replace('{column_id}', encodeURIComponent(String(columnId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -6600,8 +4374,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6618,11 +4392,11 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMomentStrongCsv: async (columnId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsMomentStrongCsv: async (columnId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'columnId' is not null or undefined
             assertParamExists('getColumnsMomentStrongCsv', 'columnId', columnId)
             const localVarPath = `/columns/{column_id}/moment-strong/csv`
-                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+                .replace('{column_id}', encodeURIComponent(String(columnId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -6634,8 +4408,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6653,11 +4427,11 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMomentWeak: async (columnId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsMomentWeak: async (columnId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'columnId' is not null or undefined
             assertParamExists('getColumnsMomentWeak', 'columnId', columnId)
             const localVarPath = `/columns/{column_id}/moment-weak`
-                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+                .replace('{column_id}', encodeURIComponent(String(columnId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -6673,8 +4447,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6691,11 +4465,11 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMomentWeakCsv: async (columnId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsMomentWeakCsv: async (columnId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'columnId' is not null or undefined
             assertParamExists('getColumnsMomentWeakCsv', 'columnId', columnId)
             const localVarPath = `/columns/{column_id}/moment-weak/csv`
-                .replace(`{${"column_id"}}`, encodeURIComponent(String(columnId)));
+                .replace('{column_id}', encodeURIComponent(String(columnId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -6707,8 +4481,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6725,7 +4499,7 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsRange: async (field: ColumnNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getColumnsRange: async (field: ColumnNumberField, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'field' is not null or undefined
             assertParamExists('getColumnsRange', 'field', field)
             const localVarPath = `/columns/range`;
@@ -6744,8 +4518,8 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['field'] = field;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6760,7 +4534,6 @@ export const ColumnsApiAxiosParamCreator = function (configuration?: Configurati
 
 /**
  * ColumnsApi - functional programming interface
- * @export
  */
 export const ColumnsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ColumnsApiAxiosParamCreator(configuration)
@@ -6768,17 +4541,19 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
         /**
          * Get paginated Columns
          * @summary Get Columns
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumns(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageColumnModel>> {
+        async getColumns(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageColumnModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumns(query, sortBy, sortDesc, page, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumns']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get axial shortening series from column
@@ -6788,9 +4563,11 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsAxialShortening(columnId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getColumnsAxialShortening(columnId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsAxialShortening(columnId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsAxialShortening']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get axial shortening csv
@@ -6799,21 +4576,25 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsAxialShorteningCsv(columnId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getColumnsAxialShorteningCsv(columnId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsAxialShorteningCsv(columnId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsAxialShorteningCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get occurences count of field values
          * @summary Get Columns Counts
          * @param {Array<ColumnField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsCounts(fields?: Array<ColumnField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+        async getColumnsCounts(fields?: Array<ColumnField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsCounts(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsCounts']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get master csv
@@ -6822,9 +4603,11 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getColumnsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsCsv(ids, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distinct count
@@ -6833,9 +4616,11 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsDistinct(fields?: Array<ColumnField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+        async getColumnsDistinct(fields?: Array<ColumnField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsDistinct(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsDistinct']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get filtered fields
@@ -6844,21 +4629,25 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsFields(fields?: Array<ColumnField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+        async getColumnsFields(fields?: Array<ColumnField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<{ [key: string]: any; }>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsFields(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsFields']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Get Columns Matrix
          * @param {Array<ColumnField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsMatrix(fields: Array<ColumnField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+        async getColumnsMatrix(fields: Array<ColumnField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMatrix(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsMatrix']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get moment strong series from column
@@ -6868,9 +4657,11 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsMomentStrong(columnId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getColumnsMomentStrong(columnId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMomentStrong(columnId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsMomentStrong']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get moment strong csv
@@ -6879,9 +4670,11 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsMomentStrongCsv(columnId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getColumnsMomentStrongCsv(columnId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMomentStrongCsv(columnId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsMomentStrongCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get moment weak series from column
@@ -6891,9 +4684,11 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsMomentWeak(columnId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getColumnsMomentWeak(columnId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMomentWeak(columnId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsMomentWeak']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get moment strong csv
@@ -6902,9 +4697,11 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsMomentWeakCsv(columnId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getColumnsMomentWeakCsv(columnId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsMomentWeakCsv(columnId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsMomentWeakCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get range of field
@@ -6913,16 +4710,17 @@ export const ColumnsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getColumnsRange(field: ColumnNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+        async getColumnsRange(field: ColumnNumberField, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getColumnsRange(field, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ColumnsApi.getColumnsRange']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
  * ColumnsApi - factory interface
- * @export
  */
 export const ColumnsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = ColumnsApiFp(configuration)
@@ -6930,15 +4728,15 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
         /**
          * Get paginated Columns
          * @summary Get Columns
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumns(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageColumnModel> {
+        getColumns(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<ExtendedPageColumnModel> {
             return localVarFp.getColumns(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -6949,7 +4747,7 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsAxialShortening(columnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getColumnsAxialShortening(columnId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getColumnsAxialShortening(columnId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -6959,18 +4757,18 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsAxialShorteningCsv(columnId: string, options?: any): AxiosPromise<void> {
+        getColumnsAxialShorteningCsv(columnId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getColumnsAxialShorteningCsv(columnId, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences count of field values
          * @summary Get Columns Counts
          * @param {Array<ColumnField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsCounts(fields?: Array<ColumnField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+        getColumnsCounts(fields?: Array<ColumnField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<Array<CountModel>> {
             return localVarFp.getColumnsCounts(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -6980,7 +4778,7 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+        getColumnsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getColumnsCsv(ids, options).then((request) => request(axios, basePath));
         },
         /**
@@ -6990,7 +4788,7 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsDistinct(fields?: Array<ColumnField>, options?: any): AxiosPromise<number> {
+        getColumnsDistinct(fields?: Array<ColumnField>, options?: RawAxiosRequestConfig): AxiosPromise<number> {
             return localVarFp.getColumnsDistinct(fields, options).then((request) => request(axios, basePath));
         },
         /**
@@ -7000,18 +4798,18 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsFields(fields?: Array<ColumnField>, options?: any): AxiosPromise<Array<object>> {
+        getColumnsFields(fields?: Array<ColumnField>, options?: RawAxiosRequestConfig): AxiosPromise<Array<{ [key: string]: any; }>> {
             return localVarFp.getColumnsFields(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * 
          * @summary Get Columns Matrix
          * @param {Array<ColumnField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMatrix(fields: Array<ColumnField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+        getColumnsMatrix(fields: Array<ColumnField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<MatrixModel> {
             return localVarFp.getColumnsMatrix(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -7022,7 +4820,7 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMomentStrong(columnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getColumnsMomentStrong(columnId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getColumnsMomentStrong(columnId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -7032,7 +4830,7 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMomentStrongCsv(columnId: string, options?: any): AxiosPromise<void> {
+        getColumnsMomentStrongCsv(columnId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getColumnsMomentStrongCsv(columnId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -7043,7 +4841,7 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMomentWeak(columnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getColumnsMomentWeak(columnId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getColumnsMomentWeak(columnId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -7053,7 +4851,7 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsMomentWeakCsv(columnId: string, options?: any): AxiosPromise<void> {
+        getColumnsMomentWeakCsv(columnId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getColumnsMomentWeakCsv(columnId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -7063,7 +4861,7 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getColumnsRange(field: ColumnNumberField, options?: any): AxiosPromise<RangeModel> {
+        getColumnsRange(field: ColumnNumberField, options?: RawAxiosRequestConfig): AxiosPromise<RangeModel> {
             return localVarFp.getColumnsRange(field, options).then((request) => request(axios, basePath));
         },
     };
@@ -7071,24 +4869,20 @@ export const ColumnsApiFactory = function (configuration?: Configuration, basePa
 
 /**
  * ColumnsApi - object-oriented interface
- * @export
- * @class ColumnsApi
- * @extends {BaseAPI}
  */
 export class ColumnsApi extends BaseAPI {
     /**
      * Get paginated Columns
      * @summary Get Columns
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {Array<string>} [sortBy] 
      * @param {Array<boolean>} [sortDesc] 
-     * @param {number} [page] 
-     * @param {number} [size] 
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumns(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+    public getColumns(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumns(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7099,9 +4893,8 @@ export class ColumnsApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsAxialShortening(columnId: string, size?: number, options?: AxiosRequestConfig) {
+    public getColumnsAxialShortening(columnId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsAxialShortening(columnId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7111,9 +4904,8 @@ export class ColumnsApi extends BaseAPI {
      * @param {string} columnId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsAxialShorteningCsv(columnId: string, options?: AxiosRequestConfig) {
+    public getColumnsAxialShorteningCsv(columnId: string, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsAxialShorteningCsv(columnId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7121,12 +4913,11 @@ export class ColumnsApi extends BaseAPI {
      * Get occurences count of field values
      * @summary Get Columns Counts
      * @param {Array<ColumnField>} [fields] 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsCounts(fields?: Array<ColumnField>, query?: string, options?: AxiosRequestConfig) {
+    public getColumnsCounts(fields?: Array<ColumnField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7136,9 +4927,8 @@ export class ColumnsApi extends BaseAPI {
      * @param {Array<string>} [ids] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+    public getColumnsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsCsv(ids, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7148,9 +4938,8 @@ export class ColumnsApi extends BaseAPI {
      * @param {Array<ColumnField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsDistinct(fields?: Array<ColumnField>, options?: AxiosRequestConfig) {
+    public getColumnsDistinct(fields?: Array<ColumnField>, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7160,9 +4949,8 @@ export class ColumnsApi extends BaseAPI {
      * @param {Array<ColumnField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsFields(fields?: Array<ColumnField>, options?: AxiosRequestConfig) {
+    public getColumnsFields(fields?: Array<ColumnField>, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsFields(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7170,12 +4958,11 @@ export class ColumnsApi extends BaseAPI {
      * 
      * @summary Get Columns Matrix
      * @param {Array<ColumnField>} fields 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsMatrix(fields: Array<ColumnField>, query?: string, options?: AxiosRequestConfig) {
+    public getColumnsMatrix(fields: Array<ColumnField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7186,9 +4973,8 @@ export class ColumnsApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsMomentStrong(columnId: string, size?: number, options?: AxiosRequestConfig) {
+    public getColumnsMomentStrong(columnId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsMomentStrong(columnId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7198,9 +4984,8 @@ export class ColumnsApi extends BaseAPI {
      * @param {string} columnId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsMomentStrongCsv(columnId: string, options?: AxiosRequestConfig) {
+    public getColumnsMomentStrongCsv(columnId: string, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsMomentStrongCsv(columnId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7211,9 +4996,8 @@ export class ColumnsApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsMomentWeak(columnId: string, size?: number, options?: AxiosRequestConfig) {
+    public getColumnsMomentWeak(columnId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsMomentWeak(columnId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7223,9 +5007,8 @@ export class ColumnsApi extends BaseAPI {
      * @param {string} columnId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsMomentWeakCsv(columnId: string, options?: AxiosRequestConfig) {
+    public getColumnsMomentWeakCsv(columnId: string, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsMomentWeakCsv(columnId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -7235,32 +5018,31 @@ export class ColumnsApi extends BaseAPI {
      * @param {ColumnNumberField} field 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ColumnsApi
      */
-    public getColumnsRange(field: ColumnNumberField, options?: AxiosRequestConfig) {
+    public getColumnsRange(field: ColumnNumberField, options?: RawAxiosRequestConfig) {
         return ColumnsApiFp(this.configuration).getColumnsRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
+
 /**
  * ConnectionsApi - axios parameter creator
- * @export
  */
 export const ConnectionsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * Get paginated Connections
          * @summary Get Connections
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnections: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnections: async (query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/connections`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -7293,8 +5075,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7312,11 +5094,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsBeam: async (connectionId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsBeam: async (connectionId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getConnectionsBeam', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/beam`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+                .replace('{connection_id}', encodeURIComponent(String(connectionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7332,8 +5114,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7350,11 +5132,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsBeamCsv: async (connectionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsBeamCsv: async (connectionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getConnectionsBeamCsv', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/beam/csv`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+                .replace('{connection_id}', encodeURIComponent(String(connectionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7366,8 +5148,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7385,11 +5167,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsBeamWest: async (connectionId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsBeamWest: async (connectionId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getConnectionsBeamWest', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/beam-west`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+                .replace('{connection_id}', encodeURIComponent(String(connectionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7405,8 +5187,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7423,11 +5205,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsBeamWestCsv: async (connectionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsBeamWestCsv: async (connectionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getConnectionsBeamWestCsv', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/beam-west/csv`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+                .replace('{connection_id}', encodeURIComponent(String(connectionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7439,8 +5221,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7454,11 +5236,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * Get occurences count of field values
          * @summary Get Connections Counts
          * @param {Array<ConnectionField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsCounts: async (fields?: Array<ConnectionField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsCounts: async (fields?: Array<ConnectionField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/connections/counts`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -7479,8 +5261,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7497,7 +5279,7 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsCsv: async (ids?: Array<string>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/connections/csv`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -7514,8 +5296,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['ids'] = ids;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7532,7 +5314,7 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsDistinct: async (fields?: Array<ConnectionField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsDistinct: async (fields?: Array<ConnectionField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/connections/distinct`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -7549,8 +5331,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7567,7 +5349,7 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsFields: async (fields?: Array<ConnectionField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsFields: async (fields?: Array<ConnectionField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/connections/fields`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -7584,8 +5366,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7603,11 +5385,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsGlobal: async (connectionId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsGlobal: async (connectionId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getConnectionsGlobal', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/global`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+                .replace('{connection_id}', encodeURIComponent(String(connectionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7623,8 +5405,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7641,11 +5423,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsGlobalCsv: async (connectionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsGlobalCsv: async (connectionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getConnectionsGlobalCsv', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/global/csv`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+                .replace('{connection_id}', encodeURIComponent(String(connectionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7657,8 +5439,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7676,11 +5458,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsGlobalWest: async (connectionId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsGlobalWest: async (connectionId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getConnectionsGlobalWest', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/global-west`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+                .replace('{connection_id}', encodeURIComponent(String(connectionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7696,8 +5478,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7714,11 +5496,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsGlobalWestCsv: async (connectionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsGlobalWestCsv: async (connectionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getConnectionsGlobalWestCsv', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/global-west/csv`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+                .replace('{connection_id}', encodeURIComponent(String(connectionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7730,8 +5512,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7745,11 +5527,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * 
          * @summary Get Connections Matrix
          * @param {Array<ConnectionField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsMatrix: async (fields: Array<ConnectionField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsMatrix: async (fields: Array<ConnectionField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'fields' is not null or undefined
             assertParamExists('getConnectionsMatrix', 'fields', fields)
             const localVarPath = `/connections/matrix`;
@@ -7772,8 +5554,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7791,11 +5573,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsPanelZones: async (connectionId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsPanelZones: async (connectionId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getConnectionsPanelZones', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/panel-zones`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+                .replace('{connection_id}', encodeURIComponent(String(connectionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7811,8 +5593,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7829,11 +5611,11 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsPanelZonesCsv: async (connectionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsPanelZonesCsv: async (connectionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'connectionId' is not null or undefined
             assertParamExists('getConnectionsPanelZonesCsv', 'connectionId', connectionId)
             const localVarPath = `/connections/{connection_id}/panel-zones/csv`
-                .replace(`{${"connection_id"}}`, encodeURIComponent(String(connectionId)));
+                .replace('{connection_id}', encodeURIComponent(String(connectionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7845,8 +5627,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7863,7 +5645,7 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsRange: async (field: ConnectionNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getConnectionsRange: async (field: ConnectionNumberField, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'field' is not null or undefined
             assertParamExists('getConnectionsRange', 'field', field)
             const localVarPath = `/connections/range`;
@@ -7882,8 +5664,8 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
                 localVarQueryParameter['field'] = field;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -7898,7 +5680,6 @@ export const ConnectionsApiAxiosParamCreator = function (configuration?: Configu
 
 /**
  * ConnectionsApi - functional programming interface
- * @export
  */
 export const ConnectionsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ConnectionsApiAxiosParamCreator(configuration)
@@ -7906,17 +5687,19 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
         /**
          * Get paginated Connections
          * @summary Get Connections
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnections(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageConnectionModel>> {
+        async getConnections(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageConnectionModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnections(query, sortBy, sortDesc, page, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnections']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get beam series from connection
@@ -7926,9 +5709,11 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsBeam(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getConnectionsBeam(connectionId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsBeam(connectionId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsBeam']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get beam csv from connection
@@ -7937,9 +5722,11 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsBeamCsv(connectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getConnectionsBeamCsv(connectionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsBeamCsv(connectionId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsBeamCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get beam west series from connection
@@ -7949,9 +5736,11 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsBeamWest(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getConnectionsBeamWest(connectionId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsBeamWest(connectionId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsBeamWest']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get beam west csv from connection
@@ -7960,21 +5749,25 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsBeamWestCsv(connectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getConnectionsBeamWestCsv(connectionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsBeamWestCsv(connectionId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsBeamWestCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get occurences count of field values
          * @summary Get Connections Counts
          * @param {Array<ConnectionField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsCounts(fields?: Array<ConnectionField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+        async getConnectionsCounts(fields?: Array<ConnectionField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsCounts(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsCounts']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get master csv
@@ -7983,9 +5776,11 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getConnectionsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsCsv(ids, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distinct count
@@ -7994,9 +5789,11 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsDistinct(fields?: Array<ConnectionField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+        async getConnectionsDistinct(fields?: Array<ConnectionField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsDistinct(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsDistinct']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get filtered fields
@@ -8005,9 +5802,11 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsFields(fields?: Array<ConnectionField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+        async getConnectionsFields(fields?: Array<ConnectionField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<{ [key: string]: any; }>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsFields(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsFields']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get global series from connection
@@ -8017,9 +5816,11 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsGlobal(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getConnectionsGlobal(connectionId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsGlobal(connectionId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsGlobal']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get global csv from connection
@@ -8028,9 +5829,11 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsGlobalCsv(connectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getConnectionsGlobalCsv(connectionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsGlobalCsv(connectionId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsGlobalCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get global west series from connection
@@ -8040,9 +5843,11 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsGlobalWest(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getConnectionsGlobalWest(connectionId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsGlobalWest(connectionId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsGlobalWest']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get global west csv from connection
@@ -8051,21 +5856,25 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsGlobalWestCsv(connectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getConnectionsGlobalWestCsv(connectionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsGlobalWestCsv(connectionId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsGlobalWestCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Get Connections Matrix
          * @param {Array<ConnectionField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsMatrix(fields: Array<ConnectionField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+        async getConnectionsMatrix(fields: Array<ConnectionField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsMatrix(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsMatrix']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get panel zone series from connection
@@ -8075,9 +5884,11 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsPanelZones(connectionId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getConnectionsPanelZones(connectionId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsPanelZones(connectionId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsPanelZones']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get panel zone csv from connection
@@ -8086,9 +5897,11 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsPanelZonesCsv(connectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getConnectionsPanelZonesCsv(connectionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsPanelZonesCsv(connectionId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsPanelZonesCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get range of field
@@ -8097,16 +5910,17 @@ export const ConnectionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getConnectionsRange(field: ConnectionNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+        async getConnectionsRange(field: ConnectionNumberField, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectionsRange(field, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ConnectionsApi.getConnectionsRange']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
  * ConnectionsApi - factory interface
- * @export
  */
 export const ConnectionsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = ConnectionsApiFp(configuration)
@@ -8114,15 +5928,15 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
         /**
          * Get paginated Connections
          * @summary Get Connections
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnections(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageConnectionModel> {
+        getConnections(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<ExtendedPageConnectionModel> {
             return localVarFp.getConnections(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8133,7 +5947,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsBeam(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getConnectionsBeam(connectionId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getConnectionsBeam(connectionId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8143,7 +5957,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsBeamCsv(connectionId: string, options?: any): AxiosPromise<void> {
+        getConnectionsBeamCsv(connectionId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getConnectionsBeamCsv(connectionId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8154,7 +5968,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsBeamWest(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getConnectionsBeamWest(connectionId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getConnectionsBeamWest(connectionId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8164,18 +5978,18 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsBeamWestCsv(connectionId: string, options?: any): AxiosPromise<void> {
+        getConnectionsBeamWestCsv(connectionId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getConnectionsBeamWestCsv(connectionId, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences count of field values
          * @summary Get Connections Counts
          * @param {Array<ConnectionField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsCounts(fields?: Array<ConnectionField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+        getConnectionsCounts(fields?: Array<ConnectionField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<Array<CountModel>> {
             return localVarFp.getConnectionsCounts(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8185,7 +5999,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+        getConnectionsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getConnectionsCsv(ids, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8195,7 +6009,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsDistinct(fields?: Array<ConnectionField>, options?: any): AxiosPromise<number> {
+        getConnectionsDistinct(fields?: Array<ConnectionField>, options?: RawAxiosRequestConfig): AxiosPromise<number> {
             return localVarFp.getConnectionsDistinct(fields, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8205,7 +6019,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsFields(fields?: Array<ConnectionField>, options?: any): AxiosPromise<Array<object>> {
+        getConnectionsFields(fields?: Array<ConnectionField>, options?: RawAxiosRequestConfig): AxiosPromise<Array<{ [key: string]: any; }>> {
             return localVarFp.getConnectionsFields(fields, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8216,7 +6030,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsGlobal(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getConnectionsGlobal(connectionId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getConnectionsGlobal(connectionId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8226,7 +6040,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsGlobalCsv(connectionId: string, options?: any): AxiosPromise<void> {
+        getConnectionsGlobalCsv(connectionId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getConnectionsGlobalCsv(connectionId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8237,7 +6051,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsGlobalWest(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getConnectionsGlobalWest(connectionId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getConnectionsGlobalWest(connectionId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8247,18 +6061,18 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsGlobalWestCsv(connectionId: string, options?: any): AxiosPromise<void> {
+        getConnectionsGlobalWestCsv(connectionId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getConnectionsGlobalWestCsv(connectionId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
          * @summary Get Connections Matrix
          * @param {Array<ConnectionField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsMatrix(fields: Array<ConnectionField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+        getConnectionsMatrix(fields: Array<ConnectionField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<MatrixModel> {
             return localVarFp.getConnectionsMatrix(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8269,7 +6083,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsPanelZones(connectionId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getConnectionsPanelZones(connectionId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getConnectionsPanelZones(connectionId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8279,7 +6093,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsPanelZonesCsv(connectionId: string, options?: any): AxiosPromise<void> {
+        getConnectionsPanelZonesCsv(connectionId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getConnectionsPanelZonesCsv(connectionId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -8289,7 +6103,7 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getConnectionsRange(field: ConnectionNumberField, options?: any): AxiosPromise<RangeModel> {
+        getConnectionsRange(field: ConnectionNumberField, options?: RawAxiosRequestConfig): AxiosPromise<RangeModel> {
             return localVarFp.getConnectionsRange(field, options).then((request) => request(axios, basePath));
         },
     };
@@ -8297,24 +6111,20 @@ export const ConnectionsApiFactory = function (configuration?: Configuration, ba
 
 /**
  * ConnectionsApi - object-oriented interface
- * @export
- * @class ConnectionsApi
- * @extends {BaseAPI}
  */
 export class ConnectionsApi extends BaseAPI {
     /**
      * Get paginated Connections
      * @summary Get Connections
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {Array<string>} [sortBy] 
      * @param {Array<boolean>} [sortDesc] 
-     * @param {number} [page] 
-     * @param {number} [size] 
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnections(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+    public getConnections(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnections(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8325,9 +6135,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsBeam(connectionId: string, size?: number, options?: AxiosRequestConfig) {
+    public getConnectionsBeam(connectionId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsBeam(connectionId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8337,9 +6146,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {string} connectionId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsBeamCsv(connectionId: string, options?: AxiosRequestConfig) {
+    public getConnectionsBeamCsv(connectionId: string, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsBeamCsv(connectionId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8350,9 +6158,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsBeamWest(connectionId: string, size?: number, options?: AxiosRequestConfig) {
+    public getConnectionsBeamWest(connectionId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsBeamWest(connectionId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8362,9 +6169,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {string} connectionId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsBeamWestCsv(connectionId: string, options?: AxiosRequestConfig) {
+    public getConnectionsBeamWestCsv(connectionId: string, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsBeamWestCsv(connectionId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8372,12 +6178,11 @@ export class ConnectionsApi extends BaseAPI {
      * Get occurences count of field values
      * @summary Get Connections Counts
      * @param {Array<ConnectionField>} [fields] 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsCounts(fields?: Array<ConnectionField>, query?: string, options?: AxiosRequestConfig) {
+    public getConnectionsCounts(fields?: Array<ConnectionField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8387,9 +6192,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {Array<string>} [ids] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+    public getConnectionsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsCsv(ids, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8399,9 +6203,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {Array<ConnectionField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsDistinct(fields?: Array<ConnectionField>, options?: AxiosRequestConfig) {
+    public getConnectionsDistinct(fields?: Array<ConnectionField>, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8411,9 +6214,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {Array<ConnectionField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsFields(fields?: Array<ConnectionField>, options?: AxiosRequestConfig) {
+    public getConnectionsFields(fields?: Array<ConnectionField>, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsFields(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8424,9 +6226,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsGlobal(connectionId: string, size?: number, options?: AxiosRequestConfig) {
+    public getConnectionsGlobal(connectionId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsGlobal(connectionId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8436,9 +6237,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {string} connectionId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsGlobalCsv(connectionId: string, options?: AxiosRequestConfig) {
+    public getConnectionsGlobalCsv(connectionId: string, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsGlobalCsv(connectionId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8449,9 +6249,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsGlobalWest(connectionId: string, size?: number, options?: AxiosRequestConfig) {
+    public getConnectionsGlobalWest(connectionId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsGlobalWest(connectionId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8461,9 +6260,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {string} connectionId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsGlobalWestCsv(connectionId: string, options?: AxiosRequestConfig) {
+    public getConnectionsGlobalWestCsv(connectionId: string, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsGlobalWestCsv(connectionId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8471,12 +6269,11 @@ export class ConnectionsApi extends BaseAPI {
      * 
      * @summary Get Connections Matrix
      * @param {Array<ConnectionField>} fields 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsMatrix(fields: Array<ConnectionField>, query?: string, options?: AxiosRequestConfig) {
+    public getConnectionsMatrix(fields: Array<ConnectionField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8487,9 +6284,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsPanelZones(connectionId: string, size?: number, options?: AxiosRequestConfig) {
+    public getConnectionsPanelZones(connectionId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsPanelZones(connectionId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8499,9 +6295,8 @@ export class ConnectionsApi extends BaseAPI {
      * @param {string} connectionId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsPanelZonesCsv(connectionId: string, options?: AxiosRequestConfig) {
+    public getConnectionsPanelZonesCsv(connectionId: string, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsPanelZonesCsv(connectionId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -8511,20 +6306,71 @@ export class ConnectionsApi extends BaseAPI {
      * @param {ConnectionNumberField} field 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ConnectionsApi
      */
-    public getConnectionsRange(field: ConnectionNumberField, options?: AxiosRequestConfig) {
+    public getConnectionsRange(field: ConnectionNumberField, options?: RawAxiosRequestConfig) {
         return ConnectionsApiFp(this.configuration).getConnectionsRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
+
 /**
  * DefaultApi - axios parameter creator
- * @export
  */
 export const DefaultApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Re-validate a contribution archive and open a pull request on the data repository. Errors block; warnings pass and are listed in the PR body.
+         * @summary Create Contribution
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createContribution: async (type: Type, file: File, dismissedWarnings?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'type' is not null or undefined
+            assertParamExists('createContribution', 'type', type)
+            // verify required parameter 'file' is not null or undefined
+            assertParamExists('createContribution', 'file', file)
+            const localVarPath = `/contributions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
+
+            if (type !== undefined) {
+                localVarQueryParameter['type'] = type;
+            }
+
+
+            if (file !== undefined) { 
+                localVarFormParams.append('file', file as any);
+            }
+
+            if (dismissedWarnings !== undefined) { 
+                localVarFormParams.append('dismissed_warnings', dismissedWarnings as any);
+            }
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = localVarFormParams;
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @summary Create Upload File
@@ -8533,7 +6379,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createUploadFile: async (type: Type, file: File, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        createUploadFile: async (type: Type, file: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'type' is not null or undefined
             assertParamExists('createUploadFile', 'type', type)
             // verify required parameter 'file' is not null or undefined
@@ -8563,14 +6409,186 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             if (file !== undefined) { 
                 localVarFormParams.append('file', file as any);
             }
-    
-    
             localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
-    
+            localVarHeaderParameter['Accept'] = 'application/json';
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = localVarFormParams;
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
+         * @summary Get Contribution
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContribution: async (prNumber: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'prNumber' is not null or undefined
+            assertParamExists('getContribution', 'prNumber', prNumber)
+            const localVarPath = `/contributions/{pr_number}`
+                .replace('{pr_number}', encodeURIComponent(String(prNumber)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+         * @summary Get Contribution Comments
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionComments: async (prNumber: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'prNumber' is not null or undefined
+            assertParamExists('getContributionComments', 'prNumber', prNumber)
+            const localVarPath = `/contributions/{pr_number}/comments`
+                .replace('{pr_number}', encodeURIComponent(String(prNumber)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
+         * @summary Get Contribution File
+         * @param {number} prNumber 
+         * @param {string} path 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionFile: async (prNumber: number, path: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'prNumber' is not null or undefined
+            assertParamExists('getContributionFile', 'prNumber', prNumber)
+            // verify required parameter 'path' is not null or undefined
+            assertParamExists('getContributionFile', 'path', path)
+            const localVarPath = `/contributions/{pr_number}/files`
+                .replace('{pr_number}', encodeURIComponent(String(prNumber)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (path !== undefined) {
+                localVarQueryParameter['path'] = path;
+            }
+
+            localVarHeaderParameter['Accept'] = 'text/plain,application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Re-run server-side validation on the reconstructed batch, producing the same response shape as ``/validate``. Issue rows index into the detail endpoint\'s ``experiments`` list (row N = experiments[N-1]).
+         * @summary Get Contribution Validation
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionValidation: async (prNumber: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'prNumber' is not null or undefined
+            assertParamExists('getContributionValidation', 'prNumber', prNumber)
+            const localVarPath = `/contributions/{pr_number}/validation`
+                .replace('{pr_number}', encodeURIComponent(String(prNumber)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Which optional parts of the app this deployment offers.  Public, and never cached (utils/caching.py skips it): the value comes from the deployment\'s settings, and a browser holding the old answer for an hour after the pods restart would hide or show the wrong links.
+         * @summary Get Features
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFeatures: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/features`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -8583,7 +6601,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getUser: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getUser: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/user`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -8600,8 +6618,98 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             // http basic authentication required
             setBasicAuthToObject(localVarRequestOptions, configuration)
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Healthz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthz: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/healthz`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+         * @summary List Contributions
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listContributions: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/contributions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
+         * @summary Readyz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        readyz: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/readyz`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -8617,7 +6725,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        root: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        root: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -8630,11 +6738,67 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * @summary Update Open Contribution
+         * @param {number} prNumber 
+         * @param {File} file 
+         * @param {string} headSha 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateOpenContribution: async (prNumber: number, file: File, headSha: string, dismissedWarnings?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'prNumber' is not null or undefined
+            assertParamExists('updateOpenContribution', 'prNumber', prNumber)
+            // verify required parameter 'file' is not null or undefined
+            assertParamExists('updateOpenContribution', 'file', file)
+            // verify required parameter 'headSha' is not null or undefined
+            assertParamExists('updateOpenContribution', 'headSha', headSha)
+            const localVarPath = `/contributions/{pr_number}`
+                .replace('{pr_number}', encodeURIComponent(String(prNumber)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
+
+
+            if (file !== undefined) { 
+                localVarFormParams.append('file', file as any);
+            }
+
+            if (headSha !== undefined) { 
+                localVarFormParams.append('head_sha', headSha as any);
+            }
+
+            if (dismissedWarnings !== undefined) { 
+                localVarFormParams.append('dismissed_warnings', dismissedWarnings as any);
+            }
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = localVarFormParams;
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -8646,10 +6810,11 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          * @summary Validate Data
          * @param {Type} type 
          * @param {File} file 
+         * @param {boolean} [checkDuplicates] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        validateData: async (type: Type, file: File, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        validateData: async (type: Type, file: File, checkDuplicates?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'type' is not null or undefined
             assertParamExists('validateData', 'type', type)
             // verify required parameter 'file' is not null or undefined
@@ -8675,14 +6840,17 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['type'] = type;
             }
 
+            if (checkDuplicates !== undefined) {
+                localVarQueryParameter['check_duplicates'] = checkDuplicates;
+            }
+
 
             if (file !== undefined) { 
                 localVarFormParams.append('file', file as any);
             }
-    
-    
             localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
-    
+            localVarHeaderParameter['Accept'] = 'application/json';
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -8698,11 +6866,25 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
 
 /**
  * DefaultApi - functional programming interface
- * @export
  */
 export const DefaultApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = DefaultApiAxiosParamCreator(configuration)
     return {
+        /**
+         * Re-validate a contribution archive and open a pull request on the data repository. Errors block; warnings pass and are listed in the PR body.
+         * @summary Create Contribution
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createContribution(type: Type, file: File, dismissedWarnings?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ContributionResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createContribution(type, file, dismissedWarnings, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.createContribution']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
         /**
          * 
          * @summary Create Upload File
@@ -8711,9 +6893,76 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createUploadFile(type: Type, file: File, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+        async createUploadFile(type: Type, file: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createUploadFile(type, file, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.createUploadFile']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
+         * @summary Get Contribution
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getContribution(prNumber: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CurationDetail>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getContribution(prNumber, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getContribution']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+         * @summary Get Contribution Comments
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getContributionComments(prNumber: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CurationCommentsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getContributionComments(prNumber, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getContributionComments']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
+         * @summary Get Contribution File
+         * @param {number} prNumber 
+         * @param {string} path 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getContributionFile(prNumber: number, path: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getContributionFile(prNumber, path, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getContributionFile']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Re-run server-side validation on the reconstructed batch, producing the same response shape as ``/validate``. Issue rows index into the detail endpoint\'s ``experiments`` list (row N = experiments[N-1]).
+         * @summary Get Contribution Validation
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getContributionValidation(prNumber: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ValidationResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getContributionValidation(prNumber, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getContributionValidation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Which optional parts of the app this deployment offers.  Public, and never cached (utils/caching.py skips it): the value comes from the deployment\'s settings, and a browser holding the old answer for an hour after the pods restart would hide or show the wrong links.
+         * @summary Get Features
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getFeatures(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Features>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFeatures(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getFeatures']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
@@ -8721,9 +6970,47 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getUser(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+        async getUser(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getUser(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Healthz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async healthz(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.healthz(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.healthz']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+         * @summary List Contributions
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listContributions(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CurationListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listContributions(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.listContributions']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
+         * @summary Readyz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async readyz(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.readyz(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.readyz']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get Info
@@ -8731,32 +7018,64 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async root(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Info>> {
+        async root(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Info>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.root(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.root']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * @summary Update Open Contribution
+         * @param {number} prNumber 
+         * @param {File} file 
+         * @param {string} headSha 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateOpenContribution(prNumber: number, file: File, headSha: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ContributionResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateOpenContribution(prNumber, file, headSha, dismissedWarnings, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.updateOpenContribution']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Validate Data
          * @param {Type} type 
          * @param {File} file 
+         * @param {boolean} [checkDuplicates] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async validateData(type: Type, file: File, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.validateData(type, file, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async validateData(type: Type, file: File, checkDuplicates?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ValidationResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.validateData(type, file, checkDuplicates, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.validateData']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
  * DefaultApi - factory interface
- * @export
  */
 export const DefaultApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = DefaultApiFp(configuration)
     return {
+        /**
+         * Re-validate a contribution archive and open a pull request on the data repository. Errors block; warnings pass and are listed in the PR body.
+         * @summary Create Contribution
+         * @param {Type} type 
+         * @param {File} file 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createContribution(type: Type, file: File, dismissedWarnings?: string, options?: RawAxiosRequestConfig): AxiosPromise<ContributionResponse> {
+            return localVarFp.createContribution(type, file, dismissedWarnings, options).then((request) => request(axios, basePath));
+        },
         /**
          * 
          * @summary Create Upload File
@@ -8765,8 +7084,58 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createUploadFile(type: Type, file: File, options?: any): AxiosPromise<any> {
+        createUploadFile(type: Type, file: File, options?: RawAxiosRequestConfig): AxiosPromise<any> {
             return localVarFp.createUploadFile(type, file, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
+         * @summary Get Contribution
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContribution(prNumber: number, options?: RawAxiosRequestConfig): AxiosPromise<CurationDetail> {
+            return localVarFp.getContribution(prNumber, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+         * @summary Get Contribution Comments
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionComments(prNumber: number, options?: RawAxiosRequestConfig): AxiosPromise<CurationCommentsResponse> {
+            return localVarFp.getContributionComments(prNumber, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
+         * @summary Get Contribution File
+         * @param {number} prNumber 
+         * @param {string} path 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionFile(prNumber: number, path: string, options?: RawAxiosRequestConfig): AxiosPromise<string> {
+            return localVarFp.getContributionFile(prNumber, path, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Re-run server-side validation on the reconstructed batch, producing the same response shape as ``/validate``. Issue rows index into the detail endpoint\'s ``experiments`` list (row N = experiments[N-1]).
+         * @summary Get Contribution Validation
+         * @param {number} prNumber 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getContributionValidation(prNumber: number, options?: RawAxiosRequestConfig): AxiosPromise<ValidationResponse> {
+            return localVarFp.getContributionValidation(prNumber, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Which optional parts of the app this deployment offers.  Public, and never cached (utils/caching.py skips it): the value comes from the deployment\'s settings, and a browser holding the old answer for an hour after the pods restart would hide or show the wrong links.
+         * @summary Get Features
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFeatures(options?: RawAxiosRequestConfig): AxiosPromise<Features> {
+            return localVarFp.getFeatures(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -8774,8 +7143,35 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getUser(options?: any): AxiosPromise<any> {
+        getUser(options?: RawAxiosRequestConfig): AxiosPromise<any> {
             return localVarFp.getUser(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Healthz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthz(options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.healthz(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+         * @summary List Contributions
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listContributions(options?: RawAxiosRequestConfig): AxiosPromise<CurationListResponse> {
+            return localVarFp.listContributions(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
+         * @summary Readyz
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        readyz(options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.readyz(options).then((request) => request(axios, basePath));
         },
         /**
          * Get Info
@@ -8783,30 +7179,54 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        root(options?: any): AxiosPromise<Info> {
+        root(options?: RawAxiosRequestConfig): AxiosPromise<Info> {
             return localVarFp.root(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * @summary Update Open Contribution
+         * @param {number} prNumber 
+         * @param {File} file 
+         * @param {string} headSha 
+         * @param {string} [dismissedWarnings] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateOpenContribution(prNumber: number, file: File, headSha: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig): AxiosPromise<ContributionResponse> {
+            return localVarFp.updateOpenContribution(prNumber, file, headSha, dismissedWarnings, options).then((request) => request(axios, basePath));
         },
         /**
          * 
          * @summary Validate Data
          * @param {Type} type 
          * @param {File} file 
+         * @param {boolean} [checkDuplicates] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        validateData(type: Type, file: File, options?: any): AxiosPromise<any> {
-            return localVarFp.validateData(type, file, options).then((request) => request(axios, basePath));
+        validateData(type: Type, file: File, checkDuplicates?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<ValidationResponse> {
+            return localVarFp.validateData(type, file, checkDuplicates, options).then((request) => request(axios, basePath));
         },
     };
 };
 
 /**
  * DefaultApi - object-oriented interface
- * @export
- * @class DefaultApi
- * @extends {BaseAPI}
  */
 export class DefaultApi extends BaseAPI {
+    /**
+     * Re-validate a contribution archive and open a pull request on the data repository. Errors block; warnings pass and are listed in the PR body.
+     * @summary Create Contribution
+     * @param {Type} type 
+     * @param {File} file 
+     * @param {string} [dismissedWarnings] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createContribution(type: Type, file: File, dismissedWarnings?: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).createContribution(type, file, dismissedWarnings, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @summary Create Upload File
@@ -8814,10 +7234,64 @@ export class DefaultApi extends BaseAPI {
      * @param {File} file 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof DefaultApi
      */
-    public createUploadFile(type: Type, file: File, options?: AxiosRequestConfig) {
+    public createUploadFile(type: Type, file: File, options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).createUploadFile(type, file, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
+     * @summary Get Contribution
+     * @param {number} prNumber 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getContribution(prNumber: number, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getContribution(prNumber, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+     * @summary Get Contribution Comments
+     * @param {number} prNumber 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getContributionComments(prNumber: number, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getContributionComments(prNumber, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Raw text of one file added by the submission (time-series preview). Only paths the PR actually adds inside the type\'s layout are served.
+     * @summary Get Contribution File
+     * @param {number} prNumber 
+     * @param {string} path 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getContributionFile(prNumber: number, path: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getContributionFile(prNumber, path, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Re-run server-side validation on the reconstructed batch, producing the same response shape as ``/validate``. Issue rows index into the detail endpoint\'s ``experiments`` list (row N = experiments[N-1]).
+     * @summary Get Contribution Validation
+     * @param {number} prNumber 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getContributionValidation(prNumber: number, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getContributionValidation(prNumber, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Which optional parts of the app this deployment offers.  Public, and never cached (utils/caching.py skips it): the value comes from the deployment\'s settings, and a browser holding the old answer for an hour after the pods restart would hide or show the wrong links.
+     * @summary Get Features
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getFeatures(options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getFeatures(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -8825,10 +7299,39 @@ export class DefaultApi extends BaseAPI {
      * @summary Get User
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof DefaultApi
      */
-    public getUser(options?: AxiosRequestConfig) {
+    public getUser(options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).getUser(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Healthz
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public healthz(options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).healthz(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+     * @summary List Contributions
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listContributions(options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).listContributions(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
+     * @summary Readyz
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public readyz(options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).readyz(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -8836,10 +7339,23 @@ export class DefaultApi extends BaseAPI {
      * @summary Root
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof DefaultApi
      */
-    public root(options?: AxiosRequestConfig) {
+    public root(options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).root(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
+     * @summary Update Open Contribution
+     * @param {number} prNumber 
+     * @param {File} file 
+     * @param {string} headSha 
+     * @param {string} [dismissedWarnings] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updateOpenContribution(prNumber: number, file: File, headSha: string, dismissedWarnings?: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).updateOpenContribution(prNumber, file, headSha, dismissedWarnings, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -8847,34 +7363,1772 @@ export class DefaultApi extends BaseAPI {
      * @summary Validate Data
      * @param {Type} type 
      * @param {File} file 
+     * @param {boolean} [checkDuplicates] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof DefaultApi
      */
-    public validateData(type: Type, file: File, options?: AxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).validateData(type, file, options).then((request) => request(this.axios, this.basePath));
+    public validateData(type: Type, file: File, checkDuplicates?: boolean, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).validateData(type, file, checkDuplicates, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
+
+/**
+ * DictionaryApi - axios parameter creator
+ */
+export const DictionaryApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * The contributor guide of one database: the README.md of its data-repo folder, uploaded alongside the data. Raw markdown; the frontend renders it.
+         * @summary Get Database Readme
+         * @param {string} database 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDatabaseReadme: async (database: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'database' is not null or undefined
+            assertParamExists('getDatabaseReadme', 'database', database)
+            const localVarPath = `/dictionary/{database}/readme`
+                .replace('{database}', encodeURIComponent(String(database)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * All dictionaries keyed by database id, columns in source-CSV order.
+         * @summary Get Dictionary
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDictionary: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/dictionary`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * DictionaryApi - functional programming interface
+ */
+export const DictionaryApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = DictionaryApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * The contributor guide of one database: the README.md of its data-repo folder, uploaded alongside the data. Raw markdown; the frontend renders it.
+         * @summary Get Database Readme
+         * @param {string} database 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDatabaseReadme(database: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DatabaseReadmeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDatabaseReadme(database, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DictionaryApi.getDatabaseReadme']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * All dictionaries keyed by database id, columns in source-CSV order.
+         * @summary Get Dictionary
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDictionary(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: Array<DictionaryColumnModel>; }>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDictionary(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DictionaryApi.getDictionary']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * DictionaryApi - factory interface
+ */
+export const DictionaryApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = DictionaryApiFp(configuration)
+    return {
+        /**
+         * The contributor guide of one database: the README.md of its data-repo folder, uploaded alongside the data. Raw markdown; the frontend renders it.
+         * @summary Get Database Readme
+         * @param {string} database 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDatabaseReadme(database: string, options?: RawAxiosRequestConfig): AxiosPromise<DatabaseReadmeModel> {
+            return localVarFp.getDatabaseReadme(database, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * All dictionaries keyed by database id, columns in source-CSV order.
+         * @summary Get Dictionary
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDictionary(options?: RawAxiosRequestConfig): AxiosPromise<{ [key: string]: Array<DictionaryColumnModel>; }> {
+            return localVarFp.getDictionary(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * DictionaryApi - object-oriented interface
+ */
+export class DictionaryApi extends BaseAPI {
+    /**
+     * The contributor guide of one database: the README.md of its data-repo folder, uploaded alongside the data. Raw markdown; the frontend renders it.
+     * @summary Get Database Readme
+     * @param {string} database 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDatabaseReadme(database: string, options?: RawAxiosRequestConfig) {
+        return DictionaryApiFp(this.configuration).getDatabaseReadme(database, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * All dictionaries keyed by database id, columns in source-CSV order.
+     * @summary Get Dictionary
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDictionary(options?: RawAxiosRequestConfig) {
+        return DictionaryApiFp(this.configuration).getDictionary(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * DuctileFractureApi - axios parameter creator
+ */
+export const DuctileFractureApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get paginated Ductile Fractures
+         * @summary Get Ductile Fractures
+         * @param {string | null} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFractures: async (query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/ductile-fracture`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            if (sortBy) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+            if (sortDesc) {
+                localVarQueryParameter['sort_desc'] = sortDesc;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Ductile Fractures Counts
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesCounts: async (fields?: Array<DuctileFractureField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/ductile-fracture/counts`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get master csv
+         * @summary Get Ductile Fractures Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesCsv: async (ids?: Array<string>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/ductile-fracture/csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (ids) {
+                localVarQueryParameter['ids'] = ids;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distinct count
+         * @summary Get Ductile Fractures Distinct
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesDistinct: async (fields?: Array<DuctileFractureField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/ductile-fracture/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Equivalent Plastic Strain - Elongation simulation series
+         * @summary Get Ductile Fractures Epeq Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesEpeqSimulation: async (ductileFractureId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesEpeqSimulation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/epeq-simulation`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Epeq Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesEpeqSimulationCsv: async (ductileFractureId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesEpeqSimulationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/epeq-simulation/csv`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Ductile Fractures Fields
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesFields: async (fields?: Array<DuctileFractureField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/ductile-fracture/fields`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Force-Elongation test series
+         * @summary Get Ductile Fractures Force Elongation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongation: async (ductileFractureId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceElongation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-elongation`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationCsv: async (ductileFractureId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceElongationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-elongation/csv`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Force-Elongation simulation series
+         * @summary Get Ductile Fractures Force Elongation Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationSimulation: async (ductileFractureId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceElongationSimulation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-elongation-simulation`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationSimulationCsv: async (ductileFractureId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceElongationSimulationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-elongation-simulation/csv`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Force-Radial elongation test series
+         * @summary Get Ductile Fractures Force Radial
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadial: async (ductileFractureId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceRadial', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-radial`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialCsv: async (ductileFractureId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceRadialCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-radial/csv`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Force-Radial elongation simulation series
+         * @summary Get Ductile Fractures Force Radial Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialSimulation: async (ductileFractureId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceRadialSimulation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-radial-simulation`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialSimulationCsv: async (ductileFractureId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesForceRadialSimulationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/force-radial-simulation/csv`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Lode angle - Elongation simulation series
+         * @summary Get Ductile Fractures Lode Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesLodeSimulation: async (ductileFractureId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesLodeSimulation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/lode-simulation`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Lode Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesLodeSimulationCsv: async (ductileFractureId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesLodeSimulationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/lode-simulation/csv`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Matrix
+         * @param {Array<DuctileFractureField>} fields 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesMatrix: async (fields: Array<DuctileFractureField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getDuctileFracturesMatrix', 'fields', fields)
+            const localVarPath = `/ductile-fracture/matrix`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get range of field
+         * @summary Get Ductile Fractures Range
+         * @param {DuctileFractureNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesRange: async (field: DuctileFractureNumberField, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getDuctileFracturesRange', 'field', field)
+            const localVarPath = `/ductile-fracture/range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Triaxiality - Elongation simulation series
+         * @summary Get Ductile Fractures Triax Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesTriaxSimulation: async (ductileFractureId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesTriaxSimulation', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/triax-simulation`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Triax Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesTriaxSimulationCsv: async (ductileFractureId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ductileFractureId' is not null or undefined
+            assertParamExists('getDuctileFracturesTriaxSimulationCsv', 'ductileFractureId', ductileFractureId)
+            const localVarPath = `/ductile-fracture/{ductile_fracture_id}/triax-simulation/csv`
+                .replace('{ductile_fracture_id}', encodeURIComponent(String(ductileFractureId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * DuctileFractureApi - functional programming interface
+ */
+export const DuctileFractureApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = DuctileFractureApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get paginated Ductile Fractures
+         * @summary Get Ductile Fractures
+         * @param {string | null} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFractures(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageDuctileFractureModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFractures(query, sortBy, sortDesc, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFractures']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Ductile Fractures Counts
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesCounts(fields?: Array<DuctileFractureField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesCounts(fields, query, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesCounts']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get master csv
+         * @summary Get Ductile Fractures Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesCsv(ids, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get distinct count
+         * @summary Get Ductile Fractures Distinct
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesDistinct(fields?: Array<DuctileFractureField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesDistinct(fields, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesDistinct']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get Equivalent Plastic Strain - Elongation simulation series
+         * @summary Get Ductile Fractures Epeq Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesEpeqSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesEpeqSimulation(ductileFractureId, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesEpeqSimulation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Epeq Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesEpeqSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesEpeqSimulationCsv(ductileFractureId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesEpeqSimulationCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Ductile Fractures Fields
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesFields(fields?: Array<DuctileFractureField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<{ [key: string]: any; }>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesFields(fields, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesFields']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get Force-Elongation test series
+         * @summary Get Ductile Fractures Force Elongation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceElongation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceElongation(ductileFractureId, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesForceElongation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceElongationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceElongationCsv(ductileFractureId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesForceElongationCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get Force-Elongation simulation series
+         * @summary Get Ductile Fractures Force Elongation Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceElongationSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceElongationSimulation(ductileFractureId, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesForceElongationSimulation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceElongationSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceElongationSimulationCsv(ductileFractureId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesForceElongationSimulationCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get Force-Radial elongation test series
+         * @summary Get Ductile Fractures Force Radial
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceRadial(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceRadial(ductileFractureId, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesForceRadial']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceRadialCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceRadialCsv(ductileFractureId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesForceRadialCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get Force-Radial elongation simulation series
+         * @summary Get Ductile Fractures Force Radial Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceRadialSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceRadialSimulation(ductileFractureId, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesForceRadialSimulation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesForceRadialSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesForceRadialSimulationCsv(ductileFractureId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesForceRadialSimulationCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get Lode angle - Elongation simulation series
+         * @summary Get Ductile Fractures Lode Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesLodeSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesLodeSimulation(ductileFractureId, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesLodeSimulation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Lode Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesLodeSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesLodeSimulationCsv(ductileFractureId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesLodeSimulationCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Matrix
+         * @param {Array<DuctileFractureField>} fields 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesMatrix(fields: Array<DuctileFractureField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesMatrix(fields, query, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesMatrix']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get range of field
+         * @summary Get Ductile Fractures Range
+         * @param {DuctileFractureNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesRange(field: DuctileFractureNumberField, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesRange(field, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesRange']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get Triaxiality - Elongation simulation series
+         * @summary Get Ductile Fractures Triax Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesTriaxSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesTriaxSimulation(ductileFractureId, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesTriaxSimulation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Triax Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getDuctileFracturesTriaxSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getDuctileFracturesTriaxSimulationCsv(ductileFractureId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DuctileFractureApi.getDuctileFracturesTriaxSimulationCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * DuctileFractureApi - factory interface
+ */
+export const DuctileFractureApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = DuctileFractureApiFp(configuration)
+    return {
+        /**
+         * Get paginated Ductile Fractures
+         * @summary Get Ductile Fractures
+         * @param {string | null} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFractures(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<ExtendedPageDuctileFractureModel> {
+            return localVarFp.getDuctileFractures(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Ductile Fractures Counts
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesCounts(fields?: Array<DuctileFractureField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getDuctileFracturesCounts(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get master csv
+         * @summary Get Ductile Fractures Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Ductile Fractures Distinct
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesDistinct(fields?: Array<DuctileFractureField>, options?: RawAxiosRequestConfig): AxiosPromise<number> {
+            return localVarFp.getDuctileFracturesDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Equivalent Plastic Strain - Elongation simulation series
+         * @summary Get Ductile Fractures Epeq Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesEpeqSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesEpeqSimulation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Epeq Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesEpeqSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesEpeqSimulationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Ductile Fractures Fields
+         * @param {Array<DuctileFractureField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesFields(fields?: Array<DuctileFractureField>, options?: RawAxiosRequestConfig): AxiosPromise<Array<{ [key: string]: any; }>> {
+            return localVarFp.getDuctileFracturesFields(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Force-Elongation test series
+         * @summary Get Ductile Fractures Force Elongation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesForceElongation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesForceElongationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Force-Elongation simulation series
+         * @summary Get Ductile Fractures Force Elongation Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesForceElongationSimulation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Elongation Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceElongationSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesForceElongationSimulationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Force-Radial elongation test series
+         * @summary Get Ductile Fractures Force Radial
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadial(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesForceRadial(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesForceRadialCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Force-Radial elongation simulation series
+         * @summary Get Ductile Fractures Force Radial Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesForceRadialSimulation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Force Radial Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesForceRadialSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesForceRadialSimulationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Lode angle - Elongation simulation series
+         * @summary Get Ductile Fractures Lode Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesLodeSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesLodeSimulation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Lode Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesLodeSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesLodeSimulationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Matrix
+         * @param {Array<DuctileFractureField>} fields 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesMatrix(fields: Array<DuctileFractureField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<MatrixModel> {
+            return localVarFp.getDuctileFracturesMatrix(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get range of field
+         * @summary Get Ductile Fractures Range
+         * @param {DuctileFractureNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesRange(field: DuctileFractureNumberField, options?: RawAxiosRequestConfig): AxiosPromise<RangeModel> {
+            return localVarFp.getDuctileFracturesRange(field, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Triaxiality - Elongation simulation series
+         * @summary Get Ductile Fractures Triax Simulation
+         * @param {string} ductileFractureId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesTriaxSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getDuctileFracturesTriaxSimulation(ductileFractureId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Ductile Fractures Triax Simulation Csv
+         * @param {string} ductileFractureId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getDuctileFracturesTriaxSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getDuctileFracturesTriaxSimulationCsv(ductileFractureId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * DuctileFractureApi - object-oriented interface
+ */
+export class DuctileFractureApi extends BaseAPI {
+    /**
+     * Get paginated Ductile Fractures
+     * @summary Get Ductile Fractures
+     * @param {string | null} [query] 
+     * @param {Array<string>} [sortBy] 
+     * @param {Array<boolean>} [sortDesc] 
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFractures(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFractures(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurences count of field values
+     * @summary Get Ductile Fractures Counts
+     * @param {Array<DuctileFractureField>} [fields] 
+     * @param {string | null} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesCounts(fields?: Array<DuctileFractureField>, query?: string | null, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get master csv
+     * @summary Get Ductile Fractures Csv
+     * @param {Array<string>} [ids] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Ductile Fractures Distinct
+     * @param {Array<DuctileFractureField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesDistinct(fields?: Array<DuctileFractureField>, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Equivalent Plastic Strain - Elongation simulation series
+     * @summary Get Ductile Fractures Epeq Simulation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesEpeqSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesEpeqSimulation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Epeq Simulation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesEpeqSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesEpeqSimulationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get filtered fields
+     * @summary Get Ductile Fractures Fields
+     * @param {Array<DuctileFractureField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesFields(fields?: Array<DuctileFractureField>, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesFields(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Force-Elongation test series
+     * @summary Get Ductile Fractures Force Elongation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesForceElongation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceElongation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Force Elongation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesForceElongationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceElongationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Force-Elongation simulation series
+     * @summary Get Ductile Fractures Force Elongation Simulation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesForceElongationSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceElongationSimulation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Force Elongation Simulation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesForceElongationSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceElongationSimulationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Force-Radial elongation test series
+     * @summary Get Ductile Fractures Force Radial
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesForceRadial(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceRadial(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Force Radial Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesForceRadialCsv(ductileFractureId: string, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceRadialCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Force-Radial elongation simulation series
+     * @summary Get Ductile Fractures Force Radial Simulation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesForceRadialSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceRadialSimulation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Force Radial Simulation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesForceRadialSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesForceRadialSimulationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Lode angle - Elongation simulation series
+     * @summary Get Ductile Fractures Lode Simulation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesLodeSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesLodeSimulation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Lode Simulation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesLodeSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesLodeSimulationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Matrix
+     * @param {Array<DuctileFractureField>} fields 
+     * @param {string | null} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesMatrix(fields: Array<DuctileFractureField>, query?: string | null, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get range of field
+     * @summary Get Ductile Fractures Range
+     * @param {DuctileFractureNumberField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesRange(field: DuctileFractureNumberField, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesRange(field, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Triaxiality - Elongation simulation series
+     * @summary Get Ductile Fractures Triax Simulation
+     * @param {string} ductileFractureId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesTriaxSimulation(ductileFractureId: string, size?: number, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesTriaxSimulation(ductileFractureId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Ductile Fractures Triax Simulation Csv
+     * @param {string} ductileFractureId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getDuctileFracturesTriaxSimulationCsv(ductileFractureId: string, options?: RawAxiosRequestConfig) {
+        return DuctileFractureApiFp(this.configuration).getDuctileFracturesTriaxSimulationCsv(ductileFractureId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
 /**
  * EccentricBracedFrameApi - axios parameter creator
- * @export
  */
 export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * Get paginated Eccentric Braced Frames
          * @summary Get Eccentric Braced Frames
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFrames: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getEccentricBracedFrames: async (query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/eccentric-braced-frame`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -8907,8 +9161,8 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -8922,11 +9176,11 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
          * Get occurrences count of field values
          * @summary Get Eccentric Braced Frames Counts
          * @param {Array<EccentricBracedFrameField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesCounts: async (fields?: Array<EccentricBracedFrameField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getEccentricBracedFramesCounts: async (fields?: Array<EccentricBracedFrameField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/eccentric-braced-frame/counts`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -8947,8 +9201,8 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -8965,7 +9219,7 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getEccentricBracedFramesCsv: async (ids?: Array<string>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/eccentric-braced-frame/csv`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -8982,8 +9236,8 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
                 localVarQueryParameter['ids'] = ids;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9000,7 +9254,7 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesDistinct: async (fields?: Array<EccentricBracedFrameField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getEccentricBracedFramesDistinct: async (fields?: Array<EccentricBracedFrameField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/eccentric-braced-frame/distinct`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -9017,8 +9271,8 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9035,7 +9289,7 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesFields: async (fields?: Array<EccentricBracedFrameField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getEccentricBracedFramesFields: async (fields?: Array<EccentricBracedFrameField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/eccentric-braced-frame/fields`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -9052,8 +9306,8 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9067,11 +9321,11 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
          * 
          * @summary Get Eccentric Braced Frames Matrix
          * @param {Array<EccentricBracedFrameField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesMatrix: async (fields: Array<EccentricBracedFrameField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getEccentricBracedFramesMatrix: async (fields: Array<EccentricBracedFrameField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'fields' is not null or undefined
             assertParamExists('getEccentricBracedFramesMatrix', 'fields', fields)
             const localVarPath = `/eccentric-braced-frame/matrix`;
@@ -9094,8 +9348,8 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9112,7 +9366,7 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesRange: async (field: EccentricBracedFrameNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getEccentricBracedFramesRange: async (field: EccentricBracedFrameNumberField, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'field' is not null or undefined
             assertParamExists('getEccentricBracedFramesRange', 'field', field)
             const localVarPath = `/eccentric-braced-frame/range`;
@@ -9131,8 +9385,8 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
                 localVarQueryParameter['field'] = field;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9150,11 +9404,11 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesShearLinkAngle: async (eccentricBracedFrameId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getEccentricBracedFramesShearLinkAngle: async (eccentricBracedFrameId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'eccentricBracedFrameId' is not null or undefined
             assertParamExists('getEccentricBracedFramesShearLinkAngle', 'eccentricBracedFrameId', eccentricBracedFrameId)
             const localVarPath = `/eccentric-braced-frame/{eccentric_braced_frame_id}/shear-link-angle`
-                .replace(`{${"eccentric_braced_frame_id"}}`, encodeURIComponent(String(eccentricBracedFrameId)));
+                .replace('{eccentric_braced_frame_id}', encodeURIComponent(String(eccentricBracedFrameId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -9170,8 +9424,8 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9188,11 +9442,11 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesShearLinkAngleCsv: async (eccentricBracedFrameId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getEccentricBracedFramesShearLinkAngleCsv: async (eccentricBracedFrameId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'eccentricBracedFrameId' is not null or undefined
             assertParamExists('getEccentricBracedFramesShearLinkAngleCsv', 'eccentricBracedFrameId', eccentricBracedFrameId)
             const localVarPath = `/eccentric-braced-frame/{eccentric_braced_frame_id}/shear-link-angle/csv`
-                .replace(`{${"eccentric_braced_frame_id"}}`, encodeURIComponent(String(eccentricBracedFrameId)));
+                .replace('{eccentric_braced_frame_id}', encodeURIComponent(String(eccentricBracedFrameId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -9204,8 +9458,8 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9220,7 +9474,6 @@ export const EccentricBracedFrameApiAxiosParamCreator = function (configuration?
 
 /**
  * EccentricBracedFrameApi - functional programming interface
- * @export
  */
 export const EccentricBracedFrameApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = EccentricBracedFrameApiAxiosParamCreator(configuration)
@@ -9228,29 +9481,33 @@ export const EccentricBracedFrameApiFp = function(configuration?: Configuration)
         /**
          * Get paginated Eccentric Braced Frames
          * @summary Get Eccentric Braced Frames
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getEccentricBracedFrames(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageEccentricBracedFrameModel>> {
+        async getEccentricBracedFrames(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageEccentricBracedFrameModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFrames(query, sortBy, sortDesc, page, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['EccentricBracedFrameApi.getEccentricBracedFrames']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get occurrences count of field values
          * @summary Get Eccentric Braced Frames Counts
          * @param {Array<EccentricBracedFrameField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getEccentricBracedFramesCounts(fields?: Array<EccentricBracedFrameField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+        async getEccentricBracedFramesCounts(fields?: Array<EccentricBracedFrameField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesCounts(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['EccentricBracedFrameApi.getEccentricBracedFramesCounts']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get master csv
@@ -9259,9 +9516,11 @@ export const EccentricBracedFrameApiFp = function(configuration?: Configuration)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getEccentricBracedFramesCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getEccentricBracedFramesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesCsv(ids, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['EccentricBracedFrameApi.getEccentricBracedFramesCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distinct count
@@ -9270,9 +9529,11 @@ export const EccentricBracedFrameApiFp = function(configuration?: Configuration)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getEccentricBracedFramesDistinct(fields?: Array<EccentricBracedFrameField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+        async getEccentricBracedFramesDistinct(fields?: Array<EccentricBracedFrameField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesDistinct(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['EccentricBracedFrameApi.getEccentricBracedFramesDistinct']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get filtered fields
@@ -9281,21 +9542,25 @@ export const EccentricBracedFrameApiFp = function(configuration?: Configuration)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getEccentricBracedFramesFields(fields?: Array<EccentricBracedFrameField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+        async getEccentricBracedFramesFields(fields?: Array<EccentricBracedFrameField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<{ [key: string]: any; }>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesFields(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['EccentricBracedFrameApi.getEccentricBracedFramesFields']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Get Eccentric Braced Frames Matrix
          * @param {Array<EccentricBracedFrameField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getEccentricBracedFramesMatrix(fields: Array<EccentricBracedFrameField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+        async getEccentricBracedFramesMatrix(fields: Array<EccentricBracedFrameField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesMatrix(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['EccentricBracedFrameApi.getEccentricBracedFramesMatrix']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get range of field
@@ -9304,9 +9569,11 @@ export const EccentricBracedFrameApiFp = function(configuration?: Configuration)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getEccentricBracedFramesRange(field: EccentricBracedFrameNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+        async getEccentricBracedFramesRange(field: EccentricBracedFrameNumberField, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesRange(field, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['EccentricBracedFrameApi.getEccentricBracedFramesRange']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get shear-link-angle series from Eccentric Braced Frame
@@ -9316,9 +9583,11 @@ export const EccentricBracedFrameApiFp = function(configuration?: Configuration)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['EccentricBracedFrameApi.getEccentricBracedFramesShearLinkAngle']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get shear-link-angle csv
@@ -9327,16 +9596,17 @@ export const EccentricBracedFrameApiFp = function(configuration?: Configuration)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['EccentricBracedFrameApi.getEccentricBracedFramesShearLinkAngleCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
  * EccentricBracedFrameApi - factory interface
- * @export
  */
 export const EccentricBracedFrameApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = EccentricBracedFrameApiFp(configuration)
@@ -9344,26 +9614,26 @@ export const EccentricBracedFrameApiFactory = function (configuration?: Configur
         /**
          * Get paginated Eccentric Braced Frames
          * @summary Get Eccentric Braced Frames
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFrames(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageEccentricBracedFrameModel> {
+        getEccentricBracedFrames(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<ExtendedPageEccentricBracedFrameModel> {
             return localVarFp.getEccentricBracedFrames(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurrences count of field values
          * @summary Get Eccentric Braced Frames Counts
          * @param {Array<EccentricBracedFrameField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesCounts(fields?: Array<EccentricBracedFrameField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+        getEccentricBracedFramesCounts(fields?: Array<EccentricBracedFrameField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<Array<CountModel>> {
             return localVarFp.getEccentricBracedFramesCounts(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -9373,7 +9643,7 @@ export const EccentricBracedFrameApiFactory = function (configuration?: Configur
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+        getEccentricBracedFramesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getEccentricBracedFramesCsv(ids, options).then((request) => request(axios, basePath));
         },
         /**
@@ -9383,7 +9653,7 @@ export const EccentricBracedFrameApiFactory = function (configuration?: Configur
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesDistinct(fields?: Array<EccentricBracedFrameField>, options?: any): AxiosPromise<number> {
+        getEccentricBracedFramesDistinct(fields?: Array<EccentricBracedFrameField>, options?: RawAxiosRequestConfig): AxiosPromise<number> {
             return localVarFp.getEccentricBracedFramesDistinct(fields, options).then((request) => request(axios, basePath));
         },
         /**
@@ -9393,18 +9663,18 @@ export const EccentricBracedFrameApiFactory = function (configuration?: Configur
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesFields(fields?: Array<EccentricBracedFrameField>, options?: any): AxiosPromise<Array<object>> {
+        getEccentricBracedFramesFields(fields?: Array<EccentricBracedFrameField>, options?: RawAxiosRequestConfig): AxiosPromise<Array<{ [key: string]: any; }>> {
             return localVarFp.getEccentricBracedFramesFields(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * 
          * @summary Get Eccentric Braced Frames Matrix
          * @param {Array<EccentricBracedFrameField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesMatrix(fields: Array<EccentricBracedFrameField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+        getEccentricBracedFramesMatrix(fields: Array<EccentricBracedFrameField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<MatrixModel> {
             return localVarFp.getEccentricBracedFramesMatrix(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -9414,7 +9684,7 @@ export const EccentricBracedFrameApiFactory = function (configuration?: Configur
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesRange(field: EccentricBracedFrameNumberField, options?: any): AxiosPromise<RangeModel> {
+        getEccentricBracedFramesRange(field: EccentricBracedFrameNumberField, options?: RawAxiosRequestConfig): AxiosPromise<RangeModel> {
             return localVarFp.getEccentricBracedFramesRange(field, options).then((request) => request(axios, basePath));
         },
         /**
@@ -9425,7 +9695,7 @@ export const EccentricBracedFrameApiFactory = function (configuration?: Configur
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -9435,7 +9705,7 @@ export const EccentricBracedFrameApiFactory = function (configuration?: Configur
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId: string, options?: any): AxiosPromise<void> {
+        getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId, options).then((request) => request(axios, basePath));
         },
     };
@@ -9443,24 +9713,20 @@ export const EccentricBracedFrameApiFactory = function (configuration?: Configur
 
 /**
  * EccentricBracedFrameApi - object-oriented interface
- * @export
- * @class EccentricBracedFrameApi
- * @extends {BaseAPI}
  */
 export class EccentricBracedFrameApi extends BaseAPI {
     /**
      * Get paginated Eccentric Braced Frames
      * @summary Get Eccentric Braced Frames
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {Array<string>} [sortBy] 
      * @param {Array<boolean>} [sortDesc] 
-     * @param {number} [page] 
-     * @param {number} [size] 
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof EccentricBracedFrameApi
      */
-    public getEccentricBracedFrames(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+    public getEccentricBracedFrames(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig) {
         return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFrames(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -9468,12 +9734,11 @@ export class EccentricBracedFrameApi extends BaseAPI {
      * Get occurrences count of field values
      * @summary Get Eccentric Braced Frames Counts
      * @param {Array<EccentricBracedFrameField>} [fields] 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof EccentricBracedFrameApi
      */
-    public getEccentricBracedFramesCounts(fields?: Array<EccentricBracedFrameField>, query?: string, options?: AxiosRequestConfig) {
+    public getEccentricBracedFramesCounts(fields?: Array<EccentricBracedFrameField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -9483,9 +9748,8 @@ export class EccentricBracedFrameApi extends BaseAPI {
      * @param {Array<string>} [ids] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof EccentricBracedFrameApi
      */
-    public getEccentricBracedFramesCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+    public getEccentricBracedFramesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig) {
         return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesCsv(ids, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -9495,9 +9759,8 @@ export class EccentricBracedFrameApi extends BaseAPI {
      * @param {Array<EccentricBracedFrameField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof EccentricBracedFrameApi
      */
-    public getEccentricBracedFramesDistinct(fields?: Array<EccentricBracedFrameField>, options?: AxiosRequestConfig) {
+    public getEccentricBracedFramesDistinct(fields?: Array<EccentricBracedFrameField>, options?: RawAxiosRequestConfig) {
         return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesDistinct(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -9507,9 +9770,8 @@ export class EccentricBracedFrameApi extends BaseAPI {
      * @param {Array<EccentricBracedFrameField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof EccentricBracedFrameApi
      */
-    public getEccentricBracedFramesFields(fields?: Array<EccentricBracedFrameField>, options?: AxiosRequestConfig) {
+    public getEccentricBracedFramesFields(fields?: Array<EccentricBracedFrameField>, options?: RawAxiosRequestConfig) {
         return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesFields(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -9517,12 +9779,11 @@ export class EccentricBracedFrameApi extends BaseAPI {
      * 
      * @summary Get Eccentric Braced Frames Matrix
      * @param {Array<EccentricBracedFrameField>} fields 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof EccentricBracedFrameApi
      */
-    public getEccentricBracedFramesMatrix(fields: Array<EccentricBracedFrameField>, query?: string, options?: AxiosRequestConfig) {
+    public getEccentricBracedFramesMatrix(fields: Array<EccentricBracedFrameField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -9532,9 +9793,8 @@ export class EccentricBracedFrameApi extends BaseAPI {
      * @param {EccentricBracedFrameNumberField} field 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof EccentricBracedFrameApi
      */
-    public getEccentricBracedFramesRange(field: EccentricBracedFrameNumberField, options?: AxiosRequestConfig) {
+    public getEccentricBracedFramesRange(field: EccentricBracedFrameNumberField, options?: RawAxiosRequestConfig) {
         return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -9545,9 +9805,8 @@ export class EccentricBracedFrameApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof EccentricBracedFrameApi
      */
-    public getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId: string, size?: number, options?: AxiosRequestConfig) {
+    public getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId: string, size?: number, options?: RawAxiosRequestConfig) {
         return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesShearLinkAngle(eccentricBracedFrameId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -9557,32 +9816,31 @@ export class EccentricBracedFrameApi extends BaseAPI {
      * @param {string} eccentricBracedFrameId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof EccentricBracedFrameApi
      */
-    public getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId: string, options?: AxiosRequestConfig) {
+    public getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId: string, options?: RawAxiosRequestConfig) {
         return EccentricBracedFrameApiFp(this.configuration).getEccentricBracedFramesShearLinkAngleCsv(eccentricBracedFrameId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
+
 /**
  * HssColumnApi - axios parameter creator
- * @export
  */
 export const HssColumnApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * Get paginated HSS Columns
          * @summary Get Hss Columns
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumns: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getHssColumns: async (query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/hss-column`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -9615,8 +9873,8 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9630,11 +9888,11 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
          * Get occurences count of field values
          * @summary Get Hss Columns Counts
          * @param {Array<HSSColumnField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsCounts: async (fields?: Array<HSSColumnField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getHssColumnsCounts: async (fields?: Array<HSSColumnField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/hss-column/counts`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -9655,8 +9913,8 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9673,7 +9931,7 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getHssColumnsCsv: async (ids?: Array<string>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/hss-column/csv`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -9690,8 +9948,8 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['ids'] = ids;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9708,7 +9966,7 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsDistinct: async (fields?: Array<HSSColumnField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getHssColumnsDistinct: async (fields?: Array<HSSColumnField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/hss-column/distinct`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -9725,8 +9983,8 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9743,7 +10001,7 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsFields: async (fields?: Array<HSSColumnField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getHssColumnsFields: async (fields?: Array<HSSColumnField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/hss-column/fields`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -9760,8 +10018,8 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9775,11 +10033,11 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
          * 
          * @summary Get Hss Columns Matrix
          * @param {Array<HSSColumnField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsMatrix: async (fields: Array<HSSColumnField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getHssColumnsMatrix: async (fields: Array<HSSColumnField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'fields' is not null or undefined
             assertParamExists('getHssColumnsMatrix', 'fields', fields)
             const localVarPath = `/hss-column/matrix`;
@@ -9802,8 +10060,8 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9821,11 +10079,11 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsMomentRotation: async (hSSColumnId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getHssColumnsMomentRotation: async (hSSColumnId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'hSSColumnId' is not null or undefined
             assertParamExists('getHssColumnsMomentRotation', 'hSSColumnId', hSSColumnId)
             const localVarPath = `/hss-column/{HSSColumn_id}/moment-rotation`
-                .replace(`{${"HSSColumn_id"}}`, encodeURIComponent(String(hSSColumnId)));
+                .replace('{HSSColumn_id}', encodeURIComponent(String(hSSColumnId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -9841,8 +10099,8 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9859,11 +10117,11 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsMomentRotationCsv: async (hSSColumnId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getHssColumnsMomentRotationCsv: async (hSSColumnId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'hSSColumnId' is not null or undefined
             assertParamExists('getHssColumnsMomentRotationCsv', 'hSSColumnId', hSSColumnId)
             const localVarPath = `/hss-column/{HSSColumn_id}/moment-rotation/csv`
-                .replace(`{${"HSSColumn_id"}}`, encodeURIComponent(String(hSSColumnId)));
+                .replace('{HSSColumn_id}', encodeURIComponent(String(hSSColumnId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -9875,8 +10133,8 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9893,7 +10151,7 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsRange: async (field: HSSColumnNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getHssColumnsRange: async (field: HSSColumnNumberField, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'field' is not null or undefined
             assertParamExists('getHssColumnsRange', 'field', field)
             const localVarPath = `/hss-column/range`;
@@ -9912,8 +10170,8 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['field'] = field;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -9928,7 +10186,6 @@ export const HssColumnApiAxiosParamCreator = function (configuration?: Configura
 
 /**
  * HssColumnApi - functional programming interface
- * @export
  */
 export const HssColumnApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = HssColumnApiAxiosParamCreator(configuration)
@@ -9936,29 +10193,33 @@ export const HssColumnApiFp = function(configuration?: Configuration) {
         /**
          * Get paginated HSS Columns
          * @summary Get Hss Columns
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getHssColumns(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageHSSColumnModel>> {
+        async getHssColumns(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageHSSColumnModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumns(query, sortBy, sortDesc, page, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['HssColumnApi.getHssColumns']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get occurences count of field values
          * @summary Get Hss Columns Counts
          * @param {Array<HSSColumnField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getHssColumnsCounts(fields?: Array<HSSColumnField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+        async getHssColumnsCounts(fields?: Array<HSSColumnField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsCounts(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['HssColumnApi.getHssColumnsCounts']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get master csv
@@ -9967,9 +10228,11 @@ export const HssColumnApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getHssColumnsCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getHssColumnsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsCsv(ids, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['HssColumnApi.getHssColumnsCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distinct count
@@ -9978,9 +10241,11 @@ export const HssColumnApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getHssColumnsDistinct(fields?: Array<HSSColumnField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+        async getHssColumnsDistinct(fields?: Array<HSSColumnField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsDistinct(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['HssColumnApi.getHssColumnsDistinct']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get filtered fields
@@ -9989,21 +10254,25 @@ export const HssColumnApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getHssColumnsFields(fields?: Array<HSSColumnField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+        async getHssColumnsFields(fields?: Array<HSSColumnField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<{ [key: string]: any; }>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsFields(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['HssColumnApi.getHssColumnsFields']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Get Hss Columns Matrix
          * @param {Array<HSSColumnField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getHssColumnsMatrix(fields: Array<HSSColumnField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+        async getHssColumnsMatrix(fields: Array<HSSColumnField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsMatrix(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['HssColumnApi.getHssColumnsMatrix']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get moment-rotation series from HSSColumn
@@ -10013,9 +10282,11 @@ export const HssColumnApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getHssColumnsMomentRotation(hSSColumnId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getHssColumnsMomentRotation(hSSColumnId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsMomentRotation(hSSColumnId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['HssColumnApi.getHssColumnsMomentRotation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get moment-rotation csv
@@ -10024,9 +10295,11 @@ export const HssColumnApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getHssColumnsMomentRotationCsv(hSSColumnId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getHssColumnsMomentRotationCsv(hSSColumnId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsMomentRotationCsv(hSSColumnId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['HssColumnApi.getHssColumnsMomentRotationCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get range of field
@@ -10035,16 +10308,17 @@ export const HssColumnApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getHssColumnsRange(field: HSSColumnNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+        async getHssColumnsRange(field: HSSColumnNumberField, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getHssColumnsRange(field, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['HssColumnApi.getHssColumnsRange']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
  * HssColumnApi - factory interface
- * @export
  */
 export const HssColumnApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = HssColumnApiFp(configuration)
@@ -10052,26 +10326,26 @@ export const HssColumnApiFactory = function (configuration?: Configuration, base
         /**
          * Get paginated HSS Columns
          * @summary Get Hss Columns
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumns(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageHSSColumnModel> {
+        getHssColumns(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<ExtendedPageHSSColumnModel> {
             return localVarFp.getHssColumns(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences count of field values
          * @summary Get Hss Columns Counts
          * @param {Array<HSSColumnField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsCounts(fields?: Array<HSSColumnField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+        getHssColumnsCounts(fields?: Array<HSSColumnField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<Array<CountModel>> {
             return localVarFp.getHssColumnsCounts(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10081,7 +10355,7 @@ export const HssColumnApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+        getHssColumnsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getHssColumnsCsv(ids, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10091,7 +10365,7 @@ export const HssColumnApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsDistinct(fields?: Array<HSSColumnField>, options?: any): AxiosPromise<number> {
+        getHssColumnsDistinct(fields?: Array<HSSColumnField>, options?: RawAxiosRequestConfig): AxiosPromise<number> {
             return localVarFp.getHssColumnsDistinct(fields, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10101,18 +10375,18 @@ export const HssColumnApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsFields(fields?: Array<HSSColumnField>, options?: any): AxiosPromise<Array<object>> {
+        getHssColumnsFields(fields?: Array<HSSColumnField>, options?: RawAxiosRequestConfig): AxiosPromise<Array<{ [key: string]: any; }>> {
             return localVarFp.getHssColumnsFields(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * 
          * @summary Get Hss Columns Matrix
          * @param {Array<HSSColumnField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsMatrix(fields: Array<HSSColumnField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+        getHssColumnsMatrix(fields: Array<HSSColumnField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<MatrixModel> {
             return localVarFp.getHssColumnsMatrix(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10123,7 +10397,7 @@ export const HssColumnApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsMomentRotation(hSSColumnId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getHssColumnsMomentRotation(hSSColumnId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getHssColumnsMomentRotation(hSSColumnId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10133,7 +10407,7 @@ export const HssColumnApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsMomentRotationCsv(hSSColumnId: string, options?: any): AxiosPromise<void> {
+        getHssColumnsMomentRotationCsv(hSSColumnId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getHssColumnsMomentRotationCsv(hSSColumnId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10143,7 +10417,7 @@ export const HssColumnApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getHssColumnsRange(field: HSSColumnNumberField, options?: any): AxiosPromise<RangeModel> {
+        getHssColumnsRange(field: HSSColumnNumberField, options?: RawAxiosRequestConfig): AxiosPromise<RangeModel> {
             return localVarFp.getHssColumnsRange(field, options).then((request) => request(axios, basePath));
         },
     };
@@ -10151,24 +10425,20 @@ export const HssColumnApiFactory = function (configuration?: Configuration, base
 
 /**
  * HssColumnApi - object-oriented interface
- * @export
- * @class HssColumnApi
- * @extends {BaseAPI}
  */
 export class HssColumnApi extends BaseAPI {
     /**
      * Get paginated HSS Columns
      * @summary Get Hss Columns
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {Array<string>} [sortBy] 
      * @param {Array<boolean>} [sortDesc] 
-     * @param {number} [page] 
-     * @param {number} [size] 
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof HssColumnApi
      */
-    public getHssColumns(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+    public getHssColumns(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig) {
         return HssColumnApiFp(this.configuration).getHssColumns(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10176,12 +10446,11 @@ export class HssColumnApi extends BaseAPI {
      * Get occurences count of field values
      * @summary Get Hss Columns Counts
      * @param {Array<HSSColumnField>} [fields] 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof HssColumnApi
      */
-    public getHssColumnsCounts(fields?: Array<HSSColumnField>, query?: string, options?: AxiosRequestConfig) {
+    public getHssColumnsCounts(fields?: Array<HSSColumnField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return HssColumnApiFp(this.configuration).getHssColumnsCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10191,9 +10460,8 @@ export class HssColumnApi extends BaseAPI {
      * @param {Array<string>} [ids] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof HssColumnApi
      */
-    public getHssColumnsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+    public getHssColumnsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig) {
         return HssColumnApiFp(this.configuration).getHssColumnsCsv(ids, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10203,9 +10471,8 @@ export class HssColumnApi extends BaseAPI {
      * @param {Array<HSSColumnField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof HssColumnApi
      */
-    public getHssColumnsDistinct(fields?: Array<HSSColumnField>, options?: AxiosRequestConfig) {
+    public getHssColumnsDistinct(fields?: Array<HSSColumnField>, options?: RawAxiosRequestConfig) {
         return HssColumnApiFp(this.configuration).getHssColumnsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10215,9 +10482,8 @@ export class HssColumnApi extends BaseAPI {
      * @param {Array<HSSColumnField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof HssColumnApi
      */
-    public getHssColumnsFields(fields?: Array<HSSColumnField>, options?: AxiosRequestConfig) {
+    public getHssColumnsFields(fields?: Array<HSSColumnField>, options?: RawAxiosRequestConfig) {
         return HssColumnApiFp(this.configuration).getHssColumnsFields(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10225,12 +10491,11 @@ export class HssColumnApi extends BaseAPI {
      * 
      * @summary Get Hss Columns Matrix
      * @param {Array<HSSColumnField>} fields 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof HssColumnApi
      */
-    public getHssColumnsMatrix(fields: Array<HSSColumnField>, query?: string, options?: AxiosRequestConfig) {
+    public getHssColumnsMatrix(fields: Array<HSSColumnField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return HssColumnApiFp(this.configuration).getHssColumnsMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10241,9 +10506,8 @@ export class HssColumnApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof HssColumnApi
      */
-    public getHssColumnsMomentRotation(hSSColumnId: string, size?: number, options?: AxiosRequestConfig) {
+    public getHssColumnsMomentRotation(hSSColumnId: string, size?: number, options?: RawAxiosRequestConfig) {
         return HssColumnApiFp(this.configuration).getHssColumnsMomentRotation(hSSColumnId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10253,9 +10517,8 @@ export class HssColumnApi extends BaseAPI {
      * @param {string} hSSColumnId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof HssColumnApi
      */
-    public getHssColumnsMomentRotationCsv(hSSColumnId: string, options?: AxiosRequestConfig) {
+    public getHssColumnsMomentRotationCsv(hSSColumnId: string, options?: RawAxiosRequestConfig) {
         return HssColumnApiFp(this.configuration).getHssColumnsMomentRotationCsv(hSSColumnId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10265,32 +10528,31 @@ export class HssColumnApi extends BaseAPI {
      * @param {HSSColumnNumberField} field 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof HssColumnApi
      */
-    public getHssColumnsRange(field: HSSColumnNumberField, options?: AxiosRequestConfig) {
+    public getHssColumnsRange(field: HSSColumnNumberField, options?: RawAxiosRequestConfig) {
         return HssColumnApiFp(this.configuration).getHssColumnsRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
+
 /**
  * MaterialsApi - axios parameter creator
- * @export
  */
 export const MaterialsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * Get paginated Materials
          * @summary Get Materials
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterials: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMaterials: async (query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/materials`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -10323,8 +10585,8 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -10338,11 +10600,11 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
          * Get occurences count of field values
          * @summary Get Materials Counts
          * @param {Array<MaterialField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsCounts: async (fields?: Array<MaterialField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMaterialsCounts: async (fields?: Array<MaterialField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/materials/counts`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -10363,8 +10625,8 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -10381,7 +10643,7 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMaterialsCsv: async (ids?: Array<string>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/materials/csv`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -10398,8 +10660,8 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['ids'] = ids;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -10416,7 +10678,7 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsDateRange: async (field: MaterialDateField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMaterialsDateRange: async (field: MaterialDateField, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'field' is not null or undefined
             assertParamExists('getMaterialsDateRange', 'field', field)
             const localVarPath = `/materials/date-range`;
@@ -10435,8 +10697,8 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['field'] = field;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -10453,7 +10715,7 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsDistinct: async (fields?: Array<MaterialField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMaterialsDistinct: async (fields?: Array<MaterialField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/materials/distinct`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -10470,8 +10732,8 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -10488,7 +10750,7 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsFields: async (fields?: Array<MaterialField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMaterialsFields: async (fields?: Array<MaterialField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/materials/fields`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -10505,8 +10767,8 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -10520,11 +10782,11 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsMatrix: async (fields: Array<MaterialField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMaterialsMatrix: async (fields: Array<MaterialField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'fields' is not null or undefined
             assertParamExists('getMaterialsMatrix', 'fields', fields)
             const localVarPath = `/materials/matrix`;
@@ -10547,8 +10809,8 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -10565,7 +10827,7 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsRange: async (field: MaterialNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMaterialsRange: async (field: MaterialNumberField, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'field' is not null or undefined
             assertParamExists('getMaterialsRange', 'field', field)
             const localVarPath = `/materials/range`;
@@ -10584,8 +10846,8 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['field'] = field;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -10603,11 +10865,11 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsStressStrain: async (materialId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMaterialsStressStrain: async (materialId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'materialId' is not null or undefined
             assertParamExists('getMaterialsStressStrain', 'materialId', materialId)
             const localVarPath = `/materials/{material_id}/stress-strain`
-                .replace(`{${"material_id"}}`, encodeURIComponent(String(materialId)));
+                .replace('{material_id}', encodeURIComponent(String(materialId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -10623,8 +10885,8 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -10641,11 +10903,11 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsStressStrainCsv: async (materialId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMaterialsStressStrainCsv: async (materialId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'materialId' is not null or undefined
             assertParamExists('getMaterialsStressStrainCsv', 'materialId', materialId)
             const localVarPath = `/materials/{material_id}/stress-strain/csv`
-                .replace(`{${"material_id"}}`, encodeURIComponent(String(materialId)));
+                .replace('{material_id}', encodeURIComponent(String(materialId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -10657,8 +10919,8 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -10673,7 +10935,6 @@ export const MaterialsApiAxiosParamCreator = function (configuration?: Configura
 
 /**
  * MaterialsApi - functional programming interface
- * @export
  */
 export const MaterialsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = MaterialsApiAxiosParamCreator(configuration)
@@ -10681,29 +10942,33 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
         /**
          * Get paginated Materials
          * @summary Get Materials
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMaterials(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageMaterialModel>> {
+        async getMaterials(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageMaterialModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterials(query, sortBy, sortDesc, page, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MaterialsApi.getMaterials']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get occurences count of field values
          * @summary Get Materials Counts
          * @param {Array<MaterialField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMaterialsCounts(fields?: Array<MaterialField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+        async getMaterialsCounts(fields?: Array<MaterialField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsCounts(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MaterialsApi.getMaterialsCounts']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get master csv
@@ -10712,9 +10977,11 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMaterialsCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getMaterialsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsCsv(ids, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MaterialsApi.getMaterialsCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get date range
@@ -10723,9 +10990,11 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMaterialsDateRange(field: MaterialDateField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DateRangeModel>> {
+        async getMaterialsDateRange(field: MaterialDateField, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DateRangeModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsDateRange(field, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MaterialsApi.getMaterialsDateRange']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distinct count
@@ -10734,9 +11003,11 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMaterialsDistinct(fields?: Array<MaterialField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+        async getMaterialsDistinct(fields?: Array<MaterialField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsDistinct(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MaterialsApi.getMaterialsDistinct']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get filtered fields
@@ -10745,21 +11016,25 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMaterialsFields(fields?: Array<MaterialField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+        async getMaterialsFields(fields?: Array<MaterialField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<{ [key: string]: any; }>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsFields(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MaterialsApi.getMaterialsFields']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMaterialsMatrix(fields: Array<MaterialField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+        async getMaterialsMatrix(fields: Array<MaterialField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsMatrix(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MaterialsApi.getMaterialsMatrix']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get range of field
@@ -10768,9 +11043,11 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMaterialsRange(field: MaterialNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+        async getMaterialsRange(field: MaterialNumberField, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsRange(field, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MaterialsApi.getMaterialsRange']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get Stress-Strain series from material
@@ -10780,9 +11057,11 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMaterialsStressStrain(materialId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getMaterialsStressStrain(materialId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsStressStrain(materialId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MaterialsApi.getMaterialsStressStrain']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get Stress-Strain csv
@@ -10791,16 +11070,17 @@ export const MaterialsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMaterialsStressStrainCsv(materialId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getMaterialsStressStrainCsv(materialId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMaterialsStressStrainCsv(materialId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MaterialsApi.getMaterialsStressStrainCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
  * MaterialsApi - factory interface
- * @export
  */
 export const MaterialsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = MaterialsApiFp(configuration)
@@ -10808,26 +11088,26 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
         /**
          * Get paginated Materials
          * @summary Get Materials
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterials(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageMaterialModel> {
+        getMaterials(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<ExtendedPageMaterialModel> {
             return localVarFp.getMaterials(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences count of field values
          * @summary Get Materials Counts
          * @param {Array<MaterialField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsCounts(fields?: Array<MaterialField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+        getMaterialsCounts(fields?: Array<MaterialField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<Array<CountModel>> {
             return localVarFp.getMaterialsCounts(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10837,7 +11117,7 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+        getMaterialsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getMaterialsCsv(ids, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10847,7 +11127,7 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsDateRange(field: MaterialDateField, options?: any): AxiosPromise<DateRangeModel> {
+        getMaterialsDateRange(field: MaterialDateField, options?: RawAxiosRequestConfig): AxiosPromise<DateRangeModel> {
             return localVarFp.getMaterialsDateRange(field, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10857,7 +11137,7 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsDistinct(fields?: Array<MaterialField>, options?: any): AxiosPromise<number> {
+        getMaterialsDistinct(fields?: Array<MaterialField>, options?: RawAxiosRequestConfig): AxiosPromise<number> {
             return localVarFp.getMaterialsDistinct(fields, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10867,18 +11147,18 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsFields(fields?: Array<MaterialField>, options?: any): AxiosPromise<Array<object>> {
+        getMaterialsFields(fields?: Array<MaterialField>, options?: RawAxiosRequestConfig): AxiosPromise<Array<{ [key: string]: any; }>> {
             return localVarFp.getMaterialsFields(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * 
          * @summary Get Materials Matrix
          * @param {Array<MaterialField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsMatrix(fields: Array<MaterialField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+        getMaterialsMatrix(fields: Array<MaterialField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<MatrixModel> {
             return localVarFp.getMaterialsMatrix(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10888,7 +11168,7 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsRange(field: MaterialNumberField, options?: any): AxiosPromise<RangeModel> {
+        getMaterialsRange(field: MaterialNumberField, options?: RawAxiosRequestConfig): AxiosPromise<RangeModel> {
             return localVarFp.getMaterialsRange(field, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10899,7 +11179,7 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsStressStrain(materialId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getMaterialsStressStrain(materialId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getMaterialsStressStrain(materialId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -10909,7 +11189,7 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMaterialsStressStrainCsv(materialId: string, options?: any): AxiosPromise<void> {
+        getMaterialsStressStrainCsv(materialId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getMaterialsStressStrainCsv(materialId, options).then((request) => request(axios, basePath));
         },
     };
@@ -10917,24 +11197,20 @@ export const MaterialsApiFactory = function (configuration?: Configuration, base
 
 /**
  * MaterialsApi - object-oriented interface
- * @export
- * @class MaterialsApi
- * @extends {BaseAPI}
  */
 export class MaterialsApi extends BaseAPI {
     /**
      * Get paginated Materials
      * @summary Get Materials
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {Array<string>} [sortBy] 
      * @param {Array<boolean>} [sortDesc] 
-     * @param {number} [page] 
-     * @param {number} [size] 
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof MaterialsApi
      */
-    public getMaterials(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+    public getMaterials(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterials(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10942,12 +11218,11 @@ export class MaterialsApi extends BaseAPI {
      * Get occurences count of field values
      * @summary Get Materials Counts
      * @param {Array<MaterialField>} [fields] 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof MaterialsApi
      */
-    public getMaterialsCounts(fields?: Array<MaterialField>, query?: string, options?: AxiosRequestConfig) {
+    public getMaterialsCounts(fields?: Array<MaterialField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10957,9 +11232,8 @@ export class MaterialsApi extends BaseAPI {
      * @param {Array<string>} [ids] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof MaterialsApi
      */
-    public getMaterialsCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+    public getMaterialsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsCsv(ids, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10969,9 +11243,8 @@ export class MaterialsApi extends BaseAPI {
      * @param {MaterialDateField} field 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof MaterialsApi
      */
-    public getMaterialsDateRange(field: MaterialDateField, options?: AxiosRequestConfig) {
+    public getMaterialsDateRange(field: MaterialDateField, options?: RawAxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsDateRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10981,9 +11254,8 @@ export class MaterialsApi extends BaseAPI {
      * @param {Array<MaterialField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof MaterialsApi
      */
-    public getMaterialsDistinct(fields?: Array<MaterialField>, options?: AxiosRequestConfig) {
+    public getMaterialsDistinct(fields?: Array<MaterialField>, options?: RawAxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -10993,9 +11265,8 @@ export class MaterialsApi extends BaseAPI {
      * @param {Array<MaterialField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof MaterialsApi
      */
-    public getMaterialsFields(fields?: Array<MaterialField>, options?: AxiosRequestConfig) {
+    public getMaterialsFields(fields?: Array<MaterialField>, options?: RawAxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsFields(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -11003,12 +11274,11 @@ export class MaterialsApi extends BaseAPI {
      * 
      * @summary Get Materials Matrix
      * @param {Array<MaterialField>} fields 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof MaterialsApi
      */
-    public getMaterialsMatrix(fields: Array<MaterialField>, query?: string, options?: AxiosRequestConfig) {
+    public getMaterialsMatrix(fields: Array<MaterialField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -11018,9 +11288,8 @@ export class MaterialsApi extends BaseAPI {
      * @param {MaterialNumberField} field 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof MaterialsApi
      */
-    public getMaterialsRange(field: MaterialNumberField, options?: AxiosRequestConfig) {
+    public getMaterialsRange(field: MaterialNumberField, options?: RawAxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -11031,9 +11300,8 @@ export class MaterialsApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof MaterialsApi
      */
-    public getMaterialsStressStrain(materialId: string, size?: number, options?: AxiosRequestConfig) {
+    public getMaterialsStressStrain(materialId: string, size?: number, options?: RawAxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsStressStrain(materialId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -11043,32 +11311,31 @@ export class MaterialsApi extends BaseAPI {
      * @param {string} materialId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof MaterialsApi
      */
-    public getMaterialsStressStrainCsv(materialId: string, options?: AxiosRequestConfig) {
+    public getMaterialsStressStrainCsv(materialId: string, options?: RawAxiosRequestConfig) {
         return MaterialsApiFp(this.configuration).getMaterialsStressStrainCsv(materialId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 
+
 /**
  * ResidualStressApi - axios parameter creator
- * @export
  */
 export const ResidualStressApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * Get paginated Residual Stresses
          * @summary Get Residual Stresses
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStresses: async (query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStresses: async (query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/residual-stress`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -11101,8 +11368,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11116,11 +11383,11 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * Get occurences count of field values
          * @summary Get Residual Stresses Counts
          * @param {Array<ResidualStressField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesCounts: async (fields?: Array<ResidualStressField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesCounts: async (fields?: Array<ResidualStressField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/residual-stress/counts`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -11141,8 +11408,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11159,7 +11426,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesCsv: async (ids?: Array<string>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesCsv: async (ids?: Array<string>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/residual-stress/csv`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -11176,8 +11443,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
                 localVarQueryParameter['ids'] = ids;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11194,7 +11461,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistinct: async (fields?: Array<ResidualStressField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesDistinct: async (fields?: Array<ResidualStressField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/residual-stress/distinct`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -11211,8 +11478,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11230,11 +11497,11 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionF1: async (residualStressId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesDistributionF1: async (residualStressId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'residualStressId' is not null or undefined
             assertParamExists('getResidualStressesDistributionF1', 'residualStressId', residualStressId)
             const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-f1`
-                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+                .replace('{ResidualStress_id}', encodeURIComponent(String(residualStressId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -11250,8 +11517,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11268,11 +11535,11 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionF1Csv: async (residualStressId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesDistributionF1Csv: async (residualStressId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'residualStressId' is not null or undefined
             assertParamExists('getResidualStressesDistributionF1Csv', 'residualStressId', residualStressId)
             const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-f1/csv`
-                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+                .replace('{ResidualStress_id}', encodeURIComponent(String(residualStressId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -11284,8 +11551,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11303,11 +11570,11 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionF2: async (residualStressId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesDistributionF2: async (residualStressId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'residualStressId' is not null or undefined
             assertParamExists('getResidualStressesDistributionF2', 'residualStressId', residualStressId)
             const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-f2`
-                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+                .replace('{ResidualStress_id}', encodeURIComponent(String(residualStressId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -11323,8 +11590,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11341,11 +11608,11 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionF2Csv: async (residualStressId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesDistributionF2Csv: async (residualStressId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'residualStressId' is not null or undefined
             assertParamExists('getResidualStressesDistributionF2Csv', 'residualStressId', residualStressId)
             const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-f2/csv`
-                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+                .replace('{ResidualStress_id}', encodeURIComponent(String(residualStressId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -11357,8 +11624,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11376,11 +11643,11 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionW1: async (residualStressId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesDistributionW1: async (residualStressId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'residualStressId' is not null or undefined
             assertParamExists('getResidualStressesDistributionW1', 'residualStressId', residualStressId)
             const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-w1`
-                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+                .replace('{ResidualStress_id}', encodeURIComponent(String(residualStressId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -11396,8 +11663,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11414,11 +11681,11 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionW1Csv: async (residualStressId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesDistributionW1Csv: async (residualStressId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'residualStressId' is not null or undefined
             assertParamExists('getResidualStressesDistributionW1Csv', 'residualStressId', residualStressId)
             const localVarPath = `/residual-stress/{ResidualStress_id}/distribution-w1/csv`
-                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+                .replace('{ResidualStress_id}', encodeURIComponent(String(residualStressId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -11430,8 +11697,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11448,7 +11715,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesFields: async (fields?: Array<ResidualStressField>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesFields: async (fields?: Array<ResidualStressField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/residual-stress/fields`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -11465,8 +11732,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
                 localVarQueryParameter['fields'] = fields;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11480,11 +11747,11 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * 
          * @summary Get Residual Stresses Matrix
          * @param {Array<ResidualStressField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesMatrix: async (fields: Array<ResidualStressField>, query?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesMatrix: async (fields: Array<ResidualStressField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'fields' is not null or undefined
             assertParamExists('getResidualStressesMatrix', 'fields', fields)
             const localVarPath = `/residual-stress/matrix`;
@@ -11507,8 +11774,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
                 localVarQueryParameter['query'] = query;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11526,11 +11793,11 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesQpCoefficient: async (residualStressId: string, size?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesQpCoefficient: async (residualStressId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'residualStressId' is not null or undefined
             assertParamExists('getResidualStressesQpCoefficient', 'residualStressId', residualStressId)
             const localVarPath = `/residual-stress/{ResidualStress_id}/qp-coefficient`
-                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+                .replace('{ResidualStress_id}', encodeURIComponent(String(residualStressId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -11546,8 +11813,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
                 localVarQueryParameter['size'] = size;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11564,11 +11831,11 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesQpCoefficientCsv: async (residualStressId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesQpCoefficientCsv: async (residualStressId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'residualStressId' is not null or undefined
             assertParamExists('getResidualStressesQpCoefficientCsv', 'residualStressId', residualStressId)
             const localVarPath = `/residual-stress/{ResidualStress_id}/qp-coefficient/csv`
-                .replace(`{${"ResidualStress_id"}}`, encodeURIComponent(String(residualStressId)));
+                .replace('{ResidualStress_id}', encodeURIComponent(String(residualStressId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -11580,8 +11847,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11598,7 +11865,7 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesRange: async (field: ResidualStressNumberField, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResidualStressesRange: async (field: ResidualStressNumberField, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'field' is not null or undefined
             assertParamExists('getResidualStressesRange', 'field', field)
             const localVarPath = `/residual-stress/range`;
@@ -11617,8 +11884,8 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
                 localVarQueryParameter['field'] = field;
             }
 
+            localVarHeaderParameter['Accept'] = 'application/json';
 
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -11633,7 +11900,6 @@ export const ResidualStressApiAxiosParamCreator = function (configuration?: Conf
 
 /**
  * ResidualStressApi - functional programming interface
- * @export
  */
 export const ResidualStressApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ResidualStressApiAxiosParamCreator(configuration)
@@ -11641,29 +11907,33 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
         /**
          * Get paginated Residual Stresses
          * @summary Get Residual Stresses
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStresses(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageResidualStressModel>> {
+        async getResidualStresses(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageResidualStressModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStresses(query, sortBy, sortDesc, page, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStresses']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get occurences count of field values
          * @summary Get Residual Stresses Counts
          * @param {Array<ResidualStressField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesCounts(fields?: Array<ResidualStressField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+        async getResidualStressesCounts(fields?: Array<ResidualStressField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesCounts(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesCounts']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get master csv
@@ -11672,9 +11942,11 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesCsv(ids?: Array<string>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getResidualStressesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesCsv(ids, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distinct count
@@ -11683,9 +11955,11 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesDistinct(fields?: Array<ResidualStressField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+        async getResidualStressesDistinct(fields?: Array<ResidualStressField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistinct(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesDistinct']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distribution-f1 series from ResidualStress
@@ -11695,9 +11969,11 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesDistributionF1(residualStressId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getResidualStressesDistributionF1(residualStressId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionF1(residualStressId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesDistributionF1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distribution-f1 csv
@@ -11706,9 +11982,11 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesDistributionF1Csv(residualStressId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getResidualStressesDistributionF1Csv(residualStressId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionF1Csv(residualStressId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesDistributionF1Csv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distribution-f2 series from ResidualStress
@@ -11718,9 +11996,11 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesDistributionF2(residualStressId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getResidualStressesDistributionF2(residualStressId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionF2(residualStressId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesDistributionF2']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distribution-f2 csv
@@ -11729,9 +12009,11 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesDistributionF2Csv(residualStressId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getResidualStressesDistributionF2Csv(residualStressId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionF2Csv(residualStressId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesDistributionF2Csv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distribution-w1 series from ResidualStress
@@ -11741,9 +12023,11 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesDistributionW1(residualStressId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getResidualStressesDistributionW1(residualStressId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionW1(residualStressId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesDistributionW1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get distribution-w1 csv
@@ -11752,9 +12036,11 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesDistributionW1Csv(residualStressId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getResidualStressesDistributionW1Csv(residualStressId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesDistributionW1Csv(residualStressId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesDistributionW1Csv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get filtered fields
@@ -11763,21 +12049,25 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesFields(fields?: Array<ResidualStressField>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+        async getResidualStressesFields(fields?: Array<ResidualStressField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<{ [key: string]: any; }>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesFields(fields, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesFields']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Get Residual Stresses Matrix
          * @param {Array<ResidualStressField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesMatrix(fields: Array<ResidualStressField>, query?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+        async getResidualStressesMatrix(fields: Array<ResidualStressField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesMatrix(fields, query, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesMatrix']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get qp-coefficient series from ResidualStress
@@ -11787,9 +12077,11 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesQpCoefficient(residualStressId: string, size?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+        async getResidualStressesQpCoefficient(residualStressId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesQpCoefficient(residualStressId, size, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesQpCoefficient']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get qp-coefficient csv
@@ -11798,9 +12090,11 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesQpCoefficientCsv(residualStressId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getResidualStressesQpCoefficientCsv(residualStressId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesQpCoefficientCsv(residualStressId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesQpCoefficientCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * Get range of field
@@ -11809,16 +12103,17 @@ export const ResidualStressApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResidualStressesRange(field: ResidualStressNumberField, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+        async getResidualStressesRange(field: ResidualStressNumberField, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResidualStressesRange(field, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ResidualStressApi.getResidualStressesRange']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
  * ResidualStressApi - factory interface
- * @export
  */
 export const ResidualStressApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = ResidualStressApiFp(configuration)
@@ -11826,26 +12121,26 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
         /**
          * Get paginated Residual Stresses
          * @summary Get Residual Stresses
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {Array<string>} [sortBy] 
          * @param {Array<boolean>} [sortDesc] 
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStresses(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: any): AxiosPromise<ExtendedPageResidualStressModel> {
+        getResidualStresses(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<ExtendedPageResidualStressModel> {
             return localVarFp.getResidualStresses(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Get occurences count of field values
          * @summary Get Residual Stresses Counts
          * @param {Array<ResidualStressField>} [fields] 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesCounts(fields?: Array<ResidualStressField>, query?: string, options?: any): AxiosPromise<Array<CountModel>> {
+        getResidualStressesCounts(fields?: Array<ResidualStressField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<Array<CountModel>> {
             return localVarFp.getResidualStressesCounts(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11855,7 +12150,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesCsv(ids?: Array<string>, options?: any): AxiosPromise<void> {
+        getResidualStressesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getResidualStressesCsv(ids, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11865,7 +12160,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistinct(fields?: Array<ResidualStressField>, options?: any): AxiosPromise<number> {
+        getResidualStressesDistinct(fields?: Array<ResidualStressField>, options?: RawAxiosRequestConfig): AxiosPromise<number> {
             return localVarFp.getResidualStressesDistinct(fields, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11876,7 +12171,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionF1(residualStressId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getResidualStressesDistributionF1(residualStressId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getResidualStressesDistributionF1(residualStressId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11886,7 +12181,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionF1Csv(residualStressId: string, options?: any): AxiosPromise<void> {
+        getResidualStressesDistributionF1Csv(residualStressId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getResidualStressesDistributionF1Csv(residualStressId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11897,7 +12192,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionF2(residualStressId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getResidualStressesDistributionF2(residualStressId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getResidualStressesDistributionF2(residualStressId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11907,7 +12202,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionF2Csv(residualStressId: string, options?: any): AxiosPromise<void> {
+        getResidualStressesDistributionF2Csv(residualStressId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getResidualStressesDistributionF2Csv(residualStressId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11918,7 +12213,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionW1(residualStressId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getResidualStressesDistributionW1(residualStressId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getResidualStressesDistributionW1(residualStressId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11928,7 +12223,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesDistributionW1Csv(residualStressId: string, options?: any): AxiosPromise<void> {
+        getResidualStressesDistributionW1Csv(residualStressId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getResidualStressesDistributionW1Csv(residualStressId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11938,18 +12233,18 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesFields(fields?: Array<ResidualStressField>, options?: any): AxiosPromise<Array<object>> {
+        getResidualStressesFields(fields?: Array<ResidualStressField>, options?: RawAxiosRequestConfig): AxiosPromise<Array<{ [key: string]: any; }>> {
             return localVarFp.getResidualStressesFields(fields, options).then((request) => request(axios, basePath));
         },
         /**
          * 
          * @summary Get Residual Stresses Matrix
          * @param {Array<ResidualStressField>} fields 
-         * @param {string} [query] 
+         * @param {string | null} [query] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesMatrix(fields: Array<ResidualStressField>, query?: string, options?: any): AxiosPromise<MatrixModel> {
+        getResidualStressesMatrix(fields: Array<ResidualStressField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<MatrixModel> {
             return localVarFp.getResidualStressesMatrix(fields, query, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11960,7 +12255,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesQpCoefficient(residualStressId: string, size?: number, options?: any): AxiosPromise<Array<Array<number>>> {
+        getResidualStressesQpCoefficient(residualStressId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
             return localVarFp.getResidualStressesQpCoefficient(residualStressId, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11970,7 +12265,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesQpCoefficientCsv(residualStressId: string, options?: any): AxiosPromise<void> {
+        getResidualStressesQpCoefficientCsv(residualStressId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.getResidualStressesQpCoefficientCsv(residualStressId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11980,7 +12275,7 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResidualStressesRange(field: ResidualStressNumberField, options?: any): AxiosPromise<RangeModel> {
+        getResidualStressesRange(field: ResidualStressNumberField, options?: RawAxiosRequestConfig): AxiosPromise<RangeModel> {
             return localVarFp.getResidualStressesRange(field, options).then((request) => request(axios, basePath));
         },
     };
@@ -11988,24 +12283,20 @@ export const ResidualStressApiFactory = function (configuration?: Configuration,
 
 /**
  * ResidualStressApi - object-oriented interface
- * @export
- * @class ResidualStressApi
- * @extends {BaseAPI}
  */
 export class ResidualStressApi extends BaseAPI {
     /**
      * Get paginated Residual Stresses
      * @summary Get Residual Stresses
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {Array<string>} [sortBy] 
      * @param {Array<boolean>} [sortDesc] 
-     * @param {number} [page] 
-     * @param {number} [size] 
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStresses(query?: string, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: AxiosRequestConfig) {
+    public getResidualStresses(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStresses(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12013,12 +12304,11 @@ export class ResidualStressApi extends BaseAPI {
      * Get occurences count of field values
      * @summary Get Residual Stresses Counts
      * @param {Array<ResidualStressField>} [fields] 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesCounts(fields?: Array<ResidualStressField>, query?: string, options?: AxiosRequestConfig) {
+    public getResidualStressesCounts(fields?: Array<ResidualStressField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12028,9 +12318,8 @@ export class ResidualStressApi extends BaseAPI {
      * @param {Array<string>} [ids] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesCsv(ids?: Array<string>, options?: AxiosRequestConfig) {
+    public getResidualStressesCsv(ids?: Array<string>, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesCsv(ids, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12040,9 +12329,8 @@ export class ResidualStressApi extends BaseAPI {
      * @param {Array<ResidualStressField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesDistinct(fields?: Array<ResidualStressField>, options?: AxiosRequestConfig) {
+    public getResidualStressesDistinct(fields?: Array<ResidualStressField>, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesDistinct(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12053,9 +12341,8 @@ export class ResidualStressApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesDistributionF1(residualStressId: string, size?: number, options?: AxiosRequestConfig) {
+    public getResidualStressesDistributionF1(residualStressId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesDistributionF1(residualStressId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12065,9 +12352,8 @@ export class ResidualStressApi extends BaseAPI {
      * @param {string} residualStressId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesDistributionF1Csv(residualStressId: string, options?: AxiosRequestConfig) {
+    public getResidualStressesDistributionF1Csv(residualStressId: string, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesDistributionF1Csv(residualStressId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12078,9 +12364,8 @@ export class ResidualStressApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesDistributionF2(residualStressId: string, size?: number, options?: AxiosRequestConfig) {
+    public getResidualStressesDistributionF2(residualStressId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesDistributionF2(residualStressId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12090,9 +12375,8 @@ export class ResidualStressApi extends BaseAPI {
      * @param {string} residualStressId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesDistributionF2Csv(residualStressId: string, options?: AxiosRequestConfig) {
+    public getResidualStressesDistributionF2Csv(residualStressId: string, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesDistributionF2Csv(residualStressId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12103,9 +12387,8 @@ export class ResidualStressApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesDistributionW1(residualStressId: string, size?: number, options?: AxiosRequestConfig) {
+    public getResidualStressesDistributionW1(residualStressId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesDistributionW1(residualStressId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12115,9 +12398,8 @@ export class ResidualStressApi extends BaseAPI {
      * @param {string} residualStressId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesDistributionW1Csv(residualStressId: string, options?: AxiosRequestConfig) {
+    public getResidualStressesDistributionW1Csv(residualStressId: string, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesDistributionW1Csv(residualStressId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12127,9 +12409,8 @@ export class ResidualStressApi extends BaseAPI {
      * @param {Array<ResidualStressField>} [fields] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesFields(fields?: Array<ResidualStressField>, options?: AxiosRequestConfig) {
+    public getResidualStressesFields(fields?: Array<ResidualStressField>, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesFields(fields, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12137,12 +12418,11 @@ export class ResidualStressApi extends BaseAPI {
      * 
      * @summary Get Residual Stresses Matrix
      * @param {Array<ResidualStressField>} fields 
-     * @param {string} [query] 
+     * @param {string | null} [query] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesMatrix(fields: Array<ResidualStressField>, query?: string, options?: AxiosRequestConfig) {
+    public getResidualStressesMatrix(fields: Array<ResidualStressField>, query?: string | null, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12153,9 +12433,8 @@ export class ResidualStressApi extends BaseAPI {
      * @param {number} [size] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesQpCoefficient(residualStressId: string, size?: number, options?: AxiosRequestConfig) {
+    public getResidualStressesQpCoefficient(residualStressId: string, size?: number, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesQpCoefficient(residualStressId, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12165,9 +12444,8 @@ export class ResidualStressApi extends BaseAPI {
      * @param {string} residualStressId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesQpCoefficientCsv(residualStressId: string, options?: AxiosRequestConfig) {
+    public getResidualStressesQpCoefficientCsv(residualStressId: string, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesQpCoefficientCsv(residualStressId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -12177,11 +12455,723 @@ export class ResidualStressApi extends BaseAPI {
      * @param {ResidualStressNumberField} field 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ResidualStressApi
      */
-    public getResidualStressesRange(field: ResidualStressNumberField, options?: AxiosRequestConfig) {
+    public getResidualStressesRange(field: ResidualStressNumberField, options?: RawAxiosRequestConfig) {
         return ResidualStressApiFp(this.configuration).getResidualStressesRange(field, options).then((request) => request(this.axios, this.basePath));
     }
 }
+
+
+
+/**
+ * TensileCouponApi - axios parameter creator
+ */
+export const TensileCouponApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Get paginated Tensile Coupons
+         * @summary Get Tensile Coupons
+         * @param {string | null} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCoupons: async (query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            if (sortBy) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+            if (sortDesc) {
+                localVarQueryParameter['sort_desc'] = sortDesc;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Tensile Coupons Counts
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCounts: async (fields?: Array<TensileCouponField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/counts`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get master csv
+         * @summary Get Tensile Coupons Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCsv: async (ids?: Array<string>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (ids) {
+                localVarQueryParameter['ids'] = ids;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get distinct count
+         * @summary Get Tensile Coupons Distinct
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsDistinct: async (fields?: Array<TensileCouponField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/distinct`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Tensile Coupons Fields
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsFields: async (fields?: Array<TensileCouponField>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/tensile-coupon/fields`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Tensile Coupons Matrix
+         * @param {Array<TensileCouponField>} fields 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsMatrix: async (fields: Array<TensileCouponField>, query?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'fields' is not null or undefined
+            assertParamExists('getTensileCouponsMatrix', 'fields', fields)
+            const localVarPath = `/tensile-coupon/matrix`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (fields) {
+                localVarQueryParameter['fields'] = fields;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['query'] = query;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get range of field
+         * @summary Get Tensile Coupons Range
+         * @param {TensileCouponNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsRange: async (field: TensileCouponNumberField, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'field' is not null or undefined
+            assertParamExists('getTensileCouponsRange', 'field', field)
+            const localVarPath = `/tensile-coupon/range`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (field !== undefined) {
+                localVarQueryParameter['field'] = field;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Stress-Strain series from tensile coupon
+         * @summary Get Tensile Coupons Stress Strain
+         * @param {string} tensileCouponId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrain: async (tensileCouponId: string, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tensileCouponId' is not null or undefined
+            assertParamExists('getTensileCouponsStressStrain', 'tensileCouponId', tensileCouponId)
+            const localVarPath = `/tensile-coupon/{tensile_coupon_id}/stress-strain`
+                .replace('{tensile_coupon_id}', encodeURIComponent(String(tensileCouponId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Tensile Coupons Stress Strain Csv
+         * @param {string} tensileCouponId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrainCsv: async (tensileCouponId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tensileCouponId' is not null or undefined
+            assertParamExists('getTensileCouponsStressStrainCsv', 'tensileCouponId', tensileCouponId)
+            const localVarPath = `/tensile-coupon/{tensile_coupon_id}/stress-strain/csv`
+                .replace('{tensile_coupon_id}', encodeURIComponent(String(tensileCouponId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * TensileCouponApi - functional programming interface
+ */
+export const TensileCouponApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TensileCouponApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Get paginated Tensile Coupons
+         * @summary Get Tensile Coupons
+         * @param {string | null} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCoupons(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExtendedPageTensileCouponModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCoupons(query, sortBy, sortDesc, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TensileCouponApi.getTensileCoupons']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Tensile Coupons Counts
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsCounts(fields?: Array<TensileCouponField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CountModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsCounts(fields, query, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TensileCouponApi.getTensileCouponsCounts']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get master csv
+         * @summary Get Tensile Coupons Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsCsv(ids, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TensileCouponApi.getTensileCouponsCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get distinct count
+         * @summary Get Tensile Coupons Distinct
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsDistinct(fields?: Array<TensileCouponField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<number>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsDistinct(fields, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TensileCouponApi.getTensileCouponsDistinct']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Tensile Coupons Fields
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsFields(fields?: Array<TensileCouponField>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<{ [key: string]: any; }>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsFields(fields, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TensileCouponApi.getTensileCouponsFields']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Tensile Coupons Matrix
+         * @param {Array<TensileCouponField>} fields 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsMatrix(fields: Array<TensileCouponField>, query?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MatrixModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsMatrix(fields, query, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TensileCouponApi.getTensileCouponsMatrix']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get range of field
+         * @summary Get Tensile Coupons Range
+         * @param {TensileCouponNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsRange(field: TensileCouponNumberField, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RangeModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsRange(field, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TensileCouponApi.getTensileCouponsRange']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get Stress-Strain series from tensile coupon
+         * @summary Get Tensile Coupons Stress Strain
+         * @param {string} tensileCouponId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsStressStrain(tensileCouponId: string, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Array<number>>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsStressStrain(tensileCouponId, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TensileCouponApi.getTensileCouponsStressStrain']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Tensile Coupons Stress Strain Csv
+         * @param {string} tensileCouponId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTensileCouponsStressStrainCsv(tensileCouponId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTensileCouponsStressStrainCsv(tensileCouponId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TensileCouponApi.getTensileCouponsStressStrainCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * TensileCouponApi - factory interface
+ */
+export const TensileCouponApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TensileCouponApiFp(configuration)
+    return {
+        /**
+         * Get paginated Tensile Coupons
+         * @summary Get Tensile Coupons
+         * @param {string | null} [query] 
+         * @param {Array<string>} [sortBy] 
+         * @param {Array<boolean>} [sortDesc] 
+         * @param {number} [page] Page number
+         * @param {number} [size] Page size
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCoupons(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<ExtendedPageTensileCouponModel> {
+            return localVarFp.getTensileCoupons(query, sortBy, sortDesc, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get occurences count of field values
+         * @summary Get Tensile Coupons Counts
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCounts(fields?: Array<TensileCouponField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<Array<CountModel>> {
+            return localVarFp.getTensileCouponsCounts(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get master csv
+         * @summary Get Tensile Coupons Csv
+         * @param {Array<string>} [ids] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getTensileCouponsCsv(ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get distinct count
+         * @summary Get Tensile Coupons Distinct
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsDistinct(fields?: Array<TensileCouponField>, options?: RawAxiosRequestConfig): AxiosPromise<number> {
+            return localVarFp.getTensileCouponsDistinct(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get filtered fields
+         * @summary Get Tensile Coupons Fields
+         * @param {Array<TensileCouponField>} [fields] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsFields(fields?: Array<TensileCouponField>, options?: RawAxiosRequestConfig): AxiosPromise<Array<{ [key: string]: any; }>> {
+            return localVarFp.getTensileCouponsFields(fields, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Tensile Coupons Matrix
+         * @param {Array<TensileCouponField>} fields 
+         * @param {string | null} [query] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsMatrix(fields: Array<TensileCouponField>, query?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<MatrixModel> {
+            return localVarFp.getTensileCouponsMatrix(fields, query, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get range of field
+         * @summary Get Tensile Coupons Range
+         * @param {TensileCouponNumberField} field 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsRange(field: TensileCouponNumberField, options?: RawAxiosRequestConfig): AxiosPromise<RangeModel> {
+            return localVarFp.getTensileCouponsRange(field, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Stress-Strain series from tensile coupon
+         * @summary Get Tensile Coupons Stress Strain
+         * @param {string} tensileCouponId 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrain(tensileCouponId: string, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Array<number>>> {
+            return localVarFp.getTensileCouponsStressStrain(tensileCouponId, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get Stress-Strain csv
+         * @summary Get Tensile Coupons Stress Strain Csv
+         * @param {string} tensileCouponId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTensileCouponsStressStrainCsv(tensileCouponId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getTensileCouponsStressStrainCsv(tensileCouponId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * TensileCouponApi - object-oriented interface
+ */
+export class TensileCouponApi extends BaseAPI {
+    /**
+     * Get paginated Tensile Coupons
+     * @summary Get Tensile Coupons
+     * @param {string | null} [query] 
+     * @param {Array<string>} [sortBy] 
+     * @param {Array<boolean>} [sortDesc] 
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getTensileCoupons(query?: string | null, sortBy?: Array<string>, sortDesc?: Array<boolean>, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCoupons(query, sortBy, sortDesc, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get occurences count of field values
+     * @summary Get Tensile Coupons Counts
+     * @param {Array<TensileCouponField>} [fields] 
+     * @param {string | null} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getTensileCouponsCounts(fields?: Array<TensileCouponField>, query?: string | null, options?: RawAxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsCounts(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get master csv
+     * @summary Get Tensile Coupons Csv
+     * @param {Array<string>} [ids] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getTensileCouponsCsv(ids?: Array<string>, options?: RawAxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsCsv(ids, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get distinct count
+     * @summary Get Tensile Coupons Distinct
+     * @param {Array<TensileCouponField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getTensileCouponsDistinct(fields?: Array<TensileCouponField>, options?: RawAxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsDistinct(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get filtered fields
+     * @summary Get Tensile Coupons Fields
+     * @param {Array<TensileCouponField>} [fields] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getTensileCouponsFields(fields?: Array<TensileCouponField>, options?: RawAxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsFields(fields, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Tensile Coupons Matrix
+     * @param {Array<TensileCouponField>} fields 
+     * @param {string | null} [query] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getTensileCouponsMatrix(fields: Array<TensileCouponField>, query?: string | null, options?: RawAxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsMatrix(fields, query, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get range of field
+     * @summary Get Tensile Coupons Range
+     * @param {TensileCouponNumberField} field 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getTensileCouponsRange(field: TensileCouponNumberField, options?: RawAxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsRange(field, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Stress-Strain series from tensile coupon
+     * @summary Get Tensile Coupons Stress Strain
+     * @param {string} tensileCouponId 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getTensileCouponsStressStrain(tensileCouponId: string, size?: number, options?: RawAxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsStressStrain(tensileCouponId, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get Stress-Strain csv
+     * @summary Get Tensile Coupons Stress Strain Csv
+     * @param {string} tensileCouponId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getTensileCouponsStressStrainCsv(tensileCouponId: string, options?: RawAxiosRequestConfig) {
+        return TensileCouponApiFp(this.configuration).getTensileCouponsStressStrainCsv(tensileCouponId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
 
 

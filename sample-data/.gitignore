@@ -1,0 +1,5 @@
+# The sample records are generated output — run generate.py to (re)create them.
+# They are deliberately untracked: they are derived from the ORM schema and would
+# drift silently. Only the generator and its README are versioned. The frontend
+# test fieldGroups.spec.ts reads their headers, so run generate.py before it.
+*.csv

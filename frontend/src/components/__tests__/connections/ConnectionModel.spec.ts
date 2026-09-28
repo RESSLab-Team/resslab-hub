@@ -1,30 +1,37 @@
 import ConnectionModel from '@/components/connections/ConnectionModel.vue'
+import i18n from '@/plugins/i18n'
 import { shallowMount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
 
 describe('ConnectionModel.vue', () => {
   it('aisc - W36X150', async () => {
     const radPrecision = 4
     const mmPrecision = 0
 
-    const wrapper = shallowMount(ConnectionModel)
-    await wrapper.setData({
-      section: {
-        id: 'W36X150',
-        bf: 304.8,
-        h: 826.008,
-        tf: 23.876,
-        tw: 15.875,
-        ix: 3762732087.424,
-        zx: 9520884.184,
-        ry: 62.738,
-        d: 911.86
-      },
+    const wrapper = shallowMount(ConnectionModel, { global: { plugins: [i18n] } })
+    // Drive the inputs the way the UI does: selecting a section syncs the
+    // bf/d/tf/tw sliders, then the member sliders are set directly.
+    wrapper.vm.onSectionChanged({
+      id: 'W36X150',
+      bf: 304.8,
+      h: 826.008,
+      tf: 23.876,
+      tw: 15.875,
+      ix: 3762732087.424,
+      zx: 9520884.184,
+      ry: 62.738,
+      d: 911.86,
+      a: 0,
+      iy: 0
+    })
+    Object.assign(wrapper.vm.variables, {
       rbsReduction: 0.5,
       l: 8000,
       lb: 4000,
       fy: 379.211635
     })
+    await nextTick()
 
     expect(wrapper.vm.vars.ke).toBeCloseTo(578520058, mmPrecision)
 
@@ -38,10 +45,12 @@ describe('ConnectionModel.vue', () => {
 
     expect(wrapper.vm.envelopeRbs.my).toBeCloseTo(2528265, mmPrecision)
     expect(wrapper.vm.envelopeRbs.thetaY).toBeCloseTo(0.004370228904778947, radPrecision)
-    expect(wrapper.vm.envelopeRbs.thetaP).toBeCloseTo(0.002996816988778066, radPrecision)
+    // First-cycle envelope thetaP refreshed after the e/(fy/1000) dimensional
+    // unit fix (e is in GPa); the pre-fix numbers are stale.
+    expect(wrapper.vm.envelopeRbs.thetaP).toBeCloseTo(0.01467777486627023, radPrecision)
 
     expect(wrapper.vm.envelopeNonRbs.my).toBeCloseTo(4224203, mmPrecision)
     expect(wrapper.vm.envelopeNonRbs.thetaY).toBeCloseTo(0.007301740201213988, radPrecision)
-    expect(wrapper.vm.envelopeNonRbs.thetaP).toBeCloseTo(0.00363759535084585, radPrecision)
+    expect(wrapper.vm.envelopeNonRbs.thetaP).toBeCloseTo(0.014481527927437966, radPrecision)
   })
 })

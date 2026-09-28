@@ -5,136 +5,145 @@ import BraceTable from '@/components/braces/BraceTable.vue'
 import BraceDoubleChart from '@/components/braces/charts/BraceDoubleChart.vue'
 import BraceParallelChart from '@/components/braces/charts/BraceParallelChart.vue'
 import BraceSingleChart from '@/components/braces/charts/BraceSingleChart.vue'
-import ResetChartButton from '@/components/commons/ResetChartButton.vue'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
-import SteelTypeCardTitle from '@/components/commons/SteelTypeCardTitle.vue'
-import type { DoubleFields, ParallelField } from '@/composables/chart'
+import ChartCell from '@/components/commons/ChartCell.vue'
+import DashboardShell from '@/components/commons/DashboardShell.vue'
+import { BRACE_KEY, PARALLEL_FIELDS, fetchBraces } from '@/components/braces/data'
+import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
+import { useAutoFilters } from '@/composables/useAutoFilters'
+import { useCountsStore } from '@/stores/counts'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import colors from 'vuetify/lib/util/colors'
 
 const route = useRoute()
 const router = useRouter()
 const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
   useDashboard<BraceModel>(route, router, BraceField)
 
-const parallelFields: ParallelField<BraceField>[] = [
-  { id: BraceField.KlR },
-  {
-    id: {
-      dividend: BraceField.DBr,
-      divisor: BraceField.TBr
-    }
-  },
-  { id: BraceField.CrossSectionShape },
-  { id: BraceField.BoundaryCondition }
+const countsStore = useCountsStore()
+onMounted(() => countsStore.fetch())
+
+const parallelFields = PARALLEL_FIELDS
+
+const parallelFilterFields: string[] = [
+  BraceField.Id,
+  ...parallelFields.flatMap((f) =>
+    typeof f.id === 'string'
+      ? [f.id]
+      : 'dividend' in f.id
+      ? [`${f.id.dividend}/${f.id.divisor}`]
+      : []
+  )
 ]
 const boundaryConditionFields: DoubleFields<BraceField> = [
   BraceField.Date,
   BraceField.BoundaryCondition
 ]
-const loadingProtocolField = BraceField.LoadingProtocol
-const steelField = BraceField.Steel
+
+// Filters are derived from the data dictionary + the loaded dataset, so a new
+// column becomes filterable without touching this file, and fieldGroups.ts
+// decides which category of the rail it shows up under.
+const {
+  filters,
+  groups: filterGroups,
+  loading: filtersLoading
+} = useAutoFilters({
+  database: 'braces',
+  datasetKey: BRACE_KEY,
+  fetchAll: fetchBraces,
+  i18nPrefix: 'brace.'
+})
 </script>
 
 <template>
-  <v-row>
-    <v-col md="6">
-      <v-row>
-        <v-col cols="12">
-          <brace-table
-            v-model:search="search"
-            v-model:searches="searches"
-            :query="query"
-            @click:row="clickTableRow"
-            @update:page="updatePage"
+  <dashboard-shell
+    v-model:search="search"
+    :eyebrow="$t('dashboards.common.eyebrow_components')"
+    :title="$t('dashboards.brace.title')"
+    :count="countsStore.counts.braces"
+    :description="$t('dashboards.brace.description')"
+    database-id="braces"
+    i18n-prefix="brace."
+    :filters="filters"
+    :filter-groups="filterGroups"
+    :filters-loading="filtersLoading"
+    :searches="searches"
+    :detail-open="!!item"
+    @change:searches="changeSearches"
+    @close:detail="closeDetail"
+  >
+    <template #table>
+      <brace-table
+        v-model:search="search"
+        v-model:searches="searches"
+        :query="query"
+        @click:row="clickTableRow"
+        @update:page="updatePage"
+      />
+    </template>
+
+    <template #charts>
+      <div class="charts-strip">
+        <chart-cell
+          :title="$t('dashboards.brace.chart_tests_per_year_bc')"
+          :hint="$t('dashboards.common.hint_click_legend_to_filter')"
+          :field="boundaryConditionFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <brace-double-chart
+            :fields="boundaryConditionFields"
+            type="line"
+            @change:searches="changeSearches"
           />
-        </v-col>
-      </v-row>
-      <v-row v-if="!item">
-        <v-col cols="12">
-          <brace-parallel-chart
-            :color="colors.orange"
-            :fields="parallelFields"
-            :query="query"
-            @change:searches="changeSearches"
-          >
-            <template #title>
-              <info-tooltip>Parallel Axis</info-tooltip>
-            </template>
-          </brace-parallel-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-    <v-col md="6">
-      <v-row v-if="item">
-        <v-col cols="12">
-          <brace-detail :brace="item" @close="closeDetail" />
-        </v-col>
-      </v-row>
-      <v-row v-else>
-        <v-col cols="12" md="6">
-          <v-card>
-            <v-card-title class="d-flex justify-space-between">
-              Boundary Condition
-              <reset-chart-button
-                :field="boundaryConditionFields"
-                :is-filtered="boundaryConditionFields.some(field => query.includes(field as string))"
-                @change:searches="changeSearches"
-              />
-            </v-card-title>
-            <v-card-text>
-              <brace-double-chart
-                :fields="boundaryConditionFields"
-                :query="query"
-                type="line"
-                @change:searches="changeSearches"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12" md="6">
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.brace.chart_loading_protocol')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="BraceField.LoadingProtocol"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
           <brace-single-chart
-            :show-reset="true"
-            :color="colors.blue"
-            :field="loadingProtocolField"
-            :query="query"
+            :field="BraceField.LoadingProtocol"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
-          >
-            <template #title>
-              <div>
-                Loading Protocol
-                <info-tooltip>
-                  <p>
-                    This rectangle below displays the proportion of each loading protocol in the
-                    database. See also the evolution of test data over the years on the right.
-                  </p>
-                  How to use?
-                  <ul>
-                    <li>
-                      Filter the Database for a specific loading protocol type or dates by clicking
-                      on the rectangle of using the dates sliders.
-                    </li>
-                  </ul>
-                </info-tooltip>
-              </div>
-            </template>
-          </brace-single-chart>
-        </v-col>
-        <v-col cols="12">
+          />
+        </chart-cell>
+        <chart-cell
+          quiet
+          :title="$t('dashboards.brace.chart_steel_grade')"
+          :hint="$t('dashboards.common.hint_click_to_filter')"
+          :field="BraceField.Steel"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
           <brace-single-chart
-            :show-reset="true"
-            :color="colors.deepPurple"
-            :field="steelField"
-            :query="query"
+            :field="BraceField.Steel"
+            :show-reset="false"
+            flat
             @change:searches="changeSearches"
-          >
-            <template #title>
-              <steel-type-card-title />
-            </template>
-          </brace-single-chart>
-        </v-col>
-      </v-row>
-    </v-col>
-  </v-row>
+          />
+        </chart-cell>
+      </div>
+
+      <div class="charts-strip charts-strip-1col">
+        <chart-cell
+          :title="$t('commons.parallel_view_title')"
+          :hint="$t('commons.parallel_view_hint')"
+          :field="parallelFilterFields"
+          :searches="searches"
+          @change:searches="changeSearches"
+        >
+          <brace-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+        </chart-cell>
+      </div>
+    </template>
+
+    <template #detail>
+      <brace-detail v-if="item" :brace="item" @close="closeDetail" />
+    </template>
+  </dashboard-shell>
 </template>

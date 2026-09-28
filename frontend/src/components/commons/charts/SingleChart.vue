@@ -1,84 +1,211 @@
 <script setup lang="ts">
-import { initOptions, updateOptions } from '@/components/commons/charts/utils'
-import type { Count } from '@/composables/chart'
+import { invertMapping, type Count } from '@/composables/chart'
+import { subscribeCrossfilter } from '@/composables/crossfilterBus'
+import { useEChart } from '@/composables/useEChart'
 import i18n from '@/plugins/i18n'
+import { categoryColorScale, categoryDomain, type ColorScale } from '@/utils/categoryColors'
 import type { Value } from '@/utils/common'
-import { getColorPalette, primaryColor, type Color } from '@/utils/vuetify'
+import { SANS } from '@/plugins/echarts-theme'
 import type { EChartsOption } from 'echarts'
 import { TreemapChart } from 'echarts/charts'
 import { TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
-import { SVGRenderer } from 'echarts/renderers'
+import { CanvasRenderer } from 'echarts/renderers'
 import type { CallbackDataParams } from 'echarts/types/dist/shared'
-import { computed } from 'vue'
-import VChart from 'vue-echarts'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import ResetChartButton from '@/components/commons/ResetChartButton.vue'
+import {
+  buildFigureTooltipFormatter,
+  buildFigureTooltipPosition,
+  preloadImages
+} from '@/components/commons/charts/utils'
 
-use([SVGRenderer, TreemapChart, TooltipComponent])
+use([CanvasRenderer, TreemapChart, TooltipComponent])
 
 const props = withDefaults(
   defineProps<{
-    color?: Color
+    // Stable value → color lookup shared by every chart of the dashboard (see
+    // useDataset.colorFor). Omitted ⇒ a scale derived from the given counts.
+    colorFor?: ColorScale
     counts?: Count[]
     field: string
     labelPrefix?: string
     flat?: boolean
     mapping?: Map<string, string>
     showReset?: boolean
+    // Local (in-browser) filtering is instant, so disable ECharts animation
+    // entirely — the enter/update/exit transitions otherwise read as a load and
+    // cost frames on every filter tick.
+    animate?: boolean
+    // Client-side (crossfilter) mode: when provided, a brush drag anywhere on the
+    // dashboard repaints this treemap live from the in-memory dataset via the bus,
+    // off Vue's reactivity. Omitted ⇒ updates only via reactive `counts`.
+    liveCounts?: (query?: string) => Count[]
+    // Figure for a hovered category, keyed by its raw (unmapped) value; shown
+    // inside the tooltip. Omitted ⇒ the plain name + count tooltip.
+    imageFor?: (value: string) => string | undefined
   }>(),
   {
-    color: () => primaryColor,
+    colorFor: undefined,
     counts: () => [],
     flat: false,
     showReset: true,
+    animate: true,
     mapping: () => new Map<string, string>(),
-    labelPrefix: ''
+    labelPrefix: '',
+    liveCounts: undefined,
+    imageFor: undefined
   }
 )
 const emit = defineEmits<{
   (e: 'change:searches', key: string, value?: Value): void
-  (e: 'mouseover', value: CallbackDataParams): void
-  (e: 'mouseout'): void
 }>()
 
-const reverseMapping = computed(() => {
-  const reverse = new Map<string, string>()
-  for (const [key, value] of props.mapping.entries()) {
-    reverse.set(value, key)
+const reverseMapping = computed(() => invertMapping(props.mapping))
+
+// The raw category behind a tile, whatever `mapping` renamed it to for display.
+function rawCategory(params: CallbackDataParams): string {
+  const data = params.data as { originalName?: string } | undefined
+  return data?.originalName ?? reverseMapping.value.get(params.name) ?? params.name
+}
+
+// Plain builder shared by the reactive path and the imperative bus frames.
+function buildOption(countsData: Count[]): EChartsOption {
+  const colorFor = props.colorFor ?? categoryColorScale(categoryDomain(countsData))
+  return {
+    animation: props.animate,
+    tooltip: {
+      trigger: 'item',
+      // Every treemap tooltip gets the colour chip and the house type scale;
+      // only the ones carrying a figure outgrow their cell, and those hang off
+      // <body> and are placed by hand — left to themselves (or to `confine`)
+      // they sit right on top of the chart the reader is pointing at.
+      formatter: buildFigureTooltipFormatter(props.imageFor, rawCategory),
+      ...(props.imageFor
+        ? {
+            appendTo: 'body',
+            position: buildFigureTooltipPosition(() => chartEl.value?.getBoundingClientRect())
+          }
+        : { confine: true })
+    },
+    series: [
+      {
+        type: 'treemap',
+        // Treemap layout transitions ignore the root `animation` flag in ECharts
+        // 5.4, so disable animation on the series itself for instant local filters.
+        animation: props.animate,
+        id: props.field,
+        name: i18n.global.t(props.labelPrefix + props.field).toString(),
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        // Color set per tile: the treemap otherwise maps `option.color` by the
+        // tile's rank after its own value sort, so a category would change hue
+        // whenever a filter reshuffled the ranking.
+        data: countsData.map((count) => {
+          const label = props.mapping.get(count.name) ?? count.name
+          return {
+            name: label,
+            value: count.value,
+            originalName: count.name,
+            itemStyle: { color: colorFor(count.name) }
+          }
+        }),
+        breadcrumb: {
+          show: false
+        },
+        roam: false,
+        // Hairline white divider between tiles: a border on each tile with no
+        // gap, so neighbours share a crisp 1px seam rather than an empty channel.
+        itemStyle: {
+          borderColor: '#fff',
+          borderWidth: 1,
+          gapWidth: 0
+        },
+        // Label anchored top-left: bold name, count right below it
+        // (handoff charts-lib.js `treemap()`), instead of ECharts' centered name.
+        label: {
+          show: true,
+          position: 'insideTopLeft',
+          padding: [7, 8],
+          lineHeight: 16,
+          formatter: (params: CallbackDataParams) =>
+            `{name|${params.name}}\n{value|${params.value}}`,
+          rich: {
+            name: {
+              color: '#fff',
+              fontFamily: SANS,
+              fontWeight: 700,
+              fontSize: 12,
+              lineHeight: 16,
+              align: 'left'
+            },
+            value: {
+              color: 'rgba(255, 255, 255, 0.85)',
+              fontFamily: SANS,
+              fontSize: 11,
+              lineHeight: 14,
+              align: 'left'
+            }
+          }
+        }
+      }
+    ]
   }
-  return reverse
+}
+const option = computed<EChartsOption>(() => buildOption(props.counts))
+
+// Imperative renderer (off Vue's vnode graph); see useEChart / crossfilterBus.
+const chartEl = ref<HTMLElement>()
+const { render } = useEChart(chartEl, () => option.value, { click })
+
+// Warm the figures as soon as the categories are known, so the first hover shows
+// one straight away instead of after a round trip.
+watch(
+  () => props.counts,
+  (countsData) => {
+    if (!props.imageFor) return
+    preloadImages(countsData.map((count) => props.imageFor?.(count.name)))
+  },
+  { immediate: true }
+)
+
+// A filter change repaints via setOption, skipped while a drag is frozen so a
+// stale reactive frame can't overwrite the live one. A skipped frame is replayed
+// on settle (see onSettle) so a mid-drag commit is never lost.
+let frozen = false
+let skippedWhileFrozen = false
+watch(option, (value) => {
+  if (frozen) {
+    skippedWhileFrozen = true
+    return
+  }
+  render(value)
 })
 
-const option = computed<EChartsOption>(() => ({
-  tooltip: {
-    trigger: 'item',
-    confine: true
+// Live crossfilter: every chart repaints from the in-memory dataset during a drag,
+// then reconciles on settle. No-op in server mode (no liveCounts).
+let lastLiveCounts: Count[] | null = null
+const unsubscribe = subscribeCrossfilter({
+  onLive: (liveQuery) => {
+    if (!props.liveCounts) return
+    frozen = true
+    lastLiveCounts = props.liveCounts(liveQuery)
+    render(buildOption(lastLiveCounts))
   },
-  series: [
-    {
-      type: 'treemap',
-      id: props.field,
-      name: i18n.global.t(props.labelPrefix + props.field).toString(),
-      left: 0,
-      top: 0,
-      right: 0,
-      bottom: 0,
-      data: props.counts.map((count) => {
-        const label = props.mapping.get(count.name) ?? count.name
-        return {
-          name: label,
-          value: count.value,
-          originalName: count.name
-        }
-      }),
-      breadcrumb: {
-        show: false
-      },
-      roam: false
-    }
-  ],
-  color: getColorPalette(props.color, props.counts.length)
-}))
+  onSettle: () => {
+    if (!props.liveCounts) return
+    frozen = false
+    // Repaint the last drag frame (visually identical to the commit that follows,
+    // so no flicker back to the pre-drag state) — unless a reactive update landed
+    // mid-drag and was skipped: then the committed option is the newer truth.
+    render(skippedWhileFrozen ? option.value : buildOption(lastLiveCounts ?? props.counts))
+    skippedWhileFrozen = false
+    lastLiveCounts = null
+  }
+})
+onUnmounted(unsubscribe)
 
 function click(params: CallbackDataParams): void {
   if (params.seriesId) {
@@ -109,18 +236,39 @@ function changeSearches(key: string, value?: Value) {
       />
     </v-card-title>
     <v-card-text :class="[flat ? 'pa-0' : '']">
-      <v-responsive min-height="100">
-        <v-chart
-          autoresize
-          :init-options="initOptions"
-          :option="option"
-          :update-options="updateOptions"
-          @click="click"
-          @mouseover="emit('mouseover', $event)"
-          @mouseout="emit('mouseout')"
-        />
-      </v-responsive>
-      <slot></slot>
+      <!-- The frame is the sized box; the canvas fills it absolutely so ECharts
+           mounted imperatively (useEChart) can't feed its own height back into
+           the layout — see the scoped styles for why. -->
+      <div class="single-chart__frame">
+        <div ref="chartEl" class="single-chart__canvas" />
+      </div>
     </v-card-text>
   </v-card>
 </template>
+
+<style scoped>
+/* The frame owns the height (it fills the flex cell, or falls back to its own
+   min-height when nothing stretches it); the canvas fills the frame absolutely.
+   Because the canvas is out of flow it never adds to the frame's content height,
+   so ECharts sizing its <canvas> to the container's clientHeight (via the
+   ResizeObserver in useEChart) can't ratchet the tile taller every tick — the
+   infinite-growth loop the old plain min-height div caused. Replaces the old
+   <v-responsive min-height="100">. */
+.single-chart__frame {
+  position: relative;
+  width: 100%;
+  min-height: 100px;
+}
+.single-chart__canvas {
+  position: absolute;
+  inset: 0;
+}
+/* Chart title → card-title role (matches ChartCell's .chart-head h5), so a
+   standalone chart card reads the same as a dashboard-strip chart. */
+:deep(.v-card-title) {
+  font-size: var(--title-card-size);
+  font-weight: var(--title-card-weight);
+  letter-spacing: var(--title-card-tracking);
+  line-height: 1.3;
+}
+</style>

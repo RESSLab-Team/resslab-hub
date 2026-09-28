@@ -25,6 +25,6 @@ function resetFilters(): void {
 
 <template>
   <v-btn color="primary" :disabled="!isFiltered" variant="text" @click="resetFilters">
-    Reset
+    {{ $t('commons.reset') }}
   </v-btn>
 </template>
