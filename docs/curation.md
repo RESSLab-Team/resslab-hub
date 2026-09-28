@@ -17,6 +17,9 @@ the lab's work list, not a public page. #248 will tie `curator` to the GitHub
 permission on the data repo, so the app and the merge gate read the same
 source ([auth.md](auth.md), "Later").
 
+With `CONTRIBUTIONS_ENABLED=false` nobody can: the endpoints answer `404` and
+the sidebar has no Curation section ([contributing-data.md](contributing-data.md#settings)).
+
 ## Nothing is stored
 
 The app keeps no copy of a submission. Every endpoint rebuilds the batch from

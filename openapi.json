@@ -24,6 +24,25 @@
         }
       }
     },
+    "/features": {
+      "get": {
+        "summary": "Get Features",
+        "description": "Which optional parts of the app this deployment offers.\n\nPublic, and never cached (utils/caching.py skips it): the value comes from\nthe deployment's settings, and a browser holding the old answer for an\nhour after the pods restart would hide or show the wrong links.",
+        "operationId": "get_features",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Features"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/healthz": {
       "get": {
         "summary": "Healthz",
@@ -14348,6 +14367,20 @@
           "size"
         ],
         "title": "ExtendedPage[TensileCouponModel]"
+      },
+      "Features": {
+        "properties": {
+          "contributions": {
+            "type": "boolean",
+            "title": "Contributions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "contributions"
+        ],
+        "title": "Features",
+        "description": "What this deployment offers, read once by the frontend at start."
       },
       "FileValidationResult": {
         "properties": {

@@ -21,7 +21,7 @@ from fastapi import (
 from fastapi.responses import JSONResponse
 
 from resslab_hub.auth import roles
-from resslab_hub.auth.deps import require_role
+from resslab_hub.auth.deps import require_contributions_enabled, require_role
 from resslab_hub.contributions.github import configured
 from resslab_hub.contributions.submission import (
     Contributor,
@@ -44,7 +44,8 @@ from resslab_hub.utils.safe_archive import (
     safe_extract_targz,
 )
 
-router = APIRouter()
+# Router-level, so it runs before the sign-in check of each route.
+router = APIRouter(dependencies=[Depends(require_contributions_enabled)])
 
 
 def _parse_dismissed(raw: str) -> list:

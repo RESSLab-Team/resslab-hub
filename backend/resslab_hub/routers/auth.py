@@ -16,7 +16,11 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from resslab_hub.auth import email_login, github_oauth, mailer, users
-from resslab_hub.auth.deps import get_current_user, require_user
+from resslab_hub.auth.deps import (
+    get_current_user,
+    require_contributions_enabled,
+    require_user,
+)
 from resslab_hub.auth.sessions import (
     LOGIN_COOKIE,
     SESSION_COOKIE,
@@ -45,6 +49,11 @@ from resslab_hub.utils.rate_limit import limiter
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+# Signing in only serves the contribution pipeline, so it goes off with it
+# (CONTRIBUTIONS_ENABLED). On each route and not on the router: `GET /me`
+# stays, the sidebar asks it on every page and must keep hearing "nobody".
+_ENABLED = [Depends(require_contributions_enabled)]
 
 
 async def _user_out(db: AsyncSession, user: User) -> UserOut:
@@ -85,7 +94,7 @@ async def get_me(
     return MeResponse(user=await _user_out(db, user))
 
 
-@router.post("/email/start", response_model=EmailStartResponse)
+@router.post("/email/start", response_model=EmailStartResponse, dependencies=_ENABLED)
 @limiter.limit("10/minute")
 async def start_email_login(
     request: Request,
@@ -111,7 +120,7 @@ async def start_email_login(
     return EmailStartResponse(sent=True)
 
 
-@router.post("/email/verify", response_model=VerifyResponse)
+@router.post("/email/verify", response_model=VerifyResponse, dependencies=_ENABLED)
 @limiter.limit("20/minute")
 async def verify_email_login(
     request: Request,
@@ -147,7 +156,7 @@ async def verify_email_login(
     return result
 
 
-@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT, dependencies=_ENABLED)
 async def logout(
     request: Request,
     db: AsyncSession = Depends(get_session),
@@ -159,7 +168,7 @@ async def logout(
     return response
 
 
-@router.get("/identities", response_model=list[IdentityOut])
+@router.get("/identities", response_model=list[IdentityOut], dependencies=_ENABLED)
 async def list_identities(
     db: AsyncSession = Depends(get_session),
     user: User = Depends(require_user),
@@ -171,7 +180,11 @@ async def list_identities(
     ]
 
 
-@router.delete("/identities/{identity_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/identities/{identity_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=_ENABLED,
+)
 async def delete_identity(
     identity_id: str,
     db: AsyncSession = Depends(get_session),
@@ -204,7 +217,7 @@ async def delete_identity(
 # --- GitHub ---------------------------------------------------------------
 
 
-@router.get("/github/start")
+@router.get("/github/start", dependencies=_ENABLED)
 async def start_github_login(
     request: Request,
     redirect_to: str = "/",
@@ -237,7 +250,7 @@ async def start_github_login(
     return response
 
 
-@router.get("/github/callback")
+@router.get("/github/callback", dependencies=_ENABLED)
 async def finish_github_login(
     request: Request,
     code: str = "",

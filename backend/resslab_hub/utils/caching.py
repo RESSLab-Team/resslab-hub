@@ -145,7 +145,10 @@ def _excluded(path: str) -> bool:
     # /auth, /account and /admin answer per signed-in user. This cache is
     # keyed on the URL alone and marks what it stores `Cache-Control: public`,
     # so caching them would hand one person's answer to the next visitor.
-    return path in ("/", "/healthz", "/readyz") or path.startswith(
+    #
+    # /features comes from the deployment's settings (CONTRIBUTIONS_ENABLED):
+    # with `max-age` a browser would keep the old answer after a restart.
+    return path in ("/", "/healthz", "/readyz", "/features") or path.startswith(
         (
             "/analytics",
             "/contributions",

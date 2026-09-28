@@ -41,6 +41,20 @@ def _unauthorized(detail: str, basic: bool = False) -> HTTPException:
     )
 
 
+def require_contributions_enabled() -> None:
+    """404 on the contribution pipeline when ``CONTRIBUTIONS_ENABLED`` is off.
+
+    404 and not 503: 503 already means "no GitHub App" on these routes, while a
+    deployment that switched the feature off simply does not have it. Put it
+    before any sign-in dependency, so nobody reaches the database.
+    """
+    if not settings.contributions_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Contributions are not enabled on this deployment.",
+        )
+
+
 def check_service_credentials(
     credentials: Optional[HTTPBasicCredentials],
 ) -> bool:

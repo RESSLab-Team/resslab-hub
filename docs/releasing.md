@@ -109,3 +109,33 @@ database schema or the deployment, do the boring checks: dump the prod database
 confirm the Alembic migrations that ran on stage are the same ones prod will get.
 The backend caches responses for an hour per process, so restart the prod pods if
 new data must show right away.
+
+### Keeping the contribution pipeline off in prod
+
+Submit, curation, sign-in and account can ship to prod switched off, and be
+switched on later without a new release. The switch is `CONTRIBUTIONS_ENABLED`
+([contributing-data.md](contributing-data.md#settings)). Dev and stage set
+nothing and keep the default, `true`.
+
+Before the first tag that carries the pipeline, add this line to
+`overlays/prod/kustomization.yaml` in `enack8s-app-config/epfl-resslab/resslab-hub`,
+under `configMapGenerator` > `name: resslab-hub-backend` > `literals:`
+(the indentation is the one of the other literals):
+
+```yaml
+      - CONTRIBUTIONS_ENABLED=false
+```
+
+Kustomize puts a hash of the content in the generated ConfigMap name, so ArgoCD
+rolls the backend pods when it syncs the change. If they did not roll, restart
+them by hand, the setting is read at startup:
+
+```bash
+kubectl -n epfl-resslab-resslab-hub-prod rollout restart deployment/resslab-hub-backend-prod
+```
+
+Check it with `curl https://resslab-hub.epfl.ch/api/features`, which must say
+`{"contributions":false}`. The frontend needs nothing: it reads that endpoint on
+each page load. To switch the pipeline on, remove the line (or set it to `true`).
+With it on, prod also needs the GitHub App, OAuth and mail secrets of
+[auth.md](auth.md), or `/features` stays `false`.
