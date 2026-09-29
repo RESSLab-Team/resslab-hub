@@ -692,16 +692,13 @@
 .surface-pad {
   padding: 28px 32px;
 }
+/* MapLibre needs a real height. The map fills the frame (OverviewMap's root
+   is absolute) and its legend sits inside it, under the map. */
 .map-frame {
   position: relative;
-  min-height: 460px;
+  height: clamp(520px, 66vh, 760px);
   border: 1px solid var(--border);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-.map-frame > * {
-  flex: 1;
 }
 .video-frame {
   aspect-ratio: 16 / 9;
@@ -2627,7 +2624,7 @@ a.cd-publication-ref:hover {
   .hp-reach .map-frame {
     grid-area: map;
     margin: 0 48px 32px;
-    min-height: clamp(380px, 42vh, 700px);
+    height: clamp(480px, 50vh, 760px);
   }
   .hp-reach .tools-panel {
     grid-area: tools;

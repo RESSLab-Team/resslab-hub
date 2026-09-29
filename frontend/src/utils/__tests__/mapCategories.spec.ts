@@ -1,4 +1,6 @@
 import { MapCategory } from '@/backend'
+import en from '@/locales/en.json'
+import fr from '@/locales/fr.json'
 import {
   MAP_CATEGORIES,
   categoryFor,
@@ -25,6 +27,15 @@ describe('mapCategories', () => {
   it('links each category to an existing database page', () => {
     const pages = new Set(DATABASES.map((database) => database.to))
     for (const entry of MAP_CATEGORIES) expect(pages).toContain(entry.to)
+  })
+
+  it('has its label and alt text in every locale', () => {
+    for (const messages of [en.map, fr.map] as Record<string, string>[]) {
+      for (const entry of MAP_CATEGORIES) {
+        expect(messages[entry.labelKey.replace('map.', '')]).toBeTruthy()
+        expect(messages[entry.altKey.replace('map.', '')]).toBeTruthy()
+      }
+    }
   })
 
   it('looks a category up by id', () => {

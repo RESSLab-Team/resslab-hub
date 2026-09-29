@@ -83,6 +83,14 @@
   --link: var(--epfl-black);
   --link-hover: var(--epfl-red);
 
+  /* Overview map: the markers and the corner captions. They sit on the
+     basemap, which stays light in dark mode (utils/mapStyle.ts), so
+     theme-dark does not re-assign them. */
+  --map-ink: var(--epfl-black);
+  --map-paper: var(--epfl-white);
+  --map-muted: var(--epfl-gray-600);
+  --map-shadow: var(--epfl-gray-500);
+
   /* ──────────── TYPE ──────────── */
   --font-sans: "Suisse Int'l", 'SuisseIntl', 'Suisse Intl', Arial, 'Helvetica Neue', Helvetica,
     sans-serif;

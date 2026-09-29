@@ -40,6 +40,25 @@ export function labelFor(site: Pick<MapSite, 'sid'>): SiteLabel {
   return { inst: site.sid.replace(',', ', '), city: '', cc: '', known: false }
 }
 
+/** What the panel shows: a cluster (its member sites) or one site. */
+export interface ClusterSelection {
+  kind: 'cluster'
+  /** marker key, c<cluster_id> */
+  key: string
+  sids: string[]
+}
+
+export interface SiteSelection {
+  kind: 'site'
+  /** marker key, s<sid> */
+  key: string
+  sid: string
+  /** the cluster the site was opened from, for the back button */
+  back: ClusterSelection | null
+}
+
+export type Selection = ClusterSelection | SiteSelection
+
 export interface SiteProps {
   sid: string
   n: number
@@ -68,6 +87,18 @@ export function visibleCounts(counts: Counts, hidden: ReadonlySet<MapCategory>):
     if (n > 0 && !hidden.has(id)) out[id] = n
   }
   return out
+}
+
+/** A count as the dashboards write it: 1’234. */
+export function formatCount(n: number): string {
+  return n.toLocaleString('en-CH')
+}
+
+/** 46.52 N · 6.57 E, 33.87 S · 151.21 E */
+export function formatLatLng(lat: number, lng: number): string {
+  const part = (v: number, pos: string, neg: string) =>
+    `${Math.abs(v).toFixed(2)} ${v >= 0 ? pos : neg}`
+  return `${part(lat, 'N', 'S')} · ${part(lng, 'E', 'W')}`
 }
 
 export function sumCounts(counts: Counts): number {
