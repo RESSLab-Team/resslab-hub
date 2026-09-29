@@ -6992,6 +6992,28 @@
           }
         }
       }
+    },
+    "/map/sites": {
+      "get": {
+        "tags": [
+          "map"
+        ],
+        "summary": "Get Map Sites",
+        "description": "Every site with data, with its count per database and its experimental\nprograms. Cached like the other data URLs (bumped by /upload).",
+        "operationId": "get_map_sites",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapSites"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -15291,6 +15313,164 @@
         ],
         "title": "LegacyFileResult",
         "description": "Back-compat shape: flat error/warning strings, as the endpoint used to emit."
+      },
+      "MapCategory": {
+        "type": "string",
+        "enum": [
+          "braces",
+          "columns",
+          "connections",
+          "materials",
+          "tensile-coupon",
+          "ductile-fracture",
+          "residual-stress",
+          "hss-column",
+          "eccentric-braced-frame"
+        ],
+        "title": "MapCategory",
+        "description": "One value per database. Same names as each router's Component, so the\nfrontend can use them as keys everywhere (colours, routes, labels)."
+      },
+      "MapProgram": {
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/MapCategory"
+          },
+          "program": {
+            "type": "string",
+            "title": "Program"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link"
+          },
+          "first_id": {
+            "type": "string",
+            "title": "First Id"
+          },
+          "figure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "program",
+          "n",
+          "first_id"
+        ],
+        "title": "MapProgram",
+        "description": "One experimental program at one site: the specimens of one category that\nshare a program (or investigator) and a year."
+      },
+      "MapSite": {
+        "properties": {
+          "sid": {
+            "type": "string",
+            "title": "Sid"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lng": {
+            "type": "number",
+            "title": "Lng"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/MapCategory"
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "programs": {
+            "items": {
+              "$ref": "#/components/schemas/MapProgram"
+            },
+            "type": "array",
+            "title": "Programs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sid",
+          "lat",
+          "lng",
+          "n",
+          "counts",
+          "programs"
+        ],
+        "title": "MapSite",
+        "description": "One place on the map: every specimen whose coordinates round to the same\ntwo decimals (about 1 km), so a campus with a few points is one site."
+      },
+      "MapSites": {
+        "properties": {
+          "sites": {
+            "items": {
+              "$ref": "#/components/schemas/MapSite"
+            },
+            "type": "array",
+            "title": "Sites"
+          },
+          "skipped": {
+            "type": "integer",
+            "title": "Skipped"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sites",
+          "skipped"
+        ],
+        "title": "MapSites",
+        "description": "Every site with data, biggest first."
       },
       "MaterialDateField": {
         "type": "string",
