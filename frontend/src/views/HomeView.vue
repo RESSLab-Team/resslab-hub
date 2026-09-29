@@ -11,8 +11,8 @@ import { mdiArrowRight } from '@mdi/js'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-// Lazy-load the map so leaflet + d3 + markercluster ship in a separate chunk and
-// don't block the home page's initial render.
+// Lazy-load the map so maplibre ships in a separate chunk and doesn't block
+// the home page's initial render.
 const OverviewMap = defineAsyncComponent(() => import('@/components/map/OverviewMap.vue'))
 
 const { t } = useI18n({ useScope: 'global' })

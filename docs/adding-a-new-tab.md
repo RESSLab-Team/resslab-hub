@@ -34,9 +34,9 @@ For any new component `NewThing` (snake_case: `new_thing`, plural: `new_things`,
 4. **Backend migration** — `make database-revision name="add_new_thing_model"`, review, apply.
 5. **API regeneration** — `make api` from repo root (updates `openapi.json` and `frontend/src/backend/`).
 6. **Frontend scaffolding** — views, dashboard, table, detail, three chart types, utils, i18n.
-7. **Cross-cutting frontend wiring** — router, nav, axios plugin, overview map, tooltip, home-page indicator.
+7. **Cross-cutting frontend wiring** — router, nav, axios plugin, overview map, home-page indicator.
 8. **Static assets** — configuration diagrams / section CSVs under `frontend/public/img/{type}/` or `frontend/src/assets/{type}/`.
-9. **Verify** — run backend + frontend dev servers, load the tab, check map tooltip and home indicator.
+9. **Verify** — run backend + frontend dev servers, load the tab, check the overview map and home indicator.
 
 Each step below is exhaustive.
 
@@ -93,7 +93,7 @@ The HSS Model view was added one commit later (`feat(hss): add hss component mod
 | 7     | `feat(<tab>): add detail #<issue>`                              | Frontend UI       | Detail panel + time-series carousel                                    |
 | 8     | `feat(<tab>): add utils & mappings #<issue>`                    | Frontend util     | `utils/<tab>.ts`, `component.ts`, `backend.ts` edits                   |
 | 9     | `feat(<tab>): add detail images #<issue>`                       | Frontend assets   | `public/img/<tab>/*.png`                                               |
-| 10    | `feat(<tab>): add <tab> to overview map & tooltip #<issue>`     | Cross-cutting     | `OverviewMap.vue`, `TooltipContent.vue`, `HomeView.vue`                |
+| 10    | `feat(<tab>): add <tab> to overview map #<issue>`               | Cross-cutting     | `routers/map.py`, `mapCategories.ts`, `HomeView.vue`                   |
 | (11+) | `feat(<tab>): add <tab> model view #<issue>`                    | Optional          | Only if the component has a published analytical model                 |
 | (11+) | `feat(<tab>): add <tab> fragility view #<issue>`                | Optional          | Only if fragility parameters exist (Braces only today)                 |
 
@@ -515,27 +515,7 @@ export type Type = ... | 'New Thing Display Name'
 export const typesNames: Type[] = [..., 'New Thing Display Name']
 ```
 
-File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/utils/overviewmap.ts`
-
-If the component has geographic coords, add:
-
-```ts
-const _locationNewThingFields = [
-  NewThingField.id,
-  NewThingField.investigator,
-  NewThingField.year,
-  NewThingField.spec_id,
-  /* ... */ NewThingField.latitude,
-  NewThingField.longitude,
-  NewThingField.reference,
-  NewThingField.url,
-];
-export const locationNewThingFields = _locationNewThingFields;
-export type LocationNewThing = Pick<
-  NewThingModel,
-  (typeof _locationNewThingFields)[number]
->;
-```
+The overview map needs no field list here any more, see Step 12.
 
 ---
 
@@ -565,19 +545,16 @@ Every key must exist in both files. French keeps its accents (`Propriétés de l
 
 ---
 
-## Step 12: Frontend: overview map + tooltip
+## Step 12: Overview map
 
-File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/components/map/OverviewMap.vue`
+The home map reads one endpoint, `GET /map/sites`, which groups the rows of every database by site (lat/lon rounded to 2 decimals). If the new table has `latitude` and `longitude`, it needs four small edits:
 
-1. `import { newThingApi } from '@/plugins/axios'`
-2. `import { locationNewThingFields, LocationNewThing } from '@/utils/overviewmap'`
-3. Add a reactive ref `newThingLocations` fetching `newThingApi.getNewThingsFields(locationNewThingFields)`.
-4. Add `newThingLocations.value.length` to the `dataLength` computed and render the markers in the same pattern as EBF.
+1. `backend/resslab_hub/models/map.py`: add a `MapCategory` value, the same string as the router's `Component`.
+2. `backend/resslab_hub/routers/map.py`: add a `_Source` to `_SOURCES`. It names the table and the columns that hold the program (`investigator` or `experimental_program`), the year, the link and, if the tab has schematics, the column that picks one (`figure`). Then `make api`.
+3. `frontend/src/utils/mapCategories.ts`: add an entry to `MAP_CATEGORIES` (label key, alt key, database route). The colours come from the 8 Okabe-Ito slots then one grey, so a 10th database needs its own colour: `mapCategories.spec.ts` fails if two categories share one.
+4. `frontend/src/utils/mapSites.ts`: add a case to `programImage()` that returns the schematic from `utils/component.ts`. Add `map.category_<x>` and `map.alt_<x>` to `en.json` and `fr.json`.
 
-File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/components/map/TooltipContent.vue`
-
-1. `import { getNewThingImage } from '@/utils/component'`
-2. Add a `v-else-if="type === 'New Thing Display Name'"` block mirroring the EBF tooltip: header (investigator/year), 4–6 detail lines, configuration image if applicable, deep-link to `/new-things/database?id=${data.id}&detail=true`.
+The map, its panel and its legend pick up the new category from there. Site names come from `frontend/src/assets/map-sites.json` (keyed by the same `lat,lng`); a new lab shows its coordinates until someone adds it there.
 
 ---
 
@@ -675,12 +652,12 @@ Frontend:
 
 - `frontend/src/views/EbfView.vue`, `EbfDatabase.vue`.
 - `frontend/src/components/ebf/*` (dashboard, table, detail, 3 charts).
-- `frontend/src/utils/ebf.ts`, `component.ts`, `backend.ts`, `overviewmap.ts`.
+- `frontend/src/utils/ebf.ts`, `component.ts`, `backend.ts`, `mapCategories.ts`, `mapSites.ts`.
 - `frontend/src/plugins/axios.ts` — API client registrations.
 - `frontend/src/router/index.ts`, `App.vue` — routing + nav.
 - `frontend/src/locales/en.json` — i18n.
 - `frontend/src/views/HomeView.vue` — indicator aggregation.
-- `frontend/src/components/map/OverviewMap.vue`, `TooltipContent.vue`.
+- `backend/resslab_hub/routers/map.py`, `models/map.py` — the overview map's data.
 - `frontend/src/components/commons/charts/SingleChart.vue` — shared chart with `mapping` prop.
 
 HSS-specific references (useful when your tab needs a Model view or section libraries — neither of which EBF has):
@@ -739,7 +716,7 @@ After implementation, run end-to-end locally:
      - Parallel, double, single charts render; colors are distinct; labels aren't truncated.
      - CSV export downloads.
    - Home page `/` — the test-count indicator includes the new component.
-   - Overview map — markers for the new type appear; tooltip renders with the new template and deep-links back to `/new-things/database?id=...&detail=true`.
+   - Overview map — the new category is in the legend and the markers; a site's program opens `/new-things/database?id=...&detail=true` from "View experimental data".
    - Switch locale to French, every new label translates, nothing falls back to the key.
 
 4. **Build**
@@ -779,14 +756,13 @@ Frontend (NEW unless noted):
 - `frontend/src/utils/new_thing.ts`
 - `frontend/src/utils/component.ts` _(edit — add `getNewThingImage`)_
 - `frontend/src/utils/backend.ts` _(edit — `Type` + `typesNames`)_
-- `frontend/src/utils/overviewmap.ts` _(edit — location fields + type)_
+- `frontend/src/utils/mapCategories.ts`, `mapSites.ts` _(edit — map category + schematic)_
 - `frontend/src/plugins/axios.ts` _(edit — `newThingApi`)_
 - `frontend/src/router/index.ts` _(edit — route block)_
 - `frontend/src/App.vue` _(edit — menu item)_
 - `frontend/src/locales/en.json` _(edit — `new_thing._` keys)\*
 - `frontend/src/views/HomeView.vue` _(edit — distinct call)_
-- `frontend/src/components/map/OverviewMap.vue` _(edit — fetch + length)_
-- `frontend/src/components/map/TooltipContent.vue` _(edit — template block)_
+- `backend/resslab_hub/models/map.py`, `routers/map.py` _(edit — `MapCategory` + `_SOURCES`)_
 - `frontend/public/img/new_thing/*.png` _(assets, if configuration diagrams)_
 - `openapi.json` + `frontend/src/backend/*` _(regenerated, committed)_
 
