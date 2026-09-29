@@ -135,24 +135,9 @@ export interface DatabaseEntry {
   id: DatabaseId
   name: string
   desc: string
-  /** The database's dashboard description — richer copy for tiles with room. */
-  descLong: string
   icon: string
   to: string
   group: DatabaseGroup
-}
-
-/** Each database's entry under the `dashboards.*` i18n namespace. */
-const DASHBOARD_KEY: Record<DatabaseId, string> = {
-  connections: 'connection',
-  columns: 'column',
-  braces: 'brace',
-  hss: 'hss',
-  ebf: 'ebf',
-  cyclic: 'material',
-  tensile: 'tensile_coupon',
-  'ductile-fracture': 'ductile_fracture',
-  residuals: 'residual'
 }
 
 /** Flat list of database pages, derived from NAV_GROUPS (overview tiles, footer). */
@@ -163,11 +148,6 @@ export const DATABASES: DatabaseEntry[] = NAV_GROUPS.flatMap((group) =>
       id: child.countId as DatabaseId,
       name: child.name === t('nav.database') ? group.name : child.name,
       desc: child.desc ?? group.desc,
-      // First sentence only: every dashboard description is "factual summary.
-      // how-to-interact boilerplate." and the tiles only want the former.
-      descLong: `${
-        t(`dashboards.${DASHBOARD_KEY[child.countId as DatabaseId]}.description`).split('. ')[0]
-      }.`,
       icon: child.icon ?? group.icon,
       to: child.to,
       group: group.group

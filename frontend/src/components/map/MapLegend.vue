@@ -6,8 +6,9 @@ import { useI18n } from 'vue-i18n'
 
 /**
  * The category filter under the map. Click toggles a category, double-click
- * keeps only that one. Full variant: a grid with the counts and "Show all".
- * Compact variant: one row of chips that scrolls sideways.
+ * keeps only that one. Full variant: one thin strip with the counts and "Show
+ * all", it wraps to a second line only on a narrow map. Compact variant: one
+ * row of chips that scrolls sideways.
  */
 defineProps<{
   hidden: Set<MapCategory>
@@ -63,7 +64,7 @@ const { t } = useI18n({ useScope: 'global' })
         class="ml-sq"
         :style="hidden.has(category.id) ? undefined : { background: category.color }"
       ></span>
-      <span class="ml-l">{{ t(category.labelKey) }}</span>
+      {{ t(category.labelKey) }}
       <span class="ml-n">{{ formatCount(counts[category.id] ?? 0) }}</span>
     </button>
     <button
@@ -79,25 +80,27 @@ const { t } = useI18n({ useScope: 'global' })
 
 <style scoped>
 .ml {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 3px 4px;
   border-top: 1px solid var(--border);
   background: var(--bg);
 }
 .ml-lg {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 4px;
   min-width: 0;
-  padding: 11px 14px;
+  padding: 4px;
   border: 0;
-  border-right: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
   background: var(--bg);
   color: var(--fg);
   font: inherit;
-  font-size: 12.5px;
+  font-size: 11px;
+  line-height: 1.4;
   text-align: left;
+  white-space: nowrap;
   cursor: pointer;
   transition: color var(--t-fast), background var(--t-fast);
 }
@@ -111,8 +114,8 @@ const { t } = useI18n({ useScope: 'global' })
 }
 .ml-sq {
   flex: none;
-  width: 11px;
-  height: 11px;
+  width: 8px;
+  height: 8px;
   border: 1px solid transparent;
 }
 .is-off {
@@ -122,22 +125,15 @@ const { t } = useI18n({ useScope: 'global' })
   background: var(--bg);
   border-color: var(--border-strong);
 }
-.ml-l {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .ml-n {
-  margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   font-feature-settings: 'tnum';
   color: var(--fg-subtle);
 }
 .ml-reset {
-  justify-content: center;
-  font-size: 10px;
+  margin-left: auto;
+  font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -151,7 +147,7 @@ const { t } = useI18n({ useScope: 'global' })
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  padding: 8px 8px;
+  padding: 6px 8px;
   border-top: 1px solid var(--border);
   background: var(--bg);
   scrollbar-width: thin;
@@ -161,8 +157,8 @@ const { t } = useI18n({ useScope: 'global' })
   display: flex;
   align-items: center;
   gap: 7px;
-  min-height: 32px;
-  padding: 0 11px;
+  min-height: 28px;
+  padding: 0 10px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--fg);

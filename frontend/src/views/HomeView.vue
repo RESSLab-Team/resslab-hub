@@ -123,12 +123,12 @@ onMounted(() => {
 <template>
   <div>
     <!-- Ultrawide screens (≥2100px) re-lay these blocks via `grid-template-areas`
-         (see app.css) — hence the `hp-*` hooks: hero and key numbers full-width
-         on top, then databases | map + video in two columns (three from 2400px,
-         where the video splits off), with the photo strip and the partners
-         strip closing the page. Below that the wrapper is `display: contents`,
-         so the page keeps the normal laptop flow in DOM order — databases
-         full-width, then the map | video row. -->
+         (see app.css), hence the `hp-*` hooks: hero and key numbers full-width
+         on top, then two columns (databases and video on the left, the map on
+         the right, wider), with the photo strip and the partners strip closing
+         the page. Below that the wrapper is `display: contents`, so the page
+         keeps the normal flow in DOM order: databases and video, then the map
+         full-width. -->
     <div class="home-split">
       <!-- Hero — overlapping white text panel breaking the media edge -->
       <section class="hero hp-hero">
@@ -196,7 +196,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Databases -->
+      <!-- Databases + tutorial: compact on purpose, the map below gets the room -->
       <section class="section hp-data">
         <div class="section-head">
           <div>
@@ -210,53 +210,28 @@ onMounted(() => {
             {{ t('home.databases.viewAll') }} →
           </router-link>
         </div>
-        <div class="cat-grid">
-          <router-link v-for="db in DATABASES" :key="db.id" class="cat-tile" :to="db.to">
-            <div class="cat-tile-icon"><v-icon :icon="db.icon" size="22" /></div>
-            <h3 class="cat-tile-title">{{ db.name }}</h3>
-            <p class="cat-tile-desc">{{ db.desc }}</p>
-            <!-- The dashboard's own description; only shown where the tiles have
-                 the room for it (the ultrawide column layout). -->
-            <p class="cat-tile-desc-long">{{ db.descLong }}</p>
-            <div class="cat-tile-meta">
-              <template v-if="countsStore.counts[db.id] != null">
-                <strong>{{ countsStore.counts[db.id] }}</strong>
-                <span>{{ t('home.databases.tests') }}</span>
-              </template>
-              <template v-if="countsStore.sources[db.id] != null">
-                <strong>{{ countsStore.sources[db.id] }}</strong>
-                <span>{{ t('home.databases.sources', countsStore.sources[db.id]!) }}</span>
-              </template>
-              <span style="flex: 1" />
-              <span class="cat-tab">{{ db.group }}</span>
-            </div>
-            <v-icon :icon="mdiArrowRight" size="16" class="cat-arrow" />
-          </router-link>
-        </div>
-      </section>
-
-      <!-- Worldwide reach + tutorial -->
-      <section class="section section-bg-subtle hp-reach">
-        <div class="section-head">
-          <div>
-            <div class="section-eyebrow"><eyebrow-text :text="t('home.reach.eyebrow')" /></div>
-            <h2 class="section-title">
-              {{
-                t('home.reach.title', {
-                  count: countsStore.universities ?? t('home.reach.dozensOf')
-                })
-              }}
-            </h2>
+        <div class="data-split">
+          <div class="cat-grid">
+            <router-link v-for="db in DATABASES" :key="db.id" class="cat-tile" :to="db.to">
+              <div class="cat-tile-icon"><v-icon :icon="db.icon" size="18" /></div>
+              <h3 class="cat-tile-title">{{ db.name }}</h3>
+              <p class="cat-tile-desc">{{ db.desc }}</p>
+              <div class="cat-tile-meta">
+                <template v-if="countsStore.counts[db.id] != null">
+                  <strong>{{ countsStore.counts[db.id] }}</strong>
+                  <span>{{ t('home.databases.tests') }}</span>
+                </template>
+                <template v-if="countsStore.sources[db.id] != null">
+                  <strong>{{ countsStore.sources[db.id] }}</strong>
+                  <span>{{ t('home.databases.sources', countsStore.sources[db.id]!) }}</span>
+                </template>
+                <span style="flex: 1" />
+                <span class="cat-tab">{{ db.group }}</span>
+              </div>
+              <v-icon :icon="mdiArrowRight" size="16" class="cat-arrow" />
+            </router-link>
           </div>
-        </div>
-        <div class="split-7-5">
-          <div class="map-frame">
-            <overview-map />
-          </div>
-          <!-- Inline styles moved to .tools-panel* in app.css: at ≥2100px this
-               panel becomes video-beside-copy, which an inline `display: flex`
-               would outrank. -->
-          <div class="surface surface-pad tools-panel">
+          <div class="surface tools-panel">
             <div class="video-frame">
               <!-- loading=lazy: the YouTube embed pulls hundreds of kB of
                    third-party player assets, and this panel sits below the
@@ -286,6 +261,25 @@ onMounted(() => {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- Worldwide reach -->
+      <section class="section section-bg-subtle hp-reach">
+        <div class="section-head">
+          <div>
+            <div class="section-eyebrow"><eyebrow-text :text="t('home.reach.eyebrow')" /></div>
+            <h2 class="section-title">
+              {{
+                t('home.reach.title', {
+                  count: countsStore.universities ?? t('home.reach.dozensOf')
+                })
+              }}
+            </h2>
+          </div>
+        </div>
+        <div class="map-frame">
+          <overview-map />
         </div>
       </section>
 
