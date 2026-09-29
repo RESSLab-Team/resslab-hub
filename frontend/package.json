@@ -36,6 +36,7 @@
     "leaflet": "^1.9.3",
     "leaflet.markercluster": "^1.5.3",
     "lodash": "^4.17.21",
+    "maplibre-gl": "^4.7.1",
     "marked": "^18.0.10",
     "mathjs": "^11.6.0",
     "pinia": "^2.0.33",
