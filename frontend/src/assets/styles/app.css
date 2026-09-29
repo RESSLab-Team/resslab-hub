@@ -590,8 +590,7 @@
    beside it leave the room to the map below.
 
    The section is a container, so the tiles and the video follow the width the
-   section really has (full width on a laptop, one column on an ultrawide
-   screen), not the window width. */
+   section really has (the window minus the sidebar), not the window width. */
 .hp-data {
   container: home-data / inline-size;
 }
@@ -756,6 +755,7 @@
   }
   .tools-panel {
     flex-direction: column;
+    align-items: stretch;
     gap: 0;
   }
   .tools-panel .video-frame {
@@ -2587,17 +2587,16 @@ a.cd-publication-ref:hover {
 
 /* ================ ULTRAWIDE (≥2100px) ================
    On a 3440px-class monitor a single centred column leaves most of the screen
-   empty and pushes the map and photos far below the fold. Above 2100px the home
-   page and the database/tool pages each split into columns; below it every page
-   keeps its normal laptop layout (home: databases and video, then the map
-   full-width).
+   empty. Above 2100px the database and tool pages split into columns; below it
+   they keep their normal laptop layout. The home page does not split: it stays
+   in rows (databases beside the video, then the map on the full width), so the
+   map keeps the whole width.
 
    All splits use the same trick: the wrappers are `display: contents` by
    default, so below the breakpoint the DOM flows exactly as it did before this
    rule existed — the columns only become real boxes inside the media query.
    2100px is chosen to clear a maximised 1920px window (which, minus the ~192px
    app sidebar, has nowhere near the room for two columns). */
-.home-split,
 .dash-split,
 .dash-col-main,
 .dash-col-side {
@@ -2605,66 +2604,6 @@ a.cd-publication-ref:hover {
 }
 
 @media (min-width: 2100px) {
-  /* ---- Home: hero on top, then two columns ----
-     The hero and the key numbers keep the full width. The split starts below
-     them: databases and video on the left, the map on the right. The map gets
-     the wider column, it is the part people use. The photo strip and the
-     partners strip close the page full-width, in that order, so the partners
-     land right before the footer as they always did. */
-  .home-split {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.75fr);
-    grid-template-areas:
-      'hero     hero'
-      'kpis     kpis'
-      'data     reach'
-      'gallery  gallery'
-      'partners partners';
-    align-content: start;
-  }
-  .home-split > * {
-    min-width: 0;
-  }
-  .hp-hero {
-    grid-area: hero;
-  }
-  .hp-kpis {
-    grid-area: kpis;
-  }
-  .hp-data {
-    grid-area: data;
-    border-right: 1px solid var(--border);
-  }
-  .hp-reach {
-    grid-area: reach;
-    container-type: inline-size;
-    display: flex;
-    flex-direction: column;
-  }
-  .hp-gallery {
-    grid-area: gallery;
-    border-top: 1px solid var(--border);
-  }
-  .home-split .section {
-    padding: 32px 48px;
-  }
-  /* The databases share a column with the video: the tiles say enough. */
-  .home-split .hp-data .section-sub {
-    display: none;
-  }
-  /* The map is at least 16:10 of its column, then grows down to the end of
-     the databases column beside it, never past the screen. */
-  .hp-reach .map-frame {
-    flex: 1 0 auto;
-    aspect-ratio: auto;
-    min-height: clamp(520px, 62.5cqw, 82vh);
-    max-height: 88vh;
-  }
-  /* Partners: the usual full-width strip, closing the page before the footer. */
-  .hp-partners {
-    grid-area: partners;
-  }
-
   /* ---- Database pages: table left, charts pinned right ---- */
   .dash-split {
     display: grid;
