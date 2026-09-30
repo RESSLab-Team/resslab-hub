@@ -765,17 +765,19 @@
     margin-top: 16px;
   }
 }
-/* MapLibre needs a real height. The frame takes a 16:9 height from its width,
-   capped so the whole map fits on the screen. The width is set on purpose:
-   left auto, the min-height goes through the ratio and pushes the frame wider
-   than its column. The map fills the frame (OverviewMap's root is absolute)
-   and its legend sits inside it, under the map. */
+/* MapLibre needs a real height. The frame takes a 21:9 height from its width,
+   about the shape of WORLD_BOUNDS (mapStyle.ts), so the world view has no
+   empty sea above and below the labs. Capped so the section fits on the
+   screen. The width is set on purpose: left auto, the min-height goes through
+   the ratio and pushes the frame wider than its column. The map fills the
+   frame (OverviewMap's root is absolute) and its legend sits inside it, under
+   the map. */
 .map-frame {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  min-height: 520px;
-  max-height: 78vh;
+  aspect-ratio: 21 / 9;
+  min-height: 480px;
+  max-height: 65vh;
   border: 1px solid var(--border);
   overflow: hidden;
 }
