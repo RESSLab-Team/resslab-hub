@@ -160,17 +160,19 @@ function openData() {
   padding: 4px var(--mp-pad, 22px) 18px;
 }
 .mp-img {
-  display: grid;
-  place-items: center;
   height: 128px;
   margin-bottom: 12px;
   padding: 10px;
   background: var(--bg);
   border: 1px solid var(--border);
 }
+/* The img fills the box and object-fit scales the drawing inside it. The
+   box was a grid before, and a max-height in % does nothing on a grid item
+   in an auto row, so most drawings went past the box. */
 .mp-img img {
-  max-width: 100%;
-  max-height: 100%;
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 .mp-kv > div {
