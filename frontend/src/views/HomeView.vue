@@ -258,7 +258,7 @@ onMounted(() => {
     </section>
 
     <!-- Worldwide reach -->
-    <section class="section section-bg-subtle">
+    <section class="section section-bg-subtle hp-reach">
       <div class="section-head">
         <div>
           <div class="section-eyebrow"><eyebrow-text :text="t('home.reach.eyebrow')" /></div>

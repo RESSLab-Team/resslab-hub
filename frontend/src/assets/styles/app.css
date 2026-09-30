@@ -765,19 +765,19 @@
     margin-top: 16px;
   }
 }
-/* MapLibre needs a real height. The frame takes a 21:9 height from its width,
-   about the shape of WORLD_BOUNDS (mapStyle.ts), so the world view has no
-   empty sea above and below the labs. Capped so the section fits on the
-   screen. The width is set on purpose: left auto, the min-height goes through
-   the ratio and pushes the frame wider than its column. The map fills the
-   frame (OverviewMap's root is absolute) and its legend sits inside it, under
-   the map. */
+/* The map section is a container, so the map height below follows the width
+   the map really has. */
+.hp-reach {
+  container-type: inline-size;
+}
+/* MapLibre needs a real height. It grows slower than the width: a narrow map
+   is tall (taller than wide on a phone, about 3:2 on a laptop), a wide one is
+   flat (about 5:2 on a large screen, never flatter than 8:3). Capped at 75vh
+   so the page still scrolls past it. The map fills the frame (OverviewMap's
+   root is absolute) and its legend sits inside it, under the map. */
 .map-frame {
   position: relative;
-  width: 100%;
-  aspect-ratio: 21 / 9;
-  min-height: 480px;
-  max-height: 65vh;
+  height: clamp(480px, max(520px + 10cqw, 37.5cqw), 75vh);
   border: 1px solid var(--border);
   overflow: hidden;
 }
