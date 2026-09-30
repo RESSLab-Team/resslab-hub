@@ -1964,6 +1964,58 @@ export interface LegacyFileResult {
 }
 export interface LocationInner {
 }
+/**
+ * One value per database. Same names as each router\'s Component, so the frontend can use them as keys everywhere (colours, routes, labels).
+ */
+
+export const MapCategory = {
+    Braces: 'braces',
+    Columns: 'columns',
+    Connections: 'connections',
+    Materials: 'materials',
+    TensileCoupon: 'tensile-coupon',
+    DuctileFracture: 'ductile-fracture',
+    ResidualStress: 'residual-stress',
+    HssColumn: 'hss-column',
+    EccentricBracedFrame: 'eccentric-braced-frame',
+} as const;
+
+export type MapCategory = typeof MapCategory[keyof typeof MapCategory];
+
+
+/**
+ * One experimental program at one site: the specimens of one category that share a program (or investigator) and a year.
+ */
+export interface MapProgram {
+    'category': MapCategory;
+    'program': string;
+    'year'?: number | null;
+    'n': number;
+    'reference'?: string | null;
+    'link'?: string | null;
+    'first_id': string;
+    'figure'?: string | null;
+}
+
+
+/**
+ * One place on the map: every specimen whose coordinates round to the same two decimals (about 1 km), so a campus with a few points is one site.
+ */
+export interface MapSite {
+    'sid': string;
+    'lat': number;
+    'lng': number;
+    'n': number;
+    'counts': { [key: string]: number; };
+    'programs': Array<MapProgram>;
+}
+/**
+ * Every site with data, biggest first.
+ */
+export interface MapSites {
+    'sites': Array<MapSite>;
+    'skipped': number;
+}
 
 export const MaterialDateField = {
     Date: 'date',
@@ -10531,6 +10583,100 @@ export class HssColumnApi extends BaseAPI {
      */
     public getHssColumnsRange(field: HSSColumnNumberField, options?: RawAxiosRequestConfig) {
         return HssColumnApiFp(this.configuration).getHssColumnsRange(field, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * MapApi - axios parameter creator
+ */
+export const MapApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Every site with data, with its count per database and its experimental programs. Cached like the other data URLs (bumped by /upload).
+         * @summary Get Map Sites
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMapSites: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/map/sites`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * MapApi - functional programming interface
+ */
+export const MapApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = MapApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Every site with data, with its count per database and its experimental programs. Cached like the other data URLs (bumped by /upload).
+         * @summary Get Map Sites
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMapSites(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MapSites>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMapSites(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MapApi.getMapSites']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * MapApi - factory interface
+ */
+export const MapApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = MapApiFp(configuration)
+    return {
+        /**
+         * Every site with data, with its count per database and its experimental programs. Cached like the other data URLs (bumped by /upload).
+         * @summary Get Map Sites
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMapSites(options?: RawAxiosRequestConfig): AxiosPromise<MapSites> {
+            return localVarFp.getMapSites(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * MapApi - object-oriented interface
+ */
+export class MapApi extends BaseAPI {
+    /**
+     * Every site with data, with its count per database and its experimental programs. Cached like the other data URLs (bumped by /upload).
+     * @summary Get Map Sites
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getMapSites(options?: RawAxiosRequestConfig) {
+        return MapApiFp(this.configuration).getMapSites(options).then((request) => request(this.axios, this.basePath));
     }
 }
 

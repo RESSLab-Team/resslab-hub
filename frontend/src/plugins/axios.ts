@@ -8,6 +8,7 @@ import {
   DuctileFractureApi,
   EccentricBracedFrameApi,
   HssColumnApi,
+  MapApi,
   MaterialsApi,
   ResidualStressApi,
   TensileCouponApi
@@ -29,6 +30,7 @@ export const hssApi = new HssColumnApi(undefined, baseUrl, axiosInstance)
 export const ebfApi = new EccentricBracedFrameApi(undefined, baseUrl, axiosInstance)
 export const tensileCouponApi = new TensileCouponApi(undefined, baseUrl, axiosInstance)
 export const ductileFractureApi = new DuctileFractureApi(undefined, baseUrl, axiosInstance)
+export const mapApi = new MapApi(undefined, baseUrl, axiosInstance)
 
 export const defaultApi = new DefaultApi(undefined, baseUrl, axiosInstance)
 export const authApi = new AuthApi(undefined, baseUrl, axiosInstance)

@@ -585,25 +585,51 @@
 
 /* ================ CATEGORY TILES (HOME) ================ */
 /* Separated cards, not a hairline sheet: each tile carries its own border and
-   the grid gap lets the app-shell background read between them. */
-.cat-grid {
+   the grid gap lets the app-shell background read between them. Compact on
+   purpose (icon beside the title, one short line), so the list and the video
+   beside it leave the room to the map below.
+
+   The section is a container, so the tiles and the video follow the width the
+   section really has (the window minus the sidebar), not the window width. */
+.hp-data {
+  container: home-data / inline-size;
+}
+.data-split {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
 }
+/* Auto rows: each row takes its own height, and they still stretch together
+   when the video column beside them is taller. */
+.cat-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+@container home-data (min-width: 520px) {
+  .cat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container home-data (min-width: 760px) {
+  .cat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 .cat-tile {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+  column-gap: 10px;
+  row-gap: 2px;
   background: var(--bg);
   border: 1px solid var(--border);
-  padding: 28px 28px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  padding: 14px 14px 12px;
   position: relative;
   cursor: pointer;
   text-decoration: none;
   color: var(--fg);
   transition: background var(--t-fast), border-color var(--t-fast);
-  min-height: 200px;
 }
 /* Flat by design (--radius is 0 and the system avoids shadows) — a card lifts
    by darkening its edge, the same cue as .mat-thumb on the tool pages. */
@@ -616,8 +642,9 @@
   color: var(--epfl-red);
 }
 .cat-tile-icon {
-  width: 44px;
-  height: 44px;
+  grid-row: 1 / span 2;
+  width: 32px;
+  height: 32px;
   border: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -625,33 +652,29 @@
   color: var(--fg);
 }
 .cat-tile-title {
-  font-size: 19px;
+  grid-column: 2;
+  font-size: 15px;
   font-weight: 700;
   margin: 0;
-  line-height: 1.2;
+  padding-right: 24px;
+  line-height: 1.25;
 }
 .cat-tile-desc {
-  font-size: 13px;
+  grid-column: 2;
+  font-size: 12px;
   color: var(--fg-muted);
   margin: 0;
-  line-height: 1.45;
-}
-/* The dashboard's own description — richer copy the compact laptop tiles have no
-   room for. The ultrawide column layout turns it on (see the home split below). */
-.cat-tile-desc-long {
-  display: none;
-  font-size: 13px;
-  color: var(--fg-muted);
-  margin: 0;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 .cat-tile-meta {
+  grid-column: 1 / -1;
+  align-self: end;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: auto;
-  padding-top: 12px;
-  font-size: 12px;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  font-size: 11.5px;
   color: var(--fg-muted);
   border-top: 1px solid var(--border-subtle);
 }
@@ -660,29 +683,24 @@
   font-weight: 600;
 }
 .cat-tile-meta .cat-tab {
-  font-size: 11px;
+  font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 .cat-arrow {
   position: absolute;
-  top: 28px;
-  right: 28px;
-  width: 18px;
-  height: 18px;
+  top: 16px;
+  right: 14px;
+  width: 16px;
+  height: 16px;
   color: var(--fg-muted);
   transition: transform var(--t-fast), color var(--t-fast);
 }
 
-/* ================ HOME 2-COL (MAP / VIDEO) ================ */
+/* ================ HOME TUTORIAL + MAP ================ */
 .split-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 32px;
-}
-.split-7-5 {
-  display: grid;
-  grid-template-columns: 7fr 5fr;
   gap: 32px;
 }
 .surface {
@@ -692,16 +710,123 @@
 .surface-pad {
   padding: 28px 32px;
 }
-.map-frame {
-  position: relative;
-  min-height: 460px;
-  border: 1px solid var(--border);
-  overflow: hidden;
+/* Tutorial video + modelling-tool links, beside the tiles or under them. */
+.tools-panel {
   display: flex;
   flex-direction: column;
+  padding: 16px;
 }
-.map-frame > * {
-  flex: 1;
+.tools-panel-copy {
+  margin-top: 16px;
+}
+.tools-panel-eyebrow {
+  margin-bottom: 8px;
+}
+.tools-panel-blurb {
+  margin: 0 0 12px;
+  color: var(--fg-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.tools-panel-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+/* Under the tiles and wide enough: the video beside its text, so the panel
+   stays short. */
+@container home-data (min-width: 560px) {
+  .tools-panel {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .tools-panel .video-frame {
+    flex: 0 0 min(52%, 400px);
+  }
+  .tools-panel-copy {
+    margin-top: 0;
+  }
+}
+/* Wide section: the video goes into a narrow column beside the tiles. */
+@container home-data (min-width: 1100px) {
+  .data-split {
+    grid-template-columns: minmax(0, 2.4fr) minmax(280px, 1fr);
+  }
+  .tools-panel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+  .tools-panel .video-frame {
+    flex: none;
+  }
+  .tools-panel-copy {
+    margin-top: 16px;
+  }
+}
+/* Wider: the tiles stop growing (about 300px, each line fits) and the panel
+   takes the rest, with the video beside its text again. 533px wide is 300px
+   tall, the height of three rows of tiles, so the rows keep their own
+   height. */
+@container home-data (min-width: 1450px) {
+  .data-split {
+    grid-template-columns: minmax(0, 940px) minmax(0, 1fr);
+  }
+  .tools-panel {
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+  }
+  .tools-panel .video-frame {
+    flex: 0 0 min(60%, 533px);
+  }
+  .tools-panel-copy {
+    margin-top: 0;
+  }
+}
+/* Very wide: five columns, so two rows of tiles and a smaller video. */
+@container home-data (min-width: 2050px) {
+  .cat-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .data-split {
+    grid-template-columns: minmax(0, 1560px) minmax(0, 1fr);
+  }
+  .tools-panel .video-frame {
+    flex: 0 0 50%;
+  }
+}
+/* The map section is a container, so the map height below follows the width
+   the map really has. */
+.hp-reach {
+  container: home-reach / inline-size;
+}
+/* MapLibre needs a real height. The shape follows the map width:
+   - narrow (window 1280 and below): tall. Taller than wide on a phone, and on
+     a laptop as tall as the screen allows, minus a band to scroll the page
+     (the wheel over the map zooms it);
+   - middle: grows slower than the width, about 5:3 at 1440;
+   - wide (window above about 1700): flat, 3:1. The world view is then wider
+     than the world, so OverviewMap repeats the world on the sides (mostly
+     Pacific at 3:1; flatter, whole continents come twice).
+   The map fills the frame (OverviewMap's root is absolute) and its legend
+   sits inside it, under the map. */
+.map-frame {
+  position: relative;
+  height: clamp(520px, 160cqw, 100svh - 100px);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+@container home-reach (min-width: 900px) {
+  .map-frame {
+    height: clamp(480px, 520px + 10cqw, 75vh);
+  }
+}
+@container home-reach (min-width: 1300px) {
+  .map-frame {
+    height: clamp(480px, 33.3cqw, 75vh);
+  }
 }
 .video-frame {
   aspect-ratio: 16 / 9;
@@ -2444,12 +2569,6 @@ a.cd-publication-ref:hover {
   .keynums {
     grid-template-columns: repeat(2, 1fr);
   }
-  .cat-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .split-7-5 {
-    grid-template-columns: 1fr;
-  }
   .ftr-top {
     grid-template-columns: 1fr 1fr;
   }
@@ -2474,9 +2593,6 @@ a.cd-publication-ref:hover {
     min-height: 280px;
   }
   .keynums {
-    grid-template-columns: 1fr;
-  }
-  .cat-grid {
     grid-template-columns: 1fr;
   }
   .split-2 {
@@ -2520,17 +2636,16 @@ a.cd-publication-ref:hover {
 
 /* ================ ULTRAWIDE (≥2100px) ================
    On a 3440px-class monitor a single centred column leaves most of the screen
-   empty and pushes the map and photos far below the fold. Above 2100px the home
-   page and the database/tool pages each split into columns; below it every page
-   keeps its normal laptop layout (home: databases full-width, then the
-   map | video row).
+   empty. Above 2100px the database and tool pages split into columns; below it
+   they keep their normal laptop layout. The home page does not split: it stays
+   in rows (databases beside the video, then the map on the full width), so the
+   map keeps the whole width.
 
    All splits use the same trick: the wrappers are `display: contents` by
    default, so below the breakpoint the DOM flows exactly as it did before this
    rule existed — the columns only become real boxes inside the media query.
    2100px is chosen to clear a maximised 1920px window (which, minus the ~192px
    app sidebar, has nowhere near the room for two columns). */
-.home-split,
 .dash-split,
 .dash-col-main,
 .dash-col-side {
@@ -2538,107 +2653,6 @@ a.cd-publication-ref:hover {
 }
 
 @media (min-width: 2100px) {
-  /* ---- Home: hero on top, then two columns ----
-     The hero and the key numbers keep the full width — the split starts below
-     them: databases in the left column; map and video in the right one (until
-     2400px, where the video splits off into a third — see below). The photo
-     strip and the partners strip close the page full-width, in that order, so
-     the partners land right before the footer as they always did. */
-  .home-split {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas:
-      'hero     hero'
-      'kpis     kpis'
-      'data     maphead'
-      'data     map'
-      'data     tools'
-      'gallery  gallery'
-      'partners partners';
-    align-content: start;
-  }
-  .home-split > * {
-    min-width: 0;
-  }
-  .hp-hero {
-    grid-area: hero;
-  }
-  .hp-kpis {
-    grid-area: kpis;
-  }
-  .hp-data {
-    grid-area: data;
-    border-right: 1px solid var(--border);
-  }
-  .hp-gallery {
-    grid-area: gallery;
-    border-top: 1px solid var(--border);
-  }
-  .home-split .section {
-    padding: 32px 48px;
-  }
-  /* The tiles fill the column: the section is a flex chain whose grid absorbs
-     the height the map/video column sets, and equal `1fr` rows share it out —
-     so the databases list runs exactly as far down as the column beside it. */
-  .home-split .hp-data {
-    display: flex;
-    flex-direction: column;
-  }
-  /* As many ~300px tiles per row as the data column carries — two in the pair
-     tier, three once the column widens on a full-size monitor. */
-  .home-split .cat-grid {
-    flex: 1;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    grid-auto-rows: 1fr;
-    gap: 16px;
-  }
-  .home-split .cat-tile {
-    min-height: 0;
-    padding: 18px 20px 16px;
-  }
-  /* With the extra height the tiles trade the terse blurb for the dashboard's
-     summary sentence — shown instead of, not on top of, the short one, since
-     the summary opens with the same words. */
-  .home-split .cat-tile-desc {
-    display: none;
-  }
-  .home-split .cat-tile-desc-long {
-    display: block;
-  }
-  /* The dataset section's own head competes with nine cards for the column. */
-  .home-split .hp-data .section-head {
-    margin-bottom: 16px;
-  }
-  .home-split .hp-data .section-sub {
-    display: none;
-  }
-  /* The reach section holds head, map and video in one box; dissolve it (and
-     its inner 7/5 split) so the three parts can be placed independently. */
-  .hp-reach,
-  .hp-reach .split-7-5 {
-    display: contents;
-  }
-  .hp-reach > .section-head {
-    grid-area: maphead;
-    align-self: start;
-    padding: 32px 48px 12px;
-  }
-  /* Owns its column now, so it gets real height instead of a strip's share. */
-  .hp-reach .map-frame {
-    grid-area: map;
-    margin: 0 48px 32px;
-    min-height: clamp(380px, 42vh, 700px);
-  }
-  .hp-reach .tools-panel {
-    grid-area: tools;
-    margin: 0 48px 32px;
-    align-self: start;
-  }
-  /* Partners: the usual full-width strip, closing the page before the footer. */
-  .hp-partners {
-    grid-area: partners;
-  }
-
   /* ---- Database pages: table left, charts pinned right ---- */
   .dash-split {
     display: grid;
@@ -2685,67 +2699,6 @@ a.cd-publication-ref:hover {
   .dash-col-side .charts-strip:last-child {
     border-bottom: 0;
   }
-}
-
-/* ---- Home, very large screens: the video gets a third column ----
-   databases | map | video, with the gallery and partners strips still closing
-   the page full-width. Three columns give the databases section enough width
-   that COMPACT tiles already land at roughly the map/video height — so the
-   two-column tier's stretched rows and summary sentences switch back off and
-   the cards return to their minimal laptop size and content. */
-@media (min-width: 2400px) {
-  .home-split {
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas:
-      'hero     hero     hero'
-      'kpis     kpis     kpis'
-      'data     maphead  tools'
-      'data     map      tools'
-      'gallery  gallery  gallery'
-      'partners partners partners';
-  }
-  /* The video column starts level with the map's heading, not under the map. */
-  .hp-reach .tools-panel {
-    margin-top: 32px;
-  }
-  /* Pinned to 3-up: left to `auto-fill`, the narrower end of this tier fits
-     only two tiles per row, and the resulting 5-row stack becomes the tallest
-     thing in the grid — inflating the shared rows and pushing the map away
-     from its own heading. Three rows of nine keeps the section at map height. */
-  .home-split .cat-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-auto-rows: auto;
-  }
-  .home-split .cat-tile-desc {
-    display: block;
-  }
-  .home-split .cat-tile-desc-long {
-    display: none;
-  }
-}
-
-/* Tutorial video + modelling-tool links (home "worldwide reach" section).
-   Extracted from inline styles so the ultrawide layout can re-flow the panel. */
-.tools-panel {
-  display: flex;
-  flex-direction: column;
-}
-.tools-panel-copy {
-  margin-top: 24px;
-}
-.tools-panel-eyebrow {
-  margin-bottom: 10px;
-}
-.tools-panel-blurb {
-  margin: 0 0 16px;
-  color: var(--fg-muted);
-  font-size: 14px;
-  line-height: 1.5;
-}
-.tools-panel-links {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
 @media (max-width: 420px) {
