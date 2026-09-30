@@ -765,6 +765,38 @@
     margin-top: 16px;
   }
 }
+/* Wider: the tiles stop growing (about 300px, each line fits) and the panel
+   takes the rest, with the video beside its text again. 533px wide is 300px
+   tall, the height of three rows of tiles, so the rows keep their own
+   height. */
+@container home-data (min-width: 1450px) {
+  .data-split {
+    grid-template-columns: minmax(0, 940px) minmax(0, 1fr);
+  }
+  .tools-panel {
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+  }
+  .tools-panel .video-frame {
+    flex: 0 0 min(60%, 533px);
+  }
+  .tools-panel-copy {
+    margin-top: 0;
+  }
+}
+/* Very wide: five columns, so two rows of tiles and a smaller video. */
+@container home-data (min-width: 2050px) {
+  .cat-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .data-split {
+    grid-template-columns: minmax(0, 1560px) minmax(0, 1fr);
+  }
+  .tools-panel .video-frame {
+    flex: 0 0 50%;
+  }
+}
 /* The map section is a container, so the map height below follows the width
    the map really has. */
 .hp-reach {
