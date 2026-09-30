@@ -213,6 +213,10 @@ function buildMarker(info: MarkerInfo): HTMLElement {
   return el
 }
 
+function wrapLng(lng: number): number {
+  return ((((lng + 180) % 360) + 360) % 360) - 180
+}
+
 /**
  * The markers are DOM, one per site or cluster the source has in view. Runs
  * on every frame, so it only builds a glyph when its content changed.
@@ -231,7 +235,9 @@ function syncMarkers() {
     const n = sumCounts(counts)
     const site = cluster ? undefined : sitesById.value.get(String(props.sid))
     const [lng, lat] = feature.geometry.coordinates
-    const lngLat: [number, number] = site ? [site.lng, site.lat] : [lng, lat]
+    // Near the 180° line the source also gives a cluster shifted by 360° (the
+    // tile buffer): bring it back, or it lands on the next copy of the world.
+    const lngLat: [number, number] = site ? [site.lng, site.lat] : [wrapLng(lng), lat]
     // After setData a cluster id can come back for another cluster: compare the place too.
     const sig = `${JSON.stringify(counts)}|${lngLat[0].toFixed(3)},${lngLat[1].toFixed(3)}|${scale}`
     const existing = markers.get(key)
@@ -463,7 +469,10 @@ function createMap(container: HTMLElement) {
       zoom: compact.value ? 0.3 : 1,
       minZoom: compact.value ? 0 : 0.4,
       maxZoom: 11,
-      renderWorldCopies: false,
+      // A flat frame (3:1 on a wide screen, see .map-frame in app.css) is
+      // wider than the world at the world view: repeat it rather than leave
+      // empty sides.
+      renderWorldCopies: true,
       attributionControl: false,
       dragRotate: false,
       pitchWithRotate: false,
@@ -485,6 +494,14 @@ function createMap(container: HTMLElement) {
     addSites()
   })
   m.on('render', syncMarkers)
+  // With world copies on, MapLibre keeps a marker on the copy nearest its last
+  // screen position. After a big resize (the map starts at 400px when its box
+  // has no size yet) that can be the wrong copy. New markers take the copy
+  // nearest the centre, so build them again.
+  m.on('resize', () => {
+    clearMarkers()
+    syncMarkers()
+  })
   m.on('zoom', () => {
     named.value = m.getZoom() >= (compact.value ? 3.8 : 3)
   })

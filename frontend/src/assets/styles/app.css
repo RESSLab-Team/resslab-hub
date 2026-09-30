@@ -768,18 +768,33 @@
 /* The map section is a container, so the map height below follows the width
    the map really has. */
 .hp-reach {
-  container-type: inline-size;
+  container: home-reach / inline-size;
 }
-/* MapLibre needs a real height. It grows slower than the width: a narrow map
-   is tall (taller than wide on a phone, about 3:2 on a laptop), a wide one is
-   flat (about 5:2 on a large screen, never flatter than 8:3). Capped at 75vh
-   so the page still scrolls past it. The map fills the frame (OverviewMap's
-   root is absolute) and its legend sits inside it, under the map. */
+/* MapLibre needs a real height. The shape follows the map width:
+   - narrow (window 1280 and below): tall. Taller than wide on a phone, and on
+     a laptop as tall as the screen allows, minus a band to scroll the page
+     (the wheel over the map zooms it);
+   - middle: grows slower than the width, about 5:3 at 1440;
+   - wide (window above about 1700): flat, 3:1. The world view is then wider
+     than the world, so OverviewMap repeats the world on the sides (mostly
+     Pacific at 3:1; flatter, whole continents come twice).
+   The map fills the frame (OverviewMap's root is absolute) and its legend
+   sits inside it, under the map. */
 .map-frame {
   position: relative;
-  height: clamp(480px, max(520px + 10cqw, 37.5cqw), 75vh);
+  height: clamp(520px, 160cqw, 100svh - 100px);
   border: 1px solid var(--border);
   overflow: hidden;
+}
+@container home-reach (min-width: 900px) {
+  .map-frame {
+    height: clamp(480px, 520px + 10cqw, 75vh);
+  }
+}
+@container home-reach (min-width: 1300px) {
+  .map-frame {
+    height: clamp(480px, 33.3cqw, 75vh);
+  }
 }
 .video-frame {
   aspect-ratio: 16 / 9;
