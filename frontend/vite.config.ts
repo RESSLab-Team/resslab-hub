@@ -106,9 +106,8 @@ export default defineConfig({
       'echarts',
       'mathjs',
       'lodash',
-      // Home renders the overview map (lazily), so pre-bundle leaflet too.
-      'leaflet',
-      'leaflet.markercluster',
+      // Home renders the overview map (lazily), so pre-bundle maplibre too.
+      'maplibre-gl',
       // Every other bare specifier imported under src/, including the echarts
       // subpath imports and echarts-gl (3D fragility pages): folding them all
       // into the one cold pass means no navigation can ever discover a dep
@@ -118,9 +117,6 @@ export default defineConfig({
       '@stdlib/stats-base-dists-lognormal-cdf',
       'colormap',
       'd3-array',
-      'd3-scale',
-      'd3-selection',
-      'd3-shape',
       'downloadjs',
       'echarts/charts',
       'echarts/components',

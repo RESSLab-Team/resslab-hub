@@ -1,0 +1,227 @@
+{
+  "46.52,6.57": {
+    "inst": "EPFL",
+    "city": "Lausanne",
+    "cc": "CH"
+  },
+  "35.03,135.78": {
+    "inst": "Kyoto University",
+    "city": "Kyoto",
+    "cc": "JP"
+  },
+  "37.87,-122.24": {
+    "inst": "UC Berkeley",
+    "city": "Berkeley",
+    "cc": "US"
+  },
+  "37.87,-122.26": {
+    "inst": "UC Berkeley",
+    "city": "Berkeley",
+    "cc": "US"
+  },
+  "37.91,-122.33": {
+    "inst": "UC Berkeley Richmond Field Station",
+    "city": "Richmond",
+    "cc": "US"
+  },
+  "32.88,-117.23": {
+    "inst": "UC San Diego",
+    "city": "La Jolla",
+    "cc": "US"
+  },
+  "42.28,-83.74": {
+    "inst": "University of Michigan",
+    "city": "Ann Arbor",
+    "cc": "US"
+  },
+  "42.28,-83.73": {
+    "inst": "University of Michigan",
+    "city": "Ann Arbor",
+    "cc": "US"
+  },
+  "42.29,-83.71": {
+    "inst": "University of Michigan",
+    "city": "Ann Arbor",
+    "cc": "US"
+  },
+  "30.29,-97.73": {
+    "inst": "UT Austin",
+    "city": "Austin",
+    "cc": "US"
+  },
+  "30.28,-97.73": {
+    "inst": "UT Austin",
+    "city": "Austin",
+    "cc": "US"
+  },
+  "45.75,21.23": {
+    "inst": "Politehnica University of Timișoara",
+    "city": "Timișoara",
+    "cc": "RO"
+  },
+  "45.74,21.25": {
+    "inst": "Politehnica University of Timișoara",
+    "city": "Timișoara",
+    "cc": "RO"
+  },
+  "40.61,-75.38": {
+    "inst": "Lehigh University",
+    "city": "Bethlehem",
+    "cc": "US"
+  },
+  "45.51,-73.61": {
+    "inst": "Polytechnique Montréal",
+    "city": "Montréal",
+    "cc": "CA"
+  },
+  "47.66,-122.30": {
+    "inst": "University of Washington",
+    "city": "Seattle",
+    "cc": "US"
+  },
+  "40.00,116.32": {
+    "inst": "Tsinghua University",
+    "city": "Beijing",
+    "cc": "CN"
+  },
+  "45.50,-73.57": {
+    "inst": "McGill University",
+    "city": "Montréal",
+    "cc": "CA"
+  },
+  "45.50,-73.58": {
+    "inst": "McGill University",
+    "city": "Montréal",
+    "cc": "CA"
+  },
+  "34.75,136.52": {
+    "inst": "Mie University",
+    "city": "Tsu",
+    "cc": "JP"
+  },
+  "40.85,14.26": {
+    "inst": "University of Naples Federico II",
+    "city": "Naples",
+    "cc": "IT"
+  },
+  "51.08,-114.14": {
+    "inst": "University of Calgary",
+    "city": "Calgary",
+    "cc": "CA"
+  },
+  "51.50,-0.18": {
+    "inst": "Imperial College London",
+    "city": "London",
+    "cc": "GB"
+  },
+  "-36.85,174.77": {
+    "inst": "University of Auckland",
+    "city": "Auckland",
+    "cc": "NZ"
+  },
+  "-43.52,172.58": {
+    "inst": "University of Canterbury",
+    "city": "Christchurch",
+    "cc": "NZ"
+  },
+  "43.66,-79.40": {
+    "inst": "University of Toronto",
+    "city": "Toronto",
+    "cc": "CA"
+  },
+  "51.45,5.49": {
+    "inst": "Eindhoven University of Technology",
+    "city": "Eindhoven",
+    "cc": "NL"
+  },
+  "53.34,-6.25": {
+    "inst": "Trinity College Dublin",
+    "city": "Dublin",
+    "cc": "IE"
+  },
+  "37.55,127.04": {
+    "inst": "Hanyang University",
+    "city": "Seoul",
+    "cc": "KR"
+  },
+  "43.26,-79.92": {
+    "inst": "McMaster University",
+    "city": "Hamilton",
+    "cc": "CA"
+  },
+  "39.88,32.79": {
+    "inst": "Middle East Technical University",
+    "city": "Ankara",
+    "cc": "TR"
+  },
+  "40.11,-88.23": {
+    "inst": "University of Illinois Urbana-Champaign",
+    "city": "Urbana",
+    "cc": "US"
+  },
+  "35.71,139.76": {
+    "inst": "University of Tokyo",
+    "city": "Tokyo",
+    "cc": "JP"
+  },
+  "44.98,-93.23": {
+    "inst": "University of Minnesota",
+    "city": "Minneapolis",
+    "cc": "US"
+  },
+  "52.21,0.11": {
+    "inst": "University of Cambridge",
+    "city": "Cambridge",
+    "cc": "GB"
+  },
+  "-37.91,145.13": {
+    "inst": "Monash University",
+    "city": "Melbourne",
+    "cc": "AU"
+  },
+  "34.72,135.23": {
+    "inst": "Kobe University",
+    "city": "Kobe",
+    "cc": "JP"
+  },
+  "25.02,121.55": {
+    "inst": "National Taiwan University",
+    "city": "Taipei",
+    "cc": "TW"
+  },
+  "30.62,-96.34": {
+    "inst": "Texas A&M University",
+    "city": "College Station",
+    "cc": "US"
+  },
+  "39.54,-119.82": {
+    "inst": "University of Nevada, Reno",
+    "city": "Reno",
+    "cc": "US"
+  },
+  "40.19,-8.41": {
+    "inst": "University of Coimbra",
+    "city": "Coimbra",
+    "cc": "PT"
+  },
+  "53.52,-113.53": {
+    "inst": "University of Alberta",
+    "city": "Edmonton",
+    "cc": "CA"
+  },
+  "-27.50,153.01": {
+    "inst": "University of Queensland",
+    "city": "Brisbane",
+    "cc": "AU"
+  },
+  "43.00,-78.79": {
+    "inst": "University at Buffalo",
+    "city": "Buffalo",
+    "cc": "US"
+  },
+  "51.03,3.73": {
+    "inst": "Ghent University",
+    "city": "Ghent",
+    "cc": "BE"
+  }
+}

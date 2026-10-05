@@ -32,7 +32,8 @@ column (string, number, date, boolean) from the first non-null value.
 The backend routes `/fields`, `/counts`, `/range`, `/matrix` and `/distinct`
 still exist on every component router, for API users and for two things in
 the app: `/distinct` feeds the sidebar badges and the home KPIs
-(`stores/counts.ts`), `/fields` feeds the overview map.
+(`stores/counts.ts`). The overview map has its own route, `/map/sites`,
+which groups every database by site on the server.
 
 ## Filtering runs client side
 

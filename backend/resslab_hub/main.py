@@ -36,6 +36,7 @@ from resslab_hub.routers import (
     root,
     tensile_coupon,
 )
+from resslab_hub.routers import map as map_router
 from resslab_hub.utils.caching import HTTPCacheMiddleware
 from resslab_hub.utils.database import upgrade_database
 from resslab_hub.utils.fastapi import use_route_names_as_operation_ids
@@ -156,6 +157,7 @@ app.include_router(hss_columns.router)
 app.include_router(eccentric_braced_frame.router)
 app.include_router(tensile_coupon.router)
 app.include_router(ductile_fracture.router)
+app.include_router(map_router.router)
 add_pagination(app)
 use_route_names_as_operation_ids(app)
 
