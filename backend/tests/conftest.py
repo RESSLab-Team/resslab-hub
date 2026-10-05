@@ -214,6 +214,42 @@ def sign_in(client, db_session):
     client.cookies.clear()
 
 
+@pytest.fixture(autouse=True)
+def _no_github_permission_reads(monkeypatch):
+    """No test reads a permission from GitHub, whatever ``secrets/.env`` says.
+
+    The role sync (#248) only asks GitHub when the App is configured, and a
+    developer's ``.env`` may well configure it.
+    """
+    from resslab_hub.auth import github_sync
+
+    monkeypatch.setattr(github_sync, "configured", lambda: False)
+
+
+@pytest.fixture
+def github_permissions(monkeypatch):
+    """GitHub permissions on the data repo, by login, without calling GitHub.
+
+    ``github_permissions["ada-l"] = "write"`` makes ``@ada-l`` a curator at
+    the next sync. A login missing from the dict has ``none``; an exception
+    as the value is raised, like a GitHub outage.
+    """
+    from resslab_hub.auth import github_sync
+
+    permissions = {}
+
+    class _FakeClient:
+        async def get_permission(self, login):
+            value = permissions.get(login, "none")
+            if isinstance(value, Exception):
+                raise value
+            return value
+
+    monkeypatch.setattr(github_sync, "configured", lambda: True)
+    monkeypatch.setattr(github_sync, "DataRepoClient", _FakeClient)
+    return permissions
+
+
 # ---------------------------------------------------------------------------
 # CSV fixture helpers: build well-formed upload CSVs whose headers match the
 # ORM column keys, filling every non-overridden column with a type-appropriate

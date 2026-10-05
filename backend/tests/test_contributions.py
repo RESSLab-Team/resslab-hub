@@ -802,6 +802,47 @@ async def test_update_needs_a_readable_record(tmp_path, monkeypatch):
     assert excinfo.value.status_code == 403
 
 
+CURATOR = Contributor(name="Dimitrios Lignos", email="dl@epfl.ch", institution="EPFL")
+
+
+async def test_a_curator_fixes_someone_elses_submission(tmp_path, monkeypatch):
+    """The commit is the curator's, the submission stays the contributor's (#248)."""
+    patch_validation(monkeypatch)
+    client = edit_client()
+    batch = make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n")
+
+    result = await update_contribution(
+        str(batch), 7, "head-sha", CURATOR, [], client=client, as_curator=True
+    )
+
+    assert result.head_sha == "new-commit-sha"
+    assert client.commit_kwargs["author_name"] == "Dimitrios Lignos"
+    assert client.commit_kwargs["author_email"] == "dl@epfl.ch"
+    trailers = parse_trailers(client.commit_kwargs["message"])
+    assert trailers["Submitted-by"] == ["Ada Lovelace <ada@example.edu>"]
+    assert "Ada Lovelace (ada@example.edu)" in client.pr["body"]
+    assert "dl@epfl.ch" not in client.pr["body"]
+
+
+async def test_a_curator_cannot_fix_a_submission_nobody_owns(tmp_path, monkeypatch):
+    """Their commit would become the first Hub commit, and so the owner."""
+    patch_validation(monkeypatch)
+    client = edit_client()
+    client.pr_commits = [{"sha": "x", "message": "fix: pushed by hand"}]
+    with pytest.raises(SubmissionError) as excinfo:
+        await update_contribution(
+            str(make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n")),
+            7,
+            "head-sha",
+            CURATOR,
+            [],
+            client=client,
+            as_curator=True,
+        )
+    assert excinfo.value.status_code == 403
+    assert client.committed == []
+
+
 async def test_update_falls_back_to_a_legacy_record(tmp_path, monkeypatch):
     """A submission opened before trailers stays editable by its author."""
     patch_validation(monkeypatch)

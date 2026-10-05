@@ -26,17 +26,33 @@ vi.mock('vue-router', () => ({
 // import time, which the test environment does not provide.
 const i18n = createI18n({ legacy: false, locale: 'en', messages: { en } })
 
-async function sections(contributions: boolean): Promise<string[]> {
+function mountSidebar(contributions: boolean) {
   getFeatures.mockResolvedValue({ data: { contributions } })
-  const wrapper = mount(AppSidebar, {
+  return mount(AppSidebar, {
     props: { open: true, dark: false },
     global: {
       plugins: [i18n],
       stubs: { RouterLink: { template: '<a><slot /></a>' }, VIcon: true, LanguageToggle: true }
     }
   })
+}
+
+async function sections(contributions: boolean): Promise<string[]> {
+  const wrapper = mountSidebar(contributions)
   await flushPromises()
   return wrapper.findAll('.sidebar-section').map((node) => node.text())
+}
+
+async function links(): Promise<string[]> {
+  const wrapper = mountSidebar(true)
+  await flushPromises()
+  return wrapper.findAll('.sidebar-link').map((node) => node.text())
+}
+
+function signedInAs(role: string): void {
+  getMe.mockResolvedValue({
+    data: { user: { id: 'u1', email: 'ada@example.edu', display_name: 'Ada', role } }
+  })
 }
 
 describe('AppSidebar and CONTRIBUTIONS_ENABLED', () => {
@@ -46,10 +62,8 @@ describe('AppSidebar and CONTRIBUTIONS_ENABLED', () => {
     getMe.mockResolvedValue({ data: { user: null } })
   })
 
-  it('shows contribute, curation and account when contributions are on', async () => {
-    expect(await sections(true)).toEqual(
-      expect.arrayContaining(['Contribute', 'Curation', 'Account'])
-    )
+  it('shows contribute and account when contributions are on', async () => {
+    expect(await sections(true)).toEqual(expect.arrayContaining(['Contribute', 'Account']))
   })
 
   it('hides all three when contributions are off', async () => {
@@ -58,5 +72,33 @@ describe('AppSidebar and CONTRIBUTIONS_ENABLED', () => {
     expect(shown).not.toContain('Contribute')
     expect(shown).not.toContain('Curation')
     expect(shown).not.toContain('Account')
+  })
+})
+
+describe('AppSidebar and roles (#248)', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+  })
+
+  it('hides the review queue from a visitor and a contributor', async () => {
+    getMe.mockResolvedValue({ data: { user: null } })
+    expect(await sections(true)).not.toContain('Curation')
+
+    setActivePinia(createPinia())
+    signedInAs('contributor')
+    expect(await sections(true)).not.toContain('Curation')
+  })
+
+  it('shows the review queue to a curator, but not the admin page', async () => {
+    signedInAs('curator')
+    expect(await sections(true)).toContain('Curation')
+    expect(await links()).not.toContain('Administration')
+  })
+
+  it('shows both to an admin', async () => {
+    signedInAs('admin')
+    expect(await sections(true)).toContain('Curation')
+    expect(await links()).toContain('Administration')
   })
 })

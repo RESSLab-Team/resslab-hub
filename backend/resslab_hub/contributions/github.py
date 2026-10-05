@@ -21,6 +21,7 @@ from typing import AsyncGenerator, Dict, List, Optional
 
 import httpx
 from githubkit import AppInstallationAuthStrategy, GitHub
+from githubkit.exception import RequestFailed
 
 from resslab_hub.config import settings
 
@@ -255,6 +256,24 @@ class DataRepoClient:
             headers={"Accept": "application/vnd.github.raw+json"},
         )
         return response.content.decode("utf-8")
+
+    async def get_permission(self, login: str) -> str:
+        """What a GitHub account may do on the data repo (#248).
+
+        GitHub's base level: ``admin``, ``write`` (maintain counts as write),
+        ``read`` or ``none``. An unknown login is a 404, which means ``none``
+        here. Needs only the Metadata permission, which every App has.
+        """
+        repos = self._gh.rest.repos
+        try:
+            response = await repos.async_get_collaborator_permission_level(
+                self.owner, self.repo, login
+            )
+        except RequestFailed as exc:
+            if exc.response.status_code == 404:
+                return "none"
+            raise
+        return str(response.parsed_data.permission or "none")
 
     async def get_base_sha(self) -> str:
         """Commit sha of the base branch head."""

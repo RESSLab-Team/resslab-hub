@@ -9,13 +9,18 @@ How a submission gets there: [contributing-data.md](contributing-data.md).
 
 ## Who can open it
 
-`/curation` (the queue) and `/curation/<pr number>` (the review) need a
-signed-in account, any role (`require_user` on every endpoint of
-`backend/resslab_hub/routers/curation.py`). Not the `curator` role yet: the
-endpoints reveal nothing the public pull request does not, but the queue is
-the lab's work list, not a public page. #248 will tie `curator` to the GitHub
-permission on the data repo, so the app and the merge gate read the same
-source ([auth.md](auth.md), "Later").
+`/curation` (the queue) needs the `curator` role. A curator is someone with
+write or maintain on the data repository, through their linked GitHub
+account, or someone an admin made curator ([auth.md](auth.md#roles)). So the
+people who can merge on GitHub are the ones who review here.
+
+`/curation/<pr number>` (one submission) is open to curators and to the
+person who made it: the `Submitted-by` trailer of its first Hub commit
+matches their verified address. That second way in is what lets a
+contributor follow their own submission and load it into the editor. Anyone
+else gets a 403, and the page sends them to the "not open to your account"
+page. The check is `_check_access` in `backend/resslab_hub/routers/curation.py`;
+it needs the pull request, so it runs in each handler, not as a dependency.
 
 With `CONTRIBUTIONS_ENABLED=false` nobody can: the endpoints answer `404` and
 the sidebar has no Curation section ([contributing-data.md](contributing-data.md#settings)).
@@ -82,19 +87,19 @@ request body (experiment count, contributor).
   experiment, same shape as the editor's.
 - **Discussion** (`ReviewThread.vue`): the pull request comments, read only.
 
-**Edit on the Hub** appears only when `mine` is true: the signed-in account's
-verified address matches the `Submitted-by` trailer of the first Hub commit
-(see provenance in [contributing-data.md](contributing-data.md)). It opens
-`/contribute/edit/<pr number>`.
+**Edit on the Hub** appears when `mine` is true (the signed-in account's
+verified address matches the `Submitted-by` trailer of the first Hub commit,
+see provenance in [contributing-data.md](contributing-data.md)), and for every
+curator. It opens `/contribute/edit/<pr number>`. A curator's edit is a commit
+authored by the curator; the trailers keep naming the person who submitted.
+
 
 ## What curation does not do yet
 
-- No approve, request changes or merge here. Do those on GitHub, and merge
-  with squash only (the data repo CI validates `HEAD~1..HEAD`).
-- The `curator` role exists in the hierarchy but is not enforced, and there
-  is no admin screen to grant it (#248).
-- A curator cannot edit someone else's submission from the app; only the
-  owner can (#248 as well).
+- No approve, request changes or merge here (#254). Do those on GitHub, and
+  merge with squash only (the data repo CI validates `HEAD~1..HEAD`).
+- Nothing on GitHub forces a review yet: the data repository `main` has no
+  branch protection and no CODEOWNERS file.
 
 ## Trying it locally
 

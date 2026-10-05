@@ -94,10 +94,10 @@ FastAPI + SQLAlchemy 2.0 async + PostgreSQL. Key files:
 - `config.py`: Dynaconf settings with required keys (`POSTGRES_PASSWORD`, `API_PASSWORD`)
 - `models/api.py`: Pydantic schemas (auto-generated, do not edit manually)
 - `models/database/`: SQLAlchemy ORM models (auto-generated from CSV data dictionaries)
-- `routers/`: one file per component type (braces, columns, connections, materials [cyclic coupons], tensile_coupon, ductile_fracture, residual_stress, hss_columns, eccentric_braced_frame) plus `root.py` (`/validate`, `/upload`, health), `auth.py`, `contributions.py` (submit and edit, see `docs/contributing-data.md`), `curation.py` (the review queue, `docs/curation.md`), `dictionary.py` (data dictionaries and READMEs) and `analytics.py` (Google Analytics counts)
+- `routers/`: one file per component type (braces, columns, connections, materials [cyclic coupons], tensile_coupon, ductile_fracture, residual_stress, hss_columns, eccentric_braced_frame) plus `root.py` (`/validate`, `/upload`, health), `auth.py`, `contributions.py` (submit and edit, see `docs/contributing-data.md`), `curation.py` (the review queue, `docs/curation.md`), `admin.py` (members, invitations and access requests, `docs/auth.md`), `dictionary.py` (data dictionaries and READMEs) and `analytics.py` (Google Analytics counts)
 - `contributions/`: how a submission becomes a branch and pull request on the data repo: `github.py` (githubkit client, one shared HTTP client per process), `submission.py`, `projection.py`, `trailers.py` (provenance as commit trailers)
 - `utils/caching.py` and `utils/warmup.py`: the per-process response cache (ETag on a data version, `CACHE_MAX_AGE`, bumped by `/upload`) and the startup warmup that fills it; `docs/dashboard-architecture.md`
-- `auth/`: sign-in, sessions and roles (#247). `deps.py` holds the FastAPI dependencies (`require_user`, `require_role`, and the machine-credential ones); see `docs/auth.md`
+- `auth/`: sign-in, sessions and roles (#247, #248). `roles.py` works out a role (GitHub permission on the data repo first, `github_sync.py` keeps it fresh), `access.py` handles invitations and access requests. `deps.py` holds the FastAPI dependencies (`require_user`, `require_role`, and the machine-credential ones); see `docs/auth.md`
 - `data/generate_model.py`: reads CSV data dictionaries from `resslab-hub-data` repo and generates both ORM models and Pydantic schemas
 
 **Model generation workflow**: When the data schema changes, run `make generate-model` (requires the `resslab-hub-data` repo; `backend/Makefile` finds it through `RESSLAB_DATA_DIR`, default `../../resslab-hub-data`, which worktrees export as an absolute path from `.env.worktree`), then create an Alembic migration with `make database-revision`.
@@ -107,7 +107,7 @@ FastAPI + SQLAlchemy 2.0 async + PostgreSQL. Key files:
 Vue 3 + TypeScript + Vite + Vuetify 3 + Pinia.
 
 - `backend/`: auto-generated TypeScript API client (from `openapi.json` via `make api`); never edit manually
-- `views/`: page-level components. Per database: `{Type}View.vue` (overview), `{Type}Database.vue` (data table), `{Type}ModelView.vue` (model curves), `{Type}FragilityCurve.vue` (braces, columns, connections); tensile coupons and ductile fracture only have a `Database` view (sub-tabs of Materials). Plus the pages: `HomeView`, `AboutView`, `LoginView`, `LoginVerifyView`, `AccountView`, `ForbiddenView`, `ContributeView`, `CurationQueueView`, `CurationReviewView`
+- `views/`: page-level components. Per database: `{Type}View.vue` (overview), `{Type}Database.vue` (data table), `{Type}ModelView.vue` (model curves), `{Type}FragilityCurve.vue` (braces, columns, connections); tensile coupons and ductile fracture only have a `Database` view (sub-tabs of Materials). Plus the pages: `HomeView`, `AboutView`, `LoginView`, `LoginVerifyView`, `AccountView`, `ForbiddenView`, `AdminView`, `ContributeView`, `CurationQueueView`, `CurationReviewView`
 - `components/`: reusable components, organized by domain (`braces/`, `columns/`, etc.) plus `commons/`
 - `composables/`: Vue 3 composition functions
 - `stores/`: Pinia stores

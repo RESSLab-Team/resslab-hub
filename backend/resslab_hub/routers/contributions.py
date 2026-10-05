@@ -147,7 +147,7 @@ async def _run_on_archive(
 # Contributor role, not just a session (#248). Being signed in is not by
 # itself permission to submit: any address that can receive a code would
 # otherwise open pull requests on the data repository. The role comes from an
-# academic address, see `auth/roles.py`. Who submitted is not a form field
+# academic address or an admin, see `auth/roles.py`. Who submitted is not a form field
 # either: it is the account, which is what makes the pull request attributable
 # and lets a curator reach the person who opened it.
 @router.post(
@@ -178,7 +178,7 @@ async def create_contribution(
 
 
 # Same account as the submission, checked in `update_contribution` against the
-# commit trailers on the branch.
+# commit trailers on the branch. Or a curator, who can fix anyone's (#248).
 @router.put(
     "/contributions/{pr_number}",
     response_model=ContributionResponse,
@@ -198,16 +198,21 @@ async def update_open_contribution(
     Replace an open submission's batch with a new commit on its own branch.
     The pull request updates and its checks rerun; no second review is opened.
 
-    Answers 403 when the submission was made from another account, and 409
-    when the branch moved since the editor loaded it: reload and make the
-    changes again.
+    Answers 403 when the submission was made from another account (unless
+    the caller is a curator), and 409 when the branch moved since the editor
+    loaded it: reload and make the changes again.
     """
     dismissed = _parse_dismissed(dismissed_warnings)
     contributor = _contributor(user)
     response = await _run_on_archive(
         file,
         lambda tmpdir: update_contribution(
-            tmpdir, pr_number, head_sha, contributor, dismissed
+            tmpdir,
+            pr_number,
+            head_sha,
+            contributor,
+            dismissed,
+            as_curator=roles.at_least(user.role, roles.CURATOR),
         ),
     )
     if isinstance(response, ContributionResponse):

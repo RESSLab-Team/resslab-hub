@@ -9,6 +9,7 @@ import ReviewThread from '@/components/curation/ReviewThread.vue'
 import { cohortQueryFor, GHOST_CONFIGS, mergeBrush } from '@/components/curation/ghost'
 import type { ParallelSelection } from '@/composables/chart'
 import { useDataset } from '@/composables/useDataset'
+import { useAuthStore } from '@/stores/auth'
 import { useCurationStore } from '@/stores/curation'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { databaseIdForType, formatAge, withDerivedExperiments } from '@/utils/curation'
@@ -24,6 +25,7 @@ import {
 } from '@mdi/js'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 
 const props = defineProps<{
   prNumber: string
@@ -32,6 +34,9 @@ const props = defineProps<{
 const { locale } = useI18n({ useScope: 'global' })
 const store = useCurationStore()
 const dictionary = useDictionaryStore()
+const auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
 
 const number = computed(() => Number(props.prNumber))
 const detail = ref<CurationDetail | null>(null)
@@ -113,7 +118,16 @@ onMounted(async () => {
     const config = database.value ? GHOST_CONFIGS[database.value] : undefined
     cohortFields.value = config ? [...config.cohortDefaults] : []
     loadRanges()
-  } catch {
+  } catch (caught: unknown) {
+    // A contributor opened someone else's submission: the router let them
+    // through on the role, the backend knows whose it is (#248).
+    if ((caught as { response?: { status?: number } })?.response?.status === 403) {
+      router.replace({
+        name: 'Forbidden',
+        query: { next: route.fullPath, need: 'curator', reason: 'not_yours' }
+      })
+      return
+    }
     state.value = 'error'
   }
 })
@@ -142,7 +156,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
         <v-icon :icon="mdiAlertOutline" size="15" />
         {{ $t('curation.review.not_found') }}
       </p>
-      <router-link class="cp-btn back" to="/curation">
+      <router-link v-if="auth.hasRole('curator')" class="cp-btn back" to="/curation">
         <v-icon :icon="mdiArrowLeft" size="14" />
         {{ $t('curation.review.back') }}
       </router-link>
@@ -166,7 +180,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
             </h2>
             <div class="hrow-actions">
               <router-link
-                v-if="detail.mine"
+                v-if="detail.mine || auth.hasRole('curator')"
                 class="cp-btn"
                 :to="{ name: 'ContributeEdit', params: { prNumber: detail.pr_number } }"
               >

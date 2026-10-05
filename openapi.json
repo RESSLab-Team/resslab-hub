@@ -393,6 +393,48 @@
         }
       }
     },
+    "/auth/access-request": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Request Access",
+        "description": "Ask the admins for the contributor role (#248).\n\nFor someone whose address is not academic, so it did not grant the role.\nOne open request at a time; after a decline they may ask again.",
+        "operationId": "request_access",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessRequestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequestStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/github/start": {
       "get": {
         "tags": [
@@ -576,7 +618,7 @@
     "/contributions/{pr_number}": {
       "put": {
         "summary": "Update Open Contribution",
-        "description": "Replace an open submission's batch with a new commit on its own branch.\nThe pull request updates and its checks rerun; no second review is opened.\n\nAnswers 403 when the submission was made from another account, and 409\nwhen the branch moved since the editor loaded it: reload and make the\nchanges again.",
+        "description": "Replace an open submission's batch with a new commit on its own branch.\nThe pull request updates and its checks rerun; no second review is opened.\n\nAnswers 403 when the submission was made from another account (unless\nthe caller is a curator), and 409 when the branch moved since the editor\nloaded it: reload and make the changes again.",
         "operationId": "update_open_contribution",
         "parameters": [
           {
@@ -704,7 +746,7 @@
     "/contributions/{pr_number}/comments": {
       "get": {
         "summary": "Get Contribution Comments",
-        "description": "The submission's discussion, oldest first, with the pull request body as\nthe opening entry (it is the submission summary the contributor wrote).\n\nRead-only: replying, requesting changes and approving still happen on\nGitHub until per-user auth (#247) and curator roles (#248) land.",
+        "description": "The submission's discussion, oldest first, with the pull request body as\nthe opening entry (it is the submission summary the contributor wrote).\n\nRead-only: replying, requesting changes and approving still happen on\nGitHub (#254).",
         "operationId": "get_contribution_comments",
         "parameters": [
           {
@@ -773,6 +815,299 @@
               "text/plain": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "List Users",
+        "description": "Everyone with an account, oldest first.",
+        "operationId": "list_users",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminUserOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Users Admin Users Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{user_id}": {
+      "patch": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Update User",
+        "description": "Set or clear the role decision, disable or enable the account.",
+        "operationId": "update_user",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUserPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/invitations": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "List Invitations",
+        "description": "Every invitation, newest first. The old ones stay, for the record.",
+        "operationId": "list_invitations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InvitationOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Invitations Admin Invitations Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Create Invitation",
+        "description": "Give a role to an address before it has an account, and mail it.\n\nAn address that already has an account is changed in the members list\ninstead: there is nothing to wait for.",
+        "operationId": "create_invitation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvitationIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationCreated"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/invitations/{invitation_id}": {
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Revoke Invitation",
+        "description": "Take back an invitation nobody used yet.",
+        "operationId": "revoke_invitation",
+        "parameters": [
+          {
+            "name": "invitation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Invitation Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/access-requests": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "List Access Requests",
+        "description": "Every request, newest first.",
+        "operationId": "list_access_requests",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AccessRequestOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Access Requests Admin Access Requests Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/access-requests/{request_id}/approve": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Approve Access Request",
+        "description": "Give the role asked for, and tell the person.",
+        "operationId": "approve_access_request",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequestOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/access-requests/{request_id}/decline": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Decline Access Request",
+        "description": "Say no. No mail: the account page shows it, and they may ask again.",
+        "operationId": "decline_access_request",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequestOut"
                 }
               }
             }
@@ -7018,6 +7353,286 @@
   },
   "components": {
     "schemas": {
+      "AccessRequestIn": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Message",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "AccessRequestIn"
+      },
+      "AccessRequestOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name",
+            "default": ""
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "institution": {
+            "type": "string",
+            "title": "Institution",
+            "default": ""
+          },
+          "current_role": {
+            "type": "string",
+            "title": "Current Role"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "decided_by": {
+            "type": "string",
+            "title": "Decided By",
+            "default": ""
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "current_role",
+          "role",
+          "status",
+          "created_at"
+        ],
+        "title": "AccessRequestOut"
+      },
+      "AccessRequestStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "role",
+          "created_at"
+        ],
+        "title": "AccessRequestStatus",
+        "description": "Where the person's last access request is (#248)."
+      },
+      "AdminUserOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "email_verified": {
+            "type": "boolean",
+            "title": "Email Verified",
+            "default": false
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name",
+            "default": ""
+          },
+          "institution": {
+            "type": "string",
+            "title": "Institution",
+            "default": ""
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "role_source": {
+            "type": "string",
+            "title": "Role Source"
+          },
+          "role_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Override"
+          },
+          "github_login": {
+            "type": "string",
+            "title": "Github Login",
+            "default": ""
+          },
+          "github_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Role"
+          },
+          "locked": {
+            "type": "boolean",
+            "title": "Locked",
+            "default": false
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_login_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Login At"
+          },
+          "disabled": {
+            "type": "boolean",
+            "title": "Disabled",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "role_source",
+          "created_at"
+        ],
+        "title": "AdminUserOut"
+      },
+      "AdminUserPatch": {
+        "properties": {
+          "role_override": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "viewer",
+                  "contributor",
+                  "curator",
+                  "admin"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Override"
+          },
+          "disabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disabled"
+          }
+        },
+        "type": "object",
+        "title": "AdminUserPatch",
+        "description": "Only the fields that are sent change.\n\n``role_override: null`` goes back to the automatic role."
+      },
       "Body_create_contribution_contributions_post": {
         "properties": {
           "file": {
@@ -15262,6 +15877,171 @@
         "title": "Info",
         "description": "App Info"
       },
+      "InvitationCreated": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "redeemed",
+              "revoked"
+            ],
+            "title": "Status"
+          },
+          "invited_by": {
+            "type": "string",
+            "title": "Invited By",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "redeemed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redeemed At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "mailed": {
+            "type": "boolean",
+            "title": "Mailed",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "role",
+          "status",
+          "created_at"
+        ],
+        "title": "InvitationCreated"
+      },
+      "InvitationIn": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "contributor",
+              "curator",
+              "admin"
+            ],
+            "title": "Role",
+            "default": "contributor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "InvitationIn"
+      },
+      "InvitationOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "redeemed",
+              "revoked"
+            ],
+            "title": "Status"
+          },
+          "invited_by": {
+            "type": "string",
+            "title": "Invited By",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "redeemed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redeemed At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "role",
+          "status",
+          "created_at"
+        ],
+        "title": "InvitationOut"
+      },
       "LegacyFileResult": {
         "properties": {
           "file": {
@@ -17809,6 +18589,16 @@
             "type": "array",
             "title": "Identities",
             "default": []
+          },
+          "access_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AccessRequestStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",

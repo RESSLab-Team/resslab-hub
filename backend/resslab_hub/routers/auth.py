@@ -11,11 +11,28 @@ import logging
 from typing import Optional
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Request,
+    Response,
+    status,
+)
 from fastapi.responses import RedirectResponse
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from resslab_hub.auth import email_login, github_oauth, mailer, users
+from resslab_hub.auth import (
+    access,
+    email_login,
+    github_oauth,
+    github_sync,
+    mailer,
+    roles,
+    users,
+)
 from resslab_hub.auth.deps import (
     get_current_user,
     require_contributions_enabled,
@@ -34,6 +51,8 @@ from resslab_hub.auth.sessions import (
 )
 from resslab_hub.auth.urls import frontend_url, safe_redirect
 from resslab_hub.models.auth import (
+    AccessRequestIn,
+    AccessRequestStatus,
     EmailStartRequest,
     EmailStartResponse,
     EmailVerifyRequest,
@@ -42,7 +61,7 @@ from resslab_hub.models.auth import (
     UserOut,
     VerifyResponse,
 )
-from resslab_hub.models.database.auth import User
+from resslab_hub.models.database.auth import AccessRequest, User
 from resslab_hub.utils.database import get_session
 from resslab_hub.utils.rate_limit import limiter
 
@@ -54,6 +73,17 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # (CONTRIBUTIONS_ENABLED). On each route and not on the router: `GET /me`
 # stays, the sidebar asks it on every page and must keep hearing "nobody".
 _ENABLED = [Depends(require_contributions_enabled)]
+
+
+def _request_status(item: Optional[AccessRequest]) -> Optional[AccessRequestStatus]:
+    if item is None:
+        return None
+    return AccessRequestStatus(
+        status=item.status,
+        role=item.role,
+        created_at=item.created_at,
+        decided_at=item.decided_at,
+    )
 
 
 async def _user_out(db: AsyncSession, user: User) -> UserOut:
@@ -72,6 +102,7 @@ async def _user_out(db: AsyncSession, user: User) -> UserOut:
             IdentityOut(id=item.id, provider=item.provider, handle=item.handle)
             for item in identities
         ],
+        access_request=_request_status(await access.latest_request(db, user.id)),
     )
 
 
@@ -146,6 +177,15 @@ async def verify_email_login(
         ) from exc
 
     user = await users.sign_in_with_email(db, challenge.email)
+    if user.disabled_at is not None:
+        # The code was right, so saying it costs nothing: only the owner of
+        # the address gets this far.
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="account_disabled"
+        )
+    # A linked GitHub account may have gained or lost access to the data repo.
+    await github_sync.refresh_github_role(user)
     token = await create_session(db, user, "email", request)
     redirect_to = safe_redirect(challenge.redirect_to)
     result = VerifyResponse(user=await _user_out(db, user), redirect_to=redirect_to)
@@ -212,6 +252,61 @@ async def delete_identity(
     await db.delete(target)
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/access-request",
+    response_model=AccessRequestStatus,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=_ENABLED,
+)
+@limiter.limit("5/hour")
+async def request_access(
+    request: Request,
+    response: Response,
+    payload: AccessRequestIn,
+    background: BackgroundTasks,
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_user),
+) -> AccessRequestStatus:
+    """Ask the admins for the contributor role (#248).
+
+    For someone whose address is not academic, so it did not grant the role.
+    One open request at a time; after a decline they may ask again.
+    """
+    if not user.email or user.email_verified_at is None:
+        # A submission is signed with the address, so the role is useless
+        # without one.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="email_required"
+        )
+    if roles.at_least(user.role, roles.CONTRIBUTOR):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="already_granted"
+        )
+    previous = await access.latest_request(db, user.id)
+    if previous is not None and previous.status == "pending":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="already_pending"
+        )
+    item = AccessRequest(
+        user_id=user.id,
+        role=roles.CONTRIBUTOR,
+        message=payload.message.strip(),
+        status="pending",
+    )
+    db.add(item)
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        # Two tabs at once: the unique index keeps one pending request.
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="already_pending"
+        ) from exc
+    addresses = await access.admin_addresses(db)
+    background.add_task(access.mail_new_request, addresses, user, item)
+    return _request_status(item)
 
 
 # --- GitHub ---------------------------------------------------------------
@@ -297,6 +392,9 @@ async def finish_github_login(
         except users.IdentityTaken:
             return _redirect_error("/account", "identity_taken")
         user.github_login = profile.login
+        # Write access on the data repo makes a curator: no need to wait for
+        # the next sign-in to get it.
+        await github_sync.refresh_github_role(user)
         await db.commit()
         return _redirect(redirect_to)
 
@@ -315,8 +413,12 @@ async def finish_github_login(
         # the takeover we refuse; they sign in with it and link GitHub from
         # the account page instead.
         return _redirect_error("/login", "email_in_use")
+    if user.disabled_at is not None:
+        await db.commit()
+        return _redirect_error("/login", "account_disabled")
 
     user.github_login = profile.login
+    await github_sync.refresh_github_role(user)
     token = await create_session(db, user, "github", request)
     await db.commit()
     response = _redirect(redirect_to)

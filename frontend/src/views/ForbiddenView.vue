@@ -4,17 +4,22 @@
  *
  * Separate from the sign-in page on purpose: sending someone back to sign in
  * would suggest that signing in again would help, when what they need is a
- * role. #248 adds the "ask for access" form here.
+ * role. A viewer stopped at a contributor page can ask for it here (#248).
  */
+import AccessRequestForm from '@/components/auth/AccessRequestForm.vue'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
-const needed = computed(() => {
-  const value = route.query.need
+function queryValue(key: string): string {
+  const value = route.query[key]
   return Array.isArray(value) ? String(value[0] ?? '') : String(value ?? '')
-})
+}
+
+const needed = computed(() => queryValue('need'))
+// `not_yours`: the review page of someone else's submission.
+const reason = computed(() => queryValue('reason'))
 </script>
 
 <template>
@@ -23,7 +28,9 @@ const needed = computed(() => {
     <h1 class="t-page">{{ $t('auth.forbidden.title') }}</h1>
     <p class="forbidden-lede">
       {{
-        needed
+        reason === 'not_yours'
+          ? $t('auth.forbidden.not_yours')
+          : needed
           ? $t('auth.forbidden.needs_role', { role: $t(`auth.roles.${needed}`) })
           : $t('auth.forbidden.lede')
       }}
@@ -31,6 +38,10 @@ const needed = computed(() => {
     <p v-if="needed === 'contributor'" class="forbidden-hint">
       {{ $t('auth.forbidden.contributor_hint') }}
     </p>
+    <p v-else-if="needed === 'curator'" class="forbidden-hint">
+      {{ $t('auth.forbidden.curator_hint') }}
+    </p>
+    <AccessRequestForm v-if="needed === 'contributor'" class="forbidden-access" />
     <router-link class="btn btn-secondary btn-sm" to="/">
       {{ $t('auth.forbidden.back_home') }}
     </router-link>
@@ -48,6 +59,9 @@ const needed = computed(() => {
 .forbidden {
   max-width: 560px;
   padding: 64px 32px 96px;
+}
+.forbidden-access {
+  margin: 0 0 32px;
 }
 .forbidden-lede {
   margin: 12px 0 24px;

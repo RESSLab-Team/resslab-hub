@@ -7,6 +7,7 @@ const logout = vi.fn()
 const startEmailLogin = vi.fn()
 const verifyEmailLogin = vi.fn()
 const deleteIdentity = vi.fn()
+const requestAccess = vi.fn()
 
 vi.mock('@/plugins/axios', () => ({
   authApi: {
@@ -14,7 +15,8 @@ vi.mock('@/plugins/axios', () => ({
     logout: (...args: unknown[]) => logout(...args),
     startEmailLogin: (...args: unknown[]) => startEmailLogin(...args),
     verifyEmailLogin: (...args: unknown[]) => verifyEmailLogin(...args),
-    deleteIdentity: (...args: unknown[]) => deleteIdentity(...args)
+    deleteIdentity: (...args: unknown[]) => deleteIdentity(...args),
+    requestAccess: (...args: unknown[]) => requestAccess(...args)
   }
 }))
 
@@ -130,5 +132,19 @@ describe('auth store', () => {
 
     expect(deleteIdentity).toHaveBeenCalledWith('i2')
     expect(getMe).toHaveBeenCalledTimes(2)
+  })
+
+  it('shows a sent access request as waiting, without asking /auth/me again (#248)', async () => {
+    getMe.mockResolvedValue({ data: { user: { ...ADA, role: 'viewer', access_request: null } } })
+    const pending = { status: 'pending', role: 'contributor', created_at: '2026-10-05T09:00:00Z' }
+    requestAccess.mockResolvedValue({ data: pending })
+    const store = useAuthStore()
+    await store.ensureLoaded()
+
+    await store.requestAccess('I test braces at ETH.')
+
+    expect(requestAccess).toHaveBeenCalledWith({ message: 'I test braces at ETH.' })
+    expect(store.user?.access_request).toEqual(pending)
+    expect(getMe).toHaveBeenCalledTimes(1)
   })
 })
