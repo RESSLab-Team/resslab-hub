@@ -23,6 +23,83 @@ import type { RequestArgs } from './base';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
+export interface AccessRequestIn {
+    'message'?: string;
+}
+export interface AccessRequestOut {
+    'id': string;
+    'user_id': string;
+    'display_name'?: string;
+    'email'?: string | null;
+    'institution'?: string;
+    'current_role': string;
+    'role': string;
+    'message'?: string;
+    'status': AccessRequestOutStatusEnum;
+    'created_at': string;
+    'decided_by'?: string;
+    'decided_at'?: string | null;
+}
+
+export const AccessRequestOutStatusEnum = {
+    Pending: 'pending',
+    Approved: 'approved',
+    Declined: 'declined',
+} as const;
+
+export type AccessRequestOutStatusEnum = typeof AccessRequestOutStatusEnum[keyof typeof AccessRequestOutStatusEnum];
+
+/**
+ * Where the person\'s last access request is (#248).
+ */
+export interface AccessRequestStatus {
+    'status': AccessRequestStatusStatusEnum;
+    'role': string;
+    'created_at': string;
+    'decided_at'?: string | null;
+}
+
+export const AccessRequestStatusStatusEnum = {
+    Pending: 'pending',
+    Approved: 'approved',
+    Declined: 'declined',
+} as const;
+
+export type AccessRequestStatusStatusEnum = typeof AccessRequestStatusStatusEnum[keyof typeof AccessRequestStatusStatusEnum];
+
+export interface AdminUserOut {
+    'id': string;
+    'email'?: string | null;
+    'email_verified'?: boolean;
+    'display_name'?: string;
+    'institution'?: string;
+    'role': string;
+    'role_source': string;
+    'role_override'?: string | null;
+    'github_login'?: string;
+    'github_role'?: string | null;
+    'locked'?: boolean;
+    'created_at': string;
+    'last_login_at'?: string | null;
+    'disabled'?: boolean;
+}
+/**
+ * Only the fields that are sent change.  ``role_override: null`` goes back to the automatic role.
+ */
+export interface AdminUserPatch {
+    'role_override'?: AdminUserPatchRoleOverrideEnum | null;
+    'disabled'?: boolean | null;
+}
+
+export const AdminUserPatchRoleOverrideEnum = {
+    Viewer: 'viewer',
+    Contributor: 'contributor',
+    Curator: 'curator',
+    Admin: 'admin',
+} as const;
+
+export type AdminUserPatchRoleOverrideEnum = typeof AdminUserPatchRoleOverrideEnum[keyof typeof AdminUserPatchRoleOverrideEnum];
+
 
 export const BraceField = {
     Id: 'id',
@@ -1952,6 +2029,58 @@ export interface Info {
     'name': string;
     'version': string;
 }
+export interface InvitationCreated {
+    'id': string;
+    'email': string;
+    'role': string;
+    'status': InvitationCreatedStatusEnum;
+    'invited_by'?: string;
+    'created_at': string;
+    'redeemed_at'?: string | null;
+    'revoked_at'?: string | null;
+    'mailed'?: boolean;
+}
+
+export const InvitationCreatedStatusEnum = {
+    Pending: 'pending',
+    Redeemed: 'redeemed',
+    Revoked: 'revoked',
+} as const;
+
+export type InvitationCreatedStatusEnum = typeof InvitationCreatedStatusEnum[keyof typeof InvitationCreatedStatusEnum];
+
+export interface InvitationIn {
+    'email': string;
+    'role'?: InvitationInRoleEnum;
+}
+
+export const InvitationInRoleEnum = {
+    Contributor: 'contributor',
+    Curator: 'curator',
+    Admin: 'admin',
+} as const;
+
+export type InvitationInRoleEnum = typeof InvitationInRoleEnum[keyof typeof InvitationInRoleEnum];
+
+export interface InvitationOut {
+    'id': string;
+    'email': string;
+    'role': string;
+    'status': InvitationOutStatusEnum;
+    'invited_by'?: string;
+    'created_at': string;
+    'redeemed_at'?: string | null;
+    'revoked_at'?: string | null;
+}
+
+export const InvitationOutStatusEnum = {
+    Pending: 'pending',
+    Redeemed: 'redeemed',
+    Revoked: 'revoked',
+} as const;
+
+export type InvitationOutStatusEnum = typeof InvitationOutStatusEnum[keyof typeof InvitationOutStatusEnum];
+
 /**
  * Back-compat shape: flat error/warning strings, as the endpoint used to emit.
  */
@@ -2653,6 +2782,7 @@ export interface UserOut {
     'role_source'?: string;
     'github_login'?: string;
     'identities'?: Array<IdentityOut>;
+    'access_request'?: AccessRequestStatus | null;
 }
 export interface ValidationError {
     'loc': Array<LocationInner>;
@@ -2680,6 +2810,571 @@ export interface VerifyResponse {
     'user': UserOut;
     'redirect_to'?: string;
 }
+
+/**
+ * AdminApi - axios parameter creator
+ */
+export const AdminApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Give the role asked for, and tell the person.
+         * @summary Approve Access Request
+         * @param {string} requestId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        approveAccessRequest: async (requestId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'requestId' is not null or undefined
+            assertParamExists('approveAccessRequest', 'requestId', requestId)
+            const localVarPath = `/admin/access-requests/{request_id}/approve`
+                .replace('{request_id}', encodeURIComponent(String(requestId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Give a role to an address before it has an account, and mail it.  An address that already has an account is changed in the members list instead: there is nothing to wait for.
+         * @summary Create Invitation
+         * @param {InvitationIn} invitationIn 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createInvitation: async (invitationIn: InvitationIn, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'invitationIn' is not null or undefined
+            assertParamExists('createInvitation', 'invitationIn', invitationIn)
+            const localVarPath = `/admin/invitations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(invitationIn, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Say no. No mail: the account page shows it, and they may ask again.
+         * @summary Decline Access Request
+         * @param {string} requestId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        declineAccessRequest: async (requestId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'requestId' is not null or undefined
+            assertParamExists('declineAccessRequest', 'requestId', requestId)
+            const localVarPath = `/admin/access-requests/{request_id}/decline`
+                .replace('{request_id}', encodeURIComponent(String(requestId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Every request, newest first.
+         * @summary List Access Requests
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAccessRequests: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/admin/access-requests`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Every invitation, newest first. The old ones stay, for the record.
+         * @summary List Invitations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listInvitations: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/admin/invitations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Everyone with an account, oldest first.
+         * @summary List Users
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listUsers: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/admin/users`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Take back an invitation nobody used yet.
+         * @summary Revoke Invitation
+         * @param {string} invitationId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        revokeInvitation: async (invitationId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'invitationId' is not null or undefined
+            assertParamExists('revokeInvitation', 'invitationId', invitationId)
+            const localVarPath = `/admin/invitations/{invitation_id}`
+                .replace('{invitation_id}', encodeURIComponent(String(invitationId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Set or clear the role decision, disable or enable the account.
+         * @summary Update User
+         * @param {string} userId 
+         * @param {AdminUserPatch} adminUserPatch 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUser: async (userId: string, adminUserPatch: AdminUserPatch, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('updateUser', 'userId', userId)
+            // verify required parameter 'adminUserPatch' is not null or undefined
+            assertParamExists('updateUser', 'adminUserPatch', adminUserPatch)
+            const localVarPath = `/admin/users/{user_id}`
+                .replace('{user_id}', encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(adminUserPatch, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AdminApi - functional programming interface
+ */
+export const AdminApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AdminApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Give the role asked for, and tell the person.
+         * @summary Approve Access Request
+         * @param {string} requestId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async approveAccessRequest(requestId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessRequestOut>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.approveAccessRequest(requestId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.approveAccessRequest']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Give a role to an address before it has an account, and mail it.  An address that already has an account is changed in the members list instead: there is nothing to wait for.
+         * @summary Create Invitation
+         * @param {InvitationIn} invitationIn 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createInvitation(invitationIn: InvitationIn, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<InvitationCreated>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createInvitation(invitationIn, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.createInvitation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Say no. No mail: the account page shows it, and they may ask again.
+         * @summary Decline Access Request
+         * @param {string} requestId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async declineAccessRequest(requestId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessRequestOut>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.declineAccessRequest(requestId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.declineAccessRequest']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Every request, newest first.
+         * @summary List Access Requests
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listAccessRequests(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<AccessRequestOut>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessRequests(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.listAccessRequests']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Every invitation, newest first. The old ones stay, for the record.
+         * @summary List Invitations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listInvitations(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<InvitationOut>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listInvitations(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.listInvitations']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Everyone with an account, oldest first.
+         * @summary List Users
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listUsers(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<AdminUserOut>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.listUsers']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Take back an invitation nobody used yet.
+         * @summary Revoke Invitation
+         * @param {string} invitationId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async revokeInvitation(invitationId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.revokeInvitation(invitationId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.revokeInvitation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Set or clear the role decision, disable or enable the account.
+         * @summary Update User
+         * @param {string} userId 
+         * @param {AdminUserPatch} adminUserPatch 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateUser(userId: string, adminUserPatch: AdminUserPatch, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminUserOut>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateUser(userId, adminUserPatch, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.updateUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * AdminApi - factory interface
+ */
+export const AdminApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AdminApiFp(configuration)
+    return {
+        /**
+         * Give the role asked for, and tell the person.
+         * @summary Approve Access Request
+         * @param {string} requestId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        approveAccessRequest(requestId: string, options?: RawAxiosRequestConfig): AxiosPromise<AccessRequestOut> {
+            return localVarFp.approveAccessRequest(requestId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Give a role to an address before it has an account, and mail it.  An address that already has an account is changed in the members list instead: there is nothing to wait for.
+         * @summary Create Invitation
+         * @param {InvitationIn} invitationIn 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createInvitation(invitationIn: InvitationIn, options?: RawAxiosRequestConfig): AxiosPromise<InvitationCreated> {
+            return localVarFp.createInvitation(invitationIn, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Say no. No mail: the account page shows it, and they may ask again.
+         * @summary Decline Access Request
+         * @param {string} requestId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        declineAccessRequest(requestId: string, options?: RawAxiosRequestConfig): AxiosPromise<AccessRequestOut> {
+            return localVarFp.declineAccessRequest(requestId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Every request, newest first.
+         * @summary List Access Requests
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAccessRequests(options?: RawAxiosRequestConfig): AxiosPromise<Array<AccessRequestOut>> {
+            return localVarFp.listAccessRequests(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Every invitation, newest first. The old ones stay, for the record.
+         * @summary List Invitations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listInvitations(options?: RawAxiosRequestConfig): AxiosPromise<Array<InvitationOut>> {
+            return localVarFp.listInvitations(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Everyone with an account, oldest first.
+         * @summary List Users
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listUsers(options?: RawAxiosRequestConfig): AxiosPromise<Array<AdminUserOut>> {
+            return localVarFp.listUsers(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Take back an invitation nobody used yet.
+         * @summary Revoke Invitation
+         * @param {string} invitationId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        revokeInvitation(invitationId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.revokeInvitation(invitationId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Set or clear the role decision, disable or enable the account.
+         * @summary Update User
+         * @param {string} userId 
+         * @param {AdminUserPatch} adminUserPatch 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUser(userId: string, adminUserPatch: AdminUserPatch, options?: RawAxiosRequestConfig): AxiosPromise<AdminUserOut> {
+            return localVarFp.updateUser(userId, adminUserPatch, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AdminApi - object-oriented interface
+ */
+export class AdminApi extends BaseAPI {
+    /**
+     * Give the role asked for, and tell the person.
+     * @summary Approve Access Request
+     * @param {string} requestId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public approveAccessRequest(requestId: string, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).approveAccessRequest(requestId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Give a role to an address before it has an account, and mail it.  An address that already has an account is changed in the members list instead: there is nothing to wait for.
+     * @summary Create Invitation
+     * @param {InvitationIn} invitationIn 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createInvitation(invitationIn: InvitationIn, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).createInvitation(invitationIn, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Say no. No mail: the account page shows it, and they may ask again.
+     * @summary Decline Access Request
+     * @param {string} requestId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public declineAccessRequest(requestId: string, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).declineAccessRequest(requestId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Every request, newest first.
+     * @summary List Access Requests
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listAccessRequests(options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).listAccessRequests(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Every invitation, newest first. The old ones stay, for the record.
+     * @summary List Invitations
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listInvitations(options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).listInvitations(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Everyone with an account, oldest first.
+     * @summary List Users
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listUsers(options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).listUsers(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Take back an invitation nobody used yet.
+     * @summary Revoke Invitation
+     * @param {string} invitationId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public revokeInvitation(invitationId: string, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).revokeInvitation(invitationId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Set or clear the role decision, disable or enable the account.
+     * @summary Update User
+     * @param {string} userId 
+     * @param {AdminUserPatch} adminUserPatch 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updateUser(userId: string, adminUserPatch: AdminUserPatch, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).updateUser(userId, adminUserPatch, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
 
 /**
  * AnalyticsApi - axios parameter creator
@@ -2957,6 +3652,41 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
+         * Ask the admins for the contributor role (#248).  For someone whose address is not academic, so it did not grant the role. One open request at a time; after a decline they may ask again.
+         * @summary Request Access
+         * @param {AccessRequestIn} accessRequestIn 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        requestAccess: async (accessRequestIn: AccessRequestIn, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'accessRequestIn' is not null or undefined
+            assertParamExists('requestAccess', 'accessRequestIn', accessRequestIn)
+            const localVarPath = `/auth/access-request`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(accessRequestIn, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Mail a sign-in code (and a link that does the same) to an address.
          * @summary Start Email Login
          * @param {EmailStartRequest} emailStartRequest 
@@ -3140,6 +3870,19 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Ask the admins for the contributor role (#248).  For someone whose address is not academic, so it did not grant the role. One open request at a time; after a decline they may ask again.
+         * @summary Request Access
+         * @param {AccessRequestIn} accessRequestIn 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async requestAccess(accessRequestIn: AccessRequestIn, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessRequestStatus>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.requestAccess(accessRequestIn, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.requestAccess']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Mail a sign-in code (and a link that does the same) to an address.
          * @summary Start Email Login
          * @param {EmailStartRequest} emailStartRequest 
@@ -3238,6 +3981,16 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.logout(options).then((request) => request(axios, basePath));
         },
         /**
+         * Ask the admins for the contributor role (#248).  For someone whose address is not academic, so it did not grant the role. One open request at a time; after a decline they may ask again.
+         * @summary Request Access
+         * @param {AccessRequestIn} accessRequestIn 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        requestAccess(accessRequestIn: AccessRequestIn, options?: RawAxiosRequestConfig): AxiosPromise<AccessRequestStatus> {
+            return localVarFp.requestAccess(accessRequestIn, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Mail a sign-in code (and a link that does the same) to an address.
          * @summary Start Email Login
          * @param {EmailStartRequest} emailStartRequest 
@@ -3327,6 +4080,17 @@ export class AuthApi extends BaseAPI {
      */
     public logout(options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).logout(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Ask the admins for the contributor role (#248).  For someone whose address is not academic, so it did not grant the role. One open request at a time; after a decline they may ask again.
+     * @summary Request Access
+     * @param {AccessRequestIn} accessRequestIn 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public requestAccess(accessRequestIn: AccessRequestIn, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).requestAccess(accessRequestIn, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6509,7 +7273,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub (#254).
          * @summary Get Contribution Comments
          * @param {number} prNumber 
          * @param {*} [options] Override http request option.
@@ -6802,7 +7566,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account (unless the caller is a curator), and 409 when the branch moved since the editor loaded it: reload and make the changes again.
          * @summary Update Open Contribution
          * @param {number} prNumber 
          * @param {File} file 
@@ -6965,7 +7729,7 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub (#254).
          * @summary Get Contribution Comments
          * @param {number} prNumber 
          * @param {*} [options] Override http request option.
@@ -7077,7 +7841,7 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account (unless the caller is a curator), and 409 when the branch moved since the editor loaded it: reload and make the changes again.
          * @summary Update Open Contribution
          * @param {number} prNumber 
          * @param {File} file 
@@ -7150,7 +7914,7 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getContribution(prNumber, options).then((request) => request(axios, basePath));
         },
         /**
-         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+         * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub (#254).
          * @summary Get Contribution Comments
          * @param {number} prNumber 
          * @param {*} [options] Override http request option.
@@ -7235,7 +7999,7 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.root(options).then((request) => request(axios, basePath));
         },
         /**
-         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
+         * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account (unless the caller is a curator), and 409 when the branch moved since the editor loaded it: reload and make the changes again.
          * @summary Update Open Contribution
          * @param {number} prNumber 
          * @param {File} file 
@@ -7303,7 +8067,7 @@ export class DefaultApi extends BaseAPI {
     }
 
     /**
-     * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub until per-user auth (#247) and curator roles (#248) land.
+     * The submission\'s discussion, oldest first, with the pull request body as the opening entry (it is the submission summary the contributor wrote).  Read-only: replying, requesting changes and approving still happen on GitHub (#254).
      * @summary Get Contribution Comments
      * @param {number} prNumber 
      * @param {*} [options] Override http request option.
@@ -7397,7 +8161,7 @@ export class DefaultApi extends BaseAPI {
     }
 
     /**
-     * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account, and 409 when the branch moved since the editor loaded it: reload and make the changes again.
+     * Replace an open submission\'s batch with a new commit on its own branch. The pull request updates and its checks rerun; no second review is opened.  Answers 403 when the submission was made from another account (unless the caller is a curator), and 409 when the branch moved since the editor loaded it: reload and make the changes again.
      * @summary Update Open Contribution
      * @param {number} prNumber 
      * @param {File} file 

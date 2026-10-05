@@ -1,7 +1,9 @@
 <script setup lang="ts">
 /**
  * The account page (#247): who you are here, and what you can sign in with.
+ * A viewer can also ask for the contributor role here (#248).
  */
+import AccessRequestForm from '@/components/auth/AccessRequestForm.vue'
 import { useAuthStore } from '@/stores/auth'
 import { mdiCheckCircleOutline, mdiEmailOutline, mdiGithub, mdiLogout } from '@mdi/js'
 import { computed, onMounted, ref } from 'vue'
@@ -87,6 +89,8 @@ async function signOut(): Promise<void> {
       </div>
     </section>
 
+    <AccessRequestForm class="account-block" />
+
     <section class="account-block">
       <h2 class="t-panel">{{ $t('auth.account.identities') }}</h2>
       <p class="block-lede">{{ $t('auth.account.identities_lede') }}</p>
@@ -116,6 +120,7 @@ async function signOut(): Promise<void> {
         {{ $t('auth.account.link_github') }}
       </button>
       <p v-if="!auth.hasGitHub" class="block-lede">{{ $t('auth.account.link_github_why') }}</p>
+      <p v-if="!auth.hasGitHub" class="block-lede">{{ $t('auth.account.github_role_hint') }}</p>
     </section>
 
     <section class="account-block">

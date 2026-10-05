@@ -11,6 +11,7 @@ import {
   mdiHomeOutline,
   mdiInformationOutline,
   mdiLoginVariant,
+  mdiShieldAccountOutline,
   mdiUploadOutline,
   mdiWeatherNight,
   mdiWeatherSunny
@@ -330,16 +331,19 @@ function toggleGroup(group: NavGroup) {
         {{ $t('contribute.new_submission') }}
       </router-link>
 
-      <div class="sidebar-section">{{ $t('curation.eyebrow') }}</div>
-      <router-link
-        class="sidebar-link"
-        :class="{ 'is-active': route.path.startsWith('/curation') }"
-        to="/curation"
-        @click="emit('close')"
-      >
-        <v-icon :icon="mdiClipboardCheckOutline" size="16" />
-        {{ $t('curation.nav.review_queue') }}
-      </router-link>
+      <!-- The queue is for curators only (#248). -->
+      <template v-if="auth.hasRole('curator')">
+        <div class="sidebar-section">{{ $t('curation.eyebrow') }}</div>
+        <router-link
+          class="sidebar-link"
+          :class="{ 'is-active': route.path.startsWith('/curation') }"
+          to="/curation"
+          @click="emit('close')"
+        >
+          <v-icon :icon="mdiClipboardCheckOutline" size="16" />
+          {{ $t('curation.nav.review_queue') }}
+        </router-link>
+      </template>
 
       <div class="sidebar-section">{{ $t('auth.account.section') }}</div>
       <router-link
@@ -364,6 +368,16 @@ function toggleGroup(group: NavGroup) {
       >
         <v-icon :icon="mdiLoginVariant" size="16" />
         {{ $t('auth.login.sign_in') }}
+      </router-link>
+      <router-link
+        v-if="auth.hasRole('admin')"
+        class="sidebar-link"
+        :class="{ 'is-active': route.path.startsWith('/admin') }"
+        to="/admin"
+        @click="emit('close')"
+      >
+        <v-icon :icon="mdiShieldAccountOutline" size="16" />
+        {{ $t('admin.nav') }}
       </router-link>
     </template>
 

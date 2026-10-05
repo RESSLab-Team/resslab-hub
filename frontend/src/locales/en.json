@@ -1517,7 +1517,8 @@
       "unlink": "Remove",
       "link_github": "Link GitHub",
       "link_github_why": "With GitHub linked, your submission mentions you on its pull request, so you get the review comments and can answer them.",
-      "sign_out": "Sign out"
+      "sign_out": "Sign out",
+      "github_role_hint": "Write access on the data repository on GitHub makes you a curator here, admin access makes you an administrator. Link GitHub to use it. The role follows GitHub within the hour."
     },
     "forbidden": {
       "eyebrow": "Account",
@@ -1525,7 +1526,9 @@
       "lede": "Your account cannot open this page.",
       "needs_role": "This page needs the {role} role. Ask an administrator of the lab for it.",
       "back_home": "Back to the databases",
-      "contributor_hint": "Contributor access is granted automatically to academic email addresses. If your institution was not recognised, ask an administrator of the lab."
+      "contributor_hint": "Contributor access is granted automatically to academic email addresses. If yours was not recognised, ask for it below.",
+      "curator_hint": "Curators are the people with write access on the data repository on GitHub. If you have it, link GitHub from your account page.",
+      "not_yours": "This submission is not yours. Only its author and the curators can open it."
     },
     "roles": {
       "viewer": "Viewer",
@@ -1558,7 +1561,101 @@
       "identity_taken": "That GitHub account is already linked to another account here.",
       "github_denied": "You cancelled the GitHub sign-in.",
       "github_disabled": "GitHub sign-in is not available here. Use your email address.",
-      "cannot_unlink": "This one cannot be removed: it is how your account is found."
+      "cannot_unlink": "This one cannot be removed: it is how your account is found.",
+      "account_disabled": "This account is disabled. Ask an administrator of the lab if you think it is a mistake.",
+      "already_pending": "Your request is already waiting for an administrator.",
+      "already_granted": "You already have this access.",
+      "email_required": "Confirm an email address first: sign in once with your email."
+    },
+    "access": {
+      "title": "Ask for contributor access",
+      "lede": "Contributors can submit test data to the databases. An administrator reads your request and you get a mail when it is approved.",
+      "message_label": "A word for the administrators (optional)",
+      "message_placeholder": "Who you are, and what data you would like to share.",
+      "send": "Send the request",
+      "sending": "Sending...",
+      "pending": "Your request was sent on {date}. An administrator will look at it.",
+      "declined": "Your last request was declined. You can ask again, maybe with a few words on your data.",
+      "no_email": "To ask for access, confirm an email address first: sign out, then sign in once with your email."
+    }
+  },
+  "admin": {
+    "nav": "Administration",
+    "eyebrow": "Administration",
+    "eyebrow_qualifier": "Roles",
+    "title": "Who can do what",
+    "description": "Roles come first from GitHub (write on the data repository: curator, admin: administrator) and from academic addresses. What you set here comes on top. Administrators from GitHub or from the deployment config are changed there, not here.",
+    "loading": "Loading members...",
+    "error": "The members could not be loaded.",
+    "retry": "Try again",
+    "requests": {
+      "title": "Access requests",
+      "empty": "No request is waiting.",
+      "asks_for": "asks for the {role} role",
+      "approve": "Approve",
+      "decline": "Decline",
+      "decided": "Decided requests ({count})",
+      "decided_by": "{status} by {name}, {age}",
+      "status": {
+        "pending": "Waiting",
+        "approved": "Approved",
+        "declined": "Declined"
+      }
+    },
+    "members": {
+      "title": "Members",
+      "empty": "Nobody has signed in yet.",
+      "headers": {
+        "member": "Member",
+        "role": "Role",
+        "decision": "Set by an administrator",
+        "github": "GitHub",
+        "last_login": "Last sign-in",
+        "access": "Access"
+      },
+      "automatic": "Automatic",
+      "you": "You",
+      "locked_github": "Admin on GitHub",
+      "locked_config": "In the deployment config",
+      "never": "Never",
+      "disable": "Disable",
+      "confirm_disable": "Sign out and disable?",
+      "enable": "Enable",
+      "disabled": "Disabled",
+      "unverified": "not confirmed",
+      "source": {
+        "default": "Default",
+        "academic-email": "Academic address",
+        "admin-email": "Deployment config",
+        "override": "Set here",
+        "github": "GitHub"
+      }
+    },
+    "invitations": {
+      "title": "Invitations",
+      "lede": "Give a role to someone who has no account yet. They get a mail, and the role is theirs at their first sign-in with that address. For someone who already has an account, change the role in the members list.",
+      "email": "Email address",
+      "role": "Role",
+      "send": "Invite",
+      "sent": "Invitation mailed to {email}.",
+      "not_mailed": "Invitation saved, but the mail to {email} could not be sent. Tell them to sign in with that address.",
+      "empty": "No invitation yet.",
+      "revoke": "Revoke",
+      "invited_by": "by {name}, {age}",
+      "status": {
+        "pending": "Waiting",
+        "redeemed": "Used",
+        "revoked": "Revoked"
+      }
+    },
+    "errors": {
+      "generic": "That did not work. Reload the page and try again.",
+      "cannot_change_self": "You cannot change your own account. Ask another administrator.",
+      "locked_admin": "This administrator comes from GitHub or from the deployment config. Change it there.",
+      "already_member": "This address already has an account. Change its role in the members list.",
+      "already_invited": "This address already has an invitation waiting.",
+      "already_decided": "Another administrator already answered this request.",
+      "not_found": "It is gone. Reload the page."
     }
   }
 }

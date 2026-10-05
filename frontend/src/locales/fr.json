@@ -1517,7 +1517,8 @@
       "unlink": "Retirer",
       "link_github": "Lier GitHub",
       "link_github_why": "Avec GitHub lié, votre soumission vous mentionne sur sa pull request, donc vous recevez les commentaires de relecture et pouvez y répondre.",
-      "sign_out": "Se déconnecter"
+      "sign_out": "Se déconnecter",
+      "github_role_hint": "L'accès en écriture au dépôt de données sur GitHub vous rend curateur ici, l'accès admin vous rend administrateur. Liez GitHub pour en profiter. Le rôle suit GitHub dans l'heure."
     },
     "forbidden": {
       "eyebrow": "Compte",
@@ -1525,7 +1526,9 @@
       "lede": "Votre compte ne peut pas ouvrir cette page.",
       "needs_role": "Cette page demande le rôle {role}. Demandez-le à un administrateur du labo.",
       "back_home": "Retour aux bases de données",
-      "contributor_hint": "L'accès contributeur est accordé automatiquement aux adresses e-mail académiques. Si votre institution n'a pas été reconnue, demandez à un administrateur du laboratoire."
+      "contributor_hint": "L'accès contributeur est accordé automatiquement aux adresses e-mail académiques. Si la vôtre n'a pas été reconnue, demandez-le ci-dessous.",
+      "curator_hint": "Les curateurs sont les personnes qui ont l'accès en écriture au dépôt de données sur GitHub. Si c'est votre cas, liez GitHub depuis votre page compte.",
+      "not_yours": "Cette soumission n'est pas la vôtre. Seuls son auteur et les curateurs peuvent l'ouvrir."
     },
     "roles": {
       "viewer": "Lecteur",
@@ -1558,7 +1561,101 @@
       "identity_taken": "Ce compte GitHub est déjà lié à un autre compte ici.",
       "github_denied": "Vous avez annulé la connexion GitHub.",
       "github_disabled": "La connexion GitHub n'est pas disponible ici. Utilisez votre adresse e-mail.",
-      "cannot_unlink": "Celui-ci ne peut pas être retiré : c'est par lui que votre compte est retrouvé."
+      "cannot_unlink": "Celui-ci ne peut pas être retiré : c'est par lui que votre compte est retrouvé.",
+      "account_disabled": "Ce compte est désactivé. Demandez à un administrateur du laboratoire si vous pensez que c'est une erreur.",
+      "already_pending": "Votre demande attend déjà un administrateur.",
+      "already_granted": "Vous avez déjà cet accès.",
+      "email_required": "Confirmez d'abord une adresse e-mail : connectez-vous une fois avec votre e-mail."
+    },
+    "access": {
+      "title": "Demander l'accès contributeur",
+      "lede": "Les contributeurs peuvent soumettre des données d'essais aux bases. Un administrateur lit votre demande et vous recevez un e-mail quand elle est acceptée.",
+      "message_label": "Un mot pour les administrateurs (facultatif)",
+      "message_placeholder": "Qui vous êtes, et quelles données vous aimeriez partager.",
+      "send": "Envoyer la demande",
+      "sending": "Envoi...",
+      "pending": "Votre demande a été envoyée le {date}. Un administrateur va la regarder.",
+      "declined": "Votre dernière demande a été refusée. Vous pouvez redemander, avec quelques mots sur vos données.",
+      "no_email": "Pour demander l'accès, confirmez d'abord une adresse e-mail : déconnectez-vous, puis connectez-vous une fois avec votre e-mail."
+    }
+  },
+  "admin": {
+    "nav": "Administration",
+    "eyebrow": "Administration",
+    "eyebrow_qualifier": "Rôles",
+    "title": "Qui peut faire quoi",
+    "description": "Les rôles viennent d'abord de GitHub (écriture sur le dépôt de données : curateur, admin : administrateur) et des adresses académiques. Ce que vous réglez ici passe par-dessus. Les administrateurs venant de GitHub ou de la configuration du déploiement se changent là-bas, pas ici.",
+    "loading": "Chargement des membres...",
+    "error": "Les membres n'ont pas pu être chargés.",
+    "retry": "Réessayer",
+    "requests": {
+      "title": "Demandes d'accès",
+      "empty": "Aucune demande en attente.",
+      "asks_for": "demande le rôle {role}",
+      "approve": "Accepter",
+      "decline": "Refuser",
+      "decided": "Demandes traitées ({count})",
+      "decided_by": "{status} par {name}, {age}",
+      "status": {
+        "pending": "En attente",
+        "approved": "Acceptée",
+        "declined": "Refusée"
+      }
+    },
+    "members": {
+      "title": "Membres",
+      "empty": "Personne ne s'est encore connecté.",
+      "headers": {
+        "member": "Membre",
+        "role": "Rôle",
+        "decision": "Réglé par un administrateur",
+        "github": "GitHub",
+        "last_login": "Dernière connexion",
+        "access": "Accès"
+      },
+      "automatic": "Automatique",
+      "you": "Vous",
+      "locked_github": "Admin sur GitHub",
+      "locked_config": "Dans la configuration",
+      "never": "Jamais",
+      "disable": "Désactiver",
+      "confirm_disable": "Déconnecter et désactiver ?",
+      "enable": "Réactiver",
+      "disabled": "Désactivé",
+      "unverified": "non confirmée",
+      "source": {
+        "default": "Par défaut",
+        "academic-email": "Adresse académique",
+        "admin-email": "Configuration",
+        "override": "Réglé ici",
+        "github": "GitHub"
+      }
+    },
+    "invitations": {
+      "title": "Invitations",
+      "lede": "Donnez un rôle à quelqu'un qui n'a pas encore de compte. La personne reçoit un e-mail, et le rôle est le sien dès sa première connexion avec cette adresse. Pour quelqu'un qui a déjà un compte, changez le rôle dans la liste des membres.",
+      "email": "Adresse e-mail",
+      "role": "Rôle",
+      "send": "Inviter",
+      "sent": "Invitation envoyée à {email}.",
+      "not_mailed": "Invitation enregistrée, mais l'e-mail à {email} n'a pas pu partir. Dites-lui de se connecter avec cette adresse.",
+      "empty": "Aucune invitation pour l'instant.",
+      "revoke": "Retirer",
+      "invited_by": "par {name}, {age}",
+      "status": {
+        "pending": "En attente",
+        "redeemed": "Utilisée",
+        "revoked": "Retirée"
+      }
+    },
+    "errors": {
+      "generic": "Cela n'a pas marché. Rechargez la page et réessayez.",
+      "cannot_change_self": "Vous ne pouvez pas modifier votre propre compte. Demandez à un autre administrateur.",
+      "locked_admin": "Cet administrateur vient de GitHub ou de la configuration du déploiement. Changez-le là-bas.",
+      "already_member": "Cette adresse a déjà un compte. Changez son rôle dans la liste des membres.",
+      "already_invited": "Cette adresse a déjà une invitation en attente.",
+      "already_decided": "Un autre administrateur a déjà répondu à cette demande.",
+      "not_found": "Introuvable. Rechargez la page."
     }
   }
 }
