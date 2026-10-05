@@ -28,8 +28,8 @@ logger = logging.getLogger("resslab_hub.warmup")
 
 # The frontend's cold-start burst (stores/counts.ts + each dashboard's
 # dataset fetch): per database tab the whole-table page, the two sidebar-badge
-# distinct calls, and the shared dictionary. The per-tab "sources" field
-# mirrors sourcesFetcherFor in stores/counts.ts.
+# distinct calls, the shared dictionary, and the home page's overview map.
+# The per-tab "sources" field mirrors sourcesFetcherFor in stores/counts.ts.
 _SOURCE_FIELDS = {
     "braces": "investigator",
     "columns": "experimental_program",
@@ -44,7 +44,7 @@ _SOURCE_FIELDS = {
 
 
 def warm_paths() -> list:
-    paths = ["/dictionary"]
+    paths = ["/dictionary", "/map/sites"]
     for prefix, source_field in _SOURCE_FIELDS.items():
         paths.append(f"/{prefix}?page=1&size=1000")
         paths.append(f"/{prefix}/distinct")
