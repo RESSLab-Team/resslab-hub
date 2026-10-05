@@ -144,7 +144,8 @@ and the `head_sha` the editor loaded. 10 per hour. The backend:
 - answers `409` if the branch moved since (`head_sha` differs): reload and
   redo,
 - answers `403` if the account does not own the submission (trailer rule
-  above; curators get their own way in with #248),
+  above) and is not a curator. A curator's commit is authored by the
+  curator, the trailers keep naming the person who submitted,
 - validates again, rewrites the primary CSV keeping every row this
   submission does not own, and commits on top of the branch.
 

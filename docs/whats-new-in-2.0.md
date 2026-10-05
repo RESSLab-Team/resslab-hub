@@ -19,9 +19,12 @@ API password, or ran the uploader over a tunnel.
 
 Browsing stays open. An account is needed to submit data or to open the review
 queue. Sign in with an email code or with GitHub. Roles are `viewer`,
-`contributor`, `curator`, `admin`; an academic address grants `contributor`
-at sign-in, `ADMIN_EMAILS` grants `admin`, an override in the database wins.
-`API_PASSWORD` is now the machine credential only. Details: [auth.md](auth.md).
+`contributor`, `curator`, `admin`. The GitHub permission on the data
+repository decides most of them (write or maintain makes a curator, admin an
+admin), an academic address grants `contributor`, and admins manage the rest
+from the new `/admin` page: role changes, invitations, access requests,
+disabled accounts. `API_PASSWORD` is now the machine credential only.
+Details: [auth.md](auth.md#roles).
 
 ## Contribution pipeline
 
