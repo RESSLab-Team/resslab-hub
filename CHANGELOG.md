@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.1.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.0.0...v2.1.0) (2026-10-05)
+
+
+### Features
+
+* **home:** bigger map, smaller databases list and legend ([a37196b](https://github.com/RESSLab-Team/resslab-hub/commit/a37196b9dbe5ebb45317eda7df2ff590b6b4b3c7))
+* **home:** keep the home page in rows on wide screens ([7487a4f](https://github.com/RESSLab-Team/resslab-hub/commit/7487a4f0702904cd5ad2a4281474c0a94a4319e9))
+* **map:** add GET /map/sites for the home overview map ([61792cb](https://github.com/RESSLab-Team/resslab-hub/commit/61792cb7bd8eb9abe20f4e90b1cd878310b6f859))
+* **map:** new overview map on MapLibre ([2008e2f](https://github.com/RESSLab-Team/resslab-hub/commit/2008e2f906fc7e05cfc69d06b08f0da4ee1acf46))
+* **map:** new overview map without API key ([#376](https://github.com/RESSLab-Team/resslab-hub/issues/376)) ([baa6513](https://github.com/RESSLab-Team/resslab-hub/commit/baa6513c49f42856a8e3a4dffdc7ffda30aadea8))
+* **map:** pure helpers for the new overview map ([549bfd8](https://github.com/RESSLab-Team/resslab-hub/commit/549bfd838a9d6ce144719d11d76a57896c4781d6))
+
+
+### Bug Fixes
+
+* **home:** lower the overview map ([41d3bd5](https://github.com/RESSLab-Team/resslab-hub/commit/41d3bd5487b86bff77eb5452c3658e0bc7e8bda6))
+* **home:** narrower database tiles on wide screens ([cf7e6be](https://github.com/RESSLab-Team/resslab-hub/commit/cf7e6be4b6b9ef74d4bd687116853d5ffe724480))
+* **home:** tall map on laptops, flat 3:1 on wide screens ([96e5902](https://github.com/RESSLab-Team/resslab-hub/commit/96e59022bd1b76717f5f467f7cac49880600b69f))
+* **home:** taller map on small screens, flat on wide ones ([9147dd6](https://github.com/RESSLab-Team/resslab-hub/commit/9147dd65818cf637238fdb56609745be1fa562cf))
+* **map:** fit the program drawings in their box ([680817c](https://github.com/RESSLab-Team/resslab-hub/commit/680817ce9c1c44541eb3bd3cea22579a386176e4))
+* refactor map to remove map tiler api key ([#377](https://github.com/RESSLab-Team/resslab-hub/issues/377)) ([e8eb7fa](https://github.com/RESSLab-Team/resslab-hub/commit/e8eb7fa7bbb7b68b7ea4b684c47b93230a4601f7))
+
 ## [2.0.0](https://github.com/RESSLab-Team/resslab-hub/compare/v1.1.0...v2.0.0) (2026-09-28)
 
 
