@@ -1,0 +1,18 @@
+RESSLab Hub
+Steel structures research · EPFL
+
+{title}
+
+{body}
+
+{button}:
+
+{link}
+
+{footnote}
+
+--
+RESSLab Hub is a project of the Resilient Steel Structures Laboratory at
+EPFL, Lausanne, Switzerland. Open-access databases and models for design
+and assessment of steel structures.
+https://resslab-hub.epfl.ch

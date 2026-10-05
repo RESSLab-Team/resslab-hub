@@ -174,7 +174,7 @@ def owns_submission(provenance: Optional[Provenance], email: str) -> bool:
     """Whether the account may change the submission ``provenance`` describes.
 
     The recorded address decides, which is what the account's verified address
-    proves. Nothing readable means nobody can, until a curator (#248) steps in.
+    proves. Nothing readable means nobody can, not even a curator (#248).
     """
     if provenance is None:
         return False

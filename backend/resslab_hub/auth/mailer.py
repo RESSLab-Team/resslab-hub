@@ -1,5 +1,5 @@
 """
-Sending the sign-in mail.
+Sending the sign-in mail, and the few notices around roles (#248).
 
 Without ``SMTP_HOST`` the mail is written to the log instead of being sent.
 That is how local development and the tests work: the code is read from
@@ -14,14 +14,20 @@ aiosmtplib knows cram-md5, plain and login, so it picks LOGIN. See
 A relay that refuses or does not answer raises :class:`MailError`. The caller
 undoes the challenge it had just written, so a broken relay does not eat the
 hourly caps of the person trying to sign in.
+
+The notices (an invitation, a new access request, an approved one) share one
+template, ``notice_email``: a title, a few paragraphs and one button. Their
+wording is in ``auth/access.py``.
 """
 
 import logging
+import re
 from email.message import EmailMessage
 from email.utils import formataddr
 from functools import lru_cache
 from html import escape
 from pathlib import Path
+from typing import Sequence
 
 import aiosmtplib
 
@@ -65,11 +71,12 @@ def _image(name: str) -> bytes:
 def _fill(template: str, values: dict) -> str:
     """Replace the ``{name}`` placeholders.
 
-    Not ``str.format``: the HTML carries a CSS block full of braces.
+    Not ``str.format``: the HTML carries a CSS block full of braces. One pass,
+    so a value is never searched again: a name or a message someone typed may
+    hold ``{link}`` and must stay as typed.
     """
-    for key, value in values.items():
-        template = template.replace("{" + key + "}", value)
-    return template
+    pattern = re.compile("|".join(re.escape("{" + key + "}") for key in values))
+    return pattern.sub(lambda match: values[match.group(0)[1:-1]], template)
 
 
 class MailError(Exception):
@@ -108,6 +115,11 @@ def build_message(email: str, code: str, link: str) -> EmailMessage:
     # last part being the preferred one.
     message.set_content(text)
     message.add_alternative(html, subtype="html")
+    _attach_logos(message)
+    return message
+
+
+def _attach_logos(message: EmailMessage) -> None:
     # The images hang off the html part, not off the message, so a reader
     # that only wants the text part never downloads them.
     html_part = message.get_payload()[-1]
@@ -120,7 +132,79 @@ def build_message(email: str, code: str, link: str) -> EmailMessage:
             filename=file_name,
             disposition="inline",
         )
+
+
+def build_notice(
+    email: str,
+    subject: str,
+    title: str,
+    paragraphs: Sequence[str],
+    button: str,
+    link: str,
+    footnote: str,
+) -> EmailMessage:
+    """A short mail with one action: the role notices.
+
+    Everything is plain text and escaped here, so a name or a message typed by
+    someone cannot inject HTML into a mail sent to an admin.
+    """
+    text = _fill(
+        _template("notice_email.txt"),
+        {
+            "title": title,
+            "button": button,
+            "link": link,
+            "footnote": footnote,
+            "body": "\n\n".join(paragraphs),
+        },
+    )
+    body = "\n".join(
+        '<p class="rl-ink" style="margin:0 0 12px 0;font-family:Arial,Helvetica,'
+        "sans-serif;font-size:16px;line-height:24px;color:#212121;"
+        f'white-space:pre-line;">{escape(paragraph)}</p>'
+        for paragraph in paragraphs
+    )
+    html = _fill(
+        _template("notice_email.html"),
+        {
+            "subject": escape(subject),
+            "preheader": escape(paragraphs[0] if paragraphs else title),
+            "title": escape(title),
+            "button": escape(button),
+            "link": escape(link, quote=True),
+            "footnote": escape(footnote),
+            "body": body,
+        },
+    )
+    message = EmailMessage()
+    message["From"] = formataddr((FROM_NAME, str(settings.smtp_from)))
+    message["To"] = email
+    # The subject can hold a name someone typed: a line break in a header is
+    # refused by the email package, so fold it into one line.
+    message["Subject"] = " ".join(subject.split())
+    message.set_content(text)
+    message.add_alternative(html, subtype="html")
+    _attach_logos(message)
     return message
+
+
+async def _deliver(message: EmailMessage) -> None:
+    """Hand the mail to the relay. Raises :class:`MailError` when it fails."""
+    try:
+        await aiosmtplib.send(
+            message,
+            hostname=str(settings.smtp_host),
+            port=int(settings.smtp_port),
+            username=str(settings.smtp_user) if settings.smtp_user else None,
+            password=str(settings.smtp_password) if settings.smtp_password else None,
+            start_tls=bool(settings.smtp_starttls),
+            timeout=TIMEOUT_SECONDS,
+        )
+    except (aiosmtplib.SMTPException, OSError) as exc:
+        # The reason, never the content: this line ends up in kubectl logs,
+        # where a sign-in code has no business being.
+        logger.error("Mail to %s failed: %s", message["To"], exc)
+        raise MailError(str(exc)) from exc
 
 
 async def send_login_mail(email: str, code: str, link: str) -> None:
@@ -134,19 +218,26 @@ async def send_login_mail(email: str, code: str, link: str) -> None:
         logger.warning("Sign-in code for %s: %s", email, code)
         logger.warning("Sign-in link for %s: %s", email, link)
         return
-    message = build_message(email, code, link)
-    try:
-        await aiosmtplib.send(
-            message,
-            hostname=str(settings.smtp_host),
-            port=int(settings.smtp_port),
-            username=str(settings.smtp_user) if settings.smtp_user else None,
-            password=str(settings.smtp_password) if settings.smtp_password else None,
-            start_tls=bool(settings.smtp_starttls),
-            timeout=TIMEOUT_SECONDS,
-        )
-    except (aiosmtplib.SMTPException, OSError) as exc:
-        # The reason, never the code or the link: this line ends up in
-        # kubectl logs, where a sign-in code has no business being.
-        logger.error("Sign-in mail to %s failed: %s", email, exc)
-        raise MailError(str(exc)) from exc
+    await _deliver(build_message(email, code, link))
+
+
+async def send_notice(
+    email: str,
+    subject: str,
+    title: str,
+    paragraphs: Sequence[str],
+    button: str,
+    link: str,
+    footnote: str,
+) -> None:
+    """Mail a notice, or log it when SMTP is not configured.
+
+    Raises :class:`MailError` when the relay fails.
+    """
+    if not configured():
+        logger.warning("Mail not sent (no SMTP_HOST): %r to %s", subject, email)
+        logger.warning("Its link: %s", link)
+        return
+    await _deliver(
+        build_notice(email, subject, title, paragraphs, button, link, footnote)
+    )

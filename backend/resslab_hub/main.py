@@ -20,6 +20,7 @@ from resslab_hub.auth.csrf import CSRFMiddleware
 from resslab_hub.config import settings
 from resslab_hub.contributions.github import aclose_github
 from resslab_hub.routers import (
+    admin,
     analytics,
     auth,
     braces,
@@ -146,6 +147,7 @@ app.include_router(root.router)
 app.include_router(auth.router)
 app.include_router(contributions.router)
 app.include_router(curation.router)
+app.include_router(admin.router)
 app.include_router(analytics.router)
 app.include_router(dictionary.router)
 app.include_router(braces.router)

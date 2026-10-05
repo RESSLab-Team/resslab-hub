@@ -8,12 +8,13 @@ whose id is absent from the base CSV, the contributor comes from the PR body,
 and quality flags come from re-running the same server-side validation the
 submission went through.
 
-Signed in only (#247). These endpoints reveal no more than the public data-repo
-pull request already does, but the review queue is not a public page: it is the
-lab's work list. Phase 2 (#248) raises the bar to the curator role, derived
-from the GitHub permission on the data repository. Approving and merging stay
-on GitHub either way. The per-IP rate limits and the TTL caches keyed by the PR
-head sha also protect the GitHub App's API budget.
+Who sees what (#248). The queue is the lab's work list: curators only, the
+role that write access on the data repository gives. One submission can be
+read by a curator, or by the person who made it, since the edit step (#321)
+loads it back through these same endpoints. Nothing here reveals more than the
+public data-repo pull request already does. Approving and merging stay on
+GitHub. The per-IP rate limits and the TTL caches keyed by the PR head sha
+also protect the GitHub App's API budget.
 """
 
 import asyncio
@@ -27,7 +28,12 @@ from typing import List, Optional, Tuple
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 
-from resslab_hub.auth.deps import require_contributions_enabled, require_user
+from resslab_hub.auth import roles
+from resslab_hub.auth.deps import (
+    require_contributions_enabled,
+    require_role,
+    require_user,
+)
 from resslab_hub.contributions.github import (
     MAX_PARALLEL_CALLS,
     DataRepoClient,
@@ -45,7 +51,7 @@ from resslab_hub.contributions.submission import (
     _write_csv,
     read_provenance,
 )
-from resslab_hub.contributions.trailers import owns_submission
+from resslab_hub.contributions.trailers import Provenance, owns_submission
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import validate_all
 from resslab_hub.models.curation import (
@@ -349,12 +355,47 @@ async def _build_validation(
     return response
 
 
-# The gate goes on the decorator, not in the signature: the curation tests call
-# these functions directly, where FastAPI dependencies never run.
+async def _owner(
+    client: DataRepoClient, pull: dict, input_type: Type
+) -> Optional[Provenance]:
+    """Who made the submission. ``_build_detail`` caches it beside the detail."""
+    key = ("owner", pull["number"], pull["head_sha"])
+    provenance = _cache.get(key)
+    if provenance is None:
+        detail = await _build_detail(client, pull, input_type)
+        # The detail can outlive its owner entry in the cache.
+        provenance = _cache.get(key) or await read_provenance(
+            client, pull["number"], pull["head_sha"], detail.files
+        )
+        if provenance is not None:
+            _cache.put(key, provenance, DETAIL_TTL_SECONDS)
+    return provenance
+
+
+async def _check_access(
+    request: Request, client: DataRepoClient, pull: dict, input_type: Type
+) -> None:
+    """A curator reads any submission, anyone else only their own (#248)."""
+    user = getattr(request.state, "user", None)
+    if user is not None and roles.at_least(user.role, roles.CURATOR):
+        return
+    if user is not None and owns_submission(
+        await _owner(client, pull, input_type), user.email or ""
+    ):
+        return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Only curators and the person who made this submission can see it.",
+    )
+
+
+# The gates go on the decorator, not in the signature: the curation tests call
+# these functions directly, where FastAPI dependencies never run. The per-PR
+# check needs the pull request, so it runs in the handler (`_check_access`).
 @router.get(
     "/contributions",
     response_model=CurationListResponse,
-    dependencies=[Depends(require_user)],
+    dependencies=[Depends(require_role(roles.CURATOR))],
 )
 @limiter.limit("30/minute")
 async def list_contributions(request: Request) -> CurationListResponse:
@@ -397,6 +438,7 @@ async def get_contribution(request: Request, pr_number: int) -> CurationDetail:
     client = DataRepoClient()
     pull, input_type = await _fetch_pull(client, pr_number)
     try:
+        await _check_access(request, client, pull, input_type)
         detail = await _build_detail(client, pull, input_type)
     except (HTTPException, SubmissionError):
         raise
@@ -438,6 +480,7 @@ async def get_contribution_validation(
         )
     client = DataRepoClient()
     pull, input_type = await _fetch_pull(client, pr_number)
+    await _check_access(request, client, pull, input_type)
     head_sha = pull["head_sha"]
     cached = _cache.get(("validation", pr_number, head_sha))
     if cached is not None:
@@ -462,7 +505,7 @@ async def get_contribution_comments(
     the opening entry (it is the submission summary the contributor wrote).
 
     Read-only: replying, requesting changes and approving still happen on
-    GitHub until per-user auth (#247) and curator roles (#248) land.
+    GitHub (#254).
     """
     if not configured():
         raise HTTPException(
@@ -470,7 +513,8 @@ async def get_contribution_comments(
             detail="Curation is not enabled on this deployment.",
         )
     client = DataRepoClient()
-    pull, _ = await _fetch_pull(client, pr_number)
+    pull, input_type = await _fetch_pull(client, pr_number)
+    await _check_access(request, client, pull, input_type)
     cached = _cache.get(("comments", pr_number))
     if cached is not None:
         return cached
@@ -533,6 +577,7 @@ async def get_contribution_file(
         )
     client = DataRepoClient()
     pull, input_type = await _fetch_pull(client, pr_number)
+    await _check_access(request, client, pull, input_type)
     head_sha = pull["head_sha"]
     cached = _cache.get(("file", head_sha, path_param))
     if cached is not None:

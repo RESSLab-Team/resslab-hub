@@ -20,7 +20,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from resslab_hub.auth import roles
+from resslab_hub.auth import github_sync, roles
 from resslab_hub.auth.sessions import SESSION_COOKIE, resolve_session
 from resslab_hub.config import settings
 from resslab_hub.models.database.auth import User
@@ -89,6 +89,9 @@ async def get_current_user(
     if resolved is None:
         return None
     session, user = resolved
+    if github_sync.is_stale(user):
+        await github_sync.refresh_github_role(user)
+        await db.commit()
     # For handlers that take the user off the request rather than through a
     # dependency (the curation ones, called directly by their tests).
     request.state.user = user

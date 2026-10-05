@@ -9,7 +9,8 @@ they can prove who they are. Identities are linked only by an explicit flow
 while signed in, never merged automatically because two providers report the
 same address. ``LoginChallenge`` is the short-lived state of a sign-in in
 progress (the mailed code, or the OAuth ``state``), ``Session`` is a signed-in
-browser.
+browser. ``Invitation`` and ``AccessRequest`` are the two ways an admin hands
+out a role from the Hub (#248).
 
 Enum-like columns are ``String`` + ``CheckConstraint`` rather than Postgres
 enums: adding a role or a provider then costs an ordinary migration instead of
@@ -25,10 +26,12 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -43,6 +46,9 @@ PROVIDERS = ("email", "github", "orcid", "entra", "switch")
 
 #: Kinds of sign-in in progress.
 CHALLENGE_KINDS = ("email", "oauth_github")
+
+#: Where an access request is.
+REQUEST_STATUSES = ("pending", "approved", "declined")
 
 
 def _uuid() -> str:
@@ -70,14 +76,17 @@ class User(Base):  # type: ignore
     orcid = Column(String(50), nullable=False, server_default="")
     #: Effective role, recomputed by ``auth.roles.apply_role``.
     role = Column(String(20), nullable=False, server_default="viewer")
-    #: Why ``role`` has that value: ``override``, ``admin-email``,
-    #: ``academic-email``, ``default``, and ``github`` once #248 lands.
+    #: Why ``role`` has that value: ``admin-email``, ``github``,
+    #: ``override``, ``academic-email`` or ``default``.
     role_source = Column(String(40), nullable=False, server_default="default")
-    #: Set by an admin; wins over everything derived, in both directions.
+    #: Set by an admin; wins over everything derived, in both directions,
+    #: except an admin from ``ADMIN_EMAILS`` or from GitHub (#248).
     role_override = Column(String(20), nullable=True)
     #: Mirror of the linked GitHub identity, kept here so the permission on the
     #: data repo can be refreshed and read without joining.
     github_login = Column(String(100), nullable=False, server_default="")
+    #: GitHub's permission on the data repo: ``admin``, ``write``, ``read`` or
+    #: ``none``. Read again by ``auth.github_sync`` once an hour old.
     github_role = Column(String(20), nullable=True)
     github_role_synced_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
@@ -188,3 +197,88 @@ class Session(Base):  # type: ignore
     ip = Column(String(45), nullable=False, server_default="")
     user_agent = Column(String(400), nullable=False, server_default="")
     revoked_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class Invitation(Base):  # type: ignore
+    """A role waiting for an address that has no account yet.
+
+    Redeemed at the first sign-in that proves the address. The address is the
+    proof, so the invitation carries no secret.
+    """
+
+    __tablename__ = "auth_invitation"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=_uuid)
+    #: Lower-cased, like ``User.email``.
+    email = Column(String(320), nullable=False)
+    role = Column(String(20), nullable=False)
+    invited_by = Column(
+        UUID(as_uuid=False),
+        ForeignKey("auth_user.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    redeemed_at = Column(DateTime(timezone=True), nullable=True)
+    redeemed_by = Column(
+        UUID(as_uuid=False),
+        ForeignKey("auth_user.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        CheckConstraint(
+            "role IN ('viewer', 'contributor', 'curator', 'admin')",
+            name="auth_invitation_role_check",
+        ),
+        # One open invitation per address. Old ones stay, for the record.
+        Index(
+            "auth_invitation_pending_email",
+            "email",
+            unique=True,
+            postgresql_where=text("redeemed_at IS NULL AND revoked_at IS NULL"),
+        ),
+    )
+
+
+class AccessRequest(Base):  # type: ignore
+    """Someone signed in asks an admin for a role (today, contributor)."""
+
+    __tablename__ = "auth_access_request"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=_uuid)
+    user_id = Column(
+        UUID(as_uuid=False),
+        ForeignKey("auth_user.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    role = Column(String(20), nullable=False, server_default="contributor")
+    #: Who they are and what they want to submit, in their own words.
+    message = Column(Text, nullable=False, server_default="")
+    status = Column(String(20), nullable=False, server_default="pending")
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    decided_by = Column(
+        UUID(as_uuid=False),
+        ForeignKey("auth_user.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    decided_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        CheckConstraint(
+            "role IN ('viewer', 'contributor', 'curator', 'admin')",
+            name="auth_access_request_role_check",
+        ),
+        CheckConstraint(
+            "status IN ('pending', 'approved', 'declined')",
+            name="auth_access_request_status_check",
+        ),
+        # One open request per person.
+        Index(
+            "auth_access_request_pending_user",
+            "user_id",
+            unique=True,
+            postgresql_where=text("status = 'pending'"),
+        ),
+    )

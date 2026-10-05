@@ -6,6 +6,7 @@ needs Postgres or the network.
 """
 
 import json
+from types import SimpleNamespace
 
 import pytest
 from fastapi import HTTPException
@@ -172,8 +173,15 @@ class FakeClient:
         return self.comments
 
 
-def make_request() -> Request:
-    return Request(
+#: Who calls, as ``get_current_user`` leaves it on the request. A curator by
+#: default: most tests are about the projection, not about access.
+CURATOR = SimpleNamespace(id="curator-id", email="grace@example.edu", role="curator")
+OWNER = SimpleNamespace(id="owner-id", email="Ada@Example.edu", role="contributor")
+STRANGER = SimpleNamespace(id="other-id", email="bob@example.edu", role="contributor")
+
+
+def make_request(user=CURATOR) -> Request:
+    request = Request(
         {
             "type": "http",
             "method": "GET",
@@ -185,6 +193,9 @@ def make_request() -> Request:
             "scheme": "http",
         }
     )
+    if user is not None:
+        request.state.user = user
+    return request
 
 
 @pytest.fixture(autouse=True)
@@ -369,19 +380,74 @@ async def test_detail_404_on_closed_or_foreign(monkeypatch):
 
 async def test_detail_says_whether_it_is_mine(monkeypatch):
     """Per request, never from the cache: two people read the same detail."""
-    from types import SimpleNamespace
-
     use_client(monkeypatch, FakeClient())
-    anonymous = await get_contribution(make_request(), 7)
-    assert anonymous.mine is False
+    assert (await get_contribution(make_request(CURATOR), 7)).mine is False
+    assert (await get_contribution(make_request(OWNER), 7)).mine is True
 
-    owner = make_request()
-    owner.state.user = SimpleNamespace(id="some-id", email="ada@example.edu")
-    assert (await get_contribution(owner, 7)).mine is True
 
-    stranger = make_request()
-    stranger.state.user = SimpleNamespace(id="other-id", email="grace@example.edu")
-    assert (await get_contribution(stranger, 7)).mine is False
+# --- who can read a submission (#248) -----------------------------------------
+
+
+async def _read_everything(request):
+    """Every per-PR endpoint, as the review and the edit screens call them."""
+    await get_contribution(request, 7)
+    await get_contribution_validation(request, 7)
+    await get_contribution_comments(request, 7)
+    await get_contribution_file(request, 7, "braces/force_displacement/B9.csv")
+
+
+@pytest.fixture
+def no_validation(monkeypatch):
+    def fake_validate(input_type, dirs, cpu, check_duplicate_ids):
+        return [ValidationResult("steel_braces.csv")]
+
+    monkeypatch.setattr(curation, "validate_all", fake_validate)
+
+
+async def test_the_person_who_submitted_reads_their_own(monkeypatch, no_validation):
+    """The edit step (#321) loads the submission through these endpoints."""
+    use_client(monkeypatch, FakeClient())
+    await _read_everything(make_request(OWNER))
+
+
+@pytest.mark.parametrize("user", [STRANGER, None])
+async def test_anyone_else_is_refused(monkeypatch, no_validation, user):
+    use_client(monkeypatch, FakeClient())
+    for call in (
+        get_contribution(make_request(user), 7),
+        get_contribution_validation(make_request(user), 7),
+        get_contribution_comments(make_request(user), 7),
+        get_contribution_file(make_request(user), 7, "braces/steel_braces.csv"),
+    ):
+        with pytest.raises(HTTPException) as caught:
+            await call
+        assert caught.value.status_code == 403
+
+
+async def test_a_refusal_holds_when_the_answer_is_cached(monkeypatch, no_validation):
+    """A curator fills the caches; a stranger must not read through them."""
+    use_client(monkeypatch, FakeClient())
+    await _read_everything(make_request(CURATOR))
+    with pytest.raises(HTTPException) as caught:
+        await get_contribution_validation(make_request(STRANGER), 7)
+    assert caught.value.status_code == 403
+
+
+async def test_the_owner_is_found_after_the_cache_dropped_it(monkeypatch):
+    use_client(monkeypatch, FakeClient())
+    await get_contribution(make_request(CURATOR), 7)
+    curation._cache.drop(("owner", 7, "head-sha"))
+    assert (await get_contribution(make_request(OWNER), 7)).mine is True
+
+
+async def test_an_unknown_submitter_leaves_it_to_curators(monkeypatch):
+    client = FakeClient(commits=[{"sha": "x", "message": "pushed by hand"}])
+    client.texts[(PROVENANCE_PATH, "head-sha")] = "not json"
+    use_client(monkeypatch, client)
+    await get_contribution(make_request(CURATOR), 7)
+    with pytest.raises(HTTPException) as caught:
+        await get_contribution(make_request(OWNER), 7)
+    assert caught.value.status_code == 403
 
 
 # --- validation -------------------------------------------------------------

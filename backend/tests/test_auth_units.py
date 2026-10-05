@@ -5,7 +5,7 @@ import logging
 import aiosmtplib
 import pytest
 
-from resslab_hub.auth import mailer, roles, tokens, urls
+from resslab_hub.auth import access, mailer, roles, tokens, urls
 from resslab_hub.auth.users import name_from_email, normalize_email
 from resslab_hub.models.database.auth import User
 
@@ -69,12 +69,14 @@ def test_role_ordering():
     assert not roles.at_least("nonsense", "contributor")
 
 
-def test_override_wins_over_everything(monkeypatch):
+def test_the_config_admin_cannot_be_overridden(monkeypatch):
+    """Nobody demotes from the Hub an admin the config made (#248)."""
     monkeypatch.setattr(roles.settings, "admin_emails", "boss@epfl.ch")
     user = User(
         email="boss@epfl.ch", email_verified_at=object(), role_override="viewer"
     )
-    assert roles.derive_role(user) == ("viewer", "override")
+    assert roles.derive_role(user) == ("admin", "admin-email")
+    assert roles.is_locked_admin(user)
 
 
 def test_admin_email_grants_admin_at_sign_in(monkeypatch):
@@ -173,6 +175,144 @@ def test_signed_in_without_a_grant_is_a_viewer(monkeypatch):
         email="someone@example.edu", email_verified_at=datetime.now(timezone.utc)
     )
     assert roles.derive_role(user) == ("viewer", "default")
+
+
+# --- roles from GitHub (#248) ---------------------------------------------
+def _github_user(permission, **fields):
+    return User(
+        email=fields.pop("email", "ada@gmail.com"),
+        email_verified_at=object(),
+        github_login=fields.pop("github_login", "ada-l"),
+        github_role=permission,
+        **fields,
+    )
+
+
+@pytest.fixture
+def no_config_grants(monkeypatch):
+    monkeypatch.setattr(roles.settings, "admin_emails", "")
+    monkeypatch.setattr(roles.settings, "contributor_domains", "")
+
+
+def test_admin_on_the_data_repo_is_admin(no_config_grants):
+    user = _github_user("admin", role_override="viewer")
+    assert roles.derive_role(user) == ("admin", "github")
+    assert roles.is_locked_admin(user)
+
+
+def test_write_on_the_data_repo_is_curator(no_config_grants):
+    user = _github_user("write")
+    assert roles.derive_role(user) == ("curator", "github")
+    assert not roles.is_locked_admin(user)
+
+
+def test_the_override_beats_write_access(no_config_grants):
+    """An admin can still demote a curator GitHub made, or promote one."""
+    assert roles.derive_role(_github_user("write", role_override="viewer")) == (
+        "viewer",
+        "override",
+    )
+    user = _github_user("write", role_override="admin")
+    assert roles.derive_role(user) == ("admin", "override")
+    assert not roles.is_locked_admin(user)
+
+
+@pytest.mark.parametrize("permission", ["read", "none", None, "triage"])
+def test_read_access_grants_nothing(no_config_grants, permission):
+    assert roles.derive_role(_github_user(permission)) == ("viewer", "default")
+    user = _github_user(permission, email="ada@epfl.ch")
+    assert roles.derive_role(user) == ("contributor", "academic-email")
+
+
+def test_a_permission_without_a_login_is_ignored(no_config_grants):
+    """Unlinking GitHub clears both, but never trust one without the other."""
+    assert roles.derive_role(_github_user("admin", github_login="")) == (
+        "viewer",
+        "default",
+    )
+
+
+# --- GitHub permission sync ------------------------------------------------
+@pytest.fixture
+def github_permission(monkeypatch, no_config_grants):
+    """What the fake data repo answers; an exception is raised instead."""
+    from resslab_hub.auth import github_sync
+
+    answer = {"value": "write", "calls": 0}
+
+    class _FakeClient:
+        async def get_permission(self, login):
+            answer["calls"] += 1
+            if isinstance(answer["value"], Exception):
+                raise answer["value"]
+            return answer["value"]
+
+    monkeypatch.setattr(github_sync, "configured", lambda: True)
+    monkeypatch.setattr(github_sync, "DataRepoClient", _FakeClient)
+    return answer
+
+
+def _ago(**delta):
+    from datetime import datetime, timedelta, timezone
+
+    return datetime.now(timezone.utc) - timedelta(**delta)
+
+
+def test_a_permission_goes_stale_after_an_hour():
+    from resslab_hub.auth import github_sync
+
+    assert github_sync.is_stale(_github_user("write"))
+    assert not github_sync.is_stale(
+        _github_user("write", github_role_synced_at=_ago(minutes=10))
+    )
+    assert github_sync.is_stale(
+        _github_user("write", github_role_synced_at=_ago(minutes=61))
+    )
+    # Nothing to read without a GitHub account.
+    assert not github_sync.is_stale(_github_user(None, github_login=""))
+
+
+async def test_a_sync_reads_the_permission_and_sets_the_role(github_permission):
+    from resslab_hub.auth import github_sync
+
+    user = _github_user(None, id="u1")
+    await github_sync.refresh_github_role(user)
+    assert (user.github_role, user.role, user.role_source) == (
+        "write",
+        "curator",
+        "github",
+    )
+    assert not github_sync.is_stale(user)
+
+    # Access removed on GitHub: the next sync takes the role back.
+    github_permission["value"] = "read"
+    await github_sync.refresh_github_role(user)
+    assert (user.role, user.role_source) == ("viewer", "default")
+
+
+async def test_a_failed_sync_keeps_the_role_and_retries_later(github_permission):
+    from resslab_hub.auth import github_sync
+
+    user = _github_user("write", id="u1", github_role_synced_at=_ago(hours=2))
+    roles.apply_role(user)
+    github_permission["value"] = RuntimeError("GitHub is down")
+
+    await github_sync.refresh_github_role(user)
+
+    assert (user.github_role, user.role) == ("write", "curator")
+    # Not on every request: in a few minutes.
+    assert not github_sync.is_stale(user)
+    assert github_sync.aware(user.github_role_synced_at) < _ago(minutes=50)
+
+
+async def test_no_sync_without_the_github_app(github_permission, monkeypatch):
+    from resslab_hub.auth import github_sync
+
+    monkeypatch.setattr(github_sync, "configured", lambda: False)
+    user = _github_user("write", id="u1")
+    await github_sync.refresh_github_role(user)
+    assert github_permission["calls"] == 0
+    assert user.github_role == "write"
 
 
 # --- users ----------------------------------------------------------------
@@ -287,6 +427,89 @@ async def test_a_refusing_relay_becomes_a_mail_error(monkeypatch, caplog):
     # The reason is logged, the code never is.
     assert "relay is down" in caplog.text
     assert "123456" not in caplog.text
+
+
+def _notice(**changes):
+    fields = {
+        "email": "boss@epfl.ch",
+        "subject": "Ada asks to contribute to RESSLab Hub",
+        "title": "A new access request",
+        "paragraphs": ["Ada asks for the contributor role."],
+        "button": "Open the requests",
+        "link": "http://127.0.0.1:5173/admin",
+        "footnote": "You are an admin.",
+    }
+    fields.update(changes)
+    return mailer.build_notice(**fields)
+
+
+def test_a_notice_has_both_parts_and_no_placeholder_left():
+    message = _notice()
+    text, html = _parts(message)
+
+    assert message["To"] == "boss@epfl.ch"
+    for part in (text, html):
+        assert "Ada asks for the contributor role." in part
+        assert "http://127.0.0.1:5173/admin" in part
+        assert "Open the requests" in part
+        for name in ("subject", "preheader", "title", "body", "button", "link"):
+            assert "{%s}" % name not in part
+    assert 'href="http://127.0.0.1:5173/admin"' in html
+
+
+def test_a_notice_escapes_what_people_typed():
+    """A message is user text: it must not become HTML in an admin's mail."""
+    message = _notice(
+        subject="Mallory\nBcc: everyone@epfl.ch asks",
+        paragraphs=["Their message:\n<a href='http://evil'>click</a> {link}"],
+    )
+    text, html = _parts(message)
+
+    assert "<a href='http://evil'>" not in html
+    assert "&lt;a href=" in html
+    # The placeholder typed in the message stays text, it is not filled.
+    assert "{link}" in html and "{link}" in text
+    # No header injection: the line break is folded away.
+    assert message["Subject"] == "Mallory Bcc: everyone@epfl.ch asks"
+    assert message["Bcc"] is None
+
+
+async def test_a_notice_is_only_logged_without_a_relay(monkeypatch, caplog):
+    monkeypatch.setattr(mailer.settings, "smtp_host", "")
+    sent = []
+
+    async def _send(message, **kwargs):
+        sent.append(message)
+
+    monkeypatch.setattr(mailer.aiosmtplib, "send", _send)
+    with caplog.at_level(logging.INFO):
+        await mailer.send_notice(
+            "boss@epfl.ch", "Subject", "Title", ["Body"], "Go", "http://x/admin", "-"
+        )
+    assert sent == []
+    assert "http://x/admin" in caplog.text
+
+
+# --- roles handed out from the Hub ----------------------------------------
+def test_grant_raises_a_role(no_config_grants):
+    user = User(email="ada@example.com", email_verified_at=object(), role="viewer")
+    assert access.grant(user, "contributor")
+    assert (user.role, user.role_source, user.role_override) == (
+        "contributor",
+        "override",
+        "contributor",
+    )
+
+
+def test_grant_never_lowers_a_role(no_config_grants):
+    curator = _github_user("write")
+    assert not access.grant(curator, "contributor")
+    assert curator.role_override is None
+    assert roles.derive_role(curator) == ("curator", "github")
+
+    # Above what GitHub gives, it does write the decision.
+    assert access.grant(curator, "admin")
+    assert roles.derive_role(curator) == ("admin", "override")
 
 
 def test_the_logos_travel_with_the_mail():

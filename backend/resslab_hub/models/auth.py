@@ -6,7 +6,8 @@ to show what they can do and why, and to decide which navigation entries to
 render. No secret ever appears here.
 """
 
-from typing import List, Optional
+from datetime import datetime
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -15,6 +16,20 @@ class IdentityOut(BaseModel):
     id: str
     provider: str
     handle: str
+
+
+class AccessRequestStatus(BaseModel):
+    """Where the person's last access request is (#248)."""
+
+    status: Literal["pending", "approved", "declined"]
+    role: str
+    created_at: datetime
+    decided_at: Optional[datetime] = None
+
+
+class AccessRequestIn(BaseModel):
+    #: Who they are and what they want to submit.
+    message: str = Field(default="", max_length=2000)
 
 
 class UserOut(BaseModel):
@@ -29,6 +44,8 @@ class UserOut(BaseModel):
     role_source: str = "default"
     github_login: str = ""
     identities: List[IdentityOut] = []
+    #: The last access request, so the account page can say it is waiting.
+    access_request: Optional[AccessRequestStatus] = None
 
 
 class MeResponse(BaseModel):
