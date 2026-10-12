@@ -625,7 +625,20 @@
     "loading_filters": "Chargement des filtres…",
     "distinct_values": "valeurs distinctes",
     "missing_values": "non renseignées",
-    "all_recorded_properties": "Toutes les propriétés enregistrées"
+    "all_recorded_properties": "Toutes les propriétés enregistrées",
+    "unverified": {
+      "tag": "Non vérifiée",
+      "notice": "Cette expérience n'a pas encore été relue par notre équipe. À utiliser avec prudence.",
+      "row_title": "Non vérifiée : pas encore relue par notre équipe",
+      "verify": "Marquer comme vérifiée",
+      "verify_hint": "Ouvre une pull request sur le dépôt de données. Fusionnez-la sur GitHub.",
+      "opening": "Ouverture de la pull request…",
+      "pending": "Vérification en attente : PR #{number}",
+      "failed": "La pull request n'a pas pu être ouverte.",
+      "verified_only": "Vérifiées seulement",
+      "verified_only_hint": "Masquer les expériences que notre équipe n'a pas encore relues",
+      "status_label": "Statut de relecture"
+    }
   },
   "table": {
     "connection": {
@@ -1480,6 +1493,25 @@
       "summary": "soumission",
       "refresh": "Actualiser la discussion",
       "unknown_author": "Auteur inconnu"
+    },
+    "tabs": {
+      "accept": "À accepter",
+      "verify": "À vérifier"
+    },
+    "verify": {
+      "description": "Expériences publiées sans vérification, par base et par référence. Comparez-les à la publication, puis ouvrez la pull request de vérification et fusionnez-la sur GitHub (squash). Le statut change au prochain chargement des données.",
+      "loading": "Chargement des expériences non vérifiées…",
+      "error": "Impossible de charger les expériences non vérifiées.",
+      "not_configured": "Les pull requests de vérification ne sont pas activées sur ce déploiement : les identifiants de la GitHub App sont absents.",
+      "empty": "Rien à vérifier : toutes les expériences sont vérifiées.",
+      "no_reference": "Sans référence",
+      "more": "+{count} autre | +{count} autres",
+      "button": "Marquer comme vérifiée | Marquer les {count} comme vérifiées",
+      "note": "La liste vient de la base de données : une vérification fusionnée reste ici jusqu'au prochain chargement.",
+      "headers": {
+        "reference": "Référence",
+        "ids": "Identifiants"
+      }
     }
   },
   "auth": {

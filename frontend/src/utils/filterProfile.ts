@@ -77,9 +77,10 @@ export const TEXT_TOP_VALUES = 8
 /**
  * Columns nothing is ever filtered by, hidden by name whatever they contain:
  * identities and links, plus the map coordinates — `latitude`/`longitude` place
- * a specimen on the overview map, they are not a property of the test.
+ * a specimen on the overview map, they are not a property of the test. The
+ * review status (#253) has its own "Verified only" toggle in the toolbar.
  */
-const DENYLIST = /^(id|.*_id|link|url|doi|file_path|latitude|longitude)$/i
+const DENYLIST = /^(id|.*_id|link|url|doi|file_path|latitude|longitude|data_curation_status)$/i
 const URL_VALUE = /^https?:\/\//i
 /** Values carrying one of these can't survive the query DSL as a filter value. */
 const DSL_CHARS = /[,;]/

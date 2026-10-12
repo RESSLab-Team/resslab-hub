@@ -71,6 +71,11 @@ describe('fieldGroups: coverage of the real schema', () => {
     expect(orphans).toEqual([])
   })
 
+  it.each(DATABASES)('puts the review status with the program details in %s', (database) => {
+    // Set by the Hub (#253), so the sample batches above never carry it.
+    expect(groupFor(database, column('data_curation_status'))).toBe('experimental_program_details')
+  })
+
   it.each(DATABASES)('declares no group that never matches in %s', (database) => {
     // A rule that claims nothing is a typo: groupBy silently drops empty groups,
     // so without this the mistake would only show up as a missing group in the UI.

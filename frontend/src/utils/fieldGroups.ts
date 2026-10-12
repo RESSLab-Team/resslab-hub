@@ -93,7 +93,8 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'reference',
         'link',
         'latitude',
-        'longitude'
+        'longitude',
+        'data_curation_status'
       ]
     },
     {
@@ -278,7 +279,8 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'reference',
         'link',
         'latitude',
-        'longitude'
+        'longitude',
+        'data_curation_status'
       ]
     },
     {
@@ -398,7 +400,8 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'reference',
         'link',
         'latitude',
-        'longitude'
+        'longitude',
+        'data_curation_status'
       ]
     },
     {
@@ -475,7 +478,16 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
   hss: [
     {
       id: 'experimental_program_details',
-      match: ['id', 'date', 'investigator', 'reference', 'url', 'latitude', 'longitude']
+      match: [
+        'id',
+        'date',
+        'investigator',
+        'reference',
+        'url',
+        'latitude',
+        'longitude',
+        'data_curation_status'
+      ]
     },
     {
       id: 'specimen_details',
@@ -532,7 +544,8 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'reference',
         'url',
         'latitude',
-        'longitude'
+        'longitude',
+        'data_curation_status'
       ]
     },
     { id: 'steel_profile', match: ['profile', 'sec_type'] },
@@ -610,7 +623,8 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'latitude',
         'longitude',
         'citekey',
-        'hidden_dataset_index'
+        'hidden_dataset_index',
+        'data_curation_status'
       ]
     },
     {
@@ -681,7 +695,8 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'latitude',
         'longitude',
         'publication_key',
-        'datacol_version'
+        'datacol_version',
+        'data_curation_status'
       ]
     },
     {
@@ -765,7 +780,8 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'link',
         'latitude',
         'longitude',
-        'has_sem'
+        'has_sem',
+        'data_curation_status'
       ]
     },
     {
@@ -842,7 +858,8 @@ export const FIELD_GROUPS: Record<DatabaseId, FieldGroupRule[]> = {
         'reference',
         'link',
         'latitude',
-        'longitude'
+        'longitude',
+        'data_curation_status'
       ]
     },
     { id: 'steel_profile', match: ['profile_type', 'profile'] },

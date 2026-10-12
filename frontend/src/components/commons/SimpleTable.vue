@@ -17,6 +17,7 @@ import {
 import { useNotificationStore } from '@/stores/notification'
 import type { ColorScale } from '@/utils/categoryColors'
 import { isStructuredFilterValue, shareCurrentUrl, type Searches, type Value } from '@/utils/common'
+import { isUnverified } from '@/utils/curationStatus'
 import type { FilterDescriptor } from '@/utils/filterProfile'
 import { formatValue } from '@/utils/queryEngine'
 import type { DatabaseId } from '@/utils/navigation'
@@ -1078,7 +1079,12 @@ function downloadZip(): void {
                 }"
                 @click="rowClick(item)"
               >
-                <td class="stbl-col-select" @click.stop>
+                <td
+                  class="stbl-col-select"
+                  :class="{ 'is-unverified': isUnverified(item) }"
+                  :title="isUnverified(item) ? t('commons.unverified.row_title') : undefined"
+                  @click.stop
+                >
                   <input
                     type="checkbox"
                     class="stbl-check"
@@ -1086,6 +1092,9 @@ function downloadZip(): void {
                     :disabled="!isItemSelectable(item)"
                     @change="toggleRow(item)"
                   />
+                  <span v-if="isUnverified(item)" class="stbl-sr">{{
+                    t('commons.unverified.tag')
+                  }}</span>
                 </td>
                 <td
                   v-for="header in tableHeaders"
@@ -1621,6 +1630,21 @@ function downloadZip(): void {
 .stbl-spacer td {
   padding: 0;
   border: none;
+}
+/* Unverified row (#253): an orange rule on the left edge, in the fixed select
+   gutter. Not a tag in the first cell: the widths are measured from the text
+   alone, so a tag would push the id out of its column. A selected row keeps
+   its red rule, drawn on the row. */
+.stbl-row:not(.is-selected) td.stbl-col-select.is-unverified {
+  box-shadow: inset 3px 0 0 var(--warning);
+}
+.stbl-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Selection checkboxes — EPFL red when checked */

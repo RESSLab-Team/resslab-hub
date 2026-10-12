@@ -526,7 +526,20 @@
     "loading_filters": "Loading filters…",
     "distinct_values": "distinct values",
     "missing_values": "not reported",
-    "all_recorded_properties": "All recorded properties"
+    "all_recorded_properties": "All recorded properties",
+    "unverified": {
+      "tag": "Unverified",
+      "notice": "This experiment has not yet been reviewed by our team. Use it with care.",
+      "row_title": "Unverified: not yet reviewed by our team",
+      "verify": "Mark as verified",
+      "verify_hint": "Opens a pull request on the data repository. Merge it on GitHub.",
+      "opening": "Opening the pull request…",
+      "pending": "Verification pending: PR #{number}",
+      "failed": "The pull request could not be opened.",
+      "verified_only": "Verified only",
+      "verified_only_hint": "Hide the experiments our team has not reviewed yet",
+      "status_label": "Review status"
+    }
   },
   "field_group": {
     "experimental_program_details": "Experimental program details",
@@ -1480,6 +1493,25 @@
       "summary": "submission",
       "refresh": "Refresh the discussion",
       "unknown_author": "Unknown author"
+    },
+    "tabs": {
+      "accept": "To accept",
+      "verify": "To verify"
+    },
+    "verify": {
+      "description": "Experiments that went live unverified, by database and reference. Check them against the publication, then open the verification pull request and merge it on GitHub (squash). The status changes at the next upload.",
+      "loading": "Loading the unverified experiments…",
+      "error": "Could not load the unverified experiments.",
+      "not_configured": "Verification pull requests are not enabled on this deployment: the GitHub App credentials are missing.",
+      "empty": "Nothing to verify: every experiment is verified.",
+      "no_reference": "No reference",
+      "more": "+{count} more | +{count} more",
+      "button": "Mark as verified | Mark all {count} as verified",
+      "note": "The list comes from the database, so a merged verification stays here until the next upload.",
+      "headers": {
+        "reference": "Reference",
+        "ids": "Ids"
+      }
     }
   },
   "auth": {
