@@ -37,11 +37,20 @@ Ratios written with `_over_` are not one thing either: in the columns database
 `h_over_t_cw` is a width-to-thickness ratio while `p_g_over_p_ym` is an axial load
 ratio, and they belong in different groups.
 
-## Connections, 153 columns in 14 groups
+### The review status
+
+`data_curation_status` (#253) is in every database, in "Experimental program
+details". The Hub sets it (`verified` or `unverified`, see
+[curation.md](curation.md#verification)), so it is not in the filter rail
+(`DENYLIST` in `utils/filterProfile.ts`, the "Verified only" toggle replaces it) nor
+in the contribution editor. It still needs its category: the specimen drawer shows
+it, and `fieldGroups.spec.ts` fails on a column with none.
+
+## Connections, 154 columns in 14 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 10 | `id`, `experimental_program`, `date`, `specimen_designation`, `comments`, `loading_protocol`, `reference`, `link`, `latitude`, `longitude` |
+| Experimental program details | 11 | `id`, `experimental_program`, `date`, `specimen_designation`, `comments`, `loading_protocol`, `reference`, `link`, `latitude`, `longitude`, `data_curation_status` |
 | Connection detailing | 7 | `northridge`, `specimen_type`, `slab`, `connection_type`, `t_pl`, `s_h`, `d_h` |
 | Beam section properties | 24 | `rbs_cut`, `section_b`, `d_b`, `d_bg`, `t_bw`, `b_bf`, `t_bf`, `r_b`, `a_b`, `i_xb`, `z_xb`, `z_xb_bfp`, `r_yb`, `b_bf_rbs`, `d_gb_rbs`, `a_b_rbs`, `i_xb_rbs`, `z_xb_rbs`, `d_bm`, `d_bgm`, `t_bwm`, `b_bfm`, `t_bfm`, `z_xbm` |
 | Beam material properties | 6 | `steel_b`, `f_yb`, `f_ybw`, `f_ybf`, `f_yb_mill`, `f_yb_avg` |
@@ -56,11 +65,11 @@ ratio, and they belong in different groups.
 | Panel zone demand-to-resistance ratio | 8 | `r_u_n`, `r_u_m`, `ru_rn_el_n`, `ru_rn_pl_n`, `aisc_pz_violation_n`, `ru_rn_el_m`, `ru_rn_pl_m`, `aisc_pz_violation_m` |
 | Panel zone shear distortion | 3 | `g_max`, `g_y`, `g_max_g_y` |
 
-## Steel columns, 97 columns in 8 groups
+## Steel columns, 98 columns in 8 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 9 | `id`, `experimental_program`, `date`, `specimen_designation`, `comments`, `reference`, `link`, `latitude`, `longitude` |
+| Experimental program details | 10 | `id`, `experimental_program`, `date`, `specimen_designation`, `comments`, `reference`, `link`, `latitude`, `longitude`, `data_curation_status` |
 | Section properties | 20 | `section_c`, `d_c`, `k_c`, `k1_c`, `h_c`, `t_cw`, `b_cf`, `t_cf`, `a_cm`, `a_cn`, `i_xb`, `i_xc`, `s_xc`, `s_yc`, `z_xc`, `z_yc`, `j_c`, `c_wc`, `r_yc`, `r_xc` |
 | Slenderness and section classification | 14 | `h_over_t_cw`, `b_f_over_t_cf`, `l_b_over_r_yc`, `k_xc`, `k_yc`, `lambda_xc`, `lambda_yc`, `lambda_ltb`, `f_class_us`, `w_class_us`, `cs_class_us`, `f_class_eu`, `w_class_eu`, `cs_class_eu` |
 | Specimen dimensions | 5 | `l_c`, `l_sc`, `l_bc`, `t_top_plate`, `t_bottom_plate` |
@@ -69,11 +78,11 @@ ratio, and they belong in different groups.
 | Axial resistance | 5 | `p_ym`, `p_yn`, `p_ye`, `p_t`, `p_c` |
 | Measured response | 17 | `k_test`, `k_flexure_th`, `k_shear_th`, `k_theory`, `th_y`, `th_lb`, `th_80`, `th_50`, `th_20`, `th_1l`, `th_2l`, `th_3l`, `th_4l`, `th_6l`, `d_80`, `d_50`, `d_20` |
 
-## Steel braces, 71 columns in 10 groups
+## Steel braces, 72 columns in 10 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 8 | `id`, `investigator`, `specimen_ID`, `date`, `reference`, `link`, `latitude`, `longitude` |
+| Experimental program details | 9 | `id`, `investigator`, `specimen_ID`, `date`, `reference`, `link`, `latitude`, `longitude`, `data_curation_status` |
 | Section properties | 14 | `cross_section_shape`, `cross_section_size`, `area`, `d_br`, `b_br`, `t_br`, `w_br`, `i_x`, `i_y`, `r_x`, `r_y`, `z_x`, `z_y`, `j` |
 | Specimen details | 5 | `configuration`, `brace_angle`, `l_b`, `l_b_clear`, `boundary_condition` |
 | Material properties | 5 | `steel`, `e`, `f_yn`, `fy_m`, `f_um` |
@@ -84,11 +93,11 @@ ratio, and they belong in different groups.
 | Loading details | 1 | `loading_protocol` |
 | Measured and theoretical resistance | 3 | `p_t`, `p_t_theory`, `p_c` |
 
-## HSS columns, 60 columns in 9 groups
+## HSS columns, 61 columns in 9 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 7 | `id`, `date`, `investigator`, `reference`, `url`, `latitude`, `longitude` |
+| Experimental program details | 8 | `id`, `date`, `investigator`, `reference`, `url`, `latitude`, `longitude`, `data_curation_status` |
 | Specimen details | 4 | `test_configuration`, `test_type`, `forming_process`, `seams` |
 | Loading details | 5 | `loading_protocol`, `stiffness_coefficient`, `axial_load_ratio`, `axial_load_sequence`, `loading_angle` |
 | Steel profile | 1 | `tube_section` |
@@ -98,11 +107,11 @@ ratio, and they belong in different groups.
 | Backbone parameters (100% fit) | 12 | `my_pos_100fit__knmm`, `my_neg_100fit__knmm`, `theta_p_pos_100fit__rad`, `theta_pc_pos_100fit__rad`, `theta_u_pos_100fit__rad`, `theta_p_neg_100fit__rad`, `theta_pc_neg_100fit__rad`, `theta_u_neg_100fit__rad`, `mc_my_pos_100fit`, `mu_mc_pos_100fit`, `mc_my_neg_100fit`, `mu_mc_neg_100fit` |
 | Backbone parameters (80% fit) | 12 | `my_pos_80fit__knmm`, `my_neg_80fit__knmm`, `theta_p_pos_80fit__rad`, `theta_pc_pos_80fit__rad`, `theta_u_pos_80fit__rad`, `theta_p_neg_80fit__rad`, `theta_pc_neg_80fit__rad`, `theta_u_neg_80fit__rad`, `mc_my_pos_80fit`, `mu_mc_pos_80fit`, `mc_my_neg_80fit`, `mu_mc_neg_80fit` |
 
-## Eccentric braced frames, 98 columns in 9 groups
+## Eccentric braced frames, 99 columns in 9 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 9 | `id`, `investigator`, `year`, `spec_id`, `region`, `reference`, `url`, `latitude`, `longitude` |
+| Experimental program details | 10 | `id`, `investigator`, `year`, `spec_id`, `region`, `reference`, `url`, `latitude`, `longitude`, `data_curation_status` |
 | Steel profile | 2 | `profile`, `sec_type` |
 | Material properties | 26 | `sg_flg_link`, `sg_web_link`, `f_y_n_flg`, `f_y_n_web`, `f_u_n_flg`, `f_u_n_web`, `e_n_flg`, `e_n_web`, `f_y_m_flg`, `f_y_m_web`, `f_y_exp_l_flg`, `f_y_exp_l_web`, `f_u_m_flg`, `f_u_m_web`, `f_u_exp_l_flg`, `f_u_exp_l_web`, `e_m_flg`, `e_m_web`, `r_y_flg`, `r_y_web`, `r_t_flg`, `r_t_web`, `f_u_f_y_n_flg`, `f_u_f_y_n_web`, `f_u_f_y_m_flg`, `f_u_f_y_m_web` |
 | Section properties | 26 | `h_n`, `tw_n`, `bf_n`, `tf_n`, `tf_add_n`, `r_n`, `h_m`, `tw_m`, `bf_m`, `tf_m`, `tf_add_m`, `hw_n`, `hw_m`, `a_fil_n`, `af_n`, `aw_n`, `a_n`, `af_m`, `aw_m`, `a_m`, `zp_fil_n`, `zp_n`, `zp_no_fil_n`, `zp_fil_m`, `zp_m`, `zp_no_fil_m` |
@@ -112,11 +121,11 @@ ratio, and they belong in different groups.
 | Loading details | 3 | `l_p_typ`, `n_d_n_pl_ten`, `n_d_n_pl_comp` |
 | Measured response | 1 | `fail_mode` |
 
-## Cyclic coupons, 77 columns in 7 groups
+## Cyclic coupons, 78 columns in 7 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 12 | `hidden_index`, `experimental_program`, `id`, `date`, `investigator`, `location`, `reference`, `link`, `latitude`, `longitude`, `citekey`, `hidden_dataset_index` |
+| Experimental program details | 13 | `hidden_index`, `experimental_program`, `id`, `date`, `investigator`, `location`, `reference`, `link`, `latitude`, `longitude`, `citekey`, `hidden_dataset_index`, `data_curation_status` |
 | Specimen details | 8 | `profile_type`, `profile`, `source`, `thickness`, `grade`, `spec`, `lp`, `size` |
 | Geometric properties | 4 | `gage_length__mm_`, `avg_reduced_dia__mm_`, `avg_fractured_dia_top__mm_`, `avg_fractured_dia_bot__mm_` |
 | Material properties | 6 | `fy_n__mpa_`, `fu_n__mpa_`, `t_a__deg_c_`, `yield_stress__mpa_`, `elastic_modulus__mpa_`, `fracture_strain` |
@@ -124,11 +133,11 @@ ratio, and they belong in different groups.
 | Chemical composition | 20 | `c`, `si`, `mn`, `p`, `s`, `n`, `cu`, `mo`, `ni`, `cr`, `v`, `nb`, `ti`, `al`, `b`, `zr`, `sn`, `ca`, `h`, `fe` |
 | Cyclic material model parameters | 17 | `uvc_phi__prct_`, `uvc_e__gpa_`, `uvc_sigma__mpa_`, `uvc_q__mpa_`, `uvc_b`, `uvc_d__mpa_`, `uvc_a`, `uvc_c1__mpa_`, `uvc_g1`, `uvc_c2__mpa_`, `uvc_g2`, `uvc_sigma_sat__mpa_`, `uvc_sigma_hard__mpa_`, `uvc_rho_yield`, `uvc_rho_iso`, `uvc_rho_kin`, `uvc_rho_d` |
 
-## Tensile coupons, 70 columns in 7 groups
+## Tensile coupons, 71 columns in 7 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 13 | `experimental_program`, `id`, `date`, `year`, `investigator`, `location`, `file_path`, `reference`, `link`, `latitude`, `longitude`, `publication_key`, `datacol_version` |
+| Experimental program details | 14 | `experimental_program`, `id`, `date`, `year`, `investigator`, `location`, `file_path`, `reference`, `link`, `latitude`, `longitude`, `publication_key`, `datacol_version`, `data_curation_status` |
 | Specimen details | 5 | `standard`, `specimen_type`, `profile_type`, `profile`, `specimen_source` |
 | Material properties | 12 | `steel_grade`, `fy_n__mpa_`, `fu_n__mpa_`, `t_a__deg_c_`, `yield_stress_02__mpa_`, `yield_strain_02`, `bin_discont_yield`, `yield_stress_uyp__mpa_`, `yield_stress_lyp__mpa_`, `yield_point_elongation`, `tensile_strength__mpa_`, `elastic_modulus__mpa_` |
 | Geometric properties | 6 | `avg_init_reduced_width__mm_`, `avg_init_reduced_thickness__mm_`, `avg_init_marked_gauge_length__mm_`, `eff_fractured_width__mm_`, `eff_fractured_thickness__mm_`, `avg_fractured_marked_gauge_length__mm_` |
@@ -136,11 +145,11 @@ ratio, and they belong in different groups.
 | Elongation and reduction of area | 4 | `uniform_elongation`, `elongation_at_fracture`, `elongation_after_fracture`, `reduction_of_area` |
 | Chemical composition | 20 | `c`, `si`, `mn`, `p`, `s`, `n`, `cu`, `mo`, `ni`, `cr`, `v`, `nb`, `ti`, `al`, `b`, `zr`, `sn`, `ca`, `h`, `fe` |
 
-## Ductile fracture, 78 columns in 8 groups
+## Ductile fracture, 79 columns in 8 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 10 | `id`, `specimen_designation`, `experimental_program`, `date`, `temperature`, `reference`, `link`, `latitude`, `longitude`, `has_sem` |
+| Experimental program details | 11 | `id`, `specimen_designation`, `experimental_program`, `date`, `temperature`, `reference`, `link`, `latitude`, `longitude`, `has_sem`, `data_curation_status` |
 | Specimen details | 7 | `specimen_type`, `piece`, `location_coupon`, `section_type`, `section_profile`, `crack_opening_direction`, `plate_thickness` |
 | Loading details | 2 | `loading`, `loading_protocol` |
 | Material properties | 9 | `steel_type`, `coupon_direction`, `f_yn`, `f_un`, `fy_m`, `fu_m`, `elongation_fr`, `young_mod`, `nu` |
@@ -149,11 +158,11 @@ ratio, and they belong in different groups.
 | Measured quantities at fracture | 9 | `disp_fract`, `exc_at_fract`, `step_fract`, `fract_loc`, `triax_at_fr`, `triax_avg_till_fr`, `lode_at_fr`, `lode_avg_till_fr`, `peeq_at_fr` |
 | Fracture model parameters | 13 | `cvgm_etamono`, `cvgm_lambda`, `swdfm_alpha_pos`, `swdfm_alpha_neg`, `swdfm_kappa`, `swdfm_C`, `swdfm_beta`, `kk_alpha_1`, `kk_alpha_2`, `kk_beta_1`, `kk_beta_2`, `kk_d_cr`, `l_star` |
 
-## Residual stresses, 25 columns in 6 groups
+## Residual stresses, 26 columns in 6 groups
 
 | Group | n | Columns |
 |---|---:|---|
-| Experimental program details | 8 | `id`, `experimental_program`, `date`, `spec_var`, `reference`, `link`, `latitude`, `longitude` |
+| Experimental program details | 9 | `id`, `experimental_program`, `date`, `spec_var`, `reference`, `link`, `latitude`, `longitude`, `data_curation_status` |
 | Steel profile | 2 | `profile_type`, `profile` |
 | Material properties | 5 | `steel`, `fy_n`, `fy_e`, `fy_mf`, `fy_mw` |
 | Section properties | 6 | `h`, `b`, `tw`, `tf`, `r`, `A` |

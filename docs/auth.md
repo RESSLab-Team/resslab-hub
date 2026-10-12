@@ -426,7 +426,6 @@ invitation mail fails, the page says so and the invitation stays valid.
   self-service; SWITCH edu-ID / eduGAIN and EPFL Entra ID each need EPFL to
   register the application, so those requests should be filed early. Each one
   is another provider in `auth_identity` and a copy of `auth/github_oauth.py`.
-- **#254** approve or ask for changes from the Hub, and **#253** the "not
-  verified" flag on a submission.
+- **#254** approve or ask for changes from the Hub.
 - Academic domains edited from the admin page rather than in
   `CONTRIBUTOR_DOMAINS`, and a "my submissions" list for contributors.

@@ -49,9 +49,10 @@ the chart ink and the eight series as `--chart-*` custom properties (here they
 are constants in `plugins/echarts-theme.ts` and `utils/palette.ts`), it has
 `--space-1` to `--space-6`, status intents (`--success`, `--info`,
 `--warning`, `--danger`), a `.tnum` utility for tabular figures, and a 2px
-red `:focus-visible` outline on buttons. None of those exist here yet. Add
-them to `epfl-tokens.css` if a component needs them, do not invent a
-different name.
+red `:focus-visible` outline on buttons. None of those exist here yet, except
+`--warning` (orange, for the unverified rows of #253: a rule or a tint, never
+text, the orange is too light to read). Add the others to `epfl-tokens.css`
+if a component needs them, do not invent a different name.
 
 ## Where it lives
 

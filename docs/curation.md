@@ -52,9 +52,10 @@ Response shapes: `backend/resslab_hub/models/curation.py`.
 
 ## The queue page
 
-`frontend/src/views/CurationQueueView.vue` lists the summaries: number,
-title, branch, type, draft flag, dates, and what can be parsed from the pull
-request body (experiment count, contributor).
+`frontend/src/views/CurationQueueView.vue` has two tabs. **To accept** lists
+the summaries: number, title, branch, type, draft flag, dates, and what can be
+parsed from the pull request body (experiment count, contributor). **To
+verify** (`?tab=verify`) is the second step, see [Verification](#verification).
 
 ## The review page
 
@@ -94,15 +95,78 @@ curator. It opens `/contribute/edit/<pr number>`. A curator's edit is a commit
 authored by the curator; the trailers keep naming the person who submitted.
 
 
+## Verification
+
+Accepting and verifying are two steps (#253). Accepting is quick: the
+curator checks that the submission is sane and merges it. The rows then go
+live with `data_curation_status` set to `unverified`, and the site says so.
+Verifying comes later, with no rush: a curator checks the values against the
+publication, then marks the rows as verified.
+
+The column is managed by the Hub, like the `*_count` flags
+(`backend/resslab_hub/data/curation_status.py`):
+
+- a contributor never fills it, the editor and the starter kit leave it out;
+- the submission code writes `unverified` on every new row, whatever the
+  batch says, on a first submit and on an edit;
+- the validator does not require it, and refuses a value other than
+  `verified` or `unverified`;
+- the uploader reads a missing header, an empty cell or an unknown value as
+  `unverified`;
+- the migration added it with `verified` as the default, so every row that
+  was there before #253 is verified.
+
+The data repository CSV is the source of truth: the status survives a
+re-upload, and every change to it is a pull request.
+
+**Mark as verified** is the button that opens that pull request. It is in
+two places, for curators only: the **To verify** tab, one button per
+database and reference, and the warning at the top of the specimen drawer,
+for one row. The backend reads the main CSV on the base branch, changes only
+the status cells of those ids (line endings and everything else kept),
+commits on `verify/<type slug>/<first id>-<hex>` as the curator, with a
+`Verified-by` trailer, and opens a pull request titled like
+`data(braces): verify 3 experiments (…)`. The ids are listed in an `ids`
+fenced block of its body. It is merged on GitHub like any other, squash only.
+
+| Endpoint | What it answers |
+|---|---|
+| `GET /verification` | the unverified rows of every database, from the database, grouped by database and `reference`. Each group has its ids and the open verification pull request that covers them, if any. Curators only. |
+| `POST /verification` | `{database, ids}` opens the pull request, up to `MAX_IDS` (500) ids. `409` for an id the CSV does not have, one already verified, or one already in an open verification pull request. `10/hour` per client address. Curators only. |
+
+Nothing is stored here either: an open pull request on a `verify/` branch is
+what "pending" means. The list comes from the database, so a merged
+verification stays in the **To verify** tab until the next upload. The
+button then answers `409`, since it reads the data repository. Verification
+pull requests are not in the **To accept** tab, which only reads `contrib/`
+branches.
+
+On the dashboards, an unverified row has an orange rule on its checkbox cell
+and the drawer warning. **Verified only** in the toolbar hides those rows.
+It is off by default and writes `data_curation_status==verified` in the URL,
+so a shared link keeps it. The code: `utils/curationStatus.ts`,
+`stores/verification.ts`, `components/commons/UnverifiedNotice.vue` and
+`components/curation/VerificationQueue.vue`.
+
 ## What curation does not do yet
 
 - No approve, request changes or merge here (#254). Do those on GitHub, and
   merge with squash only (the data repo CI validates `HEAD~1..HEAD`).
 - Nothing on GitHub forces a review yet: the data repository `main` has no
   branch protection and no CODEOWNERS file.
+- No embargo: an unverified row is public like any other (the data
+  repository is public too). It is a separate issue.
 
 ## Trying it locally
 
 Submit a sample batch from the app ([contributing-data.md](contributing-data.md),
 "Trying it locally"), open `/curation`, and close the pull request on GitHub
 when done.
+
+For the **To verify** tab, mark a few rows as unverified in the worktree
+database (never the shared one, check `DB_NAME` in `.env.worktree`), for
+example `UPDATE brace SET data_curation_status = 'unverified' WHERE id IN
+(...)`. The tab shows them at once (`/verification` is not cached), the
+dashboards only after a backend restart (the response cache lasts an hour).
+Pressing the button opens a real pull request into `main`: close it on
+GitHub, never merge a test one.
