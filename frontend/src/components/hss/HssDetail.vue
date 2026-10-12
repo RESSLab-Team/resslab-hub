@@ -58,7 +58,7 @@ const testConfigurationImageSrc = computed<string>(() =>
     </template>
     <template #body>
       <v-row>
-        <v-col class="mt-6" cols="6">
+        <v-col class="mt-6" cols="12" sm="6">
           <h2 class="mb-2">{{ $t('detail.hss.loading_geometric_parameters') }}</h2>
           <p class="mb-6">
             <property-item :name="$t('detail.hss.loading_protocol')">
@@ -96,7 +96,7 @@ const testConfigurationImageSrc = computed<string>(() =>
             </property-item>
           </p>
         </v-col>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <v-img :src="testConfigurationImageSrc" />
         </v-col>
       </v-row>

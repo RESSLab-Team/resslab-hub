@@ -177,12 +177,13 @@ const rows = computed<QueueRow[]>(() =>
 }
 .prow {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 24px;
+  gap: 16px 24px;
 }
 .ptitle {
-  font-size: 40px;
+  font-size: clamp(28px, 6vw, 40px);
   font-weight: 300;
   letter-spacing: -0.02em;
   line-height: 1;

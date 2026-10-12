@@ -35,8 +35,14 @@ defineEmits<{
 <style scoped>
 .tseg {
   display: inline-flex;
+  /* On a phone the segments wrap to a second row instead of running off the
+     screen. The 1px gap shows the border colour behind the buttons, so there
+     is a hairline between segments and between rows. */
+  flex-wrap: wrap;
+  max-width: 100%;
+  gap: 1px;
   border: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--border);
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -45,21 +51,21 @@ defineEmits<{
   width: 100%;
 }
 .tseg-btn {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   padding: 8px 14px;
   border: 0;
-  background: transparent;
+  background: var(--bg);
   color: var(--fg-muted);
   cursor: pointer;
-  white-space: nowrap;
   transition: background var(--t-fast), color var(--t-fast);
-  border-right: 1px solid var(--border);
 }
-.tseg-btn:last-child {
-  border-right: 0;
+/* Full width: equal segments, as before. */
+.tseg-full .tseg-btn {
+  flex-basis: 0;
 }
 .tseg-btn:hover {
   color: var(--fg);

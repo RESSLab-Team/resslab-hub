@@ -1482,6 +1482,8 @@ function downloadZip(): void {
 /* Per-column header menu (sort + filter) */
 .stbl-menu {
   min-width: 220px;
+  /* Never wider than a phone screen, minus a 16px gutter on each side. */
+  max-width: calc(100vw - 32px);
   padding: 4px;
   background: var(--bg);
   border: 1px solid var(--border);
@@ -1534,6 +1536,7 @@ function downloadZip(): void {
    the popover is otherwise sized to its sort rows. */
 .stbl-menu-filter.is-rich {
   width: 280px;
+  max-width: 100%;
   padding-top: 6px;
 }
 .stbl-menu-filter.is-rich .afr-options {

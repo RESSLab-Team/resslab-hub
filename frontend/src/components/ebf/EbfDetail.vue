@@ -65,7 +65,7 @@ const imageSrc = computed(() => {
     </template>
     <template #body>
       <v-row>
-        <v-col class="mt-6" cols="6">
+        <v-col class="mt-6" cols="12" sm="6">
           <h2 class="mb-2">{{ $t('detail.ebf.loading_geometric_parameters') }}</h2>
           <p class="mb-6">
             <property-item :name="$t('detail.ebf.loading_protocol')">
@@ -132,7 +132,7 @@ const imageSrc = computed(() => {
             </v-col>
           </v-row>
         </v-col>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <v-img v-if="imageSrc" :src="imageSrc" max-height="400" contain />
         </v-col>
       </v-row>

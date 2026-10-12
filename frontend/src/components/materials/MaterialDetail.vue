@@ -98,7 +98,7 @@ watch(
       }}</v-alert>
 
       <v-row>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <div class="mb-5">
             <h2 class="mb-2">{{ $t('detail.material.structural_steel_element') }}</h2>
             <p>
@@ -169,7 +169,7 @@ watch(
             </p>
           </div>
         </v-col>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <v-img :src="publicPath + 'img/material/detail.png'" />
         </v-col>
       </v-row>

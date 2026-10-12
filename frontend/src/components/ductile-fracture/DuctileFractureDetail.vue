@@ -79,7 +79,7 @@ const figureSrc = computed(() =>
     </template>
     <template #body>
       <v-row v-if="showPlots" class="mt-2 mb-2">
-        <v-col :cols="twoFigures ? 6 : 12">
+        <v-col cols="12" :sm="twoFigures ? 6 : 12">
           <ductile-fracture-plot-slot
             v-if="leftOptions.length > 0"
             :model="ductileFracture"
@@ -87,7 +87,7 @@ const figureSrc = computed(() =>
             :default-plot="leftOptions[0]"
           />
         </v-col>
-        <v-col v-if="twoFigures" cols="6">
+        <v-col v-if="twoFigures" cols="12" sm="6">
           <ductile-fracture-plot-slot
             :model="ductileFracture"
             :options="rightOptions"
@@ -96,7 +96,7 @@ const figureSrc = computed(() =>
         </v-col>
       </v-row>
       <v-row>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <div class="mb-5">
             <h2 class="mb-2">{{ $t('detail.ductile_fracture.structural_steel_element') }}</h2>
             <p>
@@ -164,7 +164,7 @@ const figureSrc = computed(() =>
             </p>
           </div>
         </v-col>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <v-img :src="figureSrc" @error="figureFailed = true" />
         </v-col>
       </v-row>

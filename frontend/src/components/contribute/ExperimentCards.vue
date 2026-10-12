@@ -1823,22 +1823,6 @@ function noteFor(kind: TimeSeriesKind): string {
   color: inherit;
   font-size: inherit;
 }
-@media (max-width: 700px) {
-  .series {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-  .series .spark {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-  .series-meta,
-  .series .btn-ghost {
-    grid-column: 2;
-  }
-  .series-drop {
-    grid-column: 1 / -1;
-  }
-}
 .series-meta {
   font-size: 12px;
   color: var(--fg-muted);
@@ -1864,6 +1848,8 @@ function noteFor(kind: TimeSeriesKind): string {
   font-size: 13px;
   font-weight: 600;
 }
+/* Below 700px: name and action on the first row, the preview under them. Kept
+   after the base track rules above, which would win otherwise. */
 @media (max-width: 700px) {
   .series {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -1876,6 +1862,9 @@ function noteFor(kind: TimeSeriesKind): string {
   .series .btn-ghost,
   .series .btn-secondary {
     grid-column: 2;
+  }
+  .series-drop {
+    grid-column: 1 / -1;
   }
 }
 .series-meta {

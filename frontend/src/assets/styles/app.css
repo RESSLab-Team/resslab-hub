@@ -845,8 +845,9 @@
 /* ================ LOGOS STRIP ================ */
 .logos {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 48px;
+  gap: 16px 48px;
   padding: 32px 64px;
   border-top: 1px solid var(--border);
 }
@@ -860,6 +861,9 @@
 }
 .logos-items {
   flex: 1;
+  /* Without it the widest logo sets a floor, and on a phone the strip runs
+     past the screen edge. */
+  min-width: 0;
   display: flex;
   /* Clustered after the label rather than spread across the strip — spaced-out
      logos read as filler, grouped ones as a credit line. */
@@ -1654,8 +1658,10 @@ body.theme-dark .logos img {
   .dash-head-main {
     padding-right: 0;
   }
-  /* Keep the mark on the title's line rather than letting it wrap below. */
-  .dash-head-row {
+  /* Keep the mark on the title's line rather than letting it wrap below.
+     Database pages only: on the tool pages (PageHeader) the same row holds
+     the unit toggle, which must wrap below the title on a phone. */
+  .dash-head-split .dash-head-row {
     flex-wrap: nowrap;
   }
   .dash-title {
@@ -1806,10 +1812,11 @@ body.theme-dark .logos img {
 }
 .chart-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 10px;
-  gap: 12px;
+  gap: 4px 12px;
 }
 .chart-head h5 {
   margin: 0;
@@ -1923,6 +1930,27 @@ body.theme-dark .logos img {
   }
   .dash-search {
     flex: 1 1 auto;
+  }
+}
+/* Phone: the search box gets its own full row, the two buttons share the
+   next one. Side by side, the search shrank to about 65px. */
+@media (max-width: 600px) {
+  .dash-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .dash-search {
+    flex: 1 1 100%;
+  }
+  .dash-toolbar-spacer {
+    display: none;
+  }
+  .dash-toolbar-actions {
+    flex: 1 1 100%;
+  }
+  .dash-toolbar-actions .btn {
+    flex: 1;
+    justify-content: center;
   }
 }
 
@@ -2600,6 +2628,25 @@ a.cd-publication-ref:hover {
   }
   .logos {
     padding: 32px 20px;
+    gap: 16px 32px;
+  }
+  /* The link drops below the title block instead of squeezing it into a
+     thin column. */
+  .section-head {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  /* A wrapped count starts its own line, without the 14px gap. */
+  .dash-title-count {
+    display: block;
+    margin-left: 0;
+  }
+  /* The per-chart hint may wrap under the title rather than push the cell
+     wider than the screen. */
+  .chart-head .info {
+    white-space: normal;
+    min-width: 0;
   }
   .ftr {
     padding: 40px 20px 20px;
