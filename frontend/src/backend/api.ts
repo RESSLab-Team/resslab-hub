@@ -172,6 +172,7 @@ export const BraceField = {
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     DisplacementCount: 'displacement_count',
 } as const;
 
@@ -249,6 +250,7 @@ export interface BraceModel {
     'link': string | null;
     'latitude': number | null;
     'longitude': number | null;
+    'data_curation_status': string;
     'displacement_count': number;
 }
 
@@ -399,6 +401,7 @@ export const ColumnField = {
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     BuiltUp: 'built_up',
     AxialShorteningCount: 'axial_shortening_count',
     MomentStrongCount: 'moment_strong_count',
@@ -506,6 +509,7 @@ export interface ColumnModel {
     'link': string | null;
     'latitude': number;
     'longitude': number;
+    'data_curation_status': string;
     'built_up': boolean;
     'axial_shortening_count': number;
     'moment_strong_count': number;
@@ -752,6 +756,7 @@ export const ConnectionField = {
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     BeamCount: 'beam_count',
     BeamWestCount: 'beam_west_count',
     GlobalCount: 'global_count',
@@ -919,6 +924,7 @@ export interface ConnectionModel {
     'link': string | null;
     'latitude': number | null;
     'longitude': number;
+    'data_curation_status': string;
     'beam_count': number;
     'beam_west_count': number;
     'global_count': number;
@@ -1274,6 +1280,7 @@ export const DuctileFractureField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     HasSem: 'has_sem',
+    DataCurationStatus: 'data_curation_status',
     ForceElongationCount: 'force_elongation_count',
     ForceElongationSimulationCount: 'force_elongation_simulation_count',
     ForceRadialCount: 'force_radial_count',
@@ -1365,6 +1372,7 @@ export interface DuctileFractureModel {
     'latitude': number;
     'longitude': number;
     'has_sem': boolean | null;
+    'data_curation_status': string;
     'force_elongation_count': number;
     'force_elongation_simulation_count': number;
     'force_radial_count': number;
@@ -1542,6 +1550,7 @@ export const EccentricBracedFrameField = {
     Url: 'url',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     ShearLinkAngleCount: 'shear_link_angle_count',
 } as const;
 
@@ -1647,6 +1656,7 @@ export interface EccentricBracedFrameModel {
     'url': string;
     'latitude': number;
     'longitude': number;
+    'data_curation_status': string;
     'shear_link_angle_count': number;
 }
 
@@ -1890,6 +1900,7 @@ export const HSSColumnField = {
     FlexuralBuckling: 'flexural_buckling',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     MomentRotationCount: 'moment_rotation_count',
 } as const;
 
@@ -1957,6 +1968,7 @@ export interface HSSColumnModel {
     'flexural_buckling': string;
     'latitude': number | null;
     'longitude': number | null;
+    'data_curation_status': string;
     'moment_rotation_count': number;
 }
 
@@ -2232,6 +2244,7 @@ export const MaterialField = {
     UvcRhoIso: 'uvc_rho_iso',
     UvcRhoKin: 'uvc_rho_kin',
     UvcRhoD: 'uvc_rho_d',
+    DataCurationStatus: 'data_curation_status',
     Type: 'type',
     Year: 'year',
     StressStrainCount: 'stress_strain_count',
@@ -2318,6 +2331,7 @@ export interface MaterialModel {
     'uvc_rho_iso': number | null;
     'uvc_rho_kin': number | null;
     'uvc_rho_d': number | null;
+    'data_curation_status': string;
     'type': string;
     'year': number;
     'stress_strain_count': number;
@@ -2436,6 +2450,7 @@ export const ResidualStressField = {
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     QpCoefficientCount: 'qp_coefficient_count',
     DistributionF1Count: 'distribution_F1_count',
     DistributionF2Count: 'distribution_F2_count',
@@ -2472,6 +2487,7 @@ export interface ResidualStressModel {
     'link': string | null;
     'latitude': number | null;
     'longitude': number | null;
+    'data_curation_status': string;
     'qp_coefficient_count': number;
     'distribution_F1_count': number;
     'distribution_F2_count': number;
@@ -2579,6 +2595,7 @@ export const TensileCouponField = {
     Longitude: 'longitude',
     PublicationKey: 'publication_key',
     DatacolVersion: 'datacol_version',
+    DataCurationStatus: 'data_curation_status',
     StressStrainCount: 'stress_strain_count',
 } as const;
 
@@ -2656,6 +2673,7 @@ export interface TensileCouponModel {
     'longitude': number;
     'publication_key': string | null;
     'datacol_version': number;
+    'data_curation_status': string;
     'stress_strain_count': number;
 }
 
@@ -2805,6 +2823,41 @@ export interface ValidationResponse {
     'results'?: Array<FileValidationResult>;
     'error_results'?: Array<LegacyFileResult>;
     'valid_results'?: Array<LegacyFileResult>;
+}
+/**
+ * Unverified rows of one database that share a reference.
+ */
+export interface VerificationGroup {
+    'database': string;
+    'reference': string;
+    'ids': Array<string>;
+    'count': number;
+    'pending_pr'?: VerificationPull | null;
+}
+export interface VerificationListResponse {
+    'configured': boolean;
+    'groups'?: Array<VerificationGroup>;
+}
+/**
+ * An open verification pull request on the data repository.
+ */
+export interface VerificationPull {
+    'pr_number': number;
+    'pr_url': string;
+}
+export interface VerificationRequest {
+    'database': Type;
+    'ids': Array<string>;
+}
+
+
+/**
+ * The verification pull request the Hub opened.
+ */
+export interface VerificationResponse {
+    'pr_url': string;
+    'pr_number': number;
+    'branch': string;
 }
 export interface VerifyResponse {
     'user': UserOut;
@@ -7239,6 +7292,41 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Open a pull request on the data repository that marks ``ids`` as verified. Merge it on GitHub (squash). Answers 409 when an id is not in the data repository, is already verified there, or is in an open verification pull request.
+         * @summary Create Verification
+         * @param {VerificationRequest} verificationRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createVerification: async (verificationRequest: VerificationRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'verificationRequest' is not null or undefined
+            assertParamExists('createVerification', 'verificationRequest', verificationRequest)
+            const localVarPath = `/verification`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(verificationRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
          * @summary Get Contribution
          * @param {number} prNumber 
@@ -7506,6 +7594,36 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * The unverified rows of every database, grouped by reference, each with the open verification pull request that covers it, if any.
+         * @summary List Unverified
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listUnverified: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/verification`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
          * @summary Readyz
          * @param {*} [options] Override http request option.
@@ -7716,6 +7834,19 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Open a pull request on the data repository that marks ``ids`` as verified. Merge it on GitHub (squash). Answers 409 when an id is not in the data repository, is already verified there, or is in an open verification pull request.
+         * @summary Create Verification
+         * @param {VerificationRequest} verificationRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createVerification(verificationRequest: VerificationRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VerificationResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createVerification(verificationRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.createVerification']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
          * @summary Get Contribution
          * @param {number} prNumber 
@@ -7817,6 +7948,18 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * The unverified rows of every database, grouped by reference, each with the open verification pull request that covers it, if any.
+         * @summary List Unverified
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listUnverified(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VerificationListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listUnverified(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.listUnverified']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
          * @summary Readyz
          * @param {*} [options] Override http request option.
@@ -7904,6 +8047,16 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.createUploadFile(type, file, options).then((request) => request(axios, basePath));
         },
         /**
+         * Open a pull request on the data repository that marks ``ids`` as verified. Merge it on GitHub (squash). Answers 409 when an id is not in the data repository, is already verified there, or is in an open verification pull request.
+         * @summary Create Verification
+         * @param {VerificationRequest} verificationRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createVerification(verificationRequest: VerificationRequest, options?: RawAxiosRequestConfig): AxiosPromise<VerificationResponse> {
+            return localVarFp.createVerification(verificationRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
          * @summary Get Contribution
          * @param {number} prNumber 
@@ -7981,6 +8134,15 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.listContributions(options).then((request) => request(axios, basePath));
         },
         /**
+         * The unverified rows of every database, grouped by reference, each with the open verification pull request that covers it, if any.
+         * @summary List Unverified
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listUnverified(options?: RawAxiosRequestConfig): AxiosPromise<VerificationListResponse> {
+            return localVarFp.listUnverified(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
          * @summary Readyz
          * @param {*} [options] Override http request option.
@@ -8053,6 +8215,17 @@ export class DefaultApi extends BaseAPI {
      */
     public createUploadFile(type: Type, file: File, options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).createUploadFile(type, file, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Open a pull request on the data repository that marks ``ids`` as verified. Merge it on GitHub (squash). Answers 409 when an id is not in the data repository, is already verified there, or is in an open verification pull request.
+     * @summary Create Verification
+     * @param {VerificationRequest} verificationRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createVerification(verificationRequest: VerificationRequest, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).createVerification(verificationRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -8138,6 +8311,16 @@ export class DefaultApi extends BaseAPI {
      */
     public listContributions(options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).listContributions(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * The unverified rows of every database, grouped by reference, each with the open verification pull request that covers it, if any.
+     * @summary List Unverified
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listUnverified(options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).listUnverified(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

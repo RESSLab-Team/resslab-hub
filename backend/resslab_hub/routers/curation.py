@@ -131,6 +131,23 @@ def invalidate_pull(pr_number: int) -> None:
     _cache.drop("list")
 
 
+async def open_pulls(client: DataRepoClient) -> List[dict]:
+    """The open pull requests into the base branch, cached for a minute.
+
+    One GitHub call for the queue and the verification tab (#253) together.
+    """
+    cached = _cache.get("list")
+    if cached is None:
+        cached = await client.list_open_pulls()
+        _cache.put("list", cached, LIST_TTL_SECONDS)
+    return cached
+
+
+def invalidate_open_pulls() -> None:
+    """Forget the list, so a pull request the Hub just opened shows at once."""
+    _cache.drop("list")
+
+
 def _parse_pr_body(body: str) -> Tuple[Optional[int], Optional[CurationContributor]]:
     """Best-effort parse of build_pr_body's deterministic format."""
     count = None
@@ -406,13 +423,8 @@ async def list_contributions(request: Request) -> CurationListResponse:
     """
     if not configured():
         return CurationListResponse(configured=False)
-    cached = _cache.get("list")
-    if cached is None:
-        client = DataRepoClient()
-        cached = await client.list_open_pulls()
-        _cache.put("list", cached, LIST_TTL_SECONDS)
     items = []
-    for pull in cached:
+    for pull in await open_pulls(DataRepoClient()):
         input_type = type_for_branch(pull["head_ref"])
         if input_type is not None:
             items.append(_summary(pull, input_type))

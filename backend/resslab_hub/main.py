@@ -36,6 +36,7 @@ from resslab_hub.routers import (
     residual_stress,
     root,
     tensile_coupon,
+    verification,
 )
 from resslab_hub.routers import map as map_router
 from resslab_hub.utils.caching import HTTPCacheMiddleware
@@ -147,6 +148,7 @@ app.include_router(root.router)
 app.include_router(auth.router)
 app.include_router(contributions.router)
 app.include_router(curation.router)
+app.include_router(verification.router)
 app.include_router(admin.router)
 app.include_router(analytics.router)
 app.include_router(dictionary.router)

@@ -832,6 +832,62 @@
         }
       }
     },
+    "/verification": {
+      "get": {
+        "summary": "List Unverified",
+        "description": "The unverified rows of every database, grouped by reference, each with\nthe open verification pull request that covers it, if any.",
+        "operationId": "list_unverified",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Verification",
+        "description": "Open a pull request on the data repository that marks ``ids`` as\nverified. Merge it on GitHub (squash). Answers 409 when an id is not in\nthe data repository, is already verified there, or is in an open\nverification pull request.",
+        "operationId": "create_verification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/users": {
       "get": {
         "tags": [
@@ -7779,6 +7835,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "displacement_count"
         ],
         "title": "BraceField"
@@ -8478,6 +8535,10 @@
             ],
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "displacement_count": {
             "type": "integer",
             "title": "Displacement Count"
@@ -8555,6 +8616,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "displacement_count"
         ],
         "title": "BraceModel"
@@ -8707,6 +8769,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "built_up",
           "axial_shortening_count",
           "moment_strong_count",
@@ -9629,6 +9692,10 @@
             "type": "number",
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "built_up": {
             "type": "boolean",
             "title": "Built Up"
@@ -9745,6 +9812,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "built_up",
           "axial_shortening_count",
           "moment_strong_count",
@@ -9993,6 +10061,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "beam_count",
           "beam_west_count",
           "global_count",
@@ -11567,6 +11636,10 @@
             "type": "number",
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "beam_count": {
             "type": "integer",
             "title": "Beam Count"
@@ -11743,6 +11816,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "beam_count",
           "beam_west_count",
           "global_count",
@@ -12502,6 +12576,7 @@
           "latitude",
           "longitude",
           "has_sem",
+          "data_curation_status",
           "force_elongation_count",
           "force_elongation_simulation_count",
           "force_radial_count",
@@ -13057,6 +13132,10 @@
             ],
             "title": "Has Sem"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "force_elongation_count": {
             "type": "integer",
             "title": "Force Elongation Count"
@@ -13166,6 +13245,7 @@
           "latitude",
           "longitude",
           "has_sem",
+          "data_curation_status",
           "force_elongation_count",
           "force_elongation_simulation_count",
           "force_radial_count",
@@ -13345,6 +13425,7 @@
           "url",
           "latitude",
           "longitude",
+          "data_curation_status",
           "shear_link_angle_count"
         ],
         "title": "EccentricBracedFrameField"
@@ -14212,6 +14293,10 @@
             "type": "number",
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "shear_link_angle_count": {
             "type": "integer",
             "title": "Shear Link Angle Count"
@@ -14317,6 +14402,7 @@
           "url",
           "latitude",
           "longitude",
+          "data_curation_status",
           "shear_link_angle_count"
         ],
         "title": "EccentricBracedFrameModel"
@@ -15122,6 +15208,7 @@
           "flexural_buckling",
           "latitude",
           "longitude",
+          "data_curation_status",
           "moment_rotation_count"
         ],
         "title": "HSSColumnField"
@@ -15697,6 +15784,10 @@
             ],
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "moment_rotation_count": {
             "type": "integer",
             "title": "Moment Rotation Count"
@@ -15764,6 +15855,7 @@
           "flexural_buckling",
           "latitude",
           "longitude",
+          "data_curation_status",
           "moment_rotation_count"
         ],
         "title": "HSSColumnModel"
@@ -16339,6 +16431,7 @@
           "uvc_rho_iso",
           "uvc_rho_kin",
           "uvc_rho_d",
+          "data_curation_status",
           "type",
           "year",
           "stress_strain_count"
@@ -17090,6 +17183,10 @@
             ],
             "title": "Uvc Rho D"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "type": {
             "type": "string",
             "title": "Type"
@@ -17182,6 +17279,7 @@
           "uvc_rho_iso",
           "uvc_rho_kin",
           "uvc_rho_d",
+          "data_curation_status",
           "type",
           "year",
           "stress_strain_count"
@@ -17372,6 +17470,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "qp_coefficient_count",
           "distribution_F1_count",
           "distribution_F2_count",
@@ -17580,6 +17679,10 @@
             ],
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "qp_coefficient_count": {
             "type": "integer",
             "title": "Qp Coefficient Count"
@@ -17628,6 +17731,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "qp_coefficient_count",
           "distribution_F1_count",
           "distribution_F2_count",
@@ -17737,6 +17841,7 @@
           "longitude",
           "publication_key",
           "datacol_version",
+          "data_curation_status",
           "stress_strain_count"
         ],
         "title": "TensileCouponField"
@@ -18338,6 +18443,10 @@
             "type": "integer",
             "title": "Datacol Version"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "stress_strain_count": {
             "type": "integer",
             "title": "Stress Strain Count"
@@ -18415,6 +18524,7 @@
           "longitude",
           "publication_key",
           "datacol_version",
+          "data_curation_status",
           "stress_strain_count"
         ],
         "title": "TensileCouponModel"
@@ -18721,6 +18831,133 @@
           "error_count"
         ],
         "title": "ValidationResponse"
+      },
+      "VerificationGroup": {
+        "properties": {
+          "database": {
+            "type": "string",
+            "title": "Database"
+          },
+          "reference": {
+            "type": "string",
+            "title": "Reference"
+          },
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ids"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "pending_pr": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VerificationPull"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "database",
+          "reference",
+          "ids",
+          "count"
+        ],
+        "title": "VerificationGroup",
+        "description": "Unverified rows of one database that share a reference."
+      },
+      "VerificationListResponse": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationGroup"
+            },
+            "type": "array",
+            "title": "Groups",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured"
+        ],
+        "title": "VerificationListResponse"
+      },
+      "VerificationPull": {
+        "properties": {
+          "pr_number": {
+            "type": "integer",
+            "title": "Pr Number"
+          },
+          "pr_url": {
+            "type": "string",
+            "title": "Pr Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pr_number",
+          "pr_url"
+        ],
+        "title": "VerificationPull",
+        "description": "An open verification pull request on the data repository."
+      },
+      "VerificationRequest": {
+        "properties": {
+          "database": {
+            "$ref": "#/components/schemas/Type"
+          },
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "database",
+          "ids"
+        ],
+        "title": "VerificationRequest"
+      },
+      "VerificationResponse": {
+        "properties": {
+          "pr_url": {
+            "type": "string",
+            "title": "Pr Url"
+          },
+          "pr_number": {
+            "type": "integer",
+            "title": "Pr Number"
+          },
+          "branch": {
+            "type": "string",
+            "title": "Branch"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pr_url",
+          "pr_number",
+          "branch"
+        ],
+        "title": "VerificationResponse",
+        "description": "The verification pull request the Hub opened."
       },
       "VerifyResponse": {
         "properties": {
