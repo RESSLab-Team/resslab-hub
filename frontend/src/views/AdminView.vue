@@ -404,9 +404,10 @@ async function invite(): Promise<void> {
 }
 .prow {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 24px;
+  gap: 16px 24px;
 }
 .ptitle {
   font-size: 40px;
@@ -538,6 +539,7 @@ async function invite(): Promise<void> {
   font-size: 12px;
   color: var(--fg-subtle);
   margin-top: 1px;
+  overflow-wrap: anywhere;
 }
 
 /* ── access requests ── */
@@ -565,6 +567,7 @@ async function invite(): Promise<void> {
 }
 .request-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 12px 0 0 41px;
 }
@@ -692,6 +695,7 @@ select.field {
 }
 .inv-email {
   font-size: 13px;
+  overflow-wrap: anywhere;
 }
 .inv-meta {
   flex: 1;

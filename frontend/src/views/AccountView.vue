@@ -135,7 +135,7 @@ async function signOut(): Promise<void> {
 <style scoped>
 .account {
   max-width: 680px;
-  padding: 48px 32px 96px;
+  padding: clamp(24px, 5vw, 48px) clamp(16px, 4vw, 32px) 96px;
 }
 .account-error {
   margin: 20px 0 0;
@@ -146,6 +146,7 @@ async function signOut(): Promise<void> {
 }
 .account-id {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 16px;
   margin: 28px 0 0;
@@ -177,6 +178,8 @@ async function signOut(): Promise<void> {
   margin: 4px 0 0;
   color: var(--fg-muted);
   font-size: 13px;
+  /* A long address breaks instead of pushing the page wider. */
+  overflow-wrap: anywhere;
 }
 .verified {
   display: inline-flex;
@@ -205,6 +208,19 @@ async function signOut(): Promise<void> {
   line-height: 15px;
   text-align: right;
   color: var(--fg-muted);
+}
+
+/* Phone: the role goes on its own line under the name, read left to right,
+   instead of squeezing the name into a thin column. */
+@media (max-width: 600px) {
+  .role-cell {
+    flex: 1 1 100%;
+    align-items: flex-start;
+  }
+  .role-why {
+    max-width: none;
+    text-align: left;
+  }
 }
 
 .role-tag {

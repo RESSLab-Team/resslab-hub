@@ -18,6 +18,15 @@
 
 @layer vuetify, tokens, base, overrides, app;
 
+/* Vuetify's own sub-layers, in Vuetify's order. Vuetify declares them in
+   'vuetify/styles', but a layer order is fixed by its first appearance, and
+   a component's CSS in @layer vuetify.components can reach the page first.
+   Then vuetify.reset (* { margin: 0; padding: 0 }) ends up above the
+   components and wipes every Vuetify margin and padding (v-responsive drew
+   its charts at half width). Declaring the order here, in the first sheet
+   main.ts imports, fixes it whatever loads next. */
+@layer vuetify.reset, vuetify.transitions, vuetify.base, vuetify.components, vuetify.overrides, vuetify.theme.background, vuetify.theme.foreground, vuetify.utilities;
+
 @import './fonts.css';
 @import './epfl-tokens.css' layer(tokens);
 @import './base.css' layer(base);

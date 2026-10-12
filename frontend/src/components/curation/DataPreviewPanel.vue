@@ -416,6 +416,7 @@ const showPicker = computed(() => !!candidates.value.length || !!overlayIds.valu
         </div>
         <unit-line-chart
           :aspect-ratio="2"
+          :legend-side="false"
           :series="chart.series"
           :x-axis-name="chart.xAxisName"
           :y-axis-name="chart.yAxisName"
@@ -537,7 +538,12 @@ const showPicker = computed(() => !!candidates.value.length || !!overlayIds.valu
   color: var(--fg-muted);
   margin-bottom: 12px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 12px;
+  gap: 2px 12px;
+}
+.ch > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 </style>

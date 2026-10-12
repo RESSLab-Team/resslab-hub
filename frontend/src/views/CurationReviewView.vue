@@ -306,10 +306,10 @@ async function selectIssue(uid: number, column: string): Promise<void> {
   color: var(--fg-muted);
 }
 .pad {
-  padding: 30px 40px;
+  padding: 30px clamp(16px, 4vw, 40px);
 }
 .back {
-  margin: 0 40px;
+  margin: 0 clamp(16px, 4vw, 40px);
   text-decoration: none;
 }
 
@@ -508,6 +508,16 @@ async function selectIssue(uid: number, column: string): Promise<void> {
 }
 .row2 .cp-btn + .cp-btn {
   border-left: 0;
+}
+/* Phone: the two buttons stack, still joined by one shared border. */
+@media (max-width: 480px) {
+  .row2 {
+    grid-template-columns: 1fr;
+  }
+  .row2 .cp-btn + .cp-btn {
+    border-left: 1px solid var(--fg);
+    border-top: 0;
+  }
 }
 .actions-note {
   font-size: 11.5px;

@@ -214,12 +214,21 @@ const pinnedRows = computed<(string | number)[][]>(() => {
   return rows
 })
 
+// Category labels sit on the right of their axis. On the last axis nothing
+// stops them but the chart edge, so they get a fixed width (cut with an
+// ellipsis) and the grid keeps that much room on the right.
+const lastLabelWidth = 64
+const lastAxisIsCategory = computed<boolean>(() => {
+  const last = props.fields[props.fields.length - 1]
+  return !!last && !!axisMeta.value.get(axisIdOf(last))?.categories
+})
+
 const option = computed<EChartsOption>(() => ({
   animation: props.animate,
   parallel: {
     left: 66,
     top: 44,
-    right: 48,
+    right: lastAxisIsCategory.value ? lastLabelWidth + 8 : 48,
     bottom: 16,
     axisExpandable: true,
     // The brush band style must also live here: ECharts reads areaSelectStyle
@@ -232,11 +241,13 @@ const option = computed<EChartsOption>(() => ({
     const meta = axisMeta.value.get(id)
     const base = merge({ id: id, dim: index, name: name }, axisStyle)
     if (meta?.categories) {
+      const isLast = index === props.fields.length - 1
       return merge(base, {
         nameLocation: 'start' as const,
         inverse: true,
         type: 'category' as const,
         axisTick: { alignWithLabel: true },
+        ...(isLast && { axisLabel: { width: lastLabelWidth, overflow: 'truncate' as const } }),
         data: meta.categories
       })
     }

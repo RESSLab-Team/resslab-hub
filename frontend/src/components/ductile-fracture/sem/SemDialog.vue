@@ -13,6 +13,7 @@ import {
 } from '@/utils/sem'
 import { mdiArrowLeft, mdiClose } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
+import { useDisplay } from 'vuetify'
 
 const props = defineProps<{
   modelValue: boolean
@@ -21,6 +22,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
 }>()
+
+const { xs } = useDisplay()
 
 const dialogOpen = computed({
   get: () => props.modelValue,
@@ -98,7 +101,15 @@ watch(dialogOpen, (open) => {
 </script>
 
 <template>
-  <v-dialog v-model="dialogOpen" width="85vw" max-width="none" max-height="90vh" scrollable>
+  <!-- Full screen on a phone: at 85vw the image and the chart are too small. -->
+  <v-dialog
+    v-model="dialogOpen"
+    width="85vw"
+    max-width="none"
+    max-height="90vh"
+    :fullscreen="xs"
+    scrollable
+  >
     <v-card rounded="lg">
       <v-card-title class="d-flex align-center pa-4">
         <span class="text-h6">
@@ -108,7 +119,7 @@ watch(dialogOpen, (open) => {
         <v-btn :icon="mdiClose" variant="text" density="comfortable" @click="dialogOpen = false" />
       </v-card-title>
       <v-divider />
-      <v-card-text class="pa-6">
+      <v-card-text class="pa-4 pa-sm-6">
         <v-row dense>
           <v-col cols="12" md="6">
             <div v-if="surfaceCount > 1" class="d-flex align-center flex-wrap ga-2 mb-3">

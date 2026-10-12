@@ -37,7 +37,7 @@ const { t } = useI18n({ useScope: 'global' })
 .mt {
   position: absolute;
   z-index: 6;
-  width: 256px;
+  width: min(256px, calc(100vw - 32px));
   padding: 12px 14px 10px;
   background: var(--bg);
   color: var(--fg);
