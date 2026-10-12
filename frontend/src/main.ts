@@ -1,5 +1,8 @@
-import App from '@/App.vue'
+// First on purpose: index.css declares the cascade layer order, and that
+// order is fixed by whichever sheet names a layer first (see index.css).
 import '@/assets/styles/index.css'
+
+import App from '@/App.vue'
 import { echartsTheme } from '@/plugins/echarts-theme'
 import { options } from '@/plugins/gtag'
 import i18n, { initialLocale } from '@/plugins/i18n'
