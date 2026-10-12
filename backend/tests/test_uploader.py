@@ -22,6 +22,7 @@ from resslab_hub.data.uploader import (
     Type,
     Uploader,
     cap_series,
+    status_value,
     upload_all,
     upload_one,
 )
@@ -115,6 +116,41 @@ def test_table_uploader_roundtrip(tmp_path, db_session):
     assert b1.f_yn == Decimal("355.5")
     assert b1.area is None
     assert b1.b_br is None
+
+
+def test_status_is_read_from_the_file():
+    headers = ["id", "data_curation_status"]
+    assert status_value(headers, ["B1", "verified"]) == "verified"
+    assert status_value(headers, ["B1", " unverified "]) == "unverified"
+
+
+def test_status_defaults_to_unverified():
+    # No column, an empty cell, a short row or an unknown word: the site
+    # shows the warning rather than vouching for the data (#253).
+    assert status_value(["id"], ["B1"]) == "unverified"
+    assert status_value(["id", "data_curation_status"], ["B1", ""]) == "unverified"
+    assert status_value(["id", "data_curation_status"], ["B1"]) == "unverified"
+    assert status_value(["id", "data_curation_status"], ["B1", "ok"]) == "unverified"
+
+
+def test_table_uploader_without_the_status_column(tmp_path, db_session):
+    csv_path = tmp_path / "steel_braces.csv"
+    write_main_csv(csv_path, Brace, [{"id": "B1"}])
+    lines = csv_path.read_text(encoding="utf-8").splitlines()
+    index = lines[0].split(",").index("data_curation_status")
+    csv_path.write_text(
+        "\n".join(
+            ",".join(cell for i, cell in enumerate(line.split(",")) if i != index)
+            for line in lines
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = upload_one(Type.BRACE, str(csv_path))
+
+    assert "1++" in result
+    assert db_session.query(Brace).one().data_curation_status == "unverified"
 
 
 def test_table_uploader_update_and_delete(tmp_path, db_session):

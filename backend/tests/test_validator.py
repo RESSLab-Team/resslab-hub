@@ -323,6 +323,45 @@ def all_messages(issues):
     return [issue.message for issue in issues]
 
 
+class TestCurationStatus:
+    """The review status (#253): the Hub sets it, contributors leave it out."""
+
+    def test_a_file_without_the_column_is_valid(self, tmp_path: Path):
+        file_path = write_main_csv(tmp_path / "steel_braces.csv", Brace, [{"id": "B1"}])
+        # The defaults hold no comma, so a plain split is safe.
+        lines = file_path.read_text(encoding="utf-8").splitlines()
+        index = lines[0].split(",").index("data_curation_status")
+        trimmed = [
+            ",".join(cell for i, cell in enumerate(line.split(",")) if i != index)
+            for line in lines
+        ]
+        file_path.write_text("\n".join(trimmed) + "\n", encoding="utf-8")
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert result.is_valid(), str(result)
+        assert not any("Missing required" in m for m in all_messages(result.errors))
+
+    def test_both_words_are_accepted(self, tmp_path: Path):
+        for value in ("verified", "unverified"):
+            result = brace_result(tmp_path, {"data_curation_status": value})
+            assert messages(result.errors, "data_curation_status") == [], value
+
+    def test_an_empty_cell_is_accepted(self, tmp_path: Path):
+        result = brace_result(tmp_path, {"data_curation_status": ""})
+
+        assert messages(result.errors, "data_curation_status") == []
+
+    def test_another_word_is_an_error(self, tmp_path: Path):
+        result = brace_result(tmp_path, {"data_curation_status": "checked"})
+
+        assert not result.is_valid()
+        assert any(
+            "verified or unverified" in m
+            for m in messages(result.errors, "data_curation_status")
+        )
+
+
 class TestMissingValues:
     """ "Leave no cell empty"; NA and NR are for nullable columns only."""
 

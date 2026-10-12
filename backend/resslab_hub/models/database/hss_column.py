@@ -96,6 +96,7 @@ class HSSColumn(Base):  # type: ignore
     flexural_buckling = Column(String, nullable=False)
     latitude = Column(DecimalFloat, nullable=True)
     longitude = Column(DecimalFloat, nullable=True)
+    data_curation_status = Column(String, nullable=False)
     # END_OF_GENERATED_CODE
 
     # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end

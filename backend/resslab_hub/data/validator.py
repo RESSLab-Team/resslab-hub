@@ -42,6 +42,7 @@ from resslab_hub.data.common import (
     is_empty_row,
 )
 from resslab_hub.data.count_flags import COUNT_FLAGS
+from resslab_hub.data.curation_status import ALLOWED, STATUS_COLUMN
 from resslab_hub.data.uploader import (
     Type,
     get_args_all,
@@ -386,7 +387,9 @@ class TableValidator(Validator):
                 debug(f"Expected columns: {expected_columns}")
                 debug(f"Found columns: {headers}")
 
-                missing_columns = expected_columns - set(headers)
+                # The review status is set by the Hub, not by the
+                # contributor: accepted when present, never required.
+                missing_columns = expected_columns - {STATUS_COLUMN} - set(headers)
                 # An unnamed column already has its own warning above.
                 unexpected_columns = {
                     name for name in headers if name.strip()
@@ -446,6 +449,9 @@ class TableValidator(Validator):
                         column_name = headers[col_idx]
                         values[column_name] = value
                         if column_name not in expected_columns:
+                            continue
+                        if column_name == STATUS_COLUMN:
+                            self._check_status(result, row_num, value)
                             continue
 
                         column = self.base_model.__table__.c[column_name]
@@ -515,6 +521,19 @@ class TableValidator(Validator):
 
     def _validate_row(self, result: ValidationResult, row: int, values: dict):
         """Rules that need more than one cell of the row. No-op by default."""
+
+    def _check_status(self, result: ValidationResult, row: int, value: str):
+        """The review status, when the file carries it: one of ALLOWED. An
+        empty cell is fine, the upload reads it as unverified."""
+        text = (value or "").strip()
+        if text and text not in ALLOWED:
+            result.add_error(
+                row,
+                STATUS_COLUMN,
+                value,
+                f"Must be {' or '.join(ALLOWED)}. The Hub sets this column, "
+                f"you can leave it out.",
+            )
 
     def _check_missing(
         self, result: ValidationResult, row: int, column: Any, value: str

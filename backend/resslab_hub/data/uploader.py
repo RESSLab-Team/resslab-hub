@@ -32,6 +32,7 @@ from sqlalchemy.orm import sessionmaker
 
 from resslab_hub.data.common import get_abs_path, get_file_encoding, is_empty_row
 from resslab_hub.data.count_flags import COUNT_FLAGS, recompute_count_flags
+from resslab_hub.data.curation_status import ALLOWED, STATUS_COLUMN, UNVERIFIED
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
 from resslab_hub.models.database.column import (
     ColumnAxialShortening,
@@ -243,6 +244,17 @@ PRIMARY_TYPES = frozenset(
 SERIES_EXEMPT_TYPES = PRIMARY_TYPES | {Type.DICTIONARY, Type.README}
 
 
+def status_value(headers: List[str], row: List[str]) -> str:
+    """The review status of a row. A file without the column, an empty
+    cell or an unknown word all read as unverified: when in doubt, the site
+    shows the warning rather than vouching for the data."""
+    if STATUS_COLUMN not in headers:
+        return UNVERIFIED
+    index = headers.index(STATUS_COLUMN)
+    value = row[index].strip() if index < len(row) else ""
+    return value if value in ALLOWED else UNVERIFIED
+
+
 # Abstract base class defining the upload interface
 class Uploader(ABC):
     """
@@ -370,6 +382,8 @@ class TableUploader(Uploader):
         - Date formatting
         - String values
         """
+        if column.key == STATUS_COLUMN:
+            return status_value(headers, row)
         index = headers.index(column.key or "")
         value = row[index]
 

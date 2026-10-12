@@ -138,6 +138,7 @@ class EccentricBracedFrame(Base):  # type: ignore
     url = Column(String, nullable=False)
     latitude = Column(DecimalFloat, nullable=False)
     longitude = Column(DecimalFloat, nullable=False)
+    data_curation_status = Column(String, nullable=False)
     # END_OF_GENERATED_CODE
 
     # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end
