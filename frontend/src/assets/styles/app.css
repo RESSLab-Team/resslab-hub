@@ -1190,6 +1190,12 @@ body.theme-dark .logos img {
   position: relative;
   flex: 0 0 auto;
 }
+/* "Verified only" (#253): a pressed button reads as a filled hairline box, ink
+   not red, since red stays for the primary action. */
+.dash-verified-toggle.is-on {
+  background: var(--bg-subtle);
+  border-color: var(--fg);
+}
 .dash-filters-trigger-badge {
   display: inline-flex;
   align-items: center;
@@ -1917,7 +1923,7 @@ body.theme-dark .logos img {
 .dash-toolbar-spacer {
   flex: 1;
 }
-/* Share view + Filters read as one action pair, tighter than the toolbar gap. */
+/* The toolbar buttons read as one group, tighter than the toolbar gap. */
 .dash-toolbar-actions {
   display: flex;
   align-items: center;
@@ -1932,8 +1938,9 @@ body.theme-dark .logos img {
     flex: 1 1 auto;
   }
 }
-/* Phone: the search box gets its own full row, the two buttons share the
-   next one. Side by side, the search shrank to about 65px. */
+/* Phone: the search box gets its own full row, the buttons share the
+   next one and wrap when they do not fit. Side by side, the search shrank
+   to about 65px. */
 @media (max-width: 600px) {
   .dash-toolbar {
     flex-wrap: wrap;
@@ -1947,6 +1954,7 @@ body.theme-dark .logos img {
   }
   .dash-toolbar-actions {
     flex: 1 1 100%;
+    flex-wrap: wrap;
   }
   .dash-toolbar-actions .btn {
     flex: 1;

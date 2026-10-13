@@ -30,7 +30,11 @@ from time import monotonic
 from typing import Dict, List, Optional, Set, Tuple
 
 from resslab_hub.config import settings
-from resslab_hub.contributions.github import DataRepoClient, NewFile
+from resslab_hub.contributions.github import (
+    DataRepoClient,
+    NewFile,
+    describe_error,
+)
 from resslab_hub.contributions.projection import (
     SubmissionError,
     SubmissionValidationFailed,
@@ -49,6 +53,7 @@ from resslab_hub.contributions.trailers import (
     provenance_from_record,
 )
 from resslab_hub.data.common import SAFE_ID_PATTERN, SAFE_ID_RULE
+from resslab_hub.data.curation_status import STATUS_COLUMN, UNVERIFIED
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import ValidationResult, validate_all
 
@@ -415,8 +420,14 @@ def build_primary_csv(
     the dictionary's, and it may carry legacy extras the dictionary dropped
     (e.g. hss_columns' test_id) — those get NR, and the uploader ignores them
     anyway. Only a batch column the repo lacks is real schema drift.
+
+    Every batch row goes in as unverified, whatever the batch says: only a
+    curator's verification pull request makes a row verified (#253). The
+    kept rows are written back as they are.
     """
-    missing = [name for name in header if name not in repo_header]
+    missing = [
+        name for name in header if name not in repo_header and name != STATUS_COLUMN
+    ]
     if missing:
         raise SubmissionError(
             502,
@@ -430,6 +441,9 @@ def build_primary_csv(
     def repo_ordered(row: List[str]) -> List[str]:
         cells = []
         for name in repo_header:
+            if name == STATUS_COLUMN:
+                cells.append(UNVERIFIED)
+                continue
             position = batch_index.get(name)
             in_batch = position is not None and position < len(row)
             value = row[position] if in_batch else ""
@@ -516,10 +530,12 @@ async def submit_contribution(
                 layout.primary_csv,
             ),
         )
-    except Exception:
+    except Exception as exc:
         await client.delete_branch(branch)
         raise SubmissionError(
-            502, "The pull request could not be opened on the data repository."
+            502,
+            "The pull request could not be opened on the data repository "
+            f"({describe_error(exc)}).",
         )
     return SubmissionResult(pull["url"], pull["number"], branch, commit_sha)
 

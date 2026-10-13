@@ -38,6 +38,7 @@ from resslab_hub.contributions.github import (
     MAX_PARALLEL_CALLS,
     DataRepoClient,
     configured,
+    describe_error,
 )
 from resslab_hub.contributions.projection import (
     SubmissionError,
@@ -60,6 +61,7 @@ from resslab_hub.models.curation import (
     CurationContributor,
     CurationDetail,
     CurationExperiment,
+    CurationFile,
     CurationListResponse,
     CurationSummary,
 )
@@ -128,6 +130,23 @@ def invalidate_pull(pr_number: int) -> None:
     for a minute and the next update would collide on a stale head sha.
     """
     _cache.drop(("pull", pr_number))
+    _cache.drop("list")
+
+
+async def open_pulls(client: DataRepoClient) -> List[dict]:
+    """The open pull requests into the base branch, cached for a minute.
+
+    One GitHub call for the queue and the verification tab (#253) together.
+    """
+    cached = _cache.get("list")
+    if cached is None:
+        cached = await client.list_open_pulls()
+        _cache.put("list", cached, LIST_TTL_SECONDS)
+    return cached
+
+
+def invalidate_open_pulls() -> None:
+    """Forget the list, so a pull request the Hub just opened shows at once."""
     _cache.drop("list")
 
 
@@ -274,26 +293,39 @@ async def _build_detail(
     return detail
 
 
-async def _build_validation(
-    client: DataRepoClient, detail: CurationDetail, input_type: Type
+async def build_validation(
+    client: DataRepoClient,
+    input_type: Type,
+    columns: List[str],
+    experiments: List[CurationExperiment],
+    files: List[CurationFile],
+    ref: str,
+    live_rows: bool = False,
 ) -> ValidationResponse:
-    """Re-validate the reconstructed batch in a repo-shaped temp directory."""
+    """Re-validate a batch in a repo-shaped temp directory.
+
+    The rows are ``experiments`` and the curves are read at ``ref``: a
+    submission's head here, the base branch for a verification (#253).
+    ``live_rows`` is for a verification, whose rows are in the database
+    already: no "id already exists" check, and the range warnings compare
+    with the verified rows only, or an outlier would set the range itself.
+    """
     layout = _layout_for(input_type)
     skipped: List[str] = []
     with TemporaryDirectory() as tmpdir:
         primary = path.join(tmpdir, layout.primary_csv)
-        # The same iteration order as detail.experiments, so ValidationIssue
+        # The same iteration order as the experiments, so ValidationIssue
         # rows line up with the displayed batch (pinned by a backend test).
         rows = [
-            [experiment.cells.get(name, "") for name in detail.columns]
-            for experiment in detail.experiments
+            [experiment.cells.get(name, "") for name in columns]
+            for experiment in experiments
         ]
         os.makedirs(path.dirname(primary) or tmpdir, exist_ok=True)
         with open(primary, "w", encoding="utf-8") as file:
-            file.write(_write_csv(detail.columns, rows))
+            file.write(_write_csv(columns, rows))
 
         total = 0
-        curve_files = [f for f in detail.files if f.kind == "timeseries"]
+        curve_files = [f for f in files if f.kind == "timeseries"]
         wanted = curve_files[:MAX_CURVE_FILES]
 
         limit = asyncio.Semaphore(MAX_PARALLEL_CALLS)
@@ -301,7 +333,7 @@ async def _build_validation(
         async def read(curve) -> Optional[str]:
             async with limit:
                 try:
-                    return await client.get_file_text(curve.path, ref=detail.head_sha)
+                    return await client.get_file_text(curve.path, ref=ref)
                 except Exception:
                     return None
 
@@ -325,7 +357,11 @@ async def _build_validation(
 
         try:
             results = validate_all(
-                input_type, [tmpdir], cpu=1, check_duplicate_ids=True
+                input_type,
+                [tmpdir],
+                cpu=1,
+                check_duplicate_ids=not live_rows,
+                verified_ranges=live_rows,
             )
         except NotImplementedError:
             raise HTTPException(
@@ -406,13 +442,8 @@ async def list_contributions(request: Request) -> CurationListResponse:
     """
     if not configured():
         return CurationListResponse(configured=False)
-    cached = _cache.get("list")
-    if cached is None:
-        client = DataRepoClient()
-        cached = await client.list_open_pulls()
-        _cache.put("list", cached, LIST_TTL_SECONDS)
     items = []
-    for pull in cached:
+    for pull in await open_pulls(DataRepoClient()):
         input_type = type_for_branch(pull["head_ref"])
         if input_type is not None:
             items.append(_summary(pull, input_type))
@@ -445,7 +476,8 @@ async def get_contribution(request: Request, pr_number: int) -> CurationDetail:
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"The submission could not be read from the data repository: {exc}",
+            detail="The submission could not be read from the data repository: "
+            + describe_error(exc),
         )
     return detail.model_copy(update={"mine": _is_mine(request, pr_number, detail)})
 
@@ -486,7 +518,9 @@ async def get_contribution_validation(
     if cached is not None:
         return cached
     detail = await _build_detail(client, pull, input_type)
-    response = await _build_validation(client, detail, input_type)
+    response = await build_validation(
+        client, input_type, detail.columns, detail.experiments, detail.files, head_sha
+    )
     _cache.put(("validation", pr_number, head_sha), response, DETAIL_TTL_SECONDS)
     return response
 
@@ -523,7 +557,8 @@ async def get_contribution_comments(
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"The discussion could not be read from the data repository: {exc}",
+            detail="The discussion could not be read from the data repository: "
+            + describe_error(exc),
         )
     items = [
         CurationComment(

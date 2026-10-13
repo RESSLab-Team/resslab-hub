@@ -188,6 +188,7 @@ class DuctileFracture(Base):  # type: ignore
     latitude = Column(DecimalFloat, nullable=False)
     longitude = Column(DecimalFloat, nullable=False)
     has_sem = Column(Boolean, nullable=True)
+    data_curation_status = Column(String, nullable=False)
     # END_OF_GENERATED_CODE
 
     # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end

@@ -142,7 +142,7 @@ def _excluded(path: str) -> bool:
     # so an hour-old copy would show a submission that no longer exists and
     # make every update collide (#321).
     #
-    # /auth, /account and /admin answer per signed-in user. This cache is
+    # /auth, /account, /admin and /verification answer per signed-in user. This cache is
     # keyed on the URL alone and marks what it stores `Cache-Control: public`,
     # so caching them would hand one person's answer to the next visitor.
     #
@@ -158,5 +158,6 @@ def _excluded(path: str) -> bool:
             "/auth",
             "/account",
             "/admin",
+            "/verification",
         )
     )

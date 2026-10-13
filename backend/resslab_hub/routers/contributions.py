@@ -19,6 +19,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import JSONResponse
+from githubkit.exception import RequestFailed
 
 from resslab_hub.auth import roles
 from resslab_hub.auth.deps import require_contributions_enabled, require_role
@@ -134,7 +135,8 @@ async def _run_on_archive(
         )
     except ArchiveError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
-    except HTTPException:
+    except (HTTPException, RequestFailed):
+        # A GitHub refusal goes to the handler in main.py, with GitHub's reason.
         raise
     except Exception as exc:
         raise HTTPException(

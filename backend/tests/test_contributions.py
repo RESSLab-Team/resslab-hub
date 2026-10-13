@@ -362,6 +362,49 @@ async def test_submit_aligns_to_repo_column_order_and_extras(tmp_path, monkeypat
     assert lines[-1] == "NR,B9,New one,400"
 
 
+STATUS_REPO_CSV = (
+    "id,f_y,name,data_curation_status\n"
+    "B1,355,First,verified\n"
+    "B2,275,Second,unverified\n"
+)
+
+
+async def test_submit_stamps_every_new_row_unverified(tmp_path, monkeypatch):
+    # The batch cannot vouch for itself (#253): whatever it says, or with no
+    # column at all, a new row goes in as unverified. Old rows keep theirs.
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": STATUS_REPO_CSV})
+    batch = make_batch(
+        tmp_path, "id,f_y,name,data_curation_status\nB9,400,New one,verified\n"
+    )
+    await submit_contribution(
+        str(batch), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    merged = {f.path: f.content for f in client.committed}["braces/steel_braces.csv"]
+    assert merged == STATUS_REPO_CSV + "B9,400,New one,unverified\n"
+
+
+async def test_submit_without_the_column_is_stamped_too(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": STATUS_REPO_CSV})
+    await submit_contribution(
+        str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    merged = {f.path: f.content for f in client.committed}["braces/steel_braces.csv"]
+    assert merged.endswith("B9,400,New one,unverified\n")
+
+
+async def test_submit_to_a_repo_without_the_column_adds_none(tmp_path, monkeypatch):
+    # A data repository from before #253: nothing to stamp, nothing added.
+    patch_validation(monkeypatch)
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    await submit_contribution(
+        str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    merged = {f.path: f.content for f in client.committed}["braces/steel_braces.csv"]
+    assert merged == REPO_CSV + "B9,400,New one\n"
+
+
 async def test_read_csv_strips_bom(tmp_path, monkeypatch):
     patch_validation(monkeypatch)
     client = FakeClient({"braces/steel_braces.csv": "\ufeff" + REPO_CSV})
@@ -696,6 +739,23 @@ async def test_update_replaces_the_batch_on_the_same_branch(tmp_path, monkeypatc
     assert "B9,400,New one" not in merged
     assert merged.count("B9,") == 1
     assert client.deletions == []
+
+
+async def test_update_stamps_the_batch_unverified(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    client = edit_client()
+    client.repo_files["braces/steel_braces.csv"] = STATUS_REPO_CSV
+    client.head_files["braces/steel_braces.csv"] = (
+        STATUS_REPO_CSV + "B9,400,New one,unverified\n"
+    )
+    batch = make_batch(
+        tmp_path, "id,f_y,name,data_curation_status\nB9,450,Fixed one,verified\n"
+    )
+
+    await update(batch, client)
+
+    merged = {f.path: f.content for f in client.committed}["braces/steel_braces.csv"]
+    assert merged == STATUS_REPO_CSV + "B9,450,Fixed one,unverified\n"
 
 
 async def test_update_carries_the_editors_trailers(tmp_path, monkeypatch):

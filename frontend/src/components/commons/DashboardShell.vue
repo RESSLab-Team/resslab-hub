@@ -5,8 +5,9 @@ import i18n from '@/plugins/i18n'
 import { useNotificationStore } from '@/stores/notification'
 import type { FilterGroup, LabeledFilter } from '@/composables/useAutoFilters'
 import { formatFilterValue, shareCurrentUrl, type Searches, type Value } from '@/utils/common'
+import { STATUS_COLUMN, VERIFIED_ONLY_SEARCH } from '@/utils/curationStatus'
 import { DATABASES, type DatabaseId } from '@/utils/navigation'
-import { mdiClose, mdiFilterVariant, mdiMagnify, mdiShare } from '@mdi/js'
+import { mdiCheckDecagramOutline, mdiClose, mdiFilterVariant, mdiMagnify, mdiShare } from '@mdi/js'
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -82,11 +83,27 @@ const railFilterCount = computed<number>(
 // filterable, so fall back to the label the rail resolved from the dictionary.
 const activeChips = computed(() =>
   Object.entries(props.searches).map(([key, value]) => {
+    // The review status is not in the rail (filterProfile's DENYLIST), so it
+    // has no dictionary label there: name the toggle instead.
+    if (key === STATUS_COLUMN && value === VERIFIED_ONLY_SEARCH) {
+      return { key, label: i18n.global.t('commons.unverified.verified_only') }
+    }
+    if (key === STATUS_COLUMN) {
+      const status = i18n.global.t('commons.unverified.status_label')
+      return { key, label: `${status}: ${formatFilterValue(value, i18n.global.t)}` }
+    }
     const filter = props.filters.find((entry) => entry.key === key)
     const label = filter?.label ?? i18n.global.t(props.i18nPrefix + key)
     return { key, label: `${label}: ${formatFilterValue(value, i18n.global.t)}` }
   })
 )
+
+/* ---- "Verified only" (#253): off by default, the URL carries it like any filter ---- */
+const verifiedOnly = computed<boolean>(() => props.searches[STATUS_COLUMN] === VERIFIED_ONLY_SEARCH)
+
+function toggleVerifiedOnly(): void {
+  emit('change:searches', STATUS_COLUMN, verifiedOnly.value ? undefined : VERIFIED_ONLY_SEARCH)
+}
 
 function clearAll(): void {
   emit('update:search', '')
@@ -149,6 +166,17 @@ function shareView(): void {
           </div>
           <div class="dash-toolbar-spacer" />
           <div class="dash-toolbar-actions">
+            <button
+              v-if="databaseId"
+              class="btn btn-secondary btn-sm dash-verified-toggle"
+              :class="{ 'is-on': verifiedOnly }"
+              :aria-pressed="verifiedOnly"
+              :title="$t('commons.unverified.verified_only_hint')"
+              @click="toggleVerifiedOnly"
+            >
+              <v-icon :icon="mdiCheckDecagramOutline" size="14" />
+              {{ $t('commons.unverified.verified_only') }}
+            </button>
             <button class="btn btn-secondary btn-sm" @click="shareView">
               <v-icon :icon="mdiShare" size="14" />
               {{ $t('commons.share_view') }}

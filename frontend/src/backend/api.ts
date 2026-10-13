@@ -172,6 +172,7 @@ export const BraceField = {
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     DisplacementCount: 'displacement_count',
 } as const;
 
@@ -249,6 +250,7 @@ export interface BraceModel {
     'link': string | null;
     'latitude': number | null;
     'longitude': number | null;
+    'data_curation_status': string;
     'displacement_count': number;
 }
 
@@ -399,6 +401,7 @@ export const ColumnField = {
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     BuiltUp: 'built_up',
     AxialShorteningCount: 'axial_shortening_count',
     MomentStrongCount: 'moment_strong_count',
@@ -506,6 +509,7 @@ export interface ColumnModel {
     'link': string | null;
     'latitude': number;
     'longitude': number;
+    'data_curation_status': string;
     'built_up': boolean;
     'axial_shortening_count': number;
     'moment_strong_count': number;
@@ -752,6 +756,7 @@ export const ConnectionField = {
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     BeamCount: 'beam_count',
     BeamWestCount: 'beam_west_count',
     GlobalCount: 'global_count',
@@ -919,6 +924,7 @@ export interface ConnectionModel {
     'link': string | null;
     'latitude': number | null;
     'longitude': number;
+    'data_curation_status': string;
     'beam_count': number;
     'beam_west_count': number;
     'global_count': number;
@@ -1274,6 +1280,7 @@ export const DuctileFractureField = {
     Latitude: 'latitude',
     Longitude: 'longitude',
     HasSem: 'has_sem',
+    DataCurationStatus: 'data_curation_status',
     ForceElongationCount: 'force_elongation_count',
     ForceElongationSimulationCount: 'force_elongation_simulation_count',
     ForceRadialCount: 'force_radial_count',
@@ -1365,6 +1372,7 @@ export interface DuctileFractureModel {
     'latitude': number;
     'longitude': number;
     'has_sem': boolean | null;
+    'data_curation_status': string;
     'force_elongation_count': number;
     'force_elongation_simulation_count': number;
     'force_radial_count': number;
@@ -1542,6 +1550,7 @@ export const EccentricBracedFrameField = {
     Url: 'url',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     ShearLinkAngleCount: 'shear_link_angle_count',
 } as const;
 
@@ -1647,6 +1656,7 @@ export interface EccentricBracedFrameModel {
     'url': string;
     'latitude': number;
     'longitude': number;
+    'data_curation_status': string;
     'shear_link_angle_count': number;
 }
 
@@ -1890,6 +1900,7 @@ export const HSSColumnField = {
     FlexuralBuckling: 'flexural_buckling',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     MomentRotationCount: 'moment_rotation_count',
 } as const;
 
@@ -1957,6 +1968,7 @@ export interface HSSColumnModel {
     'flexural_buckling': string;
     'latitude': number | null;
     'longitude': number | null;
+    'data_curation_status': string;
     'moment_rotation_count': number;
 }
 
@@ -2232,6 +2244,7 @@ export const MaterialField = {
     UvcRhoIso: 'uvc_rho_iso',
     UvcRhoKin: 'uvc_rho_kin',
     UvcRhoD: 'uvc_rho_d',
+    DataCurationStatus: 'data_curation_status',
     Type: 'type',
     Year: 'year',
     StressStrainCount: 'stress_strain_count',
@@ -2318,6 +2331,7 @@ export interface MaterialModel {
     'uvc_rho_iso': number | null;
     'uvc_rho_kin': number | null;
     'uvc_rho_d': number | null;
+    'data_curation_status': string;
     'type': string;
     'year': number;
     'stress_strain_count': number;
@@ -2436,6 +2450,7 @@ export const ResidualStressField = {
     Link: 'link',
     Latitude: 'latitude',
     Longitude: 'longitude',
+    DataCurationStatus: 'data_curation_status',
     QpCoefficientCount: 'qp_coefficient_count',
     DistributionF1Count: 'distribution_F1_count',
     DistributionF2Count: 'distribution_F2_count',
@@ -2472,6 +2487,7 @@ export interface ResidualStressModel {
     'link': string | null;
     'latitude': number | null;
     'longitude': number | null;
+    'data_curation_status': string;
     'qp_coefficient_count': number;
     'distribution_F1_count': number;
     'distribution_F2_count': number;
@@ -2579,6 +2595,7 @@ export const TensileCouponField = {
     Longitude: 'longitude',
     PublicationKey: 'publication_key',
     DatacolVersion: 'datacol_version',
+    DataCurationStatus: 'data_curation_status',
     StressStrainCount: 'stress_strain_count',
 } as const;
 
@@ -2656,6 +2673,7 @@ export interface TensileCouponModel {
     'longitude': number;
     'publication_key': string | null;
     'datacol_version': number;
+    'data_curation_status': string;
     'stress_strain_count': number;
 }
 
@@ -2805,6 +2823,54 @@ export interface ValidationResponse {
     'results'?: Array<FileValidationResult>;
     'error_results'?: Array<LegacyFileResult>;
     'valid_results'?: Array<LegacyFileResult>;
+}
+/**
+ * The unverified rows of one reference, for the review page.  The same rows, columns and files as a submission\'s ``CurationDetail``, but read from the data repository\'s base branch, so the page can show them with the same panels. The lists have no defaults on purpose, so they stay required in the generated frontend client.
+ */
+export interface VerificationBatch {
+    'type': string;
+    'reference': string;
+    'base_sha': string;
+    'columns': Array<string>;
+    'experiments': Array<CurationExperiment>;
+    'files': Array<CurationFile>;
+    'missing_ids': Array<string>;
+    'pending': { [key: string]: VerificationPull; };
+}
+/**
+ * Unverified rows of one database that share a reference.
+ */
+export interface VerificationGroup {
+    'database': string;
+    'reference': string;
+    'ids': Array<string>;
+    'count': number;
+    'pending_pr'?: VerificationPull | null;
+}
+export interface VerificationListResponse {
+    'configured': boolean;
+    'groups'?: Array<VerificationGroup>;
+}
+/**
+ * An open verification pull request on the data repository.
+ */
+export interface VerificationPull {
+    'pr_number': number;
+    'pr_url': string;
+}
+export interface VerificationRequest {
+    'database': Type;
+    'ids': Array<string>;
+}
+
+
+/**
+ * The verification pull request the Hub opened.
+ */
+export interface VerificationResponse {
+    'pr_url': string;
+    'pr_number': number;
+    'branch': string;
 }
 export interface VerifyResponse {
     'user': UserOut;
@@ -7239,6 +7305,41 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Open a pull request on the data repository that marks ``ids`` as verified. Merge it on GitHub (squash). Answers 409 when an id is not in the data repository, is already verified there, or is in an open verification pull request.
+         * @summary Create Verification
+         * @param {VerificationRequest} verificationRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createVerification: async (verificationRequest: VerificationRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'verificationRequest' is not null or undefined
+            assertParamExists('createVerification', 'verificationRequest', verificationRequest)
+            const localVarPath = `/verification`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(verificationRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
          * @summary Get Contribution
          * @param {number} prNumber 
@@ -7446,6 +7547,132 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * The unverified rows of one reference as the data repository has them, with their curve files: what the review page shows before a curator marks them as verified.
+         * @summary Get Verification Batch
+         * @param {Type} database 
+         * @param {string} [reference] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVerificationBatch: async (database: Type, reference?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'database' is not null or undefined
+            assertParamExists('getVerificationBatch', 'database', database)
+            const localVarPath = `/verification/{database}/batch`
+                .replace('{database}', encodeURIComponent(String(database)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (reference !== undefined) {
+                localVarQueryParameter['reference'] = reference;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Raw text of one curve file at ``ref``, a base branch commit from the batch. Only the database\'s curve folders are served.
+         * @summary Get Verification File
+         * @param {Type} database 
+         * @param {string} path 
+         * @param {string} ref 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVerificationFile: async (database: Type, path: string, ref: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'database' is not null or undefined
+            assertParamExists('getVerificationFile', 'database', database)
+            // verify required parameter 'path' is not null or undefined
+            assertParamExists('getVerificationFile', 'path', path)
+            // verify required parameter 'ref' is not null or undefined
+            assertParamExists('getVerificationFile', 'ref', ref)
+            const localVarPath = `/verification/{database}/files`
+                .replace('{database}', encodeURIComponent(String(database)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (path !== undefined) {
+                localVarQueryParameter['path'] = path;
+            }
+
+            if (ref !== undefined) {
+                localVarQueryParameter['ref'] = ref;
+            }
+
+            localVarHeaderParameter['Accept'] = 'text/plain,application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * The same server-side checks a submission goes through, re-run on the unverified rows of one reference and their curves.
+         * @summary Get Verification Validation
+         * @param {Type} database 
+         * @param {string} [reference] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVerificationValidation: async (database: Type, reference?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'database' is not null or undefined
+            assertParamExists('getVerificationValidation', 'database', database)
+            const localVarPath = `/verification/{database}/validation`
+                .replace('{database}', encodeURIComponent(String(database)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (reference !== undefined) {
+                localVarQueryParameter['reference'] = reference;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Healthz
          * @param {*} [options] Override http request option.
@@ -7483,6 +7710,36 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
          */
         listContributions: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/contributions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * The unverified rows of every database, grouped by reference, each with the open verification pull request that covers it, if any.
+         * @summary List Unverified
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listUnverified: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/verification`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -7716,6 +7973,19 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Open a pull request on the data repository that marks ``ids`` as verified. Merge it on GitHub (squash). Answers 409 when an id is not in the data repository, is already verified there, or is in an open verification pull request.
+         * @summary Create Verification
+         * @param {VerificationRequest} verificationRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createVerification(verificationRequest: VerificationRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VerificationResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createVerification(verificationRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.createVerification']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
          * @summary Get Contribution
          * @param {number} prNumber 
@@ -7793,6 +8063,49 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * The unverified rows of one reference as the data repository has them, with their curve files: what the review page shows before a curator marks them as verified.
+         * @summary Get Verification Batch
+         * @param {Type} database 
+         * @param {string} [reference] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getVerificationBatch(database: Type, reference?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VerificationBatch>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getVerificationBatch(database, reference, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getVerificationBatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Raw text of one curve file at ``ref``, a base branch commit from the batch. Only the database\'s curve folders are served.
+         * @summary Get Verification File
+         * @param {Type} database 
+         * @param {string} path 
+         * @param {string} ref 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getVerificationFile(database: Type, path: string, ref: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getVerificationFile(database, path, ref, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getVerificationFile']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * The same server-side checks a submission goes through, re-run on the unverified rows of one reference and their curves.
+         * @summary Get Verification Validation
+         * @param {Type} database 
+         * @param {string} [reference] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getVerificationValidation(database: Type, reference?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ValidationResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getVerificationValidation(database, reference, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getVerificationValidation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Healthz
          * @param {*} [options] Override http request option.
@@ -7814,6 +8127,18 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listContributions(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['DefaultApi.listContributions']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * The unverified rows of every database, grouped by reference, each with the open verification pull request that covers it, if any.
+         * @summary List Unverified
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listUnverified(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VerificationListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listUnverified(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.listUnverified']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -7904,6 +8229,16 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.createUploadFile(type, file, options).then((request) => request(axios, basePath));
         },
         /**
+         * Open a pull request on the data repository that marks ``ids`` as verified. Merge it on GitHub (squash). Answers 409 when an id is not in the data repository, is already verified there, or is in an open verification pull request.
+         * @summary Create Verification
+         * @param {VerificationRequest} verificationRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createVerification(verificationRequest: VerificationRequest, options?: RawAxiosRequestConfig): AxiosPromise<VerificationResponse> {
+            return localVarFp.createVerification(verificationRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
          * @summary Get Contribution
          * @param {number} prNumber 
@@ -7963,6 +8298,40 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getUser(options).then((request) => request(axios, basePath));
         },
         /**
+         * The unverified rows of one reference as the data repository has them, with their curve files: what the review page shows before a curator marks them as verified.
+         * @summary Get Verification Batch
+         * @param {Type} database 
+         * @param {string} [reference] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVerificationBatch(database: Type, reference?: string, options?: RawAxiosRequestConfig): AxiosPromise<VerificationBatch> {
+            return localVarFp.getVerificationBatch(database, reference, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Raw text of one curve file at ``ref``, a base branch commit from the batch. Only the database\'s curve folders are served.
+         * @summary Get Verification File
+         * @param {Type} database 
+         * @param {string} path 
+         * @param {string} ref 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVerificationFile(database: Type, path: string, ref: string, options?: RawAxiosRequestConfig): AxiosPromise<string> {
+            return localVarFp.getVerificationFile(database, path, ref, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * The same server-side checks a submission goes through, re-run on the unverified rows of one reference and their curves.
+         * @summary Get Verification Validation
+         * @param {Type} database 
+         * @param {string} [reference] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVerificationValidation(database: Type, reference?: string, options?: RawAxiosRequestConfig): AxiosPromise<ValidationResponse> {
+            return localVarFp.getVerificationValidation(database, reference, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Healthz
          * @param {*} [options] Override http request option.
@@ -7979,6 +8348,15 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          */
         listContributions(options?: RawAxiosRequestConfig): AxiosPromise<CurationListResponse> {
             return localVarFp.listContributions(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * The unverified rows of every database, grouped by reference, each with the open verification pull request that covers it, if any.
+         * @summary List Unverified
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listUnverified(options?: RawAxiosRequestConfig): AxiosPromise<VerificationListResponse> {
+            return localVarFp.listUnverified(options).then((request) => request(axios, basePath));
         },
         /**
          * Readiness: 503 until the startup cache warmup (utils/warmup.py) has rendered the hot URL space, so deploys don\'t expose a cold pod.
@@ -8056,6 +8434,17 @@ export class DefaultApi extends BaseAPI {
     }
 
     /**
+     * Open a pull request on the data repository that marks ``ids`` as verified. Merge it on GitHub (squash). Answers 409 when an id is not in the data repository, is already verified there, or is in an open verification pull request.
+     * @summary Create Verification
+     * @param {VerificationRequest} verificationRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createVerification(verificationRequest: VerificationRequest, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).createVerification(verificationRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Everything the review screen needs about one submission, reconstructed from the pull request at its current head commit.
      * @summary Get Contribution
      * @param {number} prNumber 
@@ -8121,6 +8510,43 @@ export class DefaultApi extends BaseAPI {
     }
 
     /**
+     * The unverified rows of one reference as the data repository has them, with their curve files: what the review page shows before a curator marks them as verified.
+     * @summary Get Verification Batch
+     * @param {Type} database 
+     * @param {string} [reference] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getVerificationBatch(database: Type, reference?: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getVerificationBatch(database, reference, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Raw text of one curve file at ``ref``, a base branch commit from the batch. Only the database\'s curve folders are served.
+     * @summary Get Verification File
+     * @param {Type} database 
+     * @param {string} path 
+     * @param {string} ref 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getVerificationFile(database: Type, path: string, ref: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getVerificationFile(database, path, ref, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * The same server-side checks a submission goes through, re-run on the unverified rows of one reference and their curves.
+     * @summary Get Verification Validation
+     * @param {Type} database 
+     * @param {string} [reference] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getVerificationValidation(database: Type, reference?: string, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getVerificationValidation(database, reference, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * 
      * @summary Healthz
      * @param {*} [options] Override http request option.
@@ -8138,6 +8564,16 @@ export class DefaultApi extends BaseAPI {
      */
     public listContributions(options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).listContributions(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * The unverified rows of every database, grouped by reference, each with the open verification pull request that covers it, if any.
+     * @summary List Unverified
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listUnverified(options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).listUnverified(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

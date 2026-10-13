@@ -214,6 +214,15 @@ const router = createRouter({
       meta: { auth: 'contributor', contributions: true }
     },
     {
+      // Rows already live and still unverified, one reference at a time
+      // (?reference=, ?id= to start on one), with the same panels (#253).
+      path: '/curation/verify/:type',
+      name: 'VerificationReview',
+      component: () => import('@/views/CurationReviewView.vue'),
+      props: true,
+      meta: { auth: 'curator', contributions: true }
+    },
+    {
       // Who can do what: members, invitations, access requests (#248).
       path: '/admin',
       name: 'Admin',
