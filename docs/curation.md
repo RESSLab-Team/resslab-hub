@@ -120,9 +120,9 @@ The data repository CSV is the source of truth: the status survives a
 re-upload, and every change to it is a pull request.
 
 **Mark as verified** is the button that opens that pull request. It is in
-two places, for curators only: the **To verify** tab, one button per
-database and reference, and the warning at the top of the specimen drawer,
-for one row. The backend reads the main CSV on the base branch, changes only
+three places, for curators only: the **To verify** tab, one button per
+database and reference; the review page of a reference (below); and the
+warning at the top of the specimen drawer, for one row. The backend reads the main CSV on the base branch, changes only
 the status cells of those ids (line endings and everything else kept),
 commits on `verify/<type slug>/<first id>-<hex>` as the curator, with a
 `Verified-by` trailer, and opens a pull request titled like
@@ -133,6 +133,25 @@ fenced block of its body. It is merged on GitHub like any other, squash only.
 |---|---|
 | `GET /verification` | the unverified rows of every database, from the database, grouped by database and `reference`. Each group has its ids and the open verification pull request that covers them, if any. Curators only. |
 | `POST /verification` | `{database, ids}` opens the pull request, up to `MAX_IDS` (500) ids. `409` for an id the CSV does not have, one already verified, or one already in an open verification pull request. `10/hour` per client address. Curators only. |
+| `GET /verification/{database}/batch?reference=` | the unverified rows of one reference, read from the data repository's base branch: the same `columns`, `experiments` and `files` as a submission's detail, plus `base_sha`, `missing_ids` and the pending pull request of each id. `404` when the reference has no unverified row. Curators only. |
+| `GET /verification/{database}/validation?reference=` | the same checks as a submission's validation, re-run on those rows and their curves. Curators only. |
+| `GET /verification/{database}/files?path=&ref=` | the raw text of one curve at `ref` (the batch's `base_sha`). Only `<curve folder>/<id>.csv` of that database is served. Curators only. |
+
+**The review page of a reference** (`/curation/verify/<database>?reference=`)
+is where most of the scientific check happens, so it has the same panels as
+a submission's review: the metadata with the existing ranges, the cohort of
+similar experiments, the curves with their cohort overlays, and the quality
+flags. The rows come from the database (the unverified ids of that
+reference), their cells and curves from the data repository at one base
+commit, since that is what a verification changes. A curve is
+`<curve folder>/<id>.csv`, the way the uploader links a file to its row. The
+cohort only takes verified rows (`data_curation_status:verified,` is added to
+its query), or the rows under review would be compared with themselves. The
+rail has **Mark all as verified** and, for a batch of several, a button that
+marks only the selected row. A row already in a pull request is greyed in the picker and left out
+of the button. An id unverified on the site but missing from the CSV, or
+already verified in the CSV, gets a note at the top: both mean the site waits
+for the next upload. `?id=` opens the page on one row.
 
 Nothing is stored here either: an open pull request on a `verify/` branch is
 what "pending" means. The list comes from the database, so a merged
@@ -145,8 +164,10 @@ On the dashboards, an unverified row has an orange rule on its checkbox cell
 and the drawer warning. **Verified only** in the toolbar hides those rows.
 It is off by default and writes `data_curation_status==verified` in the URL,
 so a shared link keeps it. The code: `utils/curationStatus.ts`,
-`stores/verification.ts`, `components/commons/UnverifiedNotice.vue` and
-`components/curation/VerificationQueue.vue`.
+`stores/verification.ts`, `components/commons/UnverifiedNotice.vue`,
+`components/curation/VerificationQueue.vue` and the verify mode of
+`views/CurationReviewView.vue`; on the backend `routers/verification.py` and
+`contributions/verification.py`.
 
 ## What curation does not do yet
 

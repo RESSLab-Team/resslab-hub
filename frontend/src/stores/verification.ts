@@ -7,10 +7,14 @@
  * in it until the next upload. The store keeps the pull requests it opened in
  * this session, so the button turns into "Pending" at once instead of waiting
  * for a refresh.
+ *
+ * The review page of one reference reads its rows, checks and curves here
+ * too, once per session like the curation store (the backend caches them
+ * on top).
  */
 
-import type { VerificationGroup, VerificationPull } from '@/backend'
-import type { Type } from '@/backend'
+import type { Type, VerificationBatch, VerificationGroup, VerificationPull } from '@/backend'
+import type { ValidationResponse } from '@/utils/validationResponse'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
@@ -49,6 +53,10 @@ export const useVerificationStore = defineStore('verification', () => {
     return byRow
   })
 
+  const batches = ref(new Map<string, VerificationBatch>())
+  const validations = ref(new Map<string, ValidationResponse>())
+  const fileTexts = ref(new Map<string, string>())
+
   const unverifiedCount = computed(() =>
     groups.value.reduce((total, group) => total + group.count, 0)
   )
@@ -83,7 +91,43 @@ export const useVerificationStore = defineStore('verification', () => {
     return pull
   }
 
+  /** The unverified rows of one reference, as the data repository has them. */
+  async function fetchBatch(database: Type, reference: string): Promise<VerificationBatch> {
+    const cacheKey = key(database, reference)
+    const cached = batches.value.get(cacheKey)
+    if (cached) return cached
+    const { defaultApi } = await api()
+    const { data } = await defaultApi.getVerificationBatch(database, reference)
+    batches.value.set(cacheKey, data)
+    return data
+  }
+
+  async function fetchValidation(database: Type, reference: string): Promise<ValidationResponse> {
+    const cacheKey = key(database, reference)
+    const cached = validations.value.get(cacheKey)
+    if (cached) return cached
+    const { defaultApi } = await api()
+    const { data } = await defaultApi.getVerificationValidation(database, reference)
+    const response = data as unknown as ValidationResponse
+    validations.value.set(cacheKey, response)
+    return response
+  }
+
+  /** One curve file at `ref`, the commit the batch was read at. */
+  async function fetchFileText(database: Type, ref: string, path: string): Promise<string> {
+    const cacheKey = `${ref}:${path}`
+    const cached = fileTexts.value.get(cacheKey)
+    if (cached !== undefined) return cached
+    const { defaultApi } = await api()
+    const { data } = await defaultApi.getVerificationFile(database, path, ref)
+    fileTexts.value.set(cacheKey, data)
+    return data
+  }
+
   return {
+    fetchBatch,
+    fetchValidation,
+    fetchFileText,
     groups,
     configured,
     listState,

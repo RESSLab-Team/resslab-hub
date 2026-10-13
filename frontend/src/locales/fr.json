@@ -1512,6 +1512,19 @@
         "reference": "Référence",
         "ids": "Identifiants"
       }
+    },
+    "verify_review": {
+      "loading": "Chargement des expériences non vérifiées…",
+      "not_found": "Impossible de charger ces expériences non vérifiées.",
+      "eyebrow": "À vérifier",
+      "read_at": "dépôt de données au commit {sha}",
+      "open_dashboard": "Ouvrir dans le tableau de bord",
+      "experiments_label": "{count} expériences non vérifiées avec cette référence",
+      "missing": "Non vérifiées sur le site mais absentes du dépôt de données : {ids}. Elles ont été renommées ou supprimées après le dernier chargement.",
+      "already_verified": "Déjà vérifiées dans le dépôt de données, le site l'affichera après le prochain chargement : {ids}.",
+      "only": "Marquer seulement {id} comme vérifiée",
+      "nothing_left": "Chaque expérience ici est déjà vérifiée ou dans une pull request de vérification.",
+      "note": "Ouvre une pull request qui ne change que la colonne de statut. Fusionnez-la sur GitHub (squash). Le site affiche le changement après le prochain chargement des données."
     }
   },
   "auth": {

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 /**
  * The "To verify" tab of the curation queue (#253): the rows that went live
- * unverified, one line per database and reference, each with the button that
- * opens the verification pull request on the data repository.
+ * unverified, one line per database and reference. A line opens its review
+ * page, and its button opens the verification pull request on the data
+ * repository straight away.
  */
 import ProgressLine from '@/components/commons/ProgressLine.vue'
 import type { Type, VerificationGroup, VerificationPull } from '@/backend'
@@ -12,6 +13,7 @@ import { idsSearch } from '@/utils/curationStatus'
 import { DATABASES } from '@/utils/navigation'
 import { mdiAlertOutline, mdiOpenInNew } from '@mdi/js'
 import { computed, onMounted, ref } from 'vue'
+import type { RouteLocationRaw } from 'vue-router'
 
 const store = useVerificationStore()
 onMounted(() => store.fetchList())
@@ -25,6 +27,8 @@ interface Row {
   databaseName: string
   /** The dashboard filtered on these rows, when the database has one. */
   to: { path: string; query: Record<string, string> } | null
+  /** The review page of the reference. */
+  review: RouteLocationRaw
   preview: string
   more: number
 }
@@ -38,6 +42,11 @@ const rows = computed<Row[]>(() =>
       group,
       databaseName: database?.name ?? group.database,
       to: database ? { path: database.to, query: { id: idsSearch(group.ids) } } : null,
+      review: {
+        name: 'VerificationReview',
+        params: { type: group.database },
+        query: { reference: group.reference }
+      },
       preview: group.ids.slice(0, PREVIEW).join(', '),
       more: Math.max(0, group.ids.length - PREVIEW)
     }
@@ -105,7 +114,7 @@ async function verify(row: Row): Promise<void> {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in rows" :key="row.key">
+            <tr v-for="row in rows" :key="row.key" class="click" @click="$router.push(row.review)">
               <td>
                 <span class="tag">{{ row.databaseName }}</span>
               </td>
@@ -115,7 +124,7 @@ async function verify(row: Row): Promise<void> {
                 </div>
               </td>
               <td class="num mono">{{ row.group.count }}</td>
-              <td>
+              <td @click.stop>
                 <router-link v-if="row.to" class="ids mono" :to="row.to">
                   {{ row.preview }}
                   <span v-if="row.more > 0" class="mut">{{
@@ -124,7 +133,10 @@ async function verify(row: Row): Promise<void> {
                 </router-link>
                 <span v-else class="ids mono">{{ row.preview }}</span>
               </td>
-              <td class="actions">
+              <td class="actions" @click.stop>
+                <router-link class="rowlink" :to="row.review">
+                  {{ $t('curation.queue.review') }} →
+                </router-link>
                 <a
                   v-if="pendingOf(row)"
                   class="ghlink pending"
@@ -229,6 +241,15 @@ async function verify(row: Row): Promise<void> {
 .queue tbody tr:last-child td {
   border-bottom: 0;
 }
+.queue tbody tr:hover td {
+  background: var(--bg-subtle);
+}
+.queue tbody tr:hover .nm {
+  color: var(--epfl-red);
+}
+.queue tr.click {
+  cursor: pointer;
+}
 .mono {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -264,6 +285,12 @@ a.ids:hover {
 .actions {
   white-space: nowrap;
   text-align: right;
+}
+.rowlink {
+  color: var(--epfl-red);
+  font-weight: 500;
+  text-decoration: none;
+  margin-right: 14px;
 }
 .ghlink {
   color: var(--fg-muted);
