@@ -143,6 +143,16 @@ transform-data:         ## regenerate the frontend section CSVs from the data re
 analyze-data:           ## old CSV analyzer from before the data dictionaries, kept for local checks
 	uv run python -m data.analyzer $(RESSLAB_DATA_DIR)/connections/connections.csv $(RESSLAB_DATA_DIR)/material/cyclic_coupons/steel_material.csv $(RESSLAB_DATA_DIR)/columns/steel_columns.csv $(RESSLAB_DATA_DIR)/braces/steel_braces.csv $(RESSLAB_DATA_DIR)/residual_stresses/residual_stresses.csv $(RESSLAB_DATA_DIR)/hss_columns/hss_columns.csv
 
+erd:                    ## regenerate docs/database-erd.md's Mermaid ER diagram from the SQLAlchemy models
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python data/generate_erd.py > /tmp/erd.md
+	echo '# Database ERD' > ../docs/database-erd.md
+	echo '' >> ../docs/database-erd.md
+	echo 'Every table on `Base.metadata` (`backend/resslab_hub/models/database/`), generated' >> ../docs/database-erd.md
+	echo 'with `cd backend && make erd`. Regenerate after a migration changes the schema.' >> ../docs/database-erd.md
+	echo '' >> ../docs/database-erd.md
+	cat /tmp/erd.md >> ../docs/database-erd.md
+	rm /tmp/erd.md
+
 generate-model:         ## regenerate ORM models and Pydantic schemas from the data dictionaries
 	uv run python data/generate_model.py \
 		$(RESSLAB_DATA_DIR)/braces/steel_braces_data_dictionary.csv \
