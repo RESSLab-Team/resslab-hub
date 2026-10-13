@@ -257,6 +257,25 @@ class DataRepoClient:
         )
         return response.content.decode("utf-8")
 
+    async def list_dir(self, path: str, ref: Optional[str] = None) -> List[str]:
+        """File names in a repo folder at `ref`, empty when it does not exist.
+
+        GitHub lists up to 1000 entries this way; the largest curve folder of
+        the data repo has about 350.
+        """
+        try:
+            response = await self._gh.rest.repos.async_get_content(
+                self.owner, self.repo, path=path, ref=ref or self.base_branch
+            )
+        except RequestFailed as exc:
+            if exc.response.status_code == 404:
+                return []
+            raise
+        entries = response.parsed_data
+        if not isinstance(entries, list):
+            return []
+        return [entry.name for entry in entries if entry.type == "file"]
+
     async def get_permission(self, login: str) -> str:
         """What a GitHub account may do on the data repo (#248).
 

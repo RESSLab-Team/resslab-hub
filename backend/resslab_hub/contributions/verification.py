@@ -12,9 +12,11 @@ Like the submissions, nothing is stored in the app: an open pull request on a
 covers are listed in its body, in an ``ids`` fenced block.
 """
 
+import asyncio
 import re
 import secrets
 from dataclasses import dataclass
+from os import path
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from resslab_hub.contributions.github import DataRepoClient, NewFile
@@ -22,6 +24,7 @@ from resslab_hub.contributions.projection import (
     SubmissionError,
     _layout_for,
     _type_slug,
+    classify_files,
 )
 from resslab_hub.contributions.submission import (
     Contributor,
@@ -34,6 +37,7 @@ from resslab_hub.contributions.submission import (
 from resslab_hub.contributions.trailers import build_verification_message
 from resslab_hub.data.curation_status import STATUS_COLUMN, UNVERIFIED, VERIFIED
 from resslab_hub.data.uploader import Type
+from resslab_hub.models.curation import CurationExperiment, CurationFile
 
 #: Branch prefix of a verification pull request. Not ``contrib/``, so the
 #: review queue never lists one as a submission.
@@ -140,6 +144,64 @@ def mark_verified(
             "shows it after the next upload): " + ", ".join(already),
         )
     return updated
+
+
+@dataclass
+class LiveBatch:
+    """Rows already on the base branch, in the shape of a submission's review."""
+
+    columns: List[str]
+    experiments: List[CurationExperiment]
+    files: List[CurationFile]
+    #: Asked for, but not in the data repository's CSV.
+    missing_ids: List[str]
+
+
+async def read_live_batch(
+    client: DataRepoClient, input_type: Type, ids: List[str], ref: str
+) -> LiveBatch:
+    """The rows ``ids`` and their curve files, as the data repository has them.
+
+    It is what the review page shows for a submission, read from ``ref`` (the
+    base branch) instead of a pull request, so a curator checks live rows with
+    the same panels. A curve is ``<curve folder>/<id>.csv``, which is how the
+    uploader links a file to its row.
+    """
+    layout = _layout_for(input_type)
+    header, rows = _read_csv(await client.get_file_text(layout.primary_csv, ref=ref))
+    if "id" not in header:
+        raise SubmissionError(502, "The data repository's CSV has no 'id' column.")
+    id_index = header.index("id")
+    wanted = set(ids)
+    experiments = []
+    for row in rows:
+        row_id = row[id_index].strip() if id_index < len(row) else ""
+        if row_id not in wanted:
+            continue
+        cells = {
+            name: (row[position] if position < len(row) else "")
+            for position, name in enumerate(header)
+        }
+        experiments.append(CurationExperiment(id=row_id, cells=cells))
+    found = {experiment.id for experiment in experiments}
+    listings = await asyncio.gather(
+        *(client.list_dir(directory, ref=ref) for directory in layout.curve_dirs)
+    )
+    listed = [
+        {"path": f"{directory}/{name}"}
+        for directory, names in zip(layout.curve_dirs, listings)
+        for name in names
+        if path.splitext(name)[0] in found
+    ]
+    files = [
+        file for file in classify_files(listed, input_type) if file.kind == "timeseries"
+    ]
+    return LiveBatch(
+        columns=header,
+        experiments=experiments,
+        files=files,
+        missing_ids=[row_id for row_id in ids if row_id not in found],
+    )
 
 
 def build_verification_body(

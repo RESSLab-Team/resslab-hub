@@ -888,6 +888,161 @@
         }
       }
     },
+    "/verification/{database}/batch": {
+      "get": {
+        "summary": "Get Verification Batch",
+        "description": "The unverified rows of one reference as the data repository has them,\nwith their curve files: what the review page shows before a curator\nmarks them as verified.",
+        "operationId": "get_verification_batch",
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Type"
+            }
+          },
+          {
+            "name": "reference",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Reference"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationBatch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verification/{database}/validation": {
+      "get": {
+        "summary": "Get Verification Validation",
+        "description": "The same server-side checks a submission goes through, re-run on the\nunverified rows of one reference and their curves.",
+        "operationId": "get_verification_validation",
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Type"
+            }
+          },
+          {
+            "name": "reference",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Reference"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verification/{database}/files": {
+      "get": {
+        "summary": "Get Verification File",
+        "description": "Raw text of one curve file at ``ref``, a base branch commit from the\nbatch. Only the database's curve folders are served.",
+        "operationId": "get_verification_file",
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Type"
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          },
+          {
+            "name": "ref",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ref"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/users": {
       "get": {
         "tags": [
@@ -18831,6 +18986,70 @@
           "error_count"
         ],
         "title": "ValidationResponse"
+      },
+      "VerificationBatch": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "reference": {
+            "type": "string",
+            "title": "Reference"
+          },
+          "base_sha": {
+            "type": "string",
+            "title": "Base Sha"
+          },
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "experiments": {
+            "items": {
+              "$ref": "#/components/schemas/CurationExperiment"
+            },
+            "type": "array",
+            "title": "Experiments"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/CurationFile"
+            },
+            "type": "array",
+            "title": "Files"
+          },
+          "missing_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Ids"
+          },
+          "pending": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/VerificationPull"
+            },
+            "type": "object",
+            "title": "Pending"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "reference",
+          "base_sha",
+          "columns",
+          "experiments",
+          "files",
+          "missing_ids",
+          "pending"
+        ],
+        "title": "VerificationBatch",
+        "description": "The unverified rows of one reference, for the review page.\n\nThe same rows, columns and files as a submission's ``CurationDetail``, but\nread from the data repository's base branch, so the page can show them\nwith the same panels. The lists have no defaults on purpose, so they stay\nrequired in the generated frontend client."
       },
       "VerificationGroup": {
         "properties": {

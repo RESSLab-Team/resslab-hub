@@ -60,6 +60,7 @@ from resslab_hub.models.curation import (
     CurationContributor,
     CurationDetail,
     CurationExperiment,
+    CurationFile,
     CurationListResponse,
     CurationSummary,
 )
@@ -291,26 +292,35 @@ async def _build_detail(
     return detail
 
 
-async def _build_validation(
-    client: DataRepoClient, detail: CurationDetail, input_type: Type
+async def build_validation(
+    client: DataRepoClient,
+    input_type: Type,
+    columns: List[str],
+    experiments: List[CurationExperiment],
+    files: List[CurationFile],
+    ref: str,
 ) -> ValidationResponse:
-    """Re-validate the reconstructed batch in a repo-shaped temp directory."""
+    """Re-validate a batch in a repo-shaped temp directory.
+
+    The rows are ``experiments`` and the curves are read at ``ref``: a
+    submission's head here, the base branch for a verification (#253).
+    """
     layout = _layout_for(input_type)
     skipped: List[str] = []
     with TemporaryDirectory() as tmpdir:
         primary = path.join(tmpdir, layout.primary_csv)
-        # The same iteration order as detail.experiments, so ValidationIssue
+        # The same iteration order as the experiments, so ValidationIssue
         # rows line up with the displayed batch (pinned by a backend test).
         rows = [
-            [experiment.cells.get(name, "") for name in detail.columns]
-            for experiment in detail.experiments
+            [experiment.cells.get(name, "") for name in columns]
+            for experiment in experiments
         ]
         os.makedirs(path.dirname(primary) or tmpdir, exist_ok=True)
         with open(primary, "w", encoding="utf-8") as file:
-            file.write(_write_csv(detail.columns, rows))
+            file.write(_write_csv(columns, rows))
 
         total = 0
-        curve_files = [f for f in detail.files if f.kind == "timeseries"]
+        curve_files = [f for f in files if f.kind == "timeseries"]
         wanted = curve_files[:MAX_CURVE_FILES]
 
         limit = asyncio.Semaphore(MAX_PARALLEL_CALLS)
@@ -318,7 +328,7 @@ async def _build_validation(
         async def read(curve) -> Optional[str]:
             async with limit:
                 try:
-                    return await client.get_file_text(curve.path, ref=detail.head_sha)
+                    return await client.get_file_text(curve.path, ref=ref)
                 except Exception:
                     return None
 
@@ -498,7 +508,9 @@ async def get_contribution_validation(
     if cached is not None:
         return cached
     detail = await _build_detail(client, pull, input_type)
-    response = await _build_validation(client, detail, input_type)
+    response = await build_validation(
+        client, input_type, detail.columns, detail.experiments, detail.files, head_sha
+    )
     _cache.put(("validation", pr_number, head_sha), response, DETAIL_TTL_SECONDS)
     return response
 

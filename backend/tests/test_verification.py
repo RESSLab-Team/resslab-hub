@@ -17,6 +17,7 @@ from resslab_hub.contributions.verification import (
     ids_from_body,
     open_verification,
     pending_verifications,
+    read_live_batch,
     type_for_verify_branch,
 )
 from resslab_hub.data.uploader import Type, upload_one
@@ -39,8 +40,9 @@ REPO_CSV = (
 class FakeClient:
     """In-memory DataRepoClient double recording every call."""
 
-    def __init__(self, repo_files: dict):
+    def __init__(self, repo_files: dict, folders: dict = None):
         self.repo_files = repo_files
+        self.folders = folders or {}
         self.read_refs: list = []
         self.committed: list = []
         self.commit_kwargs: dict = {}
@@ -54,6 +56,10 @@ class FakeClient:
     async def get_file_text(self, path, ref=None):
         self.read_refs.append(ref)
         return self.repo_files[path]
+
+    async def list_dir(self, path, ref=None):
+        self.read_refs.append(ref)
+        return self.folders.get(path, [])
 
     async def commit_files(self, branch, base_sha, files, message, name, email):
         self.committed = files
@@ -203,6 +209,35 @@ async def test_the_branch_is_deleted_when_the_pull_request_fails():
 
 
 # --- reading pull requests back ---------------------------------------------
+# --- the live batch the review page shows -----------------------------------
+async def test_the_live_batch_reads_the_rows_and_their_curves():
+    curves = "braces/force_displacement"
+    client = FakeClient(
+        {PATH: REPO_CSV},
+        # B1 is verified and not asked for, notes.txt is not a curve.
+        {curves: ["B1.csv", "B2.csv", "B3.csv", "notes.txt"]},
+    )
+
+    batch = await read_live_batch(client, Type.ALL_BRACE, ["B3", "B2", "B9"], "sha")
+
+    # CSV order, every cell kept as text, the quoted id unquoted.
+    assert [experiment.id for experiment in batch.experiments] == ["B2", "B3"]
+    assert batch.experiments[1].cells == {
+        "id": "B3",
+        "f_y": "300",
+        "reference": "Ref, B",
+        "data_curation_status": "unverified",
+    }
+    assert batch.columns == ["id", "f_y", "reference", "data_curation_status"]
+    assert [(file.path, file.experiment_id) for file in batch.files] == [
+        (f"{curves}/B2.csv", "B2"),
+        (f"{curves}/B3.csv", "B3"),
+    ]
+    assert batch.missing_ids == ["B9"]
+    # Everything at the commit the page was given, never the moving branch.
+    assert set(client.read_refs) == {"sha"}
+
+
 def test_clean_ids_strips_blanks_and_repeats():
     assert clean_ids([" B2", "B2", "", "B1 "]) == ["B2", "B1"]
 
@@ -319,3 +354,94 @@ async def test_a_type_without_a_status_is_refused(
     )
 
     assert response.status_code == 400
+
+
+async def test_the_review_routes_need_a_curator(client, sign_in, _no_rate_limits):
+    sign_in(role="contributor")
+    for route in ("batch", "validation"):
+        response = await client.get(f"/verification/all-braces/{route}?reference=A")
+        assert response.status_code == 403
+    response = await client.get(
+        "/verification/all-braces/files", params={"path": "x", "ref": "y"}
+    )
+    assert response.status_code == 403
+
+
+async def test_the_batch_is_the_unverified_rows_of_one_reference(
+    client, sign_in, tmp_path, monkeypatch, _no_rate_limits
+):
+    monkeypatch.setattr(verification_router, "configured", lambda: True)
+    monkeypatch.setattr(verification_router, "_cache", verification_router._TTLCache())
+    fake = FakeClient({PATH: REPO_CSV}, {"braces/force_displacement": ["B2.csv"]})
+    monkeypatch.setattr(verification_router, "DataRepoClient", lambda: fake)
+    monkeypatch.setattr(verification_router, "open_pulls", _open_verification_pull)
+    csv_path = tmp_path / "steel_braces.csv"
+    write_main_csv(
+        csv_path,
+        Brace,
+        [
+            {"id": "B1", "reference": "Ref A"},
+            {"id": "B2", "reference": "Ref A", "data_curation_status": "unverified"},
+            {"id": "B3", "reference": "Ref, B", "data_curation_status": "unverified"},
+        ],
+    )
+    upload_one(Type.BRACE, str(csv_path))
+    sign_in(role="curator")
+
+    response = await client.get(
+        "/verification/all-braces/batch", params={"reference": "Ref A"}
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["base_sha"] == "base-sha"
+    assert [experiment["id"] for experiment in body["experiments"]] == ["B2"]
+    assert [file["path"] for file in body["files"]] == [
+        "braces/force_displacement/B2.csv"
+    ]
+    assert body["missing_ids"] == []
+    assert body["pending"] == {
+        "B2": {"pr_number": 12, "pr_url": "https://github.com/x/pull/12"}
+    }
+    assert "public" not in response.headers.get("cache-control", "")
+
+    missing = await client.get(
+        "/verification/all-braces/batch", params={"reference": "Ref C"}
+    )
+    assert missing.status_code == 404
+
+
+async def test_the_files_route_only_serves_curves(
+    client, sign_in, monkeypatch, _no_rate_limits
+):
+    monkeypatch.setattr(verification_router, "configured", lambda: True)
+    monkeypatch.setattr(verification_router, "_cache", verification_router._TTLCache())
+    curve = "braces/force_displacement/B2.csv"
+    fake = FakeClient({curve: "d,f\n0,0\n", PATH: REPO_CSV})
+    monkeypatch.setattr(verification_router, "DataRepoClient", lambda: fake)
+    sign_in(role="curator")
+    sha = "a" * 40
+
+    ok = await client.get(
+        "/verification/all-braces/files", params={"path": curve, "ref": sha}
+    )
+    assert ok.status_code == 200
+    assert ok.text == "d,f\n0,0\n"
+    assert fake.read_refs == [sha]
+
+    for path, ref in ((PATH, sha), ("../secrets/.env", sha), (curve, "main")):
+        refused = await client.get(
+            "/verification/all-braces/files", params={"path": path, "ref": ref}
+        )
+        assert refused.status_code == 404
+
+
+async def _open_verification_pull(_client):
+    return [
+        {
+            "number": 12,
+            "html_url": "https://github.com/x/pull/12",
+            "head_ref": "verify/braces/b2-abcd",
+            "body": "```ids\nB2\n```",
+        }
+    ]
