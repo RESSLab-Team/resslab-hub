@@ -11,6 +11,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi_pagination import add_pagination
+from githubkit.exception import RequestFailed
 from slowapi.errors import RateLimitExceeded
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -18,7 +19,7 @@ from resslab_hub import __name__ as title
 from resslab_hub import __version__
 from resslab_hub.auth.csrf import CSRFMiddleware
 from resslab_hub.config import settings
-from resslab_hub.contributions.github import aclose_github
+from resslab_hub.contributions.github import aclose_github, describe_error
 from resslab_hub.routers import (
     admin,
     analytics,
@@ -128,6 +129,16 @@ async def server_timing(request: Request, call_next):
             duration_ms,
         )
     return response
+
+
+# A GitHub call that a route did not catch (the data repo refused a commit,
+# a pull request, a read). It is GitHub that failed, so 502, and with
+# GitHub's own reason: a bare 500 sent people to the logs for a 403.
+@app.exception_handler(RequestFailed)
+async def github_error_handler(request: Request, exc: RequestFailed):
+    detail = describe_error(exc)
+    logger.error(f"{detail} ({exc.request.method} {exc.request.url.path})")
+    return JSONResponse(status_code=502, content={"detail": detail})
 
 
 # Custom error handler for detailed logging

@@ -17,7 +17,9 @@ from resslab_hub.contributions.github import (
     NewFile,
     _SharedGitHub,
     blob_sha,
+    describe_error,
 )
+from tests.conftest import github_refusal
 
 
 def test_blob_sha_matches_git_hash_object():
@@ -170,3 +172,35 @@ async def test_commit_with_nothing_to_write_answers_the_parent():
     assert sha == "parent"
     assert git.blobs == []
     assert git.tree == []
+
+
+def test_a_github_refusal_gives_github_reason():
+    body = {"message": "Resource not accessible by integration", "status": "403"}
+
+    assert describe_error(github_refusal(403, body)) == (
+        "GitHub answered 403: Resource not accessible by integration"
+    )
+
+
+def test_the_field_errors_follow_the_message():
+    body = {
+        "message": "Validation Failed",
+        "errors": [
+            {"resource": "PullRequest", "code": "custom", "message": "A PR exists"},
+            {"resource": "PullRequest", "field": "head", "code": "invalid"},
+        ],
+    }
+
+    assert describe_error(github_refusal(422, body)) == (
+        "GitHub answered 422: Validation Failed; A PR exists; invalid"
+    )
+
+
+def test_a_body_that_is_not_json_falls_back_on_the_status():
+    refusal = github_refusal(502, "<html>Bad gateway</html>")
+
+    assert describe_error(refusal) == "GitHub answered 502: Bad Gateway"
+
+
+def test_any_other_error_keeps_its_text():
+    assert describe_error(RuntimeError("boom")) == "boom"

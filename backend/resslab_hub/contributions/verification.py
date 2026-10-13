@@ -19,7 +19,11 @@ from dataclasses import dataclass
 from os import path
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from resslab_hub.contributions.github import DataRepoClient, NewFile
+from resslab_hub.contributions.github import (
+    DataRepoClient,
+    NewFile,
+    describe_error,
+)
 from resslab_hub.contributions.projection import (
     SubmissionError,
     _layout_for,
@@ -295,9 +299,11 @@ async def open_verification(
             title,
             build_verification_body(curator, input_type, ids, layout.primary_csv),
         )
-    except Exception:
+    except Exception as exc:
         await client.delete_branch(branch)
         raise SubmissionError(
-            502, "The pull request could not be opened on the data repository."
+            502,
+            "The pull request could not be opened on the data repository "
+            f"({describe_error(exc)}).",
         )
     return VerificationResult(pull["url"], pull["number"], branch)

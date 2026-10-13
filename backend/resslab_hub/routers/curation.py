@@ -38,6 +38,7 @@ from resslab_hub.contributions.github import (
     MAX_PARALLEL_CALLS,
     DataRepoClient,
     configured,
+    describe_error,
 )
 from resslab_hub.contributions.projection import (
     SubmissionError,
@@ -475,7 +476,8 @@ async def get_contribution(request: Request, pr_number: int) -> CurationDetail:
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"The submission could not be read from the data repository: {exc}",
+            detail="The submission could not be read from the data repository: "
+            + describe_error(exc),
         )
     return detail.model_copy(update={"mine": _is_mine(request, pr_number, detail)})
 
@@ -555,7 +557,8 @@ async def get_contribution_comments(
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"The discussion could not be read from the data repository: {exc}",
+            detail="The discussion could not be read from the data repository: "
+            + describe_error(exc),
         )
     items = [
         CurationComment(

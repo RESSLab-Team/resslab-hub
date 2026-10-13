@@ -25,7 +25,7 @@ from resslab_hub.models.database.brace import Brace
 from resslab_hub.routers import verification as verification_router
 from resslab_hub.routers.verification import group_unverified
 from resslab_hub.utils.rate_limit import limiter
-from tests.conftest import write_main_csv
+from tests.conftest import github_refusal, write_main_csv
 
 CURATOR = Contributor(name="Dimitrios Lignos", email="dimitrios@example.edu")
 PATH = "braces/steel_braces.csv"
@@ -354,6 +354,32 @@ async def test_a_type_without_a_status_is_refused(
     )
 
     assert response.status_code == 400
+
+
+async def test_a_github_refusal_says_why(client, sign_in, monkeypatch, _no_rate_limits):
+    fake = FakeClient({PATH: REPO_CSV})
+
+    async def refuse(*args, **kwargs):
+        raise github_refusal(403, {"message": "Resource not accessible by integration"})
+
+    async def no_pulls(client):
+        return []
+
+    fake.commit_files = refuse
+    monkeypatch.setattr(verification_router, "configured", lambda: True)
+    monkeypatch.setattr(verification_router, "DataRepoClient", lambda: fake)
+    monkeypatch.setattr(verification_router, "open_pulls", no_pulls)
+    sign_in(role="curator")
+
+    response = await client.post(
+        "/verification", json={"database": "all-braces", "ids": ["B2"]}
+    )
+
+    # GitHub failed, not the Hub: a 502 that names the reason, not a bare 500.
+    assert response.status_code == 502
+    assert response.json() == {
+        "detail": "GitHub answered 403: Resource not accessible by integration"
+    }
 
 
 async def test_the_review_routes_need_a_curator(client, sign_in, _no_rate_limits):

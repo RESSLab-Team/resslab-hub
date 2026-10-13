@@ -30,7 +30,11 @@ from time import monotonic
 from typing import Dict, List, Optional, Set, Tuple
 
 from resslab_hub.config import settings
-from resslab_hub.contributions.github import DataRepoClient, NewFile
+from resslab_hub.contributions.github import (
+    DataRepoClient,
+    NewFile,
+    describe_error,
+)
 from resslab_hub.contributions.projection import (
     SubmissionError,
     SubmissionValidationFailed,
@@ -526,10 +530,12 @@ async def submit_contribution(
                 layout.primary_csv,
             ),
         )
-    except Exception:
+    except Exception as exc:
         await client.delete_branch(branch)
         raise SubmissionError(
-            502, "The pull request could not be opened on the data repository."
+            502,
+            "The pull request could not be opened on the data repository "
+            f"({describe_error(exc)}).",
         )
     return SubmissionResult(pull["url"], pull["number"], branch, commit_sha)
 

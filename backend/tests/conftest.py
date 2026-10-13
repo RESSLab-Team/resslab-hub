@@ -298,3 +298,21 @@ def write_measurement_csv(file_path, headers, rows):
         writer.writerow(headers)
         writer.writerows(rows)
     return file_path
+
+
+def github_refusal(status_code, body):
+    """The error githubkit raises when GitHub answers ``status_code``.
+
+    ``body`` is a dict for GitHub's usual JSON, or a string for anything else
+    (a proxy's HTML page).
+    """
+    import httpx
+    from githubkit.exception import RequestFailed
+    from githubkit.response import Response
+
+    request = httpx.Request("POST", "https://api.github.com/repos/o/r/git/blobs")
+    if isinstance(body, dict):
+        raw = httpx.Response(status_code, json=body, request=request)
+    else:
+        raw = httpx.Response(status_code, text=body, request=request)
+    return RequestFailed(Response(raw, object))
