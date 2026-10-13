@@ -168,9 +168,13 @@ Two things in `contributions/github.py`:
 
 - The pull request body lists the database, the counts, the contributor, the
   dismissed warnings and, for a new submission, how to update it.
-- The data repository's CI validates the whole repo against `/validate` of
-  the dev deployment with the machine credential, no duplicate check (every
-  id there is already uploaded).
+- The data repository's CI (`data-validation.yml`) sends the files the pull
+  request adds or changes to `/validate` of the **prod** deployment, with the
+  machine credential. It does not turn on the duplicate check: a main CSV
+  always holds rows that are already uploaded. Until 2.0 is released, prod
+  runs the old validator, so the checks added in 2.0 (the review status
+  values, for example) do not run in CI yet. The Hub runs them on a
+  submission before it opens the pull request.
 - A member of the lab reviews it from the [curation queue](curation.md) and
   merges on GitHub, squash only.
 - The rows go live as **unverified**: the dashboards flag them and the
