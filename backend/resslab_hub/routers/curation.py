@@ -299,14 +299,15 @@ async def build_validation(
     experiments: List[CurationExperiment],
     files: List[CurationFile],
     ref: str,
-    check_duplicate_ids: bool = True,
+    live_rows: bool = False,
 ) -> ValidationResponse:
     """Re-validate a batch in a repo-shaped temp directory.
 
     The rows are ``experiments`` and the curves are read at ``ref``: a
     submission's head here, the base branch for a verification (#253).
-    A verification turns ``check_duplicate_ids`` off: its rows are in the
-    database on purpose, every id would be flagged as already there.
+    ``live_rows`` is for a verification, whose rows are in the database
+    already: no "id already exists" check, and the range warnings compare
+    with the verified rows only, or an outlier would set the range itself.
     """
     layout = _layout_for(input_type)
     skipped: List[str] = []
@@ -355,7 +356,11 @@ async def build_validation(
 
         try:
             results = validate_all(
-                input_type, [tmpdir], cpu=1, check_duplicate_ids=check_duplicate_ids
+                input_type,
+                [tmpdir],
+                cpu=1,
+                check_duplicate_ids=not live_rows,
+                verified_ranges=live_rows,
             )
         except NotImplementedError:
             raise HTTPException(

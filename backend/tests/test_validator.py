@@ -270,6 +270,32 @@ class TestRangeWarnings:
     def test_empty_table_never_warns(self, tmp_path: Path, db_session):
         assert not self._area_warnings(self._validate_area(tmp_path, "10000"))
 
+    def test_verified_ranges_leave_the_unverified_rows_out(
+        self, tmp_path: Path, db_session
+    ):
+        # A verification checks rows already in the table (#253): an unverified
+        # outlier must not stretch the range it is compared with.
+        csv_path = tmp_path / "steel_braces.csv"
+        rows = [
+            {"id": f"B{i}", "area": str(10 + i), "data_curation_status": "verified"}
+            for i in range(20)
+        ]
+        rows.append(
+            {"id": "OUT", "area": "10000", "data_curation_status": "unverified"}
+        )
+        write_main_csv(csv_path, Brace, rows)
+        upload_one(Type.BRACE, str(csv_path))
+        file_path = tmp_path / "review.csv"
+        write_main_csv(file_path, Brace, [{"id": "OUT", "area": "10000"}])
+
+        every_row = TableValidator(Brace).validate_one(str(file_path))
+        verified = TableValidator(Brace, verified_ranges=True).validate_one(
+            str(file_path)
+        )
+
+        assert not self._area_warnings(every_row)
+        assert "10 to 29" in self._area_warnings(verified)[0].message
+
 
 class TestPrimaryCsvIds:
     def test_parses_once_and_tracks_rewrites(self, tmp_path):

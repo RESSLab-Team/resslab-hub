@@ -147,9 +147,13 @@ commit, since that is what a verification changes. A curve is
 `<curve folder>/<id>.csv`, the way the uploader links a file to its row. The
 cohort only takes verified rows (`data_curation_status:verified,` is added to
 its query), or the rows under review would be compared with themselves. The
-rail has **Mark all as verified** and, for a batch of several, a button that
-marks only the selected row. A row already in a pull request is greyed in the picker and left out
-of the button. An id unverified on the site but missing from the CSV, or
+quality flags follow the same rule: they are the submission checks with
+`live_rows` on (`build_validation`), so there is no "id already exists"
+error, and the range warnings compare with the verified rows only. Without
+that, an outlier would set the range itself and never be flagged. The rail
+has **Mark all as verified** and, for a batch of several, a button that
+marks only the selected row. A row already in a pull request is greyed in
+the picker and left out of the button. An id unverified on the site but missing from the CSV, or
 already verified in the CSV, gets a note at the top: both mean the site waits
 for the next upload. `?id=` opens the page on one row.
 

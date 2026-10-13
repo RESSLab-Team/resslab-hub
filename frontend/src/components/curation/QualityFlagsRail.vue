@@ -76,7 +76,7 @@ function category(issue: ValidationIssue): string {
     return 'schema'
   }
   if (/already exists|more than once/i.test(issue.message)) return 'deduplication'
-  if (/outside the range/i.test(issue.message)) return 'statistical'
+  if (/outside the (existing )?range/i.test(issue.message)) return 'statistical'
   return 'format'
 }
 

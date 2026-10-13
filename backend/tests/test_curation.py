@@ -398,7 +398,7 @@ async def _read_everything(request):
 
 @pytest.fixture
 def no_validation(monkeypatch):
-    def fake_validate(input_type, dirs, cpu, check_duplicate_ids):
+    def fake_validate(input_type, dirs, cpu, check_duplicate_ids, verified_ranges):
         return [ValidationResult("steel_braces.csv")]
 
     monkeypatch.setattr(curation, "validate_all", fake_validate)
@@ -458,9 +458,10 @@ async def test_validation_rows_align_with_experiments(monkeypatch):
     use_client(monkeypatch, client)
     seen = {}
 
-    def fake_validate(input_type, dirs, cpu, check_duplicate_ids):
+    def fake_validate(input_type, dirs, cpu, check_duplicate_ids, verified_ranges):
         with open(dirs[0] + "/braces/steel_braces.csv", encoding="utf-8") as file:
             seen["primary"] = file.read()
+        seen["flags"] = (check_duplicate_ids, verified_ranges)
         result = ValidationResult("steel_braces.csv")
         result.file_path = dirs[0] + "/braces/steel_braces.csv"
         result.add_error(1, "f_y", "400", "Suspicious")
@@ -471,6 +472,8 @@ async def test_validation_rows_align_with_experiments(monkeypatch):
     # The temp CSV holds exactly the reconstructed batch, in experiments order:
     # issue row 1 is experiments[0].
     assert seen["primary"] == "id,f_y,name\nB9,400,New one\n"
+    # A submission is new data: duplicate ids checked, ranges over every row.
+    assert seen["flags"] == (True, False)
     assert response.valid is False
     assert response.results[0].errors[0].row == 1
 
