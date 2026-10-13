@@ -1415,7 +1415,7 @@
       "approve": "Approuver",
       "reject": "Rejeter",
       "request_changes": "Demander des modifications",
-      "disabled_tooltip": "Les décisions se prennent sur la pull request GitHub tant que les rôles de curateur ne sont pas en place (#248)."
+      "disabled_tooltip": "Les décisions se prennent sur la pull request GitHub tant que le Hub ne peut pas en fusionner une (#254)."
     },
     "metadata": {
       "title": "Métadonnées du spécimen",

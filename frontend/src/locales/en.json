@@ -1415,7 +1415,7 @@
       "approve": "Approve",
       "reject": "Reject",
       "request_changes": "Request changes",
-      "disabled_tooltip": "Decisions happen on the GitHub pull request until curator roles land (#248)."
+      "disabled_tooltip": "Decisions happen on the GitHub pull request until the Hub can merge one (#254)."
     },
     "metadata": {
       "title": "Specimen metadata",
