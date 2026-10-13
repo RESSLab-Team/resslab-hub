@@ -333,8 +333,15 @@ async def get_verification_validation(
     cached = _cache.get(key)
     if cached is not None:
         return cached
+    # The rows are live already: no "id already in the database" check.
     response = await build_validation(
-        client, database, batch.columns, batch.experiments, batch.files, base_sha
+        client,
+        database,
+        batch.columns,
+        batch.experiments,
+        batch.files,
+        base_sha,
+        check_duplicate_ids=False,
     )
     _cache.put(key, response, DETAIL_TTL_SECONDS)
     return response

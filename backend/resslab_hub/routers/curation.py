@@ -299,11 +299,14 @@ async def build_validation(
     experiments: List[CurationExperiment],
     files: List[CurationFile],
     ref: str,
+    check_duplicate_ids: bool = True,
 ) -> ValidationResponse:
     """Re-validate a batch in a repo-shaped temp directory.
 
     The rows are ``experiments`` and the curves are read at ``ref``: a
     submission's head here, the base branch for a verification (#253).
+    A verification turns ``check_duplicate_ids`` off: its rows are in the
+    database on purpose, every id would be flagged as already there.
     """
     layout = _layout_for(input_type)
     skipped: List[str] = []
@@ -352,7 +355,7 @@ async def build_validation(
 
         try:
             results = validate_all(
-                input_type, [tmpdir], cpu=1, check_duplicate_ids=True
+                input_type, [tmpdir], cpu=1, check_duplicate_ids=check_duplicate_ids
             )
         except NotImplementedError:
             raise HTTPException(

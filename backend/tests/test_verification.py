@@ -411,6 +411,38 @@ async def test_the_batch_is_the_unverified_rows_of_one_reference(
     assert missing.status_code == 404
 
 
+async def test_the_checks_do_not_flag_the_rows_as_already_there(
+    client, sign_in, tmp_path, monkeypatch, _no_rate_limits
+):
+    # The rows under review are in the database on purpose: the duplicate id
+    # check of a submission would flag every one of them.
+    monkeypatch.setattr(verification_router, "configured", lambda: True)
+    monkeypatch.setattr(verification_router, "_cache", verification_router._TTLCache())
+    fake = FakeClient({PATH: REPO_CSV})
+    monkeypatch.setattr(verification_router, "DataRepoClient", lambda: fake)
+    monkeypatch.setattr(verification_router, "open_pulls", _open_verification_pull)
+    csv_path = tmp_path / "steel_braces.csv"
+    write_main_csv(
+        csv_path,
+        Brace,
+        [{"id": "B2", "reference": "Ref A", "data_curation_status": "unverified"}],
+    )
+    upload_one(Type.BRACE, str(csv_path))
+    sign_in(role="curator")
+
+    response = await client.get(
+        "/verification/all-braces/validation", params={"reference": "Ref A"}
+    )
+
+    assert response.status_code == 200
+    messages = [
+        issue["message"]
+        for result in response.json()["results"]
+        for issue in result["errors"] + result["warnings"]
+    ]
+    assert not [message for message in messages if "already exists" in message]
+
+
 async def test_the_files_route_only_serves_curves(
     client, sign_in, monkeypatch, _no_rate_limits
 ):
