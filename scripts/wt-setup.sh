@@ -127,6 +127,23 @@ set_env_var secrets/.env POSTGRES_TEST_DB "resslab_hub_test_$SLUG"
 if [ "$DB_NAME" = "$SHARED_DB" ]; then set_env_var secrets/.env DATABASE_UPGRADE false
 else set_env_var secrets/.env DATABASE_UPGRADE true; fi
 
+# 3c. Local submissions go to the test fork, never the real data repo (#382):
+#     every test pull request on the real one had to be closed by hand. The App
+#     installation id is per org, and the one seeded from the main checkout is
+#     the RESSLab-Team one, so the fork needs its own (the App's install on
+#     EPFL-ENAC). It is a plain number, useless without the private key, so it
+#     can live here. DATA_REPO is only set when absent, so a human can point a
+#     checkout elsewhere; the id follows only when DATA_REPO is the fork.
+TEST_DATA_REPO=EPFL-ENAC/resslab-hub-data-test
+TEST_DATA_REPO_INSTALLATION_ID=170990591
+set_env_default secrets/.env DATA_REPO "$TEST_DATA_REPO"
+if grep -qxE "DATA_REPO=\"?$TEST_DATA_REPO\"?" secrets/.env; then
+  set_env_var secrets/.env GITHUB_APP_INSTALLATION_ID "$TEST_DATA_REPO_INSTALLATION_ID"
+  echo "contributions: pull requests go to $TEST_DATA_REPO"
+else
+  echo "note: DATA_REPO in secrets/.env is not the test fork, kept as is"
+fi
+
 # 3b. Own throwaway database: clone the ~20 MB light template (sub-second) so
 #     this worktree can migrate, upload, or break its DB without touching the
 #     shared dataset. The clone comes with its own Postgres role, whose login
