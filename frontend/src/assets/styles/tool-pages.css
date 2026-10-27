@@ -72,11 +72,15 @@
 }
 
 /* stage — flows in the single page scroll */
+/* It is also a query container: the two-up blocks below stack on the stage's
+   own width, not the window's. The sidebar and the rail take 560px or more,
+   so at a 1280px window the stage is only about 720px wide. */
 .tool-page .stage {
   min-width: 0;
   background: var(--bg-app);
   display: flex;
   flex-direction: column;
+  container: stage / inline-size;
 }
 
 /* ── Stage blocks ──────────────────────────────────────────── */
@@ -138,25 +142,27 @@
   height: clamp(240px, 30vh, 320px);
 }
 
-/* two charts side by side (archetypes B / C) — stacks below 1000px */
+/* two charts side by side (archetypes B / C), stacked when the stage is
+   under 760px (each chart would get less than about 340px) */
 .tool-page .st-charts-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
-@media (max-width: 999px) {
+@container stage (max-width: 759px) {
   .tool-page .st-charts-2 {
     grid-template-columns: 1fr;
   }
 }
 
-/* 3D surface stack (archetype E) — tiles two-up when wide */
+/* 3D surface stack (archetype E): two-up when the stage is 700px or more,
+   so a surface never gets less than about 310px */
 .tool-page .st-surfaces {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
-@media (max-width: 699px) {
+@container stage (max-width: 699px) {
   .tool-page .st-surfaces {
     grid-template-columns: 1fr;
   }
@@ -176,7 +182,7 @@
 .tool-page .curve-row > :last-child {
   flex: 0 0 auto;
 }
-@media (max-width: 899px) {
+@container stage (max-width: 559px) {
   .tool-page .curve-row {
     flex-direction: column;
   }
@@ -691,8 +697,8 @@
   .tool-page .st-schem .tool-schematic:has(img + img) figcaption {
     grid-column: 1 / -1;
   }
-  /* The stage's primary column is ~1600px here, so a two-chart page keeps its
-     pair side by side rather than falling back to the ≤999px stacked layout. */
+  /* The stage is well over 760px wide here, so a two-chart page keeps its
+     pair side by side (see .st-charts-2). */
 
   /* ---- Archetype D (stage-d): focus chart beside its thumbnail switcher ---- */
   .tool-page .stage-d {

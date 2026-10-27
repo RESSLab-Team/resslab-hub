@@ -107,6 +107,7 @@ class TensileCoupon(Base):  # type: ignore
     longitude = Column(DecimalFloat, nullable=False)
     publication_key = Column(String, nullable=True)
     datacol_version = Column(SmallInteger, nullable=False)
+    data_curation_status = Column(String, nullable=False)
     # END_OF_GENERATED_CODE
 
     # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end

@@ -42,6 +42,7 @@ from sqlalchemy import (  # noqa: E402
 
 from resslab_hub.config import settings  # noqa: E402
 from resslab_hub.data.count_flags import COUNT_FLAGS  # noqa: E402
+from resslab_hub.data.curation_status import STATUS_COLUMN, VERIFIED  # noqa: E402
 from resslab_hub.utils.database import Base, url  # noqa: E402
 
 # asyncpg/SQLAlchemy echo is hardcoded on; keep test output readable.
@@ -214,12 +215,50 @@ def sign_in(client, db_session):
     client.cookies.clear()
 
 
+@pytest.fixture(autouse=True)
+def _no_github_permission_reads(monkeypatch):
+    """No test reads a permission from GitHub, whatever ``secrets/.env`` says.
+
+    The role sync (#248) only asks GitHub when the App is configured, and a
+    developer's ``.env`` may well configure it.
+    """
+    from resslab_hub.auth import github_sync
+
+    monkeypatch.setattr(github_sync, "configured", lambda: False)
+
+
+@pytest.fixture
+def github_permissions(monkeypatch):
+    """GitHub permissions on the data repo, by login, without calling GitHub.
+
+    ``github_permissions["ada-l"] = "write"`` makes ``@ada-l`` a curator at
+    the next sync. A login missing from the dict has ``none``; an exception
+    as the value is raised, like a GitHub outage.
+    """
+    from resslab_hub.auth import github_sync
+
+    permissions = {}
+
+    class _FakeClient:
+        async def get_permission(self, login):
+            value = permissions.get(login, "none")
+            if isinstance(value, Exception):
+                raise value
+            return value
+
+    monkeypatch.setattr(github_sync, "configured", lambda: True)
+    monkeypatch.setattr(github_sync, "DataRepoClient", _FakeClient)
+    return permissions
+
+
 # ---------------------------------------------------------------------------
 # CSV fixture helpers: build well-formed upload CSVs whose headers match the
 # ORM column keys, filling every non-overridden column with a type-appropriate
 # default so non-nullable columns are always populated.
 # ---------------------------------------------------------------------------
 def _default_for(column) -> str:
+    if column.key == STATUS_COLUMN:  # a word from a short list, not free text
+        return VERIFIED
     column_type = column.type
     if isinstance(column_type, Boolean):
         return "yes"
@@ -259,3 +298,21 @@ def write_measurement_csv(file_path, headers, rows):
         writer.writerow(headers)
         writer.writerows(rows)
     return file_path
+
+
+def github_refusal(status_code, body):
+    """The error githubkit raises when GitHub answers ``status_code``.
+
+    ``body`` is a dict for GitHub's usual JSON, or a string for anything else
+    (a proxy's HTML page).
+    """
+    import httpx
+    from githubkit.exception import RequestFailed
+    from githubkit.response import Response
+
+    request = httpx.Request("POST", "https://api.github.com/repos/o/r/git/blobs")
+    if isinstance(body, dict):
+        raw = httpx.Response(status_code, json=body, request=request)
+    else:
+        raw = httpx.Response(status_code, text=body, request=request)
+    return RequestFailed(Response(raw, object))

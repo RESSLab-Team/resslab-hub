@@ -79,6 +79,11 @@
   --tertiary-hover: var(--epfl-canard-dark);
   --on-tertiary: var(--epfl-white);
 
+  /* Status intent. The name is the RESSLab Hub mirror's. Orange is too light
+     for text on white, so use it for a rule or a tint and keep the text --fg.
+     First user: the "unverified" marker (#253). */
+  --warning: var(--epfl-orange);
+
   /* Links */
   --link: var(--epfl-black);
   --link-hover: var(--epfl-red);

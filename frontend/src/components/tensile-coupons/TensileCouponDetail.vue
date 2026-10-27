@@ -75,7 +75,7 @@ const publicationLink = computed(() => {
     </template>
     <template #body>
       <v-row>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <div class="mb-5">
             <h2 class="mb-2">{{ $t('detail.tensile_coupon.structural_steel_element') }}</h2>
             <p>
@@ -135,7 +135,7 @@ const publicationLink = computed(() => {
             </p>
           </div>
         </v-col>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <v-img :src="getTensileCouponImage()" />
         </v-col>
       </v-row>

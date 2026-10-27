@@ -1,4 +1,5 @@
 import {
+  AdminApi,
   AnalyticsApi,
   AuthApi,
   BracesApi,
@@ -34,6 +35,7 @@ export const mapApi = new MapApi(undefined, baseUrl, axiosInstance)
 
 export const defaultApi = new DefaultApi(undefined, baseUrl, axiosInstance)
 export const authApi = new AuthApi(undefined, baseUrl, axiosInstance)
+export const adminApi = new AdminApi(undefined, baseUrl, axiosInstance)
 
 // Sign-in rides on an httpOnly session cookie (#247), so nothing is carried in
 // the bundle and nothing is read by JavaScript. The app is same-origin in every

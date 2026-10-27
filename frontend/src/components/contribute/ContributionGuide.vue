@@ -20,6 +20,7 @@ import {
   type DictColumn
 } from '@/stores/dictionary'
 import { contributionGuideUrl } from '@/utils/contribution'
+import { MANAGED_COLUMNS } from '@/utils/curationStatus'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
 import { downloadStarterKit, layoutEntries, layoutRoot } from '@/utils/templates'
@@ -83,7 +84,10 @@ const root = computed(() => layoutRoot(props.database))
 
 // --- Dictionary -----------------------------------------------------------
 
-const columns = computed(() => dictionary.columnsFor(props.database))
+// Not the review status: the Hub sets it (#253), the starter kit leaves it out.
+const columns = computed(() =>
+  dictionary.columnsFor(props.database).filter((column) => !MANAGED_COLUMNS.has(column.name))
+)
 const query = ref('')
 
 function matches(column: DictColumn, needle: string): boolean {

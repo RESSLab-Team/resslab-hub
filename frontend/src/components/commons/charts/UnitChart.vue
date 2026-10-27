@@ -43,6 +43,34 @@ const props = withDefaults(
 
 const axisLabelMaxDigits = 2
 
+// Moment charts reach 7-digit kN⋅mm values, and a label like "2000000" runs
+// into the rotated axis name. When an axis goes past 100 000, every label on
+// it is written short ("500K", "1.5M"), so one axis never mixes both forms.
+const compactNumber = new Intl.NumberFormat('en', {
+  notation: 'compact',
+  maximumFractionDigits: 2
+})
+const compactFrom = 1e5
+
+/** Largest absolute value of coordinate `index` over every series, in the
+    unit shown on screen (the raw value divided by `ratio`). */
+function absMax(series: SeriesOption[] | undefined, index: 0 | 1, ratio: number): number {
+  let max = 0
+  for (const serie of series ?? []) {
+    for (const point of (serie.data as [number, number][] | undefined) ?? []) {
+      const value = Math.abs(point[index] / ratio)
+      if (value > max) max = value
+    }
+  }
+  return max
+}
+
+function axisLabelFormatter(compact: boolean) {
+  return compact
+    ? (value: number) => compactNumber.format(value)
+    : (value: number) => `${round(value, axisLabelMaxDigits)}`
+}
+
 // The legend swatch is a flat 18x2 rectangle, so a dashed series (a model
 // drawn over measured data) looks solid in it. This path is that same
 // rectangle cut into three dashes; ECharts scales it to itemWidth x itemHeight
@@ -75,6 +103,9 @@ const showLegendRule = computed(() => !props.legendSide && seriesCount.value > 1
 const actualOption = computed<EChartsOption>(() => {
   const xAXisOption: XAXisOption = props.option.xAxis as XAXisOption
   const yAXisOption: YAXisOption = props.option.yAxis as YAXisOption
+  const allSeries = props.option.series as SeriesOption[] | undefined
+  const compactX = absMax(allSeries, 0, xRatio.value) >= compactFrom
+  const compactY = absMax(allSeries, 1, yRatio.value) >= compactFrom
   const defaultOption: EChartsOption = {
     grid: {
       // The rotated y-axis name sits at `left - nameGap` from the container
@@ -105,7 +136,7 @@ const actualOption = computed<EChartsOption>(() => {
       nameGap: 26,
       max: xAXisOption?.max,
       axisLabel: {
-        formatter: (value: number) => `${round(value, axisLabelMaxDigits)}`,
+        formatter: axisLabelFormatter(compactX),
         hideOverlap: true
       }
     },
@@ -115,7 +146,7 @@ const actualOption = computed<EChartsOption>(() => {
       nameGap: 44,
       max: yAXisOption?.max,
       axisLabel: {
-        formatter: (value: number) => `${round(value, axisLabelMaxDigits)}`,
+        formatter: axisLabelFormatter(compactY),
         hideOverlap: true
       }
     },

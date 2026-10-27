@@ -7,15 +7,12 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 
-// The panel reads the submitted file through the curation store and the cohort
+// The panel reads the submitted file through its `loadFile` prop and the cohort
 // through `useDataset`; both are faked so the test is about what ends up on the
 // chart. A four-point strain history is enough for the model to run.
 const CSV = ['e_true,Sigma_true', '0,0', '0.002,362', '0.004,430', '0.002,80'].join('\n')
 
-const fetchFileText = vi.fn(() => Promise.resolve(CSV))
-vi.mock('@/stores/curation', () => ({
-  useCurationStore: () => ({ fetchFileText })
-}))
+const loadFile = vi.fn<(path: string) => Promise<string>>(() => Promise.resolve(CSV))
 
 const matrixSync = vi.fn(() => ({ ids: ['MAT-1', 'MAT-2'], data: [[5], [5]] }))
 vi.mock('@/composables/useDataset', () => ({
@@ -61,7 +58,7 @@ async function mountPanel(
   const wrapper = mount(DataPreviewPanel, {
     props: {
       database: 'cyclic' as const,
-      prNumber: 7,
+      loadFile,
       files: FILES,
       cells: CELLS,
       ...props
@@ -82,7 +79,7 @@ function series(wrapper: Awaited<ReturnType<typeof mountPanel>>): LineSeriesOpti
 describe('DataPreviewPanel UVC overlay', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    fetchFileText.mockClear()
+    loadFile.mockClear()
     fetchCurve.mockClear()
   })
 

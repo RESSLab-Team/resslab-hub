@@ -21,6 +21,7 @@ from typing import AsyncGenerator, Dict, List, Optional
 
 import httpx
 from githubkit import AppInstallationAuthStrategy, GitHub
+from githubkit.exception import RequestFailed
 
 from resslab_hub.config import settings
 
@@ -53,6 +54,32 @@ def enabled() -> bool:
     the 503 they always had, but there is nothing to show in the interface.
     """
     return bool(settings.contributions_enabled) and configured()
+
+
+def describe_error(exc: BaseException) -> str:
+    """A failure in words a person can act on.
+
+    githubkit's `RequestFailed` only says "Request failed": GitHub's own
+    reason ("Resource not accessible by integration", "A pull request already
+    exists ...") is in the response body. Any other error keeps its own text.
+    """
+    if not isinstance(exc, RequestFailed):
+        return str(exc)
+    response = exc.response
+    try:
+        body = response.raw_response.json()
+    except ValueError:
+        body = None
+    reasons = []
+    if isinstance(body, dict):
+        reasons.append(str(body.get("message") or ""))
+        for error in body.get("errors") or []:
+            if isinstance(error, dict):
+                reasons.append(str(error.get("message") or error.get("code") or ""))
+            else:
+                reasons.append(str(error))
+    reason = "; ".join(r for r in reasons if r) or response.reason_phrase
+    return f"GitHub answered {response.status_code}: {reason[:300]}"
 
 
 @dataclass
@@ -255,6 +282,43 @@ class DataRepoClient:
             headers={"Accept": "application/vnd.github.raw+json"},
         )
         return response.content.decode("utf-8")
+
+    async def list_dir(self, path: str, ref: Optional[str] = None) -> List[str]:
+        """File names in a repo folder at `ref`, empty when it does not exist.
+
+        GitHub lists up to 1000 entries this way; the largest curve folder of
+        the data repo has about 350.
+        """
+        try:
+            response = await self._gh.rest.repos.async_get_content(
+                self.owner, self.repo, path=path, ref=ref or self.base_branch
+            )
+        except RequestFailed as exc:
+            if exc.response.status_code == 404:
+                return []
+            raise
+        entries = response.parsed_data
+        if not isinstance(entries, list):
+            return []
+        return [entry.name for entry in entries if entry.type == "file"]
+
+    async def get_permission(self, login: str) -> str:
+        """What a GitHub account may do on the data repo (#248).
+
+        GitHub's base level: ``admin``, ``write`` (maintain counts as write),
+        ``read`` or ``none``. An unknown login is a 404, which means ``none``
+        here. Needs only the Metadata permission, which every App has.
+        """
+        repos = self._gh.rest.repos
+        try:
+            response = await repos.async_get_collaborator_permission_level(
+                self.owner, self.repo, login
+            )
+        except RequestFailed as exc:
+            if exc.response.status_code == 404:
+                return "none"
+            raise
+        return str(response.parsed_data.permission or "none")
 
     async def get_base_sha(self) -> str:
         """Commit sha of the base branch head."""

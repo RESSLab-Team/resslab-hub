@@ -1,7 +1,9 @@
 <script setup lang="ts">
 /**
  * The account page (#247): who you are here, and what you can sign in with.
+ * A viewer can also ask for the contributor role here (#248).
  */
+import AccessRequestForm from '@/components/auth/AccessRequestForm.vue'
 import { useAuthStore } from '@/stores/auth'
 import { mdiCheckCircleOutline, mdiEmailOutline, mdiGithub, mdiLogout } from '@mdi/js'
 import { computed, onMounted, ref } from 'vue'
@@ -87,6 +89,8 @@ async function signOut(): Promise<void> {
       </div>
     </section>
 
+    <AccessRequestForm class="account-block" />
+
     <section class="account-block">
       <h2 class="t-panel">{{ $t('auth.account.identities') }}</h2>
       <p class="block-lede">{{ $t('auth.account.identities_lede') }}</p>
@@ -116,6 +120,7 @@ async function signOut(): Promise<void> {
         {{ $t('auth.account.link_github') }}
       </button>
       <p v-if="!auth.hasGitHub" class="block-lede">{{ $t('auth.account.link_github_why') }}</p>
+      <p v-if="!auth.hasGitHub" class="block-lede">{{ $t('auth.account.github_role_hint') }}</p>
     </section>
 
     <section class="account-block">
@@ -130,7 +135,7 @@ async function signOut(): Promise<void> {
 <style scoped>
 .account {
   max-width: 680px;
-  padding: 48px 32px 96px;
+  padding: clamp(24px, 5vw, 48px) clamp(16px, 4vw, 32px) 96px;
 }
 .account-error {
   margin: 20px 0 0;
@@ -141,6 +146,7 @@ async function signOut(): Promise<void> {
 }
 .account-id {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 16px;
   margin: 28px 0 0;
@@ -172,6 +178,8 @@ async function signOut(): Promise<void> {
   margin: 4px 0 0;
   color: var(--fg-muted);
   font-size: 13px;
+  /* A long address breaks instead of pushing the page wider. */
+  overflow-wrap: anywhere;
 }
 .verified {
   display: inline-flex;
@@ -200,6 +208,19 @@ async function signOut(): Promise<void> {
   line-height: 15px;
   text-align: right;
   color: var(--fg-muted);
+}
+
+/* Phone: the role goes on its own line under the name, read left to right,
+   instead of squeezing the name into a thin column. */
+@media (max-width: 600px) {
+  .role-cell {
+    flex: 1 1 100%;
+    align-items: flex-start;
+  }
+  .role-why {
+    max-width: none;
+    text-align: left;
+  }
 }
 
 .role-tag {

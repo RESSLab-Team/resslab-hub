@@ -20,7 +20,9 @@ sign-in (`auth/roles.py`). The route sends to `/contribute/new`, the editor
   card head pinned while scrolling,
 - a status bar with the client and server verdict,
 - a guide rail on the right (`ContributionGuide.vue`) with the database
-  README and a searchable data dictionary,
+  README and a searchable data dictionary. Both leave out the columns the
+  Hub fills itself (`MANAGED_COLUMNS` in `utils/curationStatus.ts`, today
+  only `data_curation_status`),
 - a submit dialog that shows who is submitting, from the session.
 
 Files get in by drop or by the folder picker: a whole folder, a zip, or loose
@@ -85,7 +87,9 @@ account with a name and a verified email, 5 per hour. It:
 2. checks every path against the allowlist derived from the uploader's type
    map, and refuses ids that already exist at the head of the data repo,
 3. appends the rows to the repo's primary CSV, aligned by column name (a
-   legacy column the dictionary no longer has gets `NR`),
+   legacy column the dictionary no longer has gets `NR`), with
+   `data_curation_status` set to `unverified` whatever the batch says (#253,
+   see [curation.md](curation.md#verification)),
 4. writes one commit on a new branch `contrib/<type>/<first-id-slug>-<hex>`,
    the contributor as git author, the App bot as committer, through the Git
    Data API (blob, tree, commit, ref), then opens the pull request into
@@ -144,7 +148,8 @@ and the `head_sha` the editor loaded. 10 per hour. The backend:
 - answers `409` if the branch moved since (`head_sha` differs): reload and
   redo,
 - answers `403` if the account does not own the submission (trailer rule
-  above; curators get their own way in with #248),
+  above) and is not a curator. A curator's commit is authored by the
+  curator, the trailers keep naming the person who submitted,
 - validates again, rewrites the primary CSV keeping every row this
   submission does not own, and commits on top of the branch.
 
@@ -163,11 +168,19 @@ Two things in `contributions/github.py`:
 
 - The pull request body lists the database, the counts, the contributor, the
   dismissed warnings and, for a new submission, how to update it.
-- The data repository's CI validates the whole repo against `/validate` of
-  the dev deployment with the machine credential, no duplicate check (every
-  id there is already uploaded).
+- The data repository's CI (`data-validation.yml`) sends the files the pull
+  request adds or changes to `/validate` of the **prod** deployment, with the
+  machine credential. It does not turn on the duplicate check: a main CSV
+  always holds rows that are already uploaded. Until 2.0 is released, prod
+  runs the old validator, so the checks added in 2.0 (the review status
+  values, for example) do not run in CI yet. The Hub runs them on a
+  submission before it opens the pull request.
 - A member of the lab reviews it from the [curation queue](curation.md) and
   merges on GitHub, squash only.
+- The rows go live as **unverified**: the dashboards flag them and the
+  drawer says the data was not checked by the lab yet. A curator verifies
+  them later from the "To verify" tab, which opens a second, small pull
+  request ([curation.md](curation.md#verification)).
 - The data reaches a deployment when someone runs its upload CronJob from
   ArgoCD ([backend/README.md](../backend/README.md)). The backend caches
   responses for an hour per process, so restart the pods if it must show at

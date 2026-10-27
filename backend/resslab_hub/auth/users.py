@@ -14,7 +14,7 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from resslab_hub.auth import roles
+from resslab_hub.auth import access, roles
 from resslab_hub.models.database.auth import Identity, User
 
 
@@ -95,6 +95,7 @@ async def sign_in_with_email(db: AsyncSession, email: str) -> User:
     else:
         identity.last_used_at = _now()
     roles.apply_role(user)
+    await access.redeem_invitation(db, user)
     await db.flush()
     return user
 
@@ -149,6 +150,7 @@ async def sign_in_with_provider(
         result = await db.execute(select(User).where(User.id == identity.user_id))
         user = result.scalar_one()
         roles.apply_role(user)
+        await access.redeem_invitation(db, user)
         await db.flush()
         return user
 
@@ -174,5 +176,6 @@ async def sign_in_with_provider(
         )
     )
     roles.apply_role(user)
+    await access.redeem_invitation(db, user)
     await db.flush()
     return user

@@ -8,6 +8,7 @@ import {
   MaterialField,
   ResidualStressField,
   type CurationDetail,
+  type CurationExperiment,
   type CurationFile
 } from '@/backend'
 import type { ExperimentRow } from '@/stores/contribution'
@@ -24,11 +25,20 @@ export function databaseIdForType(type: string): DatabaseId | null {
 }
 
 /**
+ * What the review panels read: a submission's batch (`CurationDetail`), or
+ * rows already live and still unverified (`VerificationBatch`, #253).
+ */
+export type ReviewBatch = Pick<CurationDetail, 'columns' | 'experiments'> & {
+  /** Warnings the contributor dismissed at submit time (submissions only). */
+  dismissed_warnings?: string[]
+}
+
+/**
  * Reconstructed batch rows in the shape `mapResponse` (utils/qualityReport)
  * consumes. The backend guarantees the validation endpoint's row indices match
  * this order, so `uid` can simply be the array index.
  */
-export function toExperimentRows(detail: CurationDetail): ExperimentRow[] {
+export function toExperimentRows(detail: ReviewBatch): ExperimentRow[] {
   return detail.experiments.map((experiment, index) => ({
     uid: index,
     cells: experiment.cells
@@ -185,7 +195,9 @@ export function withDerivedCells(
 }
 
 /** A copy of the detail whose experiment cells carry the derived columns. */
-export function withDerivedExperiments(detail: CurationDetail): CurationDetail {
+export function withDerivedExperiments<
+  T extends { type: string; experiments: CurationExperiment[] }
+>(detail: T): T {
   const database = databaseIdForType(detail.type)
   if (!database || !DERIVED_CELLS[database]) return detail
   return {

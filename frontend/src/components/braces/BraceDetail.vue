@@ -83,7 +83,7 @@ function formatString(value?: string | null): string {
     </template>
     <template #body>
       <v-row>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <v-row>
             <v-col>
               <h2>{{ $t('detail.brace.section_loading_geometric') }}</h2>
@@ -147,7 +147,7 @@ function formatString(value?: string | null): string {
             </v-col>
           </v-row>
         </v-col>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <v-img :src="imageTypeSrc" />
         </v-col>
       </v-row>

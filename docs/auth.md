@@ -3,8 +3,8 @@
 How people sign in to RESSLab Hub, and what has to be set up outside the code
 for it to work. Issue #247.
 
-Browsing stays open to everyone. An account is only needed to submit data or to
-open the review queue.
+Browsing stays open to everyone. An account is only needed to submit data, to
+review it, or to decide who can do what.
 
 ## What exists today (phase 1)
 
@@ -21,15 +21,15 @@ Linking GitHub is worth doing: a submission from an account with a GitHub login
 mentions that login on its pull request, so GitHub notifies the contributor of
 every review comment and they can answer where the review happens.
 
-Roles exist in the database (`viewer < contributor < curator < admin`) but
-phase 1 only enforces "signed in". The rules that hand out `contributor` and
-`curator` come with #248.
+Each account has a role (`viewer < contributor < curator < admin`), which
+decides who submits, who reviews and who manages the others. See Roles below
+(#248).
 
 ## How it works
 
 - **Session.** A random token in an httpOnly `resslab_session` cookie, whose
-  sha256 is a row in `auth_session`. Server side so signing out, and later an
-  admin revoking access, take effect at once. Thirty days.
+  sha256 is a row in `auth_session`. Server side so signing out, and an admin
+  disabling an account, take effect at once. Thirty days.
 - **Same-origin everywhere.** Traefik serves the app and the API from one host
   in the deployments; in development a Vite proxy does the same (`/api` to the
   backend, prefix stripped). So the cookie is first-party and there is no CORS
@@ -55,9 +55,10 @@ phase 1 only enforces "signed in". The rules that hand out `contributor` and
 - **A submission belongs to the account that made it.** Updating an open one
   from the Hub (#321) checks the `Submitted-by` trailer on its branch's first
   Hub commit against the account's verified address (a pull request opened
-  before trailers falls back to its `contributions/*.json` record). Anyone
-  else gets a 403, and the review page only offers "Edit on the Hub" to the
-  owner. Curators get their own way in with #248.
+  before trailers falls back to its `contributions/*.json` record). A curator
+  can update any open one: the commit is then the curator's, and the trailers
+  keep naming the person who submitted. Anyone else gets a 403. The review
+  page offers "Edit on the Hub" to the owner and to curators.
 - **Absolute URLs** (the OAuth callback, the mailed link) are built from the
   `PUBLIC_BASE_URL` setting. They cannot come from the request: Traefik has
   already stripped `/api` and the `Host` is an internal service name.
@@ -179,7 +180,7 @@ the code never is.
 | `SMTP_STARTTLS` | On by default; the EPFL relay needs it on port 587. |
 | `SMTP_USER` / `SMTP_PASSWORD` | The service account (above, mind the quoting). |
 | `SMTP_FROM` | Sender address. The display name is fixed in the code. |
-| `ADMIN_EMAILS` | Comma-separated addresses that become administrators at first sign-in, so a fresh deployment has one without a CLI. |
+| `ADMIN_EMAILS` | Comma-separated addresses that are always administrators. For an admin with no GitHub account, and so a fresh deployment has one without a CLI (Roles, below). |
 | `CONTRIBUTOR_DOMAINS` | Comma-separated domains that count as academic on top of the built-in list (Roles, below). |
 | `SESSION_TTL_DAYS` | 30 by default. |
 | `LOGIN_CODE_TTL_MINUTES` | 10 by default. |
@@ -263,20 +264,72 @@ needs the dev App, only worth it to test the link flow and the @mention.
 
 ## Roles
 
-Four roles, weakest first: `viewer`, `contributor`, `curator`, `admin`. The
-stored role is recomputed at every sign-in by `auth/roles.py`, and
-`role_source` records why, which the account page shows.
+Four roles, weakest first:
 
-Order of the checks, first match wins:
+| Role | What it adds |
+|---|---|
+| `viewer` | Everyone signed in. Can check data with `/validate` and ask for contributor access. |
+| `contributor` | Opens and updates their own submissions (`POST`/`PUT /contributions`). |
+| `curator` | The review queue, every submission, and editing anyone's open one. |
+| `admin` | The admin page: members, invitations and access requests. |
 
-1. `role_override` on the row, set by an administrator. Wins in both
-   directions, so it can also demote.
-2. The address is in `ADMIN_EMAILS` -> `admin`.
-3. The address is academic -> `contributor`.
-4. Otherwise `viewer`.
+Browsing the databases needs no account at all.
+
+### Where a role comes from
+
+`auth/roles.py` works it out, first match wins, and stores the answer in
+`role` with the reason in `role_source`. The account page and the admin page
+both show that reason.
+
+1. A verified address in `ADMIN_EMAILS` -> `admin` (`admin-email`).
+2. Admin on `resslab-hub-data`, through the linked GitHub account -> `admin`
+   (`github`).
+3. A decision of an administrator, `role_override` (`override`). Changing a
+   role on the admin page, approving an access request and using an
+   invitation all write it.
+4. Write or maintain on `resslab-hub-data` -> `curator` (`github`).
+5. An academic address -> `contributor` (`academic-email`, below).
+6. Otherwise `viewer` (`default`).
+
+The two admin sources come before the override on purpose: nobody can
+demote, from the Hub, an admin that GitHub or the config made. The admin
+page shows those rows as read only. To remove such an admin, change it on
+GitHub or in `ADMIN_EMAILS`.
 
 Only a **verified** address counts. Mail sign-in verifies by construction;
 GitHub sign-in verifies when GitHub reports the address as verified.
+
+So the GitHub permission on the data repository is the main source: the
+people who can merge there review in the Hub, the people who own it manage
+it. `ADMIN_EMAILS` is only for an admin who will not link GitHub.
+
+### The GitHub permission
+
+It is read with the GitHub App that opens the pull requests
+(`DataRepoClient.get_permission`, the collaborator permission endpoint; the
+Metadata permission every App has is enough). Without that App, nothing comes
+from GitHub. The value is stored in `github_role` and read again:
+
+- at every sign-in, and when someone links GitHub;
+- on any request, once the stored value is an hour old.
+
+So someone who loses write access on GitHub loses `curator` in the Hub
+within the hour, at the latest. The read gives up after 5 seconds. When it
+fails, the old value stays and the next try is 5 minutes later, so a GitHub
+outage does not slow every request. Unlinking GitHub clears the value.
+
+The login is the one stored at the last GitHub sign-in or link. If the person
+renames their GitHub account, GitHub no longer knows the old login, the
+permission reads as `none` and the role falls back. Signing in with GitHub
+once more stores the new login.
+
+Today (October 2026) the admins of the data repository are guilbep,
+ahartloper, charlottegiseleweil, pierreleripoll, AlbanoCastroSousa, dlignos,
+andskia and the `RESSLab` account. Each one becomes an admin in the Hub as
+soon as they link GitHub. Trim that list on GitHub if it is too long.
+
+The merge gate itself is a GitHub setting: branch protection and a
+CODEOWNERS file on the data repository `main`. They are not set yet.
 
 ### What counts as academic
 
@@ -303,32 +356,76 @@ nobody.
 
 ### What the role gates
 
-`contributor` is needed to open or update a contribution
-(`POST`/`PUT /contributions`). Everything else is unchanged: browsing the
-databases needs no account, and the curation reads plus `/validate` need
-only a session, so someone can check their data before asking for access.
+| | viewer | contributor | curator | admin |
+|---|---|---|---|---|
+| `/validate` | yes | yes | yes | yes |
+| `POST /auth/access-request` | yes | | | |
+| Open a submission (`POST /contributions`) | | yes | yes | yes |
+| Update a submission (`PUT /contributions/{pr}`) | | own | any | any |
+| Read one submission (`GET /contributions/{pr}` and below) | | own | any | any |
+| The queue (`GET /contributions`) | | | yes | yes |
+| `/admin/*` | | | | yes |
 
-### Promoting one person
+"Own" means the `Submitted-by` trailer of the first Hub commit matches the
+account's verified address. The frontend routes ask for the same roles
+(`meta.auth` in `router/index.ts`): the sidebar shows the review queue to
+curators only and the Administration link to admins only.
 
-There is no admin screen yet (#248). Until then, set the override by hand
-and ask the person to sign in again:
+### The admin page
 
-```sql
-UPDATE auth_user SET role_override = 'contributor' WHERE email = 'ada@somewhere.org';
-```
+`/admin` (`views/AdminView.vue`, backend `routers/admin.py`) has three parts.
 
-Roles are recomputed at sign-in only, not per request. Someone who was
-already signed in when their domain was added keeps the old role until
-their next sign-in. Sessions last 30 days, so tell them to sign out and
-back in.
+- **Access requests.** The pending ones, with the person's message. Approve
+  gives the role asked for and mails the person; decline mails nobody, the
+  account page shows it and they can ask again.
+- **Members.** Every account, its role and where it comes from, the GitHub
+  login and permission, the last sign-in. The "Set by an administrator"
+  column is the override: "Automatic" clears it, a role sets it, in both
+  directions. Disable signs the person out everywhere and refuses their next
+  sign-in; enable undoes it. An admin cannot change their own row, nor an
+  admin from GitHub or `ADMIN_EMAILS`.
+- **Invitations.** A role waiting for an address. The person gets a mail;
+  the role is theirs at their first sign-in with that verified address, by
+  mail or by GitHub. Inviting someone who already has an account is refused:
+  change their role in the members list instead. A pending invitation can be
+  revoked.
+
+An approved request and an invitation never lower a role: approving the
+request of someone who became a curator meanwhile changes nothing. But they
+are saved as an override, and the override comes before GitHub write (step
+3 above). So someone invited or approved as contributor stays contributor
+even after they get write on the data repo. To let GitHub decide again, set
+their row to "Automatic".
+
+Every decision takes effect on the person's next request, no new sign-in
+needed.
+
+### Asking for access
+
+A viewer with a verified address can ask for `contributor` from the account
+page, or from the "not open to your account" page they land on when they try
+to submit. One pending request at a time, and five tries an hour. The
+admins get a mail: every address in `ADMIN_EMAILS`, plus every account whose
+role is admin, has a verified address and is not disabled. Most admins come
+from GitHub, so `ADMIN_EMAILS` alone would miss them.
+
+All these mails are best effort. The decision is saved first; a relay that is
+down is logged, and the admin page still shows everything. When the
+invitation mail fails, the page says so and the invitation stays valid.
+
+### When a change shows
+
+- An admin's decision: at once.
+- A GitHub permission: within the hour, or at the next sign-in.
+- A new `CONTRIBUTOR_DOMAINS` or `ADMIN_EMAILS` entry: at the person's next
+  sign-in. Sessions last 30 days, so tell them to sign out and back in.
 
 ## Later
 
-- **#248** roles, the rest of it: the academic grant is done (Roles, above),
-  invitations are not. `curator` and `admin` should come from the GitHub
-  permission on `resslab-hub-data`, so the app and the merge gate read the
-  same source. Admin pages for members, invitations and access requests.
 - **#249, #250, #252** the academic identity providers of the mockup: ORCID is
   self-service; SWITCH edu-ID / eduGAIN and EPFL Entra ID each need EPFL to
   register the application, so those requests should be filed early. Each one
   is another provider in `auth_identity` and a copy of `auth/github_oauth.py`.
+- **#254** approve or ask for changes from the Hub.
+- Academic domains edited from the admin page rather than in
+  `CONTRIBUTOR_DOMAINS`, and a "my submissions" list for contributors.

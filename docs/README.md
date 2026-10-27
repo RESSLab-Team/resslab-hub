@@ -15,7 +15,7 @@ One line per guide. Start with the root [README](../README.md) to run the app.
 - [whats-new-in-2.0.md](whats-new-in-2.0.md): the refactor, section by section, versus the old app on `main`
 - [auth.md](auth.md): sign-in by email code or GitHub, sessions, roles, the settings a deployment needs
 - [contributing-data.md](contributing-data.md): from a dropped folder to a pull request on the data repo, and editing it
-- [curation.md](curation.md): the review queue and the review page
+- [curation.md](curation.md): the review queue, the review page and the verification of live rows
 - [dashboard-architecture.md](dashboard-architecture.md): the client-side dashboard engine, and the backend cache behind it
 - [design-system.md](design-system.md): the tokens, options versus decisions, the cascade layers, a few use cases
 - [variable-categories.md](variable-categories.md): the scientific category of every column, per database

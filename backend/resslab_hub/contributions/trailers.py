@@ -26,6 +26,8 @@ ORCID = "ORCID"
 GITHUB = "GitHub"
 #: One per warning the contributor reviewed and dismissed before submitting.
 DISMISSED_WARNING = "Dismissed-Warning"
+#: The curator who checked the rows of a verification pull request (#253).
+VERIFIED_BY = "Verified-by"
 
 #: A trailer line: a key of letters, digits and hyphens, then ": ", then the
 #: value. Git's own rule, applied to the last paragraph only.
@@ -81,6 +83,15 @@ def build_commit_message(
         if _one_line(warning):
             lines.append(f"{DISMISSED_WARNING}: {_one_line(warning)}")
     return f"{_one_line(title)}\n\n" + "\n".join(lines)
+
+
+def build_verification_message(title: str, name: str, email: str) -> str:
+    """The commit message of a verification pull request: title, blank line,
+    who checked the data. It has no ``Submitted-by``, so nothing reads it as a
+    submission."""
+    return (
+        f"{_one_line(title)}\n\n{VERIFIED_BY}: {_clean_name(name)} <{_one_line(email)}>"
+    )
 
 
 def parse_trailers(message: str) -> Dict[str, List[str]]:
@@ -174,7 +185,7 @@ def owns_submission(provenance: Optional[Provenance], email: str) -> bool:
     """Whether the account may change the submission ``provenance`` describes.
 
     The recorded address decides, which is what the account's verified address
-    proves. Nothing readable means nobody can, until a curator (#248) steps in.
+    proves. Nothing readable means nobody can, not even a curator (#248).
     """
     if provenance is None:
         return False

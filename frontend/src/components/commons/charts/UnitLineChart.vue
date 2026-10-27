@@ -23,6 +23,10 @@ const props = withDefaults(
     xAxisMax?: number
     yAxisMax?: number
     fill?: boolean
+    /** Legend on the right instead of below the plot. Left unset, a chart
+        with more than 2 series gets it; a small card passes false, since the
+        side legend takes 200px off the plot. */
+    legendSide?: boolean
   }>(),
   {
     colors: () => primaryColors,
@@ -39,7 +43,8 @@ const props = withDefaults(
     xAxisMin: undefined,
     yAxisMin: undefined,
     xAxisMax: undefined,
-    yAxisMax: undefined
+    yAxisMax: undefined,
+    legendSide: undefined
   }
 )
 
@@ -94,7 +99,7 @@ const option = computed<EChartsOption>(
   <unit-chart
     :aspect-ratio="aspectRatio"
     :fill="fill"
-    :legend-side="props.series.length > 2"
+    :legend-side="legendSide ?? props.series.length > 2"
     :max-width="maxWidth"
     :option="option"
     :x-unit="xUnit"

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import EyebrowText from '@/components/commons/EyebrowText.vue'
 import GroupedProperties from '@/components/commons/GroupedProperties.vue'
+import UnverifiedNotice from '@/components/commons/UnverifiedNotice.vue'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
 import { isHttpUrl } from '@/utils/common'
+import { isUnverified } from '@/utils/curationStatus'
 import type { DatabaseId } from '@/utils/navigation'
 import { mdiClose, mdiOpenInNew } from '@mdi/js'
 import type { AxiosResponse } from 'axios'
@@ -92,6 +94,12 @@ watch(
   }
 )
 
+// Every drawer passes its row, so the warning covers all nine databases.
+const unverifiedId = computed<string | undefined>(() => {
+  if (!props.databaseId || !isUnverified(props.record)) return undefined
+  return String((props.record as { id?: unknown }).id ?? '')
+})
+
 const currentPage = computed<SeriesCarouselItem[]>(
   () => seriesCarouselItems.value[page.value] ?? []
 )
@@ -124,6 +132,11 @@ function nextPage(): void {
     </div>
 
     <div class="drawer-body">
+      <unverified-notice
+        v-if="databaseId && unverifiedId"
+        :database-id="databaseId"
+        :row-id="unverifiedId"
+      />
       <div class="cd-publication">
         <div class="cd-publication-label">{{ $t('commons.publication') }}</div>
         <a

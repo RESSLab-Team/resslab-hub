@@ -116,6 +116,7 @@ class Material(Base):  # type: ignore
     uvc_rho_iso = Column(DecimalFloat, nullable=True)
     uvc_rho_kin = Column(DecimalFloat, nullable=True)
     uvc_rho_d = Column(DecimalFloat, nullable=True)
+    data_curation_status = Column(String, nullable=False)
     # END_OF_GENERATED_CODE
     type = column_property(grade + text("'-'") + spec)
 
