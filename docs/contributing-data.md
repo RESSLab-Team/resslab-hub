@@ -106,8 +106,8 @@ nothing else. The curation queue reads through the same client.
 |---|---|
 | `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_APP_INSTALLATION_ID` | The App that opens the pull requests. All three or the feature is off: `POST /contributions` and the curation endpoints answer `503`, the queue says `configured: false`. Not the OAuth pair of [auth.md](auth.md), which is for sign-in. |
 | `CONTRIBUTIONS_ENABLED` | `true` by default. `false` switches the whole pipeline off: submit and edit, curation, sign-in and account. The backend answers `404` on those endpoints and the frontend hides every link to them (the routes go to `/`). `GET /auth/me` keeps answering `{"user": null}`, and `/validate` and `/upload` do not change. Read at startup, so restart the pods after a change. `GET /features` tells the frontend the value it acts on: this setting and the GitHub App above. How prod uses it: [releasing.md](releasing.md). |
-| `DATA_REPO` | `RESSLab-Team/resslab-hub-data` by default. |
-| `DATA_REPO_BASE_BRANCH` | `main` by default, the only branch the data repo has. Submissions from dev, test and laptops all land there; close those, never merge them. |
+| `DATA_REPO` | `RESSLab-Team/resslab-hub-data` by default, what dev, stage and prod use. Local setups use the test fork `EPFL-ENAC/resslab-hub-data-test` instead, with the App's EPFL-ENAC `GITHUB_APP_INSTALLATION_ID` (the installation id is per org). `scripts/wt-setup.sh` seeds both into a new worktree's `secrets/.env`. See [Trying it locally](#trying-it-locally). |
+| `DATA_REPO_BASE_BRANCH` | `main` by default, the only branch the data repo has. Submissions from dev and test land there; close those, never merge them. |
 
 Defaults in `backend/resslab_hub/config.py`.
 
@@ -188,7 +188,25 @@ Two things in `contributions/github.py`:
 
 ## Trying it locally
 
-The GitHub App installed on the data repo works from anywhere, so a laptop
-opens real pull requests into `main`. See "Testing the pipeline" in
-[auth.md](auth.md) for the whole recipe, and `make sample-data` for a batch
-that passes with three range warnings and one that fails.
+A local setup opens its pull requests on the test fork
+`EPFL-ENAC/resslab-hub-data-test`, not on the real data repo. Two lines in
+`secrets/.env` do it (a new worktree gets them from `scripts/wt-setup.sh`):
+
+```bash
+DATA_REPO=EPFL-ENAC/resslab-hub-data-test
+GITHUB_APP_INSTALLATION_ID=170990591   # the App's install on EPFL-ENAC
+```
+
+Without them, a laptop opens real pull requests on
+`RESSLab-Team/resslab-hub-data`, and someone has to close them by hand.
+
+On the fork you can merge, close or leave pull requests as you like. Its
+Actions are off, so no validation runs there. Its `main` is a copy of the real
+`main` that drifts: it misses the real merges and keeps your test merges. So a
+submission that passes locally can still collide with ids on the real repo.
+`make data-fork-reset` puts the fork's `main` back on the real one and lists
+the pull requests and `contrib/*` branches left on the fork.
+
+See "Testing the pipeline" in [auth.md](auth.md) for the whole recipe, and
+`make sample-data` for a batch that passes with three range warnings and one
+that fails.

@@ -239,18 +239,27 @@ The link on the line below it works too, and skips the typing.
 
 ## Testing the pipeline
 
-No second App is needed. The one installed on `resslab-hub-data` works from
-anywhere. Which branch a submission targets is `DATA_REPO_BASE_BRANCH`, and the
-curation queue only lists pull requests into that branch.
+No second App is needed. The same App is installed on two orgs: on
+RESSLab-Team for the real `resslab-hub-data`, and on EPFL-ENAC for the test
+fork `resslab-hub-data-test`. An installation id is per org, so `DATA_REPO` and
+`GITHUB_APP_INSTALLATION_ID` always change together. Which branch a submission
+targets is `DATA_REPO_BASE_BRANCH`, and the curation queue only lists pull
+requests into that branch. Every environment uses `main`, the default.
 
-Every environment uses `main`, which is the setting's default, so nothing has to
-be set anywhere. The data repository has no other branch: `test` and `sandbox`
-both existed on paper only, and `test` was deleted after sitting untouched since
-January 2022.
+**Locally**, submissions go to the fork (`scripts/wt-setup.sh` seeds the two
+lines, see [contributing-data.md](contributing-data.md#trying-it-locally)).
+Merge or close them as you like there, and run `make data-fork-reset` when the
+fork's `main` has drifted too far from the real one.
 
-So a submission made from dev, from stage or from a laptop opens a real pull
-request into `main`, next to the real ones. That is on purpose, it is the only
-way to exercise the pipeline for real. **Close those, never merge them.**
+```bash
+gh pr list --repo EPFL-ENAC/resslab-hub-data-test --base main
+```
+
+Roles that come from GitHub (below) are read on `DATA_REPO` too, so locally
+they are your permission on the fork. `ADMIN_EMAILS` still makes you admin.
+
+**From dev and stage**, a submission still opens a real pull request into the
+real `main`, next to the real ones. **Close those, never merge them.**
 
 ```bash
 gh pr list --repo RESSLab-Team/resslab-hub-data --base main
