@@ -69,6 +69,16 @@ function isExpanded(group: NavGroup): boolean {
   return group.id === activeGroupId.value || manuallyOpened.value.has(group.id)
 }
 
+// The count a group row shows, folded or open: the sum of its databases
+// (Materials has three). Undefined until every one of them has a value.
+function groupCount(group: NavGroup): number | undefined {
+  const ids = group.children.flatMap((child) => (child.countId ? [child.countId] : []))
+  if (ids.length === 0) return undefined
+  const values = ids.map((id) => countsStore.counts[id])
+  if (values.some((value) => value == null)) return undefined
+  return values.reduce<number>((sum, value) => sum + (value ?? 0), 0)
+}
+
 function toggleGroup(group: NavGroup) {
   const opened = new Set(manuallyOpened.value)
   if (opened.has(group.id)) opened.delete(group.id)
@@ -265,12 +275,7 @@ function toggleGroup(group: NavGroup) {
       >
         <v-icon :icon="group.icon" size="16" />
         {{ group.name }}
-        <span
-          v-if="group.children[0].countId && countsStore.counts[group.children[0].countId] != null"
-          class="count"
-        >
-          {{ countsStore.counts[group.children[0].countId!] }}
-        </span>
+        <span v-if="groupCount(group) != null" class="count">{{ groupCount(group) }}</span>
       </router-link>
 
       <template v-else>
@@ -282,6 +287,7 @@ function toggleGroup(group: NavGroup) {
           >
             <v-icon :icon="group.icon" size="16" />
             {{ group.name }}
+            <span v-if="groupCount(group) != null" class="count">{{ groupCount(group) }}</span>
           </router-link>
           <button
             class="sidebar-group-toggle"
