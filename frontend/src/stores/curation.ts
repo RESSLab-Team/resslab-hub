@@ -40,7 +40,8 @@ export const useCurationStore = defineStore('curation', () => {
     listState.value = 'loading'
     try {
       const { defaultApi } = await api()
-      const { data } = await defaultApi.listContributions()
+      // force: the Refresh button, so skip the server cache too (#267).
+      const { data } = await defaultApi.listContributions(force)
       configured.value = data.configured
       items.value = data.items ?? []
       listState.value = 'ready'

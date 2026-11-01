@@ -176,6 +176,7 @@ class DataRepoClient:
             "draft": bool(pull.draft),
             "head_ref": pull.head.ref,
             "head_sha": pull.head.sha,
+            "head_repo": pull.head.repo.full_name if pull.head.repo else "",
             "base_ref": pull.base.ref,
             "created_at": str(pull.created_at),
             "updated_at": str(pull.updated_at),

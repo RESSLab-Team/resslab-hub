@@ -24,14 +24,24 @@ class CurationContributor(BaseModel):
 
 
 class CurationSummary(BaseModel):
-    """One open contribution PR, as listed in the review queue."""
+    """One open pull request of the data repo, as listed in the review queue."""
 
     pr_number: int
     pr_url: str
     title: str
     branch: str
-    #: Backend uploader ``Type`` value, e.g. ``all-braces``.
+    #: Backend uploader ``Type`` value, e.g. ``all-braces``. Empty when the
+    #: database could not be found (``kind`` is "unrecognised").
     type: str
+    #: "submission": opened by the Hub, on a ``contrib/`` branch.
+    #: "manual": opened by hand, the database found from its files (#267).
+    #: "unrecognised": opened by hand, no single database found; ``reason``
+    #: says why, and it can only be reviewed on GitHub.
+    kind: str
+    #: Why the database could not be found. Empty unless "unrecognised".
+    reason: str
+    #: From a fork of the data repo: the Hub can read it but not edit it.
+    from_fork: bool
     draft: bool
     created_at: str
     updated_at: str

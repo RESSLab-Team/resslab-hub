@@ -852,6 +852,17 @@ async def test_update_refuses_someone_elses_submission(tmp_path, monkeypatch):
         assert client.committed == []
 
 
+async def test_update_refuses_a_fork(tmp_path, monkeypatch):
+    """The App cannot push to a fork's branch: edit it on GitHub (#267)."""
+    patch_validation(monkeypatch)
+    client = edit_client(head_repo="someone/resslab-hub-data")
+    with pytest.raises(SubmissionError) as excinfo:
+        await update(make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n"), client)
+    assert excinfo.value.status_code == 409
+    assert "fork" in excinfo.value.detail
+    assert client.committed == []
+
+
 async def test_update_needs_a_readable_record(tmp_path, monkeypatch):
     """No trailers, no record, no owner: a hand-made branch is a curator's."""
     patch_validation(monkeypatch)

@@ -1389,6 +1389,12 @@
       "refresh": "Refresh",
       "review": "Review",
       "github": "GitHub",
+      "opened_on_github": "Opened on GitHub",
+      "unrecognised": "Unrecognised",
+      "unrecognised_hint": "Opened on GitHub. The Hub cannot tell which database it changes: review it on GitHub.",
+      "draft": "Draft",
+      "fork": "Fork",
+      "fork_hint": "From a fork of the data repository: the Hub can show it, but cannot edit it.",
       "headers": {
         "pr": "PR",
         "database": "Database",

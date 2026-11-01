@@ -42,7 +42,7 @@ pull request at once.
 
 | Endpoint | What it answers |
 |---|---|
-| `GET /contributions` | the open pull requests into `DATA_REPO_BASE_BRANCH`, newest first, up to 100. With no GitHub App configured: `configured: false`, not an error. |
+| `GET /contributions` | every open pull request into `DATA_REPO_BASE_BRANCH`, newest first, up to 100, drafts and forks included. Each one has a `kind`, see [What is in the queue](#what-is-in-the-queue). Cached one minute; `?fresh=true` skips the cache (the Refresh button). With no GitHub App configured: `configured: false`, not an error, and a warning in the backend log. |
 | `GET /contributions/{pr}` | everything the review page needs: summary, provenance (from the trailers, else the pull request body, else the legacy JSON record), the reconstructed rows, the classified files, and `mine`, whether the signed-in account owns it. |
 | `GET /contributions/{pr}/validation` | `validate_all` re-run on the reconstructed batch in a temporary repo-shaped folder. Up to `MAX_CURVE_FILES` (100) curve files are downloaded, with size caps; the skipped ones get an explicit warning ("too large, review on GitHub"). |
 | `GET /contributions/{pr}/comments` | the pull request thread, oldest first, the pull request body as the first entry. Read only. |
@@ -50,12 +50,38 @@ pull request at once.
 
 Response shapes: `backend/resslab_hub/models/curation.py`.
 
+## What is in the queue
+
+Every open pull request into the base branch shows up, not only the ones the
+Hub opened (#267). A contributor who reads a database README can fork the data
+repository and open a pull request by hand, and the lab must see it.
+
+| `kind` | How it is found | In the queue |
+|---|---|---|
+| `submission` | head branch `contrib/<type slug>/...`, opened by the Hub | review page, as before |
+| `manual` | any other branch, and its changed files are all in one database folder (`type_for_files` in `projection.py`) | review page, with a warning: there are no trailers, so only the rows it adds to the main CSV are shown |
+| `unrecognised` | its files touch no database folder, or several (`braces/` and `columns/`, or two of the `material/` folders) | `reason` says why. GitHub link only, the review page answers `404` with the reason |
+| verification | head branch `verify/<type slug>/...` (#253) | not here, it is on the **To verify** tab. The backend log has one `Review queue: skipped #N` line for each one |
+
+Files outside every database folder (`.github/`, `contributions/`, the root
+README) do not count. A data dictionary or a README alone counts for its
+folder. The changed files are read only for branches that are not `contrib/`
+or `verify/`, and cached by head sha. If GitHub fails to give them, the pull
+request is still listed as `unrecognised`, with a warning in the log.
+
+Drafts are listed, with a **Draft** tag. A pull request from a fork has
+`from_fork: true` and a **Fork** tag. The review page reads it like any other
+(GitHub serves a fork's head commit from the base repository), but the Hub
+cannot push to the fork's branch, so **Edit on the Hub** answers `409`: edit
+it on GitHub.
+
 ## The queue page
 
 `frontend/src/views/CurationQueueView.vue` has two tabs. **To accept** lists
-the summaries: number, title, branch, type, draft flag, dates, and what can be
-parsed from the pull request body (experiment count, contributor). **To
-verify** (`?tab=verify`) is the second step, see [Verification](#verification).
+the summaries: number, database (or the **Unrecognised** tag and its reason),
+**Draft** and **Fork** tags, title, branch, dates, and what can be parsed from
+the pull request body (experiment count, contributor). **To verify**
+(`?tab=verify`) is the second step, see [Verification](#verification).
 
 ## The review page
 
@@ -93,6 +119,7 @@ verified address matches the `Submitted-by` trailer of the first Hub commit,
 see provenance in [contributing-data.md](contributing-data.md)), and for every
 curator. It opens `/contribute/edit/<pr number>`. A curator's edit is a commit
 authored by the curator; the trailers keep naming the person who submitted.
+It works on `contrib/` branches only, and never on a fork (`409`).
 
 
 ## Verification
@@ -161,8 +188,8 @@ Nothing is stored here either: an open pull request on a `verify/` branch is
 what "pending" means. The list comes from the database, so a merged
 verification stays in the **To verify** tab until the next upload. The
 button then answers `409`, since it reads the data repository. Verification
-pull requests are not in the **To accept** tab, which only reads `contrib/`
-branches.
+pull requests are not in the **To accept** tab: the list skips `verify/`
+branches, and logs each one it skips.
 
 On the dashboards, an unverified row has an orange rule on its checkbox cell
 and the drawer warning. **Verified only** in the toolbar hides those rows.
