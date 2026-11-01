@@ -183,7 +183,7 @@ filters: |
 
 The same workflow has a `line-endings` job (LF and a final newline on every CSV); it needs no change for a new folder.
 
-The downstream steps already handle the hyphen↔underscore conversion and call `POST $SERVER_URL/api/validate/?type=all-<filter-key>`. So `filter-key` must match the backend uploader `Type` enum value (`all-new-things` → filter key `new-things` → directory `new_things/`). Mismatches silently skip validation.
+The downstream steps already handle the hyphen↔underscore conversion and call `POST $SERVER_URL/api/validate?type=all-<filter-key>`. So `filter-key` must match the backend uploader `Type` enum value (`all-new-things` → filter key `new-things` → directory `new_things/`). Mismatches silently skip validation.
 
 ### 1.5 Expect iteration on the dictionary
 

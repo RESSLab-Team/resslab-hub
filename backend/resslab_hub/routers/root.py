@@ -197,10 +197,20 @@ def _build_response(results, tmpdir: str) -> ValidationResponse:
 # data-validation.yml, and `make validate-%`). Any signed-in account passes,
 # whatever its role: checking a batch writes nothing, and someone who cannot
 # submit yet still needs to know their data is clean.
+#
+# The data CI called `/api/validate/` (with a slash) for a long time. Behind
+# Traefik the slash redirect loses the `/api` prefix and lands on nginx, which
+# answers an HTML 405. So the slash is served here too, not redirected.
 @router.post(
     "/validate",
     response_model=ValidationResponse,
     dependencies=[Depends(require_user_or_service)],
+)
+@router.post(
+    "/validate/",
+    response_model=ValidationResponse,
+    dependencies=[Depends(require_user_or_service)],
+    include_in_schema=False,
 )
 @limiter.limit("30/minute")
 async def validate_data(
