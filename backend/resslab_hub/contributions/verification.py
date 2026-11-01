@@ -30,6 +30,7 @@ from resslab_hub.contributions.projection import (
     _type_slug,
     classify_files,
 )
+from resslab_hub.contributions.reviewers import request_reviews
 from resslab_hub.contributions.submission import (
     Contributor,
     _line_terminator,
@@ -306,4 +307,6 @@ async def open_verification(
             "The pull request could not be opened on the data repository "
             f"({describe_error(exc)}).",
         )
+    # A verification needs an approval too (#266). Best effort, like a submit.
+    await request_reviews(client, pull["number"], curator.github_login)
     return VerificationResult(pull["url"], pull["number"], branch)

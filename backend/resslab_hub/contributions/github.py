@@ -6,8 +6,10 @@ a small class so the submission flow can be tested against a fake. The GitHub
 App credentials are read from settings; `configured()` is the feature flag.
 
 The App is installed on the single data repo with only `contents: write` and
-`pull-requests: write`. githubkit caches the installation token in the process
-and never exposes it, so nothing here caches or logs credentials.
+`pull-requests: write` (plus the Metadata read every App has). That is also
+enough to list the admins and request their review (#266). githubkit caches
+the installation token in the process and never exposes it, so nothing here
+caches or logs credentials.
 
 One `GitHub` object is shared by the whole process (`_github()`), and its httpx
 client is kept open between calls: see `_SharedGitHub` below.
@@ -319,6 +321,24 @@ class DataRepoClient:
                 return "none"
             raise
         return str(response.parsed_data.permission or "none")
+
+    async def list_admin_logins(self) -> List[str]:
+        """Logins with admin on the data repo (one page, 100 max).
+
+        Needs only the Metadata permission, like `get_permission`.
+        """
+        response = await self._gh.rest.repos.async_list_collaborators(
+            self.owner, self.repo, affiliation="all", permission="admin", per_page=100
+        )
+        return [user.login for user in response.parsed_data]
+
+    async def request_reviewers(self, number: int, logins: List[str]) -> None:
+        """Ask `logins` to review a pull request. GitHub notifies each one."""
+        if not logins:
+            return
+        await self._gh.rest.pulls.async_request_reviewers(
+            self.owner, self.repo, number, data={"reviewers": logins}
+        )
 
     async def get_base_sha(self) -> str:
         """Commit sha of the base branch head."""

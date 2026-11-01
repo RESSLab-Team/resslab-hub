@@ -337,8 +337,10 @@ ahartloper, charlottegiseleweil, pierreleripoll, AlbanoCastroSousa, dlignos,
 andskia and the `RESSLab` account. Each one becomes an admin in the Hub as
 soon as they link GitHub. Trim that list on GitHub if it is too long.
 
-The merge gate itself is a GitHub setting: branch protection and a
-CODEOWNERS file on the data repository `main`. They are not set yet.
+These admins are also who the Hub asks to review each pull request it opens
+(#266, see [contributing-data.md](contributing-data.md#after-the-pull-request)).
+The merge gate itself is a GitHub setting: the ruleset `data-contribution` on
+the data repository `main` (one approving review, checks, squash only).
 
 ### What counts as academic
 

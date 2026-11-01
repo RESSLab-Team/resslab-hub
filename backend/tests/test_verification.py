@@ -49,6 +49,7 @@ class FakeClient:
         self.pr: dict = {}
         self.deleted_branches: list = []
         self.fail_pr = False
+        self.reviewers: list = []
 
     async def get_base_sha(self):
         return "base-sha"
@@ -80,6 +81,12 @@ class FakeClient:
 
     async def delete_branch(self, branch):
         self.deleted_branches.append(branch)
+
+    async def list_admin_logins(self):
+        return ["dlignos", "andskia"]
+
+    async def request_reviewers(self, number, logins):
+        self.reviewers = logins
 
 
 async def verify(ids, client, pending=None):
@@ -135,6 +142,21 @@ async def test_branch_title_and_trailer():
     assert client.commit_kwargs["author_name"] == "Dimitrios Lignos"
     assert client.commit_kwargs["author_email"] == "dimitrios@example.edu"
     assert ids_from_body(client.pr["body"]) == ["B2", "B3"]
+
+
+async def test_the_admins_are_asked_but_not_the_curator(monkeypatch):
+    """A verification needs an approval too (#266)."""
+    from resslab_hub.config import settings
+
+    monkeypatch.setattr(settings, "data_repo_reviewers", "admins")
+    client = FakeClient({PATH: REPO_CSV})
+    curator = Contributor(
+        name="Dimitrios Lignos", email="dimitrios@example.edu", github_login="dlignos"
+    )
+
+    await open_verification(Type.ALL_BRACE, ["B2"], curator, client=client)
+
+    assert client.reviewers == ["andskia"]
 
 
 async def test_unknown_ids_are_refused():
