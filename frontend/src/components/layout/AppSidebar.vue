@@ -79,6 +79,12 @@ function groupCount(group: NavGroup): number | undefined {
   return values.reduce<number>((sum, value) => sum + (value ?? 0), 0)
 }
 
+// A "Database" child would only repeat the count of its group row, so a
+// child shows its own count only when the group sums several (Materials).
+function hasSeveralDatabases(group: NavGroup): boolean {
+  return group.children.filter((child) => child.countId).length > 1
+}
+
 function toggleGroup(group: NavGroup) {
   const opened = new Set(manuallyOpened.value)
   if (opened.has(group.id)) opened.delete(group.id)
@@ -317,7 +323,14 @@ function toggleGroup(group: NavGroup) {
           >
             <v-icon v-if="child.icon" :icon="child.icon" size="15" />
             {{ child.name }}
-            <span v-if="child.countId && countsStore.counts[child.countId] != null" class="count">
+            <span
+              v-if="
+                child.countId &&
+                countsStore.counts[child.countId] != null &&
+                hasSeveralDatabases(group)
+              "
+              class="count"
+            >
               {{ countsStore.counts[child.countId!] }}
             </span>
           </router-link>

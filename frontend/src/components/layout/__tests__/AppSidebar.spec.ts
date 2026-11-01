@@ -102,6 +102,21 @@ describe('AppSidebar counts (#387)', () => {
     // No value yet: no badge rather than a wrong number.
     expect(count('Columns')).toBeUndefined()
   })
+
+  it('shows a count on a child only when its group has several databases', async () => {
+    const wrapper = mountSidebar(true)
+    await flushPromises()
+    for (const toggle of wrapper.findAll('.sidebar-group-toggle')) await toggle.trigger('click')
+    const childCount = (name: string) =>
+      wrapper
+        .findAll('.sidebar-child')
+        .find((node) => node.text().startsWith(name))
+        ?.find('.count')
+    // "Database" would repeat the number of its group row.
+    expect(childCount('Database')?.exists()).toBe(false)
+    expect(childCount('Cyclic Coupons')?.text()).toBe('1')
+    expect(childCount('Ductile Fracture')?.text()).toBe('4')
+  })
 })
 
 describe('AppSidebar and roles (#248)', () => {
