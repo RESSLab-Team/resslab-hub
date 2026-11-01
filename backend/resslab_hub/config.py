@@ -69,6 +69,12 @@ settings = Dynaconf(
         Validator("smtp_password", default=None),
         Validator("smtp_from", default="noreply-enacitdev@epfl.ch"),
         Validator("smtp_starttls", default=True),
+        # The deployment name (dev, stage, prod), set by the k8s ConfigMaps
+        # and by nothing local. When it is set, a missing SMTP_HOST is an
+        # error, not the log-only mode: the mailer refuses to "send" and the
+        # sign-in page says so, instead of telling the person a code is on its
+        # way (#247).
+        Validator("deployment", default=None),
         # OAuth pair of a GitHub App: the one above in the deployments, a
         # separate dev App locally (docs/auth.md). Both present = "Sign in
         # with GitHub" is offered.

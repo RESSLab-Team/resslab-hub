@@ -17,6 +17,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from resslab_hub import __name__ as title
 from resslab_hub import __version__
+from resslab_hub.auth import mailer
 from resslab_hub.auth.csrf import CSRFMiddleware
 from resslab_hub.config import settings
 from resslab_hub.contributions.github import aclose_github, describe_error
@@ -180,6 +181,12 @@ use_route_names_as_operation_ids(app)
 # and refresh entries before they expire, so no visitor ever pays the cold
 # database path. Refresh at 80% of the cache TTL; disabled with caching (dev).
 install_warmup(app, interval=settings.cache_max_age * 0.8)
+
+
+@app.on_event("startup")
+async def _check_mail_relay() -> None:
+    """Say in the log where the sign-in mails go, loud when nowhere (#247)."""
+    mailer.check_at_startup()
 
 
 @app.on_event("shutdown")

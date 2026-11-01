@@ -1598,6 +1598,7 @@
     "errors": {
       "generic": "Something went wrong. Please try again.",
       "mail_failed": "The sign-in mail could not be sent. Please try again in a few minutes.",
+      "mail_not_configured": "Email sign-in is not set up on this server. Ask an administrator, or sign in with GitHub.",
       "invalid_code": "That code is not right. Check the mail and try again.",
       "invalid_or_expired": "That code or link is no longer valid. Ask for a new one.",
       "too_many_attempts": "Too many tries. Ask for a new code.",
