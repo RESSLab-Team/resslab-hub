@@ -247,7 +247,7 @@ watch(
           class="btn btn-secondary btn-sm"
           :href="connection.link"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
         >
           <v-icon :icon="mdiOpenInNew" size="12" />
           {{ $t('detail.connection.view_publication') }}

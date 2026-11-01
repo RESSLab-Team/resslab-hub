@@ -144,7 +144,7 @@ function onPhotoError(person: Contributor) {
 
 function linkAttrs(person: Contributor) {
   const href = profileUrl(person)
-  return href ? { href, target: '_blank', rel: 'noreferrer' } : {}
+  return href ? { href, target: '_blank', rel: 'noopener noreferrer' } : {}
 }
 
 function hostOf(url: string): string {
@@ -171,12 +171,12 @@ function initials(name: string): string {
             <a
               href="https://opendatacommons.org/licenses/pddl/1-0/"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               >{{ t('about.dataLicence') }}</a
             >
           </template>
           <template #codeLicence>
-            <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noreferrer">{{
+            <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer">{{
               t('about.codeLicence')
             }}</a>
           </template>
@@ -190,7 +190,7 @@ function initials(name: string): string {
 
       <div v-for="group in contributorGroups" :key="group.name" class="about-group">
         <h3 class="about-group-name">
-          <a :href="group.url" target="_blank" rel="noreferrer">{{ group.name }}</a>
+          <a :href="group.url" target="_blank" rel="noopener noreferrer">{{ group.name }}</a>
         </h3>
         <ul class="about-people">
           <li v-for="person in group.people" :key="person.name">
@@ -229,7 +229,7 @@ function initials(name: string): string {
       <p class="section-sub about-credits about-prose">
         <i18n-t keypath="about.contributors.credits" tag="span" scope="global">
           <template #enac>
-            <a href="https://enac-it4r.epfl.ch" target="_blank" rel="noreferrer"
+            <a href="https://enac-it4r.epfl.ch" target="_blank" rel="noopener noreferrer"
               >ENAC-IT4Research</a
             >
           </template>
@@ -252,27 +252,27 @@ function initials(name: string): string {
           <div class="section-eyebrow"><eyebrow-text :text="t('about.funding.eyebrow')" /></div>
           <h2 class="section-title about-subtitle">{{ t('about.funding.supportedBy') }}</h2>
           <div class="about-funding">
-            <a href="https://www.snf.ch" target="_blank" rel="noreferrer">
+            <a href="https://www.snf.ch" target="_blank" rel="noopener noreferrer">
               Swiss National Science Foundation
             </a>
-            <a href="https://www.epfl.ch/schools/enac/" target="_blank" rel="noreferrer">
+            <a href="https://www.epfl.ch/schools/enac/" target="_blank" rel="noopener noreferrer">
               EPFL ENAC
             </a>
             <a
               href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=0421551"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
             >
               U.S. NSF (NEES)
             </a>
-            <a href="https://www.epfl.ch/labs/resslab" target="_blank" rel="noreferrer">
+            <a href="https://www.epfl.ch/labs/resslab" target="_blank" rel="noopener noreferrer">
               EPFL RESSLab
             </a>
           </div>
           <p class="about-note about-prose about-history">
             <i18n-t keypath="about.funding.historyConnections" tag="span" scope="global">
               <template #lignos>
-                <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank" rel="noreferrer"
+                <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank" rel="noopener noreferrer"
                   >Prof. Dimitrios Lignos</a
                 >
               </template>
@@ -280,7 +280,7 @@ function initials(name: string): string {
                 <a
                   href="https://en.wikipedia.org/wiki/Helmut_Krawinkler"
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   >Prof. Helmut Krawinkler</a
                 >
               </template>
@@ -288,13 +288,13 @@ function initials(name: string): string {
                 <a
                   href="https://searchworks.stanford.edu/view/yg701cw5473"
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   >“Sidesway collapse of deteriorating structural systems under seismic
                   excitations”</a
                 >
               </template>
               <template #snsfProject>
-                <a href="https://data.snf.ch/grants/grant/169248" target="_blank" rel="noreferrer"
+                <a href="https://data.snf.ch/grants/grant/169248" target="_blank" rel="noopener noreferrer"
                   >“Advanced Simulation Platform for Collapse Risk Assessment of Steel Frame
                   Buildings”</a
                 >
@@ -304,7 +304,7 @@ function initials(name: string): string {
           <p class="about-note about-prose">
             <i18n-t keypath="about.funding.support" tag="span" scope="global">
               <template #lignos>
-                <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank" rel="noreferrer"
+                <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank" rel="noopener noreferrer"
                   >Prof. Dimitrios Lignos</a
                 >
               </template>
@@ -312,12 +312,12 @@ function initials(name: string): string {
                 <a
                   href="https://www.epfl.ch/about/overview/regulations-and-guidelines/disclaimer/"
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   >{{ t('about.funding.disclaimer') }}</a
                 >
               </template>
               <template #privacy>
-                <a href="https://go.epfl.ch/privacy-policy/" target="_blank" rel="noreferrer">{{
+                <a href="https://go.epfl.ch/privacy-policy/" target="_blank" rel="noopener noreferrer">{{
                   t('about.funding.privacyPolicy')
                 }}</a>
               </template>

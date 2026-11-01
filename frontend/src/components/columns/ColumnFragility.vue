@@ -275,6 +275,7 @@ function surface(hTw: number, sdr: number, alpha: number, pPyn: number): number 
         <template #reference>
           <a
             target="_blank"
+            rel="noopener noreferrer"
             href="https://journals.sagepub.com/doi/abs/10.1193/122017EQS260M?journalCode=eqsa"
             >{{ $t('tools.column_fragility.intro_reference') }}</a
           >

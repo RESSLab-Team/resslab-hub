@@ -11,6 +11,11 @@ export function sum(a: number, b: number): number {
  * into "Not applicable"). Rendered as an href, those open a relative route
  * like /materials/Not%20applicable (issue #282, Kinane's review), so the
  * drawer, the map tooltip and the detail footers go through this check.
+ *
+ * It is also the security check for every href bound to data: the link
+ * columns come from contributor pull requests, so a `javascript:` or `data:`
+ * link would run on click (#264, H5). Never replace it with a plain truthy
+ * check.
  */
 export function isHttpUrl(link: unknown): link is string {
   return typeof link === 'string' && /^https?:\/\//i.test(link.trim())

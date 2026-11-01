@@ -414,7 +414,7 @@ function toggleGroup(group: NavGroup) {
       class="sidebar-link"
       href="https://github.com/RESSLab-Team/resslab-hub"
       target="_blank"
-      rel="noreferrer"
+      rel="noopener noreferrer"
     >
       <v-icon :icon="mdiBookOpenVariant" size="16" />
       {{ $t('shell.documentation') }}

@@ -73,7 +73,12 @@ async function copy(): Promise<void> {
       </dl>
       <pre v-if="report.response" class="failure-response">{{ report.response }}</pre>
       <div class="failure-actions">
-        <a class="btn btn-secondary btn-sm" :href="issueUrl" target="_blank" rel="noreferrer">
+        <a
+          class="btn btn-secondary btn-sm"
+          :href="issueUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <v-icon :icon="mdiBugOutline" size="14" />{{ $t('contribute.failure.report') }}
         </a>
         <button class="btn btn-ghost btn-sm" type="button" @click="copy()">

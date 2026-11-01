@@ -173,7 +173,7 @@ function nextPage(): void {
           class="cd-publication-ref"
           :href="link"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
         >
           {{ reference }}
           <v-icon :icon="mdiOpenInNew" size="11" />

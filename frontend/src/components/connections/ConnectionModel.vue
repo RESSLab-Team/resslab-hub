@@ -598,6 +598,7 @@ defineExpose({
           <a
             href="http://ascelibrary.org/doi/abs/10.1061/(ASCE)ST.1943-541X.0000376"
             target="_blank"
+            rel="noopener noreferrer"
           >
             {{ $t('tools.connection_model.intro_reference') }}
           </a>

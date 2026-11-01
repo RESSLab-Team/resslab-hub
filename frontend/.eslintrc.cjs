@@ -11,5 +11,13 @@ module.exports = {
   ],
   parserOptions: {
     ecmaVersion: 'latest'
+  },
+  rules: {
+    // Every link that opens a new tab gets rel="noopener noreferrer", also when
+    // the href comes from the data (#264, H5).
+    'vue/no-template-target-blank': [
+      'error',
+      { allowReferrer: false, enforceDynamicLinks: 'always' }
+    ]
   }
 }

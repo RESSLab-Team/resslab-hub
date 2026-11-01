@@ -142,7 +142,7 @@ async function verify(row: Row): Promise<void> {
                   class="ghlink pending"
                   :href="pendingOf(row)?.pr_url"
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                 >
                   {{ $t('commons.unverified.pending', { number: pendingOf(row)?.pr_number }) }}
                   <v-icon :icon="mdiOpenInNew" size="13" />

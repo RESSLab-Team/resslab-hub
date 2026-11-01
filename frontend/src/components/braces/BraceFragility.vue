@@ -300,6 +300,7 @@ function correlatedBivariate(
           <a
             href="https://www.sciencedirect.com/science/article/abs/pii/S0143974X13002277"
             target="_blank"
+            rel="noopener noreferrer"
             >{{ $t('tools.brace_fragility.intro_reference') }}</a
           >
         </template>

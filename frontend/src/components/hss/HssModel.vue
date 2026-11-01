@@ -418,7 +418,9 @@ defineExpose({ vars, backbone, envelope })
     <template #intro>
       <i18n-t keypath="tools.hss_model.intro" tag="span" scope="global">
         <template #link>
-          <a href="" target="_blank">{{ $t('tools.hss_model.intro_link') }}</a>
+          <a href="" target="_blank" rel="noopener noreferrer">{{
+            $t('tools.hss_model.intro_link')
+          }}</a>
         </template>
       </i18n-t>
     </template>

@@ -209,6 +209,7 @@ const paramCount = computed(() =>
           <a
             href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
             target="_blank"
+            rel="noopener noreferrer"
             >{{ $t('tools.material_model.intro_hartloper') }}</a
           >
         </template>
@@ -216,6 +217,7 @@ const paramCount = computed(() =>
           <a
             href="https://ascelibrary.org/doi/full/10.1061/%28ASCE%29EM.1943-7889.0001922"
             target="_blank"
+            rel="noopener noreferrer"
             >{{ $t('tools.material_model.intro_castro') }}</a
           >
         </template>
