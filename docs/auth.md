@@ -123,6 +123,15 @@ does not show a raw JSON error.
 With no `SMTP_HOST` the code and the link are written to the log instead of
 being sent, which is how local development and the tests work.
 
+That fallback is only for runs without `DEPLOYMENT`. The k8s ConfigMaps set
+it (`dev`, `stage`, `prod`), and nothing local does. In a deployment with no
+`SMTP_HOST`, the backend logs an error at startup (`SMTP_HOST is not set on
+deployment ...`), and `POST /auth/email/start` answers `503` with
+`mail_not_configured`. The login page then says email sign-in is not set up on
+this server. Before, the code went to `kubectl logs` and the page said a mail
+was on its way (#247). The pod still starts: the database must stay up for
+everyone, even when the mail is broken.
+
 The relay is the EPFL one, documented by ENAC IT ("Sending email via epfl
 infra" in the enacit4r Notion). `mail.epfl.ch:587` with STARTTLS, and the
 shared service account whose password is in Infisical under `/enacit4r-email`.
@@ -167,7 +176,8 @@ When the relay refuses or does not answer within 15 seconds, `POST
 /auth/email/start` answers `503` with `mail_failed` and the login page says
 so. The challenge is rolled back, so a broken relay does not eat the hourly
 caps of the person trying to sign in. The SMTP reason is in the backend log,
-the code never is.
+on a `Mail to ... failed (host:port): <error class>: <reason>` line. The code
+never is.
 
 ### Settings
 
@@ -176,7 +186,7 @@ the code never is.
 | `PUBLIC_BASE_URL` | Where the app is reached, without `/api`. Every absolute URL comes from it. |
 | `API_USERNAME` / `API_PASSWORD` | The machine credential (Basic auth). Username defaults to `user`. |
 | `GITHUB_OAUTH_CLIENT_ID` / `_SECRET` | The App's OAuth pair (above). |
-| `SMTP_HOST` / `SMTP_PORT` | The relay. No host = log-only mode (above). |
+| `SMTP_HOST` / `SMTP_PORT` | The relay. No host = log-only mode locally, `503 mail_not_configured` in a deployment (above). |
 | `SMTP_STARTTLS` | On by default; the EPFL relay needs it on port 587. |
 | `SMTP_USER` / `SMTP_PASSWORD` | The service account (above, mind the quoting). |
 | `SMTP_FROM` | Sender address. The display name is fixed in the code. |
@@ -185,6 +195,7 @@ the code never is.
 | `SESSION_TTL_DAYS` | 30 by default. |
 | `LOGIN_CODE_TTL_MINUTES` | 10 by default. |
 | `SESSION_COOKIE_SECURE` | Derived from the `PUBLIC_BASE_URL` scheme; set it only to override. |
+| `DEPLOYMENT` | `dev`, `stage` or `prod`, set by the overlay ConfigMaps. Never set it locally. When set, a missing `SMTP_HOST` is an error. |
 | `CONTRIBUTIONS_ENABLED` | `true` by default. `false` also switches sign-in and the account page off, see [contributing-data.md](contributing-data.md#settings). |
 
 In the deployments these go in Infisical and reach the pods through
@@ -217,12 +228,13 @@ by hand, once per environment (`dev`, then `staging`, then `prod`).
    `dev` first before touching the other two.
 5. `kubectl -n epfl-resslab-resslab-hub-<env> rollout restart deployment/resslab-hub-backend-<env>`.
    Dynaconf reads the environment at startup only, so without a restart the
-   pods stay in log-only mode.
-6. Verify: the backend log must no longer show `Sign-in mail not sent (no
-   SMTP_HOST)`. Sign in on the deployed `/login` with a real address, the mail
-   arrives from "RESSLab Hub". If it fails, the page shows "The sign-in mail
-   could not be sent" and `kubectl logs` has the reason on a `Sign-in mail to
-   ... failed:` line.
+   pods still have no relay.
+6. Verify: right after startup the backend log says `Mails go through
+   mail.epfl.ch:587`, not `SMTP_HOST is not set`. Sign in on the deployed
+   `/login` with a real address, the mail arrives from "RESSLab Hub". If the
+   keys did not arrive, the page says "Email sign-in is not set up on this
+   server". If the relay refuses, the page says "The sign-in mail could not be
+   sent" and `kubectl logs` has the reason on a `Mail to ... failed` line.
 
 ## Signing in locally
 
