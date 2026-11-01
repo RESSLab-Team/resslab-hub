@@ -50,8 +50,9 @@ run:                    ## Docker build + full stack (traefik, frontend, 7 backe
 	docker compose build --parallel --pull
 	docker compose up -d --remove-orphans --scale backend=7
 
-api:                    ## regenerate openapi.json and frontend/src/backend/
+api:                    ## regenerate openapi.json, database-columns.json and frontend/src/backend/
 	cd backend; DATABASE_UPGRADE=false uv run python api.py ../openapi.json
+	cd backend; uv run python -m resslab_hub.data.columns ../database-columns.json
 	$(MAKE) -C frontend api
 
 sample-data:            ## synthetic contribution batches into sample-data/ (EXPERIMENTS=15 OUTLIERS=3)

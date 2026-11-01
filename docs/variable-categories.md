@@ -18,9 +18,11 @@ other six follow the same conventions.
 2. Otherwise the per-database rules in `frontend/src/utils/fieldGroups.ts` decide,
    first match wins. They mirror the dictionaries, so the two agree.
 3. Anything unclaimed lands in `other`, which `fieldGroups.spec.ts` asserts is always
-   empty by reading the real column list out of the `sample-data/` CSV headers. A
-   column added to a data dictionary without a category fails the test suite rather
-   than quietly degrading the UI.
+   empty. It reads the real column list from `database-columns.json` at the repo
+   root, which `make api` (and `make generate-model`) writes from the ORM models;
+   a backend test fails when that file is stale. A column added to a data
+   dictionary without a category fails the test suite (and CI) rather than
+   quietly degrading the UI.
 
 Rules prefer a pattern over a list of names wherever the naming already carries the
 category, so `uvc_rho_new` joins the cyclic model parameters and `pid_torque_p` joins
