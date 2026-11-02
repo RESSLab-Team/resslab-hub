@@ -1,11 +1,12 @@
 [default]
 postgres_host = "localhost"
-postgres_password = ""
-api_password = "changeit"
 
 [development]
 # No browser caching in dev: local data reloads must show up immediately.
 cache_max_age = 0
+# Laptop only. The deployments must set a real API_PASSWORD: when DEPLOYMENT
+# is set, the backend refuses to start on this value (config.py).
+api_password = "changeit"
 
 [production]
 postgres_host = "resslab-hub.epfl.ch"

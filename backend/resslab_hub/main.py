@@ -18,7 +18,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from resslab_hub import __name__ as title
 from resslab_hub import __version__
 from resslab_hub.auth.csrf import CSRFMiddleware
-from resslab_hub.config import settings
+from resslab_hub.config import refuse_default_secrets, settings
 from resslab_hub.contributions.github import aclose_github, describe_error
 from resslab_hub.routers import (
     admin,
@@ -51,6 +51,10 @@ from resslab_hub.utils.warmup import install as install_warmup
 def is_debug_mode():
     return "--log-level" in sys.argv and "debug" in sys.argv
 
+
+# A deployment with a default or missing secret must not serve requests.
+# Raise before the app exists, so the reason is the last line of the pod log.
+refuse_default_secrets()
 
 logger = logging.getLogger()
 

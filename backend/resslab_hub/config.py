@@ -14,7 +14,11 @@ settings = Dynaconf(
         Validator("postgres_host", default="localhost"),
         Validator("postgres_port", default=5432),
         Validator("postgres_user", default="postgres"),
-        Validator("postgres_password", must_exist=True),
+        # No must_exist on the two passwords: an empty string passes it anyway,
+        # and `make api` imports the app with no secrets. The real guard is
+        # refuse_default_secrets() below. An empty api_password already locks
+        # the machine-credential routes (auth/deps.py).
+        Validator("postgres_password", default=""),
         Validator("postgres_db", default="postgres"),
         # Where CREATE/DROP DATABASE are issued from (tests). A worktree's own
         # role can only connect to its clone, so wt-db.sh points this at it.
@@ -27,7 +31,10 @@ settings = Dynaconf(
         Validator("analytics_property_id", default=None),
         Validator("google_application_credentials", default=None),
         Validator("api_username", default="user"),
-        Validator("api_password", must_exist=True),
+        Validator("api_password", default=""),
+        # The k8s environment (dev, stage, prod), set by the overlay ConfigMap.
+        # When it is set, the secrets must be real (refuse_default_secrets).
+        Validator("deployment", default=None),
         # GitHub App used to open contribution PRs on the data repo. All three
         # credentials present = submissions enabled; otherwise POST
         # /contributions answers 503 and the app runs without the feature.
@@ -100,3 +107,50 @@ settings = Dynaconf(
 
 # `envvar_prefix` = export envvars with `export DYNACONF_FOO=bar`.
 # `settings_files` = Load these files in the order.
+
+DEFAULT_API_PASSWORD = "changeit"
+MIN_API_PASSWORD_LENGTH = 16
+
+
+def secret_problems(
+    deployment: str | None, api_password: str | None, postgres_password: str | None
+) -> list[str]:
+    """What is wrong with the secrets of a deployment. Empty when all is fine.
+
+    Outside a deployment (laptop, CI, tests) nothing is checked. The messages
+    name the variable, never its value.
+    """
+    if not deployment:
+        return []
+    problems = []
+    api_password = str(api_password or "")
+    if not api_password:
+        problems.append("API_PASSWORD is not set.")
+    elif api_password == DEFAULT_API_PASSWORD:
+        problems.append("API_PASSWORD is the default from settings.toml.")
+    elif len(api_password) < MIN_API_PASSWORD_LENGTH:
+        problems.append(
+            f"API_PASSWORD is shorter than {MIN_API_PASSWORD_LENGTH} characters."
+        )
+    if not str(postgres_password or ""):
+        problems.append("POSTGRES_PASSWORD is not set.")
+    return problems
+
+
+def refuse_default_secrets() -> None:
+    """Stop the API from starting in a deployment with a default secret (#264).
+
+    The trigger is DEPLOYMENT (set by every k8s overlay), or a Dynaconf env
+    of production or test. Only main.py calls it: the uploader and alembic
+    don't serve requests, so a weak password must not block them.
+    """
+    deployment = settings.deployment
+    if not deployment and settings.current_env.lower() in ("production", "test"):
+        deployment = settings.current_env.lower()
+    problems = secret_problems(
+        deployment, settings.api_password, settings.postgres_password
+    )
+    if problems:
+        raise RuntimeError(
+            f"DEPLOYMENT={deployment}: refusing to start. " + " ".join(problems)
+        )
