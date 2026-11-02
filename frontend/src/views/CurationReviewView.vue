@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import ProgressLine from '@/components/commons/ProgressLine.vue'
-import type { CurationDetail } from '@/backend'
+import type { CurationDetail, Type, VerificationBatch, VerificationPull } from '@/backend'
 import CohortPanel from '@/components/curation/CohortPanel.vue'
 import DataPreviewPanel from '@/components/curation/DataPreviewPanel.vue'
 import MetadataPanel from '@/components/curation/MetadataPanel.vue'
 import QualityFlagsRail from '@/components/curation/QualityFlagsRail.vue'
 import ReviewThread from '@/components/curation/ReviewThread.vue'
 import { cohortQueryFor, GHOST_CONFIGS, mergeBrush } from '@/components/curation/ghost'
-import type { ParallelSelection } from '@/composables/chart'
+import { spliceQueryClause, type ParallelSelection } from '@/composables/chart'
 import { useDataset } from '@/composables/useDataset'
+import { useAuthStore } from '@/stores/auth'
 import { useCurationStore } from '@/stores/curation'
 import { useDictionaryStore } from '@/stores/dictionary'
+import { errorDetail, useVerificationStore } from '@/stores/verification'
 import { databaseIdForType, formatAge, withDerivedExperiments } from '@/utils/curation'
+import { idsSearch, STATUS_COLUMN, VERIFIED } from '@/utils/curationStatus'
 import { DATABASES } from '@/utils/navigation'
 import {
   mdiAlertOutline,
@@ -24,30 +27,52 @@ import {
 } from '@mdi/js'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 
+/**
+ * One page, two reviews. A submission (`prNumber`): the rows of an open pull
+ * request, before it is merged. A verification (`type`, with
+ * `?reference=` and an optional `?id=` to start on, #253): rows already live
+ * and still unverified, read from the data repository, with the button that
+ * marks them as verified. The panels are the same, because this second check
+ * is where most of the scientific review happens.
+ */
 const props = defineProps<{
-  prNumber: string
+  prNumber?: string
+  /** Backend uploader Type value, e.g. `all-columns`. */
+  type?: string
 }>()
 
 const { locale } = useI18n({ useScope: 'global' })
 const store = useCurationStore()
+const verification = useVerificationStore()
 const dictionary = useDictionaryStore()
+const auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
+
+const verifying = computed(() => props.type !== undefined)
+const reference = computed(() => String(route.query.reference ?? ''))
 
 const number = computed(() => Number(props.prNumber))
 const detail = ref<CurationDetail | null>(null)
+const verifyBatch = ref<VerificationBatch | null>(null)
+/** What the panels read, in either mode. */
+const batch = computed(() => detail.value ?? verifyBatch.value)
 const state = ref<'loading' | 'ready' | 'error'>('loading')
+/** The backend's sentence when the verification rows could not be loaded. */
+const loadError = ref<string | undefined>(undefined)
 
-const database = computed(() => (detail.value ? databaseIdForType(detail.value.type) : null))
-const databaseName = computed(
-  () => DATABASES.find((entry) => entry.id === database.value)?.name ?? detail.value?.type ?? ''
-)
+const database = computed(() => (batch.value ? databaseIdForType(batch.value.type) : null))
+const databaseEntry = computed(() => DATABASES.find((entry) => entry.id === database.value))
+const databaseName = computed(() => databaseEntry.value?.name ?? batch.value?.type ?? '')
 
 const selectedUid = ref(0)
-const selected = computed(() => detail.value?.experiments[selectedUid.value])
+const selected = computed(() => batch.value?.experiments[selectedUid.value])
 
 const selectedFiles = computed(() => {
-  if (!detail.value || !selected.value) return []
-  return detail.value.files.filter(
+  if (!batch.value || !selected.value) return []
+  return batch.value.files.filter(
     (file) => file.kind === 'timeseries' && file.experiment_id === selected.value?.id
   )
 })
@@ -58,8 +83,13 @@ const selectedFiles = computed(() => {
 const cohortFields = ref<string[]>([])
 const restrictCohort = ref(true)
 const criteriaQuery = computed(() => {
-  if (!restrictCohort.value || !selected.value) return undefined
-  return cohortQueryFor(selected.value.cells, cohortFields.value)
+  const criteria =
+    restrictCohort.value && selected.value
+      ? cohortQueryFor(selected.value.cells, cohortFields.value)
+      : undefined
+  // Live rows are compared with the verified ones only: the rows under
+  // review are in the database too, and the batch would be its own cohort.
+  return verifying.value ? spliceQueryClause(criteria, STATUS_COLUMN, `${VERIFIED},`) : criteria
 })
 
 // Second cohort filter: the committed brush on the parallel chart. It lives
@@ -108,15 +138,113 @@ onMounted(async () => {
   try {
     // Derived columns (the material `type`) are added here once, so the cohort
     // chips, the cohort query and the ghost chart all read them as cells.
-    detail.value = withDerivedExperiments(await store.fetchDetail(number.value))
+    if (props.type !== undefined) {
+      const loaded = withDerivedExperiments(
+        await verification.fetchBatch(props.type as Type, reference.value)
+      )
+      const start = loaded.experiments.findIndex((experiment) => experiment.id === route.query.id)
+      if (start >= 0) selectedUid.value = start
+      verifyBatch.value = loaded
+    } else {
+      detail.value = withDerivedExperiments(await store.fetchDetail(number.value))
+    }
     state.value = 'ready'
     const config = database.value ? GHOST_CONFIGS[database.value] : undefined
     cohortFields.value = config ? [...config.cohortDefaults] : []
     loadRanges()
-  } catch {
+  } catch (caught: unknown) {
+    // A contributor opened someone else's submission: the router let them
+    // through on the role, the backend knows whose it is (#248).
+    if ((caught as { response?: { status?: number } })?.response?.status === 403) {
+      router.replace({
+        name: 'Forbidden',
+        query: { next: route.fullPath, need: 'curator', reason: 'not_yours' }
+      })
+      return
+    }
+    loadError.value = errorDetail(caught)
     state.value = 'error'
   }
 })
+
+// The panels load their files and checks through these, so they do not need
+// to know which review they are in.
+const loadFile = computed(() => {
+  const submission = detail.value
+  if (submission) return (path: string) => store.fetchFileText(submission.pr_number, path)
+  const live = verifyBatch.value
+  return (path: string) =>
+    live ? verification.fetchFileText(live.type as Type, live.base_sha, path) : Promise.reject()
+})
+const loadValidation = computed(() => {
+  const submission = detail.value
+  if (submission) return () => store.fetchValidation(submission.pr_number)
+  const live = verifyBatch.value
+  return () =>
+    live ? verification.fetchValidation(live.type as Type, live.reference) : Promise.reject()
+})
+
+// ── verification (#253) ──
+
+/** The open verification pull request of a row: the backend's, or one opened here. */
+function pullFor(id: string): VerificationPull | undefined {
+  const live = verifyBatch.value
+  if (!live) return undefined
+  return verification.pendingFor(live.type, id) ?? live.pending[id]
+}
+
+/** Verified in the data repository already, waiting for the next upload. */
+const alreadyVerified = computed(
+  () =>
+    verifyBatch.value?.experiments
+      .filter((experiment) => experiment.cells[STATUS_COLUMN]?.trim() === VERIFIED)
+      .map((experiment) => experiment.id) ?? []
+)
+
+/** The rows the button would mark: not verified yet, not in a pull request. */
+const toVerify = computed(
+  () =>
+    verifyBatch.value?.experiments
+      .map((experiment) => experiment.id)
+      .filter((id) => !pullFor(id) && !alreadyVerified.value.includes(id)) ?? []
+)
+
+/** The pull requests that cover rows of this page, once each. */
+const pulls = computed(() => {
+  const byNumber = new Map<number, VerificationPull>()
+  for (const experiment of verifyBatch.value?.experiments ?? []) {
+    const pull = pullFor(experiment.id)
+    if (pull) byNumber.set(pull.pr_number, pull)
+  }
+  return [...byNumber.values()]
+})
+
+const dashboardLink = computed(() => {
+  const live = verifyBatch.value
+  if (!live || !databaseEntry.value || !live.experiments.length) return null
+  return {
+    path: databaseEntry.value.to,
+    query: { id: idsSearch(live.experiments.map((experiment) => experiment.id)) }
+  }
+})
+
+const verifyBusy = ref(false)
+/** `null` when nothing failed, else the backend's sentence (may be empty). */
+const verifyError = ref<string | null>(null)
+
+async function markVerified(ids: string[]): Promise<void> {
+  const live = verifyBatch.value
+  if (!live || !ids.length) return
+  verifyBusy.value = true
+  verifyError.value = null
+  try {
+    await verification.verify(live.type as Type, ids)
+  } catch (caught) {
+    verifyError.value = errorDetail(caught) ?? ''
+  } finally {
+    verifyBusy.value = false
+  }
+}
 
 const metadataPanel = ref<InstanceType<typeof MetadataPanel> | null>(null)
 
@@ -134,23 +262,60 @@ async function selectIssue(uid: number, column: string): Promise<void> {
       v-if="state === 'loading'"
       class="pad"
       :active="true"
-      :label="$t('curation.review.loading')"
+      :label="$t(verifying ? 'curation.verify_review.loading' : 'curation.review.loading')"
     />
 
     <template v-else-if="state === 'error'">
       <p class="state pad">
         <v-icon :icon="mdiAlertOutline" size="15" />
-        {{ $t('curation.review.not_found') }}
+        <span>
+          {{ $t(verifying ? 'curation.verify_review.not_found' : 'curation.review.not_found') }}
+          <span v-if="verifying && loadError" class="state-detail">{{ loadError }}</span>
+        </span>
       </p>
-      <router-link class="cp-btn back" to="/curation">
+      <router-link
+        v-if="auth.hasRole('curator')"
+        class="cp-btn back"
+        :to="verifying ? { path: '/curation', query: { tab: 'verify' } } : '/curation'"
+      >
         <v-icon :icon="mdiArrowLeft" size="14" />
         {{ $t('curation.review.back') }}
       </router-link>
     </template>
 
-    <div v-else-if="detail && database" class="val">
+    <div v-else-if="batch && database" class="val">
       <div class="val-main">
-        <div class="val-head">
+        <div v-if="verifyBatch" class="val-head">
+          <p class="k">
+            {{ $t('curation.verify_review.eyebrow') }} · {{ databaseName }} ·
+            {{ $t('commons.unverified.tag') }}
+          </p>
+          <div class="hrow">
+            <h2>
+              {{ verifyBatch.experiments[0]?.id ?? verifyBatch.reference }}
+              <span v-if="verifyBatch.experiments.length > 1" class="more">
+                {{
+                  $t('curation.review.more_experiments', {
+                    count: verifyBatch.experiments.length - 1
+                  })
+                }}
+              </span>
+            </h2>
+            <div class="hrow-actions">
+              <router-link v-if="dashboardLink" class="cp-btn" :to="dashboardLink">
+                <v-icon :icon="mdiOpenInNew" size="14" />
+                {{ $t('curation.verify_review.open_dashboard') }}
+              </router-link>
+            </div>
+          </div>
+          <p class="sub">
+            {{ verifyBatch.reference || $t('curation.verify.no_reference') }} ·
+            <span class="mono">{{
+              $t('curation.verify_review.read_at', { sha: verifyBatch.base_sha.slice(0, 7) })
+            }}</span>
+          </p>
+        </div>
+        <div v-else-if="detail" class="val-head">
           <p class="k">
             {{ $t('curation.review.eyebrow', { number: detail.pr_number }) }} · {{ databaseName }} ·
             {{ $t('curation.review.in_review') }}
@@ -166,7 +331,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
             </h2>
             <div class="hrow-actions">
               <router-link
-                v-if="detail.mine"
+                v-if="detail.mine || auth.hasRole('curator')"
                 class="cp-btn"
                 :to="{ name: 'ContributeEdit', params: { prNumber: detail.pr_number } }"
               >
@@ -195,21 +360,52 @@ async function selectIssue(uid: number, column: string): Promise<void> {
         </div>
 
         <div class="val-body">
-          <p v-if="detail.reconstruction_warning" class="reconstruction">
+          <p v-if="detail?.reconstruction_warning" class="reconstruction">
             <v-icon :icon="mdiAlertOutline" size="15" />
             {{ detail.reconstruction_warning }}
           </p>
+          <template v-if="verifyBatch">
+            <p v-if="verifyBatch.missing_ids.length" class="reconstruction">
+              <v-icon :icon="mdiAlertOutline" size="15" />
+              {{
+                $t('curation.verify_review.missing', { ids: verifyBatch.missing_ids.join(', ') })
+              }}
+            </p>
+            <p v-if="alreadyVerified.length" class="reconstruction">
+              <v-icon :icon="mdiAlertOutline" size="15" />
+              {{
+                $t('curation.verify_review.already_verified', { ids: alreadyVerified.join(', ') })
+              }}
+            </p>
+          </template>
 
-          <div v-if="detail.experiments.length > 1" class="selector">
+          <div v-if="batch.experiments.length > 1" class="selector">
             <p class="selector-label">
-              {{ $t('curation.review.experiments_label', { count: detail.experiments.length }) }}
+              {{
+                $t(
+                  verifying
+                    ? 'curation.verify_review.experiments_label'
+                    : 'curation.review.experiments_label',
+                  { count: batch.experiments.length }
+                )
+              }}
             </p>
             <div class="selector-chips">
               <button
-                v-for="(experiment, index) in detail.experiments"
+                v-for="(experiment, index) in batch.experiments"
                 :key="experiment.id"
                 class="chip"
-                :class="{ sel: index === selectedUid }"
+                :class="{
+                  sel: index === selectedUid,
+                  pending: verifying && !!pullFor(experiment.id)
+                }"
+                :title="
+                  verifying && pullFor(experiment.id)
+                    ? $t('commons.unverified.pending', {
+                        number: pullFor(experiment.id)?.pr_number
+                      })
+                    : undefined
+                "
                 type="button"
                 @click="selectedUid = index"
               >
@@ -221,7 +417,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
           <metadata-panel
             v-if="selected"
             ref="metadataPanel"
-            :columns="detail.columns"
+            :columns="batch.columns"
             :database="database"
             :experiment="selected"
             :ranges="ranges"
@@ -233,7 +429,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
             :cohort-query="cohortQuery"
             :criteria-query="criteriaQuery"
             :database="database"
-            :detail="detail"
+            :detail="batch"
             :selected-uid="selectedUid"
           />
           <data-preview-panel
@@ -242,7 +438,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
             :cohort-query="cohortQuery"
             :database="database"
             :files="selectedFiles"
-            :pr-number="detail.pr_number"
+            :load-file="loadFile"
           />
         </div>
       </div>
@@ -251,15 +447,59 @@ async function selectIssue(uid: number, column: string): Promise<void> {
         <div class="rail-scroll">
           <quality-flags-rail
             :database="database"
-            :detail="detail"
-            :pr-number="detail.pr_number"
+            :detail="batch"
+            :load-validation="loadValidation"
             @select="selectIssue"
           />
 
-          <review-thread :pr-number="detail.pr_number" :pr-url="detail.pr_url" />
+          <review-thread v-if="detail" :pr-number="detail.pr_number" :pr-url="detail.pr_url" />
         </div>
 
-        <div class="val-actions" :title="$t('curation.actions.disabled_tooltip')">
+        <div v-if="verifyBatch" class="val-actions">
+          <button
+            v-if="toVerify.length"
+            class="cp-btn primary full"
+            :disabled="verifyBusy"
+            type="button"
+            @click="markVerified(toVerify)"
+          >
+            <v-icon :icon="mdiCheck" size="14" />
+            {{
+              verifyBusy
+                ? $t('commons.unverified.opening')
+                : $t('curation.verify.button', { count: toVerify.length }, toVerify.length)
+            }}
+          </button>
+          <button
+            v-if="selected && toVerify.length > 1 && toVerify.includes(selected.id)"
+            class="cp-btn full"
+            :disabled="verifyBusy"
+            type="button"
+            @click="markVerified([selected.id])"
+          >
+            {{ $t('curation.verify_review.only', { id: selected.id }) }}
+          </button>
+          <p v-if="!toVerify.length" class="actions-note">
+            {{ $t('curation.verify_review.nothing_left') }}
+          </p>
+          <a
+            v-for="pull in pulls"
+            :key="pull.pr_number"
+            class="pull"
+            :href="pull.pr_url"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {{ $t('commons.unverified.pending', { number: pull.pr_number }) }}
+            <v-icon :icon="mdiOpenInNew" size="13" />
+          </a>
+          <p v-if="verifyError !== null" class="fail" role="alert">
+            {{ $t('commons.unverified.failed') }}
+            <span v-if="verifyError" class="state-detail">{{ verifyError }}</span>
+          </p>
+          <p class="actions-note">{{ $t('curation.verify_review.note') }}</p>
+        </div>
+        <div v-else class="val-actions" :title="$t('curation.actions.disabled_tooltip')">
           <button class="cp-btn primary full" disabled type="button">
             <v-icon :icon="mdiSendOutline" size="14" />
             {{ $t('curation.actions.request_changes') }}
@@ -292,11 +532,21 @@ async function selectIssue(uid: number, column: string): Promise<void> {
   color: var(--fg-muted);
 }
 .pad {
-  padding: 30px 40px;
+  padding: 30px clamp(16px, 4vw, 40px);
 }
 .back {
-  margin: 0 40px;
+  margin: 0 clamp(16px, 4vw, 40px);
   text-decoration: none;
+}
+.state-detail {
+  display: block;
+  font-size: 12.5px;
+  color: var(--fg-subtle);
+  margin-top: 4px;
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
 
 /* ── two-pane validation layout (prototype .cp-val) ──
@@ -455,6 +705,11 @@ async function selectIssue(uid: number, column: string): Promise<void> {
   color: var(--bg);
   border-color: var(--fg);
 }
+/* In a verification pull request already: still there to look at. */
+.chip.pending:not(.sel) {
+  color: var(--fg-subtle);
+  border-style: dashed;
+}
 
 /* ── right rail ── */
 .val-rail {
@@ -494,6 +749,31 @@ async function selectIssue(uid: number, column: string): Promise<void> {
 }
 .row2 .cp-btn + .cp-btn {
   border-left: 0;
+}
+/* Phone: the two buttons stack, still joined by one shared border. */
+@media (max-width: 480px) {
+  .row2 {
+    grid-template-columns: 1fr;
+  }
+  .row2 .cp-btn + .cp-btn {
+    border-left: 1px solid var(--fg);
+    border-top: 0;
+  }
+}
+.pull {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--fg);
+  text-decoration: none;
+}
+.pull:hover {
+  color: var(--epfl-red);
+}
+.fail {
+  font-size: 12.5px;
+  margin: 0;
 }
 .actions-note {
   font-size: 11.5px;

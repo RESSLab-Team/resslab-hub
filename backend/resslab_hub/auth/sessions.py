@@ -21,7 +21,7 @@ from datetime import timedelta
 from typing import Optional
 
 from fastapi import Request, Response
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from resslab_hub.auth.challenges import aware, now
@@ -104,6 +104,19 @@ async def revoke_session(db: AsyncSession, token: str) -> None:
     if session is not None:
         await db.delete(session)
         await db.commit()
+
+
+async def revoke_all(db: AsyncSession, user_id: str) -> None:
+    """Sign a user out everywhere, when an admin disables the account.
+
+    Marked rather than deleted, so the rows still say where they had been
+    signed in. Does not commit.
+    """
+    await db.execute(
+        update(Session)
+        .where(Session.user_id == user_id, Session.revoked_at.is_(None))
+        .values(revoked_at=now())
+    )
 
 
 def _set(response: Response, name: str, value: str, max_age: int) -> None:

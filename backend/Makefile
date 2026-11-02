@@ -180,3 +180,4 @@ generate-model:         ## regenerate ORM models and Pydantic schemas from the d
 		$(RESSLAB_DATA_DIR)/material/ductile_fracture/ductile_fracture_data_dictionary.csv \
 		resslab_hub/models/database/ductile_fracture.py \
 		resslab_hub/models/api.py ductile_fracture
+	uv run python -m resslab_hub.data.columns ../database-columns.json

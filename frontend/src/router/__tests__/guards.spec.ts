@@ -46,6 +46,20 @@ describe('resolveGuard', () => {
     })
   })
 
+  it('keeps the admin page for admins, even from a curator (#248)', () => {
+    expect(resolveGuard(route('admin', '/admin'), { role: 'curator' }, true)).toEqual({
+      name: 'Forbidden',
+      query: { next: '/admin', need: 'admin' }
+    })
+    expect(resolveGuard(route('admin', '/admin'), { role: 'admin' }, true)).toBe(true)
+  })
+
+  it('lets a contributor reach one submission, the backend checks it is theirs', () => {
+    expect(resolveGuard(route('contributor', '/curation/12'), { role: 'contributor' }, true)).toBe(
+      true
+    )
+  })
+
   it('treats a missing role as the weakest one', () => {
     expect(resolveGuard(route('contributor'), {}, true)).toEqual({
       name: 'Forbidden',

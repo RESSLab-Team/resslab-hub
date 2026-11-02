@@ -17,6 +17,7 @@ import {
 import { useNotificationStore } from '@/stores/notification'
 import type { ColorScale } from '@/utils/categoryColors'
 import { isStructuredFilterValue, shareCurrentUrl, type Searches, type Value } from '@/utils/common'
+import { isUnverified } from '@/utils/curationStatus'
 import type { FilterDescriptor } from '@/utils/filterProfile'
 import { formatValue } from '@/utils/queryEngine'
 import type { DatabaseId } from '@/utils/navigation'
@@ -119,7 +120,6 @@ const emit = defineEmits<{
   (e: 'update:searches', value: Searches): void
 }>()
 
-const maxDownloadCount = 5
 /** -1 = "All". `useTable` maps it to a 1000-row fetch, which exceeds every
  *  dataset (largest is ~370 rows), so it really does return everything. */
 const ALL_ITEMS_PER_PAGE = -1
@@ -472,12 +472,6 @@ watch(pageCount, (value) => {
   }
 })
 
-watch(selectedItems, (value) => {
-  if (value.length >= maxDownloadCount) {
-    notificationStore.notify(t('commons.max_download', { max: maxDownloadCount }))
-  }
-})
-
 // Sort / page / size are owned here and pushed to the parent via `update:options`,
 // exactly as `v-data-table-server` used to — `useTable` re-fetches from them.
 function emitOptions(): void {
@@ -598,20 +592,17 @@ function hasColumnFilter(header: TableHeader): boolean {
   return value !== undefined && value !== null && value !== ''
 }
 
-function isItemSelectable(item: M): boolean {
-  return selectedItems.value.length < maxDownloadCount || selectedItemsIds.value.includes(item.id)
-}
 function isRowSelected(item: M): boolean {
   return selectedItemsIds.value.includes(item.id)
 }
 function toggleRow(item: M): void {
   if (isRowSelected(item)) {
     selectedItemsIds.value = selectedItemsIds.value.filter((id) => id !== item.id)
-  } else if (isItemSelectable(item)) {
+  } else {
     selectedItemsIds.value = [...selectedItemsIds.value, item.id]
   }
 }
-// Header select-all across the current page, capped at the download limit.
+// Header checkbox: select every row of the page, or clear them if all are selected.
 const allPageSelected = computed<boolean>(
   () => displayItems.value.length > 0 && displayItems.value.every((item) => isRowSelected(item))
 )
@@ -625,10 +616,7 @@ function toggleSelectAll(): void {
     return
   }
   const set = new Set(selectedItemsIds.value)
-  for (const item of displayItems.value) {
-    if (set.size >= maxDownloadCount) break
-    set.add(item.id)
-  }
+  for (const item of displayItems.value) set.add(item.id)
   selectedItemsIds.value = [...set]
 }
 
@@ -1078,14 +1066,21 @@ function downloadZip(): void {
                 }"
                 @click="rowClick(item)"
               >
-                <td class="stbl-col-select" @click.stop>
+                <td
+                  class="stbl-col-select"
+                  :class="{ 'is-unverified': isUnverified(item) }"
+                  :title="isUnverified(item) ? t('commons.unverified.row_title') : undefined"
+                  @click.stop
+                >
                   <input
                     type="checkbox"
                     class="stbl-check"
                     :checked="isRowSelected(item)"
-                    :disabled="!isItemSelectable(item)"
                     @change="toggleRow(item)"
                   />
+                  <span v-if="isUnverified(item)" class="stbl-sr">{{
+                    t('commons.unverified.tag')
+                  }}</span>
                 </td>
                 <td
                   v-for="header in tableHeaders"
@@ -1143,7 +1138,7 @@ function downloadZip(): void {
       <div class="dash-pager-actions">
         <button
           class="btn btn-secondary btn-sm"
-          :disabled="selectedItems.length === 0 || selectedItems.length > maxDownloadCount"
+          :disabled="selectedItems.length === 0"
           @click="downloadZip"
         >
           <v-icon :icon="mdiDownload" size="14" />
@@ -1482,6 +1477,8 @@ function downloadZip(): void {
 /* Per-column header menu (sort + filter) */
 .stbl-menu {
   min-width: 220px;
+  /* Never wider than a phone screen, minus a 16px gutter on each side. */
+  max-width: calc(100vw - 32px);
   padding: 4px;
   background: var(--bg);
   border: 1px solid var(--border);
@@ -1534,6 +1531,7 @@ function downloadZip(): void {
    the popover is otherwise sized to its sort rows. */
 .stbl-menu-filter.is-rich {
   width: 280px;
+  max-width: 100%;
   padding-top: 6px;
 }
 .stbl-menu-filter.is-rich .afr-options {
@@ -1618,6 +1616,21 @@ function downloadZip(): void {
 .stbl-spacer td {
   padding: 0;
   border: none;
+}
+/* Unverified row (#253): an orange rule on the left edge, in the fixed select
+   gutter. Not a tag in the first cell: the widths are measured from the text
+   alone, so a tag would push the id out of its column. A selected row keeps
+   its red rule, drawn on the row. */
+.stbl-row:not(.is-selected) td.stbl-col-select.is-unverified {
+  box-shadow: inset 3px 0 0 var(--warning);
+}
+.stbl-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Selection checkboxes — EPFL red when checked */

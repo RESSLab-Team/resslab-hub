@@ -197,17 +197,37 @@ const router = createRouter({
       meta: { auth: 'contributor', contributions: true }
     },
     {
+      // Every open submission: curators only (#248).
       path: '/curation',
       name: 'CurationQueue',
       component: () => import('@/views/CurationQueueView.vue'),
-      meta: { auth: 'viewer', contributions: true }
+      meta: { auth: 'curator', contributions: true }
     },
     {
+      // One submission: a curator, or the person who sent it. The guard only
+      // knows the role, so it lets a contributor through and the backend says
+      // 403 when the submission is not theirs.
       path: '/curation/:prNumber(\\d+)',
       name: 'CurationReview',
       component: () => import('@/views/CurationReviewView.vue'),
       props: true,
-      meta: { auth: 'viewer', contributions: true }
+      meta: { auth: 'contributor', contributions: true }
+    },
+    {
+      // Rows already live and still unverified, one reference at a time
+      // (?reference=, ?id= to start on one), with the same panels (#253).
+      path: '/curation/verify/:type',
+      name: 'VerificationReview',
+      component: () => import('@/views/CurationReviewView.vue'),
+      props: true,
+      meta: { auth: 'curator', contributions: true }
+    },
+    {
+      // Who can do what: members, invitations, access requests (#248).
+      path: '/admin',
+      name: 'Admin',
+      component: () => import('@/views/AdminView.vue'),
+      meta: { auth: 'admin', contributions: true }
     },
     {
       path: '/login',

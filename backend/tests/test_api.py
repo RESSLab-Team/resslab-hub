@@ -199,6 +199,48 @@ async def test_validate_valid_archive_returns_200_structured(client, tmp_path):
     assert "error_results" in body and "valid_results" in body
 
 
+async def test_validate_with_trailing_slash_answers_json(client, tmp_path):
+    # The data CI called /validate/ for a long time. A redirect would lose the
+    # /api prefix behind Traefik and land on nginx (an HTML 405), so the slash
+    # must be served directly.
+    archive = _braces_targz(tmp_path, [{"id": "B1"}])
+    response = await client.post(
+        "/validate/",
+        params={"type": "all-braces"},
+        files=_upload(archive),
+        auth=SERVICE_AUTH,
+    )
+    assert response.status_code == 200
+    assert response.json()["valid"] is True
+
+
+async def test_validate_unhandled_error_answers_json(tmp_path):
+    # An error outside the route's own try (here a dependency) must still be
+    # JSON, with a fixed message, never Starlette's plain text 500.
+    import httpx
+
+    from resslab_hub.main import app
+    from resslab_hub.routers.root import enforce_request_size
+
+    def broken():
+        raise RuntimeError("secret detail")
+
+    app.dependency_overrides[enforce_request_size] = broken
+    try:
+        transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+            response = await c.post(
+                "/validate",
+                params={"type": "all-braces"},
+                files=_upload(_braces_targz(tmp_path, [{"id": "B1"}])),
+                auth=SERVICE_AUTH,
+            )
+    finally:
+        app.dependency_overrides.pop(enforce_request_size, None)
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Internal server error"}
+
+
 async def test_validate_invalid_data_is_200_with_structured_issue(client, tmp_path):
     # 'area' is a Float column; a non-numeric value is a data error, not a
     # transport error, so it comes back as 200 valid=false.

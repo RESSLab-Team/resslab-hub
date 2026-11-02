@@ -42,6 +42,7 @@ from resslab_hub.data.common import (
     is_empty_row,
 )
 from resslab_hub.data.count_flags import COUNT_FLAGS
+from resslab_hub.data.curation_status import ALLOWED, STATUS_COLUMN, VERIFIED
 from resslab_hub.data.uploader import (
     Type,
     get_args_all,
@@ -269,6 +270,7 @@ class TableValidator(Validator):
         base_model: Any,
         id_column_key: str = "id",
         check_duplicate_ids: bool = False,
+        verified_ranges: bool = False,
     ):
         self.base_model = base_model
         self.id_column_key = id_column_key
@@ -276,6 +278,10 @@ class TableValidator(Validator):
         # full repo CSVs, whose ids are all already in the database — flagging
         # those as duplicates would make that CI permanently red.
         self.check_duplicate_ids = check_duplicate_ids
+        # The range warnings compare with verified rows only (#253). For a
+        # verification: the unverified rows under review are in the table, so
+        # an outlier would set the range itself and never be flagged.
+        self.verified_ranges = verified_ranges
 
     def _existing_ids(self) -> set:
         """Ids already in the table; empty when the database is unreachable."""
@@ -302,9 +308,13 @@ class TableValidator(Validator):
         aggregates = []
         for column in numeric_columns:
             aggregates.extend([func.count(column), func.min(column), func.max(column)])
+        query = select(*aggregates)
+        status = self.base_model.__table__.c.get(STATUS_COLUMN)
+        if self.verified_ranges and status is not None:
+            query = query.where(status == VERIFIED)
         try:
             with Session(engine) as session:
-                row = session.execute(select(*aggregates)).one()
+                row = session.execute(query).one()
         except Exception:
             return {}
         return {
@@ -386,7 +396,9 @@ class TableValidator(Validator):
                 debug(f"Expected columns: {expected_columns}")
                 debug(f"Found columns: {headers}")
 
-                missing_columns = expected_columns - set(headers)
+                # The review status is set by the Hub, not by the
+                # contributor: accepted when present, never required.
+                missing_columns = expected_columns - {STATUS_COLUMN} - set(headers)
                 # An unnamed column already has its own warning above.
                 unexpected_columns = {
                     name for name in headers if name.strip()
@@ -446,6 +458,9 @@ class TableValidator(Validator):
                         column_name = headers[col_idx]
                         values[column_name] = value
                         if column_name not in expected_columns:
+                            continue
+                        if column_name == STATUS_COLUMN:
+                            self._check_status(result, row_num, value)
                             continue
 
                         column = self.base_model.__table__.c[column_name]
@@ -515,6 +530,19 @@ class TableValidator(Validator):
 
     def _validate_row(self, result: ValidationResult, row: int, values: dict):
         """Rules that need more than one cell of the row. No-op by default."""
+
+    def _check_status(self, result: ValidationResult, row: int, value: str):
+        """The review status, when the file carries it: one of ALLOWED. An
+        empty cell is fine, the upload reads it as unverified."""
+        text = (value or "").strip()
+        if text and text not in ALLOWED:
+            result.add_error(
+                row,
+                STATUS_COLUMN,
+                value,
+                f"Must be {' or '.join(ALLOWED)}. The Hub sets this column, "
+                f"you can leave it out.",
+            )
 
     def _check_missing(
         self, result: ValidationResult, row: int, column: Any, value: str
@@ -1159,6 +1187,7 @@ def validate_with_primary(
     filename: str,
     primary_csv_paths: dict = None,
     check_duplicate_ids: bool = False,
+    verified_ranges: bool = False,
 ) -> ValidationResult:
     """Helper function to create validator with appropriate primary CSV
     Args:
@@ -1172,6 +1201,7 @@ def validate_with_primary(
         validator = validate_one_file(input_type, filename)
         if isinstance(validator, TableValidator):
             validator.check_duplicate_ids = check_duplicate_ids
+            validator.verified_ranges = verified_ranges
         if isinstance(validator, CsvFileValidator):
             primary_type = PRIMARY_TYPE_MAP.get(input_type)
             if primary_type and primary_csv_paths:
@@ -1194,7 +1224,13 @@ _PARALLEL_MIN_TASKS = 32
 
 
 def _run_validations(
-    tasks, primary_csv_paths, cpu, log_level, log_format, check_duplicate_ids=False
+    tasks,
+    primary_csv_paths,
+    cpu,
+    log_level,
+    log_format,
+    check_duplicate_ids=False,
+    verified_ranges=False,
 ) -> List[ValidationResult]:
     """Validate a batch of files, using a process pool only for bulk inputs."""
     if not tasks:
@@ -1202,7 +1238,9 @@ def _run_validations(
     workers = min(cpu, len(tasks))
     if workers <= 1 or len(tasks) < _PARALLEL_MIN_TASKS:
         return [
-            validate_with_primary(t, f, primary_csv_paths, check_duplicate_ids)
+            validate_with_primary(
+                t, f, primary_csv_paths, check_duplicate_ids, verified_ranges
+            )
             for t, f in tasks
         ]
     with get_context("spawn").Pool(
@@ -1212,7 +1250,10 @@ def _run_validations(
     ) as pool:
         return pool.starmap(
             validate_with_primary,
-            [(t, f, primary_csv_paths, check_duplicate_ids) for t, f in tasks],
+            [
+                (t, f, primary_csv_paths, check_duplicate_ids, verified_ranges)
+                for t, f in tasks
+            ],
         )
 
 
@@ -1221,6 +1262,7 @@ def validate_all(
     filenames: List[str],
     cpu=None,
     check_duplicate_ids: bool = False,
+    verified_ranges: bool = False,
 ) -> List[ValidationResult]:
     """
     Validate all files in parallel
@@ -1230,9 +1272,8 @@ def validate_all(
 
     info(f"Number of CPUs available: {cpu}")
 
-    # Get current logging configuration to pass to workers
-
-    getLogger().setLevel("DEBUG")
+    # Get current logging configuration to pass to workers. Don't change it:
+    # the root logger is shared with the whole API process (#264 H2).
     current_log_level = getLogger().level
     root_logger = getLogger()
     current_log_format = None
@@ -1281,6 +1322,7 @@ def validate_all(
                     current_log_level,
                     current_log_format,
                     check_duplicate_ids,
+                    verified_ranges,
                 )
             )
         except Exception as e:

@@ -78,7 +78,7 @@ watch(
     </template>
     <template #parameters>
       <v-row>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <property-item :name="$t('detail.column.loading_protocol')">
             {{ column.lateral_lp }}
           </property-item>
@@ -98,7 +98,7 @@ watch(
             {{ column.l_b_over_r_yc }}
           </property-item>
         </v-col>
-        <v-col cols="6">
+        <v-col cols="12" sm="6">
           <v-img max-height="256" :src="imageSrc" />
         </v-col>
       </v-row>

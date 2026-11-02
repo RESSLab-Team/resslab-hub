@@ -870,7 +870,6 @@ async function confirmSubmit(): Promise<void> {
   padding: 12px 16px;
   border: 1px solid var(--border);
   background: var(--bg);
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
 }
 .status {
   display: inline-flex;

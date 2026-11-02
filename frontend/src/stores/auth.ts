@@ -116,6 +116,16 @@ export const useAuthStore = defineStore('auth', () => {
     await ensureLoaded(true)
   }
 
+  /**
+   * Ask the admins for the contributor role (#248). The answer comes back on
+   * `user.access_request`, so the page shows it waiting.
+   */
+  async function requestAccess(message: string): Promise<void> {
+    const { authApi } = await api()
+    const { data } = await authApi.requestAccess({ message })
+    if (user.value) user.value = { ...user.value, access_request: data }
+  }
+
   return {
     user,
     status,
@@ -129,6 +139,7 @@ export const useAuthStore = defineStore('auth', () => {
     verifyEmailLogin,
     goToGitHub,
     logout,
-    unlinkIdentity
+    unlinkIdentity,
+    requestAccess
   }
 })

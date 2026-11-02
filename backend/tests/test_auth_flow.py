@@ -495,6 +495,100 @@ async def test_linking_github_while_signed_in(client, github, sign_in, db_sessio
     assert stored.id == user.id
 
 
+async def test_github_sign_in_with_write_access_makes_a_curator(
+    client, github, github_permissions, db_session
+):
+    """Write (or maintain) on the data repo is the curator role (#248)."""
+    github_permissions["ada"] = "write"
+    state = await _github_state(client)
+    await client.get(
+        "/auth/github/callback", params={"code": "the-code", "state": state}
+    )
+
+    user = db_session.execute(select(User)).scalar_one()
+    assert (user.role, user.role_source) == ("curator", "github")
+    assert user.github_role == "write"
+    assert user.github_role_synced_at is not None
+
+
+async def test_linking_github_with_admin_access_makes_an_admin(
+    client, github, github_permissions, sign_in, db_session
+):
+    """No need to wait for the next sign-in to get the role."""
+    github_permissions["ada"] = "admin"
+    sign_in(email="ada@example.edu")
+    response = await client.get("/auth/github/start", params={"link": True})
+    state = response.headers["location"].split("state=")[1].split("&")[0]
+    await client.get(
+        "/auth/github/callback", params={"code": "the-code", "state": state}
+    )
+
+    db_session.expire_all()
+    user = db_session.execute(select(User)).scalar_one()
+    assert (user.role, user.role_source) == ("admin", "github")
+
+
+async def test_the_role_follows_github_within_the_hour(
+    client, sign_in, github_permissions, db_session
+):
+    """Access removed on GitHub: the first request after an hour drops it."""
+    from datetime import datetime, timedelta, timezone
+
+    sign_in(
+        role="curator",
+        role_source="github",
+        github_login="ada",
+        github_role="write",
+        github_role_synced_at=datetime.now(timezone.utc) - timedelta(hours=2),
+    )
+    github_permissions["ada"] = "read"
+
+    body = (await client.get("/auth/me")).json()["user"]
+    assert (body["role"], body["role_source"]) == ("viewer", "default")
+    db_session.expire_all()
+    assert db_session.execute(select(User)).scalar_one().github_role == "read"
+
+
+async def test_a_fresh_permission_is_kept(client, sign_in, github_permissions):
+    from datetime import datetime, timedelta, timezone
+
+    sign_in(
+        role="curator",
+        role_source="github",
+        github_login="ada",
+        github_role="write",
+        github_role_synced_at=datetime.now(timezone.utc) - timedelta(minutes=10),
+    )
+    github_permissions["ada"] = "none"
+    assert (await client.get("/auth/me")).json()["user"]["role"] == "curator"
+
+
+async def test_email_sign_in_reads_the_linked_github_again(
+    client, mailbox, github_permissions, db_session
+):
+    from datetime import datetime, timezone
+
+    db_session.add(
+        User(
+            email="ada@example.edu",
+            email_verified_at=datetime.now(timezone.utc),
+            display_name="Ada",
+            role="curator",
+            github_login="ada",
+            github_role="write",
+            github_role_synced_at=datetime.now(timezone.utc),
+        )
+    )
+    db_session.commit()
+    github_permissions["ada"] = "none"
+
+    await _start(client)
+    response = await client.post(
+        "/auth/email/verify", json={"code": mailbox[0]["code"]}
+    )
+    assert response.json()["user"]["role"] == "viewer"
+
+
 async def test_linking_a_github_account_someone_else_owns(
     client, github, sign_in, db_session
 ):
@@ -556,8 +650,14 @@ async def test_curation_queue_needs_a_session(client):
     assert (await client.get("/contributions")).status_code == 401
 
 
-async def test_curation_queue_opens_for_a_signed_in_user(client, sign_in):
-    sign_in()
+async def test_the_curation_queue_is_for_curators(client, sign_in):
+    """The lab's work list (#248). A contributor reads only their own PR."""
+    sign_in(email="ada@epfl.ch", role="contributor")
+    assert (await client.get("/contributions")).status_code == 403
+
+
+async def test_curation_queue_opens_for_a_curator(client, sign_in):
+    sign_in(role="curator")
     # 200 with configured=false when no GitHub App is set up: past the gate,
     # which is what this asserts.
     assert (await client.get("/contributions")).status_code == 200

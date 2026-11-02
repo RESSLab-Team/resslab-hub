@@ -30,7 +30,11 @@ from time import monotonic
 from typing import Dict, List, Optional, Set, Tuple
 
 from resslab_hub.config import settings
-from resslab_hub.contributions.github import DataRepoClient, NewFile
+from resslab_hub.contributions.github import (
+    DataRepoClient,
+    NewFile,
+    describe_error,
+)
 from resslab_hub.contributions.projection import (
     SubmissionError,
     SubmissionValidationFailed,
@@ -41,6 +45,7 @@ from resslab_hub.contributions.projection import (
     split_batch,
     type_for_branch,
 )
+from resslab_hub.contributions.reviewers import request_reviews
 from resslab_hub.contributions.trailers import (
     Provenance,
     build_commit_message,
@@ -49,6 +54,7 @@ from resslab_hub.contributions.trailers import (
     provenance_from_record,
 )
 from resslab_hub.data.common import SAFE_ID_PATTERN, SAFE_ID_RULE
+from resslab_hub.data.curation_status import STATUS_COLUMN, UNVERIFIED
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import ValidationResult, validate_all
 
@@ -415,8 +421,14 @@ def build_primary_csv(
     the dictionary's, and it may carry legacy extras the dictionary dropped
     (e.g. hss_columns' test_id) — those get NR, and the uploader ignores them
     anyway. Only a batch column the repo lacks is real schema drift.
+
+    Every batch row goes in as unverified, whatever the batch says: only a
+    curator's verification pull request makes a row verified (#253). The
+    kept rows are written back as they are.
     """
-    missing = [name for name in header if name not in repo_header]
+    missing = [
+        name for name in header if name not in repo_header and name != STATUS_COLUMN
+    ]
     if missing:
         raise SubmissionError(
             502,
@@ -430,6 +442,9 @@ def build_primary_csv(
     def repo_ordered(row: List[str]) -> List[str]:
         cells = []
         for name in repo_header:
+            if name == STATUS_COLUMN:
+                cells.append(UNVERIFIED)
+                continue
             position = batch_index.get(name)
             in_batch = position is not None and position < len(row)
             value = row[position] if in_batch else ""
@@ -516,11 +531,15 @@ async def submit_contribution(
                 layout.primary_csv,
             ),
         )
-    except Exception:
+    except Exception as exc:
         await client.delete_branch(branch)
         raise SubmissionError(
-            502, "The pull request could not be opened on the data repository."
+            502,
+            "The pull request could not be opened on the data repository "
+            f"({describe_error(exc)}).",
         )
+    # The PR is open from here: a failure is only logged, the submit succeeds.
+    await request_reviews(client, pull["number"], contributor.github_login)
     return SubmissionResult(pull["url"], pull["number"], branch, commit_sha)
 
 
@@ -531,6 +550,7 @@ async def update_contribution(
     contributor: Contributor,
     dismissed_warnings: List[str],
     client: Optional[DataRepoClient] = None,
+    as_curator: bool = False,
 ) -> SubmissionResult:
     """Replace an open submission's batch with a new commit on its branch.
 
@@ -543,7 +563,10 @@ async def update_contribution(
 
     Only the account that made the submission can change it (403 otherwise),
     read off the commit trailers on the branch (the JSON record, for a pull
-    request opened before those). Curators get their own way in with #248.
+    request opened before those). A curator can change any of them
+    (``as_curator``, #248): ``contributor`` is then the curator, who authors
+    the commit, while the trailers and the pull request body keep naming the
+    person who submitted.
     """
     client = client or DataRepoClient()
     try:
@@ -577,11 +600,26 @@ async def update_contribution(
     }
     branch_files = classify_files(head_files, input_type)
     provenance = await read_provenance(client, pr_number, head_sha, branch_files)
+    submitter = contributor
     if not owns_submission(provenance, contributor.email):
-        raise SubmissionError(
-            403,
-            "This submission was made from another account. Only the person "
-            "who submitted it can change it from the Hub.",
+        if not as_curator:
+            raise SubmissionError(
+                403,
+                "This submission was made from another account. Only the person "
+                "who submitted it can change it from the Hub.",
+            )
+        if provenance is None:
+            raise SubmissionError(
+                403,
+                "Nothing on this branch says who submitted it, so it cannot be "
+                "changed from the Hub. Change it on GitHub instead.",
+            )
+        submitter = Contributor(
+            name=provenance.name,
+            email=provenance.email,
+            institution=provenance.institution,
+            orcid=provenance.orcid,
+            github_login=provenance.github_login,
         )
 
     layout = validate_archive(tmpdir, input_type)
@@ -624,7 +662,7 @@ async def update_contribution(
         deletions.append(legacy)
 
     title = commit_title(input_type, ids, verb="update")
-    message = submission_message(title, contributor, dismissed_warnings)
+    message = submission_message(title, submitter, dismissed_warnings)
     try:
         commit_sha = await client.commit_on_branch(
             branch,
@@ -649,7 +687,7 @@ async def update_contribution(
         await client.update_pull_body(
             pr_number,
             build_pr_body(
-                contributor,
+                submitter,
                 input_type,
                 len(ids),
                 curve_count,

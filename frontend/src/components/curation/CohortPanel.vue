@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type { CurationDetail } from '@/backend'
 import SimpleParallelChart from '@/components/commons/charts/SimpleParallelChart.vue'
 import { GHOST_CONFIGS, isEmptyBrush, requestFieldsFor } from '@/components/curation/ghost'
 import type { ParallelSelection } from '@/composables/chart'
 import ToolSwitch from '@/components/commons/tools/ToolSwitch.vue'
 import { useDataset } from '@/composables/useDataset'
 import { CONTRIBUTION_DATABASES, fieldLabel } from '@/utils/contribution'
-import { cellValue, isMissing } from '@/utils/curation'
+import { cellValue, isMissing, type ReviewBatch } from '@/utils/curation'
 import type { DatabaseId } from '@/utils/navigation'
 import { mdiAccountGroupOutline, mdiAlertOutline, mdiInformationOutline } from '@mdi/js'
 import { computed, ref, watch } from 'vue'
@@ -25,7 +24,7 @@ import { computed, ref, watch } from 'vue'
  */
 const props = defineProps<{
   database: DatabaseId
-  detail: CurationDetail
+  detail: ReviewBatch
   selectedUid: number
   /** Criteria the curator has switched on (owned by the review view). */
   fields: string[]

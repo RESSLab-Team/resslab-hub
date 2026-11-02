@@ -4,6 +4,7 @@ import { useDictionaryStore } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES, DATA_REPOSITORY_URL } from '@/utils/contribution'
 import { databaseIdForType, editableFiles, toEditorCells } from '@/utils/curation'
 import { normalizeCsvText } from '@/utils/csv'
+import { MANAGED_COLUMNS } from '@/utils/curationStatus'
 import { describeFailure, type FailureReport } from '@/utils/failureReport'
 import type { IntakePending, IntakePlan } from '@/utils/intake'
 import type { DatabaseId } from '@/utils/navigation'
@@ -209,7 +210,10 @@ export const useContributionStore = defineStore('contribution', () => {
   const loadProgress = ref<{ done: number; total: number } | null>(null)
 
   const config = computed(() => (database.value ? CONTRIBUTION_DATABASES[database.value] : null))
-  const columns = computed(() => dictionary.columnsFor(database.value))
+  // The Hub fills the review status itself (#253): never ask for it.
+  const columns = computed(() =>
+    dictionary.columnsFor(database.value).filter((column) => !MANAGED_COLUMNS.has(column.name))
+  )
 
   /**
    * The submitted CSV on its own branch in the data repository. Editing it

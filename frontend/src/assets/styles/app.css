@@ -152,6 +152,8 @@
 }
 .sidebar-group .sidebar-group-link {
   flex: 1;
+  /* The chevron button next to it already gives the space on the right. */
+  padding-right: 0;
 }
 .sidebar-group.is-active .sidebar-group-link {
   color: var(--epfl-red);
@@ -205,13 +207,21 @@
 .sidebar-child.is-active::before {
   display: none;
 }
+/* Every count ends 40px from the edge of the menu, the width of the chevron
+   button: 24px of row padding + 16px here. A group row has no right padding
+   and no margin, it ends on its 40px button. So counts form one column, with
+   or without a chevron. */
 .sidebar-link .count {
   margin-left: auto;
+  margin-right: 16px;
   font-family: var(--font-sans);
   font-size: 11px;
   color: var(--fg-muted);
   font-weight: 400;
   font-feature-settings: 'tnum';
+}
+.sidebar-group-link .count {
+  margin-right: 0;
 }
 .sidebar-link.is-active .count {
   color: var(--epfl-red);
@@ -845,8 +855,9 @@
 /* ================ LOGOS STRIP ================ */
 .logos {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 48px;
+  gap: 16px 48px;
   padding: 32px 64px;
   border-top: 1px solid var(--border);
 }
@@ -860,6 +871,9 @@
 }
 .logos-items {
   flex: 1;
+  /* Without it the widest logo sets a floor, and on a phone the strip runs
+     past the screen edge. */
+  min-width: 0;
   display: flex;
   /* Clustered after the label rather than spread across the strip — spaced-out
      logos read as filler, grouped ones as a credit line. */
@@ -1185,6 +1199,12 @@ body.theme-dark .logos img {
 .dash-filters-trigger {
   position: relative;
   flex: 0 0 auto;
+}
+/* "Verified only" (#253): a pressed button reads as a filled hairline box, ink
+   not red, since red stays for the primary action. */
+.dash-verified-toggle.is-on {
+  background: var(--bg-subtle);
+  border-color: var(--fg);
 }
 .dash-filters-trigger-badge {
   display: inline-flex;
@@ -1654,8 +1674,10 @@ body.theme-dark .logos img {
   .dash-head-main {
     padding-right: 0;
   }
-  /* Keep the mark on the title's line rather than letting it wrap below. */
-  .dash-head-row {
+  /* Keep the mark on the title's line rather than letting it wrap below.
+     Database pages only: on the tool pages (PageHeader) the same row holds
+     the unit toggle, which must wrap below the title on a phone. */
+  .dash-head-split .dash-head-row {
     flex-wrap: nowrap;
   }
   .dash-title {
@@ -1806,10 +1828,11 @@ body.theme-dark .logos img {
 }
 .chart-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 10px;
-  gap: 12px;
+  gap: 4px 12px;
 }
 .chart-head h5 {
   margin: 0;
@@ -1910,7 +1933,7 @@ body.theme-dark .logos img {
 .dash-toolbar-spacer {
   flex: 1;
 }
-/* Share view + Filters read as one action pair, tighter than the toolbar gap. */
+/* The toolbar buttons read as one group, tighter than the toolbar gap. */
 .dash-toolbar-actions {
   display: flex;
   align-items: center;
@@ -1923,6 +1946,29 @@ body.theme-dark .logos img {
   }
   .dash-search {
     flex: 1 1 auto;
+  }
+}
+/* Phone: the search box gets its own full row, the buttons share the
+   next one and wrap when they do not fit. Side by side, the search shrank
+   to about 65px. */
+@media (max-width: 600px) {
+  .dash-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .dash-search {
+    flex: 1 1 100%;
+  }
+  .dash-toolbar-spacer {
+    display: none;
+  }
+  .dash-toolbar-actions {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+  .dash-toolbar-actions .btn {
+    flex: 1;
+    justify-content: center;
   }
 }
 
@@ -2600,6 +2646,25 @@ a.cd-publication-ref:hover {
   }
   .logos {
     padding: 32px 20px;
+    gap: 16px 32px;
+  }
+  /* The link drops below the title block instead of squeezing it into a
+     thin column. */
+  .section-head {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  /* A wrapped count starts its own line, without the 14px gap. */
+  .dash-title-count {
+    display: block;
+    margin-left: 0;
+  }
+  /* The per-chart hint may wrap under the title rather than push the cell
+     wider than the screen. */
+  .chart-head .info {
+    white-space: normal;
+    min-width: 0;
   }
   .ftr {
     padding: 40px 20px 20px;

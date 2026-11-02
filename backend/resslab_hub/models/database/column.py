@@ -153,6 +153,7 @@ class ColumnEntity(Base):  # type: ignore
     link = Column(String, nullable=True)
     latitude = Column(DecimalFloat, nullable=False)
     longitude = Column(DecimalFloat, nullable=False)
+    data_curation_status = Column(String, nullable=False)
     # END_OF_GENERATED_CODE
 
     built_up = column_property(section_c.ilike(text("'%built_up%'")))

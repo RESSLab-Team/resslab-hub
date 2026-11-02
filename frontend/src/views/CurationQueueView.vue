@@ -1,16 +1,43 @@
 <script setup lang="ts">
 import ProgressLine from '@/components/commons/ProgressLine.vue'
+import VerificationQueue from '@/components/curation/VerificationQueue.vue'
 import type { CurationSummary } from '@/backend'
 import { useCurationStore } from '@/stores/curation'
+import { useVerificationStore } from '@/stores/verification'
 import { databaseIdForType, formatAge } from '@/utils/curation'
 import { DATABASES } from '@/utils/navigation'
 import { mdiAlertOutline, mdiOpenInNew, mdiRefresh } from '@mdi/js'
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 
 const { locale } = useI18n({ useScope: 'global' })
 const store = useCurationStore()
-onMounted(() => store.fetchList())
+const verification = useVerificationStore()
+const route = useRoute()
+const router = useRouter()
+
+// Two queues (#253): the pull requests to accept, then the rows that went
+// live unverified. The tab is in the URL so a link can open the second one.
+type Tab = 'accept' | 'verify'
+const tab = computed<Tab>(() => (route.query.tab === 'verify' ? 'verify' : 'accept'))
+function selectTab(next: Tab): void {
+  router.replace({ query: { ...route.query, tab: next === 'verify' ? 'verify' : undefined } })
+}
+
+onMounted(() => {
+  store.fetchList()
+  // For the count on the tab, whichever tab is open.
+  verification.fetchList()
+})
+
+function refresh(): void {
+  if (tab.value === 'verify') verification.fetchList(true)
+  else store.fetchList(true)
+}
+const refreshable = computed(() =>
+  tab.value === 'verify' ? verification.listState === 'ready' : store.listState === 'ready'
+)
 
 interface QueueRow {
   summary: CurationSummary
@@ -44,26 +71,52 @@ const rows = computed<QueueRow[]>(() =>
         <span class="mut"> · {{ $t('curation.queue.eyebrow_qualifier') }}</span>
       </p>
       <div class="prow">
-        <h1 class="ptitle">
-          {{ $t('curation.queue.title') }}
-          <span v-if="store.listState === 'ready' && store.configured" class="cnt">{{
-            rows.length
-          }}</span>
-        </h1>
-        <button
-          v-if="store.listState === 'ready'"
-          class="cp-btn"
-          type="button"
-          @click="store.fetchList(true)"
-        >
+        <h1 class="ptitle">{{ $t('curation.queue.title') }}</h1>
+        <button v-if="refreshable" class="cp-btn" type="button" @click="refresh">
           <v-icon :icon="mdiRefresh" size="14" />
           {{ $t('curation.queue.refresh') }}
         </button>
       </div>
-      <p class="pdesc">{{ $t('curation.queue.description') }}</p>
+      <p class="pdesc">
+        {{
+          tab === 'verify' ? $t('curation.verify.description') : $t('curation.queue.description')
+        }}
+      </p>
+      <div class="tabs" role="tablist">
+        <button
+          class="tab"
+          :class="{ active: tab === 'accept' }"
+          role="tab"
+          type="button"
+          :aria-selected="tab === 'accept'"
+          @click="selectTab('accept')"
+        >
+          {{ $t('curation.tabs.accept') }}
+          <span v-if="store.listState === 'ready' && store.configured" class="count">{{
+            rows.length
+          }}</span>
+        </button>
+        <button
+          class="tab"
+          :class="{ active: tab === 'verify' }"
+          role="tab"
+          type="button"
+          :aria-selected="tab === 'verify'"
+          @click="selectTab('verify')"
+        >
+          {{ $t('curation.tabs.verify') }}
+          <span v-if="verification.listState === 'ready'" class="count">{{
+            verification.unverifiedCount
+          }}</span>
+        </button>
+      </div>
     </div>
 
-    <div class="pbody">
+    <div v-if="tab === 'verify'" class="pbody">
+      <verification-queue />
+    </div>
+
+    <div v-else class="pbody">
       <progress-line
         v-if="store.listState === 'loading' || store.listState === 'idle'"
         :active="true"
@@ -177,23 +230,17 @@ const rows = computed<QueueRow[]>(() =>
 }
 .prow {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 24px;
+  gap: 16px 24px;
 }
 .ptitle {
-  font-size: 40px;
+  font-size: clamp(28px, 6vw, 40px);
   font-weight: 300;
   letter-spacing: -0.02em;
   line-height: 1;
   margin: 0;
-}
-.ptitle .cnt {
-  font-size: 15px;
-  font-weight: 400;
-  color: var(--fg-muted);
-  margin-left: 14px;
-  font-feature-settings: 'tnum';
 }
 .pdesc {
   font-size: 14px;
@@ -201,6 +248,44 @@ const rows = computed<QueueRow[]>(() =>
   line-height: 1.5;
   max-width: 74ch;
   margin: 16px 0 0;
+}
+
+/* ── tabs: the same as the contribution guide's ── */
+.tabs {
+  display: flex;
+  gap: 22px;
+  margin: 22px 0 -22px;
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 12px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tab:hover {
+  color: var(--fg);
+}
+.tab.active {
+  color: var(--fg);
+  border-bottom-color: var(--epfl-red);
+}
+.count {
+  padding: 0 6px;
+  background: var(--bg-subtle);
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  font-feature-settings: 'tnum';
 }
 
 /* ── prototype button (.cp-btn) ── */

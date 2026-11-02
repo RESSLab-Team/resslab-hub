@@ -226,7 +226,7 @@ function changeSearches(key: string, value?: Value) {
 
 <template>
   <v-card :flat="flat">
-    <v-card-title class="d-flex justify-space-between">
+    <v-card-title>
       <slot name="title"> </slot>
       <reset-chart-button
         v-if="showReset"
@@ -264,8 +264,12 @@ function changeSearches(key: string, value?: Value) {
   inset: 0;
 }
 /* Chart title → card-title role (matches ChartCell's .chart-head h5), so a
-   standalone chart card reads the same as a dashboard-strip chart. */
+   standalone chart card reads the same as a dashboard-strip chart. The flex
+   is set here and not with the d-flex class: d-flex is display: flex
+   !important, which ChartCell's quiet mode could never hide. */
 :deep(.v-card-title) {
+  display: flex;
+  justify-content: space-between;
   font-size: var(--title-card-size);
   font-weight: var(--title-card-weight);
   letter-spacing: var(--title-card-tracking);

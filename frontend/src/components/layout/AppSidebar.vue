@@ -11,6 +11,7 @@ import {
   mdiHomeOutline,
   mdiInformationOutline,
   mdiLoginVariant,
+  mdiShieldAccountOutline,
   mdiUploadOutline,
   mdiWeatherNight,
   mdiWeatherSunny
@@ -66,6 +67,22 @@ const activeGroupId = computed(
 
 function isExpanded(group: NavGroup): boolean {
   return group.id === activeGroupId.value || manuallyOpened.value.has(group.id)
+}
+
+// The count a group row shows, folded or open: the sum of its databases
+// (Materials has three). Undefined until every one of them has a value.
+function groupCount(group: NavGroup): number | undefined {
+  const ids = group.children.flatMap((child) => (child.countId ? [child.countId] : []))
+  if (ids.length === 0) return undefined
+  const values = ids.map((id) => countsStore.counts[id])
+  if (values.some((value) => value == null)) return undefined
+  return values.reduce<number>((sum, value) => sum + (value ?? 0), 0)
+}
+
+// A "Database" child would only repeat the count of its group row, so a
+// child shows its own count only when the group sums several (Materials).
+function hasSeveralDatabases(group: NavGroup): boolean {
+  return group.children.filter((child) => child.countId).length > 1
 }
 
 function toggleGroup(group: NavGroup) {
@@ -264,12 +281,7 @@ function toggleGroup(group: NavGroup) {
       >
         <v-icon :icon="group.icon" size="16" />
         {{ group.name }}
-        <span
-          v-if="group.children[0].countId && countsStore.counts[group.children[0].countId] != null"
-          class="count"
-        >
-          {{ countsStore.counts[group.children[0].countId!] }}
-        </span>
+        <span v-if="groupCount(group) != null" class="count">{{ groupCount(group) }}</span>
       </router-link>
 
       <template v-else>
@@ -281,6 +293,7 @@ function toggleGroup(group: NavGroup) {
           >
             <v-icon :icon="group.icon" size="16" />
             {{ group.name }}
+            <span v-if="groupCount(group) != null" class="count">{{ groupCount(group) }}</span>
           </router-link>
           <button
             class="sidebar-group-toggle"
@@ -310,7 +323,14 @@ function toggleGroup(group: NavGroup) {
           >
             <v-icon v-if="child.icon" :icon="child.icon" size="15" />
             {{ child.name }}
-            <span v-if="child.countId && countsStore.counts[child.countId] != null" class="count">
+            <span
+              v-if="
+                child.countId &&
+                countsStore.counts[child.countId] != null &&
+                hasSeveralDatabases(group)
+              "
+              class="count"
+            >
               {{ countsStore.counts[child.countId!] }}
             </span>
           </router-link>
@@ -330,16 +350,19 @@ function toggleGroup(group: NavGroup) {
         {{ $t('contribute.new_submission') }}
       </router-link>
 
-      <div class="sidebar-section">{{ $t('curation.eyebrow') }}</div>
-      <router-link
-        class="sidebar-link"
-        :class="{ 'is-active': route.path.startsWith('/curation') }"
-        to="/curation"
-        @click="emit('close')"
-      >
-        <v-icon :icon="mdiClipboardCheckOutline" size="16" />
-        {{ $t('curation.nav.review_queue') }}
-      </router-link>
+      <!-- The queue is for curators only (#248). -->
+      <template v-if="auth.hasRole('curator')">
+        <div class="sidebar-section">{{ $t('curation.eyebrow') }}</div>
+        <router-link
+          class="sidebar-link"
+          :class="{ 'is-active': route.path.startsWith('/curation') }"
+          to="/curation"
+          @click="emit('close')"
+        >
+          <v-icon :icon="mdiClipboardCheckOutline" size="16" />
+          {{ $t('curation.nav.review_queue') }}
+        </router-link>
+      </template>
 
       <div class="sidebar-section">{{ $t('auth.account.section') }}</div>
       <router-link
@@ -364,6 +387,16 @@ function toggleGroup(group: NavGroup) {
       >
         <v-icon :icon="mdiLoginVariant" size="16" />
         {{ $t('auth.login.sign_in') }}
+      </router-link>
+      <router-link
+        v-if="auth.hasRole('admin')"
+        class="sidebar-link"
+        :class="{ 'is-active': route.path.startsWith('/admin') }"
+        to="/admin"
+        @click="emit('close')"
+      >
+        <v-icon :icon="mdiShieldAccountOutline" size="16" />
+        {{ $t('admin.nav') }}
       </router-link>
     </template>
 

@@ -8,9 +8,10 @@ frontend dev servers — and how to replicate the setup in another repository.
 wt create feat/123-thing origin/dev
   └─ .wt.toml → scripts/wt-setup.sh                (idempotent)
        ├─ seeds secrets/.env, docker-compose.override.yml, frontend/.env.development.local,
-       │        sample-data/ batch folders (fieldGroups.spec.ts and the contribution flow need them)
+       │        sample-data/ batch folders (the contribution flow uses them)
        ├─ hashes <repo>/<branch> → .env.worktree  (BACKEND_PORT 18xxx, FRONTEND_PORT 19xxx, DB, test DB, data dir)
        ├─ points this frontend at this backend, this backend at the right DB with migrations OFF
+       ├─ points contributions at the test fork (DATA_REPO + its App installation id, when DATA_REPO is unset)
        ├─ writes .claude/settings.local.json     (sandbox + ask/deny rules for the Claude session)
        ├─ make install && make hooks
        └─ scripts/tmux-dev.sh --no-attach          → tmux session "resslab-hub/feat/123-thing"
@@ -276,6 +277,18 @@ have to be idle copies: Postgres refuses `CREATE DATABASE … TEMPLATE x` while
 anything is connected to `x`, and the shared DB always has connections from
 other worktrees' backends. The templates are never connected to, so clones are
 instant.
+
+### Contributions go to the test fork
+
+`wt-setup.sh` also adds `DATA_REPO=EPFL-ENAC/resslab-hub-data-test` to
+`secrets/.env` when the key is absent, and then the App's EPFL-ENAC
+`GITHUB_APP_INSTALLATION_ID` (the one copied from the main checkout is the
+RESSLab-Team one). So a submission from a worktree opens its pull request on
+the fork, never on the real data repo. A `DATA_REPO` you set by hand is kept,
+and then the installation id is left alone. Details in
+[contributing-data.md](contributing-data.md#trying-it-locally).
+
+### Test database
 
 `pytest` creates and drops a throwaway `POSTGRES_TEST_DB`; `wt-setup.sh` makes it
 `resslab_hub_test_<slug>` per worktree so two test runs can't drop each other's

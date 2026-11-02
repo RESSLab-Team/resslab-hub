@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import type { CurationDetail } from '@/backend'
-import { useCurationStore } from '@/stores/curation'
 import { fieldLabel } from '@/utils/contribution'
-import { toExperimentRows } from '@/utils/curation'
+import { toExperimentRows, type ReviewBatch } from '@/utils/curation'
 import type { DatabaseId } from '@/utils/navigation'
 import {
   mapResponse,
@@ -10,7 +8,7 @@ import {
   type ReportedIssue,
   type Severity
 } from '@/utils/qualityReport'
-import type { ValidationIssue } from '@/utils/validationResponse'
+import type { ValidationIssue, ValidationResponse } from '@/utils/validationResponse'
 import {
   mdiAlertOutline,
   mdiBellOffOutline,
@@ -28,26 +26,26 @@ import { useI18n } from 'vue-i18n'
  */
 const props = defineProps<{
   database: DatabaseId
-  prNumber: number
-  detail: CurationDetail
+  /** The re-validation: of the pull request, or of live rows (#253). */
+  loadValidation: () => Promise<ValidationResponse>
+  detail: ReviewBatch
 }>()
 const emit = defineEmits<{
   (e: 'select', uid: number, column: string): void
 }>()
 
 const { t, te } = useI18n({ useScope: 'global' })
-const store = useCurationStore()
 
 const state = ref<'loading' | 'ready' | 'error'>('loading')
 const report = ref<QualityReport | null>(null)
 
 watch(
-  () => props.prNumber,
-  async (prNumber) => {
+  () => props.loadValidation,
+  async (loadValidation) => {
     state.value = 'loading'
     report.value = null
     try {
-      const response = await store.fetchValidation(prNumber)
+      const response = await loadValidation()
       report.value = mapResponse(props.database, toExperimentRows(props.detail), response)
       state.value = 'ready'
     } catch {
@@ -78,7 +76,7 @@ function category(issue: ValidationIssue): string {
     return 'schema'
   }
   if (/already exists|more than once/i.test(issue.message)) return 'deduplication'
-  if (/outside the range/i.test(issue.message)) return 'statistical'
+  if (/outside the (existing )?range/i.test(issue.message)) return 'statistical'
   return 'format'
 }
 

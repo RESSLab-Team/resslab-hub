@@ -1,4 +1,4 @@
-.PHONY: install hooks go dev-all tmux-dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data backup-dump new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
+.PHONY: install hooks go dev-all tmux-dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data backup-dump data-fork-reset new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
 
 .PHONY: help
 help: ## Show available targets
@@ -50,8 +50,9 @@ run:                    ## Docker build + full stack (traefik, frontend, 7 backe
 	docker compose build --parallel --pull
 	docker compose up -d --remove-orphans --scale backend=7
 
-api:                    ## regenerate openapi.json and frontend/src/backend/
+api:                    ## regenerate openapi.json, database-columns.json and frontend/src/backend/
 	cd backend; DATABASE_UPGRADE=false uv run python api.py ../openapi.json
+	cd backend; uv run python -m resslab_hub.data.columns ../database-columns.json
 	$(MAKE) -C frontend api
 
 sample-data:            ## synthetic contribution batches into sample-data/ (EXPERIMENTS=15 OUTLIERS=3)
@@ -62,6 +63,9 @@ upload-data:            ## upload every CSV of the data repo into the local DB (
 
 backup-dump:            ## make backup-dump DEST_FOLDER=path, pg_dumpall of the dev database
 	@docker compose exec database sh -c 'pg_dumpall -U postgres' > ${DEST_FOLDER}/all-databases.sql
+
+data-fork-reset:        ## reset the test fork's main (where local submissions go) to the real data repo's main; needs gh with push on EPFL-ENAC
+	scripts/data-fork-reset.sh
 
 # --- git worktrees (docs/worktree-dev-environment.md)
 new:                    ## make new BRANCH=feat/x [BASE=origin/dev] [PROMPT=brief.md]: worktree + deps + session, attached

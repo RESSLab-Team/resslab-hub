@@ -11,7 +11,6 @@ import {
 } from '@/components/curation/curves'
 import { GHOST_CONFIGS } from '@/components/curation/ghost'
 import { useDataset } from '@/composables/useDataset'
-import { useCurationStore } from '@/stores/curation'
 import { INK, RED } from '@/plugins/echarts-theme'
 import { kindForFile } from '@/utils/curation'
 import {
@@ -39,7 +38,8 @@ import { useI18n } from 'vue-i18n'
  */
 const props = defineProps<{
   database: DatabaseId
-  prNumber: number
+  /** Text of one file: from the pull request, or from the base branch (#253). */
+  loadFile: (path: string) => Promise<string>
   files: CurationFile[]
   /** Cohort restriction from the review view; `undefined` = whole database. */
   cohortQuery?: string
@@ -48,7 +48,6 @@ const props = defineProps<{
 }>()
 
 const { t, te, n } = useI18n({ useScope: 'global' })
-const store = useCurationStore()
 
 const SUBMISSION_COLOR = RED
 // The model is the reference the data is judged against, not one more specimen:
@@ -125,8 +124,8 @@ function specimenId(file: CurationFile): string {
 }
 
 watch(
-  () => [props.prNumber, props.files] as const,
-  async ([prNumber, files]) => {
+  () => [props.loadFile, props.files] as const,
+  async ([loadFile, files]) => {
     loading.value = true
     previews.value = []
     failed.value = []
@@ -135,7 +134,7 @@ watch(
     await Promise.all(
       files.map(async (file) => {
         try {
-          const text = await store.fetchFileText(prNumber, file.path)
+          const text = await loadFile(file.path)
           const preview = buildPreview(file, text)
           if (preview) next.push(preview)
           else errors.push(file.path)
@@ -416,6 +415,7 @@ const showPicker = computed(() => !!candidates.value.length || !!overlayIds.valu
         </div>
         <unit-line-chart
           :aspect-ratio="2"
+          :legend-side="false"
           :series="chart.series"
           :x-axis-name="chart.xAxisName"
           :y-axis-name="chart.yAxisName"
@@ -537,7 +537,12 @@ const showPicker = computed(() => !!candidates.value.length || !!overlayIds.valu
   color: var(--fg-muted);
   margin-bottom: 12px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 12px;
+  gap: 2px 12px;
+}
+.ch > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 </style>

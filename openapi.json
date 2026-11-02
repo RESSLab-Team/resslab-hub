@@ -393,6 +393,48 @@
         }
       }
     },
+    "/auth/access-request": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Request Access",
+        "description": "Ask the admins for the contributor role (#248).\n\nFor someone whose address is not academic, so it did not grant the role.\nOne open request at a time; after a decline they may ask again.",
+        "operationId": "request_access",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessRequestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequestStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/github/start": {
       "get": {
         "tags": [
@@ -576,7 +618,7 @@
     "/contributions/{pr_number}": {
       "put": {
         "summary": "Update Open Contribution",
-        "description": "Replace an open submission's batch with a new commit on its own branch.\nThe pull request updates and its checks rerun; no second review is opened.\n\nAnswers 403 when the submission was made from another account, and 409\nwhen the branch moved since the editor loaded it: reload and make the\nchanges again.",
+        "description": "Replace an open submission's batch with a new commit on its own branch.\nThe pull request updates and its checks rerun; no second review is opened.\n\nAnswers 403 when the submission was made from another account (unless\nthe caller is a curator), and 409 when the branch moved since the editor\nloaded it: reload and make the changes again.",
         "operationId": "update_open_contribution",
         "parameters": [
           {
@@ -704,7 +746,7 @@
     "/contributions/{pr_number}/comments": {
       "get": {
         "summary": "Get Contribution Comments",
-        "description": "The submission's discussion, oldest first, with the pull request body as\nthe opening entry (it is the submission summary the contributor wrote).\n\nRead-only: replying, requesting changes and approving still happen on\nGitHub until per-user auth (#247) and curator roles (#248) land.",
+        "description": "The submission's discussion, oldest first, with the pull request body as\nthe opening entry (it is the submission summary the contributor wrote).\n\nRead-only: replying, requesting changes and approving still happen on\nGitHub (#254).",
         "operationId": "get_contribution_comments",
         "parameters": [
           {
@@ -773,6 +815,510 @@
               "text/plain": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verification": {
+      "get": {
+        "summary": "List Unverified",
+        "description": "The unverified rows of every database, grouped by reference, each with\nthe open verification pull request that covers it, if any.",
+        "operationId": "list_unverified",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Verification",
+        "description": "Open a pull request on the data repository that marks ``ids`` as\nverified. Merge it on GitHub (squash). Answers 409 when an id is not in\nthe data repository, is already verified there, or is in an open\nverification pull request.",
+        "operationId": "create_verification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verification/{database}/batch": {
+      "get": {
+        "summary": "Get Verification Batch",
+        "description": "The unverified rows of one reference as the data repository has them,\nwith their curve files: what the review page shows before a curator\nmarks them as verified.",
+        "operationId": "get_verification_batch",
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Type"
+            }
+          },
+          {
+            "name": "reference",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Reference"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationBatch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verification/{database}/validation": {
+      "get": {
+        "summary": "Get Verification Validation",
+        "description": "The same server-side checks a submission goes through, re-run on the\nunverified rows of one reference and their curves.",
+        "operationId": "get_verification_validation",
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Type"
+            }
+          },
+          {
+            "name": "reference",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Reference"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verification/{database}/files": {
+      "get": {
+        "summary": "Get Verification File",
+        "description": "Raw text of one curve file at ``ref``, a base branch commit from the\nbatch. Only the database's curve folders are served.",
+        "operationId": "get_verification_file",
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Type"
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          },
+          {
+            "name": "ref",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ref"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "List Users",
+        "description": "Everyone with an account, oldest first.",
+        "operationId": "list_users",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminUserOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Users Admin Users Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{user_id}": {
+      "patch": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Update User",
+        "description": "Set or clear the role decision, disable or enable the account.",
+        "operationId": "update_user",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUserPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/invitations": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "List Invitations",
+        "description": "Every invitation, newest first. The old ones stay, for the record.",
+        "operationId": "list_invitations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InvitationOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Invitations Admin Invitations Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Create Invitation",
+        "description": "Give a role to an address before it has an account, and mail it.\n\nAn address that already has an account is changed in the members list\ninstead: there is nothing to wait for.",
+        "operationId": "create_invitation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvitationIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationCreated"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/invitations/{invitation_id}": {
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Revoke Invitation",
+        "description": "Take back an invitation nobody used yet.",
+        "operationId": "revoke_invitation",
+        "parameters": [
+          {
+            "name": "invitation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Invitation Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/access-requests": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "List Access Requests",
+        "description": "Every request, newest first.",
+        "operationId": "list_access_requests",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AccessRequestOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Access Requests Admin Access Requests Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/access-requests/{request_id}/approve": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Approve Access Request",
+        "description": "Give the role asked for, and tell the person.",
+        "operationId": "approve_access_request",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequestOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/access-requests/{request_id}/decline": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Decline Access Request",
+        "description": "Say no. No mail: the account page shows it, and they may ask again.",
+        "operationId": "decline_access_request",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequestOut"
                 }
               }
             }
@@ -7018,6 +7564,286 @@
   },
   "components": {
     "schemas": {
+      "AccessRequestIn": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Message",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "AccessRequestIn"
+      },
+      "AccessRequestOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name",
+            "default": ""
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "institution": {
+            "type": "string",
+            "title": "Institution",
+            "default": ""
+          },
+          "current_role": {
+            "type": "string",
+            "title": "Current Role"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "decided_by": {
+            "type": "string",
+            "title": "Decided By",
+            "default": ""
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "current_role",
+          "role",
+          "status",
+          "created_at"
+        ],
+        "title": "AccessRequestOut"
+      },
+      "AccessRequestStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "declined"
+            ],
+            "title": "Status"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "role",
+          "created_at"
+        ],
+        "title": "AccessRequestStatus",
+        "description": "Where the person's last access request is (#248)."
+      },
+      "AdminUserOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "email_verified": {
+            "type": "boolean",
+            "title": "Email Verified",
+            "default": false
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name",
+            "default": ""
+          },
+          "institution": {
+            "type": "string",
+            "title": "Institution",
+            "default": ""
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "role_source": {
+            "type": "string",
+            "title": "Role Source"
+          },
+          "role_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Override"
+          },
+          "github_login": {
+            "type": "string",
+            "title": "Github Login",
+            "default": ""
+          },
+          "github_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Role"
+          },
+          "locked": {
+            "type": "boolean",
+            "title": "Locked",
+            "default": false
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_login_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Login At"
+          },
+          "disabled": {
+            "type": "boolean",
+            "title": "Disabled",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "role_source",
+          "created_at"
+        ],
+        "title": "AdminUserOut"
+      },
+      "AdminUserPatch": {
+        "properties": {
+          "role_override": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "viewer",
+                  "contributor",
+                  "curator",
+                  "admin"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Override"
+          },
+          "disabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disabled"
+          }
+        },
+        "type": "object",
+        "title": "AdminUserPatch",
+        "description": "Only the fields that are sent change.\n\n``role_override: null`` goes back to the automatic role."
+      },
       "Body_create_contribution_contributions_post": {
         "properties": {
           "file": {
@@ -7164,6 +7990,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "displacement_count"
         ],
         "title": "BraceField"
@@ -7863,6 +8690,10 @@
             ],
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "displacement_count": {
             "type": "integer",
             "title": "Displacement Count"
@@ -7940,6 +8771,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "displacement_count"
         ],
         "title": "BraceModel"
@@ -8092,6 +8924,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "built_up",
           "axial_shortening_count",
           "moment_strong_count",
@@ -9014,6 +9847,10 @@
             "type": "number",
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "built_up": {
             "type": "boolean",
             "title": "Built Up"
@@ -9130,6 +9967,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "built_up",
           "axial_shortening_count",
           "moment_strong_count",
@@ -9378,6 +10216,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "beam_count",
           "beam_west_count",
           "global_count",
@@ -10952,6 +11791,10 @@
             "type": "number",
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "beam_count": {
             "type": "integer",
             "title": "Beam Count"
@@ -11128,6 +11971,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "beam_count",
           "beam_west_count",
           "global_count",
@@ -11887,6 +12731,7 @@
           "latitude",
           "longitude",
           "has_sem",
+          "data_curation_status",
           "force_elongation_count",
           "force_elongation_simulation_count",
           "force_radial_count",
@@ -12442,6 +13287,10 @@
             ],
             "title": "Has Sem"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "force_elongation_count": {
             "type": "integer",
             "title": "Force Elongation Count"
@@ -12551,6 +13400,7 @@
           "latitude",
           "longitude",
           "has_sem",
+          "data_curation_status",
           "force_elongation_count",
           "force_elongation_simulation_count",
           "force_radial_count",
@@ -12730,6 +13580,7 @@
           "url",
           "latitude",
           "longitude",
+          "data_curation_status",
           "shear_link_angle_count"
         ],
         "title": "EccentricBracedFrameField"
@@ -13597,6 +14448,10 @@
             "type": "number",
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "shear_link_angle_count": {
             "type": "integer",
             "title": "Shear Link Angle Count"
@@ -13702,6 +14557,7 @@
           "url",
           "latitude",
           "longitude",
+          "data_curation_status",
           "shear_link_angle_count"
         ],
         "title": "EccentricBracedFrameModel"
@@ -14507,6 +15363,7 @@
           "flexural_buckling",
           "latitude",
           "longitude",
+          "data_curation_status",
           "moment_rotation_count"
         ],
         "title": "HSSColumnField"
@@ -15082,6 +15939,10 @@
             ],
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "moment_rotation_count": {
             "type": "integer",
             "title": "Moment Rotation Count"
@@ -15149,6 +16010,7 @@
           "flexural_buckling",
           "latitude",
           "longitude",
+          "data_curation_status",
           "moment_rotation_count"
         ],
         "title": "HSSColumnModel"
@@ -15261,6 +16123,171 @@
         ],
         "title": "Info",
         "description": "App Info"
+      },
+      "InvitationCreated": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "redeemed",
+              "revoked"
+            ],
+            "title": "Status"
+          },
+          "invited_by": {
+            "type": "string",
+            "title": "Invited By",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "redeemed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redeemed At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "mailed": {
+            "type": "boolean",
+            "title": "Mailed",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "role",
+          "status",
+          "created_at"
+        ],
+        "title": "InvitationCreated"
+      },
+      "InvitationIn": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "contributor",
+              "curator",
+              "admin"
+            ],
+            "title": "Role",
+            "default": "contributor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "InvitationIn"
+      },
+      "InvitationOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "redeemed",
+              "revoked"
+            ],
+            "title": "Status"
+          },
+          "invited_by": {
+            "type": "string",
+            "title": "Invited By",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "redeemed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redeemed At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "role",
+          "status",
+          "created_at"
+        ],
+        "title": "InvitationOut"
       },
       "LegacyFileResult": {
         "properties": {
@@ -15559,6 +16586,7 @@
           "uvc_rho_iso",
           "uvc_rho_kin",
           "uvc_rho_d",
+          "data_curation_status",
           "type",
           "year",
           "stress_strain_count"
@@ -16310,6 +17338,10 @@
             ],
             "title": "Uvc Rho D"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "type": {
             "type": "string",
             "title": "Type"
@@ -16402,6 +17434,7 @@
           "uvc_rho_iso",
           "uvc_rho_kin",
           "uvc_rho_d",
+          "data_curation_status",
           "type",
           "year",
           "stress_strain_count"
@@ -16592,6 +17625,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "qp_coefficient_count",
           "distribution_F1_count",
           "distribution_F2_count",
@@ -16800,6 +17834,10 @@
             ],
             "title": "Longitude"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "qp_coefficient_count": {
             "type": "integer",
             "title": "Qp Coefficient Count"
@@ -16848,6 +17886,7 @@
           "link",
           "latitude",
           "longitude",
+          "data_curation_status",
           "qp_coefficient_count",
           "distribution_F1_count",
           "distribution_F2_count",
@@ -16957,6 +17996,7 @@
           "longitude",
           "publication_key",
           "datacol_version",
+          "data_curation_status",
           "stress_strain_count"
         ],
         "title": "TensileCouponField"
@@ -17558,6 +18598,10 @@
             "type": "integer",
             "title": "Datacol Version"
           },
+          "data_curation_status": {
+            "type": "string",
+            "title": "Data Curation Status"
+          },
           "stress_strain_count": {
             "type": "integer",
             "title": "Stress Strain Count"
@@ -17635,6 +18679,7 @@
           "longitude",
           "publication_key",
           "datacol_version",
+          "data_curation_status",
           "stress_strain_count"
         ],
         "title": "TensileCouponModel"
@@ -17809,6 +18854,16 @@
             "type": "array",
             "title": "Identities",
             "default": []
+          },
+          "access_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AccessRequestStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -17931,6 +18986,197 @@
           "error_count"
         ],
         "title": "ValidationResponse"
+      },
+      "VerificationBatch": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "reference": {
+            "type": "string",
+            "title": "Reference"
+          },
+          "base_sha": {
+            "type": "string",
+            "title": "Base Sha"
+          },
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "experiments": {
+            "items": {
+              "$ref": "#/components/schemas/CurationExperiment"
+            },
+            "type": "array",
+            "title": "Experiments"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/CurationFile"
+            },
+            "type": "array",
+            "title": "Files"
+          },
+          "missing_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Ids"
+          },
+          "pending": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/VerificationPull"
+            },
+            "type": "object",
+            "title": "Pending"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "reference",
+          "base_sha",
+          "columns",
+          "experiments",
+          "files",
+          "missing_ids",
+          "pending"
+        ],
+        "title": "VerificationBatch",
+        "description": "The unverified rows of one reference, for the review page.\n\nThe same rows, columns and files as a submission's ``CurationDetail``, but\nread from the data repository's base branch, so the page can show them\nwith the same panels. The lists have no defaults on purpose, so they stay\nrequired in the generated frontend client."
+      },
+      "VerificationGroup": {
+        "properties": {
+          "database": {
+            "type": "string",
+            "title": "Database"
+          },
+          "reference": {
+            "type": "string",
+            "title": "Reference"
+          },
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ids"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "pending_pr": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VerificationPull"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "database",
+          "reference",
+          "ids",
+          "count"
+        ],
+        "title": "VerificationGroup",
+        "description": "Unverified rows of one database that share a reference."
+      },
+      "VerificationListResponse": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationGroup"
+            },
+            "type": "array",
+            "title": "Groups",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured"
+        ],
+        "title": "VerificationListResponse"
+      },
+      "VerificationPull": {
+        "properties": {
+          "pr_number": {
+            "type": "integer",
+            "title": "Pr Number"
+          },
+          "pr_url": {
+            "type": "string",
+            "title": "Pr Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pr_number",
+          "pr_url"
+        ],
+        "title": "VerificationPull",
+        "description": "An open verification pull request on the data repository."
+      },
+      "VerificationRequest": {
+        "properties": {
+          "database": {
+            "$ref": "#/components/schemas/Type"
+          },
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "database",
+          "ids"
+        ],
+        "title": "VerificationRequest"
+      },
+      "VerificationResponse": {
+        "properties": {
+          "pr_url": {
+            "type": "string",
+            "title": "Pr Url"
+          },
+          "pr_number": {
+            "type": "integer",
+            "title": "Pr Number"
+          },
+          "branch": {
+            "type": "string",
+            "title": "Branch"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pr_url",
+          "pr_number",
+          "branch"
+        ],
+        "title": "VerificationResponse",
+        "description": "The verification pull request the Hub opened."
       },
       "VerifyResponse": {
         "properties": {

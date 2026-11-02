@@ -99,6 +99,7 @@ class ResidualStress(Base):  # type: ignore
     link = Column(String, nullable=True)
     latitude = Column(Numeric, nullable=True)
     longitude = Column(Numeric, nullable=True)
+    data_curation_status = Column(String, nullable=False)
     # END_OF_GENERATED_CODE
 
     # 0/1 "has data" flags, recomputed by recompute_count_flags() at the end

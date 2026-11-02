@@ -270,6 +270,32 @@ class TestRangeWarnings:
     def test_empty_table_never_warns(self, tmp_path: Path, db_session):
         assert not self._area_warnings(self._validate_area(tmp_path, "10000"))
 
+    def test_verified_ranges_leave_the_unverified_rows_out(
+        self, tmp_path: Path, db_session
+    ):
+        # A verification checks rows already in the table (#253): an unverified
+        # outlier must not stretch the range it is compared with.
+        csv_path = tmp_path / "steel_braces.csv"
+        rows = [
+            {"id": f"B{i}", "area": str(10 + i), "data_curation_status": "verified"}
+            for i in range(20)
+        ]
+        rows.append(
+            {"id": "OUT", "area": "10000", "data_curation_status": "unverified"}
+        )
+        write_main_csv(csv_path, Brace, rows)
+        upload_one(Type.BRACE, str(csv_path))
+        file_path = tmp_path / "review.csv"
+        write_main_csv(file_path, Brace, [{"id": "OUT", "area": "10000"}])
+
+        every_row = TableValidator(Brace).validate_one(str(file_path))
+        verified = TableValidator(Brace, verified_ranges=True).validate_one(
+            str(file_path)
+        )
+
+        assert not self._area_warnings(every_row)
+        assert "10 to 29" in self._area_warnings(verified)[0].message
+
 
 class TestPrimaryCsvIds:
     def test_parses_once_and_tracks_rewrites(self, tmp_path):
@@ -321,6 +347,45 @@ def messages(issues, column: str):
 
 def all_messages(issues):
     return [issue.message for issue in issues]
+
+
+class TestCurationStatus:
+    """The review status (#253): the Hub sets it, contributors leave it out."""
+
+    def test_a_file_without_the_column_is_valid(self, tmp_path: Path):
+        file_path = write_main_csv(tmp_path / "steel_braces.csv", Brace, [{"id": "B1"}])
+        # The defaults hold no comma, so a plain split is safe.
+        lines = file_path.read_text(encoding="utf-8").splitlines()
+        index = lines[0].split(",").index("data_curation_status")
+        trimmed = [
+            ",".join(cell for i, cell in enumerate(line.split(",")) if i != index)
+            for line in lines
+        ]
+        file_path.write_text("\n".join(trimmed) + "\n", encoding="utf-8")
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert result.is_valid(), str(result)
+        assert not any("Missing required" in m for m in all_messages(result.errors))
+
+    def test_both_words_are_accepted(self, tmp_path: Path):
+        for value in ("verified", "unverified"):
+            result = brace_result(tmp_path, {"data_curation_status": value})
+            assert messages(result.errors, "data_curation_status") == [], value
+
+    def test_an_empty_cell_is_accepted(self, tmp_path: Path):
+        result = brace_result(tmp_path, {"data_curation_status": ""})
+
+        assert messages(result.errors, "data_curation_status") == []
+
+    def test_another_word_is_an_error(self, tmp_path: Path):
+        result = brace_result(tmp_path, {"data_curation_status": "checked"})
+
+        assert not result.is_valid()
+        assert any(
+            "verified or unverified" in m
+            for m in messages(result.errors, "data_curation_status")
+        )
 
 
 class TestMissingValues:
@@ -770,3 +835,19 @@ class TestEccentricBracedFrames:
                 if arg_type in (Type.DICTIONARY, Type.README):
                     continue
                 validate_one_file(arg_type, "x.csv")
+
+
+def test_validate_all_keeps_the_root_log_level(tmp_path):
+    """A /validate call must not turn the API's root logger to DEBUG (#264 H2)."""
+    import logging
+
+    from resslab_hub.data.validator import validate_all
+
+    root = logging.getLogger()
+    before = root.level
+    root.setLevel(logging.WARNING)
+    try:
+        validate_all(Type.BRACE, [str(tmp_path)], cpu=1)
+        assert root.level == logging.WARNING
+    finally:
+        root.setLevel(before)

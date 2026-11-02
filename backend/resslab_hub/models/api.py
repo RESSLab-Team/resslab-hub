@@ -216,6 +216,7 @@ class ConnectionModel(ApiModel):
     link: Optional[str]
     latitude: Optional[float]
     longitude: float
+    data_curation_status: str
     # END_OF_GENERATED_CODE_connection
 
     beam_count: int
@@ -411,6 +412,7 @@ class ColumnModel(ApiModel):
     link: Optional[str]
     latitude: float
     longitude: float
+    data_curation_status: str
     # END_OF_GENERATED_CODE_column
 
     built_up: bool
@@ -511,6 +513,7 @@ class BraceModel(ApiModel):
     link: Optional[str]
     latitude: Optional[float]
     longitude: Optional[float]
+    data_curation_status: str
     # END_OF_GENERATED_CODE_brace
 
     displacement_count: int
@@ -614,6 +617,7 @@ class MaterialModel(ApiModel):
     uvc_rho_iso: Optional[float]
     uvc_rho_kin: Optional[float]
     uvc_rho_d: Optional[float]
+    data_curation_status: str
     # END_OF_GENERATED_CODE_material
 
     type: str
@@ -679,6 +683,7 @@ class ResidualStressModel(ApiModel):
     link: Optional[str]
     latitude: Optional[float]
     longitude: Optional[float]
+    data_curation_status: str
     # END_OF_GENERATED_CODE_residual_stress
 
     qp_coefficient_count: int
@@ -771,6 +776,7 @@ class HSSColumnModel(ApiModel):
     flexural_buckling: str
     latitude: Optional[float]
     longitude: Optional[float]
+    data_curation_status: str
     # END_OF_GENERATED_CODE_hss_column
 
     moment_rotation_count: int
@@ -895,6 +901,7 @@ class EccentricBracedFrameModel(ApiModel):
     url: str
     latitude: float
     longitude: float
+    data_curation_status: str
     # END_OF_GENERATED_CODE_eccentric_braced_frame
 
     shear_link_angle_count: int
@@ -991,6 +998,7 @@ class TensileCouponModel(ApiModel):
     longitude: float
     publication_key: Optional[str]
     datacol_version: int
+    data_curation_status: str
     # END_OF_GENERATED_CODE_tensile_coupon
 
     stress_strain_count: int
@@ -1095,6 +1103,7 @@ class DuctileFractureModel(ApiModel):
     latitude: float
     longitude: float
     has_sem: Optional[bool]
+    data_curation_status: str
     # END_OF_GENERATED_CODE_ductile_fracture
 
     force_elongation_count: int
