@@ -177,8 +177,12 @@ so a shared link keeps it. The code: `utils/curationStatus.ts`,
 
 - No approve, request changes or merge here (#254). Do those on GitHub, and
   merge with squash only (the data repo CI validates `HEAD~1..HEAD`).
-- Nothing on GitHub forces a review yet: the data repository `main` has no
-  branch protection and no CODEOWNERS file.
+- The merge gate is on GitHub: the ruleset `data-contribution` on the data
+  repository `main` needs one approving review, the checks to pass, and a
+  squash merge. There is no CODEOWNERS file. Instead, the Hub asks every
+  admin of the data repository to review each submission and verification
+  it opens (#266, `DATA_REPO_REVIEWERS` in
+  [contributing-data.md](contributing-data.md#settings)).
 - No embargo: an unverified row is public like any other (the data
   repository is public too). It is a separate issue.
 

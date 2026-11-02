@@ -1272,9 +1272,8 @@ def validate_all(
 
     info(f"Number of CPUs available: {cpu}")
 
-    # Get current logging configuration to pass to workers
-
-    getLogger().setLevel("DEBUG")
+    # Get current logging configuration to pass to workers. Don't change it:
+    # the root logger is shared with the whole API process (#264 H2).
     current_log_level = getLogger().level
     root_logger = getLogger()
     current_log_format = None

@@ -2,7 +2,7 @@
 Handle / requests
 """
 
-from logging import warning
+from logging import exception, warning
 from os import path
 from tempfile import TemporaryDirectory
 
@@ -127,9 +127,15 @@ async def create_upload_file(
         )
     except ArchiveError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
-    except Exception as exc:
+    except Exception:
+        # The exception text can hold paths, SQL or settings: log it, and
+        # send the caller a fixed sentence (#264 H3).
+        exception("Upload failed")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=(
+                "The upload failed on the server. The error is in the backend log."
+            ),
         )
     finally:
         await file.close()
@@ -197,10 +203,20 @@ def _build_response(results, tmpdir: str) -> ValidationResponse:
 # data-validation.yml, and `make validate-%`). Any signed-in account passes,
 # whatever its role: checking a batch writes nothing, and someone who cannot
 # submit yet still needs to know their data is clean.
+#
+# The data CI called `/api/validate/` (with a slash) for a long time. Behind
+# Traefik the slash redirect loses the `/api` prefix and lands on nginx, which
+# answers an HTML 405. So the slash is served here too, not redirected.
 @router.post(
     "/validate",
     response_model=ValidationResponse,
     dependencies=[Depends(require_user_or_service)],
+)
+@router.post(
+    "/validate/",
+    response_model=ValidationResponse,
+    dependencies=[Depends(require_user_or_service)],
+    include_in_schema=False,
 )
 @limiter.limit("30/minute")
 async def validate_data(
@@ -243,9 +259,15 @@ async def validate_data(
         )
     except ArchiveError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
-    except Exception as exc:
+    except Exception:
+        # The exception text can hold paths, SQL or settings: log it, and
+        # send the caller a fixed sentence (#264 H3).
+        exception("Validation failed")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=(
+                "The validation failed on the server. The error is in the backend log."
+            ),
         )
     finally:
         await file.close()

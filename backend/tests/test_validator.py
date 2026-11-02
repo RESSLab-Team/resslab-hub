@@ -835,3 +835,19 @@ class TestEccentricBracedFrames:
                 if arg_type in (Type.DICTIONARY, Type.README):
                     continue
                 validate_one_file(arg_type, "x.csv")
+
+
+def test_validate_all_keeps_the_root_log_level(tmp_path):
+    """A /validate call must not turn the API's root logger to DEBUG (#264 H2)."""
+    import logging
+
+    from resslab_hub.data.validator import validate_all
+
+    root = logging.getLogger()
+    before = root.level
+    root.setLevel(logging.WARNING)
+    try:
+        validate_all(Type.BRACE, [str(tmp_path)], cpu=1)
+        assert root.level == logging.WARNING
+    finally:
+        root.setLevel(before)

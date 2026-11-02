@@ -70,6 +70,14 @@ and `/user`, and it is one of the two ways into `/validate` (the other being a
 signed-in account). The data repository's three workflows and
 `backend/Makefile` use it; nothing in the browser does.
 
+There is no default in a deployment. Laptops get `changeit` from the
+`[development]` section of `settings.toml`. When `DEPLOYMENT` is set (every
+k8s overlay sets it to `dev`, `stage` or `prod`), the backend refuses to start
+if `API_PASSWORD` is missing, is `changeit`, or is shorter than 16 characters,
+or if `POSTGRES_PASSWORD` is empty. The pod log then ends with
+`DEPLOYMENT=<name>: refusing to start.` and the reason. Only the API does this
+check: the upload CronJob and the migrations still run (#264).
+
 ## Setting it up
 
 ### GitHub App
@@ -239,18 +247,27 @@ The link on the line below it works too, and skips the typing.
 
 ## Testing the pipeline
 
-No second App is needed. The one installed on `resslab-hub-data` works from
-anywhere. Which branch a submission targets is `DATA_REPO_BASE_BRANCH`, and the
-curation queue only lists pull requests into that branch.
+No second App is needed. The same App is installed on two orgs: on
+RESSLab-Team for the real `resslab-hub-data`, and on EPFL-ENAC for the test
+fork `resslab-hub-data-test`. An installation id is per org, so `DATA_REPO` and
+`GITHUB_APP_INSTALLATION_ID` always change together. Which branch a submission
+targets is `DATA_REPO_BASE_BRANCH`, and the curation queue only lists pull
+requests into that branch. Every environment uses `main`, the default.
 
-Every environment uses `main`, which is the setting's default, so nothing has to
-be set anywhere. The data repository has no other branch: `test` and `sandbox`
-both existed on paper only, and `test` was deleted after sitting untouched since
-January 2022.
+**Locally**, submissions go to the fork (`scripts/wt-setup.sh` seeds the two
+lines, see [contributing-data.md](contributing-data.md#trying-it-locally)).
+Merge or close them as you like there, and run `make data-fork-reset` when the
+fork's `main` has drifted too far from the real one.
 
-So a submission made from dev, from stage or from a laptop opens a real pull
-request into `main`, next to the real ones. That is on purpose, it is the only
-way to exercise the pipeline for real. **Close those, never merge them.**
+```bash
+gh pr list --repo EPFL-ENAC/resslab-hub-data-test --base main
+```
+
+Roles that come from GitHub (below) are read on `DATA_REPO` too, so locally
+they are your permission on the fork. `ADMIN_EMAILS` still makes you admin.
+
+**From dev and stage**, a submission still opens a real pull request into the
+real `main`, next to the real ones. **Close those, never merge them.**
 
 ```bash
 gh pr list --repo RESSLab-Team/resslab-hub-data --base main
@@ -328,8 +345,10 @@ ahartloper, charlottegiseleweil, pierreleripoll, AlbanoCastroSousa, dlignos,
 andskia and the `RESSLab` account. Each one becomes an admin in the Hub as
 soon as they link GitHub. Trim that list on GitHub if it is too long.
 
-The merge gate itself is a GitHub setting: branch protection and a
-CODEOWNERS file on the data repository `main`. They are not set yet.
+These admins are also who the Hub asks to review each pull request it opens
+(#266, see [contributing-data.md](contributing-data.md#after-the-pull-request)).
+The merge gate itself is a GitHub setting: the ruleset `data-contribution` on
+the data repository `main` (one approving review, checks, squash only).
 
 ### What counts as academic
 

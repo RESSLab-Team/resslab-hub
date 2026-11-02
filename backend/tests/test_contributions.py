@@ -67,6 +67,10 @@ class FakeClient:
         self.deleted_branches: list = []
         self.fail_pr = False
         self.fail_ref_update = False
+        #: Admins of the data repo, and the reviewers asked on the new PR.
+        self.admins = ["dlignos", "Ada", "andskia"]
+        self.reviewers: list = []
+        self.fail_reviewers = False
 
     async def get_file_text(self, path, ref=None):
         if ref is not None and path in self.head_files:
@@ -126,6 +130,14 @@ class FakeClient:
 
     async def delete_branch(self, branch):
         self.deleted_branches.append(branch)
+
+    async def list_admin_logins(self):
+        return self.admins
+
+    async def request_reviewers(self, number, logins):
+        if self.fail_reviewers:
+            raise RuntimeError("Reviews may only be requested from collaborators")
+        self.reviewers = logins
 
 
 def valid_result() -> ValidationResult:
@@ -424,6 +436,55 @@ async def test_submit_cleans_up_branch_on_pr_failure(tmp_path, monkeypatch):
         )
     assert caught.value.status_code == 502
     assert len(client.deleted_branches) == 1
+
+
+# --- reviewers (#266) ------------------------------------------------------
+
+
+async def test_submit_asks_the_admins_but_not_the_submitter(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    monkeypatch.setattr(submission.settings, "data_repo_reviewers", "admins")
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    await submit_contribution(
+        str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    # "Ada" is the submitter's own login ("ada"), whatever the case.
+    assert client.reviewers == ["dlignos", "andskia"]
+
+
+async def test_submit_succeeds_when_reviewers_fail(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    monkeypatch.setattr(submission.settings, "data_repo_reviewers", "admins")
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    client.fail_reviewers = True
+    result = await submit_contribution(
+        str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    assert result.pr_number == 7
+    assert client.deleted_branches == []
+
+
+async def test_submit_with_reviewers_none_asks_nobody(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    monkeypatch.setattr(submission.settings, "data_repo_reviewers", "none")
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    client.admins = None  # would break if the admins were read
+    await submit_contribution(
+        str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    assert client.reviewers == []
+
+
+async def test_submit_with_a_login_list_uses_it(tmp_path, monkeypatch):
+    patch_validation(monkeypatch)
+    monkeypatch.setattr(
+        submission.settings, "data_repo_reviewers", " pierreleripoll, dlignos ,"
+    )
+    client = FakeClient({"braces/steel_braces.csv": REPO_CSV})
+    await submit_contribution(
+        str(make_batch(tmp_path)), Type.ALL_BRACE, CONTRIBUTOR, [], client=client
+    )
+    assert client.reviewers == ["pierreleripoll", "dlignos"]
 
 
 async def test_submit_unsupported_type(tmp_path, monkeypatch):

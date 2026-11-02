@@ -479,7 +479,6 @@
     "dash_search_placeholder": "Search all columns…",
     "download_master_data": "Master data",
     "download_test_data": "Test data",
-    "max_download": "You cannot download more than {max} items.",
     "search": "Search",
     "filter": "Filter",
     "exact_value": "Exact value",

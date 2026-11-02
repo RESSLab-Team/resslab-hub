@@ -152,6 +152,8 @@
 }
 .sidebar-group .sidebar-group-link {
   flex: 1;
+  /* The chevron button next to it already gives the space on the right. */
+  padding-right: 0;
 }
 .sidebar-group.is-active .sidebar-group-link {
   color: var(--epfl-red);
@@ -205,13 +207,21 @@
 .sidebar-child.is-active::before {
   display: none;
 }
+/* Every count ends 40px from the edge of the menu, the width of the chevron
+   button: 24px of row padding + 16px here. A group row has no right padding
+   and no margin, it ends on its 40px button. So counts form one column, with
+   or without a chevron. */
 .sidebar-link .count {
   margin-left: auto;
+  margin-right: 16px;
   font-family: var(--font-sans);
   font-size: 11px;
   color: var(--fg-muted);
   font-weight: 400;
   font-feature-settings: 'tnum';
+}
+.sidebar-group-link .count {
+  margin-right: 0;
 }
 .sidebar-link.is-active .count {
   color: var(--epfl-red);

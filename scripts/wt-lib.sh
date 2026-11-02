@@ -87,6 +87,12 @@ set_env_var() {
     printf '%s=%s\n' "$key" "$value" >> "$file"
   fi
 }
+# set_env_default FILE KEY VALUE — append KEY=VALUE only when the file has no
+# KEY= line yet, so a value a human already set is kept.
+set_env_default() {
+  local file=$1 key=$2 value=$3
+  grep -qE "^${key}=" "$file" 2>/dev/null || set_env_var "$file" "$key" "$value"
+}
 # Path of the worktree that has BRANCH checked out, empty if none.
 worktree_path_for() {
   git -C "$ROOT" worktree list --porcelain | awk -v b="refs/heads/$1" '/^worktree /{p=$2} $0=="branch "b{print p}'

@@ -578,7 +578,6 @@
     "dash_search_placeholder": "Rechercher dans toutes les colonnes…",
     "download_master_data": "Données principales",
     "download_test_data": "Données d'essai",
-    "max_download": "Vous ne pouvez pas télécharger plus de {max} éléments.",
     "search": "Rechercher",
     "filter": "Filtrer",
     "exact_value": "Valeur exacte",

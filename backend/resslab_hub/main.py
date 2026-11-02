@@ -18,7 +18,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from resslab_hub import __name__ as title
 from resslab_hub import __version__
 from resslab_hub.auth.csrf import CSRFMiddleware
-from resslab_hub.config import settings
+from resslab_hub.config import refuse_default_secrets, settings
 from resslab_hub.contributions.github import aclose_github, describe_error
 from resslab_hub.routers import (
     admin,
@@ -51,6 +51,10 @@ from resslab_hub.utils.warmup import install as install_warmup
 def is_debug_mode():
     return "--log-level" in sys.argv and "debug" in sys.argv
 
+
+# A deployment with a default or missing secret must not serve requests.
+# Raise before the app exists, so the reason is the last line of the pod log.
+refuse_default_secrets()
 
 logger = logging.getLogger()
 
@@ -153,6 +157,15 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         content={"detail": exc.detail},
         headers=getattr(exc, "headers", None),
     )
+
+
+# Anything no other handler caught. Without this, Starlette answers a plain
+# text "Internal Server Error", and a script that reads JSON (the data CI)
+# can't say what went wrong. Fixed message: the details stay in the logs.
+@app.exception_handler(Exception)
+async def unhandled_error_handler(request: Request, exc: Exception):
+    logger.exception(f"Unhandled error ({request.method} {request.url.path})")
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
 app.include_router(root.router)

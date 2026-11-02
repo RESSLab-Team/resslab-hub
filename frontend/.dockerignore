@@ -1,2 +1,9 @@
 **/node_modules
 **/dist
+# Local env files can hold credentials, and a Vite build inlines every
+# VITE_* key it reads into the public bundle. Keep .env.production: the
+# build needs it (CDN URL).
+.env
+.env.local
+.env.development
+.env.*.local
