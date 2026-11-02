@@ -51,8 +51,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session
 
-from resslab_hub.data.count_flags import COUNT_FLAGS
-from resslab_hub.data.curation_status import STATUS_COLUMN
+from resslab_hub.data.columns import contributed_columns
 from resslab_hub.data.validator import RANGE_MIN_COUNT
 from resslab_hub.models.database.brace import Brace
 from resslab_hub.models.database.column import ColumnEntity
@@ -222,18 +221,6 @@ def clean_value(column, prefix: str, index: int, count: int, stats: dict) -> str
         # `date` is a plain year on several tables.
         return "2025" if "year" in key.lower() or key == "date" else "4"
     return "123.45"
-
-
-def contributed_columns(model) -> list:
-    """The model's columns minus the ones the Hub fills itself.
-
-    The *_count flags are physical columns recomputed at upload; they have no
-    CSV header in the data repo, and the validator treats them as unexpected.
-    The review status is stamped by the submission (#253), so a contributor
-    never sends it either.
-    """
-    derived = set(COUNT_FLAGS.get(model, {})) | {STATUS_COLUMN}
-    return [c for c in model.__table__.c if c.key not in derived]
 
 
 def build_rows(model, prefix: str, count: int, stats: dict) -> list[dict[str, str]]:

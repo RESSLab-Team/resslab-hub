@@ -21,7 +21,7 @@ make dev-backend      # Start FastAPI backend (http://127.0.0.1:8000)
 make dev-frontend     # Start Vite dev server (http://127.0.0.1:5173)
 make test             # Run both backend (pytest) and frontend (vitest) tests
 make lint             # Lint both backend (pre-commit) and frontend (ESLint)
-make api              # Regenerate openapi.json + frontend/src/backend/
+make api              # Regenerate openapi.json + database-columns.json + frontend/src/backend/
 make upload-data      # Upload all CSV data to local database (erases existing)
 make sample-data      # Generate synthetic contribution batches into sample-data/
 ```
@@ -74,7 +74,7 @@ Every branch gets its own git worktree, tmux session `resslab-hub/<branch>` and 
 - **Reuse before starting**: the dev servers already run in their panes. Do not start them again. Read `.wt-logs/backend.log` and `.wt-logs/frontend.log` to see what they do (the tmux socket is outside your sandbox, `tmux` commands fail).
 - **Reaching the servers**: `wtx curl <backend|frontend> [path] [curl args]` fills in this worktree's port and never prompts, whatever the method: `wtx curl backend /healthz`. Plain read-only `curl` to your own localhost ports also works.
 - **Finish** a frontend or backend change by printing its URL: `http://localhost:$FRONTEND_PORT/` or `http://127.0.0.1:$BACKEND_PORT/docs`. Use the app through the Vite port only: it proxies `/api` to the backend (`vite.config.ts`), which is what makes the session cookie first-party.
-- `sample-data/` arrives seeded from the main checkout (the contribution flow's test batches, also read by `fieldGroups.spec.ts`); regenerate with `make sample-data` if needed.
+- `sample-data/` arrives seeded from the main checkout (the contribution flow's test batches); regenerate with `make sample-data` if needed.
 
 #### Working in a worktree — rules
 
@@ -200,7 +200,7 @@ See `docs/adding-a-new-tab.md` for the exhaustive end-to-end playbook (data repo
 
 **Chart colors for categorical fields** come from `frontend/src/utils/categoryColors.ts`, never from a chart's own ordering: `useDataset(...).colorFor(field)` hands out the Okabe–Ito slots once per field, by frequency in the unfiltered dataset (ties alphabetical), so a value keeps its color when filters reshuffle the ranking and the treemap, stacked histogram and brush overview all agree. Values past the 8 slots repeat the palette muted toward grey. To pin a value whose color people have learnt (a data upload can reorder the frequencies), add it to `CATEGORY_COLOR_OVERRIDES` keyed `'<dataset key>:<field>'`.
 
-**Adding a column to a data dictionary** also means giving it a scientific category, which is what the collapsible groups in the filter rail, the contribution editor, the curation review panel and the specimen drawer are built from. The categories live in the `group` column of each `*_data_dictionary.csv` (resslab-hub-data#46) and are mirrored by `frontend/src/utils/fieldGroups.ts`, whose `groupFor()` prefers the dictionary when it carries one. Review tables: `docs/variable-categories.md`. Most new columns are matched by an existing pattern (`uvc_*`, `pid_*`, `chemical_composition_*`, `_100fit`) and need no edit; anything unmatched lands in `other` and fails `fieldGroups.spec.ts`, which reads the real column list out of the `sample-data/` CSV headers.
+**Adding a column to a data dictionary** also means giving it a scientific category, which is what the collapsible groups in the filter rail, the contribution editor, the curation review panel and the specimen drawer are built from. The categories live in the `group` column of each `*_data_dictionary.csv` (resslab-hub-data#46) and are mirrored by `frontend/src/utils/fieldGroups.ts`, whose `groupFor()` prefers the dictionary when it carries one. Review tables: `docs/variable-categories.md`. Most new columns are matched by an existing pattern (`uvc_*`, `pid_*`, `chemical_composition_*`, `_100fit`) and need no edit; anything unmatched lands in `other` and fails `fieldGroups.spec.ts`, which reads the real column list from `database-columns.json` at the repo root. That file is written from the ORM models by `make api` (and `make generate-model`), and `backend/tests/test_database_columns.py` fails when it is stale, so commit it with the model change.
 
 ## Conventions
 

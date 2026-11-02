@@ -17,6 +17,10 @@ export default mergeConfig(
         }
       },
       environment: 'jsdom',
+      // Node 25+ has its own global localStorage, undefined without
+      // --localstorage-file, and it hides the jsdom one. Turn it off so the
+      // specs see jsdom's storage on every Node version.
+      execArgv: ['--no-experimental-webstorage'],
       exclude: [...configDefaults.exclude, 'e2e/*'],
       root: fileURLToPath(new URL('./', import.meta.url)),
       coverage: {

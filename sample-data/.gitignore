@@ -1,5 +1,6 @@
-# The sample records are generated output — run generate.py to (re)create them.
-# They are deliberately untracked: they are derived from the ORM schema and would
-# drift silently. Only the generator and its README are versioned. The frontend
-# test fieldGroups.spec.ts reads their headers, so run generate.py before it.
+# The sample records are generated output, `make sample-data` (re)creates them.
+# They are untracked on purpose: they come from the ORM schema and the database,
+# and a committed copy would drift. Only the generator and its README are
+# versioned. They are test batches for the contribution flow (/contribute/new).
+# No test and no CI job reads them.
 *.csv

@@ -7,38 +7,26 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 /**
- * The generated sample CSVs (`make sample-data`, gitignored) carry the exact
- * column list of every database, in dictionary order, and they are regenerated
- * from the ORM whenever the schema moves. Reading their headers here means the taxonomy is checked against
- * the real schema rather than against a fixture someone has to remember to update.
+ * `database-columns.json` (repo root, committed) is the column list of every
+ * database, in dictionary order. The backend writes it from the ORM models
+ * (`make api`, also run by `make generate-model`), and the backend test
+ * `test_database_columns.py` fails when it is stale. So the taxonomy is checked
+ * against the real schema, with nothing to generate before the test runs.
  */
-const SAMPLE_CSV: Record<DatabaseId, string> = {
-  connections: 'connections/connections.csv',
-  columns: 'columns/steel_columns.csv',
-  braces: 'braces/steel_braces.csv',
-  hss: 'hss_columns/hss_columns.csv',
-  ebf: 'eccentric_braced_frames/eccentric_braced_frames.csv',
-  cyclic: 'material/cyclic_coupons/steel_material.csv',
-  tensile: 'material/tensile_coupons/tensile_coupons.csv',
-  'ductile-fracture': 'material/ductile_fracture/ductile_fracture.csv',
-  residuals: 'residual_stresses/residual_stresses.csv'
-}
-
-const DATABASES = Object.keys(SAMPLE_CSV) as DatabaseId[]
-
 // Resolved in two steps on purpose: Vite rewrites `new URL('literal',
-// import.meta.url)` into an asset import, which would try to bundle the sample
-// data instead of reading it.
-const SAMPLE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../sample-data')
+// import.meta.url)` into an asset import, which would try to bundle the file
+// instead of reading it.
+const COLUMNS_FILE = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../../../database-columns.json'
+)
+
+const COLUMNS = JSON.parse(readFileSync(COLUMNS_FILE, 'utf-8')) as Record<DatabaseId, string[]>
+
+const DATABASES = Object.keys(COLUMNS) as DatabaseId[]
 
 function columnNames(database: DatabaseId): string[] {
-  const header = readFileSync(resolve(SAMPLE_ROOT, SAMPLE_CSV[database]), 'utf-8').split('\n')[0]
-  return header
-    .replace(/^\uFEFF/, '')
-    .trim()
-    .split(',')
-    .map((name) => name.trim())
-    .filter(Boolean)
+  return COLUMNS[database]
 }
 
 function column(name: string, group?: string): DictColumn {
@@ -72,7 +60,7 @@ describe('fieldGroups: coverage of the real schema', () => {
   })
 
   it.each(DATABASES)('puts the review status with the program details in %s', (database) => {
-    // Set by the Hub (#253), so the sample batches above never carry it.
+    // Set by the Hub (#253), so the column list above never carries it.
     expect(groupFor(database, column('data_curation_status'))).toBe('experimental_program_details')
   })
 

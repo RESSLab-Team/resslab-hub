@@ -30,6 +30,7 @@ jobs:
       - run: pnpm run type-check
       - run: pnpm run lint
       - run: pnpm run format:check
+      - run: pnpm run test:unit run
       - run: pnpm run build
   check-api-client:
     # Guards against a stale generated client: regenerate frontend/src/backend

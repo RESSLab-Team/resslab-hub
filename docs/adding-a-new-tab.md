@@ -32,7 +32,7 @@ For any new component `NewThing` (snake_case: `new_thing`, plural: `new_things`,
 2. **Backend codegen** — run `make generate-model` to emit ORM + Pydantic.
 3. **Backend wiring** — router, `__init__.py`, `main.py`, uploader, Makefile targets.
 4. **Backend migration** — `make database-revision name="add_new_thing_model"`, review, apply.
-5. **API regeneration** — `make api` from repo root (updates `openapi.json` and `frontend/src/backend/`).
+5. **API regeneration** — `make api` from repo root (updates `openapi.json`, `database-columns.json` and `frontend/src/backend/`).
 6. **Frontend scaffolding** — views, dashboard, table, detail, three chart types, utils, i18n.
 7. **Cross-cutting frontend wiring** — router, nav, axios plugin, overview map, home-page indicator.
 8. **Static assets** — configuration diagrams / section CSVs under `frontend/public/img/{type}/` or `frontend/src/assets/{type}/`.
@@ -360,7 +360,7 @@ From the repo root:
 make api
 ```
 
-This runs `DATABASE_UPGRADE=false uv run python api.py ../openapi.json` and then `pnpm run api` in the frontend. Result: fresh `openapi.json` at the repo root plus regenerated `frontend/src/backend/` (with `NewThingApi`, `NewThingModel`, `NewThingField`, `NewThingNumberField`). Commit these regenerated files.
+This runs `DATABASE_UPGRADE=false uv run python api.py ../openapi.json`, then `python -m resslab_hub.data.columns ../database-columns.json`, then `pnpm run api` in the frontend. Result: fresh `openapi.json` and `database-columns.json` at the repo root plus regenerated `frontend/src/backend/` (with `NewThingApi`, `NewThingModel`, `NewThingField`, `NewThingNumberField`). Commit these regenerated files.
 
 ---
 
@@ -523,7 +523,7 @@ The overview map needs no field list here any more, see Step 12.
 
 Two things the test suite and the UI expect from every new column:
 
-- **A scientific category.** `frontend/src/utils/fieldGroups.ts` maps every column of every database to a group id; `groupFor()` prefers the `group` column of the data dictionary (Step 1.2) and falls back to the per-database patterns in that file. A column with neither lands in `other`, and `fieldGroups.spec.ts` fails: it reads the real headers from `sample-data/<db>/*.csv` (run `make sample-data` after the upload). Add the database to `FIELD_GROUPS` there, mirroring the dictionary. Tables of the existing groups: [variable-categories.md](variable-categories.md).
+- **A scientific category.** `frontend/src/utils/fieldGroups.ts` maps every column of every database to a group id; `groupFor()` prefers the `group` column of the data dictionary (Step 1.2) and falls back to the per-database patterns in that file. A column with neither lands in `other`, and `fieldGroups.spec.ts` fails: it reads the real column list from `database-columns.json` (add the database to `DATABASE_MODELS` in `backend/resslab_hub/data/columns.py`, then `make api`). Add the database to `FIELD_GROUPS` there, mirroring the dictionary. Tables of the existing groups: [variable-categories.md](variable-categories.md).
 - **Stable colours.** `frontend/src/utils/categoryColors.ts` gives Okabe-Ito slots per field by frequency in the unfiltered dataset, so the treemap, the stacked histogram and the brush agree and a value keeps its colour when filters change. Nothing to add for a new tab; pin a value with `CATEGORY_COLOR_OVERRIDES` (`'<dataset key>:<field>'`) only if a colour people learnt gets reshuffled by a data upload.
 
 ---
@@ -605,7 +605,8 @@ A tab is not done when it browses. Contributors must be able to submit to it and
 | `backend/resslab_hub/data/uploader.py`  | `README_DATABASES` entry for the folder (Step 1.1), and the `get_args_all` tuples the contribution archive layout follows.                                                                                                                                                                                                                           |
 | `frontend/src/utils/contribution.ts`    | a `CONTRIBUTION_DATABASES` entry: backend `Type`, primary CSV path inside the archive, `qualityCheckSupported: true` once the validator branch exists. This is also what the curation review and the edit flow use to place files.                                                                                                                   |
 | `frontend/src/utils/timeseries.ts`      | `requiredColumns` per series directory, so the editor recognises a dropped curve file by its headers and folder name.                                                                                                                                                                                                                                |
-| `sample-data/generate.py`               | a `DATABASES` entry and the `TIME_SERIES` shapes, so `make sample-data` produces a test batch (and `fieldGroups.spec.ts` gets its headers).                                                                                                                                                                                                          |
+| `sample-data/generate.py`               | a `DATABASES` entry and the `TIME_SERIES` shapes, so `make sample-data` produces a test batch.                                                                                                                                                                                                                                                       |
+| `backend/resslab_hub/data/columns.py`   | a `DATABASE_MODELS` entry keyed by the frontend database id, then `make api`, so `database-columns.json` lists the new columns and `fieldGroups.spec.ts` checks their categories.                                                                                                                                                                    |
 | `frontend/src/utils/curation.ts`        | derived columns (`withDerivedCells`) if the ORM computes any `column_property` the review must show.                                                                                                                                                                                                                                                 |
 
 Then walk the whole pipeline once with the sample batch: [contributing-data.md](contributing-data.md) and [curation.md](curation.md). Close the pull request it opens on the data repo, never merge it.
