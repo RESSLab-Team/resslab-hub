@@ -155,6 +155,15 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     )
 
 
+# Anything no other handler caught. Without this, Starlette answers a plain
+# text "Internal Server Error", and a script that reads JSON (the data CI)
+# can't say what went wrong. Fixed message: the details stay in the logs.
+@app.exception_handler(Exception)
+async def unhandled_error_handler(request: Request, exc: Exception):
+    logger.exception(f"Unhandled error ({request.method} {request.url.path})")
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+
 app.include_router(root.router)
 app.include_router(auth.router)
 app.include_router(contributions.router)
