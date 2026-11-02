@@ -336,10 +336,10 @@ def _parts(message):
 
 
 def test_message_carries_the_code_the_link_and_a_display_name(monkeypatch):
-    monkeypatch.setattr(mailer.settings, "smtp_from", "noreply-enacitdev@epfl.ch")
+    monkeypatch.setattr(mailer.settings, "smtp_from", "noreply-resslab-hub@epfl.ch")
     message = mailer.build_message("ada@example.edu", "123456", LINK)
 
-    assert message["From"] == "RESSLab Hub <noreply-enacitdev@epfl.ch>"
+    assert message["From"] == "RESSLab Hub <noreply-resslab-hub@epfl.ch>"
     assert message["To"] == "ada@example.edu"
     assert "123456" in message["Subject"]
 

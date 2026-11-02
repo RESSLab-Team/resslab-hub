@@ -59,15 +59,16 @@ settings = Dynaconf(
         Validator("session_ttl_days", default=30),
         Validator("login_code_ttl_minutes", default=10),
         # Mail: without a host the mailer logs the code instead of sending it,
-        # which is how local dev and the tests work. The relay is the EPFL one
-        # (docs/auth.md). The sender must be the service account's own address:
+        # which is how local dev and the tests work. The relay is the EPFL one,
+        # with the hub's own service account (docs/auth.md). The sender must be
+        # that account's own address:
         # Exchange refuses anything else with 550 5.7.60 "does not have
         # permissions to send as this sender".
         Validator("smtp_host", default=None),
         Validator("smtp_port", default=587),
         Validator("smtp_user", default=None),
         Validator("smtp_password", default=None),
-        Validator("smtp_from", default="noreply-enacitdev@epfl.ch"),
+        Validator("smtp_from", default="noreply-resslab-hub@epfl.ch"),
         Validator("smtp_starttls", default=True),
         # The deployment name (dev, stage, prod), set by the k8s ConfigMaps
         # and by nothing local. When it is set, a missing SMTP_HOST is an

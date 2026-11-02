@@ -132,9 +132,11 @@ this server. Before, the code went to `kubectl logs` and the page said a mail
 was on its way (#247). The pod still starts: the database must stay up for
 everyone, even when the mail is broken.
 
-The relay is the EPFL one, documented by ENAC IT ("Sending email via epfl
-infra" in the enacit4r Notion). `mail.epfl.ch:587` with STARTTLS, and the
-shared service account whose password is in Infisical under `/enacit4r-email`.
+The relay is the EPFL one, documented in the team wiki ("Sending email via
+epfl infra", https://enac-it-wiki.epfl.ch). `mail.epfl.ch:587` with STARTTLS,
+and the hub's own service account `noreply-resslab-hub`. Its password is in our
+Infisical as `EMAIL_PASSWORD` (next to `EMAIL_ADDRESS`). Tested on 2026-11-02:
+the relay takes the login and the sender, and the mail reaches an EPFL inbox.
 The server offers `AUTH GSSAPI NTLM LOGIN`; aiosmtplib knows cram-md5, plain
 and login, so it picks LOGIN and no NTLM code is needed.
 
@@ -142,32 +144,32 @@ and login, so it picks LOGIN and no NTLM code is needed.
 SMTP_HOST=mail.epfl.ch
 SMTP_PORT=587
 SMTP_STARTTLS=true
-SMTP_USER=INTRANET\noreply-enacitdev
-SMTP_PASSWORD=<Infisical /enacit4r-email>
-SMTP_FROM=noreply-enacitdev@epfl.ch
+SMTP_USER=INTRANET\noreply-resslab-hub
+SMTP_PASSWORD=<EMAIL_PASSWORD in Infisical>
+SMTP_FROM=noreply-resslab-hub@epfl.ch
 ```
 
 Two traps in that block:
 
 - **Do not put double quotes around `SMTP_USER`.** Dynaconf reads the file
   with python-dotenv, which turns `\n` inside double quotes into a real
-  newline, so `"INTRANET\noreply-enacitdev"` becomes two broken lines. No
+  newline, so `"INTRANET\noreply-resslab-hub"` becomes two broken lines. No
   quotes (as above) or single quotes both keep the backslash. Same rule in
-  YAML. The `INTRANET\...` form is the one that works, confirmed on
-  2026-09-07; the UPN form `noreply-enacitdev@epfl.ch` was never tried.
+  YAML. The `INTRANET\...` form is the one that works (2026-09-07 with the
+  shared ENAC IT account, 2026-11-02 with ours); the UPN form was never tried.
 - **The sender must be the account's own address.** Tested on 2026-09-07:
   anything else comes back as `550 5.7.60 SMTP; Client does not have
-  permissions to send as this sender`. So `SMTP_FROM=noreply-enacitdev@epfl.ch`
+  permissions to send as this sender`. So `SMTP_FROM=noreply-resslab-hub@epfl.ch`
   and nothing else. The `+suffix` trick in the ENAC IT page (like
   `noreply+resslab-hub@epfl.ch`) is for the anonymous relay on port 25, not
   for a service account on 587. Staying under `epfl.ch` is also what makes SPF
   and DKIM pass; a sender on a subdomain like `resslab-hub.epfl.ch` has no DNS
   records of its own and gets junked.
 
-  The consequence is that our mails are not distinguishable, by address, from
-  any other app using the shared account. If that becomes a problem, ask the
-  infra team for a group address of our own, which is the port 587 path the
-  ENAC IT page mentions.
+Before 2026-11-02 the docs used the shared ENAC IT account
+(`noreply-enacitdev`, password under `/enacit4r-email` in the ENAC IT vault).
+It still works the same way, but our own account keeps our mails apart from
+the other apps, and a password change there cannot break our sign-in.
 
 Mails go out as `RESSLab Hub <SMTP_FROM>`. There is no `Reply-To`: it is a
 noreply mailbox, and a reply would carry a sign-in code to whoever reads it.
@@ -208,15 +210,17 @@ runbook below.
 The manifests and the secrets live outside this repo, so these steps are done
 by hand, once per environment (`dev`, then `staging`, then `prod`).
 
-1. Copy the password out of the shared ENAC IT vault:
-   `enac-it-secrets.epfl.ch`, path `/enacit4r-email`. That vault is the only
-   source, this app never gets its own account.
-2. Paste it into our own vault: project `k8s-prod-yc-rz`, path
-   `/epfl-resslab/resslab-hub` (next to `API_PASSWORD`, which lands in the
-   `backend-secret`), environment `dev`, `staging` or `prod`. Add the six
-   `SMTP_*` keys from the block above. Values are stored as they are, no
-   escaping, so paste `INTRANET\noreply-enacitdev` plainly.
-   Always the vault first: the operator overwrites the k8s secret on resync,
+1. Open our vault: project `k8s-prod-yc-rz`, path
+   `/epfl-resslab/resslab-hub` (it lands in the `backend-secret`),
+   environment `dev`, `staging` or `prod`. `EMAIL_ADDRESS` and
+   `EMAIL_PASSWORD` (the account above) are already there.
+2. Add `SMTP_HOST`, `SMTP_USER`, `SMTP_FROM` from the block above, and
+   `SMTP_PASSWORD` set to `${EMAIL_PASSWORD}`, an Infisical reference, so the
+   password lives in one key. If the log then shows an
+   `SMTPAuthenticationError`, the reference was not expanded: paste the value
+   instead. Values are stored as they are, no escaping, so paste
+   `INTRANET\noreply-resslab-hub` plainly. Port and STARTTLS have the right
+   defaults. Always the vault first: the operator overwrites the k8s secret on resync,
    so a secret patched directly in the cluster silently reverts.
 3. In `enack8s-app-config`, check the backend Deployment already pulls that
    secret with `envFrom: secretRef` (the GitHub App pair comes in that way,
