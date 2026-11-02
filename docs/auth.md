@@ -70,6 +70,14 @@ and `/user`, and it is one of the two ways into `/validate` (the other being a
 signed-in account). The data repository's three workflows and
 `backend/Makefile` use it; nothing in the browser does.
 
+There is no default in a deployment. Laptops get `changeit` from the
+`[development]` section of `settings.toml`. When `DEPLOYMENT` is set (every
+k8s overlay sets it to `dev`, `stage` or `prod`), the backend refuses to start
+if `API_PASSWORD` is missing, is `changeit`, or is shorter than 16 characters,
+or if `POSTGRES_PASSWORD` is empty. The pod log then ends with
+`DEPLOYMENT=<name>: refusing to start.` and the reason. Only the API does this
+check: the upload CronJob and the migrations still run (#264).
+
 ## Setting it up
 
 ### GitHub App

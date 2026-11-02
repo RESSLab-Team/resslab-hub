@@ -9,7 +9,7 @@ data version (what a successful upload does) makes the same request serve
 fresh content again.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from fastapi.testclient import TestClient
 
@@ -22,7 +22,7 @@ MAX_AGE = 123
 def make_app() -> tuple[TestClient, dict]:
     app = FastAPI()
     app.add_middleware(HTTPCacheMiddleware, max_age=MAX_AGE)
-    calls = {"connections": 0, "contributions": 0}
+    calls = {"connections": 0, "contributions": 0, "user": 0}
 
     @app.get("/connections/")
     def list_connections(query: str = ""):
@@ -63,6 +63,12 @@ def make_app() -> tuple[TestClient, dict]:
     @app.get("/features")
     def features():
         return {"contributions": False}
+
+    # The machine credential (#264 M1): the answer depends on the caller.
+    @app.get("/user")
+    def user(request: Request):
+        calls["user"] += 1
+        return {"authorization": request.headers.get("authorization")}
 
     return TestClient(app), calls
 
@@ -192,3 +198,31 @@ def test_error_responses_are_not_cached():
         assert response.status_code == 404
         assert "etag" not in response.headers
     assert calls["boom"] == 2
+
+
+def test_authorized_requests_bypass_the_cache():
+    client, calls = make_app()
+    response = client.get("/connections/", headers={"Authorization": "Basic eDp5"})
+    assert response.status_code == 200
+    assert "cache-control" not in response.headers
+    assert calls["connections"] == 1
+    # Nothing was stored: an anonymous call still runs the endpoint.
+    client.get("/connections/")
+    assert calls["connections"] == 2
+
+
+def test_authorized_request_is_not_served_from_the_store():
+    client, calls = make_app()
+    client.get("/connections/")
+    client.get("/connections/", headers={"Authorization": "Basic eDp5"})
+    assert calls["connections"] == 2
+
+
+def test_user_is_never_cached():
+    client, calls = make_app()
+    first = client.get("/user", headers={"Authorization": "Basic YTpi"})
+    anonymous = client.get("/user")
+    assert first.json() == {"authorization": "Basic YTpi"}
+    assert anonymous.json() == {"authorization": None}
+    assert "cache-control" not in anonymous.headers
+    assert calls["user"] == 2

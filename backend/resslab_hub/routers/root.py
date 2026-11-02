@@ -2,7 +2,7 @@
 Handle / requests
 """
 
-from logging import warning
+from logging import exception, warning
 from os import path
 from tempfile import TemporaryDirectory
 
@@ -127,9 +127,15 @@ async def create_upload_file(
         )
     except ArchiveError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
-    except Exception as exc:
+    except Exception:
+        # The exception text can hold paths, SQL or settings: log it, and
+        # send the caller a fixed sentence (#264 H3).
+        exception("Upload failed")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=(
+                "The upload failed on the server. The error is in the backend log."
+            ),
         )
     finally:
         await file.close()
@@ -253,9 +259,15 @@ async def validate_data(
         )
     except ArchiveError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
-    except Exception as exc:
+    except Exception:
+        # The exception text can hold paths, SQL or settings: log it, and
+        # send the caller a fixed sentence (#264 H3).
+        exception("Validation failed")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=(
+                "The validation failed on the server. The error is in the backend log."
+            ),
         )
     finally:
         await file.close()

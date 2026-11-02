@@ -4,6 +4,7 @@ or push a new commit on an open one.
 """
 
 import json
+from logging import exception
 from tempfile import TemporaryDirectory
 from typing import Union
 
@@ -138,9 +139,15 @@ async def _run_on_archive(
     except (HTTPException, RequestFailed):
         # A GitHub refusal goes to the handler in main.py, with GitHub's reason.
         raise
-    except Exception as exc:
+    except Exception:
+        # The exception text can hold paths, SQL or settings: log it, and
+        # send the caller a fixed sentence (#264 H3).
+        exception("Submission failed")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=(
+                "The submission failed on the server. The error is in the backend log."
+            ),
         )
     finally:
         await file.close()
