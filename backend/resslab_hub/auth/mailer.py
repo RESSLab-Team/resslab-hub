@@ -6,6 +6,11 @@ That is how local development and the tests work: the code is read from
 ``.wt-logs/backend.log`` (or captured by a fixture) and typed into the form,
 so the whole flow can be exercised with no mail server anywhere.
 
+Only when ``DEPLOYMENT`` is not set, though. The k8s ConfigMaps set it, and a
+deployment with no ``SMTP_HOST`` raises :class:`MailNotConfigured` instead.
+Before that, the code went to ``kubectl logs`` and the person was told a mail
+was on its way (#247). :func:`check_at_startup` also says it in the log.
+
 In the deployments the relay is the EPFL one, ``mail.epfl.ch:587`` with
 STARTTLS and a service account. That server offers ``AUTH GSSAPI NTLM LOGIN``;
 aiosmtplib knows cram-md5, plain and login, so it picks LOGIN. See
@@ -83,9 +88,51 @@ class MailError(Exception):
     """The relay refused the mail or did not answer. Not the caller's fault."""
 
 
+class MailNotConfigured(MailError):
+    """A deployment with no ``SMTP_HOST``: the mail cannot go anywhere."""
+
+
 def configured() -> bool:
     """True when a real SMTP server is set up."""
     return bool(settings.smtp_host)
+
+
+def deployed() -> bool:
+    """True in the k8s deployments, where ``DEPLOYMENT`` is set."""
+    return bool(settings.deployment)
+
+
+def _log_only(to: str) -> bool:
+    """True when the mail goes to the log: no relay, and not a deployment.
+
+    Raises :class:`MailNotConfigured` in a deployment with no relay. Logging
+    the code there would look like success to the person who asked for it.
+    """
+    if configured():
+        return False
+    if deployed():
+        logger.error("SMTP_HOST is not set, the mail to %s cannot be sent.", to)
+        raise MailNotConfigured("SMTP_HOST is not set")
+    return True
+
+
+def check_at_startup() -> None:
+    """Say once, in the log, where the mails go."""
+    if configured():
+        logger.info(
+            "Mails go through %s:%s, from %s.",
+            settings.smtp_host,
+            settings.smtp_port,
+            settings.smtp_from,
+        )
+    elif deployed():
+        logger.error(
+            "SMTP_HOST is not set on deployment %s: sign-in mails cannot be "
+            "sent and /auth/email/start answers 503. See docs/auth.md.",
+            settings.deployment,
+        )
+    else:
+        logger.info("No SMTP_HOST: sign-in codes are written to this log.")
 
 
 def build_message(email: str, code: str, link: str) -> EmailMessage:
@@ -203,16 +250,24 @@ async def _deliver(message: EmailMessage) -> None:
     except (aiosmtplib.SMTPException, OSError) as exc:
         # The reason, never the content: this line ends up in kubectl logs,
         # where a sign-in code has no business being.
-        logger.error("Mail to %s failed: %s", message["To"], exc)
+        logger.error(
+            "Mail to %s failed (%s:%s): %s: %s",
+            message["To"],
+            settings.smtp_host,
+            settings.smtp_port,
+            type(exc).__name__,
+            exc,
+        )
         raise MailError(str(exc)) from exc
 
 
 async def send_login_mail(email: str, code: str, link: str) -> None:
     """Mail the code and the link, or log them when SMTP is not configured.
 
-    Raises :class:`MailError` when the relay fails.
+    Raises :class:`MailError` when the relay fails, and
+    :class:`MailNotConfigured` in a deployment with no relay.
     """
-    if not configured():
+    if _log_only(email):
         # One line, easy to grep for in the dev server log.
         logger.warning("Sign-in mail not sent (no SMTP_HOST).")
         logger.warning("Sign-in code for %s: %s", email, code)
@@ -232,9 +287,10 @@ async def send_notice(
 ) -> None:
     """Mail a notice, or log it when SMTP is not configured.
 
-    Raises :class:`MailError` when the relay fails.
+    Raises :class:`MailError` when the relay fails, and
+    :class:`MailNotConfigured` in a deployment with no relay.
     """
-    if not configured():
+    if _log_only(email):
         logger.warning("Mail not sent (no SMTP_HOST): %r to %s", subject, email)
         logger.warning("Its link: %s", link)
         return

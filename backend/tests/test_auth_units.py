@@ -336,10 +336,10 @@ def _parts(message):
 
 
 def test_message_carries_the_code_the_link_and_a_display_name(monkeypatch):
-    monkeypatch.setattr(mailer.settings, "smtp_from", "noreply-enacitdev@epfl.ch")
+    monkeypatch.setattr(mailer.settings, "smtp_from", "noreply-resslab-hub@epfl.ch")
     message = mailer.build_message("ada@example.edu", "123456", LINK)
 
-    assert message["From"] == "RESSLab Hub <noreply-enacitdev@epfl.ch>"
+    assert message["From"] == "RESSLab Hub <noreply-resslab-hub@epfl.ch>"
     assert message["To"] == "ada@example.edu"
     assert "123456" in message["Subject"]
 
@@ -388,12 +388,55 @@ def test_the_html_keeps_its_css_braces():
 
 async def test_without_a_host_the_code_goes_to_the_log(monkeypatch, caplog):
     monkeypatch.setattr(mailer.settings, "smtp_host", None)
+    monkeypatch.setattr(mailer.settings, "deployment", None)
     caplog.set_level(logging.WARNING, logger="resslab_hub.auth.mailer")
 
     await mailer.send_login_mail("ada@example.edu", "123456", "http://x/verify")
 
     assert "123456" in caplog.text
     assert "http://x/verify" in caplog.text
+
+
+async def test_a_deployment_without_a_host_refuses_to_send(monkeypatch, caplog):
+    """#247: the code went to kubectl logs and the page said "sent"."""
+    monkeypatch.setattr(mailer.settings, "smtp_host", None)
+    monkeypatch.setattr(mailer.settings, "deployment", "stage")
+    caplog.set_level(logging.WARNING, logger="resslab_hub.auth.mailer")
+
+    with pytest.raises(mailer.MailNotConfigured):
+        await mailer.send_login_mail("ada@example.edu", "123456", "http://x/verify")
+
+    assert "SMTP_HOST is not set" in caplog.text
+    # Nobody can read the log to sign in, so the code has no business there.
+    assert "123456" not in caplog.text
+    assert "http://x/verify" not in caplog.text
+
+
+async def test_a_deployment_without_a_host_refuses_a_notice(monkeypatch):
+    monkeypatch.setattr(mailer.settings, "smtp_host", "")
+    monkeypatch.setattr(mailer.settings, "deployment", "stage")
+
+    with pytest.raises(mailer.MailNotConfigured):
+        await mailer.send_notice(
+            "boss@epfl.ch", "Subject", "Title", ["Body"], "Go", "http://x/admin", "-"
+        )
+
+
+def test_the_startup_check_says_where_mails_go(monkeypatch, caplog):
+    caplog.set_level(logging.INFO, logger="resslab_hub.auth.mailer")
+    monkeypatch.setattr(mailer.settings, "smtp_host", None)
+
+    monkeypatch.setattr(mailer.settings, "deployment", "stage")
+    mailer.check_at_startup()
+    errors = [r for r in caplog.records if r.levelno == logging.ERROR]
+    assert len(errors) == 1
+    assert "SMTP_HOST is not set" in errors[0].getMessage()
+
+    caplog.clear()
+    monkeypatch.setattr(mailer.settings, "deployment", None)
+    mailer.check_at_startup()
+    assert [r.levelno for r in caplog.records] == [logging.INFO]
+    assert "written to this log" in caplog.text
 
 
 async def test_the_send_uses_starttls_and_a_short_timeout(monkeypatch):
@@ -424,8 +467,11 @@ async def test_a_refusing_relay_becomes_a_mail_error(monkeypatch, caplog):
     with pytest.raises(mailer.MailError):
         await mailer.send_login_mail("ada@example.edu", "123456", "http://x/verify")
 
-    # The reason is logged, the code never is.
+    # The reason is logged, with the relay and the kind of error, so the line
+    # in kubectl logs says enough to fix it. The code is never logged.
     assert "relay is down" in caplog.text
+    assert "mail.example" in caplog.text
+    assert "SMTPConnectError" in caplog.text
     assert "123456" not in caplog.text
 
 
@@ -476,6 +522,7 @@ def test_a_notice_escapes_what_people_typed():
 
 async def test_a_notice_is_only_logged_without_a_relay(monkeypatch, caplog):
     monkeypatch.setattr(mailer.settings, "smtp_host", "")
+    monkeypatch.setattr(mailer.settings, "deployment", None)
     sent = []
 
     async def _send(message, **kwargs):
