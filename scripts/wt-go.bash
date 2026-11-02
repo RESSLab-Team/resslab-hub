@@ -18,7 +18,7 @@
 # worktrees are offered — a bare `wtgo <TAB>` is exactly "what was I working
 # on". Only when nothing matches does it widen to every local and origin
 # branch, minus the protected ones (never checked out in a worktree).
-_WTGO_ROOT="${WTGO_DEFAULT_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+_WTGO_ROOT="${WTGO_DEFAULT_REPO:-$(CDPATH= cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
 # The repo you are standing in, if it has the worktree tooling; else the default
 # repo. Prints the path either way; returns 1 when it had to fall back, so the
