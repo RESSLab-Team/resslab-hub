@@ -13,9 +13,12 @@ vi.mock('@/plugins/axios', () => ({
   authApi: { getMe: (...args: unknown[]) => getMe(...args) }
 }))
 
-// The counts are not what this file tests, and they fetch every database.
+// A fixed store: the real one fetches every database.
 vi.mock('@/stores/counts', () => ({
-  useCountsStore: () => ({ fetch: vi.fn(), counts: {} })
+  useCountsStore: () => ({
+    fetch: vi.fn(),
+    counts: { connections: 3, cyclic: 1, tensile: 2, 'ductile-fracture': 4, ebf: 5 }
+  })
 }))
 
 vi.mock('vue-router', () => ({
@@ -72,6 +75,47 @@ describe('AppSidebar and CONTRIBUTIONS_ENABLED', () => {
     expect(shown).not.toContain('Contribute')
     expect(shown).not.toContain('Curation')
     expect(shown).not.toContain('Account')
+  })
+})
+
+describe('AppSidebar counts (#387)', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+    getMe.mockResolvedValue({ data: { user: null } })
+  })
+
+  it('shows the count of every database with the groups folded', async () => {
+    const wrapper = mountSidebar(true)
+    await flushPromises()
+    expect(wrapper.find('.sidebar-child').exists()).toBe(false)
+    const count = (name: string) =>
+      wrapper
+        .findAll('.sidebar-link')
+        .find((node) => node.text().startsWith(name))
+        ?.findAll('.count')[0]
+        ?.text()
+    expect(count('Connections')).toBe('3')
+    // Materials sums its three databases.
+    expect(count('Materials')).toBe('7')
+    expect(count('EBF')).toBe('5')
+    // No value yet: no badge rather than a wrong number.
+    expect(count('Columns')).toBeUndefined()
+  })
+
+  it('shows a count on a child only when its group has several databases', async () => {
+    const wrapper = mountSidebar(true)
+    await flushPromises()
+    for (const toggle of wrapper.findAll('.sidebar-group-toggle')) await toggle.trigger('click')
+    const childCount = (name: string) =>
+      wrapper
+        .findAll('.sidebar-child')
+        .find((node) => node.text().startsWith(name))
+        ?.find('.count')
+    // "Database" would repeat the number of its group row.
+    expect(childCount('Database')?.exists()).toBe(false)
+    expect(childCount('Cyclic Coupons')?.text()).toBe('1')
+    expect(childCount('Ductile Fracture')?.text()).toBe('4')
   })
 })
 
