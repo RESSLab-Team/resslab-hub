@@ -204,3 +204,32 @@ def test_a_body_that_is_not_json_falls_back_on_the_status():
 
 def test_any_other_error_keeps_its_text():
     assert describe_error(RuntimeError("boom")) == "boom"
+
+
+@pytest.mark.asyncio
+async def test_reviewers_are_the_admins_and_go_in_one_request():
+    """#266: list the admins, then one review request with their logins."""
+    calls: dict = {}
+
+    async def list_collaborators(owner, repo, **params):
+        calls["list"] = params
+        users = [SimpleNamespace(login="dlignos"), SimpleNamespace(login="andskia")]
+        return SimpleNamespace(parsed_data=users)
+
+    async def request_reviewers(owner, repo, number, data):
+        calls["request"] = (number, data)
+
+    client = client_with(FakeGit())
+    client._gh = SimpleNamespace(
+        rest=SimpleNamespace(
+            repos=SimpleNamespace(async_list_collaborators=list_collaborators),
+            pulls=SimpleNamespace(async_request_reviewers=request_reviewers),
+        )
+    )
+
+    logins = await client.list_admin_logins()
+    await client.request_reviewers(7, logins)
+    await client.request_reviewers(8, [])  # nothing to ask: no call
+
+    assert calls["list"]["permission"] == "admin"
+    assert calls["request"] == (7, {"reviewers": ["dlignos", "andskia"]})

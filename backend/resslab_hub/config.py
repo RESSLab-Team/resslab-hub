@@ -41,6 +41,11 @@ settings = Dynaconf(
         Validator("contributions_enabled", default=True),
         Validator("data_repo", default="RESSLab-Team/resslab-hub-data"),
         Validator("data_repo_base_branch", default="main"),
+        # Who is asked to review each pull request the Hub opens (#266).
+        # "admins": every admin of the data repo, read from GitHub each time.
+        # "none": nobody (local setups on the test fork). Else a comma list
+        # of GitHub logins, used as is.
+        Validator("data_repo_reviewers", default="admins"),
         # --- Sign-in (#247) --------------------------------------------------
         # Absolute URL the app is reached at, without the /api prefix:
         # "https://resslab-hub.epfl.ch" in prod, the Vite dev server locally.

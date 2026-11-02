@@ -45,6 +45,7 @@ from resslab_hub.contributions.projection import (
     split_batch,
     type_for_branch,
 )
+from resslab_hub.contributions.reviewers import request_reviews
 from resslab_hub.contributions.trailers import (
     Provenance,
     build_commit_message,
@@ -537,6 +538,8 @@ async def submit_contribution(
             "The pull request could not be opened on the data repository "
             f"({describe_error(exc)}).",
         )
+    # The PR is open from here: a failure is only logged, the submit succeeds.
+    await request_reviews(client, pull["number"], contributor.github_login)
     return SubmissionResult(pull["url"], pull["number"], branch, commit_sha)
 
 

@@ -139,6 +139,10 @@ TEST_DATA_REPO_INSTALLATION_ID=170990591
 set_env_default secrets/.env DATA_REPO "$TEST_DATA_REPO"
 if grep -qxE "DATA_REPO=\"?$TEST_DATA_REPO\"?" secrets/.env; then
   set_env_var secrets/.env GITHUB_APP_INSTALLATION_ID "$TEST_DATA_REPO_INSTALLATION_ID"
+  # Each PR asks the repo admins for a review (#266). On the fork that is
+  # nine EPFL-ENAC people for every test submit, so ask nobody by default.
+  # Put your own login there to test the review request.
+  set_env_default secrets/.env DATA_REPO_REVIEWERS none
   echo "contributions: pull requests go to $TEST_DATA_REPO"
 else
   echo "note: DATA_REPO in secrets/.env is not the test fork, kept as is"
