@@ -1120,6 +1120,9 @@ export interface CurationDetail {
     'title': string;
     'branch': string;
     'type': string;
+    'kind': string;
+    'reason': string;
+    'from_fork': boolean;
     'draft': boolean;
     'created_at': string;
     'updated_at': string;
@@ -1157,7 +1160,7 @@ export interface CurationListResponse {
     'items'?: Array<CurationSummary>;
 }
 /**
- * One open contribution PR, as listed in the review queue.
+ * One open pull request of the data repo, as listed in the review queue.
  */
 export interface CurationSummary {
     'pr_number': number;
@@ -1165,6 +1168,9 @@ export interface CurationSummary {
     'title': string;
     'branch': string;
     'type': string;
+    'kind': string;
+    'reason': string;
+    'from_fork': boolean;
     'draft': boolean;
     'created_at': string;
     'updated_at': string;
@@ -7703,12 +7709,13 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+         * Every open pull request into the base branch of the data repository, for the review queue (#267). Hub submissions, pull requests opened by hand with the database found from their files, and \"unrecognised\" ones with the reason. Only verification pull requests are left out: they are on the To verify tab, and the log says so. ``fresh`` skips the one-minute cache (the Refresh button). Returns ``configured: false`` (not an error) on deployments without the GitHub App.
          * @summary List Contributions
+         * @param {boolean} [fresh] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listContributions: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listContributions: async (fresh?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/contributions`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -7720,6 +7727,10 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+
+            if (fresh !== undefined) {
+                localVarQueryParameter['fresh'] = fresh;
+            }
 
             localVarHeaderParameter['Accept'] = 'application/json';
 
@@ -8118,13 +8129,14 @@ export const DefaultApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+         * Every open pull request into the base branch of the data repository, for the review queue (#267). Hub submissions, pull requests opened by hand with the database found from their files, and \"unrecognised\" ones with the reason. Only verification pull requests are left out: they are on the To verify tab, and the log says so. ``fresh`` skips the one-minute cache (the Refresh button). Returns ``configured: false`` (not an error) on deployments without the GitHub App.
          * @summary List Contributions
+         * @param {boolean} [fresh] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listContributions(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CurationListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listContributions(options);
+        async listContributions(fresh?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CurationListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listContributions(fresh, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['DefaultApi.listContributions']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -8341,13 +8353,14 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.healthz(options).then((request) => request(axios, basePath));
         },
         /**
-         * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+         * Every open pull request into the base branch of the data repository, for the review queue (#267). Hub submissions, pull requests opened by hand with the database found from their files, and \"unrecognised\" ones with the reason. Only verification pull requests are left out: they are on the To verify tab, and the log says so. ``fresh`` skips the one-minute cache (the Refresh button). Returns ``configured: false`` (not an error) on deployments without the GitHub App.
          * @summary List Contributions
+         * @param {boolean} [fresh] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listContributions(options?: RawAxiosRequestConfig): AxiosPromise<CurationListResponse> {
-            return localVarFp.listContributions(options).then((request) => request(axios, basePath));
+        listContributions(fresh?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<CurationListResponse> {
+            return localVarFp.listContributions(fresh, options).then((request) => request(axios, basePath));
         },
         /**
          * The unverified rows of every database, grouped by reference, each with the open verification pull request that covers it, if any.
@@ -8557,13 +8570,14 @@ export class DefaultApi extends BaseAPI {
     }
 
     /**
-     * Open contribution pull requests on the data repository, for the review queue. Returns ``configured: false`` (not an error) on deployments without the GitHub App.
+     * Every open pull request into the base branch of the data repository, for the review queue (#267). Hub submissions, pull requests opened by hand with the database found from their files, and \"unrecognised\" ones with the reason. Only verification pull requests are left out: they are on the To verify tab, and the log says so. ``fresh`` skips the one-minute cache (the Refresh button). Returns ``configured: false`` (not an error) on deployments without the GitHub App.
      * @summary List Contributions
+     * @param {boolean} [fresh] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public listContributions(options?: RawAxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).listContributions(options).then((request) => request(this.axios, this.basePath));
+    public listContributions(fresh?: boolean, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).listContributions(fresh, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

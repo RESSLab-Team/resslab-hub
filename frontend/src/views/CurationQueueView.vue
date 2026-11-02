@@ -43,6 +43,8 @@ interface QueueRow {
   summary: CurationSummary
   databaseName: string
   initials: string
+  // No database found from its files: GitHub only, no review page (#267).
+  unrecognised: boolean
 }
 
 function initialsOf(name: string): string {
@@ -57,7 +59,8 @@ const rows = computed<QueueRow[]>(() =>
     return {
       summary,
       databaseName: database?.name ?? summary.type,
-      initials: initialsOf(summary.contributor?.name ?? '')
+      initials: initialsOf(summary.contributor?.name ?? ''),
+      unrecognised: summary.kind === 'unrecognised'
     }
   })
 )
@@ -157,12 +160,33 @@ const rows = computed<QueueRow[]>(() =>
             <tr
               v-for="row in rows"
               :key="row.summary.pr_number"
-              class="click"
-              @click="$router.push(`/curation/${row.summary.pr_number}`)"
+              :class="{ click: !row.unrecognised }"
+              @click="!row.unrecognised && $router.push(`/curation/${row.summary.pr_number}`)"
             >
               <td class="id">#{{ row.summary.pr_number }}</td>
               <td>
-                <span class="tag">{{ row.databaseName }}</span>
+                <div class="tags">
+                  <span
+                    v-if="row.unrecognised"
+                    class="tag warn"
+                    :title="$t('curation.queue.unrecognised_hint')"
+                    >{{ $t('curation.queue.unrecognised') }}</span
+                  >
+                  <span v-else class="tag">{{ row.databaseName }}</span>
+                  <span v-if="row.summary.draft" class="tag mut">{{
+                    $t('curation.queue.draft')
+                  }}</span>
+                  <span
+                    v-if="row.summary.from_fork"
+                    class="tag mut"
+                    :title="$t('curation.queue.fork_hint')"
+                    >{{ $t('curation.queue.fork') }}</span
+                  >
+                </div>
+                <div v-if="row.unrecognised" class="sub">{{ row.summary.reason }}</div>
+                <div v-else-if="row.summary.kind === 'manual'" class="sub">
+                  {{ $t('curation.queue.opened_on_github') }}
+                </div>
               </td>
               <td>
                 <div class="nm">{{ row.summary.title }}</div>
@@ -183,7 +207,11 @@ const rows = computed<QueueRow[]>(() =>
               <td class="num mono">{{ row.summary.experiment_count ?? '—' }}</td>
               <td class="mono mut">{{ formatAge(row.summary.updated_at, locale) }}</td>
               <td class="actions" @click.stop>
-                <router-link class="rowlink" :to="`/curation/${row.summary.pr_number}`">
+                <router-link
+                  v-if="!row.unrecognised"
+                  class="rowlink"
+                  :to="`/curation/${row.summary.pr_number}`"
+                >
                   {{ $t('curation.queue.review') }} →
                 </router-link>
                 <a
@@ -374,6 +402,18 @@ const rows = computed<QueueRow[]>(() =>
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--fg-muted);
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tag.mut {
+  color: var(--fg-muted);
+}
+/* --warning is a rule only, never text: too light to read. */
+.tag.warn {
+  border-color: var(--warning);
 }
 .tag {
   display: inline-block;

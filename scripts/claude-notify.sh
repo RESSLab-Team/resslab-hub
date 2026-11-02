@@ -47,11 +47,12 @@ if [ "$KIND" = --worker ]; then
 
     if [ -n "$sess" ] && tmux has-session -t "=$sess" 2>/dev/null; then
       # Put the claude pane in front so the waiting prompt is what you see.
-      # Found by the @wt_role option tmux-dev.sh sets; the title is only a
-      # fallback for sessions made by hand, since claude rewrites it as it works.
+      # Found by the @wt_role option: "claude" from tmux-dev.sh, "agent" from
+      # wtx. The title is only a fallback for sessions made by hand, since
+      # claude rewrites it as it works.
       local pane panes
       panes=$(tmux list-panes -s -t "=$sess" -F '#{pane_id}|#{@wt_role}|#{pane_title}' 2>/dev/null)
-      pane=$(printf '%s\n' "$panes" | awk -F'|' '$2 == "claude" {print $1; exit}')
+      pane=$(printf '%s\n' "$panes" | awk -F'|' '$2 == "claude" || $2 == "agent" {print $1; exit}')
       [ -n "$pane" ] || pane=$(printf '%s\n' "$panes" | awk -F'|' '$3 == "claude" {print $1; exit}')
       [ -n "$pane" ] && tmux select-pane -t "$pane" 2>/dev/null
       # A terminal with a tmux client attached is the place the user already

@@ -599,8 +599,20 @@
       },
       "get": {
         "summary": "List Contributions",
-        "description": "Open contribution pull requests on the data repository, for the review\nqueue. Returns ``configured: false`` (not an error) on deployments without\nthe GitHub App.",
+        "description": "Every open pull request into the base branch of the data repository, for\nthe review queue (#267). Hub submissions, pull requests opened by hand\nwith the database found from their files, and \"unrecognised\" ones with\nthe reason. Only verification pull requests are left out: they are on the\nTo verify tab, and the log says so. ``fresh`` skips the one-minute cache\n(the Refresh button). Returns ``configured: false`` (not an error) on\ndeployments without the GitHub App.",
         "operationId": "list_contributions",
+        "parameters": [
+          {
+            "name": "fresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Fresh"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -608,6 +620,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CurationListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -12290,6 +12312,18 @@
             "type": "string",
             "title": "Type"
           },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "from_fork": {
+            "type": "boolean",
+            "title": "From Fork"
+          },
           "draft": {
             "type": "boolean",
             "title": "Draft"
@@ -12391,6 +12425,9 @@
           "title",
           "branch",
           "type",
+          "kind",
+          "reason",
+          "from_fork",
           "draft",
           "created_at",
           "updated_at",
@@ -12513,6 +12550,18 @@
             "type": "string",
             "title": "Type"
           },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "from_fork": {
+            "type": "boolean",
+            "title": "From Fork"
+          },
           "draft": {
             "type": "boolean",
             "title": "Draft"
@@ -12554,12 +12603,15 @@
           "title",
           "branch",
           "type",
+          "kind",
+          "reason",
+          "from_fork",
           "draft",
           "created_at",
           "updated_at"
         ],
         "title": "CurationSummary",
-        "description": "One open contribution PR, as listed in the review queue."
+        "description": "One open pull request of the data repo, as listed in the review queue."
       },
       "DatabaseReadmeModel": {
         "properties": {

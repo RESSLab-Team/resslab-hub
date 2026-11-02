@@ -18,12 +18,13 @@ also protect the GitHub App's API budget.
 """
 
 import asyncio
+import logging
 import os
 import re
 from os import path
 from tempfile import TemporaryDirectory
 from time import monotonic
-from typing import List, Optional, Tuple
+from typing import List, NamedTuple, Optional, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
@@ -44,8 +45,10 @@ from resslab_hub.contributions.projection import (
     SubmissionError,
     _layout_for,
     classify_files,
+    from_fork,
     split_batch,
     type_for_branch,
+    type_for_files,
 )
 from resslab_hub.contributions.submission import (
     _read_csv,
@@ -53,6 +56,7 @@ from resslab_hub.contributions.submission import (
     read_provenance,
 )
 from resslab_hub.contributions.trailers import Provenance, owns_submission
+from resslab_hub.contributions.verification import type_for_verify_branch
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import validate_all
 from resslab_hub.models.curation import (
@@ -72,6 +76,8 @@ from resslab_hub.models.validation import (
 )
 from resslab_hub.routers.root import _build_response
 from resslab_hub.utils.rate_limit import limiter
+
+logger = logging.getLogger(__name__)
 
 # Router-level, so it runs before the sign-in check of each route.
 router = APIRouter(dependencies=[Depends(require_contributions_enabled)])
@@ -171,14 +177,66 @@ def _parse_pr_body(body: str) -> Tuple[Optional[int], Optional[CurationContribut
     return count, contributor
 
 
-def _summary(pull: dict, input_type: Type) -> CurationSummary:
+#: Shown on the review page of a pull request opened by hand (#267).
+MANUAL_WARNING = (
+    "This pull request was not opened by the Hub: only the rows it adds to "
+    "the main CSV are shown here. Review the full diff on GitHub."
+)
+
+
+class Resolved(NamedTuple):
+    """What an open pull request is, for the queue (#267).
+
+    ``kind`` is "submission", "manual", "unrecognised", or "verification"
+    (on the To verify tab, so never listed here). ``type`` is None only for
+    "unrecognised", and ``reason`` then says why.
+    """
+
+    kind: str
+    type: Optional[Type]
+    reason: str = ""
+
+
+async def _pull_files(client: DataRepoClient, pull: dict) -> List[dict]:
+    """The changed files, cached by head sha: the list and the detail share it."""
+    key = ("files", pull["number"], pull["head_sha"])
+    cached = _cache.get(key)
+    if cached is None:
+        cached = await client.list_pull_files(pull["number"])
+        _cache.put(key, cached, DETAIL_TTL_SECONDS)
+    return cached
+
+
+async def _resolve(client: DataRepoClient, pull: dict) -> Resolved:
+    """Which database a pull request changes, and how we know it.
+
+    The branch name first, it costs nothing: ``contrib/<slug>/`` is a Hub
+    submission, ``verify/<slug>/`` a verification. Any other pull request
+    was opened by hand, so its changed files say which database it is.
+    """
+    input_type = type_for_branch(pull["head_ref"])
+    if input_type is not None:
+        return Resolved("submission", input_type)
+    verify_type = type_for_verify_branch(pull["head_ref"])
+    if verify_type is not None:
+        return Resolved("verification", verify_type)
+    input_type, reason = type_for_files(await _pull_files(client, pull))
+    if input_type is None:
+        return Resolved("unrecognised", None, reason)
+    return Resolved("manual", input_type)
+
+
+def _summary(pull: dict, resolved: Resolved) -> CurationSummary:
     count, contributor = _parse_pr_body(pull["body"])
     return CurationSummary(
         pr_number=pull["number"],
         pr_url=pull["html_url"],
         title=pull["title"],
         branch=pull["head_ref"],
-        type=input_type.value,
+        type=resolved.type.value if resolved.type is not None else "",
+        kind=resolved.kind,
+        reason=resolved.reason,
+        from_fork=from_fork(pull),
         draft=pull["draft"],
         created_at=pull["created_at"],
         updated_at=pull["updated_at"],
@@ -188,7 +246,7 @@ def _summary(pull: dict, input_type: Type) -> CurationSummary:
 
 
 async def _fetch_pull(client: DataRepoClient, pr_number: int) -> Tuple[dict, Type]:
-    """The PR, guaranteed open and contribution-shaped, else 404."""
+    """The PR, open and with one database found, else 404."""
     cached = _cache.get(("pull", pr_number))
     if cached is None:
         try:
@@ -199,13 +257,31 @@ async def _fetch_pull(client: DataRepoClient, pr_number: int) -> Tuple[dict, Typ
                 detail="This pull request does not exist on the data repository.",
             )
         _cache.put(("pull", pr_number), cached, LIST_TTL_SECONDS)
-    input_type = type_for_branch(cached["head_ref"])
-    if cached["state"] != "open" or input_type is None:
+    if cached["state"] != "open":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="This pull request is not an open contribution.",
+            detail="This pull request is not open.",
         )
-    return cached, input_type
+    try:
+        resolved = await _resolve(client, cached)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="The pull request's files could not be read from the data "
+            "repository: " + describe_error(exc),
+        )
+    if resolved.kind == "verification":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This is a verification pull request, see the To verify tab.",
+        )
+    if resolved.type is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This pull request can only be reviewed on GitHub. "
+            + resolved.reason,
+        )
+    return cached, resolved.type
 
 
 async def _build_detail(
@@ -217,9 +293,12 @@ async def _build_detail(
         return cached
 
     layout = _layout_for(input_type)
-    files = classify_files(await client.list_pull_files(pull["number"]), input_type)
+    files = classify_files(await _pull_files(client, pull), input_type)
+    # Not a `contrib/` branch: opened by hand, with no trailers to read.
+    manual = type_for_branch(pull["head_ref"]) is None
+    kind = "manual" if manual else "submission"
     detail = CurationDetail(
-        **_summary(pull, input_type).model_dump(),
+        **_summary(pull, Resolved(kind, input_type)).model_dump(),
         state=pull["state"],
         head_sha=head_sha,
         body=pull["body"],
@@ -234,8 +313,10 @@ async def _build_detail(
     # Provenance is informative, never load-bearing: any failure downgrades to
     # a reconstruction warning instead of breaking the review screen.
     provenance = await read_provenance(client, pull["number"], head_sha, files)
+    if manual:
+        detail.reconstruction_warning = MANUAL_WARNING
     if provenance is None:
-        detail.reconstruction_warning = (
+        detail.reconstruction_warning = detail.reconstruction_warning or (
             "The submission's commit trailers could not be read; contributor "
             "details come from the pull request body."
         )
@@ -434,19 +515,56 @@ async def _check_access(
     dependencies=[Depends(require_role(roles.CURATOR))],
 )
 @limiter.limit("30/minute")
-async def list_contributions(request: Request) -> CurationListResponse:
+async def list_contributions(
+    request: Request, fresh: bool = False
+) -> CurationListResponse:
     """
-    Open contribution pull requests on the data repository, for the review
-    queue. Returns ``configured: false`` (not an error) on deployments without
-    the GitHub App.
+    Every open pull request into the base branch of the data repository, for
+    the review queue (#267). Hub submissions, pull requests opened by hand
+    with the database found from their files, and "unrecognised" ones with
+    the reason. Only verification pull requests are left out: they are on the
+    To verify tab, and the log says so. ``fresh`` skips the one-minute cache
+    (the Refresh button). Returns ``configured: false`` (not an error) on
+    deployments without the GitHub App.
     """
     if not configured():
+        logger.warning(
+            "Review queue: the GitHub App is not configured, the queue is empty"
+        )
         return CurationListResponse(configured=False)
+    if fresh:
+        invalidate_open_pulls()
+    client = DataRepoClient()
     items = []
-    for pull in await open_pulls(DataRepoClient()):
-        input_type = type_for_branch(pull["head_ref"])
-        if input_type is not None:
-            items.append(_summary(pull, input_type))
+    for pull in await open_pulls(client):
+        try:
+            resolved = await _resolve(client, pull)
+        except Exception as exc:
+            # Still listed: the curator sees it and can open it on GitHub.
+            logger.warning(
+                "Review queue: files of #%s could not be read: %s",
+                pull["number"],
+                describe_error(exc),
+            )
+            resolved = Resolved(
+                "unrecognised", None, "Its files could not be read from GitHub."
+            )
+        if resolved.kind == "verification":
+            logger.info(
+                "Review queue: skipped #%s (%s): verification pull request, "
+                "listed on the To verify tab",
+                pull["number"],
+                pull["head_ref"],
+            )
+            continue
+        if resolved.kind == "unrecognised":
+            logger.info(
+                "Review queue: #%s (%s) is unrecognised: %s",
+                pull["number"],
+                pull["head_ref"],
+                resolved.reason,
+            )
+        items.append(_summary(pull, resolved))
     return CurationListResponse(configured=True, items=items)
 
 

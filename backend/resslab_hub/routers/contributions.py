@@ -37,7 +37,7 @@ from resslab_hub.data.uploader import Type
 from resslab_hub.models.contribution import ContributionResponse
 from resslab_hub.models.database.auth import User
 from resslab_hub.models.validation import ValidationResponse
-from resslab_hub.routers.curation import invalidate_pull
+from resslab_hub.routers.curation import invalidate_open_pulls, invalidate_pull
 from resslab_hub.routers.root import _build_response, enforce_request_size
 from resslab_hub.utils.rate_limit import limiter
 from resslab_hub.utils.safe_archive import (
@@ -180,10 +180,14 @@ async def create_contribution(
     """
     dismissed = _parse_dismissed(dismissed_warnings)
     contributor = _contributor(user)
-    return await _run_on_archive(
+    response = await _run_on_archive(
         file,
         lambda tmpdir: submit_contribution(tmpdir, type, contributor, dismissed),
     )
+    if isinstance(response, ContributionResponse):
+        # The queue is cached for a minute: show the new pull request at once.
+        invalidate_open_pulls()
+    return response
 
 
 # Same account as the submission, checked in `update_contribution` against the

@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from os import path
 from typing import List, Optional, Tuple
 
+from resslab_hub.config import settings
 from resslab_hub.data.common import SAFE_ID_PATTERN
 from resslab_hub.data.uploader import Type, get_args_all
 from resslab_hub.data.validator import ValidationResult
@@ -78,6 +79,47 @@ def type_for_branch(branch: str) -> Optional[Type]:
         return Type("all-" + parts[1])
     except ValueError:
         return None
+
+
+def _database_types() -> List[Type]:
+    return [t for t in Type if t.value.startswith("all-")]
+
+
+def database_folder(input_type: Type) -> str:
+    """The folder of a database in the data repo, like ``material/cyclic_coupons``."""
+    return path.dirname(_layout_for(input_type).primary_csv)
+
+
+def type_for_files(files: List[dict]) -> Tuple[Optional[Type], str]:
+    """The database a pull request changes, found from its files (#267).
+
+    For a pull request not opened by the Hub, so with no ``contrib/`` branch.
+    Files outside every database folder (``.github/``, ``contributions/``,
+    the root README) do not count. Returns the type when exactly one database
+    is touched, else None and the reason, to show in the queue.
+    """
+    touched = []
+    for input_type in _database_types():
+        prefix = database_folder(input_type) + "/"
+        if any(file["path"].startswith(prefix) for file in files):
+            touched.append(input_type)
+    if len(touched) == 1:
+        return touched[0], ""
+    if not touched:
+        return None, "No database file changed."
+    folders = ", ".join(database_folder(t) for t in touched)
+    return None, f"Changes {len(touched)} databases: {folders}."
+
+
+def from_fork(pull: dict) -> bool:
+    """Whether the pull request comes from a fork of the data repository.
+
+    The Hub cannot push to a fork's branch, so such a pull request is read
+    only here. An empty ``head_repo`` (the fork was deleted, or an old cached
+    dict) is not counted as a fork.
+    """
+    head_repo = pull.get("head_repo", "")
+    return bool(head_repo) and head_repo.lower() != str(settings.data_repo).lower()
 
 
 def classify_files(files: List[dict], input_type: Type) -> List[CurationFile]:

@@ -213,6 +213,12 @@ const actualOption = computed<EChartsOption>(() => {
   return merged
 })
 
+// Size of the aspect-ratio box (non-fill mode).
+const boxStyle = computed(() => ({
+  aspectRatio: String(props.aspectRatio),
+  maxWidth: props.maxWidth !== undefined ? `${props.maxWidth}px` : undefined
+}))
+
 // How each `setOption` is applied. `replaceMerge: ['series']` tears every series
 // component down and rebuilds it — the chart replays its entry animation, which
 // is what makes a slider drag look like a full redraw. It's only needed when the
@@ -245,7 +251,7 @@ const chartUpdateOptions = computed<SetOptionOpts>(() => {
     />
     <span v-if="showLegendRule" class="uc-legend-rule" />
   </div>
-  <v-responsive v-else :aspect-ratio="aspectRatio" :max-width="maxWidth">
+  <div v-else class="uc-box" :style="boxStyle">
     <div class="uc-wrap">
       <v-chart
         autoresize
@@ -255,10 +261,18 @@ const chartUpdateOptions = computed<SetOptionOpts>(() => {
       />
       <span v-if="showLegendRule" class="uc-legend-rule" />
     </div>
-  </v-responsive>
+  </div>
 </template>
 
 <style scoped>
+/* A plain box with CSS aspect-ratio, not a <v-responsive>. v-responsive puts
+   its content over its sizer with a -100% margin, and when the Vuetify reset
+   layer wins over that margin the chart draws at half width, on the right
+   half of its box (#385). Here nothing depends on the layer order. */
+.uc-box {
+  width: 100%;
+  margin-inline: auto;
+}
 .uc-wrap {
   position: relative;
   width: 100%;
