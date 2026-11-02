@@ -78,6 +78,13 @@ class HTTPCacheMiddleware(BaseHTTPMiddleware):
     ) -> Response:
         if request.method != "GET" or _excluded(request.url.path):
             return await call_next(request)
+        # A request with credentials gets an answer for that caller. The key
+        # below is the URL alone, so never store it or serve it from the
+        # store (#264 M1). The session cookie is not checked here on purpose:
+        # signed-in people read the same datasets, and the per-user routes
+        # are already in _excluded.
+        if "authorization" in request.headers:
+            return await call_next(request)
         version = _data_version
         etag = data_etag()
         headers = {"ETag": etag, "Cache-Control": f"public, max-age={self.max_age}"}
@@ -148,7 +155,15 @@ def _excluded(path: str) -> bool:
     #
     # /features comes from the deployment's settings (CONTRIBUTIONS_ENABLED):
     # with `max-age` a browser would keep the old answer after a restart.
-    return path in ("/", "/healthz", "/readyz", "/features") or path.startswith(
+    #
+    # /user answers who holds the machine credential (#264 M1).
+    return path in (
+        "/",
+        "/healthz",
+        "/readyz",
+        "/features",
+        "/user",
+    ) or path.startswith(
         (
             "/analytics",
             "/contributions",
