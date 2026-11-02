@@ -420,7 +420,9 @@ checked out in a worktree (cli/cli#13380).
 - **Panes are found by `@wt_role`, not by title.** `tmux-dev.sh` sets it on
   all four panes; `wt-db.sh` (backend restart), the `--brief` restart and
   `claude-notify` look panes up by it. A title is not a tmux target, and claude
-  rewrites its own. After editing `scripts/claude-notify.sh`, re-run
+  rewrites its own. wtx sets it too, but with the role from `wtx.toml`
+  (`agent`, `server`, `shell`), so both server panes share `server`: there
+  `wt-db.sh` also checks the title `backend`. After editing `scripts/claude-notify.sh`, re-run
   `scripts/claude-notify-install.sh` to refresh the `~/.local/bin` copy.
 - **`~/.claude/settings.json` can't be edited by Claude** — the classifier
   blocks an agent changing its own permissions. Edit it yourself.
