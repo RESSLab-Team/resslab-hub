@@ -6,6 +6,8 @@ everything here goes through the ``client`` fixture rather than calling the
 endpoint functions.
 """
 
+import logging
+
 import aiosmtplib
 import pytest
 from sqlalchemy import select, text
@@ -43,6 +45,13 @@ def broken_relay(monkeypatch):
 
     monkeypatch.setattr(mailer.settings, "smtp_host", "mail.example")
     monkeypatch.setattr(mailer.aiosmtplib, "send", _send)
+
+
+@pytest.fixture
+def no_relay_in_a_deployment(monkeypatch):
+    """A deployment where nobody set SMTP_HOST (#247)."""
+    monkeypatch.setattr(mailer.settings, "smtp_host", None)
+    monkeypatch.setattr(mailer.settings, "deployment", "stage")
 
 
 async def _start(client, email="ada@example.edu", redirect_to="/contribute/new"):
@@ -188,9 +197,10 @@ async def test_an_address_cannot_be_mail_bombed(client, mailbox, db_session):
 
 
 async def test_a_broken_relay_does_not_burn_the_rate_limit(
-    client, broken_relay, db_session, monkeypatch
+    client, broken_relay, db_session, monkeypatch, caplog
 ):
     """A dead relay must not cost the person their five mails per hour."""
+    caplog.set_level(logging.ERROR, logger="resslab_hub.auth.mailer")
     for _ in range(email_login.MAX_MAILS_PER_HOUR + 1):
         response = await client.post(
             "/auth/email/start", json={"email": "ada@example.edu"}
@@ -199,13 +209,30 @@ async def test_a_broken_relay_does_not_burn_the_rate_limit(
         assert response.json()["detail"] == "mail_failed"
         assert not response.cookies.get("resslab_login")
 
+    # The SMTP reason is in the server log, for whoever has to fix it.
+    assert "SMTPAuthenticationError" in caplog.text
+    assert "denied" in caplog.text
+
     # Nothing was written, so nothing counts against the caps.
     assert db_session.execute(select(LoginChallenge)).scalars().all() == []
 
     # And once the relay is back, the address can still ask for a code.
     monkeypatch.setattr(mailer.settings, "smtp_host", None)
+    monkeypatch.setattr(mailer.settings, "deployment", None)
     await _start(client, redirect_to="/")
     assert len(db_session.execute(select(LoginChallenge)).scalars().all()) == 1
+
+
+async def test_a_deployment_without_a_relay_says_so(
+    client, no_relay_in_a_deployment, db_session
+):
+    """#247: the page said "we sent a code" and the code went to the log."""
+    response = await client.post("/auth/email/start", json={"email": "ada@epfl.ch"})
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "mail_not_configured"
+    assert not response.cookies.get("resslab_login")
+    assert db_session.execute(select(LoginChallenge)).scalars().all() == []
 
 
 async def test_one_ip_cannot_mail_bomb_a_list_of_people(client, mailbox):

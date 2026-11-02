@@ -138,6 +138,13 @@ async def start_email_login(
         challenge_id = await email_login.start(
             db, str(payload.email), payload.redirect_to, client_ip(request)
         )
+    except mailer.MailNotConfigured as exc:
+        # A deployment with no relay. Not worth a retry, so not "mail_failed":
+        # the page says email sign-in is not set up here.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="mail_not_configured",
+        ) from exc
     except mailer.MailError as exc:
         # The only case where the answer is not the same for everyone. It says
         # nothing about the address, only that our relay is down, and the
