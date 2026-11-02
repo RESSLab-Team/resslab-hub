@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.3.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.2.0...v2.3.0) (2026-11-02)
+
+
+### Features
+
+* **curation:** show every open pull request in the review queue ([#397](https://github.com/RESSLab-Team/resslab-hub/issues/397)) ([fc0fb28](https://github.com/RESSLab-Team/resslab-hub/commit/fc0fb288fda3ccb164ac43199e98ff9a0cf22315))
+
+
+### Bug Fixes
+
+* **charts:** detail charts drawn at half width ([#395](https://github.com/RESSLab-Team/resslab-hub/issues/395)) ([2732935](https://github.com/RESSLab-Team/resslab-hub/commit/273293596f3aa2d15f18d2561943f6b214a16fb4))
+
 ## [2.2.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.1.0...v2.2.0) (2026-11-02)
 
 
