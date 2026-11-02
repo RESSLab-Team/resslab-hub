@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Shared helpers for the worktree tooling (scripts/wt-*.sh, tmux-dev.sh).
 # Source it; don't execute it. Callers may pre-set ROOT to target another checkout.
-WT_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WT_LIB_DIR="$(CDPATH= cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${ROOT:-$(cd "$WT_LIB_DIR/.." && pwd)}"
 
 BASE_BRANCH="${WT_BASE_BRANCH:-dev}"   # what wt-new.sh cuts branches from and wt-land.sh merges into

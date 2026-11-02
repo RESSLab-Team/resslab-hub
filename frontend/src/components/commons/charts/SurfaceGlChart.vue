@@ -68,12 +68,17 @@ const actualOption = computed<EChartsGlOption>(() => {
   <div v-if="fill" class="sgl-fill">
     <v-chart autoresize :option="actualOption" :update-options="updateOptions" />
   </div>
-  <v-responsive v-else :aspect-ratio="aspectRatio">
+  <div v-else class="sgl-box" :style="{ aspectRatio: String(aspectRatio) }">
     <v-chart autoresize :option="actualOption" :update-options="updateOptions" />
-  </v-responsive>
+  </div>
 </template>
 
 <style scoped>
+/* Plain CSS aspect-ratio box, not a <v-responsive>: same reason as UnitChart
+   (#385), v-responsive draws at half width when its -100% margin is lost. */
+.sgl-box {
+  width: 100%;
+}
 .sgl-fill {
   width: 100%;
   height: 100%;

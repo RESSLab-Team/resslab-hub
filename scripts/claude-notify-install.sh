@@ -17,7 +17,7 @@
 #      behind a second expand; -w shows each session's window immediately.
 set -euo pipefail
 
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HERE="$(CDPATH= cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BIN="$HOME/.local/bin/claude-notify"
 SETTINGS="$HOME/.claude/settings.json"
 
