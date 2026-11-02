@@ -1,5 +1,45 @@
 # Changelog
 
+## [2.2.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.1.0...v2.2.0) (2026-11-02)
+
+
+### Features
+
+* **auth:** admin page and access requests in the frontend ([a3da0df](https://github.com/RESSLab-Team/resslab-hub/commit/a3da0df1fd0a1175ceac066f638cc22f516eb403)), closes [#248](https://github.com/RESSLab-Team/resslab-hub/issues/248)
+* **auth:** roles from GitHub, curator gates and admin API ([a2091fd](https://github.com/RESSLab-Team/resslab-hub/commit/a2091fd7fab526ae2f85cce0d8b2dbadc53a8d35)), closes [#248](https://github.com/RESSLab-Team/resslab-hub/issues/248)
+* **contributions:** ask the data repo admins to review each PR ([#266](https://github.com/RESSLab-Team/resslab-hub/issues/266)) ([82e60b3](https://github.com/RESSLab-Team/resslab-hub/commit/82e60b3ba179f1bc61b0b643587d3775ee856e58))
+* **contributions:** new rows go in as unverified ([#253](https://github.com/RESSLab-Team/resslab-hub/issues/253)) ([55ac763](https://github.com/RESSLab-Team/resslab-hub/commit/55ac763fec186bed4e88023c4b85f843d73b4f93))
+* **curation:** read the unverified rows of a reference for review ([#253](https://github.com/RESSLab-Team/resslab-hub/issues/253)) ([52845e8](https://github.com/RESSLab-Team/resslab-hub/commit/52845e884a197e6ceec3812455d107fd98f773bf))
+* **curation:** verification pull requests for curators ([#253](https://github.com/RESSLab-Team/resslab-hub/issues/253)) ([eccfba5](https://github.com/RESSLab-Team/resslab-hub/commit/eccfba5877bcfd58c008239079655f06555ae604))
+* **data:** add data_curation_status to every main table ([#253](https://github.com/RESSLab-Team/resslab-hub/issues/253)) ([8488c2a](https://github.com/RESSLab-Team/resslab-hub/commit/8488c2acbc5851de0fe248e4b8a122d3bc4c5be3))
+* **frontend:** review page for unverified rows ([#253](https://github.com/RESSLab-Team/resslab-hub/issues/253)) ([0241e35](https://github.com/RESSLab-Team/resslab-hub/commit/0241e353d526abe3e35d70fd6e086fb30a0980cd))
+* **frontend:** unverified marker, verified-only toggle and verify tab ([#253](https://github.com/RESSLab-Team/resslab-hub/issues/253)) ([ed9a231](https://github.com/RESSLab-Team/resslab-hub/commit/ed9a23153ede9a84eecf8e05596b1bb3ca2cbdc7))
+* **sidebar:** show the count of every database in the menu ([1d367ed](https://github.com/RESSLab-Team/resslab-hub/commit/1d367edba51ac8cd749127608b550711d395f95f)), closes [#387](https://github.com/RESSLab-Team/resslab-hub/issues/387)
+* **sidebar:** show the count of every database in the menu ([#393](https://github.com/RESSLab-Team/resslab-hub/issues/393)) ([168bbda](https://github.com/RESSLab-Team/resslab-hub/commit/168bbdad0cc865b3af3bfc5a2d4a488957454e74))
+* **table:** remove the 5 experiments download limit ([c9256d6](https://github.com/RESSLab-Team/resslab-hub/commit/c9256d6982bea8642a6d03f0a7d7f02a032031b1))
+* **worktree:** local submissions go to the test data repo fork ([#382](https://github.com/RESSLab-Team/resslab-hub/issues/382)) ([e2792a8](https://github.com/RESSLab-Team/resslab-hub/commit/e2792a8f4eba85f90a5cedf3a0d985c0ab465c77))
+
+
+### Bug Fixes
+
+* **api:** fixed messages on 500, the exception goes to the log ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) H3) ([3dc3aa4](https://github.com/RESSLab-Team/resslab-hub/commit/3dc3aa4ef1a04b6030a3cacd020364e4ce7c086e))
+* **auth:** refuse email sign-in when a deployment has no SMTP relay ([272d8b2](https://github.com/RESSLab-Team/resslab-hub/commit/272d8b25f9c9e8f0a6995ec76a6424a37a9a4f5c))
+* **auth:** send the sign-in mail from the hub's own account ([2b5fefc](https://github.com/RESSLab-Team/resslab-hub/commit/2b5fefcc15e34d1341dfcd3cd221932c77c54b6a))
+* **cache:** skip the cache on Authorization, never cache /user ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) M1) ([72fc37a](https://github.com/RESSLab-Team/resslab-hub/commit/72fc37a56a12247f669fbea0fa04234680e6e376))
+* **charts:** readable curation previews and axis labels ([c4ddfc1](https://github.com/RESSLab-Team/resslab-hub/commit/c4ddfc1bf6164734ea160c03f7433e5d5d1bbac4))
+* **config:** no default secrets, refuse to start on a weak API_PASSWORD ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) C2) ([fabfc1a](https://github.com/RESSLab-Team/resslab-hub/commit/fabfc1a355ea4fe499ba19cf086c9b35653f95fe))
+* **contributions:** say why when GitHub refuses a call ([1f8400f](https://github.com/RESSLab-Team/resslab-hub/commit/1f8400f8764d0c92db398022be8b06f08c432f39))
+* **curation:** no "already in the database" error on verify ([#253](https://github.com/RESSLab-Team/resslab-hub/issues/253)) ([ceb1b99](https://github.com/RESSLab-Team/resslab-hub/commit/ceb1b99c84a709f492ae5712cab9dd2c340bff46))
+* **curation:** point the disabled decisions at [#254](https://github.com/RESSLab-Team/resslab-hub/issues/254), not [#248](https://github.com/RESSLab-Team/resslab-hub/issues/248) ([1758a4f](https://github.com/RESSLab-Team/resslab-hub/commit/1758a4f0e0686682bd7834041adb274a669a3dba))
+* **curation:** verify ranges compare with verified rows only ([#253](https://github.com/RESSLab-Team/resslab-hub/issues/253)) ([972d14c](https://github.com/RESSLab-Team/resslab-hub/commit/972d14c0046c07ed05b89e21871c8f8766560627))
+* **frontend:** keep .env files out of the Docker context ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) C1) ([c140196](https://github.com/RESSLab-Team/resslab-hub/commit/c140196a07197de9c07582f06011f533885e4908))
+* **sidebar:** align every count and drop the repeated database count ([b86d4ec](https://github.com/RESSLab-Team/resslab-hub/commit/b86d4ec301a9b5acb412a5c593a2cf2e48a2f062))
+* **ui:** declare the Vuetify sub-layers before any component CSS ([7a1983f](https://github.com/RESSLab-Team/resslab-hub/commit/7a1983f4b1530bd7eb875c651e8e9ad106b668d6))
+* **ui:** responsive layout from phone to laptop ([3651845](https://github.com/RESSLab-Team/resslab-hub/commit/3651845a82b6dfa52c4a5b575180e489cc8e0fd4))
+* **validate:** answer JSON on a trailing slash and on any 500 ([f0bc32a](https://github.com/RESSLab-Team/resslab-hub/commit/f0bc32a8db554de844421eb2268f275cb70eda98))
+* **validate:** answer JSON on a trailing slash and on any 500 ([#398](https://github.com/RESSLab-Team/resslab-hub/issues/398)) ([ba22bc6](https://github.com/RESSLab-Team/resslab-hub/commit/ba22bc6b60f9d12d49d75b808bab6e0e55b4b5f7))
+* **validator:** stop forcing the root logger to DEBUG ([#264](https://github.com/RESSLab-Team/resslab-hub/issues/264) H2) ([79b0a8d](https://github.com/RESSLab-Team/resslab-hub/commit/79b0a8de2c8fc3f0f7cc5479c3d5809bb69fb1f3))
+
 ## [2.1.0](https://github.com/RESSLab-Team/resslab-hub/compare/v2.0.0...v2.1.0) (2026-10-05)
 
 
