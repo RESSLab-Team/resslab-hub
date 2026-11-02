@@ -120,7 +120,6 @@ const emit = defineEmits<{
   (e: 'update:searches', value: Searches): void
 }>()
 
-const maxDownloadCount = 5
 /** -1 = "All". `useTable` maps it to a 1000-row fetch, which exceeds every
  *  dataset (largest is ~370 rows), so it really does return everything. */
 const ALL_ITEMS_PER_PAGE = -1
@@ -473,12 +472,6 @@ watch(pageCount, (value) => {
   }
 })
 
-watch(selectedItems, (value) => {
-  if (value.length >= maxDownloadCount) {
-    notificationStore.notify(t('commons.max_download', { max: maxDownloadCount }))
-  }
-})
-
 // Sort / page / size are owned here and pushed to the parent via `update:options`,
 // exactly as `v-data-table-server` used to — `useTable` re-fetches from them.
 function emitOptions(): void {
@@ -599,20 +592,17 @@ function hasColumnFilter(header: TableHeader): boolean {
   return value !== undefined && value !== null && value !== ''
 }
 
-function isItemSelectable(item: M): boolean {
-  return selectedItems.value.length < maxDownloadCount || selectedItemsIds.value.includes(item.id)
-}
 function isRowSelected(item: M): boolean {
   return selectedItemsIds.value.includes(item.id)
 }
 function toggleRow(item: M): void {
   if (isRowSelected(item)) {
     selectedItemsIds.value = selectedItemsIds.value.filter((id) => id !== item.id)
-  } else if (isItemSelectable(item)) {
+  } else {
     selectedItemsIds.value = [...selectedItemsIds.value, item.id]
   }
 }
-// Header select-all across the current page, capped at the download limit.
+// Header checkbox: select every row of the page, or clear them if all are selected.
 const allPageSelected = computed<boolean>(
   () => displayItems.value.length > 0 && displayItems.value.every((item) => isRowSelected(item))
 )
@@ -626,10 +616,7 @@ function toggleSelectAll(): void {
     return
   }
   const set = new Set(selectedItemsIds.value)
-  for (const item of displayItems.value) {
-    if (set.size >= maxDownloadCount) break
-    set.add(item.id)
-  }
+  for (const item of displayItems.value) set.add(item.id)
   selectedItemsIds.value = [...set]
 }
 
@@ -1089,7 +1076,6 @@ function downloadZip(): void {
                     type="checkbox"
                     class="stbl-check"
                     :checked="isRowSelected(item)"
-                    :disabled="!isItemSelectable(item)"
                     @change="toggleRow(item)"
                   />
                   <span v-if="isUnverified(item)" class="stbl-sr">{{
@@ -1152,7 +1138,7 @@ function downloadZip(): void {
       <div class="dash-pager-actions">
         <button
           class="btn btn-secondary btn-sm"
-          :disabled="selectedItems.length === 0 || selectedItems.length > maxDownloadCount"
+          :disabled="selectedItems.length === 0"
           @click="downloadZip"
         >
           <v-icon :icon="mdiDownload" size="14" />
