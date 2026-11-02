@@ -1388,6 +1388,12 @@
       "refresh": "Actualiser",
       "review": "Relire",
       "github": "GitHub",
+      "opened_on_github": "Ouverte sur GitHub",
+      "unrecognised": "Non reconnue",
+      "unrecognised_hint": "Ouverte sur GitHub. Le Hub ne sait pas quelle base de données elle modifie : relisez-la sur GitHub.",
+      "draft": "Brouillon",
+      "fork": "Fork",
+      "fork_hint": "Depuis un fork du dépôt de données : le Hub peut l'afficher, mais pas la modifier.",
       "headers": {
         "pr": "PR",
         "database": "Base de données",

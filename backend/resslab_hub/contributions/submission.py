@@ -42,6 +42,7 @@ from resslab_hub.contributions.projection import (
     _layout_for,
     _type_slug,
     classify_files,
+    from_fork,
     split_batch,
     type_for_branch,
 )
@@ -588,6 +589,14 @@ async def update_contribution(
     input_type = type_for_branch(branch)
     if input_type is None:
         raise SubmissionError(404, "This branch is not a contribution branch.")
+    if from_fork(pull):
+        # The commit would go to a branch of the same name on the data repo,
+        # not to the fork: GitHub gives the App no write access there.
+        raise SubmissionError(
+            409,
+            "This submission comes from a fork of the data repository. "
+            "Edit it on GitHub.",
+        )
 
     # Who made it, before any work is done on the archive.
     head_files = await client.list_pull_files(pr_number)

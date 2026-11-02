@@ -12,7 +12,12 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from resslab_hub.contributions.projection import classify_files, type_for_branch
+from resslab_hub.config import settings
+from resslab_hub.contributions.projection import (
+    classify_files,
+    type_for_branch,
+    type_for_files,
+)
 from resslab_hub.contributions.submission import Contributor, build_pr_body
 from resslab_hub.contributions.trailers import build_commit_message
 from resslab_hub.data.uploader import Type
@@ -131,9 +136,21 @@ PR_FILES = [
 class FakeClient:
     """In-memory double for the curation read path."""
 
-    def __init__(self, pulls=None, files=None, texts=None, comments=None, commits=None):
+    def __init__(
+        self,
+        pulls=None,
+        files=None,
+        texts=None,
+        comments=None,
+        commits=None,
+        files_by_number=None,
+    ):
         self.pulls = pulls if pulls is not None else [make_pull()]
         self.files = files if files is not None else list(PR_FILES)
+        #: Changed files of one pull request; the others get ``files``.
+        self.files_by_number = files_by_number or {}
+        self.list_calls = 0
+        self.file_calls = 0
         self.commits = commits if commits is not None else list(HUB_COMMITS)
         self.comments = comments if comments is not None else list(PR_COMMENTS)
         #: Counts GitHub round-trips so a test can prove the TTL cache holds.
@@ -151,6 +168,7 @@ class FakeClient:
         )
 
     async def list_open_pulls(self):
+        self.list_calls += 1
         return self.pulls
 
     async def get_pull(self, number):
@@ -160,7 +178,8 @@ class FakeClient:
         raise RuntimeError("not found")
 
     async def list_pull_files(self, number):
-        return self.files
+        self.file_calls += 1
+        return self.files_by_number.get(number, self.files)
 
     async def list_pull_commits(self, number):
         return self.commits
@@ -268,25 +287,152 @@ def test_classify_files():
     assert extra[0].kind == "other"
 
 
+def test_type_for_files():
+    def files(*paths):
+        return [{"path": p, "status": "modified"} for p in paths]
+
+    assert type_for_files(files("columns/steel_columns.csv")) == (
+        Type.ALL_COLUMN,
+        "",
+    )
+    # A dictionary or a README alone is still one database's pull request.
+    assert type_for_files(files("braces/README.md"))[0] is Type.ALL_BRACE
+    assert (
+        type_for_files(files("hss_columns/hss_columns_data_dictionary.csv"))[0]
+        is Type.ALL_HSS_COLUMN
+    )
+    # Files outside every database folder do not count.
+    assert (
+        type_for_files(files("braces/steel_braces.csv", ".github/x.yml", "README.md"))[
+            0
+        ]
+        is Type.ALL_BRACE
+    )
+    assert type_for_files(files(".github/workflows/x.yml")) == (
+        None,
+        "No database file changed.",
+    )
+    # The material family shares a parent folder but is three databases.
+    input_type, reason = type_for_files(
+        files("material/cyclic_coupons/README.md", "material/tensile_coupons/README.md")
+    )
+    assert input_type is None
+    assert "material/cyclic_coupons" in reason
+    assert "material/tensile_coupons" in reason
+    input_type, reason = type_for_files(files("braces/README.md", "columns/README.md"))
+    assert input_type is None
+    assert reason == "Changes 2 databases: columns, braces."
+
+
 # --- list -------------------------------------------------------------------
 
+COLUMN_FILES = [{"path": "columns/steel_columns.csv", "status": "modified"}]
+TWO_DATABASES = [
+    {"path": "braces/README.md", "status": "modified"},
+    {"path": "columns/README.md", "status": "modified"},
+]
 
-async def test_list_filters_foreign_pulls(monkeypatch):
+
+async def test_list_keeps_every_pull_request(monkeypatch):
+    """Nothing is dropped without a trace (#267)."""
     client = FakeClient(
         pulls=[
             make_pull(),
-            make_pull(number=8, head_ref="feature/not-a-contribution"),
-            make_pull(number=9, head_ref="contrib/not-a-type/x-1"),
-        ]
+            make_pull(number=8, head_ref="feat/curation-status", body="By hand."),
+            make_pull(number=9, head_ref="docs/readmes", body="By hand."),
+            make_pull(number=10, head_ref="contrib/not-a-type/x-1"),
+        ],
+        files_by_number={8: COLUMN_FILES, 9: TWO_DATABASES},
     )
     use_client(monkeypatch, client)
     response = await list_contributions(make_request())
     assert response.configured is True
+    items = {item.pr_number: item for item in response.items}
+    assert list(items) == [7, 8, 9, 10]
+
+    assert items[7].kind == "submission"
+    assert items[7].type == "all-braces"
+    assert items[7].experiment_count == 1
+    assert items[7].contributor.name == "Ada Lovelace"
+
+    assert items[8].kind == "manual"
+    assert items[8].type == "all-columns"
+    assert items[8].reason == ""
+    assert items[8].contributor is None
+
+    assert items[9].kind == "unrecognised"
+    assert items[9].type == ""
+    assert items[9].reason == "Changes 2 databases: columns, braces."
+
+    # An unknown slug is read like any other branch: from its files.
+    assert items[10].kind == "manual"
+    assert items[10].type == "all-braces"
+
+
+async def test_list_skips_verification_pulls_and_says_so(monkeypatch, caplog):
+    client = FakeClient(
+        pulls=[make_pull(), make_pull(number=11, head_ref="verify/braces/b1-abcd")]
+    )
+    use_client(monkeypatch, client)
+    with caplog.at_level("INFO", logger="resslab_hub.routers.curation"):
+        response = await list_contributions(make_request())
     assert [item.pr_number for item in response.items] == [7]
-    item = response.items[0]
-    assert item.type == "all-braces"
-    assert item.experiment_count == 1
-    assert item.contributor.name == "Ada Lovelace"
+    assert "skipped #11 (verify/braces/b1-abcd)" in caplog.text
+    # The branch said it all: no files call for it.
+    assert client.file_calls == 0
+
+
+async def test_list_shows_a_pull_request_whose_files_fail(monkeypatch, caplog):
+    class Failing(FakeClient):
+        async def list_pull_files(self, number):
+            raise RuntimeError("GitHub is down")
+
+    use_client(monkeypatch, Failing(pulls=[make_pull(number=8, head_ref="feat/x")]))
+    response = await list_contributions(make_request())
+    assert [item.kind for item in response.items] == ["unrecognised"]
+    assert response.items[0].reason == "Its files could not be read from GitHub."
+    assert "files of #8 could not be read" in caplog.text
+
+
+async def test_list_keeps_drafts_and_flags_forks(monkeypatch):
+    client = FakeClient(
+        pulls=[
+            make_pull(draft=True, head_repo=str(settings.data_repo)),
+            make_pull(number=8, head_repo="someone/resslab-hub-data"),
+            make_pull(number=9, head_repo=""),
+        ]
+    )
+    use_client(monkeypatch, client)
+    items = {i.pr_number: i for i in (await list_contributions(make_request())).items}
+    assert items[7].draft is True
+    assert items[7].from_fork is False
+    assert items[8].from_fork is True
+    # A deleted fork leaves no head repo: not counted as a fork.
+    assert items[9].from_fork is False
+
+
+async def test_list_fresh_drops_the_cache(monkeypatch):
+    client = FakeClient()
+    use_client(monkeypatch, client)
+    await list_contributions(make_request())
+    await list_contributions(make_request())
+    assert client.list_calls == 1
+    await list_contributions(make_request(), fresh=True)
+    assert client.list_calls == 2
+
+
+async def test_list_reads_files_once_per_head_sha(monkeypatch):
+    client = FakeClient(
+        pulls=[make_pull(number=8, head_ref="feat/x")],
+        files_by_number={8: COLUMN_FILES},
+    )
+    use_client(monkeypatch, client)
+    await list_contributions(make_request())
+    await list_contributions(make_request(), fresh=True)
+    assert client.file_calls == 1
+    client.pulls = [make_pull(number=8, head_ref="feat/x", head_sha="new-sha")]
+    await list_contributions(make_request(), fresh=True)
+    assert client.file_calls == 2
 
 
 async def test_list_unconfigured(monkeypatch):
@@ -372,10 +518,38 @@ async def test_detail_404_on_closed_or_foreign(monkeypatch):
         await get_contribution(make_request(), 7)
     assert caught.value.status_code == 404
 
-    use_client(monkeypatch, FakeClient(pulls=[make_pull(head_ref="feature/x")]))
+    # The pull request is cached by number: start each case from scratch.
+    monkeypatch.setattr(curation, "_cache", curation._TTLCache())
+    use_client(
+        monkeypatch,
+        FakeClient(pulls=[make_pull(head_ref="feature/x")], files=TWO_DATABASES),
+    )
     with pytest.raises(HTTPException) as caught:
         await get_contribution(make_request(), 7)
     assert caught.value.status_code == 404
+    assert "Changes 2 databases" in caught.value.detail
+
+    monkeypatch.setattr(curation, "_cache", curation._TTLCache())
+    use_client(monkeypatch, FakeClient(pulls=[make_pull(head_ref="verify/braces/x")]))
+    with pytest.raises(HTTPException) as caught:
+        await get_contribution(make_request(), 7)
+    assert caught.value.status_code == 404
+
+
+async def test_detail_opens_a_pull_request_opened_by_hand(monkeypatch):
+    use_client(
+        monkeypatch,
+        FakeClient(
+            pulls=[make_pull(head_ref="feat/new-brace", body="A hand-written body.")],
+            files=PR_FILES[:2],
+            commits=[],
+        ),
+    )
+    detail = await get_contribution(make_request(), 7)
+    assert detail.kind == "manual"
+    assert detail.type == "all-braces"
+    assert [e.id for e in detail.experiments] == ["B9"]
+    assert detail.reconstruction_warning == curation.MANUAL_WARNING
 
 
 async def test_detail_says_whether_it_is_mine(monkeypatch):
@@ -569,10 +743,15 @@ async def test_comments_404_on_closed_or_foreign_pull(monkeypatch):
         await get_contribution_comments(make_request(), 7)
     assert caught.value.status_code == 404
 
-    use_client(monkeypatch, FakeClient(pulls=[make_pull(head_ref="feature/other")]))
+    monkeypatch.setattr(curation, "_cache", curation._TTLCache())
+    use_client(
+        monkeypatch,
+        FakeClient(pulls=[make_pull(head_ref="feature/other")], files=TWO_DATABASES),
+    )
     with pytest.raises(HTTPException) as caught:
         await get_contribution_comments(make_request(), 7)
     assert caught.value.status_code == 404
+    assert "Changes 2 databases" in caught.value.detail
 
 
 async def test_comments_502_when_github_fails(monkeypatch):
@@ -608,3 +787,33 @@ async def test_invalidate_pull_forgets_a_submission(monkeypatch):
     curation.invalidate_pull(7)
     assert (await get_contribution(make_request(), 7)).head_sha == "new-sha"
     assert curation._cache.get("list") is None
+
+
+async def test_a_hub_submission_drops_the_list_cache(monkeypatch):
+    """A pull request opened by the Hub shows in the queue at once (#267)."""
+    from resslab_hub.models.contribution import ContributionResponse
+    from resslab_hub.routers import contributions as contributions_router
+
+    async def opened(file, run):
+        return ContributionResponse(
+            pr_url="https://github.com/x/pull/12",
+            pr_number=12,
+            branch="contrib/braces/b9-abcd1234",
+            head_sha="sha",
+        )
+
+    monkeypatch.setattr(contributions_router, "_run_on_archive", opened)
+    monkeypatch.setattr(contributions_router, "_contributor", lambda user: CONTRIBUTOR)
+    client = FakeClient()
+    use_client(monkeypatch, client)
+    await list_contributions(make_request())
+    await contributions_router.create_contribution(
+        request=make_request(),
+        file=None,
+        type=Type.ALL_BRACE,
+        dismissed_warnings="[]",
+        user=OWNER,
+        _=None,
+    )
+    await list_contributions(make_request())
+    assert client.list_calls == 2
