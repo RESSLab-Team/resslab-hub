@@ -142,6 +142,13 @@ before doing any work, and refills the cards from the files the pull request
 added (`editableFiles` in `utils/curation.ts` decides which files the editor
 can hold; the others stay on the branch untouched).
 
+A new submission lands on this page too, as soon as its pull request is open
+(#403). The store takes the pull request as its edit target and the URL is
+replaced with `/contribute/edit/<pr number>`, without a reload. So the page
+after a submit can be refreshed, linked and shared: a refresh rebuilds it from
+the pull request like any edit. Submitting again from there updates the same
+pull request, it never opens a second one.
+
 Submitting calls `PUT /contributions/<pr number>` with the rebuilt archive
 and the `head_sha` the editor loaded. 10 per hour. The backend:
 

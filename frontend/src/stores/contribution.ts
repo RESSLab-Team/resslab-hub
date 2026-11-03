@@ -187,8 +187,11 @@ export const useContributionStore = defineStore('contribution', () => {
   const submitFailure = ref<FailureReport | null>(null)
   const pullRequestUrl = ref('')
   const pullRequestNumber = ref(0)
-  /** Branch the submission was pushed to, for the "how to update" links. */
-  const branch = ref('')
+  /**
+   * What the last submit did: opened a pull request, or added a commit to the
+   * one being edited. Only for the wording of the bar, it is cleared by any edit.
+   */
+  const submitKind = ref<'created' | 'updated' | null>(null)
   /**
    * The open submission being edited, when the editor was opened on one.
    *
@@ -221,8 +224,8 @@ export const useContributionStore = defineStore('contribution', () => {
    * there is one of the ways to change a submission the Hub already sent.
    */
   const csvOnGitHubUrl = computed(() =>
-    branch.value && config.value
-      ? `${DATA_REPOSITORY_URL}/blob/${branch.value}/${config.value.csvPath}`
+    editTarget.value?.branch && config.value
+      ? `${DATA_REPOSITORY_URL}/blob/${editTarget.value.branch}/${config.value.csvPath}`
       : ''
   )
 
@@ -880,8 +883,8 @@ export const useContributionStore = defineStore('contribution', () => {
   /**
    * Send the batch: a new submission, or a new commit on the one being edited.
    *
-   * An edit keeps its target afterwards, with the commit it now points at, so
-   * the contributor can go on fixing things and submit again.
+   * Either way the submission is the target afterwards, with the commit it now
+   * points at, so the contributor can go on fixing things and submit again.
    */
   async function submit(): Promise<void> {
     const target = config.value
@@ -901,11 +904,17 @@ export const useContributionStore = defineStore('contribution', () => {
         : await postContribution(target.type, archive, dismissedWarningMessages.value)
       pullRequestUrl.value = result.pr_url
       pullRequestNumber.value = result.pr_number
-      branch.value = result.branch
-      if (edited) {
-        editTarget.value = { ...edited, headSha: result.head_sha }
-        useCurationStore().invalidate(edited.prNumber)
+      // From now on the batch is this submission: submitting again updates the
+      // same pull request, and the page moves to its URL, which can reload it
+      // from GitHub (#403).
+      editTarget.value = {
+        prNumber: result.pr_number,
+        prUrl: result.pr_url,
+        headSha: result.head_sha,
+        branch: result.branch
       }
+      if (edited) useCurationStore().invalidate(edited.prNumber)
+      submitKind.value = edited ? 'updated' : 'created'
       submitStatus.value = 'submitted'
     } catch (caught) {
       // A 422 carries a full validation report: surface it through the same
@@ -1010,7 +1019,12 @@ export const useContributionStore = defineStore('contribution', () => {
       const row = rows.value[file.index]
       if (row) attachSeries(row.uid, file.kind, file.name, texts[index])
     })
-    editTarget.value = { prNumber, prUrl: detail.pr_url, headSha: detail.head_sha }
+    editTarget.value = {
+      prNumber,
+      prUrl: detail.pr_url,
+      headSha: detail.head_sha,
+      branch: detail.branch
+    }
     skippedFiles.value = skipped
     loadStatus.value = 'ready'
   }
@@ -1021,7 +1035,7 @@ export const useContributionStore = defineStore('contribution', () => {
     submitFailure.value = null
     pullRequestUrl.value = ''
     pullRequestNumber.value = 0
-    branch.value = ''
+    submitKind.value = null
     submitConflict.value = false
     submitFileCount.value = 0
   }
@@ -1078,7 +1092,7 @@ export const useContributionStore = defineStore('contribution', () => {
     submitFailure,
     pullRequestUrl,
     pullRequestNumber,
-    branch,
+    submitKind,
     csvOnGitHubUrl,
     editTarget,
     editing,

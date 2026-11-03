@@ -64,9 +64,26 @@ watch(
       if (store.editing || store.loadStatus !== 'idle') store.reset()
       return
     }
+    // The store already holds this submission: it was just submitted from
+    // here, and the URL below only caught up with it. Reloading would throw
+    // the confirmation away and fetch back what we just sent.
+    if (store.editTarget?.prNumber === Number(raw) && store.loadStatus !== 'loading') return
     void store.loadSubmission(Number(raw))
   },
   { immediate: true }
+)
+
+// The URL follows the store: once a submission exists, the page is that
+// submission's page, which a refresh, a direct link or a shared link can load
+// back from the pull request (#403). `replace`, so Back does not return to a
+// `/contribute/new` that would start an empty batch.
+watch(
+  () => store.editTarget?.prNumber,
+  (number) => {
+    if (number !== undefined && props.prNumber !== String(number)) {
+      void router.replace({ name: 'ContributeEdit', params: { prNumber: number } })
+    }
+  }
 )
 
 /** Back to an empty editor, and out of the edit URL. */
@@ -351,34 +368,27 @@ async function confirmSubmit(): Promise<void> {
           <span class="status pass">
             <v-icon :icon="mdiCheckCircleOutline" size="16" />
             {{
-              store.editing
-                ? $t('contribute.submitted.updated_title', { number: store.pullRequestNumber })
-                : $t('contribute.submitted.title', { number: store.pullRequestNumber })
+              store.submitKind === 'created'
+                ? $t('contribute.submitted.title', { number: store.pullRequestNumber })
+                : $t('contribute.submitted.updated_title', { number: store.pullRequestNumber })
             }}
           </span>
           <span class="submitted-note">
             {{
-              store.editing
-                ? $t('contribute.submitted.updated_next')
-                : $t('contribute.submitted.next')
+              store.submitKind === 'created'
+                ? $t('contribute.submitted.next')
+                : $t('contribute.submitted.updated_next')
             }}
           </span>
           <div class="bar-actions">
             <a class="btn btn-secondary btn-sm" :href="store.pullRequestUrl" target="_blank">
               <v-icon :icon="mdiOpenInNew" size="14" />{{ $t('contribute.submitted.view_pr') }}
             </a>
-            <router-link
-              v-if="!store.editing"
-              class="btn btn-secondary btn-sm"
-              :to="{ name: 'ContributeEdit', params: { prNumber: store.pullRequestNumber } }"
-            >
-              <v-icon :icon="mdiPencilOutline" size="14" />{{ $t('contribute.submitted.update') }}
-            </router-link>
             <button class="btn btn-primary btn-sm" type="button" @click="startNew()">
               {{ $t('contribute.submitted.new') }}
             </button>
           </div>
-          <p v-if="!store.editing" class="submitted-howto">
+          <p v-if="store.submitKind === 'created'" class="submitted-howto">
             {{ $t('contribute.submitted.how_to_update') }}
             <a v-if="store.csvOnGitHubUrl" :href="store.csvOnGitHubUrl" target="_blank">
               {{ $t('contribute.submitted.edit_on_github') }}
