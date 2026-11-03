@@ -40,10 +40,6 @@ def grant(user: User, role: str) -> bool:
     return True
 
 
-def _verified_email(user: User) -> str:
-    return (user.email or "") if user.email_verified_at else ""
-
-
 # --- invitations ------------------------------------------------------------
 async def pending_invitation(db: AsyncSession, email: str) -> Optional[Invitation]:
     result = await db.execute(
@@ -57,19 +53,26 @@ async def pending_invitation(db: AsyncSession, email: str) -> Optional[Invitatio
 
 
 async def redeem_invitation(db: AsyncSession, user: User) -> None:
-    """At sign-in: the role waiting for this address, if any.
+    """At sign-in, or when an address is added: the roles waiting for it.
 
     Only a proven address counts, which is why the invitation needs no secret.
+    An account can hold several addresses (#402), so more than one invitation
+    can wait for it; the strongest role wins, since ``grant`` never lowers.
     """
-    email = _verified_email(user)
-    if not email:
+    emails = roles.verified_emails(user)
+    if not emails:
         return
-    invitation = await pending_invitation(db, email)
-    if invitation is None:
-        return
-    invitation.redeemed_at = now()
-    invitation.redeemed_by = user.id
-    grant(user, invitation.role)
+    result = await db.execute(
+        select(Invitation).where(
+            Invitation.email.in_(emails),
+            Invitation.redeemed_at.is_(None),
+            Invitation.revoked_at.is_(None),
+        )
+    )
+    for invitation in result.scalars().all():
+        invitation.redeemed_at = now()
+        invitation.redeemed_by = user.id
+        grant(user, invitation.role)
 
 
 async def mail_invitation(invitation: Invitation, inviter: User) -> bool:

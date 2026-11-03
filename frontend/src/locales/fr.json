@@ -1563,12 +1563,28 @@
       "no_email": "Pas d'adresse confirmée",
       "verified": "confirmée",
       "identities": "Moyens de connexion",
-      "identities_lede": "Chacun ouvre le même compte. GitHub peut être ajouté et retiré. L'adresse email reste : c'est par elle que le compte est retrouvé.",
+      "identities_lede": "Chacun ouvre le même compte. GitHub peut être ajouté et retiré.",
       "unlink": "Retirer",
       "link_github": "Lier GitHub",
       "link_github_why": "Avec GitHub lié, votre soumission vous mentionne sur sa pull request, donc vous recevez les commentaires de relecture et pouvez y répondre.",
       "sign_out": "Se déconnecter",
-      "github_role_hint": "L'accès en écriture au dépôt de données sur GitHub vous rend curateur ici, l'accès admin vous rend administrateur. Liez GitHub pour en profiter. Le rôle suit GitHub dans l'heure."
+      "github_role_hint": "L'accès en écriture au dépôt de données sur GitHub vous rend curateur ici, l'accès admin vous rend administrateur. Liez GitHub pour en profiter. Le rôle suit GitHub dans l'heure.",
+      "emails_title": "Adresses email",
+      "emails_lede": "Chaque adresse ouvre ce compte par code, et compte pour votre rôle. Une soumission envoyée depuis l'une d'elles est la vôtre. Les nouvelles soumissions gardent l'adresse principale.",
+      "main": "Principale",
+      "make_main": "Rendre principale",
+      "add_email": "Ajouter une adresse email",
+      "add_email_lede": "Nous envoyons un code à la nouvelle adresse. Tapez-le ici pour confirmer qu'elle est à vous.",
+      "email_label": "Adresse email",
+      "send_code": "Envoyer le code",
+      "code_sent": "Nous avons envoyé un code à {email}. Il est valable quelques minutes.",
+      "code_label": "Code reçu par mail",
+      "confirm": "Ajouter l'adresse",
+      "cancel": "Annuler",
+      "email_added": "{email} est maintenant sur votre compte.",
+      "add_errors": {
+        "email_in_use": "Cette adresse appartient à un autre compte ici. Les comptes ne sont pas fusionnés : connectez-vous avec elle pour utiliser ce compte."
+      }
     },
     "forbidden": {
       "eyebrow": "Compte",
@@ -1612,11 +1628,12 @@
       "identity_taken": "Ce compte GitHub est déjà lié à un autre compte ici.",
       "github_denied": "Vous avez annulé la connexion GitHub.",
       "github_disabled": "La connexion GitHub n'est pas disponible ici. Utilisez votre adresse e-mail.",
-      "cannot_unlink": "Celui-ci ne peut pas être retiré : c'est par lui que votre compte est retrouvé.",
+      "cannot_unlink": "Celle-ci ne peut pas être retirée. Rendez d'abord une autre adresse principale, et gardez au moins un moyen de connexion.",
       "account_disabled": "Ce compte est désactivé. Demandez à un administrateur du laboratoire si vous pensez que c'est une erreur.",
       "already_pending": "Votre demande attend déjà un administrateur.",
       "already_granted": "Vous avez déjà cet accès.",
-      "email_required": "Confirmez d'abord une adresse e-mail : connectez-vous une fois avec votre e-mail."
+      "email_required": "Confirmez d'abord une adresse e-mail : ajoutez-en une depuis votre page compte.",
+      "already_yours": "Cette adresse est déjà sur votre compte."
     },
     "access": {
       "title": "Demander l'accès contributeur",

@@ -78,6 +78,18 @@ class EmailVerifyRequest(BaseModel):
     token: Optional[str] = None
 
 
+class AddEmailRequest(BaseModel):
+    """An address to add to the signed-in account (#402)."""
+
+    email: EmailStr
+
+
+class AddEmailVerifyRequest(BaseModel):
+    """The code mailed to that address. The challenge is in the login cookie."""
+
+    code: str = Field(max_length=12)
+
+
 class VerifyResponse(BaseModel):
     user: UserOut
     #: Path the SPA should land on, taken from the start of the flow.

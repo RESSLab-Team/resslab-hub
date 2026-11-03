@@ -7,7 +7,7 @@ import pytest
 
 from resslab_hub.auth import access, mailer, roles, tokens, urls
 from resslab_hub.auth.users import name_from_email, normalize_email
-from resslab_hub.models.database.auth import User
+from resslab_hub.models.database.auth import Identity, User
 
 
 # --- tokens ---------------------------------------------------------------
@@ -175,6 +175,71 @@ def test_signed_in_without_a_grant_is_a_viewer(monkeypatch):
         email="someone@example.edu", email_verified_at=datetime.now(timezone.utc)
     )
     assert roles.derive_role(user) == ("viewer", "default")
+
+
+# --- several addresses (#402) ---------------------------------------------
+def _with_addresses(main, *others, verified=True):
+    from datetime import datetime, timezone
+
+    return User(
+        email=main,
+        email_verified_at=datetime.now(timezone.utc) if verified else None,
+        identities=[
+            Identity(provider="email", subject=address, handle=address)
+            for address in others
+        ]
+        + [Identity(provider="github", subject="4242", handle="ada")],
+    )
+
+
+def test_verified_emails_main_first_lowercased_and_once():
+    user = _with_addresses("ada@gmail.com", "ada@gmail.com", "Ada@EPFL.ch")
+    assert roles.verified_emails(user) == ["ada@gmail.com", "ada@epfl.ch"]
+
+
+def test_an_unverified_main_address_is_not_one_of_them():
+    user = _with_addresses("ada@gmail.com", "ada@epfl.ch", verified=False)
+    assert roles.verified_emails(user) == ["ada@epfl.ch"]
+
+
+def test_a_github_identity_is_not_an_address():
+    user = _with_addresses(None)
+    assert roles.verified_emails(user) == []
+
+
+def test_an_added_academic_address_grants_contributor(monkeypatch):
+    monkeypatch.setattr(roles.settings, "admin_emails", "")
+    monkeypatch.setattr(roles.settings, "contributor_domains", "")
+    user = _with_addresses("ada@gmail.com", "ada@epfl.ch")
+    assert roles.derive_role(user) == ("contributor", "academic-email")
+
+
+def test_an_added_admin_address_grants_admin(monkeypatch):
+    monkeypatch.setattr(roles.settings, "admin_emails", "ada@epfl.ch")
+    monkeypatch.setattr(roles.settings, "contributor_domains", "")
+    user = _with_addresses("ada@gmail.com", "ada@epfl.ch")
+    assert roles.derive_role(user) == ("admin", "admin-email")
+
+
+def test_the_add_email_mail_has_a_code_and_no_link():
+    message = mailer.build_add_email_message("ada@epfl.ch", "123456")
+    assert "123456" in message["Subject"]
+    assert message["To"] == "ada@epfl.ch"
+    text, html = _parts(message)
+    for body in (text, html):
+        assert "123456" in body
+        assert "add this" in body.lower()
+        for name in ("{code}", "{link}", "{ttl_minutes}"):
+            assert name not in body
+    assert "verify?" not in html and 'href="{' not in html
+
+
+async def test_without_a_host_the_add_email_code_goes_to_the_log(monkeypatch, caplog):
+    monkeypatch.setattr(mailer.settings, "smtp_host", None)
+    monkeypatch.setattr(mailer.settings, "deployment", None)
+    with caplog.at_level(logging.WARNING, logger="resslab_hub.auth.mailer"):
+        await mailer.send_add_email_mail("ada@epfl.ch", "654321")
+    assert "Add-email code for ada@epfl.ch: 654321" in caplog.text
 
 
 # --- roles from GitHub (#248) ---------------------------------------------

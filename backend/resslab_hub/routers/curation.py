@@ -497,7 +497,7 @@ async def _check_access(
     if user is not None and roles.at_least(user.role, roles.CURATOR):
         return
     if user is not None and owns_submission(
-        await _owner(client, pull, input_type), user.email or ""
+        await _owner(client, pull, input_type), roles.verified_emails(user)
     ):
         return
     raise HTTPException(
@@ -606,7 +606,7 @@ def _is_mine(request: Request, pr_number: int, detail: CurationDetail) -> bool:
     if user is None:
         return False
     provenance = _cache.get(("owner", pr_number, detail.head_sha))
-    return owns_submission(provenance, user.email or "")
+    return owns_submission(provenance, roles.verified_emails(user))
 
 
 @router.get(

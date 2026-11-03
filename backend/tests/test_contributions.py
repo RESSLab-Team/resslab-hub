@@ -995,6 +995,30 @@ async def test_update_ignores_the_case_of_the_address(tmp_path, monkeypatch):
     assert result.head_sha == "new-commit-sha"
 
 
+async def test_update_by_another_address_of_the_same_account(tmp_path, monkeypatch):
+    """Submitted from the EPFL address, edited with the gmail one main (#402)."""
+    patch_validation(monkeypatch)
+    client = edit_client()
+    ada = Contributor(name="Ada Lovelace", email="ada@gmail.com", institution="EPFL")
+    batch = make_batch(tmp_path, "id,f_y,name\nB9,450,Fixed one\n")
+
+    with pytest.raises(SubmissionError) as excinfo:
+        await update_contribution(str(batch), 7, "head-sha", ada, [], client=client)
+    assert excinfo.value.status_code == 403
+
+    result = await update_contribution(
+        str(batch),
+        7,
+        "head-sha",
+        ada,
+        [],
+        client=client,
+        owner_emails=["ada@gmail.com", "ada@example.edu"],
+    )
+    assert result.head_sha == "new-commit-sha"
+    assert client.commit_kwargs["author_email"] == "ada@gmail.com"
+
+
 async def test_update_refuses_a_stale_head(tmp_path, monkeypatch):
     """A maintainer pushed meanwhile: the edit was written against the old file."""
     patch_validation(monkeypatch)
