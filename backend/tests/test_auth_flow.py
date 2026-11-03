@@ -31,8 +31,12 @@ def mailbox(monkeypatch):
     async def _send(email, code, link):
         sent.append({"email": email, "code": code, "link": link})
 
+    async def _send_add(email, code):
+        sent.append({"email": email, "code": code, "link": None})
+
     monkeypatch.setattr(mailer, "send_login_mail", _send)
     monkeypatch.setattr(email_login.mailer, "send_login_mail", _send)
+    monkeypatch.setattr(email_login.mailer, "send_add_email_mail", _send_add)
     return sent
 
 
@@ -338,9 +342,8 @@ async def test_a_second_identity_can_be_unlinked(client, sign_in, db_session):
     assert db_session.execute(select(User)).scalar_one().github_login == ""
 
 
-async def test_the_email_identity_cannot_be_unlinked(client, sign_in, db_session):
-    """The account is found by its address, so removing the row would only
-    pretend the address no longer signs in."""
+async def test_the_main_address_cannot_be_removed(client, sign_in, db_session):
+    """It signs new submissions and gets the mails: pick another one first."""
     user = sign_in()
     db_session.add(
         Identity(user_id=user.id, provider="github", subject="4242", handle="ada")
@@ -356,6 +359,233 @@ async def test_the_email_identity_cannot_be_unlinked(client, sign_in, db_session
 
 async def test_identities_need_a_session(client):
     assert (await client.get("/auth/identities")).status_code == 401
+
+
+# --- several addresses (#402) ---------------------------------------------
+async def _add(client, mailbox, email):
+    """Ask for the code, then type it. Returns the verify response."""
+    response = await client.post("/auth/emails", json={"email": email})
+    assert response.status_code == 200, response.text
+    assert response.json() == {"sent": True}
+    mail = mailbox[-1]
+    assert mail["email"] == email.lower()
+    assert mail["link"] is None  # a code only, see docs/auth.md
+    return await client.post("/auth/emails/verify", json={"code": mail["code"]})
+
+
+def _addresses(body):
+    return sorted(
+        item["handle"] for item in body["identities"] if item["provider"] == "email"
+    )
+
+
+async def test_an_added_address_makes_a_contributor(client, sign_in, mailbox):
+    """The case of the issue: a gmail account adds its EPFL address."""
+    sign_in(email="ada@gmail.com")
+    response = await _add(client, mailbox, "Ada.Lovelace@EPFL.ch")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["email"] == "ada@gmail.com"  # the main one does not move
+    assert _addresses(body) == ["ada.lovelace@epfl.ch", "ada@gmail.com"]
+    assert body["role"] == "contributor"
+    assert body["role_source"] == "academic-email"
+
+    me = (await client.get("/auth/me")).json()["user"]
+    assert _addresses(me) == ["ada.lovelace@epfl.ch", "ada@gmail.com"]
+
+
+async def test_an_added_address_signs_in_to_the_same_account(client, sign_in, mailbox):
+    user = sign_in(email="ada@gmail.com")
+    await _add(client, mailbox, "ada@epfl.ch")
+    client.cookies.clear()
+
+    await _start(client, email="ada@epfl.ch")
+    response = await client.post(
+        "/auth/email/verify", json={"code": mailbox[-1]["code"]}
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["user"]["id"] == user.id
+    assert response.json()["user"]["email"] == "ada@gmail.com"
+
+
+async def test_an_address_of_another_account_is_refused(
+    client, sign_in, mailbox, db_session
+):
+    """Two accounts are never joined, even when one person owns both."""
+    other = sign_in(email="ada@epfl.ch")
+    client.cookies.clear()
+    sign_in(email="ada@gmail.com")
+    response = await _add(client, mailbox, "ada@epfl.ch")
+    assert response.status_code == 409
+    assert response.json()["detail"] == "email_in_use"
+    owners = (
+        db_session.execute(
+            select(Identity.user_id).where(Identity.subject == "ada@epfl.ch")
+        )
+        .scalars()
+        .all()
+    )
+    assert owners == [other.id]
+
+
+async def test_an_address_already_yours_is_refused_at_once(client, sign_in, mailbox):
+    sign_in(email="ada@gmail.com")
+    response = await client.post("/auth/emails", json={"email": "ADA@gmail.com"})
+    assert response.status_code == 409
+    assert response.json()["detail"] == "already_yours"
+    assert mailbox == []
+
+
+async def test_adding_an_address_needs_a_session(client, mailbox):
+    assert (
+        await client.post("/auth/emails", json={"email": "ada@epfl.ch"})
+    ).status_code == 401
+    assert (
+        await client.post("/auth/emails/verify", json={"code": "123456"})
+    ).status_code == 401
+
+
+async def test_an_add_email_code_never_signs_in(client, sign_in, mailbox):
+    """Someone who got the code still cannot open a session with it."""
+    sign_in(email="ada@gmail.com")
+    await client.post("/auth/emails", json={"email": "ada@epfl.ch"})
+    login_cookie = client.cookies.get("resslab_login")
+    client.cookies.clear()
+    client.cookies.set("resslab_login", login_cookie)
+
+    response = await client.post(
+        "/auth/email/verify", json={"code": mailbox[-1]["code"]}
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "invalid_or_expired"
+    assert not client.cookies.get("resslab_session")
+
+
+async def test_an_add_email_code_works_only_for_the_account_that_asked(
+    client, sign_in, mailbox
+):
+    sign_in(email="ada@gmail.com")
+    await client.post("/auth/emails", json={"email": "ada@epfl.ch"})
+    login_cookie = client.cookies.get("resslab_login")
+
+    client.cookies.clear()
+    sign_in(email="eve@gmail.com")
+    client.cookies.set("resslab_login", login_cookie)
+    response = await client.post(
+        "/auth/emails/verify", json={"code": mailbox[-1]["code"]}
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "invalid_or_expired"
+
+
+async def test_a_sign_in_code_cannot_add_an_address(client, sign_in, mailbox):
+    """The other way round: a sign-in challenge is not an add-email one."""
+    await _start(client, email="ada@epfl.ch")
+    login_cookie = client.cookies.get("resslab_login")
+    sign_in(email="eve@gmail.com")
+    client.cookies.set("resslab_login", login_cookie)
+    response = await client.post(
+        "/auth/emails/verify", json={"code": mailbox[-1]["code"]}
+    )
+    assert response.status_code == 400
+
+
+async def test_a_wrong_add_email_code_is_refused(client, sign_in, mailbox):
+    sign_in(email="ada@gmail.com")
+    await client.post("/auth/emails", json={"email": "ada@epfl.ch"})
+    response = await client.post("/auth/emails/verify", json={"code": "000000"})
+    if mailbox[-1]["code"] == "000000":  # one chance in a million
+        return
+    assert response.status_code == 400
+    assert response.json()["detail"] == "invalid_code"
+
+
+async def test_a_github_account_without_an_address_gets_a_main_one(
+    client, sign_in, mailbox, db_session
+):
+    """A GitHub account with a private mail could not submit before."""
+    user = sign_in(email=None, provider="github", verified=False)
+    response = await _add(client, mailbox, "ada@epfl.ch")
+    assert response.status_code == 200, response.text
+    assert response.json()["email"] == "ada@epfl.ch"
+    assert response.json()["email_verified"] is True
+    db_session.expire_all()
+    stored = db_session.get(User, user.id)
+    assert stored.email_verified_at is not None
+
+
+async def test_the_main_address_can_be_changed(client, sign_in, mailbox, db_session):
+    sign_in(email="ada@gmail.com")
+    await _add(client, mailbox, "ada@epfl.ch")
+    epfl = db_session.execute(
+        select(Identity).where(Identity.subject == "ada@epfl.ch")
+    ).scalar_one()
+    response = await client.post(f"/auth/identities/{epfl.id}/main")
+    assert response.status_code == 204
+    me = (await client.get("/auth/me")).json()["user"]
+    assert me["email"] == "ada@epfl.ch"
+
+    # The old main one can go now, and the role stays: the EPFL address is
+    # still there.
+    gmail = db_session.execute(
+        select(Identity).where(Identity.subject == "ada@gmail.com")
+    ).scalar_one()
+    assert (await client.delete(f"/auth/identities/{gmail.id}")).status_code == 204
+    me = (await client.get("/auth/me")).json()["user"]
+    assert _addresses(me) == ["ada@epfl.ch"]
+    assert me["role"] == "contributor"
+
+
+async def test_only_an_own_address_can_be_main(client, sign_in, db_session):
+    ada = sign_in(email="ada@gmail.com")
+    address = db_session.execute(select(Identity)).scalar_one()
+    db_session.add(Identity(user_id=ada.id, provider="github", subject="1", handle="a"))
+    db_session.commit()
+    github = db_session.execute(
+        select(Identity).where(Identity.provider == "github")
+    ).scalar_one()
+    # Not an address.
+    assert (await client.post(f"/auth/identities/{github.id}/main")).status_code == 404
+
+    client.cookies.clear()
+    sign_in(email="eve@gmail.com")
+    # Not this account's.
+    response = await client.post(f"/auth/identities/{address.id}/main")
+    assert response.status_code == 404
+
+
+async def test_removing_the_academic_address_drops_the_role(
+    client, sign_in, mailbox, db_session
+):
+    """A role worked out from an address goes with it. An override stays."""
+    sign_in(email="ada@gmail.com")
+    await _add(client, mailbox, "ada@epfl.ch")
+    epfl = db_session.execute(
+        select(Identity).where(Identity.subject == "ada@epfl.ch")
+    ).scalar_one()
+    assert (await client.delete(f"/auth/identities/{epfl.id}")).status_code == 204
+    me = (await client.get("/auth/me")).json()["user"]
+    assert me["role"] == "viewer"
+    # Gone from the account, so it no longer finds it.
+    client.cookies.clear()
+    await _start(client, email="ada@epfl.ch")
+    response = await client.post(
+        "/auth/email/verify", json={"code": mailbox[-1]["code"]}
+    )
+    assert response.json()["user"]["email"] == "ada@epfl.ch"
+    assert len(db_session.execute(select(User)).scalars().all()) == 2
+
+
+async def test_an_invitation_waits_for_an_added_address(
+    client, sign_in, mailbox, db_session
+):
+    from resslab_hub.models.database.auth import Invitation
+
+    db_session.add(Invitation(email="ada@lab.example", role="curator"))
+    db_session.commit()
+    sign_in(email="ada@gmail.com")
+    response = await _add(client, mailbox, "ada@lab.example")
+    assert response.json()["role"] == "curator"
 
 
 # --- GitHub ---------------------------------------------------------------
@@ -416,9 +646,13 @@ async def test_github_sign_in_creates_the_account(client, github, db_session):
     user = db_session.execute(select(User)).scalar_one()
     assert user.github_login == "ada"
     assert user.email == "ada@example.edu"
-    identity = db_session.execute(select(Identity)).scalar_one()
-    # The immutable numeric id, not the login, which people rename.
-    assert (identity.provider, identity.subject) == ("github", "4242")
+    identities = {
+        item.provider: item.subject
+        for item in db_session.execute(select(Identity)).scalars().all()
+    }
+    # The immutable numeric id, not the login, which people rename. And the
+    # proven address is one of the account's addresses, like any other (#402).
+    assert identities == {"github": "4242", "email": "ada@example.edu"}
 
 
 async def test_github_sign_in_returns_to_the_same_account(client, github, db_session):

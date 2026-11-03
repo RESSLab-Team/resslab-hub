@@ -8,6 +8,9 @@ const startEmailLogin = vi.fn()
 const verifyEmailLogin = vi.fn()
 const deleteIdentity = vi.fn()
 const requestAccess = vi.fn()
+const startAddEmail = vi.fn()
+const verifyAddEmail = vi.fn()
+const setMainEmail = vi.fn()
 
 vi.mock('@/plugins/axios', () => ({
   authApi: {
@@ -16,7 +19,10 @@ vi.mock('@/plugins/axios', () => ({
     startEmailLogin: (...args: unknown[]) => startEmailLogin(...args),
     verifyEmailLogin: (...args: unknown[]) => verifyEmailLogin(...args),
     deleteIdentity: (...args: unknown[]) => deleteIdentity(...args),
-    requestAccess: (...args: unknown[]) => requestAccess(...args)
+    requestAccess: (...args: unknown[]) => requestAccess(...args),
+    startAddEmail: (...args: unknown[]) => startAddEmail(...args),
+    verifyAddEmail: (...args: unknown[]) => verifyAddEmail(...args),
+    setMainEmail: (...args: unknown[]) => setMainEmail(...args)
   }
 }))
 
@@ -146,5 +152,76 @@ describe('auth store', () => {
     expect(requestAccess).toHaveBeenCalledWith({ message: 'I test braces at ETH.' })
     expect(store.user?.access_request).toEqual(pending)
     expect(getMe).toHaveBeenCalledTimes(1)
+  })
+
+  describe('several addresses (#402)', () => {
+    const TWO = {
+      ...ADA,
+      identities: [
+        ...ADA.identities,
+        { id: 'i3', provider: 'email', handle: 'ada.lovelace@epfl.ch' }
+      ]
+    }
+
+    it('lists the email identities, and knows the main one', async () => {
+      getMe.mockResolvedValue({ data: { user: TWO } })
+      const store = useAuthStore()
+      await store.ensureLoaded()
+      expect(store.emails.map((identity) => identity.handle)).toEqual([
+        'ada@example.edu',
+        'ada.lovelace@epfl.ch'
+      ])
+      expect(store.mainEmail).toBe('ada@example.edu')
+    })
+
+    it('has no address when nobody is signed in', () => {
+      const store = useAuthStore()
+      expect(store.emails).toEqual([])
+      expect(store.mainEmail).toBeNull()
+    })
+
+    it('asks for a code for the new address', async () => {
+      startAddEmail.mockResolvedValue({ data: { sent: true } })
+      const store = useAuthStore()
+      await store.startAddEmail('ada.lovelace@epfl.ch')
+      expect(startAddEmail).toHaveBeenCalledWith({ email: 'ada.lovelace@epfl.ch' })
+    })
+
+    it('keeps the account the code answers with, without asking /auth/me again', async () => {
+      getMe.mockResolvedValue({ data: { user: ADA } })
+      verifyAddEmail.mockResolvedValue({ data: TWO })
+      const store = useAuthStore()
+      await store.ensureLoaded()
+
+      await store.verifyAddEmail('123456')
+
+      expect(verifyAddEmail).toHaveBeenCalledWith({ code: '123456' })
+      expect(store.emails).toHaveLength(2)
+      expect(getMe).toHaveBeenCalledTimes(1)
+    })
+
+    it('lets a wrong code fail, and keeps the account as it was', async () => {
+      getMe.mockResolvedValue({ data: { user: ADA } })
+      verifyAddEmail.mockRejectedValue(new Error('invalid_or_expired'))
+      const store = useAuthStore()
+      await store.ensureLoaded()
+
+      await expect(store.verifyAddEmail('000000')).rejects.toThrow()
+
+      expect(store.emails).toHaveLength(1)
+    })
+
+    it('reloads the user after a new main address', async () => {
+      getMe.mockResolvedValue({ data: { user: TWO } })
+      setMainEmail.mockResolvedValue({ data: undefined })
+      const store = useAuthStore()
+      await store.ensureLoaded()
+      getMe.mockResolvedValue({ data: { user: { ...TWO, email: 'ada.lovelace@epfl.ch' } } })
+
+      await store.setMainEmail('i3')
+
+      expect(setMainEmail).toHaveBeenCalledWith('i3')
+      expect(store.mainEmail).toBe('ada.lovelace@epfl.ch')
+    })
   })
 })

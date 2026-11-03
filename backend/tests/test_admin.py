@@ -14,6 +14,7 @@ from resslab_hub.auth import email_login, mailer, roles
 from resslab_hub.auth.tokens import hash_token, new_token
 from resslab_hub.models.database.auth import (
     AccessRequest,
+    Identity,
     Invitation,
     Session,
     User,
@@ -297,6 +298,27 @@ async def test_a_member_is_not_invited(client, sign_in, db_session, outbox):
     assert outbox == []
 
 
+async def test_an_added_address_is_a_member_too(client, sign_in, db_session, outbox):
+    """The account is found by any of its addresses (#402)."""
+    ada = _user(db_session, "ada@gmail.com")
+    db_session.add(
+        Identity(
+            user_id=ada.id,
+            provider="email",
+            subject="ada@example.com",
+            handle="ada@example.com",
+        )
+    )
+    db_session.commit()
+    sign_in(email="me@example.org", role="admin")
+    response = await client.post(
+        "/admin/invitations", json={"email": "ada@example.com"}
+    )
+    assert response.status_code == 409
+    assert response.json()["detail"] == "already_member"
+    assert outbox == []
+
+
 async def test_nobody_is_invited_as_a_viewer(client, sign_in):
     sign_in(email="me@example.org", role="admin")
     response = await client.post(
@@ -456,3 +478,146 @@ async def test_approving_never_lowers_a_role(client, sign_in, db_session):
     assert response.json()["current_role"] == "curator"
     db_session.expire_all()
     assert db_session.get(User, curator.id).role_override is None
+
+
+# --- merging two accounts (#402) ---------------------------------------------
+def _identity(db_session, user, provider, subject):
+    db_session.add(
+        Identity(user_id=user.id, provider=provider, subject=subject, handle=subject)
+    )
+    db_session.commit()
+
+
+def _two_accounts(db_session):
+    """One person: an EPFL code account and a GitHub one with a gmail."""
+    keep = _user(db_session, "ada@epfl.ch", display_name="Ada", institution="")
+    _identity(db_session, keep, "email", "ada@epfl.ch")
+    other = _user(
+        db_session,
+        "ada.l@gmail.com",
+        display_name="Ada L",
+        institution="EPFL",
+        github_login="ada",
+        github_role="write",
+    )
+    _identity(db_session, other, "email", "ada.l@gmail.com")
+    _identity(db_session, other, "github", "4242")
+    return keep, other
+
+
+async def test_an_admin_merges_two_accounts_of_one_person(
+    client, sign_in, mailbox, db_session
+):
+    keep, other = _two_accounts(db_session)
+    keep_id, other_id = keep.id, other.id
+    _resume(client, db_session, other)
+    their_cookie = client.cookies.get("resslab_session")
+    sign_in(email="me@example.org", role="admin")
+
+    response = await client.post(
+        f"/admin/users/{keep_id}/merge", json={"from_user_id": other_id}
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["id"] == keep_id
+    assert body["email"] == "ada@epfl.ch"
+    assert body["emails"] == ["ada@epfl.ch", "ada.l@gmail.com"]
+    assert body["github_login"] == "ada"
+    assert body["institution"] == "EPFL"
+    assert body["display_name"] == "Ada"
+    # Write access on the data repo, now on the kept account.
+    assert body["role"] == "curator"
+
+    db_session.expire_all()
+    assert db_session.get(User, other_id) is None
+    moved = db_session.execute(
+        select(Identity.provider, Identity.subject).where(Identity.user_id == keep_id)
+    ).all()
+    assert sorted(moved) == [
+        ("email", "ada.l@gmail.com"),
+        ("email", "ada@epfl.ch"),
+        ("github", "4242"),
+    ]
+    # The other account's browser is signed out.
+    client.cookies.set("resslab_session", their_cookie)
+    assert (await client.get("/auth/me")).json() == {"user": None}
+    # Its address now signs in to the kept account.
+    client.cookies.clear()
+    signed = await _sign_in_by_mail(client, mailbox, "ada.l@gmail.com")
+    assert signed.json()["user"]["id"] == keep_id
+
+
+async def test_an_admin_merges_their_other_account_into_their_own(
+    client, sign_in, db_session
+):
+    me = sign_in(email="me@epfl.ch", role="admin", role_override="admin")
+    old = _user(db_session, "me@gmail.com")
+    _identity(db_session, old, "email", "me@gmail.com")
+
+    response = await client.post(
+        f"/admin/users/{me.id}/merge", json={"from_user_id": old.id}
+    )
+    assert response.status_code == 200
+    assert response.json()["emails"] == ["me@epfl.ch", "me@gmail.com"]
+    # Still signed in.
+    assert (await client.get("/auth/me")).json()["user"]["id"] == me.id
+
+
+async def test_an_admin_cannot_merge_their_own_account_away(
+    client, sign_in, db_session
+):
+    keep = _user(db_session, "ada@epfl.ch")
+    me = sign_in(email="me@example.org", role="admin")
+    response = await client.post(
+        f"/admin/users/{keep.id}/merge", json={"from_user_id": me.id}
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "cannot_change_self"
+
+
+async def test_merges_that_are_refused(client, sign_in, db_session):
+    keep, other = _two_accounts(db_session)
+    third = _user(db_session, "ada@example.com", github_login="ada2")
+    _identity(db_session, third, "github", "777")
+    gone = _user(db_session, "old@example.com", disabled_at=datetime.now(timezone.utc))
+    sign_in(email="me@example.org", role="admin")
+
+    async def merge(keep_id, other_id):
+        return await client.post(
+            f"/admin/users/{keep_id}/merge", json={"from_user_id": other_id}
+        )
+
+    cases = [
+        (keep.id, keep.id, 409, "same_account"),
+        (other.id, third.id, 409, "both_github"),
+        (keep.id, gone.id, 409, "account_disabled"),
+        (keep.id, "00000000-0000-0000-0000-000000000000", 404, "not_found"),
+    ]
+    for keep_id, other_id, code, detail in cases:
+        response = await merge(keep_id, other_id)
+        assert (response.status_code, response.json()["detail"]) == (code, detail)
+    db_session.expire_all()
+    assert db_session.get(User, third.id) is not None
+
+
+async def test_a_merge_keeps_the_strongest_decision_and_one_open_request(
+    client, sign_in, db_session
+):
+    keep = _user(db_session, "ada@epfl.ch", role_override="contributor")
+    other = _user(db_session, "ada@gmail.com", role_override="curator")
+    for user in (keep, other):
+        db_session.add(AccessRequest(user_id=user.id, role="contributor"))
+    db_session.commit()
+    keep_id = keep.id
+    sign_in(email="me@example.org", role="admin")
+
+    response = await client.post(
+        f"/admin/users/{keep_id}/merge", json={"from_user_id": other.id}
+    )
+    assert response.status_code == 200
+    assert response.json()["role_override"] == "curator"
+    db_session.expire_all()
+    statuses = db_session.execute(
+        select(AccessRequest.status).where(AccessRequest.user_id == keep_id)
+    ).scalars()
+    assert sorted(statuses) == ["declined", "pending"]

@@ -27,7 +27,7 @@ from decimal import Decimal, InvalidOperation
 from fnmatch import fnmatch
 from os import path, walk
 from time import monotonic
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from resslab_hub.config import settings
 from resslab_hub.contributions.github import (
@@ -552,8 +552,13 @@ async def update_contribution(
     dismissed_warnings: List[str],
     client: Optional[DataRepoClient] = None,
     as_curator: bool = False,
+    owner_emails: Optional[Iterable[str]] = None,
 ) -> SubmissionResult:
     """Replace an open submission's batch with a new commit on its branch.
+
+    ``owner_emails`` are all the verified addresses of the account (#402),
+    any of which makes the submission its own. By default only
+    ``contributor.email``, the main address that the new commit records.
 
     The branch is made to hold exactly what the archive holds: rows rewritten,
     files added or replaced, a file the batch no longer has deleted. The pull
@@ -610,7 +615,7 @@ async def update_contribution(
     branch_files = classify_files(head_files, input_type)
     provenance = await read_provenance(client, pr_number, head_sha, branch_files)
     submitter = contributor
-    if not owns_submission(provenance, contributor.email):
+    if not owns_submission(provenance, owner_emails or (contributor.email,)):
         if not as_curator:
             raise SubmissionError(
                 403,

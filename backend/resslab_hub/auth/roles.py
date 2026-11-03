@@ -5,7 +5,8 @@ Roles are ordered: ``viewer < contributor < curator < admin``. The stored
 ``User.role`` is the effective one; ``User.role_source`` records why, so the
 account page and the admin list can explain it.
 
-Sources, strongest first (#248):
+Sources, strongest first (#248). "A verified address" means any of the
+account's addresses (#402), not only the main one:
 
 1. a verified address in ``ADMIN_EMAILS``: admin;
 2. admin on the data repository, through the linked GitHub account: admin;
@@ -103,14 +104,28 @@ def github_permission_to_role(permission: Optional[str]) -> Optional[str]:
     return GITHUB_ROLES.get((permission or "").lower())
 
 
-def _verified_email(user: User) -> str:
-    return (user.email or "") if user.email_verified_at else ""
+def verified_emails(user: User) -> List[str]:
+    """Every proven address of the account, lower-cased, the main one first.
+
+    The ``email`` identities are the proven addresses (#402). The main
+    address is read too, for an account the backfill has not reached.
+    """
+    found: List[str] = []
+    if user.email and user.email_verified_at:
+        found.append(user.email.strip().lower())
+    for identity in user.identities:
+        if identity.provider == "email":
+            address = (identity.subject or "").strip().lower()
+            if address and address not in found:
+                found.append(address)
+    return found
 
 
 def derive_role(user: User) -> tuple:
     """The role this user should have, and why. See the module docstring."""
-    verified_email = _verified_email(user)
-    if verified_email and verified_email.lower() in admin_emails():
+    emails = verified_emails(user)
+    admins = admin_emails()
+    if any(email in admins for email in emails):
         return ADMIN, "admin-email"
     from_github = (
         github_permission_to_role(user.github_role) if user.github_login else None
@@ -121,7 +136,7 @@ def derive_role(user: User) -> tuple:
         return user.role_override, "override"
     if from_github == CURATOR:
         return CURATOR, "github"
-    if verified_email and is_academic(verified_email):
+    if any(is_academic(email) for email in emails):
         return CONTRIBUTOR, "academic-email"
     return VIEWER, "default"
 

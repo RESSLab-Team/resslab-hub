@@ -53,6 +53,8 @@ from resslab_hub.auth.urls import frontend_url, safe_redirect
 from resslab_hub.models.auth import (
     AccessRequestIn,
     AccessRequestStatus,
+    AddEmailRequest,
+    AddEmailVerifyRequest,
     EmailStartRequest,
     EmailStartResponse,
     EmailVerifyRequest,
@@ -237,28 +239,132 @@ async def delete_identity(
     db: AsyncSession = Depends(get_session),
     user: User = Depends(require_user),
 ) -> Response:
-    """Unlink a provider.
+    """Unlink a provider, or remove an added address (#402).
 
-    Not the last one, it would lock the account. And not ``email``: the
-    account is found by its address, so whoever proves the address gets in
-    whatever this table says, and removing the row would only pretend
-    otherwise.
+    Not the last identity, it would lock the account. And not the main
+    address: it signs new submissions and gets the mails, so the person picks
+    another main address first. Once removed, an address no longer finds the
+    account, and the role is worked out again without it.
     """
-    identities = await users.list_identities(db, user.id)
-    target = next((item for item in identities if item.id == identity_id), None)
-    if target is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="not_found")
-    if target.provider == "email" or len(identities) <= 1:
+    try:
+        await users.remove_identity(db, user, identity_id)
+    except LookupError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="not_found"
+        ) from exc
+    except users.CannotUnlink as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="cannot_unlink"
-        )
-    if target.provider == "github":
-        user.github_login = ""
-        user.github_role = None
-        user.github_role_synced_at = None
-    await db.delete(target)
+        ) from exc
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/identities/{identity_id}/main",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=_ENABLED,
+)
+async def set_main_email(
+    identity_id: str,
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_user),
+) -> Response:
+    """Make one of the account's addresses the main one (#402).
+
+    The main address signs new submissions and gets the mails.
+    """
+    try:
+        await users.set_main_email(db, user, identity_id)
+    except LookupError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="not_found"
+        ) from exc
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/emails", response_model=EmailStartResponse, dependencies=_ENABLED)
+@limiter.limit("10/minute")
+async def start_add_email(
+    request: Request,
+    response: Response,
+    payload: AddEmailRequest,
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_user),
+) -> EmailStartResponse:
+    """Mail a code to an address the signed-in person wants to add (#402).
+
+    Whether another account holds the address is only said at the code step,
+    to whoever proved they read its mailbox.
+    """
+    email = users.normalize_email(str(payload.email))
+    if email in roles.verified_emails(user):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="already_yours"
+        )
+    try:
+        challenge_id = await email_login.start(
+            db,
+            email,
+            redirect_to="/account",
+            ip=client_ip(request),
+            link_user_id=user.id,
+        )
+    except mailer.MailNotConfigured as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="mail_not_configured",
+        ) from exc
+    except mailer.MailError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="mail_failed"
+        ) from exc
+    if challenge_id is not None:
+        set_login_cookie(response, challenge_id)
+    return EmailStartResponse(sent=True)
+
+
+@router.post("/emails/verify", response_model=UserOut, dependencies=_ENABLED)
+@limiter.limit("20/minute")
+async def verify_add_email(
+    request: Request,
+    response: Response,
+    payload: AddEmailVerifyRequest,
+    db: AsyncSession = Depends(get_session),
+    user: User = Depends(require_user),
+) -> UserOut:
+    """Add the address, with the code typed in the session that asked (#402).
+
+    No session is created: this browser is already signed in, as the account
+    the address goes to. An address of another account is refused, the two
+    accounts are never joined.
+    """
+    challenge_id = request.cookies.get(LOGIN_COOKIE, "")
+    try:
+        if not challenge_id:
+            raise email_login.ChallengeError("invalid_or_expired")
+        challenge = await email_login.verify_code(
+            db, challenge_id, payload.code, link_user_id=user.id
+        )
+    except email_login.ChallengeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=exc.reason
+        ) from exc
+    try:
+        await users.add_email(db, user, challenge.email)
+    except users.EmailTaken as exc:
+        # The code was right, so only the owner of the mailbox learns this.
+        # Keep the challenge spent, so it cannot be tried again.
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="email_in_use"
+        ) from exc
+    result = await _user_out(db, user)
+    await db.commit()
+    clear_login_cookie(response)
+    response.headers["Cache-Control"] = "no-store"
+    return result
 
 
 @router.post(

@@ -6,6 +6,7 @@ const listUsers = vi.fn()
 const listInvitations = vi.fn()
 const listAccessRequests = vi.fn()
 const updateUser = vi.fn()
+const mergeUser = vi.fn()
 const createInvitation = vi.fn()
 const revokeInvitation = vi.fn()
 const approveAccessRequest = vi.fn()
@@ -17,6 +18,7 @@ vi.mock('@/plugins/axios', () => ({
     listInvitations: (...args: unknown[]) => listInvitations(...args),
     listAccessRequests: (...args: unknown[]) => listAccessRequests(...args),
     updateUser: (...args: unknown[]) => updateUser(...args),
+    mergeUser: (...args: unknown[]) => mergeUser(...args),
     createInvitation: (...args: unknown[]) => createInvitation(...args),
     revokeInvitation: (...args: unknown[]) => revokeInvitation(...args),
     approveAccessRequest: (...args: unknown[]) => approveAccessRequest(...args),
@@ -87,6 +89,18 @@ describe('admin store', () => {
     await store.updateUser('u1', { role_override: 'curator' })
     expect(updateUser).toHaveBeenCalledWith('u1', { role_override: 'curator' })
     expect(store.users[0]?.role).toBe('curator')
+  })
+
+  it('drops the merged account and writes the kept one', async () => {
+    const store = await loaded()
+    store.users = [ADA, { ...ADA, id: 'u2', email: 'ada@gmail.com' }]
+    mergeUser.mockResolvedValue({
+      data: { ...ADA, emails: ['ada@example.org', 'ada@gmail.com'] }
+    })
+    await store.mergeUsers('u1', 'u2')
+    expect(mergeUser).toHaveBeenCalledWith('u1', { from_user_id: 'u2' })
+    expect(store.users.map((item) => item.id)).toEqual(['u1'])
+    expect(store.users[0]?.emails).toEqual(['ada@example.org', 'ada@gmail.com'])
   })
 
   it('puts a new invitation first, and says whether it was mailed', async () => {

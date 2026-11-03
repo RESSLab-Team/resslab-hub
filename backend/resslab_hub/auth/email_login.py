@@ -6,6 +6,12 @@ the same one. The link points at the SPA, not at an endpoint: mail scanners
 open every link before the recipient does, and a GET that consumed the token
 would burn it. The page reads the token out of the URL and POSTs it.
 
+The same challenge proves an address added from the account page (#402),
+marked by ``link_user_id``. That one has a code and no link, and only the
+session of that user may use it: a link opened in any browser would let
+someone make a stranger's click attach the stranger's address to their own
+account. A sign-in never accepts it either.
+
 Guards: ten minutes, five attempts, one use, and caps on how many mails one
 address and one IP can trigger per hour. The caps are counted in SQL because
 the rate limiter cannot see the address, and because they must hold across
@@ -66,11 +72,15 @@ async def start(
     email: str,
     redirect_to: str = "/",
     ip: str = "",
+    link_user_id: Optional[str] = None,
 ) -> Optional[str]:
     """Create a challenge and mail it. Returns its id, or None if capped.
 
     The caller answers the same way either way: whether an address exists, and
     whether it has been asked for too often, are not a stranger's business.
+
+    With ``link_user_id`` the challenge adds the address to that account
+    instead of signing in: the mail says so and has no link.
     """
     email = normalize_email(email)
     await purge_expired(db)
@@ -79,13 +89,14 @@ async def start(
     if ip and await _sent_last_hour(db, ip=ip) >= MAX_MAILS_PER_HOUR_PER_IP:
         return None
     code = new_code()
-    token = new_token()
+    token = None if link_user_id else new_token()
     challenge = LoginChallenge(
         kind="email",
         email=email,
         code_hash=hash_token(code),
-        token_hash=hash_token(token),
+        token_hash=hash_token(token) if token else None,
         redirect_to=safe_redirect(redirect_to),
+        link_user_id=link_user_id,
         ip=ip,
         expires_at=now() + timedelta(minutes=int(settings.login_code_ttl_minutes)),
     )
@@ -94,7 +105,10 @@ async def start(
     # the link needs it.
     await db.flush()
     try:
-        await mailer.send_login_mail(email, code, verify_url(challenge.id, token))
+        if token is None:
+            await mailer.send_add_email_mail(email, code)
+        else:
+            await mailer.send_login_mail(email, code, verify_url(challenge.id, token))
     except mailer.MailError:
         # Undo the row: it is what the hourly caps count, and nothing went out.
         # A broken relay must not eat someone's five mails per hour.
@@ -106,7 +120,14 @@ async def start(
     return challenge.id
 
 
-async def _load(db: AsyncSession, challenge_id: str) -> LoginChallenge:
+async def _load(
+    db: AsyncSession, challenge_id: str, link_user_id: Optional[str] = None
+) -> LoginChallenge:
+    """The live challenge, for a sign-in or for this user's added address.
+
+    A challenge started to add an address only goes back to the user who
+    started it, never to a sign-in, and the other way round.
+    """
     result = await db.execute(
         select(LoginChallenge).where(
             LoginChallenge.id == challenge_id, LoginChallenge.kind == "email"
@@ -117,6 +138,7 @@ async def _load(db: AsyncSession, challenge_id: str) -> LoginChallenge:
         challenge is None
         or challenge.consumed_at is not None
         or aware(challenge.expires_at) <= now()
+        or challenge.link_user_id != link_user_id
     ):
         raise ChallengeError("invalid_or_expired")
     return challenge
@@ -135,9 +157,17 @@ async def _count_failure(db: AsyncSession, challenge: LoginChallenge) -> int:
     return attempts
 
 
-async def verify_code(db: AsyncSession, challenge_id: str, code: str) -> LoginChallenge:
-    """Check a typed code against the challenge this browser started."""
-    challenge = await _load(db, challenge_id)
+async def verify_code(
+    db: AsyncSession,
+    challenge_id: str,
+    code: str,
+    link_user_id: Optional[str] = None,
+) -> LoginChallenge:
+    """Check a typed code against the challenge this browser started.
+
+    ``link_user_id`` is the signed-in user, for a code that adds an address.
+    """
+    challenge = await _load(db, challenge_id, link_user_id)
     if challenge.attempts >= MAX_ATTEMPTS:
         raise ChallengeError("too_many_attempts")
     if not matches((code or "").strip(), challenge.code_hash or ""):

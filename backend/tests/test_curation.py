@@ -194,9 +194,26 @@ class FakeClient:
 
 #: Who calls, as ``get_current_user`` leaves it on the request. A curator by
 #: default: most tests are about the projection, not about access.
-CURATOR = SimpleNamespace(id="curator-id", email="grace@example.edu", role="curator")
-OWNER = SimpleNamespace(id="owner-id", email="Ada@Example.edu", role="contributor")
-STRANGER = SimpleNamespace(id="other-id", email="bob@example.edu", role="contributor")
+
+
+def _account(id, email, role, *others):
+    """A signed-in user, as far as the ownership checks read it."""
+    return SimpleNamespace(
+        id=id,
+        email=email,
+        email_verified_at=object(),
+        role=role,
+        identities=[
+            SimpleNamespace(provider="email", subject=address) for address in others
+        ],
+    )
+
+
+CURATOR = _account("curator-id", "grace@example.edu", "curator")
+OWNER = _account("owner-id", "Ada@Example.edu", "contributor")
+STRANGER = _account("other-id", "bob@example.edu", "contributor")
+#: The same person as OWNER, whose main address is another one now (#402).
+OWNER_AGAIN = _account("owner-id", "ada@gmail.com", "contributor", "ada@example.edu")
 
 
 def make_request(user=CURATOR) -> Request:
@@ -605,6 +622,14 @@ async def test_a_refusal_holds_when_the_answer_is_cached(monkeypatch, no_validat
     with pytest.raises(HTTPException) as caught:
         await get_contribution_validation(make_request(STRANGER), 7)
     assert caught.value.status_code == 403
+
+
+async def test_a_submission_from_any_of_my_addresses_is_mine(
+    monkeypatch, no_validation
+):
+    use_client(monkeypatch, FakeClient())
+    assert (await get_contribution(make_request(OWNER_AGAIN), 7)).mine is True
+    await _read_everything(make_request(OWNER_AGAIN))
 
 
 async def test_the_owner_is_found_after_the_cache_dropped_it(monkeypatch):

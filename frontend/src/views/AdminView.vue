@@ -5,6 +5,10 @@
  * Admins only (the route and the backend both check). An admin cannot change
  * their own row, nor an admin who comes from GitHub or from ADMIN_EMAILS: the
  * backend refuses it, so the page shows those rows read-only.
+ *
+ * One person can end up with two accounts (an EPFL code one day, GitHub with
+ * a gmail the next). An admin merges them here (#402): everything of the
+ * second one moves to the first, then the second one is deleted.
  */
 import ProgressLine from '@/components/commons/ProgressLine.vue'
 import type { AccessRequestOut, AdminUserOut, InvitationInRoleEnum } from '@/backend'
@@ -25,7 +29,7 @@ const ROLES = ['viewer', 'contributor', 'curator', 'admin'] as const
 const INVITE_ROLES: InvitationInRoleEnum[] = ['contributor', 'curator', 'admin']
 
 // One message per section, shown next to what failed.
-const errors = reactive({ requests: '', members: '', invitations: '' })
+const errors = reactive({ requests: '', members: '', merge: '', invitations: '' })
 const busy = ref('')
 
 async function run(section: keyof typeof errors, key: string, action: () => Promise<unknown>) {
@@ -84,6 +88,47 @@ function toggleAccess(user: AdminUserOut): Promise<void> | void {
   }
   confirming.value = ''
   return run('members', user.id, () => store.updateUser(user.id, { disabled: !user.disabled }))
+}
+
+// --- merging two accounts ---------------------------------------------------
+const mergeKeep = ref('')
+const mergeOther = ref('')
+const mergeConfirming = ref(false)
+const mergeNotice = ref('')
+
+function accountLabel(user: AdminUserOut): string {
+  const emails = user.emails?.length ? user.emails : user.email ? [user.email] : []
+  return [user.display_name, ...emails].filter(Boolean).join(' · ')
+}
+
+// The admin's own account can receive another one, never go away.
+const mergeSources = computed(() =>
+  store.users.filter((user) => user.id !== mergeKeep.value && !isSelf(user))
+)
+
+function resetMergeConfirm(): void {
+  mergeConfirming.value = false
+  mergeNotice.value = ''
+}
+
+// Deleting an account cannot be undone: the button asks twice.
+function merge(): Promise<void> | void {
+  const keep = store.users.find((user) => user.id === mergeKeep.value)
+  const other = store.users.find((user) => user.id === mergeOther.value)
+  if (!keep || !other) return
+  if (!mergeConfirming.value) {
+    mergeConfirming.value = true
+    return
+  }
+  mergeConfirming.value = false
+  return run('merge', 'merge', async () => {
+    await store.mergeUsers(keep.id, other.id)
+    mergeNotice.value = t('admin.merge.done', {
+      other: other.email || other.display_name || '',
+      keep: keep.email || keep.display_name || ''
+    })
+    mergeOther.value = ''
+  })
 }
 
 // --- invitations -------------------------------------------------------------
@@ -243,6 +288,11 @@ async function invite(): Promise<void> {
                             ({{ $t('admin.members.unverified') }})</template
                           >
                         </span>
+                        <span v-if="(user.emails?.length ?? 0) > 1" class="ue">
+                          {{
+                            $t('admin.members.also', { emails: user.emails!.slice(1).join(', ') })
+                          }}
+                        </span>
                         <span v-if="user.institution" class="ue">{{ user.institution }}</span>
                       </span>
                     </div>
@@ -311,6 +361,42 @@ async function invite(): Promise<void> {
         </section>
 
         <!-- Invitations -->
+        <section class="block">
+          <h2 class="t-panel">{{ $t('admin.merge.title') }}</h2>
+          <p class="lede">{{ $t('admin.merge.lede') }}</p>
+          <form class="merge" @submit.prevent="merge()">
+            <label class="lbl">
+              {{ $t('admin.merge.keep') }}
+              <select v-model="mergeKeep" class="field" @change="resetMergeConfirm()">
+                <option value="" disabled>{{ $t('admin.merge.pick') }}</option>
+                <option v-for="user in store.users" :key="user.id" :value="user.id">
+                  {{ accountLabel(user) }}
+                </option>
+              </select>
+            </label>
+            <label class="lbl">
+              {{ $t('admin.merge.other') }}
+              <select v-model="mergeOther" class="field" @change="resetMergeConfirm()">
+                <option value="" disabled>{{ $t('admin.merge.pick') }}</option>
+                <option v-for="user in mergeSources" :key="user.id" :value="user.id">
+                  {{ accountLabel(user) }}
+                </option>
+              </select>
+            </label>
+            <button
+              class="btn btn-sm"
+              :class="mergeConfirming ? 'btn-primary' : 'btn-secondary'"
+              type="submit"
+              :disabled="!!busy || !mergeKeep || !mergeOther"
+              @blur="mergeConfirming = false"
+            >
+              {{ mergeConfirming ? $t('admin.merge.confirm') : $t('admin.merge.button') }}
+            </button>
+          </form>
+          <p v-if="errors.merge" class="notice warn">{{ errors.merge }}</p>
+          <p v-else-if="mergeNotice" class="notice">{{ mergeNotice }}</p>
+        </section>
+
         <section class="block">
           <h2 class="t-panel">
             {{ $t('admin.invitations.title') }}
@@ -658,6 +744,18 @@ async function invite(): Promise<void> {
 }
 select.field {
   padding-right: 6px;
+}
+
+/* ── merge ── */
+.merge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.merge select.field {
+  width: min(340px, 100%);
 }
 
 /* ── invitations ── */

@@ -34,6 +34,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from resslab_hub.utils.database import Base
 
@@ -94,6 +95,19 @@ class User(Base):  # type: ignore
     #: Set by an admin to lock the account out.
     disabled_at = Column(DateTime(timezone=True), nullable=True)
 
+    #: Every way this person can sign in. Loaded with the user (``selectin``)
+    #: because the role reads the ``email`` ones, and an async session cannot
+    #: load a relationship lazily. Its ``email`` rows are all the verified
+    #: addresses of the account (#402); ``email`` above is the main one.
+    identities = relationship(
+        "Identity",
+        back_populates="user",
+        lazy="selectin",
+        order_by="Identity.created_at",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
     __table_args__ = (
         CheckConstraint(
             "role IN ('viewer', 'contributor', 'curator', 'admin')",
@@ -127,6 +141,8 @@ class Identity(Base):  # type: ignore
     handle = Column(String(255), nullable=False, server_default="")
     created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
     last_used_at = Column(DateTime(timezone=True), nullable=True)
+
+    user = relationship("User", back_populates="identities")
 
     __table_args__ = (
         UniqueConstraint("provider", "subject", name="auth_identity_provider_subject"),

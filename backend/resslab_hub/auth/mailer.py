@@ -20,6 +20,9 @@ A relay that refuses or does not answer raises :class:`MailError`. The caller
 undoes the challenge it had just written, so a broken relay does not eat the
 hourly caps of the person trying to sign in.
 
+Adding an address to an account (#402) mails a code too, with its own
+template, ``add_email``, and no link.
+
 The notices (an invitation, a new access request, an approved one) share one
 template, ``notice_email``: a title, a few paragraphs and one button. Their
 wording is in ``auth/access.py``.
@@ -166,6 +169,28 @@ def build_message(email: str, code: str, link: str) -> EmailMessage:
     return message
 
 
+def build_add_email_message(email: str, code: str) -> EmailMessage:
+    """The mail that proves an address added from the account page (#402).
+
+    A code and no link, on purpose: the code must be typed in the session
+    that asked, see ``docs/auth.md``.
+    """
+    ttl = str(settings.login_code_ttl_minutes)
+    text = _fill(_template("add_email.txt"), {"code": code, "ttl_minutes": ttl})
+    html = _fill(
+        _template("add_email.html"),
+        {"code": escape(code), "ttl_minutes": escape(ttl)},
+    )
+    message = EmailMessage()
+    message["From"] = formataddr((FROM_NAME, str(settings.smtp_from)))
+    message["To"] = email
+    message["Subject"] = f"{code} confirms your address on RESSLab Hub"
+    message.set_content(text)
+    message.add_alternative(html, subtype="html")
+    _attach_logos(message)
+    return message
+
+
 def _attach_logos(message: EmailMessage) -> None:
     # The images hang off the html part, not off the message, so a reader
     # that only wants the text part never downloads them.
@@ -274,6 +299,18 @@ async def send_login_mail(email: str, code: str, link: str) -> None:
         logger.warning("Sign-in link for %s: %s", email, link)
         return
     await _deliver(build_message(email, code, link))
+
+
+async def send_add_email_mail(email: str, code: str) -> None:
+    """Mail the code that adds an address to an account, or log it.
+
+    Raises like :func:`send_login_mail`.
+    """
+    if _log_only(email):
+        logger.warning("Add-email mail not sent (no SMTP_HOST).")
+        logger.warning("Add-email code for %s: %s", email, code)
+        return
+    await _deliver(build_add_email_message(email, code))
 
 
 async def send_notice(

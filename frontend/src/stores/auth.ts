@@ -41,6 +41,11 @@ export const useAuthStore = defineStore('auth', () => {
   const hasGitHub = computed(() =>
     identities.value.some((identity) => identity.provider === 'github')
   )
+  /** Every verified address of the account (#402). The main one is `user.email`. */
+  const emails = computed<IdentityOut[]>(() =>
+    identities.value.filter((identity) => identity.provider === 'email')
+  )
+  const mainEmail = computed(() => user.value?.email ?? null)
 
   function hasRole(minimum: Role): boolean {
     return !!user.value && rankOf(user.value.role ?? 'viewer') >= rankOf(minimum)
@@ -117,6 +122,30 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
+   * Mail a code to an address to add to this account (#402). Code only, no
+   * link: it must be typed here, in the session that asked.
+   */
+  async function startAddEmail(email: string): Promise<void> {
+    const { authApi } = await api()
+    await authApi.startAddEmail({ email })
+  }
+
+  /** Add the address with the typed code. The answer is the updated account. */
+  async function verifyAddEmail(code: string): Promise<void> {
+    const { authApi } = await api()
+    const { data } = await authApi.verifyAddEmail({ code })
+    user.value = data
+    status.value = 'authenticated'
+  }
+
+  /** Make one of the account's addresses the main one. */
+  async function setMainEmail(identityId: string): Promise<void> {
+    const { authApi } = await api()
+    await authApi.setMainEmail(identityId)
+    await ensureLoaded(true)
+  }
+
+  /**
    * Ask the admins for the contributor role (#248). The answer comes back on
    * `user.access_request`, so the page shows it waiting.
    */
@@ -132,6 +161,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     identities,
     hasGitHub,
+    emails,
+    mainEmail,
     hasRole,
     clear,
     ensureLoaded,
@@ -140,6 +171,9 @@ export const useAuthStore = defineStore('auth', () => {
     goToGitHub,
     logout,
     unlinkIdentity,
+    startAddEmail,
+    verifyAddEmail,
+    setMainEmail,
     requestAccess
   }
 })

@@ -50,12 +50,32 @@ decides who submits, who reviews and who manages the others. See Roles below
   own 256-bit token.
 - **Accounts are never merged** because two providers report the same address.
   Whoever holds an address keeps it; the second one is told to sign in with it
-  and link the provider from the account page. The address is also how an
-  account is found, so the email identity cannot be unlinked: GitHub can.
+  and link the provider from the account page.
+- **An account can hold several addresses (#402).** Each verified address is
+  an `email` row in `auth_identity`, and any of them signs in to the same
+  account by code. `auth_user.email` is the main one: the contact address, and
+  the one new submissions record. The person picks it on the account page.
+  Migration `d3f7a1c9e5b2` added the missing row for accounts made before
+  this, whose main address lived on `auth_user` only.
+- **An address is added by code only, from the account page.** `POST
+  /auth/emails` mails a code (no link) and `POST /auth/emails/verify` takes it,
+  in the session that asked: the challenge carries `link_user_id`, and the
+  sign-in endpoints refuse it. A link would let someone ask "add your address
+  to my account" and have the owner of the address click it. With a code,
+  only the person who reads the mailbox and holds the session can finish. An
+  address that already belongs to another account is refused (409
+  `email_in_use`): a person never joins two accounts alone. An admin can
+  (see "The admin page").
+- **Removing an address.** `DELETE /auth/identities/{id}` removes any email
+  row except the main one, and never the last way to sign in (409
+  `cannot_unlink`). To drop the main address, make another one main first
+  (`POST /auth/identities/{id}/main`). GitHub can be unlinked the same way.
 - **A submission belongs to the account that made it.** Updating an open one
   from the Hub (#321) checks the `Submitted-by` trailer on its branch's first
-  Hub commit against the account's verified address (a pull request opened
-  before trailers falls back to its `contributions/*.json` record). A curator
+  Hub commit against every verified address of the account (a pull request
+  opened before trailers falls back to its `contributions/*.json` record). So
+  a submission sent from an address that was added or made main later is
+  still yours. A curator
   can update any open one: the commit is then the curator's, and the trailers
   keep naming the person who submitted. Anyone else gets a 403. The review
   page offers "Edit on the Hub" to the owner and to curators.
@@ -314,14 +334,16 @@ Browsing the databases needs no account at all.
 `role` with the reason in `role_source`. The account page and the admin page
 both show that reason.
 
-1. A verified address in `ADMIN_EMAILS` -> `admin` (`admin-email`).
+1. A verified address of the account in `ADMIN_EMAILS` -> `admin`
+   (`admin-email`).
 2. Admin on `resslab-hub-data`, through the linked GitHub account -> `admin`
    (`github`).
 3. A decision of an administrator, `role_override` (`override`). Changing a
    role on the admin page, approving an access request and using an
    invitation all write it.
 4. Write or maintain on `resslab-hub-data` -> `curator` (`github`).
-5. An academic address -> `contributor` (`academic-email`, below).
+5. An academic address of the account -> `contributor` (`academic-email`,
+   below).
 6. Otherwise `viewer` (`default`).
 
 The two admin sources come before the override on purpose: nobody can
@@ -329,8 +351,13 @@ demote, from the Hub, an admin that GitHub or the config made. The admin
 page shows those rows as read only. To remove such an admin, change it on
 GitHub or in `ADMIN_EMAILS`.
 
-Only a **verified** address counts. Mail sign-in verifies by construction;
-GitHub sign-in verifies when GitHub reports the address as verified.
+Only a **verified** address counts, but any of them does, not only the main
+one: someone who signs in with GitHub and a gmail address becomes a
+contributor once they add their EPFL address. Mail sign-in and an added
+address verify by construction; GitHub sign-in verifies when GitHub reports
+the address as verified. Removing an address works the role out again, so
+`academic-email` or `admin-email` can go with it. A role from an invitation or
+an administrator is an override and stays.
 
 So the GitHub permission on the data repository is the main source: the
 people who can merge there review in the Hub, the people who own it manage
@@ -401,14 +428,14 @@ nobody.
 | The queue (`GET /contributions`) | | | yes | yes |
 | `/admin/*` | | | | yes |
 
-"Own" means the `Submitted-by` trailer of the first Hub commit matches the
-account's verified address. The frontend routes ask for the same roles
+"Own" means the `Submitted-by` trailer of the first Hub commit matches one of
+the account's verified addresses. The frontend routes ask for the same roles
 (`meta.auth` in `router/index.ts`): the sidebar shows the review queue to
 curators only and the Administration link to admins only.
 
 ### The admin page
 
-`/admin` (`views/AdminView.vue`, backend `routers/admin.py`) has three parts.
+`/admin` (`views/AdminView.vue`, backend `routers/admin.py`) has four parts.
 
 - **Access requests.** The pending ones, with the person's message. Approve
   gives the role asked for and mails the person; decline mails nobody, the
@@ -420,10 +447,25 @@ curators only and the Administration link to admins only.
   sign-in; enable undoes it. An admin cannot change their own row, nor an
   admin from GitHub or `ADMIN_EMAILS`.
 - **Invitations.** A role waiting for an address. The person gets a mail;
-  the role is theirs at their first sign-in with that verified address, by
-  mail or by GitHub. Inviting someone who already has an account is refused:
-  change their role in the members list instead. A pending invitation can be
-  revoked.
+  the role is theirs as soon as an account proves that address: a sign-in
+  with it, by mail or by GitHub, or adding it to an account from the account
+  page. Inviting an address that already belongs to an account (main or
+  added) is refused: change their role in the members list instead. A
+  pending invitation can be revoked.
+- **Merge two accounts.** For one person with two accounts, for example an
+  EPFL one made by code and a GitHub one with a gmail (#402). `POST
+  /admin/users/{keep}/merge` with `{"from_user_id": ...}` moves every
+  identity of the second account to the first (addresses and GitHub), so
+  they all sign in to the kept account and the submissions follow, since a
+  submission belongs to its addresses. The stronger override wins, empty
+  profile fields are filled, a second pending access request is declined,
+  invitations and decisions point to the kept account. Then the second
+  account is deleted, which signs it out everywhere. Refused: the same
+  account twice (409 `same_account`), a disabled account (409
+  `account_disabled`), two different GitHub accounts (409 `both_github`,
+  unlink one first), and an admin merging their own account away (403
+  `cannot_change_self`; merging another one into your own is fine). Nothing
+  can undo a merge, so the button asks twice.
 
 An approved request and an invitation never lower a role: approving the
 request of someone who became a curator meanwhile changes nothing. But they

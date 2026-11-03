@@ -1563,12 +1563,28 @@
       "no_email": "No confirmed address",
       "verified": "confirmed",
       "identities": "Ways to sign in",
-      "identities_lede": "Each one signs you into the same account. GitHub can be added and removed. The email address stays: it is how the account is found.",
+      "identities_lede": "Each one signs you into the same account. GitHub can be added and removed.",
       "unlink": "Remove",
       "link_github": "Link GitHub",
       "link_github_why": "With GitHub linked, your submission mentions you on its pull request, so you get the review comments and can answer them.",
       "sign_out": "Sign out",
-      "github_role_hint": "Write access on the data repository on GitHub makes you a curator here, admin access makes you an administrator. Link GitHub to use it. The role follows GitHub within the hour."
+      "github_role_hint": "Write access on the data repository on GitHub makes you a curator here, admin access makes you an administrator. Link GitHub to use it. The role follows GitHub within the hour.",
+      "emails_title": "Email addresses",
+      "emails_lede": "Each address signs you into this account by code, and counts for your role. A submission sent from any of them is yours. New submissions record the main address.",
+      "main": "Main",
+      "make_main": "Make main",
+      "add_email": "Add an email address",
+      "add_email_lede": "We send a code to the new address. Type it here to confirm it is yours.",
+      "email_label": "Email address",
+      "send_code": "Send the code",
+      "code_sent": "We sent a code to {email}. It is valid for a few minutes.",
+      "code_label": "Code from the mail",
+      "confirm": "Add the address",
+      "cancel": "Cancel",
+      "email_added": "{email} is now on your account.",
+      "add_errors": {
+        "email_in_use": "That address belongs to another account here. Accounts are not joined: sign in with it to use that account."
+      }
     },
     "forbidden": {
       "eyebrow": "Account",
@@ -1612,11 +1628,12 @@
       "identity_taken": "That GitHub account is already linked to another account here.",
       "github_denied": "You cancelled the GitHub sign-in.",
       "github_disabled": "GitHub sign-in is not available here. Use your email address.",
-      "cannot_unlink": "This one cannot be removed: it is how your account is found.",
+      "cannot_unlink": "This one cannot be removed. Make another address main first, and keep at least one way to sign in.",
       "account_disabled": "This account is disabled. Ask an administrator of the lab if you think it is a mistake.",
       "already_pending": "Your request is already waiting for an administrator.",
       "already_granted": "You already have this access.",
-      "email_required": "Confirm an email address first: sign in once with your email."
+      "email_required": "Confirm an email address first: add one on your account page.",
+      "already_yours": "That address is already on your account."
     },
     "access": {
       "title": "Ask for contributor access",
@@ -1680,7 +1697,18 @@
         "admin-email": "Deployment config",
         "override": "Set here",
         "github": "GitHub"
-      }
+      },
+      "also": "Also {emails}"
+    },
+    "merge": {
+      "title": "Merge two accounts",
+      "lede": "For one person with two accounts. Everything of the second account moves to the first one: its addresses, its GitHub, its submissions. Then the second account is deleted and signed out.",
+      "keep": "Account to keep",
+      "other": "Account to merge into it",
+      "pick": "Pick an account",
+      "button": "Merge",
+      "confirm": "Click again to merge",
+      "done": "{other} is now part of {keep}."
     },
     "invitations": {
       "title": "Invitations",
@@ -1706,7 +1734,10 @@
       "already_member": "This address already has an account. Change its role in the members list.",
       "already_invited": "This address already has an invitation waiting.",
       "already_decided": "Another administrator already answered this request.",
-      "not_found": "It is gone. Reload the page."
+      "not_found": "It is gone. Reload the page.",
+      "same_account": "Pick two different accounts.",
+      "account_disabled": "One of the two accounts is disabled. Enable it first.",
+      "both_github": "The two accounts use different GitHub accounts. Unlink one first."
     }
   }
 }
