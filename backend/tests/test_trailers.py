@@ -168,3 +168,14 @@ def test_ownership_is_the_address_whatever_the_case():
     assert not owns_submission(provenance, "grace@example.edu")
     assert not owns_submission(provenance, "")
     assert not owns_submission(None, "ada@example.edu")
+
+
+def test_ownership_by_any_of_the_account_addresses():
+    """An account holds several addresses (#402); any one of them owns."""
+    provenance = provenance_from_commits(
+        [commit(build_commit_message(TITLE, "Ada Lovelace", "ada@example.edu"))]
+    )
+    assert owns_submission(provenance, ["ada@gmail.com", "Ada@Example.edu"])
+    assert owns_submission(provenance, ("ada@example.edu",))
+    assert not owns_submission(provenance, ["ada@gmail.com", "grace@example.edu"])
+    assert not owns_submission(provenance, [])

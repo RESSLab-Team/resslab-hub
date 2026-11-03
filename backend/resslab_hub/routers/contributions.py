@@ -73,8 +73,8 @@ def _contributor(user: User) -> Contributor:
 
     The commit author and its ``Submitted-by`` trailer both need a real name
     and a proven address. A GitHub-only account may have neither (rare: GitHub
-    shares the verified primary address), and cannot add one until the
-    profile page lands, so the message says what to do instead.
+    shares the verified primary address). It can add one from the account
+    page (#402), so the message says so.
     """
     if not user.display_name.strip():
         raise HTTPException(
@@ -86,7 +86,7 @@ def _contributor(user: User) -> Contributor:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
                 "This account has no confirmed email address, so it cannot "
-                "submit. Sign in with your email address instead."
+                "submit. Add a verified email address on your account page."
             ),
         )
     return Contributor(
@@ -226,6 +226,7 @@ async def update_open_contribution(
             contributor,
             dismissed,
             as_curator=roles.at_least(user.role, roles.CURATOR),
+            owner_emails=roles.verified_emails(user),
         ),
     )
     if isinstance(response, ContributionResponse):

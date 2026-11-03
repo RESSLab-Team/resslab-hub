@@ -17,7 +17,7 @@ made by the old code keeps working.
 
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional, Union
 
 #: Who submitted, and the address ownership is checked against.
 SUBMITTED_BY = "Submitted-by"
@@ -181,13 +181,21 @@ def provenance_from_record(record: Optional[dict]) -> Optional[Provenance]:
     )
 
 
-def owns_submission(provenance: Optional[Provenance], email: str) -> bool:
+def owns_submission(
+    provenance: Optional[Provenance], emails: Union[str, Iterable[str]]
+) -> bool:
     """Whether the account may change the submission ``provenance`` describes.
 
-    The recorded address decides, which is what the account's verified address
-    proves. Nothing readable means nobody can, not even a curator (#248).
+    The recorded address decides, which is what the account's verified
+    addresses prove. ``emails`` is one address or all of the account's: a
+    submission made from any of them is the account's (#402). Nothing
+    readable means nobody owns it (#248).
     """
     if provenance is None:
         return False
     recorded = provenance.email.strip().lower()
-    return bool(recorded) and recorded == (email or "").strip().lower()
+    if isinstance(emails, str):
+        emails = (emails,)
+    return bool(recorded) and recorded in {
+        (email or "").strip().lower() for email in emails
+    }
