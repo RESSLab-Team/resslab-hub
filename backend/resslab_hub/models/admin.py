@@ -3,7 +3,7 @@ Request and response shapes of the ``/admin`` endpoints (#248).
 """
 
 from datetime import datetime
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, EmailStr
 
@@ -16,6 +16,8 @@ class AdminUserOut(BaseModel):
     email_verified: bool = False
     display_name: str = ""
     institution: str = ""
+    #: Every verified address of the account, the main one first (#402).
+    emails: List[str] = []
     role: str
     role_source: str
     #: The admin's own decision, if any. Null means "automatic".
@@ -37,6 +39,12 @@ class AdminUserPatch(BaseModel):
 
     role_override: Optional[RoleName] = None
     disabled: Optional[bool] = None
+
+
+class AdminMergeIn(BaseModel):
+    """The account to fold into the one in the path, then delete."""
+
+    from_user_id: str
 
 
 class InvitationIn(BaseModel):

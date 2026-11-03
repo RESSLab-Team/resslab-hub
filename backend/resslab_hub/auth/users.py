@@ -15,12 +15,17 @@ proved it while signed in. ``User.email`` is the main one, and one of them.
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import inspect, or_, select
+from sqlalchemy import delete, inspect, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from resslab_hub.auth import access, roles
-from resslab_hub.models.database.auth import Identity, User
+from resslab_hub.models.database.auth import (
+    AccessRequest,
+    Identity,
+    Invitation,
+    User,
+)
 
 
 class IdentityTaken(Exception):
@@ -33,6 +38,14 @@ class EmailTaken(Exception):
 
 class CannotUnlink(Exception):
     """Removing that identity would lock the account, or drop its main address."""
+
+
+class CannotMerge(Exception):
+    """Two accounts that an admin cannot join. ``reason`` is the API slug."""
+
+    def __init__(self, reason: str):
+        super().__init__(reason)
+        self.reason = reason
 
 
 def normalize_email(email: str) -> str:
@@ -331,3 +344,93 @@ async def remove_identity(db: AsyncSession, user: User, identity_id: str) -> Non
     await db.flush()
     # The address that made the account a contributor may be the one gone.
     roles.apply_role(user)
+
+
+async def merge_users(db: AsyncSession, keep: User, other: User, admin: User) -> None:
+    """Move everything of ``other`` onto ``keep``, then delete ``other``.
+
+    Only an admin does this, from the admin page: the same person ended up
+    with two accounts (an EPFL code one day, GitHub with a gmail the next).
+    Every identity moves, so every address and GitHub sign in to ``keep``,
+    and the submissions follow, since they belong to their addresses.
+    ``other`` and its sessions are gone: that browser is signed out.
+
+    Raises :class:`CannotMerge` for the same account twice, a disabled one
+    (enable it first, so a locked-out person does not come back by the side
+    door), or two different GitHub accounts (an account has one).
+    """
+    if keep.id == other.id:
+        raise CannotMerge("same_account")
+    if keep.disabled_at is not None or other.disabled_at is not None:
+        raise CannotMerge("account_disabled")
+    keep_ids = await _identities(db, keep)
+    other_ids = await _identities(db, other)
+    keep_github = {item.subject for item in keep_ids if item.provider == "github"}
+    other_github = {item.subject for item in other_ids if item.provider == "github"}
+    if keep_github and other_github and keep_github != other_github:
+        raise CannotMerge("both_github")
+
+    # What ``keep`` takes from ``other``, read before the row goes.
+    other_email, other_verified = other.email, other.email_verified_at
+    if roles.rank(other.role_override or "") > roles.rank(keep.role_override or ""):
+        keep.role_override = other.role_override
+    if not keep.github_login and other.github_login:
+        keep.github_login = other.github_login
+        keep.github_role = other.github_role
+        keep.github_role_synced_at = other.github_role_synced_at
+    for field in ("display_name", "institution", "address", "orcid"):
+        if not getattr(keep, field) and getattr(other, field):
+            setattr(keep, field, getattr(other, field))
+    if other.last_login_at and (
+        keep.last_login_at is None or other.last_login_at > keep.last_login_at
+    ):
+        keep.last_login_at = other.last_login_at
+
+    # One open access request per person: the second one is closed.
+    if await _pending_request(db, keep.id) is not None:
+        await db.execute(
+            update(AccessRequest)
+            .where(AccessRequest.user_id == other.id, AccessRequest.status == "pending")
+            .values(status="declined", decided_by=admin.id, decided_at=_now())
+        )
+    moves = (
+        (Identity, Identity.user_id),
+        (AccessRequest, AccessRequest.user_id),
+        (AccessRequest, AccessRequest.decided_by),
+        (Invitation, Invitation.invited_by),
+        (Invitation, Invitation.redeemed_by),
+    )
+    for table, column in moves:
+        await db.execute(
+            update(table)
+            .where(column == other.id)
+            .values({column.key: keep.id})
+            .execution_options(synchronize_session=False)
+        )
+    # Sessions and sign-ins in progress go with the row (ON DELETE CASCADE).
+    # The loaded ``other`` (and, by cascade, its loaded identities, whose
+    # ``user_id`` is stale now) leave the session first, so the ORM neither
+    # deletes those identities nor writes the old row back.
+    db.expunge(other)
+    await db.execute(
+        delete(User)
+        .where(User.id == other.id)
+        .execution_options(synchronize_session=False)
+    )
+    # The address can only move once the other row is gone: it is unique.
+    if not keep.email and other_email:
+        keep.email = other_email
+        keep.email_verified_at = other_verified
+    await db.refresh(keep, ["identities"])
+    roles.apply_role(keep)
+    await access.redeem_invitation(db, keep)
+    await db.flush()
+
+
+async def _pending_request(db: AsyncSession, user_id: str) -> Optional[AccessRequest]:
+    result = await db.execute(
+        select(AccessRequest).where(
+            AccessRequest.user_id == user_id, AccessRequest.status == "pending"
+        )
+    )
+    return result.scalar_one_or_none()

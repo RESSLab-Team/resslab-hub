@@ -1264,6 +1264,59 @@
         }
       }
     },
+    "/admin/users/{user_id}/merge": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Merge User",
+        "description": "Fold the account ``from_user_id`` into this one, then delete it.\n\nFor one person with two accounts. Every address and GitHub moves here,\nso the submissions follow (they belong to their addresses). The other\naccount's sessions end. An admin can merge another account into their\nown, but not their own account away: that would delete the session in use.",
+        "operationId": "merge_user",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminMergeIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/invitations": {
       "get": {
         "tags": [
@@ -7877,6 +7930,20 @@
         "title": "AddEmailVerifyRequest",
         "description": "The code mailed to that address. The challenge is in the login cookie."
       },
+      "AdminMergeIn": {
+        "properties": {
+          "from_user_id": {
+            "type": "string",
+            "title": "From User Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "from_user_id"
+        ],
+        "title": "AdminMergeIn",
+        "description": "The account to fold into the one in the path, then delete."
+      },
       "AdminUserOut": {
         "properties": {
           "id": {
@@ -7908,6 +7975,14 @@
             "type": "string",
             "title": "Institution",
             "default": ""
+          },
+          "emails": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Emails",
+            "default": []
           },
           "role": {
             "type": "string",
