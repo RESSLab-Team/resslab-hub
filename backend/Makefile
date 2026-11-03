@@ -39,9 +39,9 @@ lint:                   ## ruff + ruff-format through pre-commit, all files
 
 EXPERIMENTS ?= 15
 OUTLIERS ?= 3
-sample-data:            ## synthetic contribution batches for /contribute/new, in-range values read from the DB; EXPERIMENTS=15 OUTLIERS=3
+sample-data:            ## test batches for /contribute/new, rows from real DB records, curves from the data repo; EXPERIMENTS=15 OUTLIERS=3
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python ../sample-data/generate.py \
-		--experiments $(EXPERIMENTS) --outliers $(OUTLIERS)
+		--experiments $(EXPERIMENTS) --outliers $(OUTLIERS) --data-dir $(RESSLAB_DATA_DIR)
 
 update:                 ## pre-commit autoupdate
 	pre-commit autoupdate
