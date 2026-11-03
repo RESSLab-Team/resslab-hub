@@ -108,7 +108,7 @@ The data lives in [resslab-hub-data](https://github.com/RESSLab-Team/resslab-hub
 
    ```bash
    make dev-database
-   make upload-data                  # every table, erases and refills, ~1 min
+   make upload-data                  # changed files only (FORCE=1: all, ~1 min)
    make -C backend upload-data-light # one measurement file per series type, ~30 s
    ```
 

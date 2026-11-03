@@ -110,15 +110,16 @@ async def create_upload_file(
     try:
         with TemporaryDirectory() as tmpdir:
             safe_extract_targz(file.file, tmpdir)
-            [primary_uploads, secondary_uploads] = upload_all(type, [tmpdir])
+            report = upload_all(type, [tmpdir])
             # New data is live: expire every browser-cached data response.
             bump_data_version()
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
                     "message": "Upload successful",
-                    "primary_uploads": primary_uploads,
-                    "secondary_uploads": secondary_uploads,
+                    "uploads": report.messages,
+                    "skipped": len(report.skipped),
+                    "removed": report.removed,
                 },
             )
     except ArchiveTooLarge as exc:

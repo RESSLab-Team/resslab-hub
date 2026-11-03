@@ -9,3 +9,4 @@ import resslab_hub.models.database.hss_column  # noqa: F401
 import resslab_hub.models.database.material
 import resslab_hub.models.database.residual_stress  # noqa: F401
 import resslab_hub.models.database.tensile_coupon  # noqa: F401
+import resslab_hub.models.database.upload  # noqa: F401

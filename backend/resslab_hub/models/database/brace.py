@@ -20,7 +20,7 @@ from resslab_hub.utils.database import Base
 class BraceDisplacement(Base):  # type: ignore
     __tablename__ = "brace_displacement"
 
-    brace_id = Column(String, ForeignKey("brace.id"), primary_key=True, index=True)
+    brace_id = Column(String, ForeignKey("brace.id"), primary_key=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     displacement = Column(Numeric, nullable=False)

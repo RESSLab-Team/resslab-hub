@@ -58,7 +58,7 @@ api:                    ## regenerate openapi.json, database-columns.json and fr
 sample-data:            ## test batches into sample-data/, from real records, self-checked (EXPERIMENTS=15 OUTLIERS=3)
 	$(MAKE) -C backend sample-data
 
-upload-data:            ## upload every CSV of the data repo into the local DB (erases the tables)
+upload-data:            ## upload the changed CSVs of the data repo into the local DB (FORCE=1 uploads all)
 	$(MAKE) -C backend upload-data
 
 backup-dump:            ## make backup-dump DEST_FOLDER=path, pg_dumpall of the dev database

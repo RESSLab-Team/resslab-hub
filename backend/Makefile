@@ -126,11 +126,11 @@ precompute-sem:         ## SEM TIFs to WebP + dimple JSONs in sem/_webp/; withou
 precompute-fracture-figures: ## redraw the per-specimen ductile-fracture SVGs (committed)
 	uv run --group figures python data/precompute_fracture_figures.py $(RESSLAB_DATA_DIR)
 
-upload-data:            ## upload everything from RESSLAB_DATA_DIR (erases the tables, ~1 min)
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR)
+upload-data:            ## upload the files of RESSLAB_DATA_DIR that changed since the last run (FORCE=1 uploads all, ~1 min)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR) $(if $(FORCE),--force)
 
 upload-data-light:      ## same with one measurement file per series type (~30 s); the ~20 MB dataset behind make db-template-light
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR) --series-limit 1
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR) --series-limit 1 $(if $(FORCE),--force)
 
 transform-data:         ## regenerate the frontend section CSVs from the data repo
 	uv run python data/csv_transformer.py aisc $(RESSLAB_DATA_DIR)/connections/component/aisc.csv ../frontend/src/assets/connection/aisc-sections.csv

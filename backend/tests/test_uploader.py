@@ -24,9 +24,11 @@ from resslab_hub.data.uploader import (
     cap_series,
     status_value,
     upload_all,
+    upload_key,
     upload_one,
 )
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
+from resslab_hub.models.database.upload import UploadedFile
 from tests.conftest import write_main_csv, write_measurement_csv
 
 # The conversion routine is a name-mangled private static method; bind it once.
@@ -446,3 +448,172 @@ def test_cap_series_caps_measurements_but_keeps_everything_else():
     assert (Type.BRACE_DISPLACEMENT, "braces/force_displacement/b.csv") not in capped
     assert (Type.COLUMN_MOMENT_STRONG, "columns/moment_rotation_strong/x.csv") in capped
     assert len(capped) == 7
+
+
+# ---------------------------------------------------------------------------
+# upload_all skips unchanged files and removes deleted ones (#405)
+# ---------------------------------------------------------------------------
+CURVE_HEADERS = ["Displacement [mm]", "Force [kN]"]
+BRACE_KEYS = [
+    "brace-displacement/B1.csv",
+    "brace-displacement/B2.csv",
+    "brace/steel_braces.csv",
+    "readme/braces",
+]
+
+
+def make_braces(tmp_path):
+    """A braces folder: main CSV (B1, B2), one curve each, a README."""
+    root = tmp_path / "braces"
+    (root / "force_displacement").mkdir(parents=True)
+    write_main_csv(root / "steel_braces.csv", Brace, [{"id": "B1"}, {"id": "B2"}])
+    (root / "README.md").write_text("# Braces\n", encoding="utf-8")
+    for brace_id in ("B1", "B2"):
+        write_measurement_csv(
+            root / "force_displacement" / f"{brace_id}.csv",
+            CURVE_HEADERS,
+            [["0.0", "0.0"]],
+        )
+    return root
+
+
+def hashes(db_session):
+    db_session.expire_all()
+    return {row.key: row for row in db_session.query(UploadedFile).all()}
+
+
+def curve_rows(db_session, brace_id):
+    return (
+        db_session.query(BraceDisplacement)
+        .filter(BraceDisplacement.brace_id == brace_id)
+        .count()
+    )
+
+
+def test_upload_all_second_run_skips_everything(tmp_path, db_session):
+    make_braces(tmp_path)
+    first = upload_all(Type.ALL_BRACE, [str(tmp_path)])
+    assert first.uploaded == BRACE_KEYS
+    assert first.skipped == []
+
+    second = upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    assert second.uploaded == []
+    assert second.failed == []
+    assert second.removed == []
+    assert sorted(second.skipped) == BRACE_KEYS
+    assert sorted(hashes(db_session)) == BRACE_KEYS
+    assert curve_rows(db_session, "B1") == 1
+    assert curve_rows(db_session, "B2") == 1
+
+
+def test_upload_all_rewrites_only_the_changed_file(tmp_path, db_session):
+    root = make_braces(tmp_path)
+    upload_all(Type.ALL_BRACE, [str(tmp_path)])
+    before = {
+        key: (row.sha256, row.uploaded_at) for key, row in hashes(db_session).items()
+    }
+
+    write_measurement_csv(
+        root / "force_displacement" / "B2.csv",
+        CURVE_HEADERS,
+        [["0.0", "0.0"], ["1.0", "5.0"]],
+    )
+    report = upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    assert report.uploaded == ["brace-displacement/B2.csv"]
+    after = hashes(db_session)
+    b1 = after["brace-displacement/B1.csv"]
+    assert (b1.sha256, b1.uploaded_at) == before["brace-displacement/B1.csv"]
+    assert (
+        after["brace-displacement/B2.csv"].sha256
+        != (before["brace-displacement/B2.csv"][0])
+    )
+    assert curve_rows(db_session, "B2") == 2
+
+
+def test_upload_all_removes_the_rows_of_a_deleted_file(tmp_path, db_session):
+    root = make_braces(tmp_path)
+    upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    (root / "force_displacement" / "B1.csv").unlink()
+    report = upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    assert report.removed == ["brace-displacement/B1.csv"]
+    assert report.uploaded == []
+    assert curve_rows(db_session, "B1") == 0
+    assert curve_rows(db_session, "B2") == 1
+    assert "brace-displacement/B1.csv" not in hashes(db_session)
+    flags = {b.id: b.displacement_count for b in db_session.query(Brace).all()}
+    assert flags == {"B1": 0, "B2": 1}
+
+
+def test_upload_all_force_uploads_everything(tmp_path, db_session):
+    make_braces(tmp_path)
+    upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    report = upload_all(Type.ALL_BRACE, [str(tmp_path)], force=True)
+
+    assert report.uploaded == BRACE_KEYS
+    assert report.skipped == []
+
+
+def test_upload_all_partial_runs_remove_nothing(tmp_path, db_session):
+    root = make_braces(tmp_path)
+    upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    # one file of one type: the other curves of that type are not gone
+    one = upload_all(
+        Type.BRACE_DISPLACEMENT, [str(root / "force_displacement" / "B1.csv")]
+    )
+    # the light upload keeps one curve per type: B2 is capped out, not gone
+    light = upload_all(Type.ALL_BRACE, [str(tmp_path)], series_limit=1)
+
+    assert one.removed == []
+    assert light.removed == []
+    assert curve_rows(db_session, "B2") == 1
+    assert "brace-displacement/B2.csv" in hashes(db_session)
+
+
+def test_upload_all_removes_nothing_without_the_main_csv(tmp_path, db_session):
+    root = make_braces(tmp_path)
+    upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    (root / "steel_braces.csv").unlink()
+    (root / "force_displacement" / "B1.csv").unlink()
+    report = upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    assert report.removed == []
+    assert curve_rows(db_session, "B1") == 1
+    assert "brace-displacement/B1.csv" in hashes(db_session)
+
+
+def test_upload_all_failed_file_gets_no_hash(tmp_path, db_session):
+    root = make_braces(tmp_path)
+    # no brace B9 in the main CSV: the COPY fails on the foreign key
+    write_measurement_csv(
+        root / "force_displacement" / "B9.csv", CURVE_HEADERS, [["0.0", "0.0"]]
+    )
+
+    report = upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    assert [r.key for r in report.failed] == ["brace-displacement/B9.csv"]
+    assert "brace-displacement/B9.csv" not in hashes(db_session)
+    # so the next run tries it again
+    again = upload_all(Type.ALL_BRACE, [str(tmp_path)])
+    assert [r.key for r in again.failed] == ["brace-displacement/B9.csv"]
+
+
+def test_upload_key():
+    assert upload_key(Type.README, "/x/braces/README.md") == "readme/braces"
+    assert upload_key(Type.README, "/x/material/cyclic_coupons/README.md") == (
+        "readme/cyclic"
+    )
+    assert upload_key(Type.README, "/x/unknown/README.md") is None
+    assert upload_key(Type.DICTIONARY, "/x/foo_data_dictionary.csv") is None
+    assert upload_key(Type.DICTIONARY, "/x/steel_braces_data_dictionary.csv") == (
+        "dictionary/steel_braces_data_dictionary.csv"
+    )
+    assert upload_key(Type.BRACE_DISPLACEMENT, "/x/B1.csv") == (
+        "brace-displacement/B1.csv"
+    )

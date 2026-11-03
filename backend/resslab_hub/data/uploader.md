@@ -1,40 +1,47 @@
 # Flow of uploader.py
 
 `upload_all` is what `make upload-data`, the `/upload` endpoint and the
-in-cluster CronJob run. It ends by recomputing the `*_count` flags of every
-main table, so specimens without curves show "no test data".
+in-cluster CronJob run. It uploads only the files whose sha256 differs from
+the one in the `uploaded_file` table (`--force` uploads all), and deletes the
+rows of the files that left the data repo. It ends by recomputing the
+`*_count` flags of every main table, so specimens without curves show "no test
+data". The rules (keys, when it removes, when to force) are in
+`backend/README.md`, "What a run uploads".
 
 ```mermaid
 flowchart TD
     A[FastAPI /upload endpoint, make upload-data, CronJob] --> B[upload_all]
-    B --> C[get_args_all]
+    B --> C{Type = ALL?}
+    C -->|Yes| D[The nine groups ALL_BRACE, ALL_COLUMN, ...]
+    C -->|No| E[One group: the given type]
+    D --> G[get_args_all per group, expand wildcards]
+    E --> G
 
-    C --> D{Type = ALL?}
-    D -->|Yes| E[Recursive calls for ALL_BRACE, ALL_COLUMN, ..., DICTIONARY, README]
-    D -->|No| F[Return specific file tuples]
-    E --> G[Collect all tuples]
-    F --> G
+    G --> R{ALL or ALL_* group, main CSV present?}
+    R -->|Yes| R2[Removed: tracked keys of the group not in the folder]
+    R -->|No| H2
+    R2 --> H2[cap_series: keep N files per series type when --series-limit N]
+    H2 --> H3[Hash each file, compare with uploaded_file]
+    H3 -->|same hash, no --force| SK[Skip]
+    H3 -->|new or changed| I[Split into primary/subsidiary]
+    R2 --> RM[delete_one + drop the hash, one transaction per file]
 
-    G --> H[Expand wildcards]
-    H --> H2[cap_series: keep N files per series type when --series-limit N]
-    H2 --> I[Split into primary/subsidiary]
-
-    I --> J[Primary: main tables, dictionaries, READMEs]
-    I --> K[Subsidiary: measurement files]
+    I --> J[Primary: main tables]
+    I --> K[Subsidiary: measurements, dictionaries, READMEs]
 
     J --> L[upload_parallel]
     K --> M[upload_parallel, biggest files first]
 
-    L --> N[upload_one]
+    L --> N[upload_tracked: get_uploader, upload_one, then save the hash]
     M --> N
 
-    N --> O{Select Uploader}
+    N --> O{get_uploader}
     O -->|Main tables| P[TableUploader]
     O -->|Measurements| Q[CsvFileUploader]
-    O -->|*_data_dictionary.csv| R[DictionaryUploader]
+    O -->|*_data_dictionary.csv| DU[DictionaryUploader]
     O -->|README.md| S[ReadmeUploader]
 
-    P --> T[recompute_count_flags]
+    P --> T[recompute_count_flags, then one summary line per group]
     Q --> T
 ```
 
@@ -57,7 +64,7 @@ flowchart TD
         C3 --> C4[Delete the parent's old rows]
         C4 --> C5[One COPY FROM STDIN for the whole file]
         C5 --> C6{Foreign key error?}
-        C6 -->|Yes| C7[Roll back, log, skip the file]
+        C6 -->|Yes| C7[Roll back and raise: no hash is saved, next run retries]
         C6 -->|No| C8[Commit]
     end
 

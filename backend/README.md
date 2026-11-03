@@ -33,10 +33,49 @@ database" in the [root README](../README.md) for the clone and the Git LFS
 note.
 
 ```bash
-make upload-data          # everything, erases and refills every table, ~1 min
+make upload-data          # the files that changed since the last run
+make upload-data FORCE=1  # every file, ~1 min
 make upload-data-light    # one measurement file per series type, ~30 s
 make upload-brace         # one component, see make help for the others
 ```
+
+### What a run uploads
+
+The uploader keeps the sha256 of each file it wrote in the `uploaded_file`
+table. A run hashes every file of the data repo and compares:
+
+- A file with the same hash is skipped (log line `skip <key>`).
+- A new or changed file is uploaded (log line `upload <key> 0.42 s`). Its new
+  hash is saved after its data.
+- A file that is not in the data repo anymore has its rows deleted (log line
+  `remove <key>`). This happens only on an `all` or `all-*` run, because only
+  these runs see the whole folder. A run of one type (`brace-displacement
+  B1.csv`, `make upload-brace`) never removes anything.
+
+The key is `<type>/<file name>`, for example `brace-displacement/B1.csv`. A
+README is `readme/<database>`. If the main CSV of a folder is missing, the run
+removes nothing in that folder and logs a warning, so an empty mount can't
+empty the database. A file that failed has no hash, so the next run tries it
+again.
+
+At the end, each database gets one line, then the total:
+
+```text
+all-braces: 1 uploaded, 214 skipped, 0 removed, 0 failed, 0.4 s of worker time
+total: 2530 files, 0 failed, 6.2 s wall
+```
+
+"Worker time" is the sum of the upload times of the files of that database.
+The databases upload in parallel, so the wall time is the total only.
+
+Use `--force` (`make upload-data FORCE=1`) to upload every file:
+
+- after a change of how the uploader reads a file (a new column, another NA
+  rule): the files are the same, so their hashes are the same;
+- after you edited or truncated a data table by hand: `uploaded_file` still
+  thinks the data is there.
+
+A forced run still removes the rows of deleted files.
 
 The uploader is a module of the package, so it also runs from the backend
 image:
@@ -44,6 +83,7 @@ image:
 ```bash
 python -m resslab_hub.data.uploader all <path to resslab-hub-data>
 python -m resslab_hub.data.uploader all <path> --series-limit 1   # the light variant
+python -m resslab_hub.data.uploader all <path> --force            # every file, ignore the hashes
 python -m resslab_hub.data.uploader brace <path>/braces/steel_braces.csv --debug
 ```
 
@@ -64,8 +104,17 @@ only branch, for every environment).
 
 Two things to know:
 
-- The job replaces the rows it owns, table by table. The site keeps serving
-  during the run.
+- The job uploads only the files that changed since its last run, and
+  removes the rows of deleted files (see "What a run uploads"). After one
+  merged contribution it takes seconds. The site keeps serving during the run.
+- To force a full reload, create the job from the CronJob with kubectl and
+  add `--force` to its command:
+
+  ```bash
+  kubectl -n epfl-resslab-resslab-hub-<env> create job --from=cronjob/resslab-hub-upload-data-<env> upload-force --dry-run=client -o yaml > job.yaml
+  # add "--force" at the end of the uploader command in job.yaml
+  kubectl apply -f job.yaml
+  ```
 - The backend caches responses per process for one hour, so the new data can
   take up to an hour to show. Restart the backend pods from ArgoCD if you need
   it right away.
@@ -98,7 +147,9 @@ from `docs/auth.md`. Watch the quoting of `SMTP_USER`: double quotes turn the
 backslash into a newline. To upload SEM images to the CDN, add the `S3_*`
 block from `docs/sem-images.md`.
 
-Then from `backend/`, run `make upload-data`. Note: it **erases** existing data in the tables it touches.
+Then from `backend/`, run `make upload-data`. It uploads the files whose hash
+differs from the one in the remote `uploaded_file` table, and removes the rows
+of deleted files. Add `FORCE=1` to rewrite everything.
 
 ## Validate a component folder
 

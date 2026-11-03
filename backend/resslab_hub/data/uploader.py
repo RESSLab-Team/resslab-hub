@@ -2,20 +2,24 @@
 CLI for uploading csv to database
 """
 
+import hashlib
 import traceback
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
 from collections import Counter
 from csv import DictReader, reader
-from datetime import datetime
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum
+from fnmatch import fnmatch
 from glob import iglob
 from io import StringIO
 from logging import DEBUG, INFO, basicConfig, debug, error, getLogger, info, warning
 from multiprocessing import get_context
 from os import path, sep
-from typing import Any, Callable, List, Optional, Tuple
+from time import perf_counter
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from sqlalchemy import (
     Boolean,
@@ -76,6 +80,7 @@ from resslab_hub.models.database.tensile_coupon import (
     TensileCoupon,
     TensileCouponStressStrain,
 )
+from resslab_hub.models.database.upload import UploadedFile
 from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
@@ -269,8 +274,18 @@ class Uploader(ABC):
     @abstractmethod
     def upload_one(self, file_path: str) -> str:
         """
-        Upload one file
+        Upload one file. Raises when the file could not be written, so the
+        caller knows not to record its hash.
         """
+
+    def delete_one(self, session, name: str) -> None:
+        """
+        Delete the rows that came from a file that left the data repo, in the
+        caller's session (the caller drops the file's hash in the same
+        transaction). ``name`` is the part of the upload key after the type,
+        see upload_key(). The default keeps the rows.
+        """
+        warning(f"{type(self).__name__} keeps the rows of {name}, file removed")
 
 
 # Handles main entity tables where CSV headers match DB column names
@@ -305,71 +320,63 @@ class TableUploader(Uploader):
         """
         file_path = get_abs_path(file_path)
         debug(f"Path to upload: {file_path}")
-        try:
-            encoding = get_file_encoding(file_path)
-            with (
-                open(file_path, encoding=encoding) as file,
-                engine.connect() as connection,
-                Session(bind=connection) as session,
-            ):
-                csv_reader = reader(file, strict=True)
-                headers = next(csv_reader)
-                id_index = headers.index(self.id_column_key)
-                ids = []
-                added_count, modified_count = 0, 0
+        encoding = get_file_encoding(file_path)
+        with (
+            open(file_path, encoding=encoding) as file,
+            engine.connect() as connection,
+            Session(bind=connection) as session,
+        ):
+            csv_reader = reader(file, strict=True)
+            headers = next(csv_reader)
+            id_index = headers.index(self.id_column_key)
+            ids = []
+            added_count, modified_count = 0, 0
 
-                for i, header in enumerate(headers):
-                    debug(f"Header {i}: '{header}'")
+            for i, header in enumerate(headers):
+                debug(f"Header {i}: '{header}'")
 
-                existing_ids = {row[0] for row in session.query(self.id_column).all()}
-                # derived flags have no CSV header; recomputed after the upload
-                derived = COUNT_FLAGS.get(self.base_model, {})
-                debug(
-                    f"Opened file {path.basename(file_path)}, "
-                    f"encoding: {encoding}, id_index: {id_index}"
-                )
-                # add new rows
-                for i, row in enumerate(csv_reader):
-                    debug(f"Row {i} length: {len(row)}")
-                    if len(row) < len(headers):
-                        debug(
-                            f"  Warning: Row {i} has fewer elements ({len(row)}) than "
-                            f"headers ({len(headers)})"
-                        )
-                    if is_empty_row(row):
-                        warning("skip empty line")
-                    else:
-                        ids.append(row[id_index])
-                        data = {
-                            column.key: self.__get_value(column, headers, row)
-                            for column in self.base_model.__table__.c
-                            if column.key not in derived
-                        }
-                        if row[id_index] in existing_ids:
-                            modified_count += 1
-                        else:
-                            added_count += 1
-                        session.merge(self.base_model(**data))
-                # remove outdated rows
-                removed_ids = existing_ids - set(ids)
-                if removed_ids:
-                    session.execute(
-                        delete(self.base_model).where(self.id_column.in_(removed_ids)),
+            existing_ids = {row[0] for row in session.query(self.id_column).all()}
+            # derived flags have no CSV header; recomputed after the upload
+            derived = COUNT_FLAGS.get(self.base_model, {})
+            debug(
+                f"Opened file {path.basename(file_path)}, "
+                f"encoding: {encoding}, id_index: {id_index}"
+            )
+            # add new rows
+            for i, row in enumerate(csv_reader):
+                debug(f"Row {i} length: {len(row)}")
+                if len(row) < len(headers):
+                    debug(
+                        f"  Warning: Row {i} has fewer elements ({len(row)}) than "
+                        f"headers ({len(headers)})"
                     )
-                    warning(f"deleted {removed_ids}")
-                session.commit()
-                info("Session commited")
-                return (
-                    f"{path.basename(file_path)}: {added_count}++|"
-                    f"{modified_count}**|{len(removed_ids)}--"
+                if is_empty_row(row):
+                    warning("skip empty line")
+                else:
+                    ids.append(row[id_index])
+                    data = {
+                        column.key: self.__get_value(column, headers, row)
+                        for column in self.base_model.__table__.c
+                        if column.key not in derived
+                    }
+                    if row[id_index] in existing_ids:
+                        modified_count += 1
+                    else:
+                        added_count += 1
+                    session.merge(self.base_model(**data))
+            # remove outdated rows
+            removed_ids = existing_ids - set(ids)
+            if removed_ids:
+                session.execute(
+                    delete(self.base_model).where(self.id_column.in_(removed_ids)),
                 )
-
-        except Exception as e:
-            error_traceback = traceback.format_exc()
-            error_message = f"Skipping {file_path} due to error: {e}"
-            error(error_message)
-            debug(f"Full traceback: \n{error_traceback}")
-            return f"{error_message} (see logs for details)"
+                warning(f"deleted {removed_ids}")
+            session.commit()
+            info("Session commited")
+            return (
+                f"{path.basename(file_path)}: {added_count}++|"
+                f"{modified_count}**|{len(removed_ids)}--"
+            )
 
     @staticmethod
     def __get_value(column: Column, headers: List[str], row: List[str]) -> Any:
@@ -489,39 +496,44 @@ class CsvFileUploader(Uploader):
         5. Handles transaction rollback on errors
         """
         file_path = get_abs_path(file_path)
-        try:
-            filename = self.__get_filename(file_path)
-            id = filename.removeprefix(self.filename_prefix).removesuffix(
-                self.filename_suffix
-            )
-            encoding = get_file_encoding(file_path)
-            with (
-                open(file_path, encoding=encoding) as file,
-                engine.connect() as connection,
-                Session(bind=connection) as session,
-            ):
-                reader = DictReader(file, strict=True)
-                session.execute(self.get_delete(id))
-                # The parent's rows are deleted and fully re-inserted, so there
-                # is no merge/identity to resolve. Build plain column->value
-                # mappings (no ORM objects) and stream them in with a single
-                # COPY -- far cheaper than batched INSERTs.
-                mappings = [
-                    self.get_instance(id, index, value)
-                    for index, value in enumerate(reader)
-                ]
-                try:
-                    if mappings:
-                        self.__copy(connection, mappings)
-                    session.commit()
-                    return path.basename(file_path)
-                except Exception:
-                    session.rollback()
-                    raise
-        except Exception as e:
-            error_message = f"skiping {file_path} due to error {e}"
-            error(error_message)
-            return error_message
+        id = self._parent_id(path.basename(file_path))
+        encoding = get_file_encoding(file_path)
+        with (
+            open(file_path, encoding=encoding) as file,
+            engine.connect() as connection,
+            Session(bind=connection) as session,
+        ):
+            reader = DictReader(file, strict=True)
+            session.execute(self.get_delete(id))
+            # The parent's rows are deleted and fully re-inserted, so there
+            # is no merge/identity to resolve. Build plain column->value
+            # mappings (no ORM objects) and stream them in with a single
+            # COPY -- far cheaper than batched INSERTs.
+            mappings = [
+                self.get_instance(id, index, value)
+                for index, value in enumerate(reader)
+            ]
+            try:
+                if mappings:
+                    self.__copy(connection, mappings)
+                session.commit()
+                return path.basename(file_path)
+            except Exception:
+                session.rollback()
+                raise
+
+    def delete_one(self, session, name: str) -> None:
+        session.execute(self.get_delete(self._parent_id(name)))
+
+    def _parent_id(self, basename: str) -> str:
+        """
+        The parent id a measurement file belongs to, from its name:
+        ``B1.csv`` -> ``B1``, with the uploader's prefix and suffix removed.
+        """
+        filename = path.splitext(basename)[0]
+        return filename.removeprefix(self.filename_prefix).removesuffix(
+            self.filename_suffix
+        )
 
     def __copy(self, connection, mappings: List[dict]) -> None:
         """
@@ -541,15 +553,6 @@ class CsvFileUploader(Uploader):
         dbapi_connection = connection.connection.driver_connection
         with dbapi_connection.cursor() as cursor:
             cursor.copy_expert(statement, buffer)
-
-    @staticmethod
-    def __get_filename(file_path: str) -> str:
-        """
-        Extract filename for parent ID parsing
-        Used by CsvFileUploader to link measurements to parent records
-        """
-        basename = path.basename(file_path)
-        return path.splitext(basename)[0]
 
 
 # Data-dictionary CSV basename -> frontend DatabaseId. The mapping lives here so
@@ -611,6 +614,13 @@ class DictionaryUploader(Uploader):
             session.commit()
         return f"{path.basename(file_path)}: {len(rows)} dictionary columns"
 
+    def delete_one(self, session, name: str) -> None:
+        database = DICTIONARY_DATABASES.get(name)
+        if database is not None:
+            session.execute(
+                delete(DictionaryColumn).where(DictionaryColumn.database == database)
+            )
+
 
 # Data-repo folder (relative to the archive root) -> frontend DatabaseId, for
 # the README.md each folder carries.
@@ -642,6 +652,34 @@ def readme_database(file_path: str) -> Optional[str]:
     return None
 
 
+def upload_key(input_type: Type, file_path: str) -> Optional[str]:
+    """
+    The name of a file in the uploaded_file table: ``<type>/<file name>``, e.g.
+    ``brace-displacement/B1.csv``. One type reads one folder and the file name
+    carries the parent id, so this is unique without the archive root (which
+    changes between the CronJob, /upload and make). The nine READMEs share a
+    name, so a README is ``readme/<database>``. None for a file the uploader
+    skips anyway (a README in an unknown folder, an unknown dictionary): it is
+    sent to its uploader every run and never tracked.
+    """
+    basename = path.basename(file_path)
+    if input_type == Type.README:
+        database = readme_database(file_path)
+        return None if database is None else f"{Type.README.value}/{database}"
+    if input_type == Type.DICTIONARY and basename not in DICTIONARY_DATABASES:
+        return None
+    return f"{input_type.value}/{basename}"
+
+
+def file_digest(file_path: str) -> str:
+    """sha256 of the file bytes, as hex."""
+    digest = hashlib.sha256()
+    with open(file_path, "rb") as file:
+        for chunk in iter(lambda: file.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 class ReadmeUploader(Uploader):
     """
     Stores a database folder's ``README.md`` verbatim so the frontend can
@@ -660,370 +698,375 @@ class ReadmeUploader(Uploader):
             session.commit()
         return f"{database}/README.md: {len(content)} characters"
 
+    def delete_one(self, session, name: str) -> None:
+        # the key of a README is "readme/<database>", see upload_key()
+        session.execute(delete(DatabaseReadme).where(DatabaseReadme.database == name))
 
-def upload_one(input_type: Type, filename: str) -> str:
+
+def get_uploader(input_type: Type) -> Uploader:
     """
-    Handles individual file uploads based on type
-    Process:
-    1. Matches type to appropriate uploader
-    2. Configures uploader with correct table/measurement mappings
-    3. Returns upload status message
+    The uploader of one file type, with its table and column mappings.
 
     For measurement data:
     - Defines foreign key relationships
     - Specifies CSV column mappings
     - Handles data type conversions
     """
-    info(f"Upload one: {input_type}, {filename}")
-    try:
-        match input_type:
-            case Type.DICTIONARY:
-                uploader = DictionaryUploader()
-            case Type.README:
-                uploader = ReadmeUploader()
-            case Type.BRACE:
-                uploader = TableUploader(Brace)
-            case Type.COLUMN:
-                uploader = TableUploader(ColumnEntity)
-            case Type.CONNECTION:
-                uploader = TableUploader(Connection)
-            case Type.MATERIAL:
-                uploader = TableUploader(Material)
-            case Type.RESIDUAL_STRESS:
-                uploader = TableUploader(ResidualStress)
-            case Type.HSS_COLUMN:
-                uploader = TableUploader(HSSColumn)
-            case Type.ECCENTRIC_BRACED_FRAME:
-                uploader = TableUploader(EccentricBracedFrame)
-            case Type.TENSILE_COUPON:
-                uploader = TableUploader(TensileCoupon)
-            case Type.TENSILE_COUPON_STRESS_STRAIN:
-                uploader = CsvFileUploader(
-                    TensileCouponStressStrain,
-                    lambda id: delete(TensileCouponStressStrain).where(
-                        TensileCouponStressStrain.tensile_coupon_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        tensile_coupon_id=id,
-                        id=index,
-                        stress=value.get("Stress_eng"),
-                        strain=value.get("strain_eng"),
-                    ),
-                )
-            case Type.ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE:
-                uploader = CsvFileUploader(
-                    EccentricBracedFrameShearLinkAngle,
-                    lambda id: delete(EccentricBracedFrameShearLinkAngle).where(
-                        EccentricBracedFrameShearLinkAngle.eccentric_braced_frame_id
-                        == id
-                    ),
-                    lambda id, index, value: dict(
-                        eccentric_braced_frame_id=id,
-                        id=index,
-                        gamma_t=value.get("gamma_t"),
-                        v=value.get("V"),
-                    ),
-                    filename_prefix="id",
-                )
-            case Type.BRACE_DISPLACEMENT:
-                uploader = CsvFileUploader(
-                    BraceDisplacement,
-                    lambda id: delete(BraceDisplacement).where(
-                        BraceDisplacement.brace_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        brace_id=id,
-                        id=index,
-                        displacement=value.get("Displacement [mm]"),
-                        force=value.get("Force [kN]"),
-                    ),
-                )
-            case Type.COLUMN_AXIAL_SHORTENING:
-                uploader = CsvFileUploader(
-                    ColumnAxialShortening,
-                    lambda id: delete(ColumnAxialShortening).where(
-                        ColumnAxialShortening.column_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        column_id=id,
-                        id=index,
-                        chord_rotation=value.get("Chord Rotation [rads]"),
-                        axial_shortening=value.get("Axial Shortening [mm]"),
-                    ),
-                )
-            case Type.COLUMN_MOMENT_STRONG:
-                uploader = CsvFileUploader(
-                    ColumnMomentStrong,
-                    lambda id: delete(ColumnMomentStrong).where(
-                        ColumnMomentStrong.column_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        column_id=id,
-                        id=index,
-                        chord_rotation=value.get("Chord Rotation [rads]"),
-                        moment=value.get("Moment [kN-mm]"),
-                    ),
-                )
-            case Type.COLUMN_MOMENT_WEAK:
-                uploader = CsvFileUploader(
-                    ColumnMomentWeak,
-                    lambda id: delete(ColumnMomentWeak).where(
-                        ColumnMomentWeak.column_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        column_id=id,
-                        id=index,
-                        chord_rotation=value.get("Chord Rotation [rads]"),
-                        moment=value.get("Moment [kN-mm]"),
-                    ),
-                )
-            case Type.CONNECTION_BEAM:
-                uploader = CsvFileUploader(
-                    ConnectionBeam,
-                    lambda id: delete(ConnectionBeam).where(
-                        ConnectionBeam.connection_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        connection_id=id,
-                        id=index,
-                        chord_rotation=value.get("Chord Rotation [rads]")
-                        or value.get("Chrord Rotation, θ [rads]"),
-                        moment=value.get("Moment [kN-mm]"),
-                    ),
-                )
-            case Type.CONNECTION_BEAM_WEST:
-                uploader = CsvFileUploader(
-                    ConnectionBeamWest,
-                    lambda id: delete(ConnectionBeamWest).where(
-                        ConnectionBeamWest.connection_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        connection_id=id,
-                        id=index,
-                        chord_rotation=value.get("Chord Rotation [rads]")
-                        or value.get("Chrord Rotation, θ [rads]"),
-                        moment=value.get("Moment [kN-mm]"),
-                    ),
-                )
-            case Type.CONNECTION_GLOBAL:
-                uploader = CsvFileUploader(
-                    ConnectionGlobal,
-                    lambda id: delete(ConnectionGlobal).where(
-                        ConnectionGlobal.connection_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        connection_id=id,
-                        id=index,
-                        story_drift_angle=value.get("Total story drift angle (rad)"),
-                        actuator_force=value.get("Force in the actuator (kN)"),
-                    ),
-                )
-            case Type.CONNECTION_GLOBAL_WEST:
-                uploader = CsvFileUploader(
-                    ConnectionGlobalWest,
-                    lambda id: delete(ConnectionGlobalWest).where(
-                        ConnectionGlobalWest.connection_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        connection_id=id,
-                        id=index,
-                        story_drift_angle=value.get("Total story drift angle (rad)"),
-                        actuator_force=value.get("Force in the actuator (kN)"),
-                    ),
-                )
-            case Type.CONNECTION_PANEL_ZONE:
-                uploader = CsvFileUploader(
-                    ConnectionPanelZone,
-                    lambda id: delete(ConnectionPanelZone).where(
-                        ConnectionPanelZone.connection_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        connection_id=id,
-                        id=index,
-                        shear_distortion=value.get("panel zone shear distortion (rad)"),
-                        shear_force=value.get("panel zone shear force (kN)"),
-                    ),
-                )
-            case Type.MATERIAL_STRESS_STRAIN:
-                uploader = CsvFileUploader(
-                    MaterialStressStrain,
-                    lambda id: delete(MaterialStressStrain).where(
-                        MaterialStressStrain.material_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        material_id=id,
-                        id=index,
-                        stress=value.get("Sigma_true"),
-                        strain=value.get("e_true"),
-                    ),
-                )
-            case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
-                uploader = CsvFileUploader(
-                    ResidualStressDistributionF1,
-                    lambda id: delete(ResidualStressDistributionF1).where(
-                        ResidualStressDistributionF1.residual_stress_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        residual_stress_id=id,
-                        id=index,
-                        coordinate=value.get("coordinate"),
-                        residual_stress=value.get("residual_stress"),
-                    ),
-                )
-            case Type.RESIDUAL_STRESS_DISTRIBUTION_F2:
-                uploader = CsvFileUploader(
-                    ResidualStressDistributionF2,
-                    lambda id: delete(ResidualStressDistributionF2).where(
-                        ResidualStressDistributionF2.residual_stress_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        residual_stress_id=id,
-                        id=index,
-                        coordinate=value.get("coordinate"),
-                        residual_stress=value.get("residual_stress"),
-                    ),
-                )
-            case Type.RESIDUAL_STRESS_DISTRIBUTION_W1:
-                uploader = CsvFileUploader(
-                    ResidualStressDistributionW1,
-                    lambda id: delete(ResidualStressDistributionW1).where(
-                        ResidualStressDistributionW1.residual_stress_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        residual_stress_id=id,
-                        id=index,
-                        coordinate=value.get("coordinate"),
-                        residual_stress=value.get("residual_stress"),
-                    ),
-                )
-            case Type.RESIDUAL_STRESS_QP_COEFFICIENT:
-                uploader = CsvFileUploader(
-                    ResidualStressQPCoefficient,
-                    lambda id: delete(ResidualStressQPCoefficient).where(
-                        ResidualStressQPCoefficient.residual_stress_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        residual_stress_id=id,
-                        id=index,
-                        qp_coefficient=value.get("qp_coefficient"),
-                    ),
-                )
-            case Type.HSS_COLUMN_MOMENT_ROTATION:
-                uploader = CsvFileUploader(
-                    HSSColumnMomentRotation,
-                    lambda id: delete(HSSColumnMomentRotation).where(
-                        HSSColumnMomentRotation.hss_column_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        hss_column_id=id,
-                        id=index,
-                        rotation=value.get("rotation (rad)"),
-                        moment=value.get("moment (kN.m)"),
-                    ),
-                )
-            case Type.DUCTILE_FRACTURE:
-                uploader = TableUploader(DuctileFracture)
-            case Type.DUCTILE_FRACTURE_FORCE_ELONGATION:
-                uploader = CsvFileUploader(
-                    DuctileFractureForceElongation,
-                    lambda id: delete(DuctileFractureForceElongation).where(
-                        DuctileFractureForceElongation.ductile_fracture_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        ductile_fracture_id=id,
-                        id=index,
-                        elongation=value.get("Elongation [mm]"),
-                        load=value.get("Load [kN]"),
-                    ),
-                )
-            case Type.DUCTILE_FRACTURE_FORCE_ELONGATION_SIMULATION:
-                uploader = CsvFileUploader(
-                    DuctileFractureForceElongationSimulation,
-                    lambda id: delete(DuctileFractureForceElongationSimulation).where(
-                        DuctileFractureForceElongationSimulation.ductile_fracture_id
-                        == id
-                    ),
-                    lambda id, index, value: dict(
-                        ductile_fracture_id=id,
-                        id=index,
-                        elongation=value.get("Elongation [mm]"),
-                        load=value.get("Load [kN]"),
-                    ),
-                )
-            case Type.DUCTILE_FRACTURE_FORCE_RADIAL:
-                uploader = CsvFileUploader(
-                    DuctileFractureForceRadial,
-                    lambda id: delete(DuctileFractureForceRadial).where(
-                        DuctileFractureForceRadial.ductile_fracture_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        ductile_fracture_id=id,
-                        id=index,
-                        elongation=value.get("Radial elongation [mm]"),
-                        load=value.get("Load [kN]"),
-                    ),
-                )
-            case Type.DUCTILE_FRACTURE_FORCE_RADIAL_SIMULATION:
-                uploader = CsvFileUploader(
-                    DuctileFractureForceRadialSimulation,
-                    lambda id: delete(DuctileFractureForceRadialSimulation).where(
-                        DuctileFractureForceRadialSimulation.ductile_fracture_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        ductile_fracture_id=id,
-                        id=index,
-                        elongation=value.get("Radial elongation [mm]"),
-                        load=value.get("Load [kN]"),
-                    ),
-                )
-            case Type.DUCTILE_FRACTURE_EPEQ_SIMULATION:
-                uploader = CsvFileUploader(
-                    DuctileFractureEpeqSimulation,
-                    lambda id: delete(DuctileFractureEpeqSimulation).where(
-                        DuctileFractureEpeqSimulation.ductile_fracture_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        ductile_fracture_id=id,
-                        id=index,
-                        elongation=value.get("Elongation [mm]"),
-                        peeq=value.get("Equivalent plastic strain"),
-                    ),
-                )
-            case Type.DUCTILE_FRACTURE_LODE_SIMULATION:
-                uploader = CsvFileUploader(
-                    DuctileFractureLodeSimulation,
-                    lambda id: delete(DuctileFractureLodeSimulation).where(
-                        DuctileFractureLodeSimulation.ductile_fracture_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        ductile_fracture_id=id,
-                        id=index,
-                        elongation=value.get("Elongation [mm]"),
-                        lode=value.get("Lode angle"),
-                    ),
-                )
-            case Type.DUCTILE_FRACTURE_TRIAX_SIMULATION:
-                uploader = CsvFileUploader(
-                    DuctileFractureTriaxSimulation,
-                    lambda id: delete(DuctileFractureTriaxSimulation).where(
-                        DuctileFractureTriaxSimulation.ductile_fracture_id == id
-                    ),
-                    lambda id, index, value: dict(
-                        ductile_fracture_id=id,
-                        id=index,
-                        elongation=value.get("Elongation [mm]"),
-                        triaxiality=value.get("Triaxiality"),
-                    ),
-                )
-            case _:
-                raise NotImplementedError(f"unknown type {input_type}")
+    match input_type:
+        case Type.DICTIONARY:
+            uploader = DictionaryUploader()
+        case Type.README:
+            uploader = ReadmeUploader()
+        case Type.BRACE:
+            uploader = TableUploader(Brace)
+        case Type.COLUMN:
+            uploader = TableUploader(ColumnEntity)
+        case Type.CONNECTION:
+            uploader = TableUploader(Connection)
+        case Type.MATERIAL:
+            uploader = TableUploader(Material)
+        case Type.RESIDUAL_STRESS:
+            uploader = TableUploader(ResidualStress)
+        case Type.HSS_COLUMN:
+            uploader = TableUploader(HSSColumn)
+        case Type.ECCENTRIC_BRACED_FRAME:
+            uploader = TableUploader(EccentricBracedFrame)
+        case Type.TENSILE_COUPON:
+            uploader = TableUploader(TensileCoupon)
+        case Type.TENSILE_COUPON_STRESS_STRAIN:
+            uploader = CsvFileUploader(
+                TensileCouponStressStrain,
+                lambda id: delete(TensileCouponStressStrain).where(
+                    TensileCouponStressStrain.tensile_coupon_id == id
+                ),
+                lambda id, index, value: dict(
+                    tensile_coupon_id=id,
+                    id=index,
+                    stress=value.get("Stress_eng"),
+                    strain=value.get("strain_eng"),
+                ),
+            )
+        case Type.ECCENTRIC_BRACED_FRAME_SHEAR_LINK_ANGLE:
+            uploader = CsvFileUploader(
+                EccentricBracedFrameShearLinkAngle,
+                lambda id: delete(EccentricBracedFrameShearLinkAngle).where(
+                    EccentricBracedFrameShearLinkAngle.eccentric_braced_frame_id == id
+                ),
+                lambda id, index, value: dict(
+                    eccentric_braced_frame_id=id,
+                    id=index,
+                    gamma_t=value.get("gamma_t"),
+                    v=value.get("V"),
+                ),
+                filename_prefix="id",
+            )
+        case Type.BRACE_DISPLACEMENT:
+            uploader = CsvFileUploader(
+                BraceDisplacement,
+                lambda id: delete(BraceDisplacement).where(
+                    BraceDisplacement.brace_id == id
+                ),
+                lambda id, index, value: dict(
+                    brace_id=id,
+                    id=index,
+                    displacement=value.get("Displacement [mm]"),
+                    force=value.get("Force [kN]"),
+                ),
+            )
+        case Type.COLUMN_AXIAL_SHORTENING:
+            uploader = CsvFileUploader(
+                ColumnAxialShortening,
+                lambda id: delete(ColumnAxialShortening).where(
+                    ColumnAxialShortening.column_id == id
+                ),
+                lambda id, index, value: dict(
+                    column_id=id,
+                    id=index,
+                    chord_rotation=value.get("Chord Rotation [rads]"),
+                    axial_shortening=value.get("Axial Shortening [mm]"),
+                ),
+            )
+        case Type.COLUMN_MOMENT_STRONG:
+            uploader = CsvFileUploader(
+                ColumnMomentStrong,
+                lambda id: delete(ColumnMomentStrong).where(
+                    ColumnMomentStrong.column_id == id
+                ),
+                lambda id, index, value: dict(
+                    column_id=id,
+                    id=index,
+                    chord_rotation=value.get("Chord Rotation [rads]"),
+                    moment=value.get("Moment [kN-mm]"),
+                ),
+            )
+        case Type.COLUMN_MOMENT_WEAK:
+            uploader = CsvFileUploader(
+                ColumnMomentWeak,
+                lambda id: delete(ColumnMomentWeak).where(
+                    ColumnMomentWeak.column_id == id
+                ),
+                lambda id, index, value: dict(
+                    column_id=id,
+                    id=index,
+                    chord_rotation=value.get("Chord Rotation [rads]"),
+                    moment=value.get("Moment [kN-mm]"),
+                ),
+            )
+        case Type.CONNECTION_BEAM:
+            uploader = CsvFileUploader(
+                ConnectionBeam,
+                lambda id: delete(ConnectionBeam).where(
+                    ConnectionBeam.connection_id == id
+                ),
+                lambda id, index, value: dict(
+                    connection_id=id,
+                    id=index,
+                    chord_rotation=value.get("Chord Rotation [rads]")
+                    or value.get("Chrord Rotation, θ [rads]"),
+                    moment=value.get("Moment [kN-mm]"),
+                ),
+            )
+        case Type.CONNECTION_BEAM_WEST:
+            uploader = CsvFileUploader(
+                ConnectionBeamWest,
+                lambda id: delete(ConnectionBeamWest).where(
+                    ConnectionBeamWest.connection_id == id
+                ),
+                lambda id, index, value: dict(
+                    connection_id=id,
+                    id=index,
+                    chord_rotation=value.get("Chord Rotation [rads]")
+                    or value.get("Chrord Rotation, θ [rads]"),
+                    moment=value.get("Moment [kN-mm]"),
+                ),
+            )
+        case Type.CONNECTION_GLOBAL:
+            uploader = CsvFileUploader(
+                ConnectionGlobal,
+                lambda id: delete(ConnectionGlobal).where(
+                    ConnectionGlobal.connection_id == id
+                ),
+                lambda id, index, value: dict(
+                    connection_id=id,
+                    id=index,
+                    story_drift_angle=value.get("Total story drift angle (rad)"),
+                    actuator_force=value.get("Force in the actuator (kN)"),
+                ),
+            )
+        case Type.CONNECTION_GLOBAL_WEST:
+            uploader = CsvFileUploader(
+                ConnectionGlobalWest,
+                lambda id: delete(ConnectionGlobalWest).where(
+                    ConnectionGlobalWest.connection_id == id
+                ),
+                lambda id, index, value: dict(
+                    connection_id=id,
+                    id=index,
+                    story_drift_angle=value.get("Total story drift angle (rad)"),
+                    actuator_force=value.get("Force in the actuator (kN)"),
+                ),
+            )
+        case Type.CONNECTION_PANEL_ZONE:
+            uploader = CsvFileUploader(
+                ConnectionPanelZone,
+                lambda id: delete(ConnectionPanelZone).where(
+                    ConnectionPanelZone.connection_id == id
+                ),
+                lambda id, index, value: dict(
+                    connection_id=id,
+                    id=index,
+                    shear_distortion=value.get("panel zone shear distortion (rad)"),
+                    shear_force=value.get("panel zone shear force (kN)"),
+                ),
+            )
+        case Type.MATERIAL_STRESS_STRAIN:
+            uploader = CsvFileUploader(
+                MaterialStressStrain,
+                lambda id: delete(MaterialStressStrain).where(
+                    MaterialStressStrain.material_id == id
+                ),
+                lambda id, index, value: dict(
+                    material_id=id,
+                    id=index,
+                    stress=value.get("Sigma_true"),
+                    strain=value.get("e_true"),
+                ),
+            )
+        case Type.RESIDUAL_STRESS_DISTRIBUTION_F1:
+            uploader = CsvFileUploader(
+                ResidualStressDistributionF1,
+                lambda id: delete(ResidualStressDistributionF1).where(
+                    ResidualStressDistributionF1.residual_stress_id == id
+                ),
+                lambda id, index, value: dict(
+                    residual_stress_id=id,
+                    id=index,
+                    coordinate=value.get("coordinate"),
+                    residual_stress=value.get("residual_stress"),
+                ),
+            )
+        case Type.RESIDUAL_STRESS_DISTRIBUTION_F2:
+            uploader = CsvFileUploader(
+                ResidualStressDistributionF2,
+                lambda id: delete(ResidualStressDistributionF2).where(
+                    ResidualStressDistributionF2.residual_stress_id == id
+                ),
+                lambda id, index, value: dict(
+                    residual_stress_id=id,
+                    id=index,
+                    coordinate=value.get("coordinate"),
+                    residual_stress=value.get("residual_stress"),
+                ),
+            )
+        case Type.RESIDUAL_STRESS_DISTRIBUTION_W1:
+            uploader = CsvFileUploader(
+                ResidualStressDistributionW1,
+                lambda id: delete(ResidualStressDistributionW1).where(
+                    ResidualStressDistributionW1.residual_stress_id == id
+                ),
+                lambda id, index, value: dict(
+                    residual_stress_id=id,
+                    id=index,
+                    coordinate=value.get("coordinate"),
+                    residual_stress=value.get("residual_stress"),
+                ),
+            )
+        case Type.RESIDUAL_STRESS_QP_COEFFICIENT:
+            uploader = CsvFileUploader(
+                ResidualStressQPCoefficient,
+                lambda id: delete(ResidualStressQPCoefficient).where(
+                    ResidualStressQPCoefficient.residual_stress_id == id
+                ),
+                lambda id, index, value: dict(
+                    residual_stress_id=id,
+                    id=index,
+                    qp_coefficient=value.get("qp_coefficient"),
+                ),
+            )
+        case Type.HSS_COLUMN_MOMENT_ROTATION:
+            uploader = CsvFileUploader(
+                HSSColumnMomentRotation,
+                lambda id: delete(HSSColumnMomentRotation).where(
+                    HSSColumnMomentRotation.hss_column_id == id
+                ),
+                lambda id, index, value: dict(
+                    hss_column_id=id,
+                    id=index,
+                    rotation=value.get("rotation (rad)"),
+                    moment=value.get("moment (kN.m)"),
+                ),
+            )
+        case Type.DUCTILE_FRACTURE:
+            uploader = TableUploader(DuctileFracture)
+        case Type.DUCTILE_FRACTURE_FORCE_ELONGATION:
+            uploader = CsvFileUploader(
+                DuctileFractureForceElongation,
+                lambda id: delete(DuctileFractureForceElongation).where(
+                    DuctileFractureForceElongation.ductile_fracture_id == id
+                ),
+                lambda id, index, value: dict(
+                    ductile_fracture_id=id,
+                    id=index,
+                    elongation=value.get("Elongation [mm]"),
+                    load=value.get("Load [kN]"),
+                ),
+            )
+        case Type.DUCTILE_FRACTURE_FORCE_ELONGATION_SIMULATION:
+            uploader = CsvFileUploader(
+                DuctileFractureForceElongationSimulation,
+                lambda id: delete(DuctileFractureForceElongationSimulation).where(
+                    DuctileFractureForceElongationSimulation.ductile_fracture_id == id
+                ),
+                lambda id, index, value: dict(
+                    ductile_fracture_id=id,
+                    id=index,
+                    elongation=value.get("Elongation [mm]"),
+                    load=value.get("Load [kN]"),
+                ),
+            )
+        case Type.DUCTILE_FRACTURE_FORCE_RADIAL:
+            uploader = CsvFileUploader(
+                DuctileFractureForceRadial,
+                lambda id: delete(DuctileFractureForceRadial).where(
+                    DuctileFractureForceRadial.ductile_fracture_id == id
+                ),
+                lambda id, index, value: dict(
+                    ductile_fracture_id=id,
+                    id=index,
+                    elongation=value.get("Radial elongation [mm]"),
+                    load=value.get("Load [kN]"),
+                ),
+            )
+        case Type.DUCTILE_FRACTURE_FORCE_RADIAL_SIMULATION:
+            uploader = CsvFileUploader(
+                DuctileFractureForceRadialSimulation,
+                lambda id: delete(DuctileFractureForceRadialSimulation).where(
+                    DuctileFractureForceRadialSimulation.ductile_fracture_id == id
+                ),
+                lambda id, index, value: dict(
+                    ductile_fracture_id=id,
+                    id=index,
+                    elongation=value.get("Radial elongation [mm]"),
+                    load=value.get("Load [kN]"),
+                ),
+            )
+        case Type.DUCTILE_FRACTURE_EPEQ_SIMULATION:
+            uploader = CsvFileUploader(
+                DuctileFractureEpeqSimulation,
+                lambda id: delete(DuctileFractureEpeqSimulation).where(
+                    DuctileFractureEpeqSimulation.ductile_fracture_id == id
+                ),
+                lambda id, index, value: dict(
+                    ductile_fracture_id=id,
+                    id=index,
+                    elongation=value.get("Elongation [mm]"),
+                    peeq=value.get("Equivalent plastic strain"),
+                ),
+            )
+        case Type.DUCTILE_FRACTURE_LODE_SIMULATION:
+            uploader = CsvFileUploader(
+                DuctileFractureLodeSimulation,
+                lambda id: delete(DuctileFractureLodeSimulation).where(
+                    DuctileFractureLodeSimulation.ductile_fracture_id == id
+                ),
+                lambda id, index, value: dict(
+                    ductile_fracture_id=id,
+                    id=index,
+                    elongation=value.get("Elongation [mm]"),
+                    lode=value.get("Lode angle"),
+                ),
+            )
+        case Type.DUCTILE_FRACTURE_TRIAX_SIMULATION:
+            uploader = CsvFileUploader(
+                DuctileFractureTriaxSimulation,
+                lambda id: delete(DuctileFractureTriaxSimulation).where(
+                    DuctileFractureTriaxSimulation.ductile_fracture_id == id
+                ),
+                lambda id, index, value: dict(
+                    ductile_fracture_id=id,
+                    id=index,
+                    elongation=value.get("Elongation [mm]"),
+                    triaxiality=value.get("Triaxiality"),
+                ),
+            )
+        case _:
+            raise NotImplementedError(f"unknown type {input_type}")
+    return uploader
 
-        return uploader.upload_one(filename)
+
+def upload_one(input_type: Type, filename: str) -> str:
+    """
+    Upload one file and return a short status line. An error is logged and
+    returned as "Skipping ... due to error", it does not raise.
+    """
+    debug(f"Upload one: {input_type}, {filename}")
+    try:
+        return get_uploader(input_type).upload_one(filename)
     except Exception as e:
-        error_message = f"Error in upload_one: {e}"
-        error(error_message)
-        # Re-raise with more context
-        raise Exception(f"Failed to upload {filename} as {input_type}: {str(e)}")
+        message = f"Skipping {filename} due to error: {e}"
+        error(message)
+        debug(f"Full traceback: \n{traceback.format_exc()}")
+        return message
 
 
 def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
@@ -1280,13 +1323,54 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             return [(input_type, filename)]
 
 
-def upload_parallel(upload_args, cpu=None):
+@dataclass
+class UploadResult:
+    """What one worker did with one file. Picklable, it crosses the pool."""
+
+    type: Type
+    file: str
+    key: Optional[str]
+    message: str
+    ok: bool
+    seconds: float
+
+
+def upload_tracked(
+    input_type: Type, filename: str, key: Optional[str], digest: Optional[str]
+) -> UploadResult:
     """
-    Parallel processing of uploads
-    1. Creates process pool based on CPU count
-    2. Initializes separate DB connections per process
-    3. Distributes upload tasks across processes
-    4. Collects results from all processes
+    Pool worker: upload one file, then record its hash. The data commit comes
+    first and the hash second, so a crash in between only costs one re-upload
+    on the next run, never a hash for data that is not there.
+    """
+    start = perf_counter()
+    try:
+        message = get_uploader(input_type).upload_one(filename)
+        if key is not None and digest is not None:
+            with Session() as session:
+                session.merge(
+                    UploadedFile(
+                        key=key, sha256=digest, uploaded_at=datetime.now(timezone.utc)
+                    )
+                )
+                session.commit()
+        ok = True
+    except Exception as e:
+        message = f"Skipping {filename} due to error: {e}"
+        debug(f"Full traceback: \n{traceback.format_exc()}")
+        ok = False
+    seconds = perf_counter() - start
+    if ok:
+        info(f"upload {key or filename} {seconds:.2f} s")
+    else:
+        error(f"failed {key or filename} {seconds:.2f} s: {message}")
+    return UploadResult(input_type, filename, key, message, ok, seconds)
+
+
+def upload_parallel(upload_args, cpu=None) -> List[UploadResult]:
+    """
+    Run upload_tracked on each ``(type, path, key, digest)`` in a spawn pool,
+    one DB connection per process.
     """
     n_workers = cpu if cpu is not None else get_safe_cpu_count()
     current_log_level = getLogger().level
@@ -1311,7 +1395,7 @@ def upload_parallel(upload_args, cpu=None):
         initializer=initializer,
         initargs=(current_log_level, current_log_format),
     ) as pool:
-        return pool.starmap(upload_one, upload_args, chunksize=1)
+        return pool.starmap(upload_tracked, upload_args, chunksize=1)
 
 
 def cap_series(
@@ -1333,49 +1417,190 @@ def cap_series(
     return kept
 
 
+@dataclass
+class UploadReport:
+    """What upload_all did. Keys are the ones of the uploaded_file table."""
+
+    results: List[UploadResult] = field(default_factory=list)
+    skipped: List[str] = field(default_factory=list)
+    removed: List[str] = field(default_factory=list)
+    seconds: float = 0.0
+
+    @property
+    def uploaded(self) -> List[str]:
+        return sorted(r.key for r in self.results if r.ok and r.key is not None)
+
+    @property
+    def failed(self) -> List[UploadResult]:
+        return [r for r in self.results if not r.ok]
+
+    @property
+    def messages(self) -> List[str]:
+        return [r.message for r in self.results]
+
+
+# The folder groups of the data repo: ALL runs them all.
+ALL_GROUPS = [
+    Type.ALL_BRACE,
+    Type.ALL_COLUMN,
+    Type.ALL_CONNECTION,
+    Type.ALL_MATERIAL,
+    Type.ALL_RESIDUAL_STRESS,
+    Type.ALL_HSS_COLUMN,
+    Type.ALL_ECCENTRIC_BRACED_FRAME,
+    Type.ALL_TENSILE_COUPON,
+    Type.ALL_DUCTILE_FRACTURE,
+]
+
+
+def _group_owns(patterns: List[Tuple[Type, str]], key: str) -> bool:
+    """
+    True when a tracked key comes from one of the group's globs: same type,
+    and the file name matches the glob's name (``*.csv``, or the exact name
+    of a main CSV or dictionary). A README matches by its database.
+    """
+    type_value, _, name = key.partition("/")
+    for upload_type, pattern in patterns:
+        if upload_type.value != type_value:
+            continue
+        if upload_type == Type.README:
+            if readme_database(pattern) == name:
+                return True
+        elif fnmatch(name, path.basename(pattern)):
+            return True
+    return False
+
+
+def _remove(key: str) -> bool:
+    """
+    Delete the rows of a file that left the data repo, and its hash, in one
+    transaction. False when it failed (logged): the hash stays, the next run
+    tries again.
+    """
+    type_value, _, name = key.partition("/")
+    try:
+        with Session() as session:
+            get_uploader(Type(type_value)).delete_one(session, name)
+            session.execute(delete(UploadedFile).where(UploadedFile.key == key))
+            session.commit()
+    except Exception as e:
+        error(f"failed to remove {key}: {e}")
+        return False
+    info(f"remove {key}")
+    return True
+
+
 def upload_all(
-    input_type: Type, filenames: List[str], series_limit: Optional[int] = None
-):
+    input_type: Type,
+    filenames: List[str],
+    series_limit: Optional[int] = None,
+    force: bool = False,
+) -> UploadReport:
     """
-    Main upload orchestration:
-    1. Collects all (Type, filepath) tuples via get_args_all
-    2. Expands wildcards into actual filenames
-    3. Caps measurement files per series type when series_limit is given
-    4. Splits into primary (main tables) and subsidiary (measurements) types
-    5. Processes primary tables first (required for foreign key constraints)
-    6. Processes subsidiary data in parallel
-    """
+    Upload the files of the data repo that changed since the last run.
 
+    1. Expand the globs of each group (ALL is the nine ALL_* groups)
+    2. On an ALL or ALL_* run, find the tracked files that left the repo
+    3. Cap measurement files per series type when series_limit is given
+    4. Hash every file, skip the ones whose sha256 is the one in uploaded_file
+       (force uploads them all)
+    5. Delete the rows of the removed files
+    6. Upload the main tables first (foreign keys), then the measurements, in
+       parallel, and record each new hash
+    7. Recompute the count flags
+    """
+    start = perf_counter()
     cpu = get_safe_cpu_count()
-
     info(f"Number of CPUs available: {cpu}")
 
-    wildcard_args = [
-        arg for filename in filenames for arg in get_args_all(input_type, filename)
-    ]
-    args = [(arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])]
+    groups = ALL_GROUPS if input_type == Type.ALL else [input_type]
+    with Session() as session:
+        tracked: Dict[str, str] = {
+            row.key: row.sha256 for row in session.query(UploadedFile).all()
+        }
 
-    if series_limit is not None:
-        args = cap_series(args, series_limit)
+    report = UploadReport()
+    to_upload: List[Tuple[Type, str, Optional[str], Optional[str]]] = []
+    group_of: Dict[Tuple[Type, str], Type] = {}
+    removed_of: Dict[Type, List[str]] = {}
+    skipped_of: Dict[Type, List[str]] = {}
 
-    primary_types = [arg for arg in args if arg[0] in PRIMARY_TYPES]
-    subsidiary_types = [arg for arg in args if arg[0] not in PRIMARY_TYPES]
+    for group in groups:
+        patterns = [
+            arg for filename in filenames for arg in get_args_all(group, filename)
+        ]
+        files = [(t, f) for t, pattern in patterns for f in sorted(iglob(pattern))]
 
-    primary_results = upload_parallel(primary_types, cpu) if primary_types else []
-    subsidiary_results = (
-        upload_parallel(subsidiary_types, cpu) if subsidiary_types else []
-    )
+        # Removal only when the globs describe whole folders. A plain type run
+        # gets a few files, the rest of the type is not gone.
+        removed: List[str] = []
+        if group in ALL_GROUPS:
+            present = {upload_key(t, f) for t, f in files}
+            main_csv = any(t in PRIMARY_TYPES for t, _ in files)
+            gone = sorted(
+                key
+                for key in tracked
+                if key not in present and _group_owns(patterns, key)
+            )
+            if gone and not main_csv:
+                # an unmounted or half-copied data folder must not empty the DB
+                warning(
+                    f"{group.value}: main CSV missing, not removing {len(gone)} files"
+                )
+            elif gone:
+                removed = gone
+        removed_of[group] = removed
 
-    all_results = [
-        result for result in (primary_results + subsidiary_results) if result
-    ]
-    info(f"Uploaded all: {all_results}")
+        # cap after listing the removed files: a capped-out file is still in
+        # the repo, it is neither removed nor uploaded
+        if series_limit is not None:
+            files = cap_series(files, series_limit)
+
+        skipped: List[str] = []
+        for upload_type, file_path in files:
+            key = upload_key(upload_type, file_path)
+            digest = file_digest(file_path) if key is not None else None
+            if not force and key is not None and tracked.get(key) == digest:
+                skipped.append(key)
+                info(f"skip {key}")
+                continue
+            to_upload.append((upload_type, file_path, key, digest))
+            group_of[(upload_type, file_path)] = group
+        skipped_of[group] = skipped
+
+    for group in groups:
+        for key in removed_of[group]:
+            if _remove(key):
+                report.removed.append(key)
+    for group in groups:
+        report.skipped.extend(skipped_of[group])
+
+    primary = [arg for arg in to_upload if arg[0] in PRIMARY_TYPES]
+    subsidiary = [arg for arg in to_upload if arg[0] not in PRIMARY_TYPES]
+    if primary:
+        report.results.extend(upload_parallel(primary, cpu))
+    if subsidiary:
+        report.results.extend(upload_parallel(subsidiary, cpu))
 
     with Session() as session:
         recompute_count_flags(session)
         session.commit()
 
-    return [primary_results, subsidiary_results]
+    report.seconds = perf_counter() - start
+    for group in groups:
+        results = [r for r in report.results if group_of[(r.type, r.file)] == group]
+        failed = sum(1 for r in results if not r.ok)
+        removed_count = sum(1 for key in removed_of[group] if key in report.removed)
+        info(
+            f"{group.value}: {len(results) - failed} uploaded, "
+            f"{len(skipped_of[group])} skipped, {removed_count} removed, "
+            f"{failed} failed, {sum(r.seconds for r in results):.1f} s of worker time"
+        )
+    info(
+        f"total: {len(report.results) + len(report.skipped)} files, "
+        f"{len(report.failed)} failed, {report.seconds:.1f} s wall"
+    )
+    return report
 
 
 def main():
@@ -1391,21 +1616,28 @@ def main():
         "dictionaries and READMEs are always uploaded in full (used to build "
         "the lightweight per-worktree database template)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="upload every file, even the ones whose hash did not change "
+        "(after a change of how the uploader reads a file, or a manual edit of "
+        "the data tables)",
+    )
 
     args = parser.parse_args()
     input_type: Type = args.type
     filenames: List[str] = args.filenames
 
     log_level = DEBUG if args.debug else INFO
-    basicConfig(
-        level=log_level,
-        format="[%(process)d] %(levelname)s:  %(message)s %(filename)s:%(lineno)d",
-    )
+    log_format = "%(asctime)s [%(process)d] %(levelname)s: %(message)s"
+    if args.debug:
+        log_format += " %(filename)s:%(lineno)d"
+    basicConfig(level=log_level, format=log_format)
 
     debug(f"Connecting to {engine.url}")
     debug(f"Log level set to {log_level}")
 
-    upload_all(input_type, filenames, series_limit=args.series_limit)
+    upload_all(input_type, filenames, series_limit=args.series_limit, force=args.force)
 
 
 # Run with `python -m resslab_hub.data.uploader <type> <files...>`. The guard
