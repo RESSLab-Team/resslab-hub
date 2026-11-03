@@ -270,6 +270,29 @@ class TestRangeWarnings:
     def test_empty_table_never_warns(self, tmp_path: Path, db_session):
         assert not self._area_warnings(self._validate_area(tmp_path, "10000"))
 
+    def test_nan_in_a_column_with_range_stats_only_gives_the_nan_warning(
+        self, tmp_path: Path, db_session
+    ):
+        # #408: the range check raised on NaN and stopped the whole file.
+        self._seed_braces(tmp_path, 20)  # area 10..29, so area has range stats
+        file_path = tmp_path / "contribution.csv"
+        write_main_csv(
+            file_path,
+            Brace,
+            [{"id": "NAN", "area": "NaN"}, {"id": "FAR", "area": "10000"}],
+        )
+
+        result = TableValidator(Brace).validate_one(str(file_path))
+
+        assert not any("Failed to process" in e.message for e in result.errors)
+        nan_row = [w for w in result.warnings if w.row == 1 and w.column == "area"]
+        assert len(nan_row) == 1
+        assert "NaN is not accepted" in nan_row[0].message
+        assert not [e for e in result.errors if e.row == 1 and e.column == "area"]
+        # the next row is still checked
+        far_row = [w for w in self._area_warnings(result) if w.row == 2]
+        assert len(far_row) == 1
+
     def test_verified_ranges_leave_the_unverified_rows_out(
         self, tmp_path: Path, db_session
     ):
