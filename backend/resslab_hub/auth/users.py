@@ -6,12 +6,17 @@ report the same address. Whoever gets there first owns the address; the second
 one is told to sign in with it and link the provider from the account page.
 Anything else would let an account be taken over by anyone who can make a
 provider report someone else's mail.
+
+An account can still hold several addresses (#402): each one is an ``email``
+identity, added from the account page with a mailed code, so the person
+proved it while signed in. ``User.email`` is the main one, and one of them.
 """
 
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import inspect, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from resslab_hub.auth import access, roles
@@ -24,6 +29,10 @@ class IdentityTaken(Exception):
 
 class EmailTaken(Exception):
     """That address already belongs to a different user."""
+
+
+class CannotUnlink(Exception):
+    """Removing that identity would lock the account, or drop its main address."""
 
 
 def normalize_email(email: str) -> str:
@@ -42,8 +51,28 @@ def name_from_email(email: str) -> str:
 
 
 async def get_by_email(db: AsyncSession, email: str) -> Optional[User]:
-    result = await db.execute(select(User).where(User.email == normalize_email(email)))
+    """The account holding this address, as its main one or an added one."""
+    email = normalize_email(email)
+    holders = select(Identity.user_id).where(
+        Identity.provider == "email", Identity.subject == email
+    )
+    # A sub-select and not a join: a join gives one row per identity, and
+    # one user would come back twice.
+    result = await db.execute(
+        select(User).where(or_(User.email == email, User.id.in_(holders)))
+    )
     return result.scalar_one_or_none()
+
+
+async def _identities(db: AsyncSession, user: User) -> list:
+    """``user.identities``, loaded first if this object never had it.
+
+    The relationship loads with every query, but not on a user built in this
+    request, and an async session cannot load it lazily.
+    """
+    if "identities" in inspect(user).unloaded:
+        await db.refresh(user, ["identities"])
+    return user.identities
 
 
 async def get_identity(
@@ -80,20 +109,46 @@ async def sign_in_with_email(db: AsyncSession, email: str) -> User:
     email = normalize_email(email)
     user = await get_by_email(db, email)
     if user is None:
+        # The identity goes in with the user, so the role below can read it.
         user = User(
             email=email,
             email_verified_at=_now(),
             display_name=name_from_email(email),
+            identities=[
+                Identity(
+                    provider="email",
+                    subject=email,
+                    handle=email,
+                    last_used_at=_now(),
+                )
+            ],
         )
         db.add(user)
         await db.flush()
-    elif user.email_verified_at is None:
-        user.email_verified_at = _now()
-    identity = await get_identity(db, "email", email)
-    if identity is None:
-        db.add(Identity(user_id=user.id, provider="email", subject=email, handle=email))
     else:
-        identity.last_used_at = _now()
+        if user.email == email and user.email_verified_at is None:
+            user.email_verified_at = _now()
+        identities = await _identities(db, user)
+        identity = next(
+            (
+                item
+                for item in identities
+                if item.provider == "email" and item.subject == email
+            ),
+            None,
+        )
+        if identity is None:
+            # An account from before #402 found by its main address.
+            identities.append(
+                Identity(
+                    provider="email",
+                    subject=email,
+                    handle=email,
+                    last_used_at=_now(),
+                )
+            )
+        else:
+            identity.last_used_at = _now()
     roles.apply_role(user)
     await access.redeem_invitation(db, user)
     await db.flush()
@@ -117,13 +172,12 @@ async def attach_identity(
         await db.flush()
         return existing
     identity = Identity(
-        user_id=user.id,
         provider=provider,
         subject=str(subject),
         handle=handle,
         last_used_at=_now(),
     )
-    db.add(identity)
+    (await _identities(db, user)).append(identity)
     await db.flush()
     return identity
 
@@ -159,23 +213,121 @@ async def sign_in_with_provider(
         clash = await get_by_email(db, email)
         if clash is not None:
             raise EmailTaken()
-    user = User(
-        email=email if (email and email_verified) else None,
-        email_verified_at=_now() if (email and email_verified) else None,
-        display_name=display_name or handle,
-    )
-    db.add(user)
-    await db.flush()
-    db.add(
+    proven = bool(email and email_verified)
+    identities = [
         Identity(
-            user_id=user.id,
             provider=provider,
             subject=str(subject),
             handle=handle,
             last_used_at=_now(),
         )
+    ]
+    if proven:
+        # The provider proved the address, so it is one of the account's
+        # addresses like any other (#402).
+        identities.append(Identity(provider="email", subject=email, handle=email))
+    user = User(
+        email=email if proven else None,
+        email_verified_at=_now() if proven else None,
+        display_name=display_name or handle,
+        identities=identities,
     )
+    db.add(user)
+    await db.flush()
     roles.apply_role(user)
     await access.redeem_invitation(db, user)
     await db.flush()
     return user
+
+
+async def add_email(db: AsyncSession, user: User, email: str) -> Identity:
+    """Add a proven address to an account (#402).
+
+    The caller has checked the mailed code, from this user's own session.
+    Raises :class:`EmailTaken` when another account holds the address: two
+    accounts are never joined. The address becomes the main one when the
+    account had none (a GitHub account with a private mail).
+    """
+    email = normalize_email(email)
+    holder = await get_by_email(db, email)
+    if holder is not None and holder.id != user.id:
+        raise EmailTaken()
+    identities = await _identities(db, user)
+    identity = next(
+        (
+            item
+            for item in identities
+            if item.provider == "email" and item.subject == email
+        ),
+        None,
+    )
+    if identity is None:
+        identity = Identity(
+            provider="email", subject=email, handle=email, last_used_at=_now()
+        )
+        identities.append(identity)
+        try:
+            await db.flush()
+        except IntegrityError as exc:
+            # Two tabs adding the same address at once. The rollback expires
+            # every loaded object, so the caller must raise without reading
+            # ``user`` again.
+            await db.rollback()
+            raise EmailTaken() from exc
+    if not user.email:
+        user.email = email
+        user.email_verified_at = _now()
+    roles.apply_role(user)
+    await access.redeem_invitation(db, user)
+    await db.flush()
+    return identity
+
+
+async def set_main_email(db: AsyncSession, user: User, identity_id: str) -> None:
+    """Make one of the account's addresses the main one.
+
+    The main address signs new submissions and gets the mails. Raises
+    ``LookupError`` when the identity is not one of this user's addresses.
+    """
+    identities = await _identities(db, user)
+    target = next(
+        (
+            item
+            for item in identities
+            if item.id == identity_id and item.provider == "email"
+        ),
+        None,
+    )
+    if target is None:
+        raise LookupError(identity_id)
+    user.email = target.subject
+    user.email_verified_at = _now()
+    roles.apply_role(user)
+    await db.flush()
+
+
+async def remove_identity(db: AsyncSession, user: User, identity_id: str) -> None:
+    """Unlink a provider, or remove an added address.
+
+    Raises ``LookupError`` when the identity is not this user's, and
+    :class:`CannotUnlink` for the last identity (it would lock the account)
+    or the main address (pick another main address first).
+    """
+    identities = await _identities(db, user)
+    target = next((item for item in identities if item.id == identity_id), None)
+    if target is None:
+        raise LookupError(identity_id)
+    if len(identities) <= 1:
+        raise CannotUnlink()
+    if target.provider == "email" and target.subject == normalize_email(
+        user.email or ""
+    ):
+        raise CannotUnlink()
+    if target.provider == "github":
+        user.github_login = ""
+        user.github_role = None
+        user.github_role_synced_at = None
+    identities.remove(target)
+    await db.flush()
+    # The address that made the account a contributor may be the one gone.
+    roles.apply_role(user)

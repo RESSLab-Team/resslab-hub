@@ -363,7 +363,7 @@
           "auth"
         ],
         "summary": "Delete Identity",
-        "description": "Unlink a provider.\n\nNot the last one, it would lock the account. And not ``email``: the\naccount is found by its address, so whoever proves the address gets in\nwhatever this table says, and removing the row would only pretend\notherwise.",
+        "description": "Unlink a provider, or remove an added address (#402).\n\nNot the last identity, it would lock the account. And not the main\naddress: it signs new submissions and gets the mails, so the person picks\nanother main address first. Once removed, an address no longer finds the\naccount, and the role is worked out again without it.",
         "operationId": "delete_identity",
         "parameters": [
           {
@@ -379,6 +379,126 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/identities/{identity_id}/main": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Set Main Email",
+        "description": "Make one of the account's addresses the main one (#402).\n\nThe main address signs new submissions and gets the mails.",
+        "operationId": "set_main_email",
+        "parameters": [
+          {
+            "name": "identity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/emails": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Start Add Email",
+        "description": "Mail a code to an address the signed-in person wants to add (#402).\n\nWhether another account holds the address is only said at the code step,\nto whoever proved they read its mailbox.",
+        "operationId": "start_add_email",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailStartResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/emails/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Verify Add Email",
+        "description": "Add the address, with the code typed in the session that asked (#402).\n\nNo session is created: this browser is already signed in, as the account\nthe address goes to. An address of another account is refused, the two\naccounts are never joined.",
+        "operationId": "verify_add_email",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddEmailVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -7726,6 +7846,36 @@
         ],
         "title": "AccessRequestStatus",
         "description": "Where the person's last access request is (#248)."
+      },
+      "AddEmailRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "AddEmailRequest",
+        "description": "An address to add to the signed-in account (#402)."
+      },
+      "AddEmailVerifyRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 12,
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "AddEmailVerifyRequest",
+        "description": "The code mailed to that address. The challenge is in the login cookie."
       },
       "AdminUserOut": {
         "properties": {

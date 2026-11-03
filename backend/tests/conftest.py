@@ -166,6 +166,10 @@ def sign_in(client, db_session):
 
     ``sign_in()`` for a plain account, ``sign_in(role="curator")`` to skip
     straight to a role, plus anything else to set on the user.
+
+    Every verified address is an ``email`` identity, like in the app (#402):
+    the main one when ``verified``, plus each of ``emails``. A GitHub or
+    unverified account gets a GitHub identity instead, so it has one.
     """
     from resslab_hub.auth.tokens import hash_token, new_token
     from resslab_hub.models.database.auth import Identity, Session, User
@@ -177,6 +181,7 @@ def sign_in(client, db_session):
         role: str = "viewer",
         provider: str = "email",
         verified: bool = True,
+        emails=(),
         **fields,
     ):
         from datetime import datetime, timedelta, timezone
@@ -192,9 +197,23 @@ def sign_in(client, db_session):
         )
         db_session.add(user)
         db_session.flush()
-        db_session.add(
-            Identity(user_id=user.id, provider=provider, subject=email, handle=email)
-        )
+        addresses = [email] if (provider == "email" and verified) else []
+        addresses += [address.lower() for address in emails]
+        for address in addresses:
+            db_session.add(
+                Identity(
+                    user_id=user.id, provider="email", subject=address, handle=address
+                )
+            )
+        if provider != "email" or not verified:
+            db_session.add(
+                Identity(
+                    user_id=user.id,
+                    provider="github",
+                    subject=str(90000 + len(created)),
+                    handle=fields.get("github_login") or "ada",
+                )
+            )
         token = new_token()
         db_session.add(
             Session(

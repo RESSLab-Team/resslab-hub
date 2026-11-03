@@ -67,6 +67,18 @@ export const AccessRequestStatusStatusEnum = {
 
 export type AccessRequestStatusStatusEnum = typeof AccessRequestStatusStatusEnum[keyof typeof AccessRequestStatusStatusEnum];
 
+/**
+ * An address to add to the signed-in account (#402).
+ */
+export interface AddEmailRequest {
+    'email': string;
+}
+/**
+ * The code mailed to that address. The challenge is in the login cookie.
+ */
+export interface AddEmailVerifyRequest {
+    'code': string;
+}
 export interface AdminUserOut {
     'id': string;
     'email'?: string | null;
@@ -3556,7 +3568,7 @@ export class AnalyticsApi extends BaseAPI {
 export const AuthApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+         * Unlink a provider, or remove an added address (#402).  Not the last identity, it would lock the account. And not the main address: it signs new submissions and gets the mails, so the person picks another main address first. Once removed, an address no longer finds the account, and the role is worked out again without it.
          * @summary Delete Identity
          * @param {string} identityId 
          * @param {*} [options] Override http request option.
@@ -3759,6 +3771,75 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
+         * Make one of the account\'s addresses the main one (#402).  The main address signs new submissions and gets the mails.
+         * @summary Set Main Email
+         * @param {string} identityId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setMainEmail: async (identityId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'identityId' is not null or undefined
+            assertParamExists('setMainEmail', 'identityId', identityId)
+            const localVarPath = `/auth/identities/{identity_id}/main`
+                .replace('{identity_id}', encodeURIComponent(String(identityId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Mail a code to an address the signed-in person wants to add (#402).  Whether another account holds the address is only said at the code step, to whoever proved they read its mailbox.
+         * @summary Start Add Email
+         * @param {AddEmailRequest} addEmailRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startAddEmail: async (addEmailRequest: AddEmailRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'addEmailRequest' is not null or undefined
+            assertParamExists('startAddEmail', 'addEmailRequest', addEmailRequest)
+            const localVarPath = `/auth/emails`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(addEmailRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Mail a sign-in code (and a link that does the same) to an address.
          * @summary Start Email Login
          * @param {EmailStartRequest} emailStartRequest 
@@ -3834,6 +3915,41 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
+         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+         * @summary Verify Add Email
+         * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verifyAddEmail: async (addEmailVerifyRequest: AddEmailVerifyRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'addEmailVerifyRequest' is not null or undefined
+            assertParamExists('verifyAddEmail', 'addEmailVerifyRequest', addEmailVerifyRequest)
+            const localVarPath = `/auth/emails/verify`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(addEmailVerifyRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Finish a mail sign-in, with the typed code or the mailed link.
          * @summary Verify Email Login
          * @param {EmailVerifyRequest} emailVerifyRequest 
@@ -3878,7 +3994,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = AuthApiAxiosParamCreator(configuration)
     return {
         /**
-         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+         * Unlink a provider, or remove an added address (#402).  Not the last identity, it would lock the account. And not the main address: it signs new submissions and gets the mails, so the person picks another main address first. Once removed, an address no longer finds the account, and the role is worked out again without it.
          * @summary Delete Identity
          * @param {string} identityId 
          * @param {*} [options] Override http request option.
@@ -3955,6 +4071,32 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Make one of the account\'s addresses the main one (#402).  The main address signs new submissions and gets the mails.
+         * @summary Set Main Email
+         * @param {string} identityId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async setMainEmail(identityId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.setMainEmail(identityId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.setMainEmail']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Mail a code to an address the signed-in person wants to add (#402).  Whether another account holds the address is only said at the code step, to whoever proved they read its mailbox.
+         * @summary Start Add Email
+         * @param {AddEmailRequest} addEmailRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async startAddEmail(addEmailRequest: AddEmailRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EmailStartResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.startAddEmail(addEmailRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.startAddEmail']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Mail a sign-in code (and a link that does the same) to an address.
          * @summary Start Email Login
          * @param {EmailStartRequest} emailStartRequest 
@@ -3982,6 +4124,19 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+         * @summary Verify Add Email
+         * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async verifyAddEmail(addEmailVerifyRequest: AddEmailVerifyRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserOut>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.verifyAddEmail(addEmailVerifyRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.verifyAddEmail']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Finish a mail sign-in, with the typed code or the mailed link.
          * @summary Verify Email Login
          * @param {EmailVerifyRequest} emailVerifyRequest 
@@ -4004,7 +4159,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
     const localVarFp = AuthApiFp(configuration)
     return {
         /**
-         * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+         * Unlink a provider, or remove an added address (#402).  Not the last identity, it would lock the account. And not the main address: it signs new submissions and gets the mails, so the person picks another main address first. Once removed, an address no longer finds the account, and the role is worked out again without it.
          * @summary Delete Identity
          * @param {string} identityId 
          * @param {*} [options] Override http request option.
@@ -4063,6 +4218,26 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.requestAccess(accessRequestIn, options).then((request) => request(axios, basePath));
         },
         /**
+         * Make one of the account\'s addresses the main one (#402).  The main address signs new submissions and gets the mails.
+         * @summary Set Main Email
+         * @param {string} identityId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setMainEmail(identityId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.setMainEmail(identityId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Mail a code to an address the signed-in person wants to add (#402).  Whether another account holds the address is only said at the code step, to whoever proved they read its mailbox.
+         * @summary Start Add Email
+         * @param {AddEmailRequest} addEmailRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startAddEmail(addEmailRequest: AddEmailRequest, options?: RawAxiosRequestConfig): AxiosPromise<EmailStartResponse> {
+            return localVarFp.startAddEmail(addEmailRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Mail a sign-in code (and a link that does the same) to an address.
          * @summary Start Email Login
          * @param {EmailStartRequest} emailStartRequest 
@@ -4084,6 +4259,16 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.startGithubLogin(redirectTo, link, options).then((request) => request(axios, basePath));
         },
         /**
+         * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+         * @summary Verify Add Email
+         * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verifyAddEmail(addEmailVerifyRequest: AddEmailVerifyRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserOut> {
+            return localVarFp.verifyAddEmail(addEmailVerifyRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Finish a mail sign-in, with the typed code or the mailed link.
          * @summary Verify Email Login
          * @param {EmailVerifyRequest} emailVerifyRequest 
@@ -4101,7 +4286,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
  */
 export class AuthApi extends BaseAPI {
     /**
-     * Unlink a provider.  Not the last one, it would lock the account. And not ``email``: the account is found by its address, so whoever proves the address gets in whatever this table says, and removing the row would only pretend otherwise.
+     * Unlink a provider, or remove an added address (#402).  Not the last identity, it would lock the account. And not the main address: it signs new submissions and gets the mails, so the person picks another main address first. Once removed, an address no longer finds the account, and the role is worked out again without it.
      * @summary Delete Identity
      * @param {string} identityId 
      * @param {*} [options] Override http request option.
@@ -4166,6 +4351,28 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
+     * Make one of the account\'s addresses the main one (#402).  The main address signs new submissions and gets the mails.
+     * @summary Set Main Email
+     * @param {string} identityId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public setMainEmail(identityId: string, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).setMainEmail(identityId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Mail a code to an address the signed-in person wants to add (#402).  Whether another account holds the address is only said at the code step, to whoever proved they read its mailbox.
+     * @summary Start Add Email
+     * @param {AddEmailRequest} addEmailRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public startAddEmail(addEmailRequest: AddEmailRequest, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).startAddEmail(addEmailRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Mail a sign-in code (and a link that does the same) to an address.
      * @summary Start Email Login
      * @param {EmailStartRequest} emailStartRequest 
@@ -4186,6 +4393,17 @@ export class AuthApi extends BaseAPI {
      */
     public startGithubLogin(redirectTo?: string, link?: boolean, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).startGithubLogin(redirectTo, link, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Add the address, with the code typed in the session that asked (#402).  No session is created: this browser is already signed in, as the account the address goes to. An address of another account is refused, the two accounts are never joined.
+     * @summary Verify Add Email
+     * @param {AddEmailVerifyRequest} addEmailVerifyRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public verifyAddEmail(addEmailVerifyRequest: AddEmailVerifyRequest, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).verifyAddEmail(addEmailVerifyRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

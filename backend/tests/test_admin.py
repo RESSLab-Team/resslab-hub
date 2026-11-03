@@ -14,6 +14,7 @@ from resslab_hub.auth import email_login, mailer, roles
 from resslab_hub.auth.tokens import hash_token, new_token
 from resslab_hub.models.database.auth import (
     AccessRequest,
+    Identity,
     Invitation,
     Session,
     User,
@@ -288,6 +289,27 @@ async def test_one_open_invitation_per_address(client, sign_in, outbox):
 
 async def test_a_member_is_not_invited(client, sign_in, db_session, outbox):
     _user(db_session, "ada@example.com")
+    sign_in(email="me@example.org", role="admin")
+    response = await client.post(
+        "/admin/invitations", json={"email": "ada@example.com"}
+    )
+    assert response.status_code == 409
+    assert response.json()["detail"] == "already_member"
+    assert outbox == []
+
+
+async def test_an_added_address_is_a_member_too(client, sign_in, db_session, outbox):
+    """The account is found by any of its addresses (#402)."""
+    ada = _user(db_session, "ada@gmail.com")
+    db_session.add(
+        Identity(
+            user_id=ada.id,
+            provider="email",
+            subject="ada@example.com",
+            handle="ada@example.com",
+        )
+    )
+    db_session.commit()
     sign_in(email="me@example.org", role="admin")
     response = await client.post(
         "/admin/invitations", json={"email": "ada@example.com"}
