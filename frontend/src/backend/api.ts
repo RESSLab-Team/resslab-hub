@@ -79,12 +79,19 @@ export interface AddEmailRequest {
 export interface AddEmailVerifyRequest {
     'code': string;
 }
+/**
+ * The account to fold into the one in the path, then delete.
+ */
+export interface AdminMergeIn {
+    'from_user_id': string;
+}
 export interface AdminUserOut {
     'id': string;
     'email'?: string | null;
     'email_verified'?: boolean;
     'display_name'?: string;
     'institution'?: string;
+    'emails'?: Array<string>;
     'role': string;
     'role_source': string;
     'role_override'?: string | null;
@@ -3094,6 +3101,45 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Fold the account ``from_user_id`` into this one, then delete it.  For one person with two accounts. Every address and GitHub moves here, so the submissions follow (they belong to their addresses). The other account\'s sessions end. An admin can merge another account into their own, but not their own account away: that would delete the session in use.
+         * @summary Merge User
+         * @param {string} userId 
+         * @param {AdminMergeIn} adminMergeIn 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        mergeUser: async (userId: string, adminMergeIn: AdminMergeIn, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('mergeUser', 'userId', userId)
+            // verify required parameter 'adminMergeIn' is not null or undefined
+            assertParamExists('mergeUser', 'adminMergeIn', adminMergeIn)
+            const localVarPath = `/admin/users/{user_id}/merge`
+                .replace('{user_id}', encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(adminMergeIn, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Take back an invitation nobody used yet.
          * @summary Revoke Invitation
          * @param {string} invitationId 
@@ -3251,6 +3297,20 @@ export const AdminApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Fold the account ``from_user_id`` into this one, then delete it.  For one person with two accounts. Every address and GitHub moves here, so the submissions follow (they belong to their addresses). The other account\'s sessions end. An admin can merge another account into their own, but not their own account away: that would delete the session in use.
+         * @summary Merge User
+         * @param {string} userId 
+         * @param {AdminMergeIn} adminMergeIn 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async mergeUser(userId: string, adminMergeIn: AdminMergeIn, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminUserOut>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.mergeUser(userId, adminMergeIn, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.mergeUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Take back an invitation nobody used yet.
          * @summary Revoke Invitation
          * @param {string} invitationId 
@@ -3344,6 +3404,17 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.listUsers(options).then((request) => request(axios, basePath));
         },
         /**
+         * Fold the account ``from_user_id`` into this one, then delete it.  For one person with two accounts. Every address and GitHub moves here, so the submissions follow (they belong to their addresses). The other account\'s sessions end. An admin can merge another account into their own, but not their own account away: that would delete the session in use.
+         * @summary Merge User
+         * @param {string} userId 
+         * @param {AdminMergeIn} adminMergeIn 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        mergeUser(userId: string, adminMergeIn: AdminMergeIn, options?: RawAxiosRequestConfig): AxiosPromise<AdminUserOut> {
+            return localVarFp.mergeUser(userId, adminMergeIn, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Take back an invitation nobody used yet.
          * @summary Revoke Invitation
          * @param {string} invitationId 
@@ -3432,6 +3503,18 @@ export class AdminApi extends BaseAPI {
      */
     public listUsers(options?: RawAxiosRequestConfig) {
         return AdminApiFp(this.configuration).listUsers(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Fold the account ``from_user_id`` into this one, then delete it.  For one person with two accounts. Every address and GitHub moves here, so the submissions follow (they belong to their addresses). The other account\'s sessions end. An admin can merge another account into their own, but not their own account away: that would delete the session in use.
+     * @summary Merge User
+     * @param {string} userId 
+     * @param {AdminMergeIn} adminMergeIn 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public mergeUser(userId: string, adminMergeIn: AdminMergeIn, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).mergeUser(userId, adminMergeIn, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

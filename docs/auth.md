@@ -64,7 +64,8 @@ decides who submits, who reviews and who manages the others. See Roles below
   to my account" and have the owner of the address click it. With a code,
   only the person who reads the mailbox and holds the session can finish. An
   address that already belongs to another account is refused (409
-  `email_in_use`): accounts are still never joined.
+  `email_in_use`): a person never joins two accounts alone. An admin can
+  (see "The admin page").
 - **Removing an address.** `DELETE /auth/identities/{id}` removes any email
   row except the main one, and never the last way to sign in (409
   `cannot_unlink`). To drop the main address, make another one main first
@@ -434,7 +435,7 @@ curators only and the Administration link to admins only.
 
 ### The admin page
 
-`/admin` (`views/AdminView.vue`, backend `routers/admin.py`) has three parts.
+`/admin` (`views/AdminView.vue`, backend `routers/admin.py`) has four parts.
 
 - **Access requests.** The pending ones, with the person's message. Approve
   gives the role asked for and mails the person; decline mails nobody, the
@@ -449,8 +450,22 @@ curators only and the Administration link to admins only.
   the role is theirs as soon as an account proves that address: a sign-in
   with it, by mail or by GitHub, or adding it to an account from the account
   page. Inviting an address that already belongs to an account (main or
-  added) is refused: change their role in the members list instead. A pending invitation can be
-  revoked.
+  added) is refused: change their role in the members list instead. A
+  pending invitation can be revoked.
+- **Merge two accounts.** For one person with two accounts, for example an
+  EPFL one made by code and a GitHub one with a gmail (#402). `POST
+  /admin/users/{keep}/merge` with `{"from_user_id": ...}` moves every
+  identity of the second account to the first (addresses and GitHub), so
+  they all sign in to the kept account and the submissions follow, since a
+  submission belongs to its addresses. The stronger override wins, empty
+  profile fields are filled, a second pending access request is declined,
+  invitations and decisions point to the kept account. Then the second
+  account is deleted, which signs it out everywhere. Refused: the same
+  account twice (409 `same_account`), a disabled account (409
+  `account_disabled`), two different GitHub accounts (409 `both_github`,
+  unlink one first), and an admin merging their own account away (403
+  `cannot_change_self`; merging another one into your own is fine). Nothing
+  can undo a merge, so the button asks twice.
 
 An approved request and an invitation never lower a role: approving the
 request of someone who became a curator meanwhile changes nothing. But they

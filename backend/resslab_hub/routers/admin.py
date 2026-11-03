@@ -3,7 +3,8 @@ Handle /admin requests: who can do what in the Hub (#248).
 
 Admins only. Three things live here: the members (role and access), the
 invitations (a role waiting for an address), and the access requests (someone
-signed in asks for the contributor role).
+signed in asks for the contributor role). An admin can also merge two
+accounts of the same person into one (#402).
 
 Every role an admin sets is a ``role_override``. Two kinds of admin are out of
 reach: the ones from ``ADMIN_EMAILS`` and the ones from GitHub (admin on the
@@ -11,6 +12,7 @@ data repo). Change them there. An admin cannot change their own account
 either, so nobody locks themselves out by mistake.
 """
 
+import logging
 from typing import Dict, List
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
@@ -21,9 +23,16 @@ from resslab_hub.auth import access, roles
 from resslab_hub.auth.challenges import now
 from resslab_hub.auth.deps import require_contributions_enabled, require_role
 from resslab_hub.auth.sessions import revoke_all
-from resslab_hub.auth.users import get_by_email, get_user, normalize_email
+from resslab_hub.auth.users import (
+    CannotMerge,
+    get_by_email,
+    get_user,
+    merge_users,
+    normalize_email,
+)
 from resslab_hub.models.admin import (
     AccessRequestOut,
+    AdminMergeIn,
     AdminUserOut,
     AdminUserPatch,
     InvitationCreated,
@@ -32,6 +41,8 @@ from resslab_hub.models.admin import (
 )
 from resslab_hub.models.database.auth import AccessRequest, Invitation, User
 from resslab_hub.utils.database import get_session
+
+logger = logging.getLogger(__name__)
 
 # One instance, so the router and the handlers that need the admin share it
 # and FastAPI resolves it once per request.
@@ -49,6 +60,7 @@ def _user_out(user: User) -> AdminUserOut:
         id=user.id,
         email=user.email,
         email_verified=user.email_verified_at is not None,
+        emails=roles.verified_emails(user),
         display_name=user.display_name,
         institution=user.institution,
         role=user.role,
@@ -112,6 +124,39 @@ async def update_user(
             target.disabled_at = None
     await db.commit()
     return _user_out(target)
+
+
+@router.post("/users/{user_id}/merge", response_model=AdminUserOut)
+async def merge_user(
+    user_id: str,
+    payload: AdminMergeIn,
+    db: AsyncSession = Depends(get_session),
+    admin: User = Depends(require_admin),
+) -> AdminUserOut:
+    """Fold the account ``from_user_id`` into this one, then delete it.
+
+    For one person with two accounts. Every address and GitHub moves here,
+    so the submissions follow (they belong to their addresses). The other
+    account's sessions end. An admin can merge another account into their
+    own, but not their own account away: that would delete the session in use.
+    """
+    keep = await get_user(db, user_id)
+    other = await get_user(db, payload.from_user_id)
+    if keep is None or other is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="not_found")
+    if other.id == admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="cannot_change_self"
+        )
+    try:
+        await merge_users(db, keep, other, admin)
+    except CannotMerge as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=exc.reason
+        ) from exc
+    await db.commit()
+    logger.info("Admin %s merged account %s into %s", admin.id, other.id, keep.id)
+    return _user_out(keep)
 
 
 # --- invitations ------------------------------------------------------------

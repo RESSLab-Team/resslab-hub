@@ -1697,7 +1697,18 @@
         "admin-email": "Configuration",
         "override": "Réglé ici",
         "github": "GitHub"
-      }
+      },
+      "also": "Aussi {emails}"
+    },
+    "merge": {
+      "title": "Fusionner deux comptes",
+      "lede": "Pour une personne qui a deux comptes. Tout ce qui est sur le second compte passe sur le premier : ses adresses, son GitHub, ses contributions. Ensuite le second compte est supprimé et déconnecté.",
+      "keep": "Compte à garder",
+      "other": "Compte à fusionner dedans",
+      "pick": "Choisir un compte",
+      "button": "Fusionner",
+      "confirm": "Cliquer encore pour fusionner",
+      "done": "{other} fait maintenant partie de {keep}."
     },
     "invitations": {
       "title": "Invitations",
@@ -1723,7 +1734,10 @@
       "already_member": "Cette adresse a déjà un compte. Changez son rôle dans la liste des membres.",
       "already_invited": "Cette adresse a déjà une invitation en attente.",
       "already_decided": "Un autre administrateur a déjà répondu à cette demande.",
-      "not_found": "Introuvable. Rechargez la page."
+      "not_found": "Introuvable. Rechargez la page.",
+      "same_account": "Choisissez deux comptes différents.",
+      "account_disabled": "Un des deux comptes est désactivé. Réactivez-le d'abord.",
+      "both_github": "Les deux comptes utilisent des comptes GitHub différents. Déliez-en un d'abord."
     }
   }
 }

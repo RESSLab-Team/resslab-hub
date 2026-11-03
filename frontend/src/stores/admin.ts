@@ -69,6 +69,16 @@ export const useAdminStore = defineStore('admin', () => {
     users.value = replace(users.value, data)
   }
 
+  /** Fold ``otherId`` into ``keepId`` (#402). The other account is deleted. */
+  async function mergeUsers(keepId: string, otherId: string): Promise<void> {
+    const { adminApi } = await api()
+    const { data } = await adminApi.mergeUser(keepId, { from_user_id: otherId })
+    users.value = replace(
+      users.value.filter((item) => item.id !== otherId),
+      data
+    )
+  }
+
   /** Invite an address. Resolves with whether the mail went out. */
   async function invite(payload: InvitationIn): Promise<boolean> {
     const { adminApi } = await api()
@@ -106,6 +116,7 @@ export const useAdminStore = defineStore('admin', () => {
     pendingInvitations,
     fetchAll,
     updateUser,
+    mergeUsers,
     invite,
     revokeInvitation,
     decide
