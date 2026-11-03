@@ -26,6 +26,8 @@ export interface EditTarget {
   prNumber: number
   prUrl: string
   headSha: string
+  /** The submission's branch on the data repository, for the GitHub links. */
+  branch: string
 }
 
 export function isContributionResult(data: unknown): data is ContributionResult {

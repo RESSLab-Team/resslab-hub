@@ -1296,11 +1296,10 @@
       "next": "A curator will review it; the data goes live once the request is approved and merged.",
       "view_pr": "View review request",
       "new": "Start a new contribution",
-      "how_to_update": "Need to change something after a review? Do not open a second submission, it would open a second review request and the review would start again. Edit the CSV on your own branch on GitHub, or post the corrected file in a comment on the review request and a maintainer pushes it for you.",
+      "how_to_update": "Need to change something? Edit it here and submit again: it updates the same review request. Do not start a second submission for the same data. You can also edit the CSV on GitHub.",
       "edit_on_github": "Edit the CSV on GitHub",
       "updated_title": "Updated. Review request #{number} now has your changes.",
-      "updated_next": "A curator will review the new version. You can keep editing here and submit again.",
-      "update": "Update this submission"
+      "updated_next": "A curator will review the new version. You can keep editing here and submit again."
     },
     "dialog": {
       "title": "Submit for review",

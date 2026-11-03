@@ -727,6 +727,7 @@ describe('contribution store — submission', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.mocked(postContribution).mockReset()
+    vi.mocked(putContribution).mockReset()
   })
 
   /** Edits flush the reset watcher; settle it before handing out a verdict. */
@@ -779,6 +780,15 @@ describe('contribution store — submission', () => {
     expect(store.submitStatus).toBe('submitted')
     expect(store.pullRequestUrl).toBe('https://github.com/x/pull/7')
     expect(store.pullRequestNumber).toBe(7)
+    expect(store.submitKind).toBe('created')
+    // The batch is now that submission: its page, and what the next submit updates.
+    expect(store.editTarget).toEqual({
+      prNumber: 7,
+      prUrl: 'https://github.com/x/pull/7',
+      headSha: 'sha-1',
+      branch: 'contrib/braces/b1-abc'
+    })
+    expect(store.editing).toBe(true)
     const [, archive] = (postContribution as Mock).mock.calls[0]
     expect(archive).toBeInstanceOf(File)
     // Who submits is not sent any more: the backend takes it from the session.
@@ -813,16 +823,48 @@ describe('contribution store — submission', () => {
 
     await store.submit()
 
-    expect(store.branch).toBe('contrib/braces/b1-abc')
-    expect(store.csvOnGitHubUrl).toBe(
+    const url =
       'https://github.com/RESSLab-Team/resslab-hub-data/blob/contrib/braces/b1-abc/braces/steel_braces.csv'
-    )
+    expect(store.csvOnGitHubUrl).toBe(url)
 
-    // Editing again starts a new batch: the old branch must not linger.
+    // An edit after the submit is an edit of that submission: the branch stays.
     store.rows[0].cells.investigator = 'Y'
     await nextTick()
-    expect(store.branch).toBe('')
-    expect(store.csvOnGitHubUrl).toBe('')
+    expect(store.submitStatus).toBe('idle')
+    expect(store.csvOnGitHubUrl).toBe(url)
+  })
+
+  it('updates the new submission on the next submit, never opens a second one', async () => {
+    const store = await submittableStore()
+    vi.mocked(postContribution).mockResolvedValue({
+      pr_url: 'https://github.com/x/pull/7',
+      pr_number: 7,
+      branch: 'contrib/braces/b1-abc',
+      head_sha: 'sha-1'
+    })
+    await store.submit()
+
+    store.rows[0].cells.investigator = 'Y'
+    await nextTick()
+    store.status = 'pass'
+    vi.mocked(putContribution).mockResolvedValue({
+      pr_url: 'https://github.com/x/pull/7',
+      pr_number: 7,
+      branch: 'contrib/braces/b1-abc',
+      head_sha: 'sha-2'
+    })
+    await store.submit()
+
+    expect(postContribution).toHaveBeenCalledTimes(1)
+    const [, target] = vi.mocked(putContribution).mock.calls[0]
+    expect(target).toEqual({
+      prNumber: 7,
+      prUrl: 'https://github.com/x/pull/7',
+      headSha: 'sha-1',
+      branch: 'contrib/braces/b1-abc'
+    })
+    expect(store.submitKind).toBe('updated')
+    expect(store.editTarget?.headSha).toBe('sha-2')
   })
 
   it('passes dismissed warnings, labelled by specimen id', async () => {
@@ -1060,7 +1102,8 @@ describe('contribution store — editing an open submission', () => {
     expect(store.editTarget).toEqual({
       prNumber: 7,
       prUrl: 'https://github.com/x/pull/7',
-      headSha: 'head-sha'
+      headSha: 'head-sha',
+      branch: 'contrib/braces/b1-abcd1234'
     })
     expect(store.editing).toBe(true)
     expect(store.skippedFiles).toEqual([])
@@ -1113,6 +1156,16 @@ describe('contribution store — editing an open submission', () => {
     expect(store.editing).toBe(true)
   })
 
+  it('links the CSV on the branch of a loaded submission', async () => {
+    const store = readyStore()
+    await store.loadSubmission(7)
+    // The import fires the reset watcher: the branch must not live in what it clears.
+    await nextTick()
+    expect(store.csvOnGitHubUrl).toBe(
+      'https://github.com/RESSLab-Team/resslab-hub-data/blob/contrib/braces/b1-abcd1234/braces/steel_braces.csv'
+    )
+  })
+
   it('reports a submission that is gone, or a database it cannot edit', async () => {
     const store = readyStore()
     vi.mocked(defaultApi.getContribution).mockRejectedValue({
@@ -1160,9 +1213,11 @@ describe('contribution store — editing an open submission', () => {
     expect(target).toEqual({
       prNumber: 7,
       prUrl: 'https://github.com/x/pull/7',
-      headSha: 'head-sha'
+      headSha: 'head-sha',
+      branch: 'contrib/braces/b1-abcd1234'
     })
     expect(store.submitStatus).toBe('submitted')
+    expect(store.submitKind).toBe('updated')
     // The next update goes on top of the commit this one made.
     expect(store.editTarget?.headSha).toBe('new-sha')
 
