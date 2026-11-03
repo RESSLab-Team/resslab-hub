@@ -47,7 +47,8 @@ const galleryImages = [
 // the settled state. KPIs already loaded earlier this session (store fetched,
 // or hydrated from the session cache after a reload) skip the bar entirely —
 // their numbers are already the live ones.
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+const reducedMotion = reduceMotionQuery.matches
 const barAnimating = ref([
   !reducedMotion && !countsStore.hydrated.counts && countsStore.countsStatus === 'loading',
   !reducedMotion &&
@@ -94,25 +95,115 @@ const keyNumbers = computed<{ num: number | string; label: string; status: KpiSt
   { num: DATABASES.length, label: t('home.keyNumbers.databases'), status: 'live' }
 ])
 
-// The hero <video> renders poster-only until the page has fully loaded, so its
-// ~1 MB fetch never competes with the initial CSS/JS/font/API traffic: the src
-// is only attached on `window` load, and autoplay+muted picks it up from there.
-// `load` fires once per page, so SPA re-mounts of Home check readyState instead.
+// Hero video (#404). The poster is a separate <img> on top of the <video>: a
+// `poster` attribute can't be faded, it just vanishes when playback starts,
+// which made the hero flicker. The <img> fades out only once the first frame
+// is really on screen, so the switch looks like one image.
+//
+// The src is still attached only on `window` load, so the ~1 MB fetch never
+// competes with the first CSS/JS/font/API downloads. `preload="auto"` then
+// fetches the first frame right away. `load` fires once per page, so SPA
+// re-mounts of Home check readyState instead.
+//
+// Playback starts from JS (no autoplay attribute), so reduced motion and a
+// refused play() keep the poster. A failed load keeps it too: only a displayed
+// frame hides it.
 const heroVideoSrc = ref<string>()
 const heroVideo = ref<HTMLVideoElement>()
-const startHeroVideo = async () => {
+const heroBox = ref<HTMLElement>()
+const posterHidden = ref(false)
+let heroInView = true
+let frameCallback: number | undefined
+let fallbackRaf: number | undefined
+
+function playHeroVideo(): void {
+  const video = heroVideo.value
+  if (!video || !heroVideoSrc.value || reduceMotionQuery.matches || !heroInView) return
+  // Some frameworks don't map the `muted` attribute to the property, and
+  // browsers only autoplay a video that is muted.
+  video.muted = true
+  video.play().catch(() => {})
+}
+
+async function startHeroVideo(): Promise<void> {
+  if (reduceMotionQuery.matches) return
   heroVideoSrc.value = publicPath + 'video/steel-mrf-front-page.mp4'
   await nextTick()
-  // Reinforce the autoplay attribute: an explicit play() is the documented
-  // path for sources attached after mount. Rejections (e.g. hidden tab, where
-  // the browser defers playback until visible) are fine — autoplay takes over.
-  heroVideo.value?.play().catch(() => {})
+  playHeroVideo()
 }
+
+// `playing` fires before the frame is painted. requestVideoFrameCallback runs
+// once a frame went to the compositor. Without it, wait for currentTime to
+// move, then two animation frames so that frame had time to paint.
+function onHeroPlaying(): void {
+  const video = heroVideo.value
+  if (!video || posterHidden.value || frameCallback != null || fallbackRaf != null) return
+  // typeof, not `in`: the DOM types say every video has it, so `in` would
+  // narrow the fallback branch to never.
+  if (typeof video.requestVideoFrameCallback === 'function') {
+    frameCallback = video.requestVideoFrameCallback(() => {
+      frameCallback = undefined
+      posterHidden.value = true
+    })
+    return
+  }
+  const waitForTime = () => {
+    if (video.currentTime > 0) {
+      fallbackRaf = requestAnimationFrame(() => {
+        fallbackRaf = requestAnimationFrame(() => {
+          fallbackRaf = undefined
+          posterHidden.value = true
+        })
+      })
+    } else {
+      fallbackRaf = requestAnimationFrame(waitForTime)
+    }
+  }
+  waitForTime()
+}
+
+function cancelReveal(): void {
+  if (frameCallback != null) heroVideo.value?.cancelVideoFrameCallback(frameCallback)
+  if (fallbackRaf != null) cancelAnimationFrame(fallbackRaf)
+  frameCallback = undefined
+  fallbackRaf = undefined
+}
+
+// Reduced motion turned on while playing: stop and show the poster again.
+function onReduceMotionChange(): void {
+  if (reduceMotionQuery.matches) {
+    cancelReveal()
+    heroVideo.value?.pause()
+    posterHidden.value = false
+  } else if (heroVideoSrc.value) {
+    playHeroVideo()
+  } else {
+    startHeroVideo()
+  }
+}
+
+// Pause the video when the hero leaves the screen, play again when it's back.
+let heroObserver: IntersectionObserver | undefined
+
 onMounted(() => {
   if (document.readyState === 'complete') startHeroVideo()
   else window.addEventListener('load', startHeroVideo, { once: true })
+  reduceMotionQuery.addEventListener('change', onReduceMotionChange)
+  if (heroBox.value && 'IntersectionObserver' in window) {
+    heroObserver = new IntersectionObserver(([entry]) => {
+      heroInView = entry.isIntersecting
+      if (heroInView) playHeroVideo()
+      else heroVideo.value?.pause()
+    })
+    heroObserver.observe(heroBox.value)
+  }
 })
-onBeforeUnmount(() => window.removeEventListener('load', startHeroVideo))
+onBeforeUnmount(() => {
+  window.removeEventListener('load', startHeroVideo)
+  reduceMotionQuery.removeEventListener('change', onReduceMotionChange)
+  heroObserver?.disconnect()
+  cancelReveal()
+})
 
 onMounted(() => {
   countsStore.fetch()
@@ -145,20 +236,32 @@ onMounted(() => {
           </router-link>
         </div>
       </div>
-      <div class="hero-img">
-        <!-- The poster paints the hero immediately; the src is deferred to
-             `window` load (see heroVideoSrc) so the ~1 MB video never competes
-             with the critical CSS/JS/font/API downloads. -->
+      <div ref="heroBox" class="hero-img">
+        <!-- Decorative video, started from JS. The <img> poster sits on top and
+             fades out once the first frame is shown (see onHeroPlaying). The
+             src is deferred to `window` load (see heroVideoSrc). -->
         <video
           ref="heroVideo"
-          autoplay
           loop
           muted
           playsinline
-          preload="none"
+          preload="auto"
+          aria-hidden="true"
+          tabindex="-1"
+          disablepictureinpicture
+          disableremoteplayback
           :src="heroVideoSrc"
-          :poster="publicPath + 'video/steel-mrf-front-page-poster.webp'"
+          @playing="onHeroPlaying"
         ></video>
+        <img
+          class="hero-poster"
+          :class="{ 'hero-poster--hidden': posterHidden }"
+          :src="publicPath + 'video/steel-mrf-front-page-poster.webp'"
+          alt=""
+          width="1080"
+          height="720"
+          fetchpriority="high"
+        />
         <div class="hero-img-credit">RESSLab, EPFL</div>
       </div>
     </section>
