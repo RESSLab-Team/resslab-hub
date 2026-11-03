@@ -55,7 +55,7 @@ api:                    ## regenerate openapi.json, database-columns.json and fr
 	cd backend; uv run python -m resslab_hub.data.columns ../database-columns.json
 	$(MAKE) -C frontend api
 
-sample-data:            ## synthetic contribution batches into sample-data/ (EXPERIMENTS=15 OUTLIERS=3)
+sample-data:            ## test batches into sample-data/, from real records, self-checked (EXPERIMENTS=15 OUTLIERS=3)
 	$(MAKE) -C backend sample-data
 
 upload-data:            ## upload every CSV of the data repo into the local DB (erases the tables)
