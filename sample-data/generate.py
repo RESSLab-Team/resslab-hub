@@ -723,11 +723,9 @@ def seed_empty_mandatory(b: Invalid, r: int) -> Optional[Seeded]:
     )
 
 
-def seed_nan(b: Invalid, r: int, stats: dict) -> Optional[Seeded]:
-    # Only on a column with no range data: there, NaN makes the validator's
-    # range check raise and the rest of the file is not checked.
+def seed_nan(b: Invalid, r: int) -> Optional[Seeded]:
     def nullable(c):
-        return c.nullable and c.key not in stats and c.key not in RULE_COLUMNS
+        return c.nullable and c.key not in RULE_COLUMNS
 
     column = b.free(
         r, lambda c: nullable(c) and kind(c) == "number", lambda c: nullable(c)
@@ -883,7 +881,7 @@ def seed_list_without_brackets(b: Invalid, r: int) -> Optional[Seeded]:
     )
 
 
-def seeds_for(db: Database, stats: dict) -> list[tuple[str, Callable]]:
+def seeds_for(db: Database) -> list[tuple[str, Callable]]:
     seeds = [
         ("comma", seed_comma),
         ("text", seed_text_in_number),
@@ -893,7 +891,7 @@ def seeds_for(db: Database, stats: dict) -> list[tuple[str, Callable]]:
         ("date", seed_bad_date),
         ("empty", seed_empty_nullable),
         ("empty", seed_empty_mandatory),
-        ("nan", lambda b, r: seed_nan(b, r, stats)),
+        ("nan", seed_nan),
         ("marker", seed_na_mandatory),
         ("marker", seed_nr_mandatory_text),
         ("id", seed_id_with_space),
@@ -937,7 +935,6 @@ def flange_expects(
 def seed_invalid(
     db: Database,
     records: list[Record],
-    stats: dict,
     outliers: list[Expect],
     f2_ids: set[str],
 ) -> tuple[list[dict[str, str]], list[tuple[int, str]], list[Expect]]:
@@ -961,7 +958,7 @@ def seed_invalid(
     notes: list[tuple[int, str]] = []
     expects: list[Expect] = []
     second = 0
-    for label, seed in seeds_for(db, stats):
+    for label, seed in seeds_for(db):
         if label == "comma":
             # On a one-row batch, the comma would leave nothing else to check.
             outcome = seed(b, 1) if count >= 2 else None
@@ -1780,7 +1777,7 @@ def main() -> None:
         stem = Path(db.csv_path)
         write_csv(root / stem, columns, [r.values for r in records])
         bad_rows, seed_notes, invalid_expects = seed_invalid(
-            db, records, stats, outlier_expects, second_flange
+            db, records, outlier_expects, second_flange
         )
         write_csv(root / stem.with_suffix(".invalid.csv"), columns, bad_rows)
 
