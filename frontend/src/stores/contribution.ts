@@ -1,4 +1,5 @@
 import { defaultApi } from '@/plugins/axios'
+import { useAuthStore } from '@/stores/auth'
 import { useCurationStore } from '@/stores/curation'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES, DATA_REPOSITORY_URL } from '@/utils/contribution'
@@ -958,9 +959,10 @@ export const useContributionStore = defineStore('contribution', () => {
       return
     }
 
-    if (!detail.mine) {
+    if (!detail.mine && !useAuthStore().hasRole('curator')) {
       // The server would refuse the update anyway (403); say so before the
-      // person spends time editing.
+      // person spends time editing. A curator may fix anyone's submission,
+      // the backend allows it (#402).
       if (token !== loadToken) return
       loadError.value = 'not_mine'
       loadStatus.value = 'error'

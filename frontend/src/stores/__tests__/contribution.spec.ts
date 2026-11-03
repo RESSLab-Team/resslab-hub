@@ -6,6 +6,7 @@ import {
   NO_TEST_DATA_MESSAGE,
   useContributionStore
 } from '@/stores/contribution'
+import { useAuthStore } from '@/stores/auth'
 import { useDictionaryStore, type DictColumn } from '@/stores/dictionary'
 import { buildCsv, CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import type { IntakePlan } from '@/utils/intake'
@@ -990,7 +991,13 @@ describe('contribution store — editing an open submission', () => {
     vi.mocked(defaultApi.getContributionFile).mockResolvedValue({ data: CURVE } as never)
   })
 
+  /** Sign the visitor in with a role, the way the session would. */
+  function signedInAs(role: string) {
+    useAuthStore().user = { id: 'u1', email: 'u@example.org', role } as never
+  }
+
   it("refuses to load a submission that is not the visitor's", async () => {
+    signedInAs('contributor')
     vi.mocked(defaultApi.getContribution).mockResolvedValue({
       data: { ...DETAIL, mine: false }
     } as never)
@@ -1000,6 +1007,18 @@ describe('contribution store — editing an open submission', () => {
     expect(store.loadError).toBe('not_mine')
     expect(store.editing).toBe(false)
     expect(defaultApi.getContributionFile).not.toHaveBeenCalled()
+  })
+
+  it("loads someone else's submission when the visitor is a curator", async () => {
+    signedInAs('curator')
+    vi.mocked(defaultApi.getContribution).mockResolvedValue({
+      data: { ...DETAIL, mine: false }
+    } as never)
+    const store = useContributionStore()
+    await store.loadSubmission(7)
+    expect(store.loadError).not.toBe('not_mine')
+    expect(store.loadStatus).toBe('ready')
+    expect(store.editing).toBe(true)
   })
 
   /** The same submission with a curve for both experiments: ready to submit. */
