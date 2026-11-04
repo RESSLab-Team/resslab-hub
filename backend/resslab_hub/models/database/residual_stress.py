@@ -23,7 +23,7 @@ class ResidualStressQPCoefficient(Base):  # type: ignore
     __tablename__ = "residual_stress_qp_coefficient"
 
     residual_stress_id = Column(
-        String, ForeignKey("residual_stress.id"), primary_key=True, index=True
+        String, ForeignKey("residual_stress.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
@@ -34,7 +34,7 @@ class ResidualStressDistributionF1(Base):  # type: ignore
     __tablename__ = "residual_stress_distribution_f1"
 
     residual_stress_id = Column(
-        String, ForeignKey("residual_stress.id"), primary_key=True, index=True
+        String, ForeignKey("residual_stress.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
@@ -46,7 +46,7 @@ class ResidualStressDistributionF2(Base):  # type: ignore
     __tablename__ = "residual_stress_distribution_f2"
 
     residual_stress_id = Column(
-        String, ForeignKey("residual_stress.id"), primary_key=True, index=True
+        String, ForeignKey("residual_stress.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
@@ -58,7 +58,7 @@ class ResidualStressDistributionW1(Base):  # type: ignore
     __tablename__ = "residual_stress_distribution_w1"
 
     residual_stress_id = Column(
-        String, ForeignKey("residual_stress.id"), primary_key=True, index=True
+        String, ForeignKey("residual_stress.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 

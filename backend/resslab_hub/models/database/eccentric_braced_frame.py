@@ -23,7 +23,7 @@ class EccentricBracedFrameShearLinkAngle(Base):  # type: ignore
     __tablename__ = "eccentric_braced_frame_shear_link_angle"
 
     eccentric_braced_frame_id = Column(
-        String, ForeignKey("eccentric_braced_frame.id"), primary_key=True, index=True
+        String, ForeignKey("eccentric_braced_frame.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 

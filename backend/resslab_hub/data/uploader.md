@@ -2,7 +2,10 @@
 
 `upload_all` is what `make upload-data`, the `/upload` endpoint and the
 in-cluster CronJob run. It ends by recomputing the `*_count` flags of every
-main table, so specimens without curves show "no test data".
+main table, so specimens without curves show "no test data". It returns an
+`UploadReport`: the messages of the files that went in, and the paths of the
+ones that failed. A failed file does not stop the others. `main()` exits 1 and
+`/upload` answers 422 when the list is not empty.
 
 ```mermaid
 flowchart TD
@@ -15,7 +18,12 @@ flowchart TD
     E --> G[Collect all tuples]
     F --> G
 
-    G --> H[Expand wildcards]
+    G --> R0{--rebuild?}
+    R0 -->|Yes| R1{Every main CSV there?}
+    R1 -->|No| R2[Raise, nothing written]
+    R1 -->|Yes| R3[TRUNCATE the main tables of the run CASCADE]
+    R3 --> H
+    R0 -->|No| H[Expand wildcards]
     H --> H2[cap_series: keep N files per series type when --series-limit N]
     H2 --> I[Split into primary/subsidiary]
 
@@ -36,6 +44,7 @@ flowchart TD
 
     P --> T[recompute_count_flags]
     Q --> T
+    T --> U[Log a summary and the failed paths, return UploadReport]
 ```
 
 # The four uploaders
@@ -47,7 +56,7 @@ flowchart TD
         T2 -->|No| T3[Raise Error]
         T2 -->|Yes| T4[Create DB Session]
         T4 --> T5[For each row: convert types, session.merge]
-        T5 --> T6[Delete rows whose id is no longer in the CSV]
+        T5 --> T6[Delete rows whose id is no longer in the CSV, their curves first]
         T6 --> T7[Commit]
     end
 
@@ -57,7 +66,7 @@ flowchart TD
         C3 --> C4[Delete the parent's old rows]
         C4 --> C5[One COPY FROM STDIN for the whole file]
         C5 --> C6{Foreign key error?}
-        C6 -->|Yes| C7[Roll back, log, skip the file]
+        C6 -->|Yes| C7[Roll back, raise: upload_checked logs it and marks the file failed]
         C6 -->|No| C8[Commit]
     end
 

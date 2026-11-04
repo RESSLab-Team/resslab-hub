@@ -2,6 +2,7 @@
 CLI for uploading csv to database
 """
 
+import sys
 import traceback
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
@@ -15,7 +16,8 @@ from io import StringIO
 from logging import DEBUG, INFO, basicConfig, debug, error, getLogger, info, warning
 from multiprocessing import get_context
 from os import path, sep
-from typing import Any, Callable, List, Optional, Tuple
+from time import monotonic
+from typing import Any, Callable, List, NamedTuple, Optional, Tuple
 
 from sqlalchemy import (
     Boolean,
@@ -27,6 +29,7 @@ from sqlalchemy import (
     String,
     create_engine,
     delete,
+    text,
 )
 from sqlalchemy.orm import sessionmaker
 
@@ -80,6 +83,9 @@ from resslab_hub.utils.database import url
 
 engine = create_engine(url, echo=False)
 Session = sessionmaker(engine)
+
+LOG_FORMAT = "%(asctime)s [%(process)d] %(levelname)s: %(message)s"
+DEBUG_LOG_FORMAT = LOG_FORMAT + " %(filename)s:%(lineno)d"
 
 
 # os sched_getaffinity(0) returns the number of CPUs the process CAN use
@@ -151,7 +157,7 @@ def initializer(log_level=None, log_format=None):
     if log_level is None:
         log_level = logging.INFO
     if log_format is None:
-        log_format = "[%(process)d] %(levelname)s: %(message)s"
+        log_format = LOG_FORMAT
 
     logging.basicConfig(
         level=log_level,
@@ -222,21 +228,23 @@ class Type(Enum):
     DUCTILE_FRACTURE_TRIAX_SIMULATION = "ductile-fracture-triax-simulation"
 
 
+# Main-table type -> its model. A rebuild truncates these tables (the curve
+# tables follow through their foreign keys).
+MAIN_MODELS = {
+    Type.BRACE: Brace,
+    Type.COLUMN: ColumnEntity,
+    Type.CONNECTION: Connection,
+    Type.MATERIAL: Material,
+    Type.RESIDUAL_STRESS: ResidualStress,
+    Type.HSS_COLUMN: HSSColumn,
+    Type.ECCENTRIC_BRACED_FRAME: EccentricBracedFrame,
+    Type.TENSILE_COUPON: TensileCoupon,
+    Type.DUCTILE_FRACTURE: DuctileFracture,
+}
+
 # Main-table types: uploaded before everything else so the per-experiment
 # measurement rows have their foreign-key targets in place.
-PRIMARY_TYPES = frozenset(
-    {
-        Type.BRACE,
-        Type.COLUMN,
-        Type.CONNECTION,
-        Type.MATERIAL,
-        Type.RESIDUAL_STRESS,
-        Type.HSS_COLUMN,
-        Type.ECCENTRIC_BRACED_FRAME,
-        Type.TENSILE_COUPON,
-        Type.DUCTILE_FRACTURE,
-    }
-)
+PRIMARY_TYPES = frozenset(MAIN_MODELS)
 
 # Types never capped by upload_all's series_limit: the main tables plus the
 # one-per-folder dictionary/README files (capping those per Type would keep a
@@ -305,71 +313,67 @@ class TableUploader(Uploader):
         """
         file_path = get_abs_path(file_path)
         debug(f"Path to upload: {file_path}")
-        try:
-            encoding = get_file_encoding(file_path)
-            with (
-                open(file_path, encoding=encoding) as file,
-                engine.connect() as connection,
-                Session(bind=connection) as session,
-            ):
-                csv_reader = reader(file, strict=True)
-                headers = next(csv_reader)
-                id_index = headers.index(self.id_column_key)
-                ids = []
-                added_count, modified_count = 0, 0
+        encoding = get_file_encoding(file_path)
+        with (
+            open(file_path, encoding=encoding) as file,
+            engine.connect() as connection,
+            Session(bind=connection) as session,
+        ):
+            csv_reader = reader(file, strict=True)
+            headers = next(csv_reader)
+            id_index = headers.index(self.id_column_key)
+            ids = []
+            added_count, modified_count = 0, 0
 
-                for i, header in enumerate(headers):
-                    debug(f"Header {i}: '{header}'")
+            for i, header in enumerate(headers):
+                debug(f"Header {i}: '{header}'")
 
-                existing_ids = {row[0] for row in session.query(self.id_column).all()}
-                # derived flags have no CSV header; recomputed after the upload
-                derived = COUNT_FLAGS.get(self.base_model, {})
-                debug(
-                    f"Opened file {path.basename(file_path)}, "
-                    f"encoding: {encoding}, id_index: {id_index}"
-                )
-                # add new rows
-                for i, row in enumerate(csv_reader):
-                    debug(f"Row {i} length: {len(row)}")
-                    if len(row) < len(headers):
-                        debug(
-                            f"  Warning: Row {i} has fewer elements ({len(row)}) than "
-                            f"headers ({len(headers)})"
-                        )
-                    if is_empty_row(row):
-                        warning("skip empty line")
-                    else:
-                        ids.append(row[id_index])
-                        data = {
-                            column.key: self.__get_value(column, headers, row)
-                            for column in self.base_model.__table__.c
-                            if column.key not in derived
-                        }
-                        if row[id_index] in existing_ids:
-                            modified_count += 1
-                        else:
-                            added_count += 1
-                        session.merge(self.base_model(**data))
-                # remove outdated rows
-                removed_ids = existing_ids - set(ids)
-                if removed_ids:
-                    session.execute(
-                        delete(self.base_model).where(self.id_column.in_(removed_ids)),
+            existing_ids = {row[0] for row in session.query(self.id_column).all()}
+            # derived flags have no CSV header; recomputed after the upload
+            derived = COUNT_FLAGS.get(self.base_model, {})
+            debug(
+                f"Opened file {path.basename(file_path)}, "
+                f"encoding: {encoding}, id_index: {id_index}"
+            )
+            # add new rows
+            for i, row in enumerate(csv_reader):
+                debug(f"Row {i} length: {len(row)}")
+                if len(row) < len(headers):
+                    debug(
+                        f"  Warning: Row {i} has fewer elements ({len(row)}) than "
+                        f"headers ({len(headers)})"
                     )
-                    warning(f"deleted {removed_ids}")
-                session.commit()
-                info("Session commited")
-                return (
-                    f"{path.basename(file_path)}: {added_count}++|"
-                    f"{modified_count}**|{len(removed_ids)}--"
+                if is_empty_row(row):
+                    warning("skip empty line")
+                else:
+                    ids.append(row[id_index])
+                    data = {
+                        column.key: self.__get_value(column, headers, row)
+                        for column in self.base_model.__table__.c
+                        if column.key not in derived
+                    }
+                    if row[id_index] in existing_ids:
+                        modified_count += 1
+                    else:
+                        added_count += 1
+                    session.merge(self.base_model(**data))
+            # remove outdated rows
+            removed_ids = existing_ids - set(ids)
+            if removed_ids:
+                # The curves of a removed row go first, or their foreign
+                # key blocks the delete and the whole file rolls back.
+                for fk in derived.values():
+                    session.execute(delete(fk.class_).where(fk.in_(removed_ids)))
+                session.execute(
+                    delete(self.base_model).where(self.id_column.in_(removed_ids)),
                 )
-
-        except Exception as e:
-            error_traceback = traceback.format_exc()
-            error_message = f"Skipping {file_path} due to error: {e}"
-            error(error_message)
-            debug(f"Full traceback: \n{error_traceback}")
-            return f"{error_message} (see logs for details)"
+                warning(f"deleted {removed_ids}")
+            session.commit()
+            info("Session commited")
+            return (
+                f"{path.basename(file_path)}: {added_count}++|"
+                f"{modified_count}**|{len(removed_ids)}--"
+            )
 
     @staticmethod
     def __get_value(column: Column, headers: List[str], row: List[str]) -> Any:
@@ -489,39 +493,34 @@ class CsvFileUploader(Uploader):
         5. Handles transaction rollback on errors
         """
         file_path = get_abs_path(file_path)
-        try:
-            filename = self.__get_filename(file_path)
-            id = filename.removeprefix(self.filename_prefix).removesuffix(
-                self.filename_suffix
-            )
-            encoding = get_file_encoding(file_path)
-            with (
-                open(file_path, encoding=encoding) as file,
-                engine.connect() as connection,
-                Session(bind=connection) as session,
-            ):
-                reader = DictReader(file, strict=True)
-                session.execute(self.get_delete(id))
-                # The parent's rows are deleted and fully re-inserted, so there
-                # is no merge/identity to resolve. Build plain column->value
-                # mappings (no ORM objects) and stream them in with a single
-                # COPY -- far cheaper than batched INSERTs.
-                mappings = [
-                    self.get_instance(id, index, value)
-                    for index, value in enumerate(reader)
-                ]
-                try:
-                    if mappings:
-                        self.__copy(connection, mappings)
-                    session.commit()
-                    return path.basename(file_path)
-                except Exception:
-                    session.rollback()
-                    raise
-        except Exception as e:
-            error_message = f"skiping {file_path} due to error {e}"
-            error(error_message)
-            return error_message
+        filename = self.__get_filename(file_path)
+        id = filename.removeprefix(self.filename_prefix).removesuffix(
+            self.filename_suffix
+        )
+        encoding = get_file_encoding(file_path)
+        with (
+            open(file_path, encoding=encoding) as file,
+            engine.connect() as connection,
+            Session(bind=connection) as session,
+        ):
+            reader = DictReader(file, strict=True)
+            session.execute(self.get_delete(id))
+            # The parent's rows are deleted and fully re-inserted, so there
+            # is no merge/identity to resolve. Build plain column->value
+            # mappings (no ORM objects) and stream them in with a single
+            # COPY -- far cheaper than batched INSERTs.
+            mappings = [
+                self.get_instance(id, index, value)
+                for index, value in enumerate(reader)
+            ]
+            try:
+                if mappings:
+                    self.__copy(connection, mappings)
+                session.commit()
+                return path.basename(file_path)
+            except Exception:
+                session.rollback()
+                raise
 
     def __copy(self, connection, mappings: List[dict]) -> None:
         """
@@ -662,12 +661,18 @@ class ReadmeUploader(Uploader):
 
 
 def upload_one(input_type: Type, filename: str) -> str:
+    """Upload one file and return its status message (see upload_checked)."""
+    return upload_checked(input_type, filename)[0]
+
+
+def upload_checked(input_type: Type, filename: str) -> Tuple[str, bool]:
     """
     Handles individual file uploads based on type
     Process:
     1. Matches type to appropriate uploader
     2. Configures uploader with correct table/measurement mappings
-    3. Returns upload status message
+    3. Returns the upload status message, and False when the file failed
+       (the error is logged, the file's transaction is rolled back)
 
     For measurement data:
     - Defines foreign key relationships
@@ -1018,12 +1023,12 @@ def upload_one(input_type: Type, filename: str) -> str:
             case _:
                 raise NotImplementedError(f"unknown type {input_type}")
 
-        return uploader.upload_one(filename)
+        return uploader.upload_one(filename), True
     except Exception as e:
-        error_message = f"Error in upload_one: {e}"
-        error(error_message)
-        # Re-raise with more context
-        raise Exception(f"Failed to upload {filename} as {input_type}: {str(e)}")
+        message = f"Skipping {filename} due to error: {e}"
+        error(message)
+        debug(f"Full traceback: \n{traceback.format_exc()}")
+        return message, False
 
 
 def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
@@ -1280,13 +1285,13 @@ def get_args_all(input_type: Type, filename: str) -> List[Tuple[Type, str]]:
             return [(input_type, filename)]
 
 
-def upload_parallel(upload_args, cpu=None):
+def upload_parallel(upload_args, cpu=None) -> List[Tuple[str, str, bool]]:
     """
     Parallel processing of uploads
     1. Creates process pool based on CPU count
     2. Initializes separate DB connections per process
     3. Distributes upload tasks across processes
-    4. Collects results from all processes
+    4. Collects (file path, message, ok) from all processes
     """
     n_workers = cpu if cpu is not None else get_safe_cpu_count()
     current_log_level = getLogger().level
@@ -1311,7 +1316,11 @@ def upload_parallel(upload_args, cpu=None):
         initializer=initializer,
         initargs=(current_log_level, current_log_format),
     ) as pool:
-        return pool.starmap(upload_one, upload_args, chunksize=1)
+        results = pool.starmap(upload_checked, upload_args, chunksize=1)
+    return [
+        (file_path, message, ok)
+        for (_, file_path), (message, ok) in zip(upload_args, results)
+    ]
 
 
 def cap_series(
@@ -1333,27 +1342,85 @@ def cap_series(
     return kept
 
 
+class UploadReport(NamedTuple):
+    """What upload_all did: the messages of the files that went in, and the
+    paths (relative to the upload root) of the ones that failed. The error
+    text can hold SQL, so it stays in the log (#264 H3)."""
+
+    messages: List[str]
+    failed: List[str]
+
+
+def is_all_type(input_type: Type) -> bool:
+    return input_type is Type.ALL or input_type.value.startswith("all-")
+
+
+def truncate_main_tables(wildcard_args: List[Tuple[Type, str]]) -> None:
+    """
+    Empty the main tables a rebuild will refill. Refuses (before writing
+    anything) when one of their main CSVs is missing, so an empty or half
+    copied folder never empties the database for nothing.
+    """
+    main_args = [arg for arg in wildcard_args if arg[0] in PRIMARY_TYPES]
+    missing = [file_path for _, file_path in main_args if not path.isfile(file_path)]
+    if missing:
+        raise FileNotFoundError(f"rebuild refused, main CSV missing: {missing}")
+    tables = sorted(
+        {MAIN_MODELS[upload_type].__table__.name for upload_type, _ in main_args}
+    )
+    if not tables:
+        raise ValueError("rebuild refused, no main table to rebuild")
+    names = ", ".join(f'"{table}"' for table in tables)
+    # CASCADE also empties the curve tables, through their foreign keys.
+    with Session() as session:
+        session.execute(text(f"TRUNCATE {names} CASCADE"))
+        session.commit()
+    warning(f"rebuild: truncated {names} (and their curve tables)")
+
+
 def upload_all(
-    input_type: Type, filenames: List[str], series_limit: Optional[int] = None
-):
+    input_type: Type,
+    filenames: List[str],
+    series_limit: Optional[int] = None,
+    rebuild: bool = False,
+) -> UploadReport:
     """
     Main upload orchestration:
     1. Collects all (Type, filepath) tuples via get_args_all
-    2. Expands wildcards into actual filenames
-    3. Caps measurement files per series type when series_limit is given
-    4. Splits into primary (main tables) and subsidiary (measurements) types
-    5. Processes primary tables first (required for foreign key constraints)
-    6. Processes subsidiary data in parallel
+    2. With rebuild, empties the main tables of the run (and their curves)
+    3. Expands wildcards into actual filenames
+    4. Caps measurement files per series type when series_limit is given
+    5. Splits into primary (main tables) and subsidiary (measurements) types
+    6. Processes primary tables first (required for foreign key constraints)
+    7. Processes subsidiary data in parallel
+    8. Recomputes the count flags and reports the files that failed
     """
+    if rebuild and not is_all_type(input_type):
+        raise ValueError(
+            f"--rebuild needs an all or all-* type, not {input_type.value}"
+        )
 
+    started = monotonic()
     cpu = get_safe_cpu_count()
 
     info(f"Number of CPUs available: {cpu}")
 
     wildcard_args = [
-        arg for filename in filenames for arg in get_args_all(input_type, filename)
+        (arg[0], arg[1], filename)
+        for filename in filenames
+        for arg in get_args_all(input_type, filename)
     ]
-    args = [(arg[0], filename) for arg in wildcard_args for filename in iglob(arg[1])]
+    if rebuild:
+        truncate_main_tables([(t, p) for t, p, _ in wildcard_args])
+
+    # A failed file is reported relative to its upload root (the data folder
+    # for an all-* type, the file's own folder for a plain one).
+    roots = {}
+    args = []
+    for upload_type, pattern, root in wildcard_args:
+        for file_path in iglob(pattern):
+            roots[file_path] = root if is_all_type(input_type) else path.dirname(root)
+            args.append((upload_type, file_path))
 
     if series_limit is not None:
         args = cap_series(args, series_limit)
@@ -1365,17 +1432,26 @@ def upload_all(
     subsidiary_results = (
         upload_parallel(subsidiary_types, cpu) if subsidiary_types else []
     )
+    results = primary_results + subsidiary_results
 
-    all_results = [
-        result for result in (primary_results + subsidiary_results) if result
-    ]
-    info(f"Uploaded all: {all_results}")
+    # The failed files' messages hold the error text: log only, not reported.
+    messages = [message for _, message, ok in results if message and ok]
+    failed = sorted(
+        path.relpath(file_path, roots[file_path]).replace(sep, "/")
+        for file_path, _, ok in results
+        if not ok
+    )
+    debug(f"Uploaded all: {messages}")
 
     with Session() as session:
         recompute_count_flags(session)
         session.commit()
 
-    return [primary_results, subsidiary_results]
+    info(f"{len(results)} files, {len(failed)} failed, {monotonic() - started:.1f} s")
+    for file_path in failed:
+        error(f"failed: {file_path}")
+
+    return UploadReport(messages, failed)
 
 
 def main():
@@ -1391,6 +1467,13 @@ def main():
         "dictionaries and READMEs are always uploaded in full (used to build "
         "the lightweight per-worktree database template)",
     )
+    parser.add_argument(
+        "--rebuild",
+        action="store_true",
+        help="empty the main tables of the run (and their curves) first, then "
+        "upload everything again; only for all and all-* types. Refuses when a "
+        "main CSV is missing",
+    )
 
     args = parser.parse_args()
     input_type: Type = args.type
@@ -1399,13 +1482,18 @@ def main():
     log_level = DEBUG if args.debug else INFO
     basicConfig(
         level=log_level,
-        format="[%(process)d] %(levelname)s:  %(message)s %(filename)s:%(lineno)d",
+        format=DEBUG_LOG_FORMAT if args.debug else LOG_FORMAT,
     )
 
     debug(f"Connecting to {engine.url}")
     debug(f"Log level set to {log_level}")
 
-    upload_all(input_type, filenames, series_limit=args.series_limit)
+    report = upload_all(
+        input_type, filenames, series_limit=args.series_limit, rebuild=args.rebuild
+    )
+    # Every file ran; a non-zero exit marks the CronJob as failed.
+    if report.failed:
+        sys.exit(1)
 
 
 # Run with `python -m resslab_hub.data.uploader <type> <files...>`. The guard

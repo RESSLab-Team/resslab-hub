@@ -19,9 +19,7 @@ from resslab_hub.utils.database import Base
 class HSSColumnMomentRotation(Base):  # type: ignore
     __tablename__ = "hss_column_moment_rotation"
 
-    hss_column_id = Column(
-        String, ForeignKey("hss_column.id"), primary_key=True, index=True
-    )
+    hss_column_id = Column(String, ForeignKey("hss_column.id"), primary_key=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     rotation = Column(Double, nullable=False)

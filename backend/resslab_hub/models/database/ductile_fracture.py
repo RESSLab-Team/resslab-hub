@@ -22,7 +22,7 @@ class DuctileFractureForceElongation(Base):  # type: ignore
     __tablename__ = "ductile_fracture_force_elongation"
 
     ductile_fracture_id = Column(
-        String, ForeignKey("ductile_fracture.id"), primary_key=True, index=True
+        String, ForeignKey("ductile_fracture.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
@@ -34,7 +34,7 @@ class DuctileFractureForceElongationSimulation(Base):  # type: ignore
     __tablename__ = "ductile_fracture_force_elongation_simulation"
 
     ductile_fracture_id = Column(
-        String, ForeignKey("ductile_fracture.id"), primary_key=True, index=True
+        String, ForeignKey("ductile_fracture.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
@@ -46,7 +46,7 @@ class DuctileFractureForceRadial(Base):  # type: ignore
     __tablename__ = "ductile_fracture_force_radial"
 
     ductile_fracture_id = Column(
-        String, ForeignKey("ductile_fracture.id"), primary_key=True, index=True
+        String, ForeignKey("ductile_fracture.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
@@ -58,7 +58,7 @@ class DuctileFractureForceRadialSimulation(Base):  # type: ignore
     __tablename__ = "ductile_fracture_force_radial_simulation"
 
     ductile_fracture_id = Column(
-        String, ForeignKey("ductile_fracture.id"), primary_key=True, index=True
+        String, ForeignKey("ductile_fracture.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
@@ -70,7 +70,7 @@ class DuctileFractureEpeqSimulation(Base):  # type: ignore
     __tablename__ = "ductile_fracture_epeq_simulation"
 
     ductile_fracture_id = Column(
-        String, ForeignKey("ductile_fracture.id"), primary_key=True, index=True
+        String, ForeignKey("ductile_fracture.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
@@ -82,7 +82,7 @@ class DuctileFractureLodeSimulation(Base):  # type: ignore
     __tablename__ = "ductile_fracture_lode_simulation"
 
     ductile_fracture_id = Column(
-        String, ForeignKey("ductile_fracture.id"), primary_key=True, index=True
+        String, ForeignKey("ductile_fracture.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
@@ -94,7 +94,7 @@ class DuctileFractureTriaxSimulation(Base):  # type: ignore
     __tablename__ = "ductile_fracture_triax_simulation"
 
     ductile_fracture_id = Column(
-        String, ForeignKey("ductile_fracture.id"), primary_key=True, index=True
+        String, ForeignKey("ductile_fracture.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 

@@ -33,10 +33,20 @@ database" in the [root README](../README.md) for the clone and the Git LFS
 note.
 
 ```bash
-make upload-data          # everything, erases and refills every table, ~1 min
+make upload-data          # everything, ~1 min
+make upload-data REBUILD=1  # empty the data tables first, then everything
 make upload-data-light    # one measurement file per series type, ~30 s
 make upload-brace         # one component, see make help for the others
 ```
+
+A plain upload updates the rows of each file and deletes the main rows that
+left a main CSV, with their curves. It does not see a curve file that left the
+repo. A rebuild (`REBUILD=1`, or `--rebuild`) empties the main tables of the
+run and their curve tables, then uploads everything again. So nothing stays
+from files that left the repo. It refuses to start when a main CSV is missing.
+
+A file that fails does not stop the others. The uploader logs the error, and
+at the end it logs one line per failed file and exits with code 1.
 
 The uploader is a module of the package, so it also runs from the backend
 image:
@@ -44,6 +54,7 @@ image:
 ```bash
 python -m resslab_hub.data.uploader all <path to resslab-hub-data>
 python -m resslab_hub.data.uploader all <path> --series-limit 1   # the light variant
+python -m resslab_hub.data.uploader all <path> --rebuild           # empty, then refill
 python -m resslab_hub.data.uploader brace <path>/braces/steel_braces.csv --debug
 ```
 
@@ -54,18 +65,30 @@ The first argument is a type from the `Type` enum in
 
 ### Upload data to a deployed environment (dev, stage, prod)
 
-Do not tunnel and upload from your laptop. Each environment has a suspended
-CronJob `resslab-hub-upload-data-<env>` that does the same upload from inside
-the cluster, next to the database. In the ArgoCD UI, open the environment's
-application, find that CronJob and use the `create-job` action. It runs the
-same backend image the environment serves, on the CSV data image built from
-the `main` branch of the resslab-hub-data repo (`resslab-hub-data:main`, the
-only branch, for every environment).
+Do not tunnel and upload from your laptop. Two things keep the deployed
+data up to date:
+
+- On each push to `main`, the CI of the data repo sends the changed files to
+  `POST /upload` (`type=all`, a tar of only those files). The real repo sends
+  to prod and stage, the test fork sends to dev. `/upload` answers 200 when
+  every file went in. It answers 422 with the list of failed paths when some
+  failed (the good files are still written). Use `curl --fail-with-body` to
+  see that list in the CI log.
+- Each night at 3 am, the CronJob `resslab-hub-upload-data-<env>` runs the
+  upload with `--rebuild` from inside the cluster, next to the database. It
+  cleans what the pushes miss: a deleted curve file, a failed push, a manual
+  edit. It runs the backend image of the environment, on the CSV data image
+  built from the `main` branch of the resslab-hub-data repo
+  (`resslab-hub-data:main`, the only branch, for every environment). To run
+  it now, open the application of the environment in the ArgoCD UI, find
+  the CronJob and use the `create-job` action. If a file fails, the job
+  exits with code 1 and ArgoCD shows it as failed.
 
 Two things to know:
 
-- The job replaces the rows it owns, table by table. The site keeps serving
-  during the run.
+- During a rebuild, the tables are empty or partly full for a few minutes.
+  The site keeps serving, but a request in that window can see partial data.
+  That is why the job runs at night.
 - The backend caches responses per process for one hour, so the new data can
   take up to an hour to show. Restart the backend pods from ArgoCD if you need
   it right away.
@@ -98,7 +121,7 @@ from `docs/auth.md`. Watch the quoting of `SMTP_USER`: double quotes turn the
 backslash into a newline. To upload SEM images to the CDN, add the `S3_*`
 block from `docs/sem-images.md`.
 
-Then from `backend/`, run `make upload-data`. Note: it **erases** existing data in the tables it touches.
+Then from `backend/`, run `make upload-data`. With `REBUILD=1`, it first empties the data tables it touches.
 
 ## Validate a component folder
 
