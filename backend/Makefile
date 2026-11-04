@@ -126,8 +126,8 @@ precompute-sem:         ## SEM TIFs to WebP + dimple JSONs in sem/_webp/; withou
 precompute-fracture-figures: ## redraw the per-specimen ductile-fracture SVGs (committed)
 	uv run --group figures python data/precompute_fracture_figures.py $(RESSLAB_DATA_DIR)
 
-upload-data:            ## upload everything from RESSLAB_DATA_DIR (erases the tables, ~1 min)
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR)
+upload-data:            ## upload everything from RESSLAB_DATA_DIR; REBUILD=1 empties the tables first (~1 min)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR) $(if $(REBUILD),--rebuild)
 
 upload-data-light:      ## same with one measurement file per series type (~30 s); the ~20 MB dataset behind make db-template-light
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR) --series-limit 1

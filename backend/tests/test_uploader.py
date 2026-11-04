@@ -14,6 +14,7 @@ from decimal import Decimal
 
 import pytest
 from sqlalchemy import Boolean, Column, Date, Numeric, SmallInteger, String
+from sqlalchemy.exc import OperationalError
 
 from resslab_hub.data.count_flags import recompute_count_flags
 from resslab_hub.data.uploader import (
@@ -22,11 +23,13 @@ from resslab_hub.data.uploader import (
     Type,
     Uploader,
     cap_series,
+    main,
     status_value,
     upload_all,
     upload_one,
 )
 from resslab_hub.models.database.brace import Brace, BraceDisplacement
+from resslab_hub.models.database.column import ColumnEntity
 from tests.conftest import write_main_csv, write_measurement_csv
 
 # The conversion routine is a name-mangled private static method; bind it once.
@@ -419,6 +422,133 @@ def test_upload_all_recomputes_flags(tmp_path, db_session):
 
     flags = {b.id: b.displacement_count for b in db_session.query(Brace).all()}
     assert flags == {"B1": 1, "B2": 0}
+
+
+# ---------------------------------------------------------------------------
+# Removed rows, failed files and --rebuild (#405)
+# ---------------------------------------------------------------------------
+CURVE_HEADERS = ["Displacement [mm]", "Force [kN]"]
+
+
+def _braces_folder(tmp_path, ids, curves):
+    """A data-repo-like folder: braces/steel_braces.csv with ``ids`` and one
+    force_displacement curve per id in ``curves``."""
+    root = tmp_path / "braces"
+    measurements = root / "force_displacement"
+    measurements.mkdir(parents=True, exist_ok=True)
+    write_main_csv(root / "steel_braces.csv", Brace, [{"id": i} for i in ids])
+    for curve_id in curves:
+        write_measurement_csv(
+            measurements / f"{curve_id}.csv", CURVE_HEADERS, [["0.0", "0.0"]]
+        )
+    return root
+
+
+def _curve_parents(db_session):
+    db_session.expire_all()
+    parents = {row.brace_id for row in db_session.query(BraceDisplacement).all()}
+    # End the read transaction: its lock would block the TRUNCATE of a rebuild.
+    db_session.rollback()
+    return parents
+
+
+def test_removed_main_row_takes_its_curves(tmp_path, db_session):
+    root = _braces_folder(tmp_path, ["B1", "B2"], ["B1", "B2"])
+    upload_all(Type.ALL_BRACE, [str(tmp_path)])
+    assert _curve_parents(db_session) == {"B1", "B2"}
+
+    # B1 leaves the main CSV: before, its curves blocked the delete and the
+    # whole file rolled back.
+    write_main_csv(root / "steel_braces.csv", Brace, [{"id": "B2"}])
+    result = upload_one(Type.BRACE, str(root / "steel_braces.csv"))
+
+    assert "Skipping" not in result
+    assert "1--" in result
+    assert {b.id for b in db_session.query(Brace).all()} == {"B2"}
+    assert _curve_parents(db_session) == {"B2"}
+
+
+def test_failed_file_is_reported(tmp_path, db_session):
+    # X has no main row: its COPY breaks the foreign key.
+    _braces_folder(tmp_path, ["B1"], ["B1", "X"])
+
+    report = upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    assert report.failed == ["braces/force_displacement/X.csv"]
+    assert _curve_parents(db_session) == {"B1"}
+    # The error text stays in the log, never in the report.
+    assert not [m for m in report.messages if "Skipping" in m]
+
+
+def test_main_exits_1_on_a_failed_file(tmp_path, db_session, monkeypatch):
+    _braces_folder(tmp_path, ["B1"], ["B1", "X"])
+    monkeypatch.setattr("sys.argv", ["uploader", Type.ALL_BRACE.value, str(tmp_path)])
+
+    with pytest.raises(SystemExit) as exit_info:
+        main()
+
+    assert exit_info.value.code == 1
+    assert _curve_parents(db_session) == {"B1"}
+
+
+def test_main_exits_0_when_every_file_went_in(tmp_path, db_session, monkeypatch):
+    _braces_folder(tmp_path, ["B1"], ["B1"])
+    monkeypatch.setattr("sys.argv", ["uploader", Type.ALL_BRACE.value, str(tmp_path)])
+
+    main()  # no SystemExit
+
+    assert _curve_parents(db_session) == {"B1"}
+
+
+def test_rebuild_drops_what_left_the_repo(tmp_path, db_session):
+    root = _braces_folder(tmp_path, ["B1", "B2"], ["B1", "B2"])
+    # Another component's row: a brace rebuild must leave it alone.
+    columns_csv = tmp_path / "steel_columns.csv"
+    write_main_csv(columns_csv, ColumnEntity, [{"id": "C1"}])
+    upload_one(Type.COLUMN, str(columns_csv))
+    upload_all(Type.ALL_BRACE, [str(tmp_path)])
+    assert _curve_parents(db_session) == {"B1", "B2"}
+
+    # B1's curve file leaves the repo. A plain upload never sees it.
+    (root / "force_displacement" / "B1.csv").unlink()
+    report = upload_all(Type.ALL_BRACE, [str(tmp_path)], rebuild=True)
+
+    assert report.failed == []
+    assert _curve_parents(db_session) == {"B2"}
+    flags = {b.id: b.displacement_count for b in db_session.query(Brace).all()}
+    assert flags == {"B1": 0, "B2": 1}
+    assert [c.id for c in db_session.query(ColumnEntity).all()] == ["C1"]
+
+
+def test_rebuild_refuses_without_the_main_csv(tmp_path, db_session):
+    root = _braces_folder(tmp_path, ["B1"], ["B1"])
+    upload_all(Type.ALL_BRACE, [str(tmp_path)])
+
+    (root / "steel_braces.csv").unlink()
+    with pytest.raises(FileNotFoundError):
+        upload_all(Type.ALL_BRACE, [str(tmp_path)], rebuild=True)
+
+    db_session.expire_all()
+    assert [b.id for b in db_session.query(Brace).all()] == ["B1"]
+    assert _curve_parents(db_session) == {"B1"}
+
+
+def test_rebuild_fails_instead_of_waiting_for_a_lock(tmp_path, db_session, monkeypatch):
+    _braces_folder(tmp_path, ["B1"], ["B1"])
+    upload_all(Type.ALL_BRACE, [str(tmp_path)])
+    monkeypatch.setattr("resslab_hub.data.uploader.REBUILD_LOCK_TIMEOUT", "1s")
+
+    # An open transaction that read the braces holds a lock the TRUNCATE needs.
+    db_session.query(Brace).all()
+    with pytest.raises(OperationalError, match="lock timeout"):
+        upload_all(Type.ALL_BRACE, [str(tmp_path)], rebuild=True)
+
+    assert _curve_parents(db_session) == {"B1"}  # nothing was truncated
+
+
+def test_rebuild_refuses_a_plain_type(tmp_path):
+    with pytest.raises(ValueError):
+        upload_all(Type.BRACE_DISPLACEMENT, [str(tmp_path / "B1.csv")], rebuild=True)
 
 
 # ---------------------------------------------------------------------------

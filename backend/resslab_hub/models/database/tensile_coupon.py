@@ -21,7 +21,7 @@ class TensileCouponStressStrain(Base):  # type: ignore
     __tablename__ = "tensile_coupon_stress_strain"
 
     tensile_coupon_id = Column(
-        String, ForeignKey("tensile_coupon.id"), primary_key=True, index=True
+        String, ForeignKey("tensile_coupon.id"), primary_key=True
     )
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 

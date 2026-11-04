@@ -18,6 +18,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 
 from resslab_hub import __name__ as name
 from resslab_hub import __version__
@@ -110,16 +111,25 @@ async def create_upload_file(
     try:
         with TemporaryDirectory() as tmpdir:
             safe_extract_targz(file.file, tmpdir)
-            [primary_uploads, secondary_uploads] = upload_all(type, [tmpdir])
-            # New data is live: expire every browser-cached data response.
+            # In a thread: an upload takes minutes, and the event loop must
+            # keep answering the other requests meanwhile.
+            report = await run_in_threadpool(upload_all, type, [tmpdir])
+            # The good files are written even when some failed: new data is
+            # live, expire every browser-cached data response.
             bump_data_version()
+            if report.failed:
+                # Only the paths: the error text stays in the log (#264 H3).
+                return JSONResponse(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    content={
+                        "message": "Some files failed, see the backend log",
+                        "failed": report.failed,
+                        "uploads": report.messages,
+                    },
+                )
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
-                content={
-                    "message": "Upload successful",
-                    "primary_uploads": primary_uploads,
-                    "secondary_uploads": secondary_uploads,
-                },
+                content={"message": "Upload successful", "uploads": report.messages},
             )
     except ArchiveTooLarge as exc:
         raise HTTPException(
