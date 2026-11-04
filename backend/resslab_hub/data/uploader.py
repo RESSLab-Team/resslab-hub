@@ -1355,6 +1355,12 @@ def is_all_type(input_type: Type) -> bool:
     return input_type is Type.ALL or input_type.value.startswith("all-")
 
 
+# How long a rebuild waits for its TRUNCATE lock. Without a limit, one open
+# transaction on these tables makes the job hang, and Postgres queues every
+# new read behind the waiting TRUNCATE, so the site stops answering too.
+REBUILD_LOCK_TIMEOUT = "30s"
+
+
 def truncate_main_tables(wildcard_args: List[Tuple[Type, str]]) -> None:
     """
     Empty the main tables a rebuild will refill. Refuses (before writing
@@ -1372,7 +1378,9 @@ def truncate_main_tables(wildcard_args: List[Tuple[Type, str]]) -> None:
         raise ValueError("rebuild refused, no main table to rebuild")
     names = ", ".join(f'"{table}"' for table in tables)
     # CASCADE also empties the curve tables, through their foreign keys.
+    # Past the timeout, Postgres raises and nothing is truncated.
     with Session() as session:
+        session.execute(text(f"SET LOCAL lock_timeout = '{REBUILD_LOCK_TIMEOUT}'"))
         session.execute(text(f"TRUNCATE {names} CASCADE"))
         session.commit()
     warning(f"rebuild: truncated {names} (and their curve tables)")

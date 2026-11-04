@@ -14,6 +14,7 @@ from decimal import Decimal
 
 import pytest
 from sqlalchemy import Boolean, Column, Date, Numeric, SmallInteger, String
+from sqlalchemy.exc import OperationalError
 
 from resslab_hub.data.count_flags import recompute_count_flags
 from resslab_hub.data.uploader import (
@@ -530,6 +531,19 @@ def test_rebuild_refuses_without_the_main_csv(tmp_path, db_session):
     db_session.expire_all()
     assert [b.id for b in db_session.query(Brace).all()] == ["B1"]
     assert _curve_parents(db_session) == {"B1"}
+
+
+def test_rebuild_fails_instead_of_waiting_for_a_lock(tmp_path, db_session, monkeypatch):
+    _braces_folder(tmp_path, ["B1"], ["B1"])
+    upload_all(Type.ALL_BRACE, [str(tmp_path)])
+    monkeypatch.setattr("resslab_hub.data.uploader.REBUILD_LOCK_TIMEOUT", "1s")
+
+    # An open transaction that read the braces holds a lock the TRUNCATE needs.
+    db_session.query(Brace).all()
+    with pytest.raises(OperationalError, match="lock timeout"):
+        upload_all(Type.ALL_BRACE, [str(tmp_path)], rebuild=True)
+
+    assert _curve_parents(db_session) == {"B1"}  # nothing was truncated
 
 
 def test_rebuild_refuses_a_plain_type(tmp_path):

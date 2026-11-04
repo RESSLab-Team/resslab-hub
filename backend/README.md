@@ -44,6 +44,8 @@ left a main CSV, with their curves. It does not see a curve file that left the
 repo. A rebuild (`REBUILD=1`, or `--rebuild`) empties the main tables of the
 run and their curve tables, then uploads everything again. So nothing stays
 from files that left the repo. It refuses to start when a main CSV is missing.
+It also stops, and empties nothing, when another transaction holds the tables
+for more than 30 s.
 
 A file that fails does not stop the others. The uploader logs the error, and
 at the end it logs one line per failed file and exits with code 1.
