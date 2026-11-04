@@ -17,16 +17,20 @@ install:                ## uv sync
 dev:                    ## uvicorn with reload on BACKEND_PORT (default 8000); log level info, debug would log every SQL statement
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run uvicorn resslab_hub.main:app --reload --log-level info --port $(BACKEND_PORT)
 
-test:                   ## pytest (needs the database, uses POSTGRES_TEST_DB)
-	uv run pytest
+# Tunnels POSTGRES_HOST:POSTGRES_PORT through the sandbox proxy for agents;
+# outside the Claude Code sandbox it just runs the command.
+WITH_DB = python3 ../scripts/with-db.py
+
+test:                   ## pytest (needs the database, uses POSTGRES_TEST_DB; reachable from the agent sandbox through scripts/with-db.py)
+	$(WITH_DB) uv run pytest
 
 test-cov:               ## pytest with coverage: terminal summary + HTML report in htmlcov/index.html
-	uv run pytest --cov --cov-report=term-missing --cov-report=html
+	$(WITH_DB) uv run pytest --cov --cov-report=term-missing --cov-report=html
 
 ROWS ?= 5000
 ROUNDS ?= 50
 benchmark:              ## performance benchmark against a throwaway DB (needs make dev-database); make benchmark ROWS=20000 ROUNDS=100
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m benchmark.benchmark --rows $(ROWS) --rounds $(ROUNDS)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" $(WITH_DB) uv run python -m benchmark.benchmark --rows $(ROWS) --rounds $(ROUNDS)
 
 BENCH_DB ?= braces
 BENCH_ROWS ?= 10000

@@ -6,7 +6,8 @@ These tests need a real PostgreSQL: the uploader bulk-loads through
 emulates. They run against the local dev database (``make dev-database``) using
 the same credentials as the app (read from ``secrets/.env``), but the database
 name is overridden to a throwaway ``resslab_hub_test`` that is created and
-dropped around the test session, so the real data is never touched.
+dropped around the test session, so the real data is never touched. CONNECT on
+it is revoked from PUBLIC, so only the role that created it can connect.
 """
 
 import csv
@@ -75,6 +76,8 @@ def _database():
     with admin.connect() as conn:
         conn.execute(text(f'DROP DATABASE IF EXISTS "{TEST_DB}"'))
         conn.execute(text(f'CREATE DATABASE "{TEST_DB}"'))
+        # Same as wt-db.sh does for the branch clone: only the owner connects.
+        conn.execute(text(f'REVOKE CONNECT ON DATABASE "{TEST_DB}" FROM PUBLIC'))
     admin.dispose()
 
     # Importing the app registers every ORM table on ``Base.metadata``.
