@@ -70,21 +70,26 @@ The first argument is a type from the `Type` enum in
 Do not tunnel and upload from your laptop. Two things keep the deployed
 data up to date:
 
-- On each push to `main`, the CI of the data repo sends the changed files to
-  `POST /upload` (`type=all`, a tar of only those files). The real repo sends
-  to prod and stage, the test fork sends to dev. `/upload` answers 200 when
-  every file went in. It answers 422 with the list of failed paths when some
-  failed (the good files are still written). Use `curl --fail-with-body` to
-  see that list in the CI log.
-- Each night at 3 am, the CronJob `resslab-hub-upload-data-<env>` runs the
-  upload with `--rebuild` from inside the cluster, next to the database. It
-  cleans what the pushes miss: a deleted curve file, a failed push, a manual
-  edit. It runs the backend image of the environment, on the CSV data image
-  built from the `main` branch of the resslab-hub-data repo
-  (`resslab-hub-data:main`, the only branch, for every environment). To run
-  it now, open the application of the environment in the ArgoCD UI, find
-  the CronJob and use the `create-job` action. If a file fails, the job
-  exits with code 1 and ArgoCD shows it as failed.
+- On each push to `main`, the `upload.yml` workflow of the data repo sends
+  the changed files to `POST /upload` (`type=all`, a tar of only those
+  files). The hubs it sends to are in the repository variable
+  `UPLOAD_TARGETS`, each with the name of the secret that holds its
+  `API_PASSWORD`. The real repo sends to prod and stage, the test fork
+  `EPFL-ENAC/resslab-hub-data-test` sends to dev. Without the variable, the
+  workflow does nothing. `/upload` answers 200 when every file went in. It
+  answers 422 with the list of failed paths when some failed (the good files
+  are still written), and the workflow shows them as errors.
+- Each night at 03:00 UTC, the CronJob `resslab-hub-upload-data-<env>` runs
+  the upload with `--rebuild` from inside the cluster, next to the database.
+  It cleans what the pushes miss: a deleted curve file, a failed push, a
+  manual edit. It runs the backend image of the environment, on the CSV data
+  image built from the `main` branch of the data repo (the test fork's image
+  on dev). Only dev runs it each night for now (a patch in its overlay in
+  `enack8s-app-config`). On stage and prod the CronJob stays suspended until
+  they run a backend that knows `--rebuild`. To run it now, open the
+  application of the environment in the ArgoCD UI, find the CronJob and use
+  the `create-job` action. If a file fails, the job exits with code 1 and
+  ArgoCD shows it as failed.
 
 Two things to know:
 
