@@ -89,6 +89,8 @@ large_effort = "xhigh"
 [permissions]
 allow = ["Bash(make lint)", "Bash(make test)", "Bash(make api)", "Bash(uv run ruff *)", "Bash(uv run pytest *)", "Bash(pnpm run lint *)", "Bash(pnpm run type-check *)", "Bash(pnpm run test:unit *)"]
 deny = ["Bash(git tag *)", "Bash(git push --tags*)", "Bash(git push * --tags*)", "Bash(git push --follow-tags*)", "Bash(git push * --follow-tags*)", "Bash(kubectl apply *)", "Bash(kubectl delete *)", "Bash(argocd *)"]
+# The sandbox proxy tunnels this to the worktree's Postgres (scripts/with-db.py, used by make test).
+allowed_domains = ["localhost:5433"]
 
 # Run by `wtx land --local`.
 [checks]

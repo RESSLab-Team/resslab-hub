@@ -401,6 +401,18 @@ checked out in a worktree (cli/cli#13380).
   `-i`, `-I`) are also in `permissions.allow`, so the agent's usual "did my
   change work" checks skip the classifier entirely; ask rules still win for
   write forms, so a localhost POST prompts like any other.
+- **Postgres from the sandbox goes through the proxy.** Each sandboxed command
+  has its own network with loopback only, so `localhost:5433` has nothing
+  behind it. The sandbox proxy does tunnel TCP (HTTP `CONNECT`) to the hosts
+  in `allowedDomains`, and `localhost:5433` is in the list (`allowed_domains`
+  in `wtx.toml`, and the settings template for the old flow).
+  `scripts/with-db.py` listens on `POSTGRES_HOST:POSTGRES_PORT` inside the
+  sandbox, sends each connection through the proxy, then runs its command.
+  `make test` (backend `test`, `test-cov`, `benchmark`) uses it. Outside the
+  sandbox (no `SANDBOX_RUNTIME`) it just runs the command. Only the network
+  is opened to the Postgres server: the `wt_<slug>` login in `secrets/.env`
+  still limits the agent to its own clone and its test database (CONNECT is
+  revoked from PUBLIC on both).
 - **Disk.** Dependencies are shared: uv hard-links `.venv` from `~/.cache/uv`,
   pnpm hard-links `node_modules` from its store (`~/.local/share/pnpm/store`),
   so a worktree costs a few tens of MB on top of the checkout, not the ~500 MB

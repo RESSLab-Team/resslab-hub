@@ -124,7 +124,8 @@
         "pypi.org",
         "files.pythonhosted.org",
         "registry.npmjs.org",
-        "mcp.context7.com"
+        "mcp.context7.com",
+        "localhost:5433"
       ]
     }
   }
