@@ -1068,7 +1068,13 @@
     "contributors": {
       "eyebrow": "Contributors",
       "title": "People who built the Hub.",
-      "credits": "{enac} developed the web-based interfaces, visualisation features and search capabilities for the assembled databases. We sincerely thank the many researchers worldwide who generously shared their test data for the development of the structural component databases."
+      "credits": "{enac} developed the web-based interfaces, visualisation features and search capabilities for the assembled databases. We sincerely thank the many researchers worldwide who generously shared their test data for the development of the structural component databases.",
+      "roles": {
+        "projectManager": "Project manager",
+        "leadDev": "Lead developer",
+        "dev": "Developer",
+        "formerLeadDev": "Former lead developer"
+      }
     },
     "citation": {
       "eyebrow": "Citation",
