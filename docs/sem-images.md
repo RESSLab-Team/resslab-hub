@@ -154,8 +154,8 @@ manifest. `components/ductile-fracture/sem/`:
 2. Run `DRY_RUN=1 make precompute-sem` and open the coupon locally to check
    the hotspots and the dimples.
 3. Run `make precompute-sem` with the CDN credentials, commit the
-   `has_sem` change, open the pull request, merge, run the upload CronJob
-   ([backend/README.md](../backend/README.md)).
+   `has_sem` change, open the pull request and merge it. The data repo then
+   sends the change to the hubs ([backend/README.md](../backend/README.md)).
 
 Nothing else changes: the CDN path is derived from the id, the dialog reads
 the manifest.

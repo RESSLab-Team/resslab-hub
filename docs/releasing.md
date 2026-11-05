@@ -105,7 +105,9 @@ expiry date.
 
 A tag deploys prod straight away. Before tagging a release that changes the
 database schema or the deployment, do the boring checks: dump the prod database
-(`make backup-dump DEST_FOLDER=...`), confirm the prod secrets are in place, and
+(the `pg_dump` command at the end of
+[backend/README.md](../backend/README.md#backup-and-restore-of-a-deployed-database),
+`make backup-dump` only dumps your local database), confirm the prod secrets are in place, and
 confirm the Alembic migrations that ran on stage are the same ones prod will get.
 The backend caches responses for an hour per process, so restart the prod pods if
 new data must show right away.
@@ -114,8 +116,8 @@ new data must show right away.
 
 Submit, curation, sign-in and account can ship to prod switched off, and be
 switched on later without a new release. The switch is `CONTRIBUTIONS_ENABLED`
-([contributing-data.md](contributing-data.md#settings)). Dev and stage set
-nothing and keep the default, `true`.
+([contributing-data.md](contributing-data.md#settings)). Dev sets nothing and
+keeps the default, `true`. Stage sets `true`.
 
 Before the first tag that carries the pipeline, add this line to
 `overlays/prod/kustomization.yaml` in `enack8s-app-config/epfl-resslab/resslab-hub`,

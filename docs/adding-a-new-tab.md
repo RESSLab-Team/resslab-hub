@@ -209,7 +209,7 @@ Once the dictionary is stable on a branch:
 
 1. In the **code repo**, make sure `../../resslab-hub-data` points at that branch (or a local checkout with the same contents).
 2. Run `make generate-model` (code repo, backend) — this is Step 2 below.
-3. Only after the backend compiles cleanly, squash-merge the data-repo PR to `main`. Every environment uploads from `main`, so the new data reaches dev, test and prod alike once someone runs the upload CronJob there.
+3. Only after the backend compiles cleanly, squash-merge the data-repo PR to `main`. Every environment uploads from `main`: the data repo sends the changed files to each hub when the PR lands. A hub that doesn't run the new backend yet has no table for them. Once it does, run its upload CronJob from ArgoCD (dev also rebuilds each night). See [backend/README.md](../backend/README.md#upload-data-to-a-deployed-environment-dev-stage-prod).
 
 ---
 

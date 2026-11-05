@@ -497,6 +497,14 @@ invitation mail fails, the page says so and the invitation stays valid.
 - A new `CONTRIBUTOR_DOMAINS` or `ADMIN_EMAILS` entry: at the person's next
   sign-in. Sessions last 30 days, so tell them to sign out and back in.
 
+## Backup
+
+The `auth_*` tables are the only data that is not in the data repo. If the
+database is lost, the upload job brings back the data, not the accounts. So
+each deployment dumps these tables every night and keeps 30 days of dumps.
+What is in the dump and how to restore it:
+[backend/README.md](../backend/README.md#backup-and-restore-of-a-deployed-database).
+
 ## Later
 
 - **#249, #250, #252** the academic identity providers of the mockup: ORCID is
