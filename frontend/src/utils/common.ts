@@ -71,6 +71,9 @@ export function isStructuredFilterValue(value: Value | undefined): boolean {
 export const publicPath: string = import.meta.env.BASE_URL ?? ''
 
 export const globalSearchKey = 'search'
+// URL key of the open detail drawer: `?specimen=<id>` (#417). Not a data column,
+// so useDashboard never reads it back as a filter.
+export const specimenKey = 'specimen'
 
 export interface Section {
   id: string

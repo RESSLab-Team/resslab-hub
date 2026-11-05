@@ -492,6 +492,8 @@
     "download": "Download",
     "download_n": "Download ({n}/{m})",
     "share": "Share",
+    "share_specimen": "Share a link to this specimen",
+    "specimen_not_found": "Specimen {id} was not found.",
     "table_showing": "Showing {from}–{to} of {total}",
     "per_page": "{option} / page",
     "per_page_all": "All",

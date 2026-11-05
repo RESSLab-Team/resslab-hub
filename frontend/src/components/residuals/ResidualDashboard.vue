@@ -17,8 +17,11 @@ import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
-const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
-  useDashboard<ResidualStressModel>(route, router, ResidualStressField)
+const { clickTableRow, closeDetail, item, query, search, searches, changeSearches } =
+  useDashboard<ResidualStressModel>(route, router, ResidualStressField, {
+    key: RESIDUAL_KEY,
+    fetchAll: fetchResiduals
+  })
 
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
@@ -79,7 +82,6 @@ const {
         v-model:searches="searches"
         :query="query"
         @click:row="clickTableRow"
-        @update:page="updatePage"
       />
     </template>
 
