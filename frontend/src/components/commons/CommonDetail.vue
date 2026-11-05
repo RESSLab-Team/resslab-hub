@@ -3,13 +3,15 @@ import EyebrowText from '@/components/commons/EyebrowText.vue'
 import GroupedProperties from '@/components/commons/GroupedProperties.vue'
 import UnverifiedNotice from '@/components/commons/UnverifiedNotice.vue'
 import UnitLineChart from '@/components/commons/charts/UnitLineChart.vue'
-import { isHttpUrl } from '@/utils/common'
+import { useNotificationStore } from '@/stores/notification'
+import { isHttpUrl, shareCurrentUrl, specimenKey } from '@/utils/common'
 import { isUnverified } from '@/utils/curationStatus'
 import type { DatabaseId } from '@/utils/navigation'
-import { mdiClose, mdiOpenInNew } from '@mdi/js'
+import { mdiClose, mdiOpenInNew, mdiShare } from '@mdi/js'
 import type { AxiosResponse } from 'axios'
 import type { LineSeriesOption } from 'echarts'
 import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 export interface DetailCarouselItem {
   count?: number
@@ -55,6 +57,24 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
+
+const route = useRoute()
+const router = useRouter()
+const notificationStore = useNotificationStore()
+
+// The link to this drawer has only `?specimen=`, not the filters of the person
+// who shares it (#417): who opens it gets the whole dashboard, this drawer open.
+const shareId = computed<string | undefined>(() => {
+  if (!props.databaseId) return undefined
+  const id = (props.record as { id?: unknown } | undefined)?.id
+  return id === undefined || id === null || id === '' ? undefined : String(id)
+})
+
+function shareSpecimen(): void {
+  if (!shareId.value) return
+  const { fullPath } = router.resolve({ path: route.path, query: { [specimenKey]: shareId.value } })
+  shareCurrentUrl(fullPath, notificationStore.notify)
+}
 
 type SeriesCarouselItem = Omit<DetailCarouselItem, 'promise'> & {
   series: LineSeriesOption[]
@@ -125,6 +145,15 @@ function nextPage(): void {
       </div>
       <div class="cd-head-actions">
         <slot name="actions" />
+        <button
+          v-if="shareId"
+          class="hdr-icon-btn"
+          :aria-label="$t('commons.share_specimen')"
+          :title="$t('commons.share_specimen')"
+          @click="shareSpecimen"
+        >
+          <v-icon :icon="mdiShare" size="16" />
+        </button>
         <button class="hdr-icon-btn" :aria-label="$t('commons.close')" @click="emit('close')">
           <v-icon :icon="mdiClose" size="16" />
         </button>

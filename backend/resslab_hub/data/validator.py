@@ -339,6 +339,8 @@ class TableValidator(Validator):
             number = Decimal(value)
         except (InvalidOperation, ValueError):
             return
+        if not number.is_finite():
+            return  # NaN and infinity: _check_missing already reported it
         _, minimum, maximum = stats[column_name]
         # The driver returns Decimal for Numeric columns but float/int for the
         # others; normalize so the arithmetic below never mixes float with

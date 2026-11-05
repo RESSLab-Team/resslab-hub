@@ -22,9 +22,7 @@ from resslab_hub.utils.database import Base
 class MaterialStressStrain(Base):  # type: ignore
     __tablename__ = "material_stress_strain"
 
-    material_id = Column(
-        String, ForeignKey("material.id"), primary_key=True, index=True
-    )
+    material_id = Column(String, ForeignKey("material.id"), primary_key=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     stress = Column(Numeric, nullable=False)

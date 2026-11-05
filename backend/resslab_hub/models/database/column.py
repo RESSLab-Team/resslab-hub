@@ -21,7 +21,7 @@ from resslab_hub.utils.database import Base
 class ColumnAxialShortening(Base):  # type: ignore
     __tablename__ = "column_axial_shortening"
 
-    column_id = Column(String, ForeignKey("column.id"), primary_key=True, index=True)
+    column_id = Column(String, ForeignKey("column.id"), primary_key=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     chord_rotation = Column(Numeric, nullable=False)
@@ -31,7 +31,7 @@ class ColumnAxialShortening(Base):  # type: ignore
 class ColumnMomentStrong(Base):  # type: ignore
     __tablename__ = "column_moment_strong"
 
-    column_id = Column(String, ForeignKey("column.id"), primary_key=True, index=True)
+    column_id = Column(String, ForeignKey("column.id"), primary_key=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     chord_rotation = Column(Numeric, nullable=False)
@@ -41,7 +41,7 @@ class ColumnMomentStrong(Base):  # type: ignore
 class ColumnMomentWeak(Base):  # type: ignore
     __tablename__ = "column_moment_weak"
 
-    column_id = Column(String, ForeignKey("column.id"), primary_key=True, index=True)
+    column_id = Column(String, ForeignKey("column.id"), primary_key=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     chord_rotation = Column(Numeric, nullable=False)

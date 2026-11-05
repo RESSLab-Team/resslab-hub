@@ -17,16 +17,20 @@ install:                ## uv sync
 dev:                    ## uvicorn with reload on BACKEND_PORT (default 8000); log level info, debug would log every SQL statement
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run uvicorn resslab_hub.main:app --reload --log-level info --port $(BACKEND_PORT)
 
-test:                   ## pytest (needs the database, uses POSTGRES_TEST_DB)
-	uv run pytest
+# Tunnels POSTGRES_HOST:POSTGRES_PORT through the sandbox proxy for agents;
+# outside the Claude Code sandbox it just runs the command.
+WITH_DB = python3 ../scripts/with-db.py
+
+test:                   ## pytest (needs the database, uses POSTGRES_TEST_DB; reachable from the agent sandbox through scripts/with-db.py)
+	$(WITH_DB) uv run pytest
 
 test-cov:               ## pytest with coverage: terminal summary + HTML report in htmlcov/index.html
-	uv run pytest --cov --cov-report=term-missing --cov-report=html
+	$(WITH_DB) uv run pytest --cov --cov-report=term-missing --cov-report=html
 
 ROWS ?= 5000
 ROUNDS ?= 50
 benchmark:              ## performance benchmark against a throwaway DB (needs make dev-database); make benchmark ROWS=20000 ROUNDS=100
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m benchmark.benchmark --rows $(ROWS) --rounds $(ROUNDS)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" $(WITH_DB) uv run python -m benchmark.benchmark --rows $(ROWS) --rounds $(ROUNDS)
 
 BENCH_DB ?= braces
 BENCH_ROWS ?= 10000
@@ -39,9 +43,9 @@ lint:                   ## ruff + ruff-format through pre-commit, all files
 
 EXPERIMENTS ?= 15
 OUTLIERS ?= 3
-sample-data:            ## synthetic contribution batches for /contribute/new, in-range values read from the DB; EXPERIMENTS=15 OUTLIERS=3
+sample-data:            ## test batches for /contribute/new, rows from real DB records, curves from the data repo; EXPERIMENTS=15 OUTLIERS=3
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python ../sample-data/generate.py \
-		--experiments $(EXPERIMENTS) --outliers $(OUTLIERS)
+		--experiments $(EXPERIMENTS) --outliers $(OUTLIERS) --data-dir $(RESSLAB_DATA_DIR)
 
 update:                 ## pre-commit autoupdate
 	pre-commit autoupdate
@@ -126,8 +130,8 @@ precompute-sem:         ## SEM TIFs to WebP + dimple JSONs in sem/_webp/; withou
 precompute-fracture-figures: ## redraw the per-specimen ductile-fracture SVGs (committed)
 	uv run --group figures python data/precompute_fracture_figures.py $(RESSLAB_DATA_DIR)
 
-upload-data:            ## upload everything from RESSLAB_DATA_DIR (erases the tables, ~1 min)
-	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR)
+upload-data:            ## upload everything from RESSLAB_DATA_DIR; REBUILD=1 empties the tables first (~1 min)
+	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR) $(if $(REBUILD),--rebuild)
 
 upload-data-light:      ## same with one measurement file per series type (~30 s); the ~20 MB dataset behind make db-template-light
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -m resslab_hub.data.uploader all $(RESSLAB_DATA_DIR) --series-limit 1

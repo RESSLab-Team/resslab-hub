@@ -16,6 +16,9 @@ const router = createRouter({
     if (savedPosition) return savedPosition
     if (to.hash) return { el: to.hash }
     if (to.path === from.path) return false
+    // Same editor after a submit, the URL only caught up with the store
+    // (#403): stay on the confirmation at the bottom.
+    if (from.name === 'ContributeNew' && to.name === 'ContributeEdit') return false
     return { top: 0 }
   },
   routes: [

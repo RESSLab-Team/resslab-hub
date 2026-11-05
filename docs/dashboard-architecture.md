@@ -58,6 +58,13 @@ so a filter tick does not diff the props of every chart. The query is also
 mirrored into the URL with `router.replace` (not `push`: the back button
 must not walk through every drag).
 
+The open detail drawer is in the URL too, as `?specimen=<id>` (#417), so the
+address bar is always a link you can share. `useDashboard()` looks the id up
+in the whole dataset, not in the filtered table, so a link opens its specimen
+whatever filters it carries. An unknown id shows a notice and leaves the URL.
+The drawer's share button copies a link with only `specimen`, without the
+filters. The map's "View experimental data" uses the same key.
+
 During a brush drag a second path takes over, outside Vue's reactivity:
 `composables/crossfilterBus.ts` is a plain publish/subscribe. The dragged
 chart calls `publishLive(query)` on each frame (coalesced to one call per

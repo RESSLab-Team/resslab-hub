@@ -20,9 +20,7 @@ from resslab_hub.utils.database import Base
 class ConnectionBeam(Base):  # type: ignore
     __tablename__ = "connection_beam"
 
-    connection_id = Column(
-        String, ForeignKey("connection.id"), primary_key=True, index=True
-    )
+    connection_id = Column(String, ForeignKey("connection.id"), primary_key=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     chord_rotation = Column(Numeric, nullable=False)
@@ -32,9 +30,7 @@ class ConnectionBeam(Base):  # type: ignore
 class ConnectionBeamWest(Base):  # type: ignore
     __tablename__ = "connection_beam_west"
 
-    connection_id = Column(
-        String, ForeignKey("connection.id"), primary_key=True, index=True
-    )
+    connection_id = Column(String, ForeignKey("connection.id"), primary_key=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     chord_rotation = Column(Numeric, nullable=False)
@@ -44,9 +40,7 @@ class ConnectionBeamWest(Base):  # type: ignore
 class ConnectionGlobal(Base):  # type: ignore
     __tablename__ = "connection_global"
 
-    connection_id = Column(
-        String, ForeignKey("connection.id"), primary_key=True, index=True
-    )
+    connection_id = Column(String, ForeignKey("connection.id"), primary_key=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     story_drift_angle = Column(Numeric, nullable=False)
@@ -56,9 +50,7 @@ class ConnectionGlobal(Base):  # type: ignore
 class ConnectionGlobalWest(Base):  # type: ignore
     __tablename__ = "connection_global_west"
 
-    connection_id = Column(
-        String, ForeignKey("connection.id"), primary_key=True, index=True
-    )
+    connection_id = Column(String, ForeignKey("connection.id"), primary_key=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     story_drift_angle = Column(Numeric, nullable=False)
@@ -68,9 +60,7 @@ class ConnectionGlobalWest(Base):  # type: ignore
 class ConnectionPanelZone(Base):  # type: ignore
     __tablename__ = "connection_panel_zone"
 
-    connection_id = Column(
-        String, ForeignKey("connection.id"), primary_key=True, index=True
-    )
+    connection_id = Column(String, ForeignKey("connection.id"), primary_key=True)
     id = Column(BigInteger, primary_key=True, autoincrement=True)
 
     shear_distortion = Column(Numeric, nullable=False)

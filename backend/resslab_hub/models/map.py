@@ -42,7 +42,7 @@ class MapProgram(BaseModel):
     reference: Optional[str] = None
     #: link, or url for HSS columns and EBF
     link: Optional[str] = None
-    #: one specimen of the program, for the ?id=...&detail=true deep link
+    #: one specimen of the program, for the ?specimen=... deep link
     first_id: str
     #: the column the frontend needs to pick the schematic figure
     #: (boundary condition, specimen type, ...). Columns join two with "|".

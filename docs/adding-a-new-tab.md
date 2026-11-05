@@ -714,10 +714,11 @@ After implementation, run end-to-end locally:
    - Navigate `http://127.0.0.1:5173/new-things/database`:
      - Table renders rows; pagination, sorting, filtering work.
      - Clicking a row opens the detail panel; carousel shows curves; configuration image loads.
+     - The URL gets `?specimen=<id>`. The drawer's share link opens the same specimen in a new tab.
      - Parallel, double, single charts render; colors are distinct; labels aren't truncated.
      - CSV export downloads.
    - Home page `/` — the test-count indicator includes the new component.
-   - Overview map — the new category is in the legend and the markers; a site's program opens `/new-things/database?id=...&detail=true` from "View experimental data".
+   - Overview map — the new category is in the legend and the markers; a site's program opens `/new-things/database?specimen=...` from "View experimental data".
    - Switch locale to French, every new label translates, nothing falls back to the key.
 
 4. **Build**

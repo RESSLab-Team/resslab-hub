@@ -492,6 +492,8 @@
     "download": "Download",
     "download_n": "Download ({n}/{m})",
     "share": "Share",
+    "share_specimen": "Share a link to this specimen",
+    "specimen_not_found": "Specimen {id} was not found.",
     "table_showing": "Showing {from}–{to} of {total}",
     "per_page": "{option} / page",
     "per_page_all": "All",
@@ -1066,7 +1068,13 @@
     "contributors": {
       "eyebrow": "Contributors",
       "title": "People who built the Hub.",
-      "credits": "{enac} developed the web-based interfaces, visualisation features and search capabilities for the assembled databases. We sincerely thank the many researchers worldwide who generously shared their test data for the development of the structural component databases."
+      "credits": "{enac} developed the web-based interfaces, visualisation features and search capabilities for the assembled databases. We sincerely thank the many researchers worldwide who generously shared their test data for the development of the structural component databases.",
+      "roles": {
+        "projectManager": "Project manager",
+        "leadDev": "Lead developer",
+        "dev": "Developer",
+        "formerLeadDev": "Former lead developer"
+      }
     },
     "citation": {
       "eyebrow": "Citation",
@@ -1296,11 +1304,10 @@
       "next": "A curator will review it; the data goes live once the request is approved and merged.",
       "view_pr": "View review request",
       "new": "Start a new contribution",
-      "how_to_update": "Need to change something after a review? Do not open a second submission, it would open a second review request and the review would start again. Edit the CSV on your own branch on GitHub, or post the corrected file in a comment on the review request and a maintainer pushes it for you.",
+      "how_to_update": "Need to change something? Edit it here and submit again: it updates the same review request. Do not start a second submission for the same data. You can also edit the CSV on GitHub.",
       "edit_on_github": "Edit the CSV on GitHub",
       "updated_title": "Updated. Review request #{number} now has your changes.",
-      "updated_next": "A curator will review the new version. You can keep editing here and submit again.",
-      "update": "Update this submission"
+      "updated_next": "A curator will review the new version. You can keep editing here and submit again."
     },
     "dialog": {
       "title": "Submit for review",

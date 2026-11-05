@@ -422,3 +422,58 @@ async def test_dictionary_endpoint_groups_by_database(client, tmp_path):
             "group": "Section properties",
         },
     ]
+
+
+# ---------------------------------------------------------------------------
+# /upload: 200 when every file went in, 422 with the failed paths (#405)
+# ---------------------------------------------------------------------------
+def _braces_with_curves_targz(tmp_path, ids, curves) -> bytes:
+    csv_path = tmp_path / "steel_braces.csv"
+    write_main_csv(csv_path, Brace, [{"id": i} for i in ids])
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w:gz") as tar:
+        tar.add(csv_path, arcname="braces/steel_braces.csv")
+        for curve_id in curves:
+            curve = write_measurement_csv(
+                tmp_path / f"{curve_id}.csv",
+                ["Displacement [mm]", "Force [kN]"],
+                [["0.0", "0.0"]],
+            )
+            tar.add(curve, arcname=f"braces/force_displacement/{curve_id}.csv")
+    return buffer.getvalue()
+
+
+async def test_upload_answers_200_when_every_file_went_in(client, tmp_path):
+    archive = _braces_with_curves_targz(tmp_path, ["B1"], ["B1"])
+    response = await client.post(
+        "/upload",
+        params={"type": "all-braces"},
+        files=_upload(archive),
+        auth=SERVICE_AUTH,
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["message"] == "Upload successful"
+    assert len(body["uploads"]) == 2
+    assert "failed" not in body
+
+
+async def test_upload_answers_422_with_the_failed_paths(client, tmp_path):
+    # X has no main row, so its curve breaks the foreign key.
+    archive = _braces_with_curves_targz(tmp_path, ["B1"], ["B1", "X"])
+    response = await client.post(
+        "/upload",
+        params={"type": "all-braces"},
+        files=_upload(archive),
+        auth=SERVICE_AUTH,
+    )
+    assert response.status_code == 422
+    body = response.json()
+    assert body["failed"] == ["braces/force_displacement/X.csv"]
+    # The good files are still in, and no error text leaks out.
+    assert len(body["uploads"]) == 2
+    assert not [m for m in body["uploads"] if "Skipping" in m]
+
+    series = await client.get("/braces/B1/displacement")
+    assert series.status_code == 200
+    assert series.json() == [[0.0, 0.0]]
