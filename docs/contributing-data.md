@@ -196,10 +196,11 @@ Two things in `contributions/github.py`:
   drawer says the data was not checked by the lab yet. A curator verifies
   them later from the "To verify" tab, which opens a second, small pull
   request ([curation.md](curation.md#verification)).
-- The data reaches a deployment when someone runs its upload CronJob from
-  ArgoCD ([backend/README.md](../backend/README.md)). The backend caches
-  responses for an hour per process, so restart the pods if it must show at
-  once.
+- The data reaches the deployments when the pull request is merged: the data
+  repo sends the changed files to `/upload` of each hub, and dev also rebuilds
+  its data each night ([backend/README.md](../backend/README.md#upload-data-to-a-deployed-environment-dev-stage-prod)).
+  The backend caches responses for an hour per process, so restart the pods if
+  it must show at once.
 
 ## Trying it locally
 
