@@ -591,6 +591,8 @@
     "download": "Télécharger",
     "download_n": "Télécharger ({n}/{m})",
     "share": "Partager",
+    "share_specimen": "Partager un lien vers cette éprouvette",
+    "specimen_not_found": "L'éprouvette {id} est introuvable.",
     "table_showing": "Affichage de {from}–{to} sur {total}",
     "per_page": "{option} / page",
     "per_page_all": "Tout",

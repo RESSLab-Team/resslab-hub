@@ -1,8 +1,11 @@
-import type { Page } from '@/utils/backend'
+import { useDataset } from '@/composables/useDataset'
+import i18n from '@/plugins/i18n'
+import { useNotificationStore } from '@/stores/notification'
 import {
   debounceAPITime,
   filterColumnValue,
   globalSearchKey,
+  specimenKey,
   type Searches,
   type Value
 } from '@/utils/common'
@@ -37,10 +40,17 @@ export function withFieldClause(
   return clauses.length ? clauses.join(queryFieldSeparator) : undefined
 }
 
-export function useDashboard<M>(
+/** The dashboard's dataset, the same key and loader its table uses (one fetch). */
+export interface DashboardDataset<M> {
+  key: string
+  fetchAll: () => Promise<M[]>
+}
+
+export function useDashboard<M extends { id: string }>(
   route: RouteLocationNormalizedLoaded,
   router: Router,
-  field: object
+  field: object,
+  dataset: DashboardDataset<M>
 ) {
   const fields: string[] = Object.values(field)
   // URL keys accepted back into `searches`: the component's own fields, plus
@@ -56,19 +66,39 @@ export function useDashboard<M>(
   const search = ref<string>('')
   const searches = ref<Searches>({})
   const item = ref<M>()
-  const detail = ref<boolean>(false)
+  // The open drawer's id, mirrored into the URL as `?specimen=` so the link can
+  // be shared (#417). It is set at once; `item` waits for the dataset when the
+  // id comes from a link.
+  const specimenId = ref<string>()
+  const { ready, rowsSync } = useDataset<M>(dataset.key, dataset.fetchAll)
 
   function clickTableRow(value: M): void {
     item.value = value
+    specimenId.value = value.id
   }
   function closeDetail(): void {
     item.value = undefined
+    specimenId.value = undefined
   }
-  function updatePage(page: Page<M>): void {
-    if (detail.value && page.total === 1) {
-      item.value = page.items[0]
-      detail.value = false
+  // Open the drawer of a link. The lookup runs on the whole dataset, not on the
+  // filtered table, so the link opens its specimen whatever filters it carries.
+  async function openById(id: string): Promise<void> {
+    specimenId.value = id
+    try {
+      await ready()
+    } catch {
+      // useDataset already logs it. Keep the key, so a reload tries again.
+      return
     }
+    // Closed, or another specimen opened, while the dataset loaded.
+    if (specimenId.value !== id) return
+    const row = (rowsSync() as unknown as M[]).find((candidate) => candidate.id === id)
+    if (row) {
+      item.value = row
+      return
+    }
+    closeDetail()
+    useNotificationStore().notify(i18n.global.t('commons.specimen_not_found', { id }))
   }
   function changeSearches(key: string, value?: Value): void {
     if (value) {
@@ -96,22 +126,23 @@ export function useDashboard<M>(
   // Expose query to descendant charts without prop-drilling (see dashboardQueryKey).
   provide(dashboardQueryKey, query)
 
-  // Mirror the filter state into the URL, but debounced and via replace (not
-  // push): a slider drag mutates searches on every tick, which previously fired
-  // an un-debounced router.push per tick — flooding the history stack and
-  // re-running the route.query → searches write-back below each time. Debouncing
+  // Mirror the filter state and the open drawer into the URL, but debounced and
+  // via replace (not push): a slider drag mutates searches on every tick, which
+  // previously fired an un-debounced router.push per tick — flooding the history
+  // stack and re-running the route.query → searches write-back below each time. Debouncing
   // coalesces a drag into a single navigation; replace keeps the back button
   // returning to the pre-filter view instead of stepping through every tick.
   const syncQueryToRouter = debounce(() => {
     if (!router) return
     const query = {
       ...searches.value,
-      ...(search.value ? { [globalSearchKey]: search.value } : {})
+      ...(search.value ? { [globalSearchKey]: search.value } : {}),
+      ...(specimenId.value ? { [specimenKey]: specimenId.value } : {})
     }
     router.replace({ query })
   }, debounceAPITime)
 
-  watch(() => [searches.value, search.value], syncQueryToRouter, {
+  watch(() => [searches.value, search.value, specimenId.value], syncQueryToRouter, {
     immediate: true,
     deep: true
   })
@@ -141,6 +172,18 @@ export function useDashboard<M>(
           delete searches.value[key]
         }
       })
+
+      // The drawer follows the URL too: a pasted link opens it, a link to the
+      // same page without the key (the sidebar) closes it.
+      const specimenValue = newQuery[specimenKey]
+      const specimen =
+        typeof specimenValue === 'string' && specimenValue ? specimenValue : undefined
+      if (specimen === specimenId.value) return
+      if (specimen) {
+        void openById(specimen)
+      } else {
+        closeDetail()
+      }
     },
     { immediate: true, deep: true }
   )
@@ -148,10 +191,6 @@ export function useDashboard<M>(
   const globalSearchValue = route.query[globalSearchKey]
   if (typeof globalSearchValue === 'string') {
     search.value = globalSearchValue
-  }
-  const detailValue = route.query['detail']
-  if (detailValue && typeof detailValue === 'string' && detailValue.toLowerCase() === 'true') {
-    detail.value = true
   }
 
   return {
@@ -161,7 +200,6 @@ export function useDashboard<M>(
     query,
     clickTableRow,
     closeDetail,
-    updatePage,
     changeSearches
   }
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { MapProgram } from '@/backend'
-import { isHttpUrl } from '@/utils/common'
+import { isHttpUrl, specimenKey } from '@/utils/common'
 import { categoryFor, colorFor, routeFor } from '@/utils/mapCategories'
 import { figureLabel, formatCount, programImage } from '@/utils/mapSites'
 import { mdiArrowRight, mdiChevronDown, mdiOpenInNew } from '@mdi/js'
@@ -21,11 +21,11 @@ const image = computed(() => programImage(props.program))
 const publication = computed(() => (isHttpUrl(props.program.link) ? props.program.link : null))
 const bodyId = computed(() => `mp-${props.program.category}-${props.program.first_id}`)
 
-// The database pages open the detail drawer of `id` when `detail=true`.
+// The database pages open the detail drawer of `?specimen=<id>` (#417).
 function openData() {
   router.push({
     path: routeFor(props.program.category),
-    query: { id: props.program.first_id, detail: 'true' }
+    query: { [specimenKey]: props.program.first_id }
   })
 }
 </script>

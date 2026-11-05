@@ -17,8 +17,11 @@ import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
-const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
-  useDashboard<ColumnModel>(route, router, ColumnField)
+const { clickTableRow, closeDetail, item, query, search, searches, changeSearches } =
+  useDashboard<ColumnModel>(route, router, ColumnField, {
+    key: COLUMN_KEY,
+    fetchAll: fetchColumns
+  })
 
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
@@ -88,7 +91,6 @@ const {
         v-model:searches="searches"
         :query="query"
         @click:row="clickTableRow"
-        @update:page="updatePage"
       />
     </template>
 

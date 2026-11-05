@@ -18,8 +18,11 @@ import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
-const { clickTableRow, closeDetail, item, query, search, searches, changeSearches, updatePage } =
-  useDashboard<EccentricBracedFrameModel>(route, router, EccentricBracedFrameField)
+const { clickTableRow, closeDetail, item, query, search, searches, changeSearches } =
+  useDashboard<EccentricBracedFrameModel>(route, router, EccentricBracedFrameField, {
+    key: EBF_KEY,
+    fetchAll: fetchEbfs
+  })
 
 const countsStore = useCountsStore()
 onMounted(() => countsStore.fetch())
@@ -100,7 +103,6 @@ const {
         v-model:searches="searches"
         :query="query"
         @click:row="clickTableRow"
-        @update:page="updatePage"
       />
     </template>
 
