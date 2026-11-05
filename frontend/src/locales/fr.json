@@ -1068,7 +1068,13 @@
     "contributors": {
       "eyebrow": "Contributeurs",
       "title": "Les personnes qui ont construit le Hub.",
-      "credits": "{enac} a développé les interfaces web, les fonctionnalités de visualisation et les capacités de recherche pour les bases de données constituées. Nous remercions sincèrement les nombreux chercheurs à travers le monde qui ont généreusement partagé leurs données d'essais pour le développement des bases de données de composants structuraux."
+      "credits": "{enac} a développé les interfaces web, les fonctionnalités de visualisation et les capacités de recherche pour les bases de données constituées. Nous remercions sincèrement les nombreux chercheurs à travers le monde qui ont généreusement partagé leurs données d'essais pour le développement des bases de données de composants structuraux.",
+      "roles": {
+        "projectManager": "Gestion de projet",
+        "leadDev": "Lead dev",
+        "dev": "Développement",
+        "formerLeadDev": "Ex-lead dev"
+      }
     },
     "citation": {
       "eyebrow": "Citation",
