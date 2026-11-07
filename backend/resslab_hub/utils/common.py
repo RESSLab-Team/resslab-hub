@@ -322,7 +322,7 @@ class Component(ABC, Generic[D, M]):
         """
         if ":" not in query:
             return self.__get_global_predicate(query)
-        key, expression = query.split(":", 2)
+        key, expression = query.split(":", 1)
         column: Column[Any] = self.__get_column(key)
         return self.__get_predicate(column, expression)
 
@@ -353,7 +353,7 @@ class Component(ABC, Generic[D, M]):
         if "," in expression:
             return column.in_(expression.split(","))
         if "<<" in expression:
-            [min, max] = expression.split("<<", 2)
+            [min, max] = expression.split("<<", 1)
             if isinstance(column.type, Integer):
                 return column.between(int(min), int(max))
             if isinstance(column.type, Numeric):
