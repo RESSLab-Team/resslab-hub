@@ -18,7 +18,11 @@ from resslab_hub.contributions.projection import (
     type_for_branch,
     type_for_files,
 )
-from resslab_hub.contributions.submission import Contributor, build_pr_body
+from resslab_hub.contributions.submission import (
+    Contributor,
+    build_pr_body,
+    redact_emails,
+)
 from resslab_hub.contributions.trailers import build_commit_message
 from resslab_hub.data.uploader import Type
 from resslab_hub.data.validator import ValidationResult
@@ -286,6 +290,27 @@ def test_parse_pr_body_roundtrip_with_update_help():
     assert contributor.institution == "EPFL"
 
 
+def test_redact_emails_keeps_what_the_review_reads():
+    """The API serves the body without the email (#264 M6)."""
+    raw = build_pr_body(CONTRIBUTOR, Type.ALL_BRACE, 3, 2, ["w1"])
+    redacted = redact_emails(raw)
+    assert "ada@example.edu" not in redacted
+    assert "- **Contributor**: Ada Lovelace, EPFL" in redacted
+    # The parse reads the raw body, as the router does.
+    _, contributor = _parse_pr_body(raw)
+    assert contributor.name == "Ada Lovelace"
+    assert contributor.institution == "EPFL"
+
+
+def test_redact_emails_on_a_verification_body():
+    from resslab_hub.contributions.verification import build_verification_body
+
+    body = build_verification_body(
+        CONTRIBUTOR, Type.ALL_BRACE, ["B1"], "braces/steel_braces.csv"
+    )
+    assert "- **Verified by**: Ada Lovelace\n" in redact_emails(body)
+
+
 def test_parse_pr_body_tolerates_free_text():
     count, contributor = _parse_pr_body("A hand-written PR body.")
     assert count is None
@@ -476,6 +501,8 @@ async def test_detail_reconstructs_batch(monkeypatch):
     assert detail.submitted_at == "2026-08-01T12:00:00+00:00"
     assert detail.dismissed_warnings == ["Value is far outside the range"]
     assert detail.reconstruction_warning is None
+    assert "Ada Lovelace" in detail.body
+    assert "@example.edu" not in detail.body
 
 
 async def test_detail_reads_a_legacy_record(monkeypatch):
@@ -729,6 +756,7 @@ async def test_comments_open_with_the_pull_request_body(monkeypatch):
     assert body.id == 0
     assert body.author_type == "Bot"
     assert "Ada Lovelace" in body.body
+    assert "@example.edu" not in body.body
     assert body.html_url == "https://github.com/x/pull/7"
 
 

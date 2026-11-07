@@ -1251,7 +1251,7 @@
       "edit_identity": "Modifier",
       "identity_incomplete": "Ce compte n'a pas d'adresse email confirmée. Connectez-vous avec votre adresse email pour soumettre.",
       "link_github_hint": "Liez GitHub sur votre page compte pour être mentionné sur la pull request et suivre sa relecture.",
-      "note": "Ces informations sont enregistrées avec la soumission afin que les curateurs puissent vous créditer et vous contacter. Elles apparaissent publiquement dans le dépôt de données.",
+      "note": "Votre nom et votre adresse e-mail sont enregistrés avec la soumission afin que les curateurs puissent vous créditer et vous contacter. Ils apparaissent dans une pull request publique sur GitHub et dans l'historique du dépôt de données.",
       "cancel": "Annuler",
       "confirm": "Soumettre"
     },

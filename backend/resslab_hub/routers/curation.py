@@ -54,6 +54,7 @@ from resslab_hub.contributions.submission import (
     _read_csv,
     _write_csv,
     read_provenance,
+    redact_emails,
 )
 from resslab_hub.contributions.trailers import Provenance, owns_submission
 from resslab_hub.contributions.verification import type_for_verify_branch
@@ -307,7 +308,7 @@ async def _build_detail(
         **_summary(pull, Resolved(kind, input_type)).model_dump(),
         state=pull["state"],
         head_sha=head_sha,
-        body=pull["body"],
+        body=redact_emails(pull["body"]),
         submitted_at="",
         dismissed_warnings=[],
         columns=[],
@@ -689,7 +690,7 @@ async def get_contribution_comments(
             id=0,
             author=pull.get("author", ""),
             author_type=pull.get("author_type", ""),
-            body=pull.get("body", ""),
+            body=redact_emails(pull.get("body") or ""),
             html_url=pull["html_url"],
             created_at=pull["created_at"],
             updated_at=pull["created_at"],

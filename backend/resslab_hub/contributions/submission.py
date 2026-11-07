@@ -261,6 +261,20 @@ def _code_span(text: str) -> str:
     return f"`{one_line}`"
 
 
+# ` (ada@example.edu)` after a name, as build_pr_body and the verification
+# body write it.
+_EMAIL_IN_PARENS = re.compile(r" \([^()\s]+@[^()\s]+\)")
+
+
+def redact_emails(body: str) -> str:
+    """The PR body without the `(email)` after each name (#264 M6).
+
+    The Hub serves the body to the review pages. It does not need the email
+    there, and a curator who does can read it on GitHub.
+    """
+    return _EMAIL_IN_PARENS.sub("", body)
+
+
 def build_pr_body(
     contributor: Contributor,
     input_type: Type,
