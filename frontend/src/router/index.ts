@@ -34,7 +34,6 @@ const router = createRouter({
     },
     {
       path: '/connections',
-      component: () => import('@/views/ConnectionsView.vue'),
       children: [
         {
           path: '',
@@ -42,21 +41,20 @@ const router = createRouter({
         },
         {
           path: 'database',
-          component: () => import('@/views/ConnectionsDatabase.vue')
+          component: () => import('@/components/connections/ConnectionDashboard.vue')
         },
         {
           path: 'fragility-curve',
-          component: () => import('@/views/ConnectionsFragilityCurve.vue')
+          component: () => import('@/components/connections/ConnectionFragility.vue')
         },
         {
           path: 'model',
-          component: () => import('@/views/ConnectionsModelView.vue')
+          component: () => import('@/components/connections/ConnectionModel.vue')
         }
       ]
     },
     {
       path: '/columns',
-      component: () => import('@/views/ColumnsView.vue'),
       children: [
         {
           path: '',
@@ -64,21 +62,20 @@ const router = createRouter({
         },
         {
           path: 'database',
-          component: () => import('@/views/ColumnsDatabase.vue')
+          component: () => import('@/components/columns/ColumnDashboard.vue')
         },
         {
           path: 'fragility-curve',
-          component: () => import('@/views/ColumnsFragilityCurve.vue')
+          component: () => import('@/components/columns/ColumnFragility.vue')
         },
         {
           path: 'model',
-          component: () => import('@/views/ColumnsModelView.vue')
+          component: () => import('@/components/columns/ColumnModel.vue')
         }
       ]
     },
     {
       path: '/braces',
-      component: () => import('@/views/BracesView.vue'),
       children: [
         {
           path: '',
@@ -86,21 +83,20 @@ const router = createRouter({
         },
         {
           path: 'database',
-          component: () => import('@/views/BracesDatabase.vue')
+          component: () => import('@/components/braces/BraceDashboard.vue')
         },
         {
           path: 'fragility-curve',
-          component: () => import('@/views/BracesFragilityCurve.vue')
+          component: () => import('@/components/braces/BraceFragility.vue')
         },
         {
           path: 'model',
-          component: () => import('@/views/BracesModelView.vue')
+          component: () => import('@/components/braces/BraceModel.vue')
         }
       ]
     },
     {
       path: '/materials',
-      component: () => import('@/views/MaterialsView.vue'),
       children: [
         {
           path: '',
@@ -112,25 +108,24 @@ const router = createRouter({
         },
         {
           path: 'cyclic-coupons',
-          component: () => import('@/views/MaterialsDatabase.vue')
+          component: () => import('@/components/materials/MaterialDashboard.vue')
         },
         {
           path: 'tensile-coupons',
-          component: () => import('@/views/TensileCouponsDatabase.vue')
+          component: () => import('@/components/tensile-coupons/TensileCouponDashboard.vue')
         },
         {
           path: 'ductile-fracture',
-          component: () => import('@/views/DuctileFractureDatabase.vue')
+          component: () => import('@/components/ductile-fracture/DuctileFractureDashboard.vue')
         },
         {
           path: 'model',
-          component: () => import('@/views/MaterialsModelView.vue')
+          component: () => import('@/components/materials/MaterialModel.vue')
         }
       ]
     },
     {
       path: '/residuals',
-      component: () => import('@/views/ResidualsView.vue'),
       children: [
         {
           path: '',
@@ -138,13 +133,12 @@ const router = createRouter({
         },
         {
           path: 'database',
-          component: () => import('@/views/ResidualsDatabase.vue')
+          component: () => import('@/components/residuals/ResidualDashboard.vue')
         }
       ]
     },
     {
       path: '/hss-columns',
-      component: () => import('@/views/HssView.vue'),
       children: [
         {
           path: '',
@@ -152,17 +146,16 @@ const router = createRouter({
         },
         {
           path: 'database',
-          component: () => import('@/views/HssDatabase.vue')
+          component: () => import('@/components/hss/HssDashboard.vue')
         },
         {
           path: 'model',
-          component: () => import('@/views/HssModelView.vue')
+          component: () => import('@/components/hss/HssModel.vue')
         }
       ]
     },
     {
       path: '/ebf-links',
-      component: () => import('@/views/EbfView.vue'),
       children: [
         {
           path: '',
@@ -170,7 +163,7 @@ const router = createRouter({
         },
         {
           path: 'database',
-          component: () => import('@/views/EbfDatabase.vue')
+          component: () => import('@/components/ebf/EbfDashboard.vue')
         }
       ]
     },
