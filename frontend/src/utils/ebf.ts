@@ -13,12 +13,6 @@ export const linkConfigurationMapping = new Map([
   ['LC5', i18n.global.t('enum.connectionConfiguration5')]
 ])
 
-export const linkTypeMapping = new Map([
-  ['short', i18n.global.t('enum.short')],
-  ['intermediate', i18n.global.t('enum.intermediate')],
-  ['long', i18n.global.t('enum.long')]
-])
-
 export const sectionTypeMapping = new Map([
   ['hot-rolled', i18n.global.t('enum.hotRolled')],
   ['built-up', i18n.global.t('enum.builtUp')]
