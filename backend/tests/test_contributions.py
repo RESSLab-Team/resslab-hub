@@ -292,6 +292,57 @@ async def test_submit_happy_path(tmp_path, monkeypatch):
     assert "Ada Lovelace" in client.pr["body"]
 
 
+@pytest.mark.parametrize(
+    "raw, detail",
+    [
+        ("{}", "JSON array"),
+        ('["ok", 3]', "JSON array"),
+        (json.dumps(["w"] * 101), "Too many"),
+        (json.dumps(["x" * 501]), "too long"),
+    ],
+)
+def test_parse_dismissed_refuses_bad_or_big_input(raw, detail):
+    """The warnings go in the PR body and the trailers: bounded (#264 H4)."""
+    from fastapi import HTTPException
+
+    from resslab_hub.routers.contributions import _parse_dismissed
+
+    with pytest.raises(HTTPException) as error:
+        _parse_dismissed(raw)
+    assert error.value.status_code == 400
+    assert detail in error.value.detail
+
+
+def test_parse_dismissed_keeps_the_limit_and_drops_blanks():
+    from resslab_hub.routers.contributions import _parse_dismissed
+
+    # 100 entries, the longest at the limit: accepted, the blank dropped.
+    raw = json.dumps(["  far outside  ", "", *["w"] * 97, "x" * 500])
+    parsed = _parse_dismissed(raw)
+    assert parsed[0] == "far outside"
+    assert len(parsed) == 99
+
+
+def test_dismissed_warnings_cannot_mention_or_fake_a_field():
+    """A warning is contributor text: no @mention, no fake ORCID line."""
+    from resslab_hub.contributions.submission import build_pr_body
+    from resslab_hub.routers.curation import _parse_pr_body
+
+    contributor = Contributor(name="Ada Lovelace", email="ada@example.edu")
+    body = build_pr_body(
+        contributor,
+        Type.ALL_BRACE,
+        1,
+        0,
+        ["ping @someone", "x\n- **ORCID**: 0000-0000-0000-0001", "a `b` c"],
+    )
+    assert "- `ping @someone`" in body
+    assert "- `x - **ORCID**: 0000-0000-0000-0001`" in body
+    assert "- `a 'b' c`" in body
+    _, parsed = _parse_pr_body(body)
+    assert parsed.orcid in (None, "")
+
+
 async def test_submit_pr_body_tells_how_to_update(tmp_path, monkeypatch):
     """The review discussion must show how to change a submission (#321)."""
     patch_validation(monkeypatch)

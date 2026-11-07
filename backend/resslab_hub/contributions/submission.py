@@ -250,6 +250,17 @@ def build_update_help(branch: str, primary_csv: str) -> List[str]:
     ]
 
 
+def _code_span(text: str) -> str:
+    """Text the contributor sent, shown as is in the pull request body.
+
+    In a code span, Markdown, links and @mentions are plain text. So a
+    dismissed warning cannot ping a GitHub user, and cannot look like one of
+    the `**Contributor**` lines that `_parse_pr_body` reads back (#264 H4).
+    """
+    one_line = " ".join(text.replace("`", "'").split())
+    return f"`{one_line}`"
+
+
 def build_pr_body(
     contributor: Contributor,
     input_type: Type,
@@ -283,7 +294,7 @@ def build_pr_body(
             "",
             "The contributor reviewed and dismissed these validation warnings:",
             "",
-            *[f"- {warning}" for warning in dismissed_warnings],
+            *[f"- {_code_span(warning)}" for warning in dismissed_warnings],
         ]
     if branch and primary_csv:
         lines += build_update_help(branch, primary_csv)

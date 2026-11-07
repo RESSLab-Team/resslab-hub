@@ -157,21 +157,27 @@ def invalidate_open_pulls() -> None:
 
 
 def _parse_pr_body(body: str) -> Tuple[Optional[int], Optional[CurationContributor]]:
-    """Best-effort parse of build_pr_body's deterministic format."""
+    """Best-effort parse of build_pr_body's deterministic format.
+
+    Each field is read only at the start of its own `- **Field**:` line, so
+    a dismissed warning further down cannot pose as one (#264 H4).
+    """
     count = None
-    match = re.search(r"\*\*Experiments\*\*: (\d+)", body)
+    match = re.search(r"^- \*\*Experiments\*\*: (\d+)", body, re.M)
     if match:
         count = int(match.group(1))
     contributor = None
-    match = re.search(r"\*\*Contributor\*\*: (.*?) \([^)]*\)(?:, (.*))?$", body, re.M)
+    match = re.search(
+        r"^- \*\*Contributor\*\*: (.*?) \([^)]*\)(?:, (.*))?$", body, re.M
+    )
     if match:
         contributor = CurationContributor(
             name=match.group(1).strip(), institution=(match.group(2) or "").strip()
         )
-        orcid = re.search(r"\*\*ORCID\*\*: (.*)$", body, re.M)
+        orcid = re.search(r"^- \*\*ORCID\*\*: (.*)$", body, re.M)
         if orcid:
             contributor.orcid = orcid.group(1).strip()
-        github = re.search(r"\*\*GitHub\*\*: @(\S+)$", body, re.M)
+        github = re.search(r"^- \*\*GitHub\*\*: @(\S+)$", body, re.M)
         if github:
             contributor.github_login = github.group(1).strip()
     return count, contributor
