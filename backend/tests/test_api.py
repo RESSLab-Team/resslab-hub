@@ -12,6 +12,8 @@ backend framework upgrade on later branches.
 import io
 import tarfile
 
+import pytest
+
 from resslab_hub.data.uploader import Type, upload_one
 from resslab_hub.models.database.brace import Brace
 from resslab_hub.models.database.material import Material
@@ -84,12 +86,49 @@ async def test_braces_query_filters_rows(client, tmp_path):
     assert [item["id"] for item in body["items"]] == ["B1"]
 
 
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"sort_by": "nope"},
+        {"sort_by": "__class__", "sort_desc": "false"},
+        {"query": "nope:1"},
+        {"query": "metadata:1"},
+        {"query": "f_yn:abc"},
+        {"query": "f_yn:1<<x"},
+        {"query": "f_yn:>x"},
+        {"query": "date:1990,x"},
+    ],
+)
+async def test_braces_bad_query_or_sort_answers_400(client, tmp_path, params):
+    # An unknown key or a value that does not parse is the caller's mistake,
+    # not a server error (#264 M7).
+    _seed_braces(tmp_path)
+    response = await client.get("/braces", params=params)
+    assert response.status_code == 400
+    assert "detail" in response.json()
+
+
 async def test_braces_query_value_with_colon(client, tmp_path):
     # Only the first ":" splits the key from the value (#265).
     _seed_braces(tmp_path)
     response = await client.get("/braces", params={"query": "investigator:a:b"})
     assert response.status_code == 200
     assert response.json()["total"] == 0
+
+
+async def test_braces_query_typed_list_and_compare(client, tmp_path):
+    _seed_braces(tmp_path)
+    # A number list on a float column, and `>` on it, compare as numbers.
+    response = await client.get("/braces", params={"query": "f_yn:355,1"})
+    assert [item["id"] for item in response.json()["items"]] == ["B1"]
+    response = await client.get("/braces", params={"query": "f_yn:>400.5"})
+    assert [item["id"] for item in response.json()["items"]] == ["B2"]
+    response = await client.get("/braces", params={"query": "displacement_count:>0"})
+    assert response.status_code == 200
+    response = await client.get(
+        "/braces", params={"sort_by": "f_yn", "sort_desc": "true"}
+    )
+    assert [item["id"] for item in response.json()["items"]] == ["B2", "B1"]
 
 
 async def test_braces_counts_group_by_field(client, tmp_path):
