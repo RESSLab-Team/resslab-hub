@@ -11,4 +11,5 @@ RUN pnpm run build
 FROM nginx:mainline-alpine AS production-stage
 RUN mkdir /app
 COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx-security-headers.conf /etc/nginx/security-headers.conf
 COPY --from=build-stage /app/dist /app
