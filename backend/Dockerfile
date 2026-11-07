@@ -1,6 +1,6 @@
 FROM python:3.12-slim AS build-stage
 WORKDIR /app
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /usr/local/bin/uv
 ENV UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1
 
 # Layer 1 — deps only (re-uses cache unless pyproject.toml / uv.lock change)
