@@ -384,8 +384,6 @@
       "measured_yield_stress": "Limite d'élasticité mesurée",
       "ultimate_tensile_stress": "Résistance à la traction",
       "no_gusset_plates": "La configuration ne comprend pas de gousset",
-      "not_reported": "Non renseigné",
-      "no": "Non",
       "chart_force_displacement": "Force-déplacement",
       "axis_displacement": "Déplacement [mm]",
       "axis_force": "Force [kN]"

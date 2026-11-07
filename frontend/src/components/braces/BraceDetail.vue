@@ -4,6 +4,7 @@ import CommonDetail, { type DetailCarouselItem } from '@/components/commons/Comm
 import PropertyItem from '@/components/commons/PropertyItem.vue'
 import { bracesApi } from '@/plugins/axios'
 import { publicPath } from '@/utils/common'
+import { formatNumber, formatString } from '@/utils/formatter'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -53,19 +54,6 @@ watch(
     immediate: true
   }
 )
-
-function formatNumber(value?: number | null) {
-  return value ?? t('detail.brace.not_reported')
-}
-function formatString(value?: string | null): string {
-  if (value == null) {
-    return t('detail.brace.no')
-  } else if (value === 'NR') {
-    return t('detail.brace.not_reported')
-  } else {
-    return value
-  }
-}
 </script>
 
 <template>
@@ -137,10 +125,10 @@ function formatString(value?: string | null): string {
                   {{ formatNumber(brace.f_yn_gp) }}
                 </property-item>
                 <property-item :name="$t('detail.brace.measured_yield_stress')" unit="MPa">
-                  {{ formatNumber(brace.f_ym_gp) }}
+                  {{ formatNumber(brace.f_ym_gp, 2) }}
                 </property-item>
                 <property-item :name="$t('detail.brace.ultimate_tensile_stress')" unit="MPa">
-                  {{ formatNumber(brace.f_um_gp) }}
+                  {{ formatNumber(brace.f_um_gp, 2) }}
                 </property-item>
               </template>
               <template v-else>{{ $t('detail.brace.no_gusset_plates') }}</template>

@@ -665,8 +665,6 @@
       "measured_yield_stress": "Measured yield stress",
       "ultimate_tensile_stress": "Ultimate tensile stress",
       "no_gusset_plates": "The configuration does not include gusset plates",
-      "not_reported": "Not Reported",
-      "no": "No",
       "chart_force_displacement": "Force Displacement",
       "axis_displacement": "Displacement [mm]",
       "axis_force": "Force [kN]"
