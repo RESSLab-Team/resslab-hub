@@ -72,8 +72,10 @@ validate-%:             ## tar one folder of the data repo and POST it to /valid
 	tar --exclude-vcs -czf $(TAR_NAME) -C $(RESSLAB_DATA_DIR) $(DIRECTORY)
 	@echo ""
 	@echo "Executing validation..."
-	$(eval API_PASSWORD=$(shell DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -c "from resslab_hub.config import settings; print(settings.api_password)"))
-	curl -sS -F "file=@$(TAR_NAME)" -u user:$(API_PASSWORD) "http://localhost:$(BACKEND_PORT)/validate?type=all-$*" | jq .
+	@# The password goes to curl as a config line on stdin (-K -): never in
+	@# argv, where `ps` shows it, nor in the echoed recipe (#264 Low).
+	@DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python -c "import json; from resslab_hub.config import settings; print('user = ' + json.dumps('user:' + settings.api_password, ensure_ascii=False))" \
+		| curl -sS -K - -F "file=@$(TAR_NAME)" "http://localhost:$(BACKEND_PORT)/validate?type=all-$*" | jq .
 	@echo ""
 	@echo "Cleaning up temporary file..."
 	rm -f $(TAR_NAME)
