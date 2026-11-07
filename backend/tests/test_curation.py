@@ -742,6 +742,31 @@ async def test_files_serves_only_submission_files(monkeypatch):
     assert caught.value.status_code == 404
 
 
+async def test_files_cache_keeps_small_texts_only(monkeypatch):
+    """A big file text is fetched each time, not kept in memory (#264 Low)."""
+    client = FakeClient()
+    reads = []
+    real_get_file_text = client.get_file_text
+
+    async def counting_get_file_text(path, ref=None):
+        reads.append(path)
+        return await real_get_file_text(path, ref)
+
+    client.get_file_text = counting_get_file_text
+    use_client(monkeypatch, client)
+    path = "braces/force_displacement/B9.csv"
+
+    for _ in range(2):
+        assert await get_contribution_file(make_request(), 7, path) == CURVE_CSV
+    assert reads.count(path) == 1
+
+    curation._cache.drop(("file", "head-sha", path))
+    monkeypatch.setattr(curation, "MAX_CACHED_FILE_BYTES", len(CURVE_CSV) - 1)
+    for _ in range(2):
+        assert await get_contribution_file(make_request(), 7, path) == CURVE_CSV
+    assert reads.count(path) == 3
+
+
 # --- comments ---------------------------------------------------------------
 
 

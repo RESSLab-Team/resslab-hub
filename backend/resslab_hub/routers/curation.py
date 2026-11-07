@@ -127,6 +127,11 @@ class _TTLCache:
 
 _cache = _TTLCache()
 
+#: A file text over this size is served but not kept in the cache. With 256
+#: entries, a few big curve files would hold a lot of memory per pod for
+#: their whole TTL (#264 Low).
+MAX_CACHED_FILE_BYTES = 2**20  # 1 MB
+
 
 def invalidate_pull(pr_number: int) -> None:
     """Forget what we know about one pull request.
@@ -758,5 +763,6 @@ async def get_contribution_file(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="The file could not be read from the data repository.",
         )
-    _cache.put(("file", head_sha, path_param), text, DETAIL_TTL_SECONDS)
+    if len(text) <= MAX_CACHED_FILE_BYTES:
+        _cache.put(("file", head_sha, path_param), text, DETAIL_TTL_SECONDS)
     return text
