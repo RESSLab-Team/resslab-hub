@@ -72,6 +72,9 @@ llm = "opus"
 subagent_model = "sonnet"
 auto_compact_window = 200000
 explore_agent_model = "haiku"
+# Local MCP servers from the user config that a worker never needs. Each
+# session starts its own copy, so with a dozen worktrees they used several GB.
+disabled_mcp_servers = ["docling", "notion", "annas-mcp"]
 
 # Plan on one model, implement on another. A brief starts on
 # plan_model in plan mode. With Claude, accepting the plan carries
