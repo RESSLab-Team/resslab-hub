@@ -9,7 +9,7 @@ help: ## Show available targets
 
 # `benchmark` collides with the benchmark/ directory; mark targets phony so make
 # always runs the recipe instead of treating the directory as an up-to-date file.
-.PHONY: install dev test test-cov benchmark bench-rows lint update sample-data
+.PHONY: install dev test test-cov benchmark bench-rows lint lint-check sample-data
 
 install:                ## uv sync
 	uv sync
@@ -38,17 +38,19 @@ BENCH_OUT ?= .benchmark-tmp
 bench-rows:             ## resample a real CSV up to BENCH_ROWS for the dashboard benchmark; BENCH_DB=connections BENCH_OUT=.benchmark-tmp-300
 	uv run python -m benchmark.bootstrap_rows $(BENCH_DB) --rows $(BENCH_ROWS) --out $(BENCH_OUT)
 
-lint:                   ## ruff + ruff-format through pre-commit, all files
-	uv run pre-commit run --all-files
+lint:                   ## ruff check --fix + ruff format, all files
+	uv run ruff check --fix .
+	uv run ruff format .
+
+lint-check:             ## same as lint, but only checks (CI and pre-push)
+	uv run ruff check .
+	uv run ruff format --check --diff .
 
 EXPERIMENTS ?= 15
 OUTLIERS ?= 3
 sample-data:            ## test batches for /contribute/new, rows from real DB records, curves from the data repo; EXPERIMENTS=15 OUTLIERS=3
 	DOTENV_PATH_FOR_DYNACONF="../secrets/.env" uv run python ../sample-data/generate.py \
 		--experiments $(EXPERIMENTS) --outliers $(OUTLIERS) --data-dir $(RESSLAB_DATA_DIR)
-
-update:                 ## pre-commit autoupdate
-	pre-commit autoupdate
 
 validate-data:          ## list the validate-<type> targets
 	@echo "Usage: make validate-<type>, with the backend running on BACKEND_PORT"
