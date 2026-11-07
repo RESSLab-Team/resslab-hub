@@ -13,7 +13,7 @@ import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
 import { linkConfigurationMapping, sectionTypeMapping } from '@/utils/ebf'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -50,20 +50,23 @@ const parallelFilterFields: string[] = [
       : []
   )
 ]
-const yearSectionFields: DoubleFields<EccentricBracedFrameField> = [
+// Computed, so the section labels follow a language switch.
+const yearSectionFields = computed<DoubleFields<EccentricBracedFrameField>>(() => [
   EccentricBracedFrameField.Year,
   {
     id: EccentricBracedFrameField.SecType,
-    mapping: sectionTypeMapping
+    mapping: sectionTypeMapping()
   }
-]
-const yearLinkFields: DoubleFields<EccentricBracedFrameField> = [
+])
+const yearLinkFields = computed<DoubleFields<EccentricBracedFrameField>>(() => [
   EccentricBracedFrameField.Year,
   {
     id: EccentricBracedFrameField.ClassAisc,
-    mapping: sectionTypeMapping
+    mapping: sectionTypeMapping()
   }
-]
+])
+// Computed, so the link configuration labels follow a language switch.
+const linkConfigurations = computed(() => linkConfigurationMapping())
 
 // Filters are derived from the data dictionary + the loaded dataset, so a new
 // column becomes filterable without touching this file, and fieldGroups.ts
@@ -166,7 +169,7 @@ const {
           <dataset-single-chart
             :source="EBF_SOURCE"
             :field="EccentricBracedFrameField.LConfi"
-            :mapping="linkConfigurationMapping"
+            :mapping="linkConfigurations"
             :show-reset="false"
             flat
             @change:searches="changeSearches"

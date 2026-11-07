@@ -5,7 +5,7 @@ import type { CurationSummary } from '@/backend'
 import { useCurationStore } from '@/stores/curation'
 import { useVerificationStore } from '@/stores/verification'
 import { databaseIdForType, formatAge } from '@/utils/curation'
-import { DATABASES } from '@/utils/navigation'
+import { databases } from '@/utils/navigation'
 import { mdiAlertOutline, mdiOpenInNew, mdiRefresh } from '@mdi/js'
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -52,10 +52,11 @@ function initialsOf(name: string): string {
   return ((parts[0]?.[0] ?? '') + (parts[parts.length - 1]?.[0] ?? '')).toUpperCase() || '?'
 }
 
-const rows = computed<QueueRow[]>(() =>
-  store.items.map((summary) => {
+const rows = computed<QueueRow[]>(() => {
+  const databaseList = databases()
+  return store.items.map((summary) => {
     const databaseId = databaseIdForType(summary.type)
-    const database = DATABASES.find((entry) => entry.id === databaseId)
+    const database = databaseList.find((entry) => entry.id === databaseId)
     return {
       summary,
       databaseName: database?.name ?? summary.type,
@@ -63,7 +64,7 @@ const rows = computed<QueueRow[]>(() =>
       unrecognised: summary.kind === 'unrecognised'
     }
   })
-)
+})
 </script>
 
 <template>

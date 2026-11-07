@@ -12,11 +12,10 @@ export const initialLocale = SUPPORTED_LOCALES.some((l) => l.value === stored)
   ? (stored as string)
   : 'en'
 
-// Only the default locale ships in the entry bundle. French is loaded in
-// main.ts's bootstrap *before* mount when it's the active locale — it must be
-// registered pre-mount because module-scope strings (nav, chart axis labels)
-// resolve via i18n.global.t at import time, which is also why LanguageToggle
-// reloads the page on switch instead of swapping messages live.
+// Only the default locale ships in the entry bundle. The other one is loaded
+// on demand (loadLocaleMessages): before mount when it is the stored choice,
+// or when the user switches. No module keeps a translated string at import
+// time, so a switch re-renders live, with no reload.
 const i18n = createI18n({
   legacy: false,
   globalInjection: true,
@@ -26,5 +25,14 @@ const i18n = createI18n({
     en: en
   }
 })
+
+/** Load and register a locale's messages once. English is always there. */
+export async function loadLocaleMessages(locale: string): Promise<void> {
+  if ((i18n.global.availableLocales as string[]).includes(locale)) return
+  if (locale === 'fr') {
+    const fr = await import('@/locales/fr.json')
+    i18n.global.setLocaleMessage('fr', fr.default)
+  }
+}
 
 export default i18n

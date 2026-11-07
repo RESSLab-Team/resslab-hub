@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import BrandMark from '@/components/layout/BrandMark.vue'
 import LanguageToggle from '@/components/layout/LanguageToggle.vue'
+import { useMediaQuery } from '@/composables/useMediaQuery'
 import { useAuthStore } from '@/stores/auth'
 import { useCountsStore } from '@/stores/counts'
 import { useFeaturesStore } from '@/stores/features'
-import { NAV_GROUPS, type NavGroup } from '@/utils/navigation'
+import { navGroups, type NavGroup } from '@/utils/navigation'
 import {
   mdiBookOpenVariant,
   mdiChevronDown,
@@ -28,6 +29,10 @@ const emit = defineEmits<{
   (e: 'toggle-theme'): void
   (e: 'close'): void
 }>()
+
+// Below this width the sidebar is an off-screen drawer (app.css). Closed, it is
+// `inert`, so Tab never lands on links nobody can see.
+const narrow = useMediaQuery('(max-width: 1023px)')
 
 const route = useRoute()
 const countsStore = useCountsStore()
@@ -56,6 +61,8 @@ const initials = computed(() => {
 })
 
 const manuallyOpened = ref(new Set<string>())
+// Computed, so the names follow a language switch.
+const groups = computed(() => navGroups())
 
 function routePrefix(group: NavGroup): string {
   // '/connections/database' -> '/connections'
@@ -63,7 +70,7 @@ function routePrefix(group: NavGroup): string {
 }
 
 const activeGroupId = computed(
-  () => NAV_GROUPS.find((g) => route.path.startsWith(routePrefix(g) + '/'))?.id
+  () => groups.value.find((g) => route.path.startsWith(routePrefix(g) + '/'))?.id
 )
 
 function isExpanded(group: NavGroup): boolean {
@@ -95,7 +102,7 @@ function toggleGroup(group: NavGroup) {
 </script>
 
 <template>
-  <aside class="sidebar" :class="{ open }">
+  <aside class="sidebar" :class="{ open }" :inert="(narrow && !open) || undefined">
     <router-link class="sidebar-brand" to="/" @click="emit('close')">
       <brand-mark />
       <div class="sidebar-brand-name">
@@ -115,7 +122,7 @@ function toggleGroup(group: NavGroup) {
     </router-link>
 
     <div class="sidebar-section">{{ $t('shell.databases_and_tools') }}</div>
-    <template v-for="group in NAV_GROUPS" :key="group.id">
+    <template v-for="group in groups" :key="group.id">
       <!-- Single-page groups render as a plain link -->
       <router-link
         v-if="group.children.length === 1"

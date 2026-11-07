@@ -3,16 +3,13 @@ import type { ToggleItem } from '@/utils/toggle'
 
 export type UnitSystem = 'metric' | 'imperial'
 
-export const unitItems: ToggleItem<UnitSystem>[] = [
-  {
-    value: 'metric',
-    text: i18n.global.t('enum.metric')
-  },
-  {
-    value: 'imperial',
-    text: i18n.global.t('enum.imperial')
-  }
-]
+/** A function, not a constant, so the labels follow the current locale. */
+export function unitItems(): ToggleItem<UnitSystem>[] {
+  return [
+    { value: 'metric', text: i18n.global.t('enum.metric') },
+    { value: 'imperial', text: i18n.global.t('enum.imperial') }
+  ]
+}
 
 export interface Unit {
   system: string

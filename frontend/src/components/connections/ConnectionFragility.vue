@@ -199,7 +199,12 @@ const thumbOptions = computed<Record<FocusId, EChartsOption>>(
       <div class="tool-card">
         <div class="tfield">
           <div class="tfield-label">{{ $t('tools.connection_fragility.steel_type') }}</div>
-          <tool-segmented v-model="material" full :items="materials" />
+          <tool-segmented
+            v-model="material"
+            full
+            :items="materials"
+            :label="$t('tools.connection_fragility.steel_type')"
+          />
         </div>
         <div class="tfield">
           <div class="tfield-label">

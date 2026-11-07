@@ -21,7 +21,7 @@ import type { FilterDescriptor } from '@/utils/filterProfile'
 import { formatValue } from '@/utils/queryEngine'
 import type { DatabaseId } from '@/utils/navigation'
 import type { DataOptions } from '@/utils/vuetify'
-import { booleanOptions } from '@/utils/vuetify'
+import { booleanOptions as buildBooleanOptions } from '@/utils/vuetify'
 import {
   mdiChevronDown,
   mdiClose,
@@ -118,16 +118,10 @@ const vInputBind = {
   variant: 'underlined' as 'underlined'
 }
 const { t } = useI18n({ useScope: 'global' })
-const checkboxDialogItems: CheckBoxDialogItem<DownloadType>[] = [
-  {
-    key: DownloadType.Main,
-    text: t('commons.download_master_data')
-  },
-  {
-    key: DownloadType.Test,
-    text: t('commons.download_test_data')
-  }
-]
+const checkboxDialogItems = computed<CheckBoxDialogItem<DownloadType>[]>(() => [
+  { key: DownloadType.Main, text: t('commons.download_master_data') },
+  { key: DownloadType.Test, text: t('commons.download_test_data') }
+])
 
 // The data dictionary powers the adaptive short header labels; the store
 // dedupes, so this kicks at most one fetch per session. Until it resolves
@@ -608,6 +602,9 @@ function categoryColor(header: TableHeader, item: M): string | undefined {
   return props.colorFor(header.key)(formatValue(value))
 }
 
+// Built on each locale change, so the true/false labels follow the language.
+const booleanOptions = computed(() => buildBooleanOptions())
+
 function rowClick(item: M): void {
   emit('click:row', item)
 }
@@ -726,7 +723,7 @@ function downloadZip(): void {
                     class="stbl-check"
                     :checked="allPageSelected"
                     :indeterminate.prop="somePageSelected"
-                    aria-label="select all"
+                    :aria-label="t('commons.select_all')"
                     @change="toggleSelectAll"
                   />
                 </th>
@@ -962,7 +959,10 @@ function downloadZip(): void {
                   'is-selected': isRowSelected(item),
                   'is-stripe': (rowWindow.startIndex + index) % 2 === 1
                 }"
+                tabindex="0"
                 @click="rowClick(item)"
+                @keydown.enter.self.prevent="rowClick(item)"
+                @keydown.space.self.prevent="rowClick(item)"
               >
                 <td
                   class="stbl-col-select"
@@ -974,6 +974,7 @@ function downloadZip(): void {
                     type="checkbox"
                     class="stbl-check"
                     :checked="isRowSelected(item)"
+                    :aria-label="t('commons.select_row', { id: item.id })"
                     @change="toggleRow(item)"
                   />
                   <span v-if="isUnverified(item)" class="stbl-sr">{{
@@ -1070,14 +1071,30 @@ function downloadZip(): void {
         </select>
       </div>
       <div class="pager-btns">
-        <button class="pager-btn" :disabled="page <= 1" @click="page--">‹</button>
+        <button
+          class="pager-btn"
+          type="button"
+          :aria-label="t('commons.previous')"
+          :disabled="page <= 1"
+          @click="page--"
+        >
+          ‹
+        </button>
         <template v-for="(item, index) in pageItems" :key="`${index}-${item}`">
           <span v-if="item === '…'" class="pager-ellipsis">…</span>
           <button v-else class="pager-btn" :class="{ on: item === page }" @click="page = item">
             {{ item }}
           </button>
         </template>
-        <button class="pager-btn" :disabled="page >= pageCount" @click="page++">›</button>
+        <button
+          class="pager-btn"
+          type="button"
+          :aria-label="t('commons.next')"
+          :disabled="page >= pageCount"
+          @click="page++"
+        >
+          ›
+        </button>
       </div>
     </div>
 
@@ -1469,6 +1486,10 @@ function downloadZip(): void {
 }
 .stbl-table tbody td.text-end {
   text-align: end;
+}
+.stbl-row:focus-visible {
+  outline: 2px solid var(--epfl-red);
+  outline-offset: -2px;
 }
 .stbl-row:hover {
   cursor: pointer;

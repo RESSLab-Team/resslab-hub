@@ -443,6 +443,11 @@
   line-height: 1;
 }
 .tool-page .tool-scrim {
+  /* A <button>, so the keyboard and screen readers can close the drawer. */
+  appearance: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);

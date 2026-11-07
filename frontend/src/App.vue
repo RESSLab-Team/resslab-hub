@@ -2,6 +2,7 @@
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import BrandMark from '@/components/layout/BrandMark.vue'
 import SimpleSnackbar from '@/components/commons/SimpleSnackbar.vue'
+import { useEscapeKey } from '@/composables/useEscapeKey'
 import { useNotificationStore } from '@/stores/notification'
 import { mdiMenu } from '@mdi/js'
 import { onMounted, ref, watch } from 'vue'
@@ -42,6 +43,7 @@ watch(
     sidebarOpen.value = false
   }
 )
+useEscapeKey(sidebarOpen, () => (sidebarOpen.value = false))
 </script>
 
 <template>
@@ -53,7 +55,14 @@ watch(
         @toggle-theme="toggleTheme"
         @close="sidebarOpen = false"
       />
-      <div class="sidebar-scrim" :class="{ open: sidebarOpen }" @click="sidebarOpen = false" />
+      <button
+        class="sidebar-scrim"
+        type="button"
+        :class="{ open: sidebarOpen }"
+        :aria-label="$t('commons.close')"
+        :inert="!sidebarOpen || undefined"
+        @click="sidebarOpen = false"
+      />
       <div class="app-main">
         <header class="mhdr">
           <button

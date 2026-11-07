@@ -44,6 +44,7 @@ const hotspots = computed(
           class="sem-hotspot"
           :style="{ left: `${pos.x}%`, top: `${pos.y}%` }"
           :title="String(location)"
+          :aria-label="$t('sem.zoom_hotspot', { location })"
         />
       </template>
       <v-card density="compact" rounded="pill" class="pa-1">

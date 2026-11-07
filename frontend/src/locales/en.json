@@ -503,6 +503,8 @@
     "close": "Close",
     "previous": "Previous",
     "next": "Next",
+    "select_all": "Select all",
+    "select_row": "Select {id}",
     "reset_all": "Reset all",
     "expand_filters": "Expand filters",
     "collapse_filters": "Collapse filters",
@@ -886,7 +888,8 @@
     "cdf_x_axis": "Dimple diameter [mm]",
     "dimple_load_error": "Failed to load dimple data ({error}).",
     "legend_test_data": "Test Data",
-    "legend_simulation": "Simulation"
+    "legend_simulation": "Simulation",
+    "zoom_hotspot": "Zoom on {location}"
   },
   "nav": {
     "database": "Database",

@@ -77,3 +77,37 @@ describe('SimpleTable select all', () => {
     expect(rowChecks().some(Boolean)).toBe(false)
   })
 })
+
+describe('SimpleTable keyboard and labels', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false }) as never
+  })
+
+  it('opens a row with Enter or Space, like a click', async () => {
+    const wrapper = mountTable()
+    const row = wrapper.findAll('tbody tr.stbl-row')[1]
+    expect(row.attributes('tabindex')).toBe('0')
+
+    await row.trigger('keydown', { key: 'Enter' })
+    await row.trigger('keydown', { key: ' ' })
+    expect(wrapper.emitted('click:row')).toEqual([[items[1]], [items[1]]])
+  })
+
+  it('does not open the row when Space ticks its checkbox', async () => {
+    const wrapper = mountTable()
+    await wrapper.find('tbody .stbl-check').trigger('keydown', { key: ' ' })
+    expect(wrapper.emitted('click:row')).toBeUndefined()
+  })
+
+  it('labels the checkboxes and the pager buttons', () => {
+    const wrapper = mountTable()
+    expect(wrapper.find('.stbl-head-titles .stbl-check').attributes('aria-label')).toBe(
+      'Select all'
+    )
+    expect(wrapper.find('tbody .stbl-check').attributes('aria-label')).toBe('Select S1')
+    const pager = wrapper.findAll('.pager-btn')
+    expect(pager[0].attributes('aria-label')).toBe('Previous')
+    expect(pager[pager.length - 1].attributes('aria-label')).toBe('Next')
+  })
+})

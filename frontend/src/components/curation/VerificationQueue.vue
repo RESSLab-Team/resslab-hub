@@ -10,7 +10,7 @@ import type { Type, VerificationGroup, VerificationPull } from '@/backend'
 import { errorDetail, useVerificationStore } from '@/stores/verification'
 import { databaseIdForType } from '@/utils/curation'
 import { idsSearch } from '@/utils/curationStatus'
-import { DATABASES } from '@/utils/navigation'
+import { databases } from '@/utils/navigation'
 import { mdiAlertOutline, mdiOpenInNew } from '@mdi/js'
 import { computed, onMounted, ref } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
@@ -33,10 +33,11 @@ interface Row {
   more: number
 }
 
-const rows = computed<Row[]>(() =>
-  store.groups.map((group) => {
+const rows = computed<Row[]>(() => {
+  const databaseList = databases()
+  return store.groups.map((group) => {
     const databaseId = databaseIdForType(group.database)
-    const database = DATABASES.find((entry) => entry.id === databaseId)
+    const database = databaseList.find((entry) => entry.id === databaseId)
     return {
       key: `${group.database}|${group.reference}|${group.pending_pr?.pr_number ?? ''}`,
       group,
@@ -51,7 +52,7 @@ const rows = computed<Row[]>(() =>
       more: Math.max(0, group.ids.length - PREVIEW)
     }
   })
-)
+})
 
 const busy = ref(new Set<string>())
 const failures = ref(new Map<string, string>())
