@@ -288,6 +288,34 @@ async def test_validate_unhandled_error_answers_json(tmp_path):
     assert response.json() == {"detail": "Internal server error"}
 
 
+@pytest.mark.parametrize("route", ["/validate", "/upload"])
+async def test_oversized_body_without_content_length_answers_413(
+    tmp_path, monkeypatch, route
+):
+    # A chunked body has no Content-Length, so only the parsed file size can
+    # stop it (#264 M3). The header check is skipped here to play that client.
+    import httpx
+
+    from resslab_hub.main import app
+    from resslab_hub.routers import root
+
+    monkeypatch.setattr(root, "MAX_REQUEST_BYTES", 100)
+    app.dependency_overrides[root.enforce_request_size] = lambda: None
+    try:
+        transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+            response = await c.post(
+                route,
+                params={"type": "all-braces"},
+                files=_upload(_braces_targz(tmp_path, [{"id": "B1"}])),
+                auth=SERVICE_AUTH,
+            )
+    finally:
+        app.dependency_overrides.pop(root.enforce_request_size, None)
+    assert response.status_code == 413
+    assert response.json() == {"detail": "Upload exceeds the maximum allowed size."}
+
+
 async def test_validate_invalid_data_is_200_with_structured_issue(client, tmp_path):
     # 'area' is a Float column; a non-numeric value is a data error, not a
     # transport error, so it comes back as 200 valid=false.

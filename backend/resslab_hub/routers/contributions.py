@@ -38,7 +38,11 @@ from resslab_hub.models.contribution import ContributionResponse
 from resslab_hub.models.database.auth import User
 from resslab_hub.models.validation import ValidationResponse
 from resslab_hub.routers.curation import invalidate_open_pulls, invalidate_pull
-from resslab_hub.routers.root import _build_response, enforce_request_size
+from resslab_hub.routers.root import (
+    _build_response,
+    enforce_request_size,
+    reject_oversized,
+)
 from resslab_hub.utils.rate_limit import limiter
 from resslab_hub.utils.safe_archive import (
     ArchiveError,
@@ -113,6 +117,7 @@ async def _run_on_archive(
             detail="Submissions are not enabled on this deployment.",
         )
     try:
+        reject_oversized(file)
         with TemporaryDirectory() as tmpdir:
             safe_extract_targz(file.file, tmpdir)
             try:
