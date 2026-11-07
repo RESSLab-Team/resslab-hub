@@ -1309,6 +1309,9 @@
       "draft_notice": "Soumettre à nouveau ajoute un commit à la demande de relecture ouverte sur le dépôt de données RESSLab. Les vérifications sont relancées et la relecture continue.",
       "conflict": "Cette soumission a changé sur GitHub après son ouverture. Rechargez la page pour obtenir la dernière version, puis refaites vos modifications.",
       "not_mine": "Cette soumission a été faite depuis un autre compte. Seule la personne qui l'a soumise peut la modifier ici."
+    },
+    "legend": {
+      "submitted": "Vos courbes soumises, en rouge ici et sur la page de revue"
     }
   },
   "curation": {
@@ -1395,10 +1398,10 @@
       "brushed": "{count} sélectionnées",
       "chart_title": "Coordonnées parallèles · Nouveau spécimen vs cohorte",
       "ghosts": "{count} fantômes + {added} nouveau(x)",
-      "legend_new": "Nouveau spécimen · {id}",
+      "legend_new": "Soumis · {id}",
       "legend_brushed": "{count} sélectionnées",
-      "legend_ghost": "{count} similaires (fantômes)",
-      "hint": "Chaque ligne grise est une expérience existante sur tous les axes ; la ligne rouge est cette soumission.",
+      "legend_ghost": "{count} existantes (similaires)",
+      "hint": "Chaque ligne estompée est une expérience déjà présente dans la base, sur tous les axes ; la ligne rouge est cette soumission.",
       "brush_hint": "Glissez le long d'un axe pour sélectionner un sous-ensemble : le décompte de la cohorte et les courbes de comparaison ci-dessous suivent la sélection. « Zoomer sur la sélection » redessine les axes dessus.",
       "criteria_hint": "Critères définissant une expérience comparable",
       "not_reported": "non renseigné",
@@ -1470,6 +1473,12 @@
       "only": "Marquer seulement {id} comme vérifiée",
       "nothing_left": "Chaque expérience ici est déjà vérifiée ou dans une pull request de vérification.",
       "note": "Ouvre une pull request qui ne change que la colonne de statut. Fusionnez-la sur GitHub (squash). Le site affiche le changement après le prochain chargement des données."
+    },
+    "legend": {
+      "submitted": "Soumis",
+      "submitted_value": "Valeur soumise",
+      "existing_compared": "Existant (comparé)",
+      "existing_range": "Plage déjà présente dans la base"
     }
   },
   "auth": {

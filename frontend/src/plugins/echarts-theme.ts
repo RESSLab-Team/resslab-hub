@@ -36,6 +36,10 @@ export const INK_SLATE = '#5b6b78'
 // The one place EPFL red (epfl-tokens.css --epfl-red) enters a chart: brush
 // bands and selected/hovered lines. Never a series fill.
 export const RED = '#e30713'
+// Data already in the database, drawn behind a submission on the curation
+// review (#268): epfl-tokens.css --data-existing (gray-500, the TICK grey).
+// The submission itself is RED (--data-submitted).
+export const EXISTING = '#8e8e8e'
 
 // Categorical series palette — Okabe–Ito (colorblind-safe), handoff order; the
 // single definition lives in utils/palette.ts. EPFL red stays reserved for

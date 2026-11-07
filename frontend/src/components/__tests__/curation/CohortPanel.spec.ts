@@ -143,3 +143,16 @@ describe('CohortPanel brush wiring', () => {
     expect(banner).not.toContain('brushed')
   })
 })
+
+describe('CohortPanel legend (#268)', () => {
+  it('names the submitted specimen and the existing cohort', async () => {
+    const wrapper = mountPanel()
+    await flushPromises()
+
+    const legend = wrapper.find('.data-legend')
+    expect(legend.find('.sw.submitted').exists()).toBe(true)
+    expect(legend.find('.sw.existing').exists()).toBe(true)
+    expect(legend.text()).toContain('Submitted · NEW-1')
+    expect(legend.text()).toContain('2 existing (similar)')
+  })
+})
