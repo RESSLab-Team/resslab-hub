@@ -45,9 +45,7 @@ const columns: Column[] = [
 ]
 
 const props = defineProps(tableProps)
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface Emits extends TableEmits<EccentricBracedFrameModel> {}
-const emit = defineEmits<Emits>()
+const emit = defineEmits<TableEmits<EccentricBracedFrameModel>>()
 
 const notificationStore = useNotificationStore()
 const { getTotal, getPage, countRowsSync, pageSync, colorFor } =

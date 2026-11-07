@@ -19,7 +19,6 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, unref, watch } fro
 // that cheap where SVG's DOM cost would not. devicePixelRatio keeps it crisp.
 use([CanvasRenderer, ParallelChart, BrushComponent, ToolboxComponent])
 
-// TODO add genericity https://github.com/vuejs/rfcs/discussions/436
 type F = string
 const props = withDefaults(
   defineProps<{

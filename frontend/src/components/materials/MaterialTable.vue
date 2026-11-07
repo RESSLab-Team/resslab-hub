@@ -34,9 +34,7 @@ const columns: Column[] = [
 ]
 
 const props = defineProps(tableProps)
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface Emits extends TableEmits<MaterialModel> {}
-const emit = defineEmits<Emits>()
+const emit = defineEmits<TableEmits<MaterialModel>>()
 
 const notificationStore = useNotificationStore()
 const { getTotal, getPage, countRowsSync, pageSync, colorFor } = useDataset<MaterialModel>(
