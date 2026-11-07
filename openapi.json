@@ -974,6 +974,46 @@
         }
       }
     },
+    "/contributions/{pr_number}/curves": {
+      "get": {
+        "summary": "Get Contribution Curves",
+        "description": "Every curve file of the submission, with its text (#336).\n\nThis is how the edit step loads a submission: one request, and the files\nare read from GitHub in parallel here. The answer is complete or it is a\n502, never partial: a save deletes the curves the editor does not send\nback, so a curve left out here would be lost on the next save. The\nsingle-file route above stays for the curator's curve preview.",
+        "operationId": "get_contribution_curves",
+        "parameters": [
+          {
+            "name": "pr_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pr Number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationCurvesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/verification": {
       "get": {
         "summary": "List Unverified",
@@ -12516,6 +12556,52 @@
         },
         "type": "object",
         "title": "CurationContributor"
+      },
+      "CurationCurve": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "path",
+          "text"
+        ],
+        "title": "CurationCurve",
+        "description": "One curve file of the submission, with its text at the head commit."
+      },
+      "CurationCurvesResponse": {
+        "properties": {
+          "pr_number": {
+            "type": "integer",
+            "title": "Pr Number"
+          },
+          "head_sha": {
+            "type": "string",
+            "title": "Head Sha"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/CurationCurve"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pr_number",
+          "head_sha",
+          "files"
+        ],
+        "title": "CurationCurvesResponse",
+        "description": "Every curve of a submission, for the edit step (#336)."
       },
       "CurationDetail": {
         "properties": {

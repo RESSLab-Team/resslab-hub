@@ -71,6 +71,23 @@ class CurationFile(BaseModel):
     experiment_id: Optional[str] = None
 
 
+class CurationCurve(BaseModel):
+    """One curve file of the submission, with its text at the head commit."""
+
+    path: str
+    text: str
+
+
+class CurationCurvesResponse(BaseModel):
+    """Every curve of a submission, for the edit step (#336)."""
+
+    pr_number: int
+    #: The commit the texts were read at. The editor refuses to open when it
+    #: is not the head of the detail it holds (the branch moved in between).
+    head_sha: str
+    files: List[CurationCurve]
+
+
 class CurationComment(BaseModel):
     """One message of a submission's discussion thread.
 

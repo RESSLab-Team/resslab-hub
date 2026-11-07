@@ -210,8 +210,6 @@ export const useContributionStore = defineStore('contribution', () => {
   const loadError = ref<'not_open' | 'not_mine' | 'unknown_database' | 'load_failed' | null>(null)
   /** Files of the submission the editor cannot hold; left alone on the branch. */
   const skippedFiles = ref<string[]>([])
-  /** Files of the submission fetched so far, while `loadStatus` is 'loading'. */
-  const loadProgress = ref<{ done: number; total: number } | null>(null)
 
   const config = computed(() => (database.value ? CONTRIBUTION_DATABASES[database.value] : null))
   // The Hub fills the review status itself (#253): never ask for it.
@@ -953,7 +951,6 @@ export const useContributionStore = defineStore('contribution', () => {
     const token = ++loadToken
     loadStatus.value = 'loading'
     loadError.value = null
-    loadProgress.value = null
     skippedFiles.value = []
 
     const curation = useCurationStore()
@@ -989,35 +986,43 @@ export const useContributionStore = defineStore('contribution', () => {
     await dictionary.fetch()
 
     const { placed, skipped } = editableFiles(id, detail)
-    // One request per file: count them as they land, for the loading line.
-    const progress = { done: 0, total: placed.length }
-    loadProgress.value = progress
-    let texts: string[]
-    try {
-      texts = await Promise.all(
-        placed.map((file) =>
-          curation.fetchFileText(prNumber, file.path).then((text) => {
-            progress.done += 1
-            return text
-          })
-        )
-      )
-    } catch {
+    // Every curve in one request (#336). A submission with no curve needs none.
+    let texts = new Map<string, string>()
+    if (placed.length > 0) {
+      let curves
+      try {
+        curves = await curation.fetchCurves(prNumber)
+      } catch {
+        if (token !== loadToken) return
+        loadError.value = 'load_failed'
+        loadStatus.value = 'error'
+        return
+      }
       if (token !== loadToken) return
-      loadProgress.value = null
-      loadError.value = 'load_failed'
-      loadStatus.value = 'error'
-      return
+      // The branch moved between the two reads, or a curve did not come back.
+      // Opening on that would mix two commits, or delete the missing curve on
+      // the next save. Refuse, and forget the stale detail so a reload reads
+      // the new head.
+      if (
+        curves.headSha !== detail.head_sha ||
+        placed.some((file) => !curves.texts.has(file.path))
+      ) {
+        curation.invalidate(prNumber)
+        loadError.value = 'load_failed'
+        loadStatus.value = 'error'
+        return
+      }
+      texts = curves.texts
     }
     if (token !== loadToken) return
-    loadProgress.value = null
 
     reset()
     selectDatabase(id)
     importRows(detail.experiments.map((experiment) => toEditorCells(experiment.cells)))
-    placed.forEach((file, index) => {
+    placed.forEach((file) => {
       const row = rows.value[file.index]
-      if (row) attachSeries(row.uid, file.kind, file.name, texts[index])
+      const text = texts.get(file.path)
+      if (row && text !== undefined) attachSeries(row.uid, file.kind, file.name, text)
     })
     editTarget.value = {
       prNumber,
@@ -1100,7 +1105,6 @@ export const useContributionStore = defineStore('contribution', () => {
     submitFileCount,
     loadStatus,
     loadError,
-    loadProgress,
     skippedFiles,
     loadSubmission,
     canSubmit,
