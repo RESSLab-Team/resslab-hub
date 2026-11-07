@@ -2,12 +2,12 @@
 import { ColumnField, type ColumnModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import ColumnDoubleChart from '@/components/columns/charts/ColumnDoubleChart.vue'
-import ColumnParallelChart from '@/components/columns/charts/ColumnParallelChart.vue'
-import ColumnSingleChart from '@/components/columns/charts/ColumnSingleChart.vue'
+import DatasetDoubleChart from '@/components/commons/charts/DatasetDoubleChart.vue'
+import DatasetParallelChart from '@/components/commons/charts/DatasetParallelChart.vue'
+import DatasetSingleChart from '@/components/commons/charts/DatasetSingleChart.vue'
 import ColumnDetail from '@/components/columns/ColumnDetail.vue'
 import ColumnTable from '@/components/columns/ColumnTable.vue'
-import { COLUMN_KEY, PARALLEL_FIELDS, fetchColumns } from '@/components/columns/data'
+import { COLUMN_KEY, COLUMN_SOURCE, PARALLEL_FIELDS, fetchColumns } from '@/components/columns/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
@@ -103,7 +103,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <column-double-chart
+          <dataset-double-chart
+            :source="COLUMN_SOURCE"
             :fields="boundaryConditionFields"
             type="line"
             @change:searches="changeSearches"
@@ -116,7 +117,11 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <column-double-chart :fields="columnDepthFields" @change:searches="changeSearches" />
+          <dataset-double-chart
+            :source="COLUMN_SOURCE"
+            :fields="columnDepthFields"
+            @change:searches="changeSearches"
+          />
         </chart-cell>
         <chart-cell
           quiet
@@ -126,7 +131,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <column-single-chart
+          <dataset-single-chart
+            :source="COLUMN_SOURCE"
             :field="ColumnField.SteelC"
             :show-reset="false"
             flat
@@ -143,7 +149,11 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <column-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+          <dataset-parallel-chart
+            :source="COLUMN_SOURCE"
+            :fields="parallelFields"
+            @change:searches="changeSearches"
+          />
         </chart-cell>
       </div>
     </template>

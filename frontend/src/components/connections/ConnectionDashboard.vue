@@ -2,12 +2,18 @@
 import { ConnectionField, type ConnectionModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import ConnectionDoubleChart from '@/components/connections/charts/ConnectionDoubleChart.vue'
-import ConnectionParallelChart from '@/components/connections/charts/ConnectionParallelChart.vue'
-import ConnectionSingleChart from '@/components/connections/charts/ConnectionSingleChart.vue'
+import DatasetDoubleChart from '@/components/commons/charts/DatasetDoubleChart.vue'
+import DatasetParallelChart from '@/components/commons/charts/DatasetParallelChart.vue'
+import DatasetSingleChart from '@/components/commons/charts/DatasetSingleChart.vue'
 import ConnectionDetail from '@/components/connections/ConnectionDetail.vue'
 import ConnectionTable from '@/components/connections/ConnectionTable.vue'
-import { CONNECTION_KEY, PARALLEL_FIELDS, fetchConnections } from '@/components/connections/data'
+import { getConnectionTypeImage } from '@/utils/component'
+import {
+  CONNECTION_KEY,
+  CONNECTION_SOURCE,
+  PARALLEL_FIELDS,
+  fetchConnections
+} from '@/components/connections/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
@@ -111,7 +117,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <connection-double-chart
+          <dataset-double-chart
+            :source="CONNECTION_SOURCE"
             :fields="typeYearFields"
             type="line"
             @change:searches="changeSearches"
@@ -125,8 +132,10 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <connection-single-chart
+          <dataset-single-chart
+            :source="CONNECTION_SOURCE"
             :field="ConnectionField.ConnectionType"
+            :image-for="getConnectionTypeImage"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -140,7 +149,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <connection-single-chart
+          <dataset-single-chart
+            :source="CONNECTION_SOURCE"
             :field="ConnectionField.SteelB"
             :show-reset="false"
             flat
@@ -158,7 +168,11 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <connection-double-chart :fields="beamFields" @change:searches="changeSearches" />
+          <dataset-double-chart
+            :source="CONNECTION_SOURCE"
+            :fields="beamFields"
+            @change:searches="changeSearches"
+          />
         </chart-cell>
         <chart-cell
           :title="$t('dashboards.connection.chart_column_depth_doubler_plates')"
@@ -167,7 +181,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <connection-double-chart
+          <dataset-double-chart
+            :source="CONNECTION_SOURCE"
             :fields="columnDoublerFields"
             @change:searches="changeSearches"
           />
@@ -183,7 +198,11 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <connection-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+          <dataset-parallel-chart
+            :source="CONNECTION_SOURCE"
+            :fields="parallelFields"
+            @change:searches="changeSearches"
+          />
         </chart-cell>
       </div>
     </template>

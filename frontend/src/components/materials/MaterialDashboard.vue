@@ -2,12 +2,17 @@
 import { MaterialField, type MaterialModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import MaterialDoubleChart from '@/components/materials/charts/MaterialDoubleChart.vue'
-import MaterialParallelChart from '@/components/materials/charts/MaterialParallelChart.vue'
-import MaterialSingleChart from '@/components/materials/charts/MaterialSingleChart.vue'
+import DatasetDoubleChart from '@/components/commons/charts/DatasetDoubleChart.vue'
+import DatasetParallelChart from '@/components/commons/charts/DatasetParallelChart.vue'
+import DatasetSingleChart from '@/components/commons/charts/DatasetSingleChart.vue'
 import MaterialDetail from '@/components/materials/MaterialDetail.vue'
 import MaterialTable from '@/components/materials/MaterialTable.vue'
-import { MATERIAL_KEY, PARALLEL_FIELDS, fetchMaterials } from '@/components/materials/data'
+import {
+  MATERIAL_KEY,
+  MATERIAL_SOURCE,
+  PARALLEL_FIELDS,
+  fetchMaterials
+} from '@/components/materials/data'
 import type { DoubleFields } from '@/composables/chart'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
@@ -95,7 +100,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <material-double-chart
+          <dataset-double-chart
+            :source="MATERIAL_SOURCE"
             :fields="profileFields"
             type="line"
             @change:searches="changeSearches"
@@ -108,7 +114,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <material-double-chart
+          <dataset-double-chart
+            :source="MATERIAL_SOURCE"
             :fields="profileThicknessFields"
             type="bar"
             @change:searches="changeSearches"
@@ -122,7 +129,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <material-single-chart
+          <dataset-single-chart
+            :source="MATERIAL_SOURCE"
             :field="MaterialField.Type"
             :show-reset="false"
             flat
@@ -139,7 +147,11 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <material-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+          <dataset-parallel-chart
+            :source="MATERIAL_SOURCE"
+            :fields="parallelFields"
+            @change:searches="changeSearches"
+          />
         </chart-cell>
       </div>
     </template>

@@ -2,17 +2,17 @@
 import { EccentricBracedFrameField, type EccentricBracedFrameModel } from '@/backend'
 import ChartCell from '@/components/commons/ChartCell.vue'
 import DashboardShell from '@/components/commons/DashboardShell.vue'
-import EbfDoubleChart from '@/components/ebf/charts/EbfDoubleChart.vue'
-import EbfParallelChart from '@/components/ebf/charts/EbfParallelChart.vue'
-import EbfSingleChart from '@/components/ebf/charts/EbfSingleChart.vue'
+import DatasetDoubleChart from '@/components/commons/charts/DatasetDoubleChart.vue'
+import DatasetParallelChart from '@/components/commons/charts/DatasetParallelChart.vue'
+import DatasetSingleChart from '@/components/commons/charts/DatasetSingleChart.vue'
 import EbfDetail from '@/components/ebf/EbfDetail.vue'
 import EbfTable from '@/components/ebf/EbfTable.vue'
 import type { DoubleFields, ParallelField } from '@/composables/chart'
-import { EBF_KEY, fetchEbfs } from '@/components/ebf/data'
+import { EBF_KEY, EBF_SOURCE, fetchEbfs } from '@/components/ebf/data'
 import { useDashboard } from '@/composables/dashboard'
 import { useAutoFilters } from '@/composables/useAutoFilters'
 import { useCountsStore } from '@/stores/counts'
-import { sectionTypeMapping } from '@/utils/ebf'
+import { linkConfigurationMapping, sectionTypeMapping } from '@/utils/ebf'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -115,7 +115,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ebf-double-chart
+          <dataset-double-chart
+            :source="EBF_SOURCE"
             :fields="yearSectionFields"
             type="line"
             @change:searches="changeSearches"
@@ -128,7 +129,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ebf-double-chart
+          <dataset-double-chart
+            :source="EBF_SOURCE"
             :fields="yearLinkFields"
             type="line"
             @change:searches="changeSearches"
@@ -145,7 +147,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ebf-single-chart
+          <dataset-single-chart
+            :source="EBF_SOURCE"
             :field="EccentricBracedFrameField.LPTyp"
             :show-reset="false"
             flat
@@ -160,8 +163,10 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ebf-single-chart
+          <dataset-single-chart
+            :source="EBF_SOURCE"
             :field="EccentricBracedFrameField.LConfi"
+            :mapping="linkConfigurationMapping"
             :show-reset="false"
             flat
             @change:searches="changeSearches"
@@ -175,7 +180,8 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ebf-single-chart
+          <dataset-single-chart
+            :source="EBF_SOURCE"
             :field="EccentricBracedFrameField.SgFlgLink"
             :show-reset="false"
             flat
@@ -192,7 +198,11 @@ const {
           :searches="searches"
           @change:searches="changeSearches"
         >
-          <ebf-parallel-chart :fields="parallelFields" @change:searches="changeSearches" />
+          <dataset-parallel-chart
+            :source="EBF_SOURCE"
+            :fields="parallelFields"
+            @change:searches="changeSearches"
+          />
         </chart-cell>
       </div>
     </template>
