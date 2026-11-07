@@ -110,7 +110,8 @@ FastAPI + SQLAlchemy 2.0 async + PostgreSQL. Key files:
 Vue 3 + TypeScript + Vite + Vuetify 3 + Pinia.
 
 - `backend/`: auto-generated TypeScript API client (from `openapi.json` via `make api`); never edit manually
-- `views/`: page-level components. Per database: `{Type}View.vue` (overview), `{Type}Database.vue` (data table), `{Type}ModelView.vue` (model curves), `{Type}FragilityCurve.vue` (braces, columns, connections); tensile coupons and ductile fracture only have a `Database` view (sub-tabs of Materials). Plus the pages: `HomeView`, `AboutView`, `LoginView`, `LoginVerifyView`, `AccountView`, `ForbiddenView`, `AdminView`, `ContributeView`, `CurationQueueView`, `CurationReviewView`
+- `views/`: the pages that are not a database: `HomeView`, `AboutView`, `LoginView`, `LoginVerifyView`, `AccountView`, `ForbiddenView`, `AdminView`, `ContributeView`, `CurationQueueView`, `CurationReviewView`. The database routes point at the components directly: `components/{type}/{Type}Dashboard.vue` (database tab), `{Type}Model.vue` (model curves), `{Type}Fragility.vue` (braces, columns, connections). Tensile coupons and ductile fracture only have a dashboard (sub-tabs of Materials)
+- `components/commons/charts/Dataset{Single,Double,Parallel}Chart.vue`: the dashboard charts, one per chart type. A dashboard passes its dataset as `:source="X_SOURCE"`, exported by `components/{type}/data.ts` (dataset key, fetcher, i18n prefix, id and number fields)
 - `components/`: reusable components, organized by domain (`braces/`, `columns/`, etc.) plus `commons/`
 - `composables/`: Vue 3 composition functions
 - `stores/`: Pinia stores

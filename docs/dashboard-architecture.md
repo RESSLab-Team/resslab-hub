@@ -6,7 +6,7 @@ step-by-step for a new tab is in [adding-a-new-tab.md](adding-a-new-tab.md).
 
 ## The shape of a tab
 
-One view (`views/EbfView.vue`) renders one dashboard
+The route renders one dashboard directly
 (`components/ebf/EbfDashboard.vue`), which is a good example to read. A
 dashboard is `components/commons/DashboardShell.vue` (head, toolbar, active
 filter chips, and three slots: `#table`, `#charts`, `#detail`) wired to three
@@ -86,7 +86,11 @@ three frames instead of one long task.
 
 Shared chart components live in `components/commons/charts/` (`SingleChart`,
 `DoubleChart`, `LegendChart`, the parallel and surface charts) and each cell
-is a `ChartCell.vue`. The tooltip chrome is in `plugins/echarts-theme.ts`,
+is a `ChartCell.vue`. A dashboard does not use them directly: it uses
+`DatasetSingleChart`, `DatasetDoubleChart` and `DatasetParallelChart`, which
+bind a chart to `useDataset()`. They take the dataset as
+`:source="EBF_SOURCE"`, exported by `components/ebf/data.ts` (dataset key,
+fetcher, i18n prefix, id and number fields). The tooltip chrome is in `plugins/echarts-theme.ts`,
 because a tooltip is raw DOM outside the app's CSS.
 
 ### Category colours
@@ -128,8 +132,7 @@ dictionary's `group` column first, [variable-categories.md](variable-categories.
 Rendered by `AutoFilterRail.vue` and `AutoFilterRow.vue`; the widgets are in
 `components/commons/sliders/`: `DistributionBrush` (a histogram with a
 context and focus brush, dragged through a pointer overlay rather than
-ECharts' `dataZoom`), `DateDistributionBrush`, and the plain two-handle
-`RangeSlider` and `DateRangeSlider`.
+ECharts' `dataZoom`) and `DateDistributionBrush`.
 
 ## The drawer
 

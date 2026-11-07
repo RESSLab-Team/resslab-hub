@@ -54,7 +54,7 @@ Both tabs added to date (HSS — issue #176, Dec 2023; EBF — issue #215 / PR #
 2. `feat(ebf): create ebf api & router model` — Pydantic schema + FastAPI router.
 3. `feat(ebf): add uploader & fix model/alembic with correct null columns & add NAN to None in analyser` — CSV uploader + late null-column fixups on the model/migration.
 4. `feat(ebf): generate open api files` — regenerated `openapi.json` + `frontend/src/backend/` TS client. **This is its own commit — don't mix it with either backend logic or frontend code.**
-5. `feat: add all ebf components` — one big frontend commit: views (`EbfView.vue`, `EbfDatabase.vue`), `components/ebf/*` (dashboard + table + detail + 3 charts), `utils/ebf.ts`, `App.vue` nav, `router/index.ts`, `plugins/axios.ts`, `locales/en.json`. (HSS split this into three — your call.)
+5. `feat: add all ebf components` — one big frontend commit: views (`EbfView.vue`, `EbfDatabase.vue`, removed since), `components/ebf/*` (dashboard + table + detail + 3 charts, now the generic `Dataset*Chart`), `utils/ebf.ts`, `App.vue` nav, `router/index.ts`, `plugins/axios.ts`, `locales/en.json`. (HSS split this into three — your call.)
 6. `feat(ebf): allow mapping prop to single chart for label` — tiny shared-chart tweak the tab needed (`components/commons/charts/SingleChart.vue`).
 7. `feat(ebf): add ebf detail images` — static PNGs under `frontend/public/img/ebf/`.
 8. `feat(ebf): update detail with correct path for images` — wire `getEbfImage()` paths to the new PNGs.
@@ -378,15 +378,9 @@ export const newThingApi = new NewThingApi(undefined, baseUrl, axiosInstance);
 
 ---
 
-## Step 8: Frontend: views and router
+## Step 8: Frontend: router
 
-File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/views/NewThingView.vue` (NEW)
-
-Thin parent that renders `<router-view />` for child routes (copy `EbfView.vue`).
-
-File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/views/NewThingDatabase.vue` (NEW)
-
-Imports and renders `NewThingDashboard.vue` (copy `EbfDatabase.vue`).
+No file in `views/`: the routes point at the components of Step 9 directly. The parent route has no component, so vue-router renders the children in `App.vue`'s `<router-view>`.
 
 File: `/mnt/data/Documents/Code/resslab-hub/frontend/src/router/index.ts`
 
@@ -395,10 +389,9 @@ Add a block modeled on the EBF route:
 ```ts
 {
   path: '/new-things',
-  component: () => import('@/views/NewThingView.vue'),
   children: [
     { path: '', redirect: '/new-things/database' },
-    { path: 'database', component: () => import('@/views/NewThingDatabase.vue') },
+    { path: 'database', component: () => import('@/components/new_thing/NewThingDashboard.vue') },
     // add 'model' or 'fragility-curve' children only if the component has those views
   ],
 }
@@ -408,26 +401,24 @@ Add a block modeled on the EBF route:
 
 **Optional: Model view.** Components that ship a published analytical model (closed-form backbone + fragility curve) add a second child route. HSS shows the full pattern:
 
-- `frontend/src/views/HssModelView.vue` — thin router-view wrapper.
-- `frontend/src/components/hss/HssModel.vue` — the UI itself (section picker backed by the transformed section CSVs in Step 14, parameter inputs, live-rendered backbone curves).
+- `frontend/src/components/hss/HssModel.vue` — the UI itself, routed directly (section picker backed by the transformed section CSVs in Step 14, parameter inputs, live-rendered backbone curves).
 - Router block becomes:
   ```ts
   children: [
     { path: "", redirect: "/hss-columns/database" },
-    { path: "database", component: () => import("@/views/HssDatabase.vue") },
-    { path: "model", component: () => import("@/views/HssModelView.vue") },
+    { path: "database", component: () => import("@/components/hss/HssDashboard.vue") },
+    { path: "model", component: () => import("@/components/hss/HssModel.vue") },
   ];
   ```
 - Nav: add a `{ title: 'Model', to: '/model' }` entry alongside `Database` in `App.vue`.
 
 Don't scaffold a Model view unless the component actually has a published model. EBF is database-only and deliberately ships without this route. Connections and Braces have one; HSS has one.
 
-**You can scaffold the Model view and ship it disabled.** Braces did: `BracesModelView.vue` and `BraceModel.vue` exist and compile, but the menu entry is commented out (commits `bb422f2` / `f5c214b`, `fix(braces): hide component model tab braces #213`). If your analytical model isn't production-ready but the code skeleton is useful, drop the nav entry and leave the route unlisted — the files stay, the tab is simply not reachable from the UI.
+**You can scaffold the Model view and ship it disabled.** Braces did: `BraceModel.vue` exists and compiles, but the menu entry is commented out (commits `bb422f2` / `f5c214b`, `fix(braces): hide component model tab braces #213`). If your analytical model isn't production-ready but the code skeleton is useful, drop the nav entry and leave the route unlisted — the files stay, the tab is simply not reachable from the UI.
 
 **Optional: Fragility Curve view.** If your component has published fragility parameters (damage-state medians/dispersions as functions of specimen properties), add a third child route. Braces is the only example today:
 
-- **View:** `frontend/src/views/NewThingFragilityCurve.vue` — thin router-view wrapper.
-- **Component:** `frontend/src/components/new_thing/NewThingFragility.vue` — the UI. Reference implementation: `frontend/src/components/braces/BraceFragility.vue`.
+- **Component:** `frontend/src/components/new_thing/NewThingFragility.vue` — the UI, routed directly. Reference implementation: `frontend/src/components/braces/BraceFragility.vue`.
 - **Shared utility:** `frontend/src/utils/fragility.ts` — `fragilityCurve(median, sigma)` via `@stdlib/stats-base-dists-lognormal-cdf`, plus `univariateOption()` and the `DamageState` interface. Do NOT reinvent these; import from this file.
 - **3D surface plots:** `echarts-gl` via `frontend/src/utils/echarts-gl.ts`. Already installed — no new deps needed.
 - **Parameter source:** fragility parameters are **not** stored in the data repo or the database. They are computed externally in the sibling repo `resslab-hub-scripts` (e.g. `fragility_curves_steel_braces/`) and **hard-coded as TypeScript constants** in the fragility component. This is deliberate — fragility parameters are a published research artifact, not experimental data.
@@ -437,13 +428,13 @@ Don't scaffold a Model view unless the component actually has a published model.
     { path: "", redirect: "/new-things/database" },
     {
       path: "database",
-      component: () => import("@/views/NewThingDatabase.vue"),
+      component: () => import("@/components/new_thing/NewThingDashboard.vue"),
     },
     {
       path: "fragility-curve",
-      component: () => import("@/views/NewThingFragilityCurve.vue"),
+      component: () => import("@/components/new_thing/NewThingFragility.vue"),
     },
-    { path: "model", component: () => import("@/views/NewThingModelView.vue") },
+    { path: "model", component: () => import("@/components/new_thing/NewThingModel.vue") },
   ];
   ```
 - **Nav:** add `{ title: 'Fragility Curve', to: '/fragility-curve' }` in `App.vue` (kebab-case slug).
@@ -474,11 +465,9 @@ Create `/mnt/data/Documents/Code/resslab-hub/frontend/src/components/{short_name
 | `NewThingDashboard.vue`            | Layout (table + detail + charts); defines `parallelFields`, `doubleChartFields`, color palette. Uses `useDashboard<NewThingModel>`.                                                          | `components/ebf/EbfDashboard.vue`            |
 | `NewThingTable.vue`                | Paginated data grid. Uses `useTable<NewThingModel>` and `newThingApi.getNewThings()`. Emits row click to the dashboard.                                                                      | `components/ebf/EbfTable.vue`                |
 | `NewThingDetail.vue`               | Detail panel for selected row. Fetches time-series via `newThingApi.getNewThingSub()`. Wraps `CommonDetail.vue`. Renders configuration image via utility helper.                             | `components/ebf/EbfDetail.vue`               |
-| `charts/NewThingParallelChart.vue` | Parallel coordinates. Uses `useParallelChart<NewThingField>` + `getNewThingsMatrix`. i18n prefix `"new_thing."`.                                                                             | `components/ebf/charts/EbfParallelChart.vue` |
-| `charts/NewThingDoubleChart.vue`   | Two-field histogram (typ. year × category). `useDoubleChart<NewThingField, NewThingNumberField>` + `getNewThingsCounts` + `getNewThingsRange`.                                               | `components/ebf/charts/EbfDoubleChart.vue`   |
-| `charts/NewThingSingleChart.vue`   | Single-field categorical bar. `useSingleChart<NewThingField>`. Pass the optional `mapping` prop introduced in PR #224 commit `bafde72` to map raw values (e.g. `hot-rolled` → `Hot-Rolled`). | `components/ebf/charts/EbfSingleChart.vue`   |
+| `data.ts`                          | The dataset key and fetcher, plus `NEW_THING_SOURCE: DatasetSource<NewThingField>` (key, fetcher, i18n prefix `'new_thing.'`, id field, `NewThingNumberField`). The dashboard passes it to every chart.                       | `components/ebf/data.ts`                     |
 
-No new composables needed — reuse `composables/dashboard.ts`, `table.ts`, `chart.ts` with the new type params.
+No chart component per tab: the dashboard uses the generic `DatasetSingleChart`, `DatasetDoubleChart` and `DatasetParallelChart` from `components/commons/charts/` with `:source="NEW_THING_SOURCE"`. `DatasetSingleChart` takes an optional `mapping` prop to map raw values (e.g. `hot-rolled` → `Hot-Rolled`, see the EBF `l_confi` cell) and `image-for` for a figure in the tooltip. No new composables needed: reuse `composables/dashboard.ts`, `table.ts`, `chart.ts` with the new type params.
 
 What the copied templates give you, so you know what not to reinvent (the whole engine is described in [dashboard-architecture.md](dashboard-architecture.md)):
 
@@ -651,8 +640,8 @@ Backend:
 
 Frontend:
 
-- `frontend/src/views/EbfView.vue`, `EbfDatabase.vue`.
-- `frontend/src/components/ebf/*` (dashboard, table, detail, 3 charts).
+- `frontend/src/components/ebf/*` (dashboard, table, detail, `data.ts` with `EBF_SOURCE`).
+- `frontend/src/components/commons/charts/Dataset{Single,Double,Parallel}Chart.vue`: the dashboard charts.
 - `frontend/src/utils/ebf.ts`, `component.ts`, `backend.ts`, `mapCategories.ts`, `mapSites.ts`.
 - `frontend/src/plugins/axios.ts` — API client registrations.
 - `frontend/src/router/index.ts`, `App.vue` — routing + nav.
@@ -664,14 +653,13 @@ Frontend:
 HSS-specific references (useful when your tab needs a Model view or section libraries — neither of which EBF has):
 
 - `backend/resslab_hub/routers/hss_columns.py` — older plural-named router; still a clean example of the shared `Component` + `SubComponent` shape.
-- `frontend/src/views/HssModelView.vue`, `frontend/src/components/hss/HssModel.vue` — Model-tab template.
+- `frontend/src/components/hss/HssModel.vue` — Model-tab template.
 - `backend/data/hss_csv_transformer.py` — custom section-library transformer template.
 - `frontend/src/assets/hss/hss-aisc-sections.csv`, `hss-european-sections.csv`, `hss-japanese-sections.csv` — output shape of the transformed section libraries (these are committed assets, not runtime fetches).
 
 Braces-specific references (useful when your tab needs a Fragility Curve view — Braces is the only example today):
 
 - `backend/resslab_hub/routers/braces.py` — the oldest router, plural convention like HSS; still a clean example of the shared `Component` + `SubComponent` shape with id-as-filename time-series.
-- `frontend/src/views/BracesFragilityCurve.vue` — thin view wrapper for the fragility tab.
 - `frontend/src/components/braces/BraceFragility.vue` — **the reference fragility component.** Hard-coded `DamageState[]` constants (4 cross-section types × 3 damage states + slenderness KL/r data), `echarts-gl` 3D surface plot, `@stdlib` lognormal CDF.
 - `frontend/src/utils/fragility.ts` — shared fragility math (`fragilityCurve`, `univariateOption`, `DamageState` interface). Any new fragility view imports from here.
 - `frontend/src/utils/echarts-gl.ts` — 3D chart type definitions for `SurfaceGlChart` / `UnitChart`.
@@ -747,14 +735,10 @@ Backend (NEW unless noted):
 
 Frontend (NEW unless noted):
 
-- `frontend/src/views/NewThingView.vue`
-- `frontend/src/views/NewThingDatabase.vue`
 - `frontend/src/components/new_thing/NewThingDashboard.vue`
 - `frontend/src/components/new_thing/NewThingTable.vue`
 - `frontend/src/components/new_thing/NewThingDetail.vue`
-- `frontend/src/components/new_thing/charts/NewThingParallelChart.vue`
-- `frontend/src/components/new_thing/charts/NewThingDoubleChart.vue`
-- `frontend/src/components/new_thing/charts/NewThingSingleChart.vue`
+- `frontend/src/components/new_thing/data.ts` _(with `NEW_THING_SOURCE`)_
 - `frontend/src/utils/new_thing.ts`
 - `frontend/src/utils/component.ts` _(edit — add `getNewThingImage`)_
 - `frontend/src/utils/backend.ts` _(edit — `Type` + `typesNames`)_
