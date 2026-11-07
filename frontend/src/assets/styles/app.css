@@ -24,6 +24,19 @@
   min-width: 0;
 }
 
+/* ================ CSV COLUMN NAME ================ */
+/* A column name as the contributor types it in the CSV header (#328). The
+   contribution editor, its issue lists, the curation flags and the guide's
+   dictionary table all show it the same way. */
+code.col-name {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: inherit;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 /* ================ SIDEBAR ================ */
 .sidebar {
   width: 260px;

@@ -6,7 +6,7 @@ import ProgressLine from '@/components/commons/ProgressLine.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useContributionStore, type CardIssue } from '@/stores/contribution'
 import { useDictionaryStore } from '@/stores/dictionary'
-import { CONTRIBUTION_DATABASES, fieldLabel } from '@/utils/contribution'
+import { CONTRIBUTION_DATABASES } from '@/utils/contribution'
 import { DATABASES, type DatabaseId } from '@/utils/navigation'
 import {
   mdiAlertOutline,
@@ -167,13 +167,6 @@ function reveal(uid: number): void {
 
 function revealIssue(uid: number, issue: CardIssue): void {
   cards.value?.revealIssue(uid, issue)
-}
-
-/** What a problem is about, the way the card labels it: the field, or the file kind. */
-function issueSubject(issue: CardIssue): string {
-  if (issue.column) return fieldLabel(store.database!, issue.column)
-  if (issue.kindKey) return t(`contribute.timeseries.kind.${issue.kindKey}`)
-  return ''
 }
 
 // --- Submission dialog ----------------------------------------------------
@@ -518,8 +511,14 @@ async function confirmSubmit(): Promise<void> {
                 >
                   <v-icon :icon="mdiAlertOutline" size="14" />
                   <span class="problem-msg">
-                    <template v-if="issueSubject(entry.issues[0])"
-                      >{{ issueSubject(entry.issues[0]) }}:
+                    <!-- What the problem is about, the way the card shows it: the CSV
+                         column, or the file kind. -->
+                    <template v-if="entry.issues[0].column"
+                      ><code class="col-name">{{ entry.issues[0].column }}</code
+                      >:
+                    </template>
+                    <template v-else-if="entry.issues[0].kindKey"
+                      >{{ $t(`contribute.timeseries.kind.${entry.issues[0].kindKey}`) }}:
                     </template>
                     {{ entry.issues[0].message }}
                   </span>

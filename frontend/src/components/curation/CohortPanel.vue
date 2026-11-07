@@ -2,9 +2,11 @@
 import SimpleParallelChart from '@/components/commons/charts/SimpleParallelChart.vue'
 import { GHOST_CONFIGS, isEmptyBrush, requestFieldsFor } from '@/components/curation/ghost'
 import type { ParallelSelection } from '@/composables/chart'
+import TextSubscript from '@/components/commons/TextSubscript.vue'
 import ToolSwitch from '@/components/commons/tools/ToolSwitch.vue'
 import { useDataset } from '@/composables/useDataset'
-import { CONTRIBUTION_DATABASES, fieldLabel } from '@/utils/contribution'
+import { displaySymbol, useDictionaryStore } from '@/stores/dictionary'
+import { CONTRIBUTION_DATABASES, fieldDisplay } from '@/utils/contribution'
 import { cellValue, isMissing, type ReviewBatch } from '@/utils/curation'
 import type { DatabaseId } from '@/utils/navigation'
 import { mdiAccountGroupOutline, mdiAlertOutline, mdiInformationOutline } from '@mdi/js'
@@ -79,6 +81,13 @@ interface Candidate {
   active: boolean
 }
 
+const dictionary = useDictionaryStore()
+
+function symbolOf(field: string): string | undefined {
+  const column = dictionary.columnFor(props.database, field)
+  return column ? displaySymbol(column) : undefined
+}
+
 /**
  * Every field the curator may use as a similarity criterion, with the selected
  * specimen's value. Fields the specimen leaves at NR stay visible but inert, so
@@ -90,7 +99,7 @@ const candidates = computed<Candidate[]>(() => {
     const missing = isMissing(selected.value.cells[field])
     return {
       field,
-      label: fieldLabel(props.database, field),
+      label: fieldDisplay(props.database, field, symbolOf(field)),
       value: (selected.value.cells[field] ?? '').trim(),
       missing,
       active: !missing && props.fields.includes(field)
@@ -197,7 +206,7 @@ const labelPrefix = computed(() => `${CONTRIBUTION_DATABASES[props.database].nam
             type="button"
             @click="toggle(entry)"
           >
-            {{ entry.label }}:
+            <text-subscript :text="entry.label" />:
             <b v-if="!entry.missing">{{ entry.value }}</b>
             <span v-else class="nr">{{ $t('curation.cohort.not_reported') }}</span>
           </button>

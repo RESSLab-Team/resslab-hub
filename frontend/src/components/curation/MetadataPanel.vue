@@ -3,11 +3,11 @@ import type { CurationExperiment } from '@/backend'
 import {
   displaySymbol,
   displayUnit,
-  symbolHtml,
   useDictionaryStore,
   type DictColumn
 } from '@/stores/dictionary'
-import { fieldLabel } from '@/utils/contribution'
+import TextSubscript from '@/components/commons/TextSubscript.vue'
+import { fieldDisplay } from '@/utils/contribution'
 import { isMissing } from '@/utils/curation'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
@@ -49,10 +49,13 @@ const rows = computed<FieldRow[]>(() =>
     const dict = dictionary.columnFor(props.database, column)
     const raw = props.experiment.cells[column] ?? ''
     const missing = isMissing(raw)
+    const symbol = dict ? displaySymbol(dict) : undefined
+    const label = fieldDisplay(props.database, column, symbol)
     return {
       column,
-      label: fieldLabel(props.database, column),
-      symbol: dict ? displaySymbol(dict) : undefined,
+      label,
+      // Without a translation the label is the symbol already: don't show it twice.
+      symbol: symbol === label ? undefined : symbol,
       unit: dict ? displayUnit(dict) : undefined,
       description: dict?.description,
       value: raw.trim(),
@@ -143,10 +146,9 @@ defineExpose({ flash })
           :title="row.description"
         >
           <span class="pk">
-            {{ row.label }}
-            <!-- Dictionary symbols carry <sub>/<sup> markup. -->
-            <!-- eslint-disable-next-line vue/no-v-html -- sanitised by symbolHtml -->
-            <span v-if="row.symbol" class="symbol" v-html="symbolHtml(row.symbol)"></span>
+            <!-- Dictionary symbols carry <sub>/<sup> markup (#328). -->
+            <text-subscript :text="row.label" />
+            <span v-if="row.symbol" class="symbol"><text-subscript :text="row.symbol" /></span>
           </span>
           <span class="leader"></span>
           <span class="pv">

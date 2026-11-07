@@ -10,8 +10,13 @@
  * not the headline.
  */
 import PropertyItem from '@/components/commons/PropertyItem.vue'
-import { displayUnit, useDictionaryStore, type DictColumn } from '@/stores/dictionary'
-import { fieldLabel } from '@/utils/contribution'
+import {
+  displaySymbol,
+  displayUnit,
+  useDictionaryStore,
+  type DictColumn
+} from '@/stores/dictionary'
+import { fieldDisplay } from '@/utils/contribution'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import type { DatabaseId } from '@/utils/navigation'
 import { formatValue } from '@/utils/queryEngine'
@@ -42,7 +47,7 @@ const groups = computed(() => {
     .filter((column) => column.name in cells.value)
     .map((column) => ({
       column,
-      label: fieldLabel(props.database, column.name),
+      label: fieldDisplay(props.database, column.name, displaySymbol(column)),
       unit: displayUnit(column),
       value: formatValue(cells.value[column.name])
     }))

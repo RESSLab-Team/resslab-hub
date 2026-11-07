@@ -3,7 +3,6 @@ import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import IntakeReport from '@/components/contribute/IntakeReport.vue'
 import { useContributionStore, type CardIssue, type IntakeSummary } from '@/stores/contribution'
 import { useNotificationStore } from '@/stores/notification'
-import { fieldLabel } from '@/utils/contribution'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
 import {
   classifyIntake,
@@ -540,7 +539,9 @@ function noteFor(kind: TimeSeriesKind): string {
         </span>
         <span class="headline">
           <span v-for="column in headlineColumns" :key="column.name" class="headline-item">
-            <span class="k">{{ fieldLabel(store.database!, column.name) }}</span>
+            <span class="k"
+              ><code class="col-name">{{ column.name }}</code></span
+            >
             <span class="v">{{ row.cells[column.name]?.trim() || '—' }}</span>
           </span>
         </span>
@@ -634,7 +635,8 @@ function noteFor(kind: TimeSeriesKind): string {
               <v-icon :icon="mdiAlertOutline" size="14" />
               <span>
                 <template v-if="issue.column"
-                  >{{ fieldLabel(store.database!, issue.column) }}:
+                  ><code class="col-name">{{ issue.column }}</code
+                  >:
                 </template>
                 <template v-else-if="issue.kindKey">
                   {{ $t(`contribute.timeseries.kind.${issue.kindKey}`) }}:
@@ -683,7 +685,8 @@ function noteFor(kind: TimeSeriesKind): string {
                   <v-icon :icon="mdiBellOffOutline" size="14" />
                   <span>
                     <template v-if="issue.column">
-                      {{ fieldLabel(store.database!, issue.column) }}:
+                      <code class="col-name">{{ issue.column }}</code
+                      >:
                     </template>
                     <template v-else-if="issue.kindKey">
                       {{ $t(`contribute.timeseries.kind.${issue.kindKey}`) }}:
@@ -763,7 +766,7 @@ function noteFor(kind: TimeSeriesKind): string {
                 ]"
               >
                 <label :for="`f-${row.uid}-${column.name}`">
-                  {{ fieldLabel(store.database!, column.name) }}
+                  <code class="col-name">{{ column.name }}</code>
                   <span v-if="!column.nullable" class="required">*</span>
                   <span v-if="column.unit && column.unit !== '-'" class="unit">{{
                     column.unit
@@ -1229,6 +1232,11 @@ function noteFor(kind: TimeSeriesKind): string {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* The small uppercase key holds a raw column name: keep its case and size. */
+.headline-item .k .col-name {
+  font-size: 10.5px;
+  font-weight: 500;
 }
 .headline-item .v {
   font-size: 12.5px;

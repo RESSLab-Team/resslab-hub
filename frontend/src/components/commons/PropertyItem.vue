@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TextSubscript from '@/components/commons/TextSubscript.vue'
+
 const props = defineProps<{
   name: string
   unit?: string
@@ -8,7 +10,8 @@ const props = defineProps<{
 
 <template>
   <div class="prop-item">
-    <span class="prop-name">{{ props.name }}</span>
+    <!-- The name can be a dictionary symbol with <sub>/<sup> (#328). -->
+    <span class="prop-name"><text-subscript :text="props.name" /></span>
     <span class="prop-val" :class="{ mono: props.mono }">
       <slot />
       <span v-if="props.unit" class="prop-unit">{{ props.unit }}</span>
