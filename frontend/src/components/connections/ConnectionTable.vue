@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ConnectionField, type ConnectionModel } from '@/backend'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
 import { useDataset } from '@/composables/useDataset'
@@ -16,31 +15,9 @@ const columns: Column[] = [
     type: 'text'
   },
   {
-    value: ConnectionField.Date,
-    type: 'number',
-    filterOnly: true
-  },
-  {
     value: ConnectionField.SpecimenDesignation,
     type: 'text',
     cellVariant: 'strong'
-  },
-  {
-    value: ConnectionField.Northridge,
-    type: 'option',
-    options: ['pre', 'post'],
-    filterOnly: true
-  },
-  {
-    value: ConnectionField.SpecimenType,
-    type: 'text',
-    options: ['exterior%', 'interior%'],
-    filterOnly: true
-  },
-  {
-    value: ConnectionField.Slab,
-    type: 'boolean',
-    filterOnly: true
   },
   {
     value: ConnectionField.ConnectionType,
@@ -58,12 +35,6 @@ const columns: Column[] = [
     value: ConnectionField.SectionC,
     type: 'text',
     cellVariant: 'mono'
-  },
-  {
-    value: ConnectionField.NDp,
-    type: 'number',
-    options: ['0', '> 0'],
-    filterOnly: true
   },
   {
     value: ConnectionField.TDpTot,
@@ -89,7 +60,6 @@ const {
   liveItems,
   loading,
   options,
-  search,
   searches,
   totalCount,
   totalFilteredCount
@@ -141,13 +111,10 @@ function getImageSource(item: string): string {
 <template>
   <simple-table
     v-model:options="options"
-    v-model:search="search"
     v-model:searches="searches"
     :color-for="colorFor"
     database-id="connections"
     :columns="columns"
-    hide-filter-only
-    hide-toolbar
     instant
     :live-count="liveCount"
     :live-items="liveItems"
@@ -160,19 +127,6 @@ function getImageSource(item: string): string {
     @click:row="clickRow"
     @download="downloadFiles"
   >
-    <template #title>
-      {{ $t('table.connection.title') }}
-      <info-tooltip>
-        <p>{{ $t('table.connection.tooltip.intro') }}</p>
-        {{ $t('table.connection.tooltip.howToUse') }}
-        <ul>
-          <li>{{ $t('table.connection.tooltip.bulletFilter') }}</li>
-          <li>{{ $t('table.connection.tooltip.bulletClick') }}</li>
-          <li>{{ $t('table.connection.tooltip.bulletDownload') }}</li>
-          <li>{{ $t('table.connection.tooltip.bulletShare') }}</li>
-        </ul>
-      </info-tooltip>
-    </template>
     <!-- eslint-disable-next-line vue/no-template-shadow -->
     <template #[`header-select-item.connection_type`]="{ props }">
       <v-list-item v-bind="props" @click="props.onClick as VoidFunction">

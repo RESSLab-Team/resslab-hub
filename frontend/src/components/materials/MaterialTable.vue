@@ -51,7 +51,6 @@ const {
   liveItems,
   loading,
   options,
-  search,
   searches,
   totalCount,
   totalFilteredCount
@@ -79,12 +78,10 @@ const {
 <template>
   <simple-table
     v-model:options="options"
-    v-model:search="search"
     v-model:searches="searches"
     :color-for="colorFor"
     database-id="cyclic"
     :columns="columns"
-    hide-toolbar
     :live-count="liveCount"
     :live-items="liveItems"
     :items="items"
@@ -92,7 +89,6 @@ const {
     :loading="loading"
     prefix="material."
     :query="query"
-    :title="$t('table.material.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"

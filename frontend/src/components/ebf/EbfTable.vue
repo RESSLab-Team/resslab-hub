@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { EccentricBracedFrameField, type EccentricBracedFrameModel } from '@/backend'
-import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import SimpleTable from '@/components/commons/SimpleTable.vue'
 import { tableProps, useTable, type Column, type TableEmits } from '@/composables/table'
 import { useDataset } from '@/composables/useDataset'
@@ -61,7 +60,6 @@ const {
   liveItems,
   loading,
   options,
-  search,
   searches,
   totalCount,
   totalFilteredCount
@@ -89,12 +87,10 @@ const {
 <template>
   <simple-table
     v-model:options="options"
-    v-model:search="search"
     v-model:searches="searches"
     :color-for="colorFor"
     database-id="ebf"
     :columns="columns"
-    hide-toolbar
     :live-count="liveCount"
     :live-items="liveItems"
     :items="items"
@@ -102,24 +98,10 @@ const {
     :loading="loading"
     prefix="ebf."
     :query="query"
-    :title="$t('table.ebf.title')"
     :total-count="totalCount"
     :total-filtered-count="totalFilteredCount"
     @click:row="clickRow"
     @download="downloadFiles"
   >
-    <template #title>
-      {{ $t('table.ebf.title') }}
-      <info-tooltip>
-        <p>{{ $t('table.ebf.tooltip.intro') }}</p>
-        {{ $t('table.ebf.tooltip.howToUse') }}
-        <ul>
-          <li>{{ $t('table.ebf.tooltip.bulletFilter') }}</li>
-          <li>{{ $t('table.ebf.tooltip.bulletClick') }}</li>
-          <li>{{ $t('table.ebf.tooltip.bulletDownload') }}</li>
-          <li>{{ $t('table.ebf.tooltip.bulletShare') }}</li>
-        </ul>
-      </info-tooltip>
-    </template>
   </simple-table>
 </template>

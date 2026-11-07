@@ -590,7 +590,6 @@
     "reset_filters": "Réinitialiser les filtres",
     "download": "Télécharger",
     "download_n": "Télécharger ({n}/{m})",
-    "share": "Partager",
     "share_specimen": "Partager un lien vers cette éprouvette",
     "specimen_not_found": "L'éprouvette {id} est introuvable.",
     "table_showing": "Affichage de {from}–{to} sur {total}",
@@ -642,55 +641,12 @@
     }
   },
   "table": {
-    "connection": {
-      "title": "Assemblages",
-      "tooltip": {
-        "intro": "La base de données des assemblages présente des données depuis le début des années 1970 sur les assemblages poutre-poteau sous chargement cyclique alterné et monotone. Les données principales concernent le comportement global de l'assemblage et le cisaillement décomposé de la zone nodale en fonction de la distorsion en cisaillement, le moment déduit en extrémité de poutre en fonction de la rotation de corde, lorsque ces données sont disponibles.",
-        "howToUse": "Comment l'utiliser ?",
-        "bulletFilter": "Filtrez le tableau en effectuant des sélections dans les différents graphiques autour du tableau, ou en utilisant les filtres et menus déroulants au-dessus des en-têtes du tableau.",
-        "bulletClick": "Cliquez sur une ligne pour voir les données d'un essai unique.",
-        "bulletDownload": "Téléchargez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Télécharger » ci-dessous.",
-        "bulletShare": "Partagez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Partager » ci-dessous."
-      }
-    },
-    "column": {
-      "title": "Poteaux",
-      "tooltip": {
-        "intro": "La base de données des poteaux présente des données depuis le début des années 1970 sur les poteaux sous chargement cyclique alterné et monotone. Les données principales concernent le moment déduit en fonction de la rotation de corde du poteau et le raccourcissement axial déduit du poteau en fonction de la rotation de corde.",
-        "howToUse": "Comment l'utiliser ?",
-        "bulletFilter": "Filtrez le tableau en effectuant des sélections dans les différents graphiques autour du tableau, ou en utilisant les filtres et menus déroulants au-dessus des en-têtes du tableau.",
-        "bulletClick": "Cliquez sur une ligne pour voir les données d'un essai unique.",
-        "bulletDownload": "Téléchargez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Télécharger » ci-dessous.",
-        "bulletShare": "Partagez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Partager » ci-dessous."
-      }
-    },
-    "brace": {
-      "title": "Contreventements",
-      "tooltip": {
-        "intro": "La base de données des contreventements présente des données depuis le milieu des années 1970 sur les contreventements en acier de diverses configurations. Les contreventements sont soumis à des historiques de chargement monotone, cyclique symétrique et autres. Les données principales concernent la charge axiale du contreventement en fonction du déplacement axial.",
-        "howToUse": "Comment l'utiliser ?",
-        "bulletFilter": "Filtrez le tableau en effectuant des sélections dans les différents graphiques autour du tableau, ou en utilisant les filtres et menus déroulants au-dessus des en-têtes du tableau.",
-        "bulletClick": "Cliquez sur une ligne pour voir les données d'un essai unique.",
-        "bulletDownload": "Téléchargez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Télécharger » ci-dessous.",
-        "bulletShare": "Partagez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Partager » ci-dessous."
-      }
-    },
     "hss": {
-      "title": "Poteaux HSS",
       "columns": {
         "experimentalProgram": "Programme expérimental"
-      },
-      "tooltip": {
-        "intro": "La base de données des poteaux HSS présente des données depuis le début de 1975 sur les poteaux sous chargement cyclique alterné et monotone. Les données principales concernent le moment déduit en fonction de la rotation de corde du poteau.",
-        "howToUse": "Comment l'utiliser ?",
-        "bulletFilter": "Filtrez le tableau en effectuant des sélections dans les différents graphiques autour du tableau, ou en utilisant les filtres et menus déroulants au-dessus des en-têtes du tableau.",
-        "bulletClick": "Cliquez sur une ligne pour voir les données d'un essai unique.",
-        "bulletDownload": "Téléchargez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Télécharger » ci-dessous.",
-        "bulletShare": "Partagez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Partager » ci-dessous."
       }
     },
     "ebf": {
-      "title": "Tronçons EBF",
       "columns": {
         "experimentalProgram": "Programme expérimental",
         "experimentalProgram_short": "Programme",
@@ -704,31 +660,13 @@
         "linkLength_short": "Longueur [mm]",
         "steelMaterial": "Matériau acier [MPa]",
         "steelMaterial_short": "Acier [MPa]"
-      },
-      "tooltip": {
-        "intro": "La base de données sur les tronçons des portiques à treillis excentré (EBF) présente des données depuis le début des années 1977 sur les tronçons EBF sous chargement cyclique alterné et monotone. Les données principales concernent l'angle déduit cisaillement-tronçon du tronçon EBF.",
-        "howToUse": "Comment l'utiliser ?",
-        "bulletFilter": "Filtrez le tableau en effectuant des sélections dans les différents graphiques autour du tableau, ou en utilisant les filtres et menus déroulants au-dessus des en-têtes du tableau.",
-        "bulletClick": "Cliquez sur une ligne pour voir les données d'un essai unique.",
-        "bulletDownload": "Téléchargez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Télécharger » ci-dessous.",
-        "bulletShare": "Partagez les résultats d'essais spécifiques en sélectionnant l'essai (colonne la plus à gauche) puis en cliquant sur « Partager » ci-dessous."
       }
     },
     "ductile_fracture": {
-      "title": "Rupture ductile",
       "columns": {
         "profileType": "Type de profilé",
         "profileType_short": "Profilé"
       }
-    },
-    "material": {
-      "title": "Éprouvettes cycliques"
-    },
-    "residual": {
-      "title": "Contraintes résiduelles"
-    },
-    "tensile_coupon": {
-      "title": "Éprouvettes de traction"
     }
   },
   "map": {
