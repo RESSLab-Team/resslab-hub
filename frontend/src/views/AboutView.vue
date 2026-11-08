@@ -176,9 +176,12 @@ function initials(name: string): string {
             >
           </template>
           <template #codeLicence>
-            <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer">{{
-              t('about.codeLicence')
-            }}</a>
+            <a
+              href="https://www.gnu.org/licenses/agpl-3.0.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              >{{ t('about.codeLicence') }}</a
+            >
           </template>
         </i18n-t>
       </p>
@@ -272,7 +275,10 @@ function initials(name: string): string {
           <p class="about-note about-prose about-history">
             <i18n-t keypath="about.funding.historyConnections" tag="span" scope="global">
               <template #lignos>
-                <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank" rel="noopener noreferrer"
+                <a
+                  href="https://people.epfl.ch/dimitrios.lignos"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   >Prof. Dimitrios Lignos</a
                 >
               </template>
@@ -294,7 +300,10 @@ function initials(name: string): string {
                 >
               </template>
               <template #snsfProject>
-                <a href="https://data.snf.ch/grants/grant/169248" target="_blank" rel="noopener noreferrer"
+                <a
+                  href="https://data.snf.ch/grants/grant/169248"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   >“Advanced Simulation Platform for Collapse Risk Assessment of Steel Frame
                   Buildings”</a
                 >
@@ -304,7 +313,10 @@ function initials(name: string): string {
           <p class="about-note about-prose">
             <i18n-t keypath="about.funding.support" tag="span" scope="global">
               <template #lignos>
-                <a href="https://people.epfl.ch/dimitrios.lignos" target="_blank" rel="noopener noreferrer"
+                <a
+                  href="https://people.epfl.ch/dimitrios.lignos"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   >Prof. Dimitrios Lignos</a
                 >
               </template>
@@ -317,9 +329,12 @@ function initials(name: string): string {
                 >
               </template>
               <template #privacy>
-                <a href="https://go.epfl.ch/privacy-policy/" target="_blank" rel="noopener noreferrer">{{
-                  t('about.funding.privacyPolicy')
-                }}</a>
+                <a
+                  href="https://go.epfl.ch/privacy-policy/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >{{ t('about.funding.privacyPolicy') }}</a
+                >
               </template>
             </i18n-t>
           </p>
