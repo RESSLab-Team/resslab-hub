@@ -84,6 +84,14 @@ async def test_braces_query_filters_rows(client, tmp_path):
     assert [item["id"] for item in body["items"]] == ["B1"]
 
 
+async def test_braces_query_value_with_colon(client, tmp_path):
+    # Only the first ":" splits the key from the value (#265).
+    _seed_braces(tmp_path)
+    response = await client.get("/braces", params={"query": "investigator:a:b"})
+    assert response.status_code == 200
+    assert response.json()["total"] == 0
+
+
 async def test_braces_counts_group_by_field(client, tmp_path):
     _seed_braces(tmp_path)
     response = await client.get("/braces/counts", params={"fields": "investigator"})

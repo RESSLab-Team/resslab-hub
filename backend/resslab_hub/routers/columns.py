@@ -55,7 +55,7 @@ axial_shortening_component = component.get_sub(
     },
 )
 moment_strong_component = component.get_sub(
-    "moment",
+    "moment-strong",
     ColumnMomentStrong.column_id,
     ColumnMomentStrong.id,
     {
@@ -64,7 +64,7 @@ moment_strong_component = component.get_sub(
     },
 )
 moment_weak_component = component.get_sub(
-    "moment",
+    "moment-weak",
     ColumnMomentWeak.column_id,
     ColumnMomentWeak.id,
     {
