@@ -4,7 +4,8 @@
 # Hooks installed:
 #   - commit-msg : enforce Conventional Commits (commitlint)
 #   - pre-commit : ESLint + Prettier on staged frontend files,
-#                  Python pre-commit framework on staged backend files
+#                  ruff on staged backend Python files,
+#                  yaml and file-size checks on every staged file
 #   - pre-push   : worktree push guard (own branch only, never dev/stage/main),
 #                  full type-check (vue-tsc) and full backend lint
 #
@@ -38,11 +39,18 @@ pre-commit:
       run: pnpm exec prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
 
-    - name: backend-pre-commit
-      glob: "backend/**/*"
+    - name: backend-ruff
+      glob: "backend/**/*.py"
       root: "backend/"
-      run: uv run pre-commit run --files {staged_files}
+      run: uv run ruff check --fix {staged_files} && uv run ruff format {staged_files}
       stage_fixed: true
+
+    - name: check-yaml
+      glob: "*.{yml,yaml}"
+      run: bash scripts/check-yaml.sh {staged_files}
+
+    - name: check-large-files
+      run: bash scripts/check-large-files.sh {staged_files}
 
 pre-push:
   parallel: true
@@ -58,6 +66,6 @@ pre-push:
       root: "frontend/"
       run: pnpm run type-check
 
-    - name: backend-pre-commit-all
+    - name: backend-ruff-all
       root: "backend/"
-      run: uv run pre-commit run --all-files
+      run: uv run ruff check . && uv run ruff format --check .

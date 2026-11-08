@@ -1,4 +1,4 @@
-.PHONY: install hooks go dev-all tmux-dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint update run api sample-data upload-data backup-dump data-fork-reset new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
+.PHONY: install hooks go dev-all tmux-dev-all dev-backend dev-frontend dev-database test test-cov benchmark lint run api sample-data upload-data backup-dump data-fork-reset new db-template-light db-template db-branch db-branch-full db-branch-drop db-status wt-land wt-done wt-open
 
 .PHONY: help
 help: ## Show available targets
@@ -39,12 +39,9 @@ test-cov:               ## same with coverage reports (backend/htmlcov, frontend
 benchmark:              ## backend performance benchmark against a throwaway DB
 	$(MAKE) -C backend benchmark
 
-lint:                   ## backend ruff (pre-commit) + frontend ESLint
+lint:                   ## backend ruff + frontend ESLint
 	$(MAKE) -C backend lint
 	$(MAKE) -C frontend lint
-
-update:                 ## pre-commit autoupdate
-	$(MAKE) -C backend update
 
 run:                    ## Docker build + full stack (traefik, frontend, 7 backends, db); needs SSL_CERT_CRT/KEY
 	docker compose build --parallel --pull
