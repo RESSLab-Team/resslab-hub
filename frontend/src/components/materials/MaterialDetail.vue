@@ -179,6 +179,7 @@ watch(
           <a
             href="https://ascelibrary.org/doi/abs/10.1061/%28ASCE%29ST.1943-541X.0002964"
             target="_blank"
+            rel="noopener noreferrer"
           >
             Hartloper et al. (2021)
           </a>

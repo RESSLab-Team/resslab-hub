@@ -394,16 +394,16 @@ onMounted(() => {
     <div class="logos">
       <div class="logos-eyebrow">{{ t('home.partners.eyebrow') }}</div>
       <div class="logos-items">
-        <a href="https://www.epfl.ch/labs/resslab" target="_blank" rel="noreferrer">
+        <a href="https://www.epfl.ch/labs/resslab" target="_blank" rel="noopener noreferrer">
           <img :src="publicPath + 'logo/resslab_logo_v1.svg'" alt="RESSLab" />
         </a>
-        <a href="https://www.epfl.ch" target="_blank" rel="noreferrer">
+        <a href="https://www.epfl.ch" target="_blank" rel="noopener noreferrer">
           <img :src="publicPath + 'logo/EPFL_Logo_184X53.svg'" alt="EPFL" />
         </a>
-        <a href="https://enac-it4r.epfl.ch" target="_blank" rel="noreferrer">
+        <a href="https://enac-it4r.epfl.ch" target="_blank" rel="noopener noreferrer">
           <img :src="publicPath + 'logo/logo_IT4R.svg'" alt="ENAC-IT4R" />
         </a>
-        <a href="https://www.snf.ch" target="_blank" rel="noreferrer">
+        <a href="https://www.snf.ch" target="_blank" rel="noopener noreferrer">
           <img
             :src="publicPath + 'logo/SNF_logo_standard_web_color_pos_e.svg'"
             alt="Swiss National Science Foundation"

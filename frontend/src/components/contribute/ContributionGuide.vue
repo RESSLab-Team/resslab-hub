@@ -16,6 +16,7 @@
 import {
   displaySymbol,
   displayUnit,
+  symbolHtml,
   useDictionaryStore,
   type DictColumn
 } from '@/stores/dictionary'
@@ -62,7 +63,7 @@ function rewriteLinks(clean: string, base: string): string {
       anchor.setAttribute('href', new URL(href, base).toString())
     }
     anchor.setAttribute('target', '_blank')
-    anchor.setAttribute('rel', 'noopener')
+    anchor.setAttribute('rel', 'noopener noreferrer')
   })
   return doc.body.innerHTML
 }
@@ -123,10 +124,6 @@ function toggleGroup(id: FieldGroupId): void {
 const groupOpen = (id: FieldGroupId): boolean =>
   query.value.trim() !== '' || openGroups.value.has(id)
 
-function symbolHtml(symbol: string | undefined): string {
-  return symbol ? DOMPurify.sanitize(symbol, { ALLOWED_TAGS: ['sub', 'sup', 'i', 'em'] }) : ''
-}
-
 /** Lets the page switch tab and open the panel from elsewhere. */
 function show(which: 'guide' | 'dictionary' = 'guide'): void {
   tab.value = which
@@ -151,7 +148,7 @@ defineExpose({ show })
           <span class="title">{{ $t('contribute.guide.title') }}</span>
         </button>
         <span v-else class="title">{{ $t('contribute.guide.title') }}</span>
-        <a class="github" :href="githubUrl" rel="noopener" target="_blank">
+        <a class="github" :href="githubUrl" rel="noopener noreferrer" target="_blank">
           {{ $t('contribute.guide.github') }}
           <v-icon :icon="mdiOpenInNew" size="12" />
         </a>
@@ -223,7 +220,9 @@ defineExpose({ show })
       <p v-if="readme === undefined" class="state">{{ $t('contribute.guide.loading') }}</p>
       <p v-else-if="readme === null" class="state">
         {{ $t('contribute.guide.missing') }}
-        <a :href="githubUrl" rel="noopener" target="_blank">{{ $t('contribute.guide.github') }}</a>
+        <a :href="githubUrl" rel="noopener noreferrer" target="_blank">{{
+          $t('contribute.guide.github')
+        }}</a>
       </p>
       <!-- eslint-disable-next-line vue/no-v-html -- sanitized by DOMPurify above -->
       <div v-else class="md" v-html="html" />
@@ -256,7 +255,7 @@ defineExpose({ show })
           <li v-for="row in group.rows" :key="row.column.name" class="col">
             <div class="col-top">
               <code class="col-name">{{ row.column.name }}</code>
-              <!-- eslint-disable-next-line vue/no-v-html -- sanitized to sub/sup only -->
+              <!-- eslint-disable-next-line vue/no-v-html -- sanitised by symbolHtml -->
               <span v-if="row.symbol" class="col-symbol" v-html="symbolHtml(row.symbol)" />
               <span v-if="row.unit" class="col-unit">{{ row.unit }}</span>
               <span

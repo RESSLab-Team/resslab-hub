@@ -80,7 +80,13 @@ function openData() {
           {{ t('map.view_experimental_data') }}
           <v-icon :icon="mdiArrowRight" size="14" />
         </button>
-        <a v-if="publication" class="mp-link" :href="publication" target="_blank" rel="noreferrer">
+        <a
+          v-if="publication"
+          class="mp-link"
+          :href="publication"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {{ t('map.publication') }}
           <v-icon :icon="mdiOpenInNew" size="12" />
         </a>

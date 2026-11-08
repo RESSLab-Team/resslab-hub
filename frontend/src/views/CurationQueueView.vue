@@ -218,7 +218,7 @@ const rows = computed<QueueRow[]>(() =>
                   class="ghlink"
                   :href="row.summary.pr_url"
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   :title="$t('curation.queue.github')"
                 >
                   <v-icon :icon="mdiOpenInNew" size="13" />

@@ -325,7 +325,12 @@ async function confirmSubmit(): Promise<void> {
               {{ $t('contribute.edit.skipped_files', { count: store.skippedFiles.length }) }}
             </span>
           </p>
-          <a class="btn btn-secondary btn-sm" :href="store.editTarget!.prUrl" target="_blank">
+          <a
+            class="btn btn-secondary btn-sm"
+            :href="store.editTarget!.prUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <v-icon :icon="mdiOpenInNew" size="14" />{{ $t('contribute.submitted.view_pr') }}
           </a>
         </div>
@@ -381,7 +386,12 @@ async function confirmSubmit(): Promise<void> {
             }}
           </span>
           <div class="bar-actions">
-            <a class="btn btn-secondary btn-sm" :href="store.pullRequestUrl" target="_blank">
+            <a
+              class="btn btn-secondary btn-sm"
+              :href="store.pullRequestUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <v-icon :icon="mdiOpenInNew" size="14" />{{ $t('contribute.submitted.view_pr') }}
             </a>
             <button class="btn btn-primary btn-sm" type="button" @click="startNew()">
@@ -390,7 +400,12 @@ async function confirmSubmit(): Promise<void> {
           </div>
           <p v-if="store.submitKind === 'created'" class="submitted-howto">
             {{ $t('contribute.submitted.how_to_update') }}
-            <a v-if="store.csvOnGitHubUrl" :href="store.csvOnGitHubUrl" target="_blank">
+            <a
+              v-if="store.csvOnGitHubUrl"
+              :href="store.csvOnGitHubUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {{ $t('contribute.submitted.edit_on_github') }}
             </a>
           </p>

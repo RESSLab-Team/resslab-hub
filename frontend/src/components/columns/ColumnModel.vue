@@ -412,7 +412,9 @@ defineExpose({ vars, backbone, envelope, variables, onSectionChanged })
     <template #intro>
       <i18n-t keypath="tools.column_model.intro" tag="span" scope="global">
         <template #link>
-          <a href="" target="_blank">{{ $t('tools.column_model.intro_link') }}</a>
+          <a href="" target="_blank" rel="noopener noreferrer">{{
+            $t('tools.column_model.intro_link')
+          }}</a>
         </template>
       </i18n-t>
     </template>

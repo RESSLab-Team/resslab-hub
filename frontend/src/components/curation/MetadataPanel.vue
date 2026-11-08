@@ -3,6 +3,7 @@ import type { CurationExperiment } from '@/backend'
 import {
   displaySymbol,
   displayUnit,
+  symbolHtml,
   useDictionaryStore,
   type DictColumn
 } from '@/stores/dictionary'
@@ -144,8 +145,8 @@ defineExpose({ flash })
           <span class="pk">
             {{ row.label }}
             <!-- Dictionary symbols carry <sub>/<sup> markup. -->
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <span v-if="row.symbol" class="symbol" v-html="row.symbol"></span>
+            <!-- eslint-disable-next-line vue/no-v-html -- sanitised by symbolHtml -->
+            <span v-if="row.symbol" class="symbol" v-html="symbolHtml(row.symbol)"></span>
           </span>
           <span class="leader"></span>
           <span class="pv">

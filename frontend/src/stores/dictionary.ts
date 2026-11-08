@@ -1,4 +1,5 @@
 import type { DatabaseId } from '@/utils/navigation'
+import DOMPurify from 'dompurify'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
@@ -40,6 +41,18 @@ export interface DictColumn {
 export function displaySymbol(column: DictColumn): string | undefined {
   const symbol = column.symbol.trim().replace(/^`(.*)`$/, '$1')
   return symbol && symbol !== '-' ? symbol : undefined
+}
+
+/** Symbol markup safe for `v-html`: only `<sub>`, `<sup>`, `<i>` and `<em>`,
+ *  no attributes. The dictionaries come from the data repo, so anything else
+ *  (a script, an `onerror`, a link) is dropped and only its text is kept
+ *  (#264, H5). Kept apart from displaySymbol on purpose: the sanitiser turns
+ *  a bare `<` or `&` into an entity, which the plain text consumers
+ *  (TextSubscript) would show as is. */
+export function symbolHtml(symbol: string | undefined): string {
+  return symbol
+    ? DOMPurify.sanitize(symbol, { ALLOWED_TAGS: ['sub', 'sup', 'i', 'em'], ALLOWED_ATTR: [] })
+    : ''
 }
 
 /** Unit for display — undefined when unitless (`-`, or the literal "None"

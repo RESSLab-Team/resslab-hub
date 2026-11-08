@@ -27,6 +27,24 @@ describe('common.isHttpUrl', () => {
       expect(isHttpUrl(marker)).toBe(false)
     }
   })
+
+  it('rejects links that are not web addresses (#264)', () => {
+    for (const link of [
+      'javascript:alert(1)',
+      'JavaScript:alert(1)',
+      ' javascript:alert(1)',
+      'java\tscript:alert(1)',
+      'data:text/html,<script>alert(1)</script>',
+      'vbscript:msgbox(1)',
+      '//evil.example/x',
+      'ftp://example.org/file',
+      'https:evil.example',
+      42,
+      { href: 'https://example.org' }
+    ]) {
+      expect(isHttpUrl(link)).toBe(false)
+    }
+  })
 })
 
 describe('common.isStructuredFilterValue', () => {

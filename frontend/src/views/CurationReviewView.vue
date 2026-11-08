@@ -338,7 +338,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
                 <v-icon :icon="mdiPencilOutline" size="14" />
                 {{ $t('curation.review.edit_on_hub') }}
               </router-link>
-              <a class="cp-btn" :href="detail.pr_url" target="_blank" rel="noreferrer">
+              <a class="cp-btn" :href="detail.pr_url" target="_blank" rel="noopener noreferrer">
                 <v-icon :icon="mdiOpenInNew" size="14" />
                 {{ $t('curation.review.open_pr') }}
               </a>
@@ -488,7 +488,7 @@ async function selectIssue(uid: number, column: string): Promise<void> {
             class="pull"
             :href="pull.pr_url"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
           >
             {{ $t('commons.unverified.pending', { number: pull.pr_number }) }}
             <v-icon :icon="mdiOpenInNew" size="13" />

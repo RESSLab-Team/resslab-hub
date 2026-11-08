@@ -86,7 +86,7 @@ function bodyHtml(body: string): string {
             class="jump"
             :href="item.html_url"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             :title="$t('curation.notes.open_discussion')"
           >
             <v-icon :icon="mdiOpenInNew" size="13" />
@@ -99,7 +99,7 @@ function bodyHtml(body: string): string {
     </ol>
 
     <p class="notes-text">{{ $t('curation.notes.on_github') }}</p>
-    <a class="notes-link" :href="prUrl" target="_blank" rel="noreferrer">
+    <a class="notes-link" :href="prUrl" target="_blank" rel="noopener noreferrer">
       {{ $t('curation.notes.open_discussion') }} →
     </a>
   </div>
