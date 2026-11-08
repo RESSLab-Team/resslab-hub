@@ -100,7 +100,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_create_upload_file_upload_post"
+                "$ref": "#/components/schemas/Body_create_upload_file"
               }
             }
           }
@@ -161,7 +161,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_validate_data_validate_post"
+                "$ref": "#/components/schemas/Body_validate_data"
               }
             }
           }
@@ -349,7 +349,7 @@
                     "$ref": "#/components/schemas/IdentityOut"
                   },
                   "type": "array",
-                  "title": "Response List Identities Auth Identities Get"
+                  "title": "Response List Identities"
                 }
               }
             }
@@ -689,7 +689,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_create_contribution_contributions_post"
+                "$ref": "#/components/schemas/Body_create_contribution"
               }
             }
           }
@@ -778,7 +778,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_update_open_contribution_contributions__pr_number__put"
+                "$ref": "#/components/schemas/Body_update_open_contribution"
               }
             }
           }
@@ -1203,7 +1203,7 @@
                     "$ref": "#/components/schemas/AdminUserOut"
                   },
                   "type": "array",
-                  "title": "Response List Users Admin Users Get"
+                  "title": "Response List Users"
                 }
               }
             }
@@ -1335,7 +1335,7 @@
                     "$ref": "#/components/schemas/InvitationOut"
                   },
                   "type": "array",
-                  "title": "Response List Invitations Admin Invitations Get"
+                  "title": "Response List Invitations"
                 }
               }
             }
@@ -1437,7 +1437,7 @@
                     "$ref": "#/components/schemas/AccessRequestOut"
                   },
                   "type": "array",
-                  "title": "Response List Access Requests Admin Access Requests Get"
+                  "title": "Response List Access Requests"
                 }
               }
             }
@@ -1564,7 +1564,7 @@
               "application/json": {
                 "schema": {
                   "type": "integer",
-                  "title": "Response Get Users Analytics Users Get"
+                  "title": "Response Get Users"
                 }
               }
             }
@@ -1603,7 +1603,7 @@
                     "type": "array"
                   },
                   "type": "object",
-                  "title": "Response Get Dictionary Dictionary Get"
+                  "title": "Response Get Dictionary"
                 }
               }
             }
@@ -1791,7 +1791,7 @@
                     "type": "object",
                     "additionalProperties": true
                   },
-                  "title": "Response Get Braces Fields Braces Fields Get"
+                  "title": "Response Get Braces Fields"
                 }
               }
             }
@@ -1858,7 +1858,7 @@
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
                   },
-                  "title": "Response Get Braces Counts Braces Counts Get"
+                  "title": "Response Get Braces Counts"
                 }
               }
             }
@@ -2049,7 +2049,7 @@
               "application/json": {
                 "schema": {
                   "type": "integer",
-                  "title": "Response Get Braces Distinct Braces Distinct Get"
+                  "title": "Response Get Braces Distinct"
                 }
               }
             }
@@ -2110,7 +2110,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Braces Displacement Braces  Brace Id  Displacement Get"
+                  "title": "Response Get Braces Displacement"
                 }
               }
             }
@@ -2301,7 +2301,7 @@
                     "type": "object",
                     "additionalProperties": true
                   },
-                  "title": "Response Get Columns Fields Columns Fields Get"
+                  "title": "Response Get Columns Fields"
                 }
               }
             }
@@ -2368,7 +2368,7 @@
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
                   },
-                  "title": "Response Get Columns Counts Columns Counts Get"
+                  "title": "Response Get Columns Counts"
                 }
               }
             }
@@ -2559,7 +2559,7 @@
               "application/json": {
                 "schema": {
                   "type": "integer",
-                  "title": "Response Get Columns Distinct Columns Distinct Get"
+                  "title": "Response Get Columns Distinct"
                 }
               }
             }
@@ -2620,7 +2620,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Columns Axial Shortening Columns  Column Id  Axial Shortening Get"
+                  "title": "Response Get Columns Axial Shortening"
                 }
               }
             }
@@ -2717,7 +2717,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Columns Moment Strong Columns  Column Id  Moment Strong Get"
+                  "title": "Response Get Columns Moment Strong"
                 }
               }
             }
@@ -2814,7 +2814,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Columns Moment Weak Columns  Column Id  Moment Weak Get"
+                  "title": "Response Get Columns Moment Weak"
                 }
               }
             }
@@ -3005,7 +3005,7 @@
                     "type": "object",
                     "additionalProperties": true
                   },
-                  "title": "Response Get Connections Fields Connections Fields Get"
+                  "title": "Response Get Connections Fields"
                 }
               }
             }
@@ -3072,7 +3072,7 @@
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
                   },
-                  "title": "Response Get Connections Counts Connections Counts Get"
+                  "title": "Response Get Connections Counts"
                 }
               }
             }
@@ -3263,7 +3263,7 @@
               "application/json": {
                 "schema": {
                   "type": "integer",
-                  "title": "Response Get Connections Distinct Connections Distinct Get"
+                  "title": "Response Get Connections Distinct"
                 }
               }
             }
@@ -3324,7 +3324,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Connections Beam Connections  Connection Id  Beam Get"
+                  "title": "Response Get Connections Beam"
                 }
               }
             }
@@ -3421,7 +3421,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Connections Beam West Connections  Connection Id  Beam West Get"
+                  "title": "Response Get Connections Beam West"
                 }
               }
             }
@@ -3518,7 +3518,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Connections Global Connections  Connection Id  Global Get"
+                  "title": "Response Get Connections Global"
                 }
               }
             }
@@ -3615,7 +3615,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Connections Global West Connections  Connection Id  Global West Get"
+                  "title": "Response Get Connections Global West"
                 }
               }
             }
@@ -3712,7 +3712,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Connections Panel Zones Connections  Connection Id  Panel Zones Get"
+                  "title": "Response Get Connections Panel Zones"
                 }
               }
             }
@@ -3903,7 +3903,7 @@
                     "type": "object",
                     "additionalProperties": true
                   },
-                  "title": "Response Get Materials Fields Materials Fields Get"
+                  "title": "Response Get Materials Fields"
                 }
               }
             }
@@ -3970,7 +3970,7 @@
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
                   },
-                  "title": "Response Get Materials Counts Materials Counts Get"
+                  "title": "Response Get Materials Counts"
                 }
               }
             }
@@ -4203,7 +4203,7 @@
               "application/json": {
                 "schema": {
                   "type": "integer",
-                  "title": "Response Get Materials Distinct Materials Distinct Get"
+                  "title": "Response Get Materials Distinct"
                 }
               }
             }
@@ -4264,7 +4264,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Materials Stress Strain Materials  Material Id  Stress Strain Get"
+                  "title": "Response Get Materials Stress Strain"
                 }
               }
             }
@@ -4455,7 +4455,7 @@
                     "type": "object",
                     "additionalProperties": true
                   },
-                  "title": "Response Get Residual Stresses Fields Residual Stress Fields Get"
+                  "title": "Response Get Residual Stresses Fields"
                 }
               }
             }
@@ -4522,7 +4522,7 @@
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
                   },
-                  "title": "Response Get Residual Stresses Counts Residual Stress Counts Get"
+                  "title": "Response Get Residual Stresses Counts"
                 }
               }
             }
@@ -4713,7 +4713,7 @@
               "application/json": {
                 "schema": {
                   "type": "integer",
-                  "title": "Response Get Residual Stresses Distinct Residual Stress Distinct Get"
+                  "title": "Response Get Residual Stresses Distinct"
                 }
               }
             }
@@ -4774,7 +4774,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Residual Stresses Distribution F1 Residual Stress  Residualstress Id  Distribution F1 Get"
+                  "title": "Response Get Residual Stresses Distribution F1"
                 }
               }
             }
@@ -4871,7 +4871,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Residual Stresses Distribution F2 Residual Stress  Residualstress Id  Distribution F2 Get"
+                  "title": "Response Get Residual Stresses Distribution F2"
                 }
               }
             }
@@ -4968,7 +4968,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Residual Stresses Distribution W1 Residual Stress  Residualstress Id  Distribution W1 Get"
+                  "title": "Response Get Residual Stresses Distribution W1"
                 }
               }
             }
@@ -5065,7 +5065,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Residual Stresses Qp Coefficient Residual Stress  Residualstress Id  Qp Coefficient Get"
+                  "title": "Response Get Residual Stresses Qp Coefficient"
                 }
               }
             }
@@ -5256,7 +5256,7 @@
                     "type": "object",
                     "additionalProperties": true
                   },
-                  "title": "Response Get Hss Columns Fields Hss Column Fields Get"
+                  "title": "Response Get Hss Columns Fields"
                 }
               }
             }
@@ -5323,7 +5323,7 @@
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
                   },
-                  "title": "Response Get Hss Columns Counts Hss Column Counts Get"
+                  "title": "Response Get Hss Columns Counts"
                 }
               }
             }
@@ -5514,7 +5514,7 @@
               "application/json": {
                 "schema": {
                   "type": "integer",
-                  "title": "Response Get Hss Columns Distinct Hss Column Distinct Get"
+                  "title": "Response Get Hss Columns Distinct"
                 }
               }
             }
@@ -5575,7 +5575,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Hss Columns Moment Rotation Hss Column  Hsscolumn Id  Moment Rotation Get"
+                  "title": "Response Get Hss Columns Moment Rotation"
                 }
               }
             }
@@ -5766,7 +5766,7 @@
                     "type": "object",
                     "additionalProperties": true
                   },
-                  "title": "Response Get Eccentric Braced Frames Fields Eccentric Braced Frame Fields Get"
+                  "title": "Response Get Eccentric Braced Frames Fields"
                 }
               }
             }
@@ -5833,7 +5833,7 @@
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
                   },
-                  "title": "Response Get Eccentric Braced Frames Counts Eccentric Braced Frame Counts Get"
+                  "title": "Response Get Eccentric Braced Frames Counts"
                 }
               }
             }
@@ -6024,7 +6024,7 @@
               "application/json": {
                 "schema": {
                   "type": "integer",
-                  "title": "Response Get Eccentric Braced Frames Distinct Eccentric Braced Frame Distinct Get"
+                  "title": "Response Get Eccentric Braced Frames Distinct"
                 }
               }
             }
@@ -6085,7 +6085,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Eccentric Braced Frames Shear Link Angle Eccentric Braced Frame  Eccentric Braced Frame Id  Shear Link Angle Get"
+                  "title": "Response Get Eccentric Braced Frames Shear Link Angle"
                 }
               }
             }
@@ -6276,7 +6276,7 @@
                     "type": "object",
                     "additionalProperties": true
                   },
-                  "title": "Response Get Tensile Coupons Fields Tensile Coupon Fields Get"
+                  "title": "Response Get Tensile Coupons Fields"
                 }
               }
             }
@@ -6343,7 +6343,7 @@
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
                   },
-                  "title": "Response Get Tensile Coupons Counts Tensile Coupon Counts Get"
+                  "title": "Response Get Tensile Coupons Counts"
                 }
               }
             }
@@ -6534,7 +6534,7 @@
               "application/json": {
                 "schema": {
                   "type": "integer",
-                  "title": "Response Get Tensile Coupons Distinct Tensile Coupon Distinct Get"
+                  "title": "Response Get Tensile Coupons Distinct"
                 }
               }
             }
@@ -6595,7 +6595,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Tensile Coupons Stress Strain Tensile Coupon  Tensile Coupon Id  Stress Strain Get"
+                  "title": "Response Get Tensile Coupons Stress Strain"
                 }
               }
             }
@@ -6786,7 +6786,7 @@
                     "type": "object",
                     "additionalProperties": true
                   },
-                  "title": "Response Get Ductile Fractures Fields Ductile Fracture Fields Get"
+                  "title": "Response Get Ductile Fractures Fields"
                 }
               }
             }
@@ -6853,7 +6853,7 @@
                   "items": {
                     "$ref": "#/components/schemas/CountModel"
                   },
-                  "title": "Response Get Ductile Fractures Counts Ductile Fracture Counts Get"
+                  "title": "Response Get Ductile Fractures Counts"
                 }
               }
             }
@@ -7044,7 +7044,7 @@
               "application/json": {
                 "schema": {
                   "type": "integer",
-                  "title": "Response Get Ductile Fractures Distinct Ductile Fracture Distinct Get"
+                  "title": "Response Get Ductile Fractures Distinct"
                 }
               }
             }
@@ -7105,7 +7105,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Ductile Fractures Force Elongation Ductile Fracture  Ductile Fracture Id  Force Elongation Get"
+                  "title": "Response Get Ductile Fractures Force Elongation"
                 }
               }
             }
@@ -7201,7 +7201,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Ductile Fractures Force Elongation Simulation Ductile Fracture  Ductile Fracture Id  Force Elongation Simulation Get"
+                  "title": "Response Get Ductile Fractures Force Elongation Simulation"
                 }
               }
             }
@@ -7297,7 +7297,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Ductile Fractures Force Radial Ductile Fracture  Ductile Fracture Id  Force Radial Get"
+                  "title": "Response Get Ductile Fractures Force Radial"
                 }
               }
             }
@@ -7393,7 +7393,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Ductile Fractures Force Radial Simulation Ductile Fracture  Ductile Fracture Id  Force Radial Simulation Get"
+                  "title": "Response Get Ductile Fractures Force Radial Simulation"
                 }
               }
             }
@@ -7489,7 +7489,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Ductile Fractures Epeq Simulation Ductile Fracture  Ductile Fracture Id  Epeq Simulation Get"
+                  "title": "Response Get Ductile Fractures Epeq Simulation"
                 }
               }
             }
@@ -7585,7 +7585,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Ductile Fractures Lode Simulation Ductile Fracture  Ductile Fracture Id  Lode Simulation Get"
+                  "title": "Response Get Ductile Fractures Lode Simulation"
                 }
               }
             }
@@ -7681,7 +7681,7 @@
                       "type": "number"
                     }
                   },
-                  "title": "Response Get Ductile Fractures Triax Simulation Ductile Fracture  Ductile Fracture Id  Triax Simulation Get"
+                  "title": "Response Get Ductile Fractures Triax Simulation"
                 }
               }
             }
@@ -8091,11 +8091,11 @@
         "title": "AdminUserPatch",
         "description": "Only the fields that are sent change.\n\n``role_override: null`` goes back to the automatic role."
       },
-      "Body_create_contribution_contributions_post": {
+      "Body_create_contribution": {
         "properties": {
           "file": {
             "type": "string",
-            "format": "binary",
+            "contentMediaType": "application/octet-stream",
             "title": "File"
           },
           "dismissed_warnings": {
@@ -8108,13 +8108,13 @@
         "required": [
           "file"
         ],
-        "title": "Body_create_contribution_contributions_post"
+        "title": "Body_create_contribution"
       },
-      "Body_create_upload_file_upload_post": {
+      "Body_create_upload_file": {
         "properties": {
           "file": {
             "type": "string",
-            "format": "binary",
+            "contentMediaType": "application/octet-stream",
             "title": "File"
           }
         },
@@ -8122,13 +8122,13 @@
         "required": [
           "file"
         ],
-        "title": "Body_create_upload_file_upload_post"
+        "title": "Body_create_upload_file"
       },
-      "Body_update_open_contribution_contributions__pr_number__put": {
+      "Body_update_open_contribution": {
         "properties": {
           "file": {
             "type": "string",
-            "format": "binary",
+            "contentMediaType": "application/octet-stream",
             "title": "File"
           },
           "head_sha": {
@@ -8148,13 +8148,13 @@
           "file",
           "head_sha"
         ],
-        "title": "Body_update_open_contribution_contributions__pr_number__put"
+        "title": "Body_update_open_contribution"
       },
-      "Body_validate_data_validate_post": {
+      "Body_validate_data": {
         "properties": {
           "file": {
             "type": "string",
-            "format": "binary",
+            "contentMediaType": "application/octet-stream",
             "title": "File"
           }
         },
@@ -8162,7 +8162,7 @@
         "required": [
           "file"
         ],
-        "title": "Body_validate_data_validate_post"
+        "title": "Body_validate_data"
       },
       "BraceField": {
         "type": "string",
@@ -15006,39 +15006,18 @@
             "title": "Total"
           },
           "page": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Page"
           },
           "size": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Size"
           },
           "pages": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Pages"
           }
         },
@@ -15047,7 +15026,8 @@
           "items",
           "total",
           "page",
-          "size"
+          "size",
+          "pages"
         ],
         "title": "ExtendedPage[BraceModel]"
       },
@@ -15065,39 +15045,18 @@
             "title": "Total"
           },
           "page": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Page"
           },
           "size": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Size"
           },
           "pages": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Pages"
           }
         },
@@ -15106,7 +15065,8 @@
           "items",
           "total",
           "page",
-          "size"
+          "size",
+          "pages"
         ],
         "title": "ExtendedPage[ColumnModel]"
       },
@@ -15124,39 +15084,18 @@
             "title": "Total"
           },
           "page": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Page"
           },
           "size": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Size"
           },
           "pages": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Pages"
           }
         },
@@ -15165,7 +15104,8 @@
           "items",
           "total",
           "page",
-          "size"
+          "size",
+          "pages"
         ],
         "title": "ExtendedPage[ConnectionModel]"
       },
@@ -15183,39 +15123,18 @@
             "title": "Total"
           },
           "page": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Page"
           },
           "size": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Size"
           },
           "pages": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Pages"
           }
         },
@@ -15224,7 +15143,8 @@
           "items",
           "total",
           "page",
-          "size"
+          "size",
+          "pages"
         ],
         "title": "ExtendedPage[DuctileFractureModel]"
       },
@@ -15242,39 +15162,18 @@
             "title": "Total"
           },
           "page": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Page"
           },
           "size": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Size"
           },
           "pages": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Pages"
           }
         },
@@ -15283,7 +15182,8 @@
           "items",
           "total",
           "page",
-          "size"
+          "size",
+          "pages"
         ],
         "title": "ExtendedPage[EccentricBracedFrameModel]"
       },
@@ -15301,39 +15201,18 @@
             "title": "Total"
           },
           "page": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Page"
           },
           "size": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Size"
           },
           "pages": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Pages"
           }
         },
@@ -15342,7 +15221,8 @@
           "items",
           "total",
           "page",
-          "size"
+          "size",
+          "pages"
         ],
         "title": "ExtendedPage[HSSColumnModel]"
       },
@@ -15360,39 +15240,18 @@
             "title": "Total"
           },
           "page": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Page"
           },
           "size": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Size"
           },
           "pages": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Pages"
           }
         },
@@ -15401,7 +15260,8 @@
           "items",
           "total",
           "page",
-          "size"
+          "size",
+          "pages"
         ],
         "title": "ExtendedPage[MaterialModel]"
       },
@@ -15419,39 +15279,18 @@
             "title": "Total"
           },
           "page": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Page"
           },
           "size": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Size"
           },
           "pages": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Pages"
           }
         },
@@ -15460,7 +15299,8 @@
           "items",
           "total",
           "page",
-          "size"
+          "size",
+          "pages"
         ],
         "title": "ExtendedPage[ResidualStressModel]"
       },
@@ -15478,39 +15318,18 @@
             "title": "Total"
           },
           "page": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Page"
           },
           "size": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 1.0,
             "title": "Size"
           },
           "pages": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0.0
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "integer",
+            "minimum": 0.0,
             "title": "Pages"
           }
         },
@@ -15519,7 +15338,8 @@
           "items",
           "total",
           "page",
-          "size"
+          "size",
+          "pages"
         ],
         "title": "ExtendedPage[TensileCouponModel]"
       },
@@ -19172,6 +18992,13 @@
           "type": {
             "type": "string",
             "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
         "type": "object",

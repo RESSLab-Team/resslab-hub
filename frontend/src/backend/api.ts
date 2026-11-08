@@ -1787,65 +1787,65 @@ export interface EmailVerifyRequest {
 export interface ExtendedPageBraceModel {
     'items': Array<BraceModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageColumnModel {
     'items': Array<ColumnModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageConnectionModel {
     'items': Array<ConnectionModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageDuctileFractureModel {
     'items': Array<DuctileFractureModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageEccentricBracedFrameModel {
     'items': Array<EccentricBracedFrameModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageHSSColumnModel {
     'items': Array<HSSColumnModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageMaterialModel {
     'items': Array<MaterialModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageResidualStressModel {
     'items': Array<ResidualStressModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 export interface ExtendedPageTensileCouponModel {
     'items': Array<TensileCouponModel>;
     'total': number;
-    'page': number | null;
-    'size': number | null;
-    'pages'?: number | null;
+    'page': number;
+    'size': number;
+    'pages': number;
 }
 /**
  * What this deployment offers, read once by the frontend at start.
@@ -2831,6 +2831,8 @@ export interface ValidationError {
     'loc': Array<LocationInner>;
     'msg': string;
     'type': string;
+    'input'?: any;
+    'ctx'?: object;
 }
 /**
  * A single error or warning, anchored to a cell where possible.

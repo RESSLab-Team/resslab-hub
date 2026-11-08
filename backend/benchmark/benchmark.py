@@ -149,7 +149,7 @@ def print_table(title: str, rows: list[list[str]]) -> None:
 def _maintenance_url() -> str:
     credential = f"{settings.postgres_user}:{quote_plus(settings.postgres_password)}"
     return (
-        f"postgresql://{credential}"
+        f"postgresql+psycopg://{credential}"
         f"@{settings.postgres_host}:{settings.postgres_port}/postgres"
     )
 
