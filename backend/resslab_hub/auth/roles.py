@@ -22,7 +22,9 @@ Hub, an admin that GitHub or the config made. Change it there instead.
 
 from typing import Iterable, List, Optional
 
-import pyswot
+from pyswot import find_school_names
+from pyswot.vendor.stoplist import STOPLIST
+from pyswot.vendor.tlds import TLDS
 
 from resslab_hub.config import settings
 from resslab_hub.models.database.auth import ROLE_ORDER, User
@@ -48,7 +50,7 @@ def admin_emails() -> List[str]:
 
 
 def contributor_domains() -> List[str]:
-    """Domains that count as academic on top of the pyswot list."""
+    """Domains that count as academic on top of the swot list."""
     return _split(settings.contributor_domains)
 
 
@@ -70,19 +72,54 @@ def _configured(domain: str) -> bool:
     return any(".".join(labels[index:]) in allowed for index in range(len(labels) - 1))
 
 
+def _in_set(domains, labels: List[str]) -> bool:
+    """swot's ``checkSet``: the domain, or one of its parents, is in the set.
+
+    ``labels`` go from the top-level domain down (``["ch", "epfl", "sti"]``).
+    """
+    suffix = ""
+    for label in labels:
+        suffix = label + suffix
+        if suffix in domains:
+            return True
+        suffix = "." + suffix
+    return False
+
+
+def _swot_academic(domain: str) -> bool:
+    """swot's ``isAcademic`` (``Swot.kt``), on the data pyswot vendors.
+
+    1. The stoplist wins, also for a subdomain: ``alumni.stanford.edu``,
+       or ``glion.ch``, which is listed but stoplisted.
+    2. Anything under an academic second-level domain passes
+       (``edu.cn``, ``ac.za``, ``k12.ny.us``). Bare ``edu`` or ``ac.uk``
+       is not one of them.
+    3. Else the domain, or a parent, must be in the tree, so
+       ``sti.epfl.ch`` matches ``epfl.ch``.
+
+    Not ``pyswot.is_academic``: it also refuses a list of free mailboxes
+    that swot does not have, and that list holds real universities
+    (``nus.edu.sg``, ``unican.es``). swot's ``abused.txt`` is not applied
+    either, like in ``Swot.kt``: JetBrains reads it on its licence form.
+    """
+    labels = domain.split(".")[::-1]
+    if _in_set(STOPLIST, labels):
+        return False
+    return _in_set(TLDS, labels) or bool(find_school_names(domain))
+
+
 def is_academic(email: str) -> bool:
     """True when the address belongs to a research institution.
 
-    pyswot carries the list JetBrains uses for student licences: free
-    mailboxes never pass, a stoplist of abused domains is refused, and the
-    rest must be listed (a subdomain matches its parent). The list is good
-    on universities and knows nothing of research institutes or industry,
-    so ``CONTRIBUTOR_DOMAINS`` fills the gaps (empa.ch, aisc.org, ...).
+    The JetBrains swot list (the one for student licences, see
+    ``_swot_academic``) is good on universities and knows nothing of
+    research institutes or industry, so ``CONTRIBUTOR_DOMAINS`` fills the
+    gaps (empa.ch, aisc.org, ...). Free mailboxes are on neither.
     """
     domain = _domain_of(email)
     if not domain or "." not in domain:
         return False
-    return _configured(domain) or bool(pyswot.is_academic(domain))
+    return _configured(domain) or _swot_academic(domain)
 
 
 def _split(raw) -> List[str]:

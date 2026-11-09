@@ -1437,11 +1437,11 @@ wheels = [
 
 [[package]]
 name = "pyswot"
-version = "0.5.9"
+version = "0.6.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/6c/44/04fe39519d3824c2c8e79869277f14e3c49ba13ebcf1534f503d4f111e2d/pyswot-0.5.9.tar.gz", hash = "sha256:e203e4bd61923676d227e9d159c26eaaa8af441de4e8a3cab75de62affaa3513", size = 580090, upload-time = "2026-11-02T07:50:39.631Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3b/44/f4ae284bbfd44ca4e0eff08f8a249b01e3b497cdb4d6120e9d51da3ae7be/pyswot-0.6.1.tar.gz", hash = "sha256:9025fe0ff9864e71477dd379439d1e89ddda4e841267ff1030c455f0eec06280", size = 580852, upload-time = "2026-11-09T07:52:42.872Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fc/11/cdd9bd05af56aca5344d04fad4069d5b26b621f27a3bee40973fafacc69c/pyswot-0.5.9-py3-none-any.whl", hash = "sha256:2687262fcc883860879e632baa2165180573dcd6bc01c45be8e1ac9496edc185", size = 583736, upload-time = "2026-11-02T07:50:38.29Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/94/e0fe61500d73185fc159dc7dae91c63434dda6b710a3e857eec7c217d18a/pyswot-0.6.1-py3-none-any.whl", hash = "sha256:09212a3498493c3dda3a5d04e13d369085e2a9f4768ec35b96f21f68f26a60e0", size = 584406, upload-time = "2026-11-09T07:52:41.23Z" },
 ]
 
 [[package]]
@@ -1622,7 +1622,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.27,<1" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3,<4" },
     { name = "pydantic", specifier = ">=2,<3" },
-    { name = "pyswot", specifier = ">=0.5,<0.6" },
+    { name = "pyswot", specifier = ">=0.6,<1" },
     { name = "python-multipart", specifier = ">=0.0.30,<0.1" },
     { name = "requests", specifier = ">=2.32.3,<3" },
     { name = "slowapi", specifier = ">=0.1.10,<0.2" },
