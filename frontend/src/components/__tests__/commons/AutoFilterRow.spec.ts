@@ -138,10 +138,10 @@ describe('AutoFilterRow: text', () => {
     expect(emitted(wrapper)).toEqual([undefined])
   })
 
-  it('picks the exact value from a recurring-value shortcut', async () => {
+  it('picks the value of a recurring-value shortcut', async () => {
     const wrapper = mountRow(text)
     await wrapper.get('button.afr-option').trigger('click')
-    expect(emitted(wrapper)).toEqual(['=Demo et al.'])
+    expect(emitted(wrapper)).toEqual(['Demo et al.'])
   })
 })
 

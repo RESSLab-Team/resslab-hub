@@ -146,8 +146,12 @@ that pass the other filters, and puts the result on top of that profile:
 - When other filters narrow the list, the whole-dataset count shows in grey next
   to the live one (`RBS 12 / 40`). Without other filters it is just `40`.
 - The bars keep the whole-dataset scale, so they shrink as the filters narrow.
-- Text filters keep their static shortcuts. A shortcut picks its exact value
-  (`=value`), and a second click clears it.
+- Text filters keep their static shortcuts. A shortcut writes its value as plain
+  text (a substring match, like the search box), and a second click clears it.
+  So `Jain` also keeps a longer name holding `Jain`. The exact `=value` would
+  match the count, but it cost about 50 ms more per click on braces 10k in the
+  bench, for a reason we did not find (#329). A value with a comma still goes as
+  `=value`, or the query would split it into a set.
 
 `useAutoFilters` provides `countsFor` through `filterCountsKey`, so the rail and
 the table's header menus get the same behaviour with no prop. It reads the
@@ -397,6 +401,30 @@ parallel pages should count for more, and that run is the one to record.
 The two heavier items, one bulk endpoint per database and a shared filtered set
 across charts during a drag, are parked in their own issue until a database
 actually grows past a few thousand rows.
+
+### Live counts in the rail (#329), 2026-11-09
+
+Same setup, 5 runs, median of runs 2 to 5, 10 000 rows. "Before" is `dev`
+without the live counts, "after" is with them. Milliseconds.
+
+| | braces before | braces after | connections before | connections after |
+|---|---|---|---|---|
+| Filter: charts settled | 98 | 96 | 173 | 160 |
+| Filter: table updated | 44 | 44 | 62 | 58 |
+| Brush: median live frame | 11 | 11 | 48 | 47 |
+| Brush: longest frame | 39 | 42 | 123 | 125 |
+| Counts, a few rows open | | 2 | | 5 |
+| Counts, every row open | | 5 | | 20 |
+| Every row open: longest task | | 83 | | 190 |
+
+- A filter click costs the same as before. The counts are a few milliseconds.
+- The worst case is every row of connections open at once (147 rows, each
+  with its histogram): the click has one 190 ms task, and the counts are only
+  20 ms of it. Nobody opens every row by hand; "Expand all" opens the groups
+  only, not the rows.
+- The braces "after" column is with the text shortcuts writing a plain value.
+  With the exact `=value`, "Filter: charts settled" was 155 ms on braces (see
+  "The filter rail").
 
 One more caveat:
 - The second measured click of the "Filter" scenario still ticks a *different*

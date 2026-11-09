@@ -123,10 +123,15 @@ function changeText(raw: string): void {
   emit('update', text.length > 0 ? text : undefined)
 }
 
-/** A shortcut picks its exact value, so the rows match the count it shows. A click
- *  on the selected one clears the filter. */
+/** A shortcut writes its value as plain text, so it is a substring match like the
+ *  search box: `Jain` also keeps a longer name holding `Jain`, and the rows can be
+ *  more than the count it shows. On purpose: the exact `=value` cost about 50 ms
+ *  more per click in the 10k bench (#329), for a reason we did not find. A value
+ *  with a comma still goes as `=value`, or the query would read it as a set of
+ *  two values and match nothing. A click on the selected one clears the filter. */
 function toggleShortcut(option: string): void {
-  emit('update', textValue.value === option ? undefined : `=${option}`)
+  if (textValue.value === option) return emit('update', undefined)
+  emit('update', option.includes(',') ? `=${option}` : option)
 }
 
 /* ---- numeric (the histogram is the input) ---- */

@@ -119,10 +119,16 @@ describe('FilterInput', () => {
       return wrapper.findAll('button.afr-option')[index]
     }
 
-    it('picks the exact value, comma included', async () => {
+    it('picks a value with a comma as one exact value', async () => {
       const wrapper = mountInput(text)
       await shortcut(wrapper, 0).trigger('click')
       expect(emitted(wrapper)).toEqual(['=Fell, Kanvinde & Deierlein'])
+    })
+
+    it('picks a value without a comma as plain text', async () => {
+      const wrapper = mountInput(text)
+      await shortcut(wrapper, 1).trigger('click')
+      expect(emitted(wrapper)).toEqual(['Black et al.'])
     })
 
     it('reads back as selected, and a second click clears the filter', async () => {
@@ -137,7 +143,7 @@ describe('FilterInput', () => {
     it('moves to another value on a click on that value', async () => {
       const wrapper = mountInput(text, { value: '=Fell, Kanvinde & Deierlein' })
       await shortcut(wrapper, 1).trigger('click')
-      expect(emitted(wrapper)).toEqual(['=Black et al.'])
+      expect(emitted(wrapper)).toEqual(['Black et al.'])
     })
 
     it('also lights up for a bare value, the way a chart writes it', () => {
