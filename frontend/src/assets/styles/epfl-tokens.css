@@ -84,6 +84,14 @@
      First user: the "unverified" marker (#253). */
   --warning: var(--epfl-orange);
 
+  /* Submitted data vs data already in the database, on the curation review
+     and the contribution preview (#268). Submitted is the emphasis red, so it
+     always leads; existing data is a faded neutral that stays behind it. Red
+     against grey reads apart for colour-blind users too (no red-green pair).
+     ECharts copies: RED and EXISTING in plugins/echarts-theme.ts. */
+  --data-submitted: var(--primary);
+  --data-existing: var(--epfl-gray-500);
+
   /* Links */
   --link: var(--epfl-black);
   --link-hover: var(--epfl-red);
@@ -197,4 +205,6 @@ body.theme-dark {
      still reads on a striped row. */
   --table-row-stripe: #121215;
   --link: #f5f5f5;
+  /* Fainter than gray-500 on the dark ground, so existing data still recedes. */
+  --data-existing: var(--fg-subtle);
 }

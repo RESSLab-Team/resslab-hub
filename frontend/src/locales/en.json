@@ -1309,6 +1309,9 @@
       "draft_notice": "Submitting again adds a commit to the open review request on the RESSLab data repository. The checks rerun and the review goes on.",
       "conflict": "This submission changed on GitHub after you opened it. Reload the page to get the latest version, then make your changes again.",
       "not_mine": "This submission was made from another account. Only the person who submitted it can change it here."
+    },
+    "legend": {
+      "submitted": "Your submitted curves, drawn in red here and on the review page"
     }
   },
   "curation": {
@@ -1395,10 +1398,10 @@
       "brushed": "{count} brushed",
       "chart_title": "Parallel coordinates · New specimen vs cohort",
       "ghosts": "{count} ghosts + {added} new",
-      "legend_new": "New specimen · {id}",
+      "legend_new": "Submitted · {id}",
       "legend_brushed": "{count} brushed",
-      "legend_ghost": "{count} similar (ghost)",
-      "hint": "Each grey line is one existing experiment across all axes; the red line is this submission.",
+      "legend_ghost": "{count} existing (similar)",
+      "hint": "Each faded line is one experiment already in the database, across all axes; the red line is this submission.",
       "brush_hint": "Drag along an axis to brush a subset: the cohort count and the comparison curves below follow the brushed experiments. \"Zoom selection\" redraws the axes on them.",
       "criteria_hint": "Criteria defining a comparable experiment",
       "not_reported": "not reported",
@@ -1470,6 +1473,12 @@
       "only": "Mark only {id} as verified",
       "nothing_left": "Every experiment here is verified already or in a verification pull request.",
       "note": "Opens a pull request that only changes the status column. Merge it on GitHub (squash). The site shows the change after the next upload."
+    },
+    "legend": {
+      "submitted": "Submitted",
+      "submitted_value": "Submitted value",
+      "existing_compared": "Existing (compared)",
+      "existing_range": "Range already in the database"
     }
   },
   "auth": {

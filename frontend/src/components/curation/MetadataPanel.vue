@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CurationExperiment } from '@/backend'
+import DataLegend from '@/components/curation/DataLegend.vue'
 import {
   displaySymbol,
   displayUnit,
@@ -66,6 +67,9 @@ const rows = computed<FieldRow[]>(() =>
   })
 )
 
+/** The legend only names the pair when there is an existing range to compare. */
+const hasRanges = computed(() => rows.value.some((row) => !!row.range))
+
 /** A column the dictionary does not describe still needs a category. */
 function dictColumn(name: string): DictColumn {
   return (
@@ -125,6 +129,14 @@ defineExpose({ flash })
 <template>
   <section>
     <p class="sech">{{ $t('curation.metadata.title') }}</p>
+    <data-legend
+      v-if="hasRanges"
+      class="legend"
+      :items="[
+        { kind: 'submitted-value', label: $t('curation.legend.submitted_value') },
+        { kind: 'existing-range', label: $t('curation.legend.existing_range') }
+      ]"
+    />
     <div v-for="group in groups" :key="group.id" class="fgroup">
       <button
         class="fgroup-head"
@@ -156,9 +168,9 @@ defineExpose({ flash })
               {{ $t('curation.metadata.missing') }}
             </span>
             <span v-else-if="row.missing" class="nr">NR</span>
-            <template v-else>
+            <span v-else :class="{ submitted: !!row.range }">
               {{ row.value }}<span v-if="row.unit" class="u">{{ row.unit }}</span>
-            </template>
+            </span>
             <span v-if="row.range" class="range">
               {{
                 $t('curation.metadata.range_hint', {
@@ -294,13 +306,24 @@ defineExpose({ flash })
   color: var(--fg-subtle);
   font-weight: 400;
 }
+/* Submitted vs existing (#268): the value under review gets the red rule, the
+   range already in the database the faded grey one, so the pair reads apart. */
+.submitted {
+  border-left: 2px solid var(--data-submitted);
+  padding-left: 6px;
+}
 .range {
   display: block;
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 400;
-  color: var(--fg-subtle);
+  color: var(--data-existing);
+  border-left: 2px solid var(--data-existing);
+  padding-left: 6px;
   margin-top: 2px;
+}
+.legend {
+  margin: -6px 0 12px;
 }
 .flash {
   animation: field-flash 1.6s ease-out;

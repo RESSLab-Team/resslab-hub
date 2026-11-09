@@ -102,7 +102,11 @@ the pull request body (experiment count, contributor). **To verify**
   coupon `type` from `grade` and `spec`, or `h_over_b` for residual
   stresses. Cohort chips and curves can then match on them.
 - **Data preview** (`DataPreviewPanel.vue`, `curves.ts`): every attached
-  curve, with ghosts of the cohort's curves behind it. For cyclic coupons'
+  curve, with ghosts of the cohort's curves behind it.
+  The submission is red and the ghosts are faded and thinner: the same
+  convention as the parallel plot, the metadata ranges and the
+  contribution preview (#268, `--data-submitted` and `--data-existing`,
+  named by `DataLegend.vue`). For cyclic coupons'
   `stress_strain` files, the UVC material model is drawn dashed over the
   test, computed in the browser from the row's calibrated parameters run
   over the submitted strain history (#316), the same code as the Materials

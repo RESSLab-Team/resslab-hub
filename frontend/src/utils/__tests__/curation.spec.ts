@@ -1,5 +1,10 @@
 import type { CurationDetail } from '@/backend'
-import { CURVE_SOURCES, ghostColor } from '@/components/curation/curves'
+import {
+  CURVE_SOURCES,
+  EXISTING_COLOR,
+  ghostColor,
+  SUBMITTED_COLOR
+} from '@/components/curation/curves'
 import {
   cohortQueryFor,
   GHOST_CONFIGS,
@@ -303,5 +308,11 @@ describe('ghostColor', () => {
 
   it('mutes the palette rather than using it raw', () => {
     expect(ghostColor(0)).not.toBe(colorPalette[0])
+  })
+
+  it('never lands on the submitted red or the plain existing grey', () => {
+    const colors = [0, 1, 2, 3, 4, 5].map((index) => ghostColor(index).toLowerCase())
+    expect(colors).not.toContain(SUBMITTED_COLOR.toLowerCase())
+    expect(colors).not.toContain(EXISTING_COLOR.toLowerCase())
   })
 })

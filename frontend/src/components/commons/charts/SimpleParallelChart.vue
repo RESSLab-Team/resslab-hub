@@ -2,7 +2,7 @@
 import { isDivision, type ParallelField, type ParallelSelection } from '@/composables/chart'
 import { useEChart } from '@/composables/useEChart'
 import i18n from '@/plugins/i18n'
-import { AXIS, INK_SLATE, NAME, RED, SANS, TICK } from '@/plugins/echarts-theme'
+import { AXIS, EXISTING, NAME, RED, SANS, TICK } from '@/plugins/echarts-theme'
 import type { Value } from '@/utils/common'
 import type { ZRFontWeight } from '@/utils/echarts'
 import type { EChartsOption } from 'echarts'
@@ -35,7 +35,7 @@ const props = withDefaults(
     // fallback), painted as the red overlay when no brush selection exists.
     highlightIds?: string[]
     // Rows that must stay red whatever the brush does — the curation screen's
-    // submitted specimens. Unlike `highlightIds` these survive a gesture (the
+    // submitted specimens, drawn in --data-submitted (#268). Unlike `highlightIds` these survive a gesture (the
     // mid-drag overlay merge only touches the 'selection' series) and a zoom,
     // so the reviewed specimen never blends into the cohort.
     pinnedIds?: string[]
@@ -258,7 +258,9 @@ const option = computed<EChartsOption>(() => ({
       type: 'parallel',
       // A parallel view has no categorical dimension driving colour, so hue
       // carries no information — grey ink + density, red stays for selection.
-      lineStyle: { color: INK_SLATE, width: 1, opacity: 0.3 },
+      // The grey is the existing-data one (--data-existing), so on the curation
+      // review these rows read as "already in the database" (#268).
+      lineStyle: { color: EXISTING, width: 1, opacity: 0.3 },
       inactiveOpacity: 0.04,
       activeOpacity: 0.3,
       emphasis: { focus: 'series', lineStyle: { color: RED, width: 1.8, opacity: 1 } },

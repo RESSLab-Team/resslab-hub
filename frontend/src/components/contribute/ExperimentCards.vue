@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import InfoTooltip from '@/components/commons/InfoTooltip.vue'
 import IntakeReport from '@/components/contribute/IntakeReport.vue'
+import DataLegend, { type DataLegendItem } from '@/components/curation/DataLegend.vue'
 import { useContributionStore, type CardIssue, type IntakeSummary } from '@/stores/contribution'
 import { useNotificationStore } from '@/stores/notification'
 import { groupBy, type FieldGroupId } from '@/utils/fieldGroups'
@@ -394,6 +395,13 @@ async function onSlotDrop(uid: number, kind: TimeSeriesKind, event: DragEvent): 
   await attachFile(uid, kind, files[0])
 }
 
+// The same colour convention as the curation review (#268): what the contributor
+// submits is drawn in --data-submitted, so the two screens read alike.
+const hasCurves = computed(() => Object.keys(store.timeSeries).length > 0)
+const legendItems = computed<DataLegendItem[]>(() => [
+  { kind: 'submitted', label: t('contribute.legend.submitted') }
+])
+
 function chart(uid: number, kind: TimeSeriesKind) {
   const attached = store.timeSeries[`${uid}:${kind.key}`]
   return attached ? sparkline(attached.report.x, attached.report.y) : null
@@ -457,6 +465,7 @@ function noteFor(kind: TimeSeriesKind): string {
         </button>
       </div>
     </div>
+    <data-legend v-if="hasCurves" class="legend" :items="legendItems" />
 
     <div v-if="isEmptyBatch" class="intro">
       <p>{{ $t('contribute.editor.intro') }}</p>
@@ -946,6 +955,9 @@ function noteFor(kind: TimeSeriesKind): string {
 <style scoped>
 /* Section chrome — mirrors ContributeView's blocks so both stacks share one
    left edge and one header rhythm. */
+.legend {
+  margin: -6px 0 16px;
+}
 .block-bar {
   display: flex;
   align-items: baseline;
@@ -1887,7 +1899,7 @@ function noteFor(kind: TimeSeriesKind): string {
 }
 .spark polyline {
   fill: none;
-  stroke: var(--epfl-red);
+  stroke: var(--data-submitted);
   stroke-width: 1.4;
   stroke-linejoin: round;
   stroke-linecap: round;

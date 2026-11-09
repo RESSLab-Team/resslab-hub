@@ -1,4 +1,4 @@
-import { AXIS, INK, NAME, RED, SANS, TICK } from '@/plugins/echarts-theme'
+import { AXIS, EXISTING, INK, NAME, RED, SANS, TICK } from '@/plugins/echarts-theme'
 import { themes } from '@/plugins/vuetify'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
@@ -39,6 +39,12 @@ const dark = tokensOf('body.theme-dark')
 
 /** Hex compares case-insensitively; the files disagree on case on purpose. */
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
+
+/** Follow `var(--x)` through the light tokens until a plain value. */
+function resolved(value: string): string {
+  const match = /^var\((--[\w-]+)\)$/.exec(value.trim())
+  return match ? resolved(light[match[1]]) : value
+}
 
 describe('the token file is the source of the brand values', () => {
   it('has the raw palette the rest of the app copies', () => {
@@ -88,6 +94,11 @@ describe('the token file is the source of the brand values', () => {
       // On purpose: the axis name is quieter than the tick label, and this is
       // the one grey in the file that lands there.
       expect(same(NAME, dark['--fg-subtle'])).toBe(true)
+    })
+
+    it('draws submitted data in the token red and existing data in the token grey', () => {
+      expect(same(RED, resolved(light['--data-submitted']))).toBe(true)
+      expect(same(EXISTING, resolved(light['--data-existing']))).toBe(true)
     })
 
     it('renders text in the brand face, since a canvas cannot read a var()', () => {
