@@ -168,7 +168,7 @@ export const EXISTING_OPACITY = 0.85
 // grey line and the chips cannot be told apart again.
 
 /** How far the overlay hues go toward the existing-data grey. */
-const OVERLAY_BLEND = 0.4
+const OVERLAY_BLEND = 0.55
 
 /** Colour of the nth cohort overlay on a frame. */
 export function ghostColor(index: number): string {
