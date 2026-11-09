@@ -19,6 +19,12 @@ const emit = defineEmits<{
 
 const carouselItems = ref<DetailCarouselItem[][]>([])
 
+// The database stores `nr` and `na` both as null for numbers. For braces most
+// of them are `nr`, so an empty stress says "Not Reported". See #427.
+function formatStress(value?: number | null, fractionDigits = 0): string {
+  return value == null ? t('enum.notReported') : formatNumber(value, fractionDigits)
+}
+
 const isGussetPlate = computed<boolean>(() => props.brace.boundary_condition === 'Gusset plate')
 
 const imageTypeSrc = computed<string | undefined>(() => {
@@ -108,13 +114,13 @@ watch(
                 {{ brace.steel }}
               </property-item>
               <property-item :name="$t('detail.brace.nominal_yield_stress')" unit="MPa">
-                {{ formatNumber(brace.f_yn) }}
+                {{ formatStress(brace.f_yn) }}
               </property-item>
               <property-item :name="$t('detail.brace.measured_yield_stress')" unit="MPa">
-                {{ formatNumber(brace.fy_m) }}
+                {{ formatStress(brace.fy_m) }}
               </property-item>
               <property-item :name="$t('detail.brace.ultimate_tensile_stress')" unit="MPa">
-                {{ formatNumber(brace.f_um) }}
+                {{ formatStress(brace.f_um) }}
               </property-item>
               <h3>{{ $t('detail.brace.sub_gusset_plate') }}</h3>
               <template v-if="isGussetPlate">
@@ -122,13 +128,13 @@ watch(
                   {{ brace.steel_gp }}
                 </property-item>
                 <property-item :name="$t('detail.brace.nominal_yield_stress')" unit="MPa">
-                  {{ formatNumber(brace.f_yn_gp) }}
+                  {{ formatStress(brace.f_yn_gp) }}
                 </property-item>
                 <property-item :name="$t('detail.brace.measured_yield_stress')" unit="MPa">
-                  {{ formatNumber(brace.f_ym_gp, 2) }}
+                  {{ formatStress(brace.f_ym_gp, 2) }}
                 </property-item>
                 <property-item :name="$t('detail.brace.ultimate_tensile_stress')" unit="MPa">
-                  {{ formatNumber(brace.f_um_gp, 2) }}
+                  {{ formatStress(brace.f_um_gp, 2) }}
                 </property-item>
               </template>
               <template v-else>{{ $t('detail.brace.no_gusset_plates') }}</template>
