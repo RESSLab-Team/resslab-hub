@@ -37,6 +37,25 @@ const stillMissing = computed(() =>
     .filter((entry) => entry.count > 0)
 )
 
+/**
+ * Files placed by a guess (no folder name, headers shared with other types),
+ * with the types they could also have been, to say what to check.
+ */
+const assumed = computed(() =>
+  Object.entries(summary.value?.assumed ?? {}).map(([key, count]) => {
+    const kind = kinds.value.find((candidate) => candidate.key === key)
+    const names = (entry: TimeSeriesKind) => entry.columns.map((column) => column.name).join('|')
+    const others = kind
+      ? kinds.value.filter((other) => other !== kind && names(other) === names(kind))
+      : []
+    return {
+      key,
+      count,
+      other: others.map((other) => t(`contribute.timeseries.kind.${other.key}`)).join(', ')
+    }
+  })
+)
+
 const REASONS = ['orphan', 'ambiguous', 'unknown', 'foreign'] as const
 
 const groups = computed(() =>
@@ -154,6 +173,15 @@ function sharedKinds(items: IntakePending[]): TimeSeriesKind[] {
           $t('contribute.intake.line_attached', {
             kind: $t(`contribute.timeseries.kind.${key}`),
             count
+          })
+        }}
+      </li>
+      <li v-for="entry in assumed" :key="`assumed-${entry.key}`" class="warn">
+        {{
+          $t('contribute.intake.line_assumed', {
+            kind: $t(`contribute.timeseries.kind.${entry.key}`),
+            other: entry.other,
+            count: entry.count
           })
         }}
       </li>
