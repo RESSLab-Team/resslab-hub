@@ -143,6 +143,11 @@ export interface IntakeSummary {
   primaryCandidates: string[]
   /** Curve files attached, per response type key. */
   attached: Record<string, number>
+  /**
+   * Of those, per response type, the files placed by a guess: no folder told
+   * the type and the headers fit several (see `IntakeMatch.assumed`).
+   */
+  assumed: Record<string, number>
   /** Files that are not CSV. */
   skipped: string[]
   noise: number
@@ -714,6 +719,7 @@ export const useContributionStore = defineStore('contribution', () => {
       updated: 0,
       primaryCandidates: plan.primaryCandidates.map((file) => file.path),
       attached: {},
+      assumed: {},
       skipped: plan.skipped.map((file) => file.path),
       noise: plan.noise
     }
@@ -727,6 +733,8 @@ export const useContributionStore = defineStore('contribution', () => {
       if (uid === undefined) continue
       attachSeries(uid, match.kind, match.file.name, match.text)
       summary.attached[match.kind.key] = (summary.attached[match.kind.key] ?? 0) + 1
+      if (match.assumed)
+        summary.assumed[match.kind.key] = (summary.assumed[match.kind.key] ?? 0) + 1
     }
     // A file dropped again replaces its earlier pending entry (same path).
     const paths = new Set(plan.pending.map((entry) => entry.file.path))

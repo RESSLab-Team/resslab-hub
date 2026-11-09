@@ -505,7 +505,12 @@ describe('contribution store — bulk intake', () => {
       plan({
         primary: {
           file: intakeFile('braces/steel_braces.csv'),
-          table: { rows: [{ id: 'B1' }, { id: 'B2' }], matched: ['id'], unknown: [], missing: [] }
+          table: {
+            rows: [{ id: 'B1' }, { id: 'B2' }, { id: 'B3' }],
+            matched: ['id'],
+            unknown: [],
+            missing: []
+          }
         },
         matched: [
           {
@@ -513,6 +518,13 @@ describe('contribution store — bulk intake', () => {
             kind: FORCE_DISPLACEMENT,
             id: 'B2',
             text: CURVE
+          },
+          {
+            file: intakeFile('B3.csv'),
+            kind: FORCE_DISPLACEMENT,
+            id: 'B3',
+            text: CURVE,
+            assumed: true
           }
         ],
         pending: [
@@ -530,9 +542,10 @@ describe('contribution store — bulk intake', () => {
     )
     expect(summary).toMatchObject({
       primaryName: 'steel_braces.csv',
-      added: 2,
+      added: 3,
       updated: 0,
-      attached: { force_displacement: 1 },
+      attached: { force_displacement: 2 },
+      assumed: { force_displacement: 1 },
       skipped: ['notes.xlsx'],
       noise: 2
     })
